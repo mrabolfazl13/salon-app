@@ -1,24 +1,24 @@
 import apiClient from './api'
 
 interface LoginData {
-  email: string
+  phone: string
   password: string
 }
 
 interface RegisterData {
-  fullName: string
-  email: string
   phone: string
+  full_name: string
   password: string
+  role: 'user' | 'venue_manager'
 }
 
 interface AuthResponse {
   user: {
     id: number
     fullName: string
-    email: string
     phone: string
     role: 'user' | 'venue_manager' | 'club_admin' | 'super_admin'
+    isActive: boolean
     isVerified: boolean
   }
   token: string
@@ -59,7 +59,7 @@ export const authService = {
     return response.data
   },
 
-  forgotPassword: async (data: { email: string }) => {
+  forgotPassword: async (data: { phone: string }) => {
     const response = await apiClient.post('/auth/forgot-password', data)
     return response.data
   },

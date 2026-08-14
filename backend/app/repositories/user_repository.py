@@ -1,5 +1,6 @@
 from sqlmodel import Session, select
 from typing import Optional, List
+from datetime import datetime, timezone
 from app.models.user import User, UserRole
 from app.repositories.base import BaseRepository
 
@@ -18,8 +19,7 @@ class UserRepository(BaseRepository[User]):
         return self.get_all(is_active=True)
     
     def update_last_login(self, user_id: int) -> Optional[User]:
-        from datetime import datetime
-        return self.update(user_id, {"last_login": datetime.utcnow()})
+        return self.update(user_id, {"last_login": datetime.now(timezone.utc)})
     
     def verify_user(self, user_id: int) -> Optional[User]:
         return self.update(user_id, {"is_verified": True})

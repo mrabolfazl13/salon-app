@@ -11,7 +11,7 @@ export const venueService = {
     return response.data
   },
 
-  create: async (data: any) => {
+  create: async (data: { name: string; address: string; latitude: number; longitude: number; phone: string; description?: string; amenities?: string[]; images?: string[] }) => {
     const response = await apiClient.post('/venues', data)
     return response.data
   },
@@ -38,6 +38,17 @@ export const venueService = {
 
   getAmenities: async (id: number) => {
     const response = await apiClient.get(`/venues/${id}/amenities`)
+    return response.data
+  },
+
+  // Price management
+  setPrices: async (venueId: number, prices: Record<string, number>) => {
+    const response = await apiClient.post(`/venues/${venueId}/prices`, prices)
+    return response.data
+  },
+
+  getPrices: async (venueId: number) => {
+    const response = await apiClient.get(`/venues/${venueId}/prices`)
     return response.data
   },
 }

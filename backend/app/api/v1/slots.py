@@ -39,3 +39,14 @@ def generate_slots(
     
     slots = uow.slots.create_daily_slots(venue_id, slot_date)
     return {"message": f"Created {len(slots)} slots"}
+
+@router.get("/venue/{venue_id}/range", response_model=List[SlotResponse])
+def get_slots_by_date_range(
+    venue_id: int,
+    start_date: date = Query(..., description="تاریخ شروع"),
+    end_date: date = Query(..., description="تاریخ پایان"),
+    uow: UnitOfWork = Depends(get_unit_of_work)
+):
+    """دریافت سانس‌ها برای بازه تاریخ"""
+    slots = uow.slots.get_by_venue_and_date_range(venue_id, start_date, end_date)
+    return slots

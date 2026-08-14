@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
-from datetime import date, time, datetime
+from datetime import date, time, datetime, timezone
 from enum import Enum
 
 class SlotStatus(str, Enum):
@@ -24,7 +24,7 @@ class Slot(SQLModel, table=True):
     competition_winner_id: Optional[int] = Field(default=None, foreign_key="price_competitions.id", sa_column_kwargs={"nullable": True})
     is_contract_slot: bool = Field(default=False)
     contract_id: Optional[int] = Field(foreign_key="contracts.id", default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     venue: "Venue" = Relationship(back_populates="slots")
     bookings: List["Booking"] = Relationship(back_populates="slot")

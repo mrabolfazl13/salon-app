@@ -1,8 +1,8 @@
 # backend/app/main.py
-from fastapi import FastAPI, Depends
+from fastapi import FastAPI, Depends, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
-from datetime import datetime
+from datetime import datetime, timezone
 
 from app.config import settings
 from app.database import init_db
@@ -36,7 +36,7 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -44,7 +44,7 @@ app.add_middleware(
 
 # WebSocket
 @app.websocket("/ws/{role}")
-async def websocket_endpoint(websocket, role: str):
+async def websocket_endpoint(websocket: WebSocket, role: str):
     await manager.connect(websocket, role)
     try:
         while True:
@@ -53,12 +53,22 @@ async def websocket_endpoint(websocket, role: str):
     except Exception:
         manager.disconnect(websocket, role)
 
+@app.websocket("/ws/user/{user_id}")
+async def websocket_user_endpoint(websocket: WebSocket, user_id: int):
+    await manager.connect(websocket, "users", user_id)
+    try:
+        while True:
+            data = await websocket.receive_text()
+            await websocket.send_text(f"Echo: {data}")
+    except Exception:
+        manager.disconnect(websocket, "users", user_id)
+
 # Health check
 @app.get("/health")
 async def health_check(uow: UnitOfWork = Depends(get_unit_of_work)):
     return {
         "status": "healthy",
-        "timestamp": datetime.utcnow().isoformat(),
+        "timestamp": datetime.now(timezone.utc).isoformat(),
         "database": "connected" if uow.session else "disconnected"
     }
 

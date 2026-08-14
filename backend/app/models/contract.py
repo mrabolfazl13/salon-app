@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
-from datetime import date, time, datetime
+from datetime import date, time, datetime, timezone
 from enum import Enum
 
 class ContractStatus(str, Enum):
@@ -45,8 +45,8 @@ class Contract(SQLModel, table=True):
     description: Optional[str] = None
     auto_renew: bool = Field(default=False)
     
-    created_at: datetime = Field(default_factory=datetime.utcnow)
-    updated_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     user: "User" = Relationship(back_populates="contracts")
     venue: "Venue" = Relationship(back_populates="contracts")
@@ -65,7 +65,7 @@ class ContractSlot(SQLModel, table=True):
     is_cancelled: bool = Field(default=False)
     cancellation_reason: Optional[str] = None
     
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     contract: "Contract" = Relationship(back_populates="generated_slots")
     slot: "Slot" = Relationship(back_populates="contract_reference")
@@ -82,6 +82,6 @@ class ContractPayment(SQLModel, table=True):
     is_paid: bool = Field(default=False)
     transaction_id: Optional[str] = None
     
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     contract: "Contract" = Relationship(back_populates="payments")

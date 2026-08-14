@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Session, select, func, update, delete
 from typing import TypeVar, Generic, Type, List, Optional, Dict, Any, Union
-from datetime import datetime
-from sqlalchemy import asc, desc
+from datetime import datetime, timezone
+from sqlalchemy import asc, desc, text
 
 ModelType = TypeVar("ModelType", bound=SQLModel)
 
@@ -17,20 +17,27 @@ class BaseRepository(Generic[ModelType]):
         else:
             obj = data
         self.session.add(obj)
-        self.session.commit()
+        # commit توسط UnitOfWork مدیریت می‌شود
+        self.session.flush()
         self.session.refresh(obj)
         return obj
     
     def bulk_create(self, data_list: List[Dict[str, Any]]) -> List[ModelType]:
         objects = [self.model(**data) for data in data_list]
         self.session.add_all(objects)
-        self.session.commit()
+        # commit توسط UnitOfWork مدیریت می‌شود
+        self.session.flush()
         for obj in objects:
             self.session.refresh(obj)
         return objects
     
     def get_by_id(self, id: int) -> Optional[ModelType]:
         return self.session.get(self.model, id)
+    
+    def get_by_id_with_lock(self, id: int) -> Optional[ModelType]:
+        """گرفتن رکورد با قفل دیتابیسی (SELECT ... FOR UPDATE) برای جلوگیری از race condition"""
+        stmt = select(self.model).where(self.model.id == id).with_for_update()
+        return self.session.exec(stmt).first()
     
     def get_one(self, **filters) -> Optional[ModelType]:
         query = select(self.model)
@@ -65,9 +72,10 @@ class BaseRepository(Generic[ModelType]):
                 setattr(obj, key, value)
         
         if hasattr(obj, "updated_at"):
-            setattr(obj, "updated_at", datetime.utcnow())
+            setattr(obj, "updated_at", datetime.now(timezone.utc))
         
-        self.session.commit()
+        # commit توسط UnitOfWork مدیریت می‌شود
+        self.session.flush()
         self.session.refresh(obj)
         return obj
     
@@ -79,11 +87,12 @@ class BaseRepository(Generic[ModelType]):
         if soft_delete and hasattr(obj, delete_field):
             setattr(obj, delete_field, False)
             if hasattr(obj, "updated_at"):
-                setattr(obj, "updated_at", datetime.utcnow())
-            self.session.commit()
+                setattr(obj, "updated_at", datetime.now(timezone.utc))
         else:
             self.session.delete(obj)
-            self.session.commit()
+        
+        # commit توسط UnitOfWork مدیریت می‌شود
+        self.session.flush()
         
         return True
     

@@ -10,6 +10,11 @@ class SlotRepository(BaseRepository[Slot]):
     def __init__(self, session: Session):
         super().__init__(Slot, session)
     
+    def get_by_id_with_lock(self, slot_id: int) -> Optional[Slot]:
+        """گرفتن سانس با قفل دیتابیسی برای جلوگیری از race condition"""
+        statement = select(Slot).where(Slot.id == slot_id).with_for_update()
+        return self.session.exec(statement).first()
+
     def get_by_venue_and_date(self, venue_id: int, slot_date: date) -> List[Slot]:
         """گرفتن سانس‌های یک سالن در تاریخ مشخص"""
         return self.get_all(venue_id=venue_id, slot_date=slot_date)

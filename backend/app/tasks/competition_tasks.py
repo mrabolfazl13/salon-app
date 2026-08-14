@@ -7,6 +7,7 @@ from celery.schedules import crontab
 def resolve_expired_competitions():
     with UnitOfWork() as uow:
         resolved_count = CompetitionService.resolve_expired_competitions(uow)
+        uow.commit()
         return {"resolved_count": resolved_count}
 
 celery_app.conf.beat_schedule = {

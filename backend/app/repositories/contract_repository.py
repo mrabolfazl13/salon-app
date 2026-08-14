@@ -1,5 +1,5 @@
 from sqlmodel import Session, select
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import Optional, List
 from app.models.contract import Contract, ContractSlot, ContractPayment, ContractStatus, PaymentStatus
 from app.repositories.base import BaseRepository
@@ -32,10 +32,23 @@ class ContractRepository(BaseRepository[Contract]):
         return self.session.exec(statement).all()
     
     def renew_contract(self, contract_id: int, new_end_date: date) -> Optional[Contract]:
-        return self.update(contract_id, {"end_date": new_end_date, "updated_at": datetime.utcnow()})
+        return self.update(contract_id, {"end_date": new_end_date, "updated_at": datetime.now(timezone.utc)})
     
     def update_payment_status(self, contract_id: int, status: PaymentStatus) -> Optional[Contract]:
         return self.update(contract_id, {"payment_status": status})
+    
+    def get_conflicting_contracts(self, venue_id: int, day_of_week: int, start_time, end_time, start_date: date, end_date: date, exclude_id: Optional[int] = None) -> List[Contract]:
+        """بررسی تداخل زمانی قراردادها در یک روز مشخص"""
+        statement = select(Contract).where(
+            Contract.venue_id == venue_id,
+            Contract.day_of_week == day_of_week,
+            Contract.status == ContractStatus.ACTIVE,
+            Contract.start_date <= end_date,
+            Contract.end_date >= start_date
+        )
+        if exclude_id:
+            statement = statement.where(Contract.id != exclude_id)
+        return self.session.exec(statement).all()
 
 class ContractSlotRepository(BaseRepository[ContractSlot]):
     
@@ -72,7 +85,7 @@ class ContractPaymentRepository(BaseRepository[ContractPayment]):
         return self.get_all(contract_id=contract_id, is_paid=False)
     
     def mark_as_paid(self, payment_id: int, transaction_id: str) -> Optional[ContractPayment]:
-        return self.update(payment_id, {"is_paid": True, "paid_at": datetime.utcnow(), "transaction_id": transaction_id})
+        return self.update(payment_id, {"is_paid": True, "paid_at": datetime.now(timezone.utc), "transaction_id": transaction_id})
     
     def get_overdue_payments(self) -> List[ContractPayment]:
         statement = select(ContractPayment).where(

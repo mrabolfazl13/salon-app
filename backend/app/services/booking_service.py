@@ -7,14 +7,16 @@ class BookingService:
     
     @staticmethod
     def create_booking(uow: UnitOfWork, slot_id: int, user_id: int):
-        slot = uow.slots.get_by_id(slot_id)
+        # استفاده از قفل دیتابیسی (SELECT ... FOR UPDATE) برای جلوگیری از race condition
+        slot = uow.slots.get_by_id_with_lock(slot_id)
         if not slot:
             raise HTTPException(status_code=404, detail="Slot not found")
         
         if slot.status != SlotStatus.AVAILABLE:
             raise HTTPException(status_code=400, detail="Slot is not available")
         
-        existing = uow.bookings.get_by_slot(slot_id)
+        # بررسی رزرو تکراری با قفل - از race condition جلوگیری می‌کند
+        existing = uow.bookings.get_by_slot_with_lock(slot_id)
         if existing:
             raise HTTPException(status_code=400, detail="Slot already booked")
         

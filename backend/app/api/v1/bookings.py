@@ -17,6 +17,8 @@ async def create_booking(
 ):
     booking = BookingService.create_booking(uow, booking_data.slot_id, current_user.id)
     
+    uow.commit()
+    
     slot = uow.slots.get_by_id(booking_data.slot_id)
     if slot:
         venue = uow.venues.get_by_id(slot.venue_id)
@@ -44,6 +46,8 @@ async def cancel_booking(
     result = BookingService.cancel_booking(uow, booking_id, current_user.id)
     if not result:
         raise HTTPException(status_code=400, detail="Cannot cancel")
+    
+    uow.commit()
     
     await notification_service.notify_booking_cancelled(current_user.id, {})
     return {"message": "Booking cancelled"}

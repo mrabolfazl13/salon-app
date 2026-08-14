@@ -10,10 +10,12 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import Card, { CardContent } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast'
+import { authService } from '@/services/auth'
+import { useAuthStore } from '@/store/authStore'
 
 const loginSchema = z.object({
-  email: z.string().email('ایمیل معتبر وارد کنید'),
-  password: z.string().min(6, 'رمز عبور حداقل 6 کاراکتر'),
+  phone: z.string().regex(/^09[0-9]{9}$/, 'شماره موبایل معتبر وارد کنید'),
+  password: z.string().min(4, 'رمز عبور حداقل ۴ کاراکتر'),
 })
 
 type LoginForm = z.infer<typeof loginSchema>
@@ -24,6 +26,7 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const navigate = useNavigate()
   const { success, error: toastError } = useToast()
+  const login = useAuthStore((state) => state.login)
 
   const {
     register,
@@ -37,12 +40,24 @@ const Login: React.FC = () => {
     setLoading(true)
     setError(null)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      const response = await authService.login({
+        phone: data.phone,
+        password: data.password,
+      })
+      // Store token in localStorage via apiClient interceptor
+      localStorage.setItem('auth-token', response.token)
       success('ورود موفقیت‌آمیز! 🎉')
-      navigate('/dashboard')
-    } catch (err) {
-      setError('خطا در ورود. لطفاً دوباره تلاش کنید.')
-      toastError('خطا در ورود')
+      // Redirect based on role
+      const role = response.user.role
+      if (role === 'venue_manager' || role === 'super_admin') {
+        navigate('/dashboard')
+      } else {
+        navigate('/venues')
+      }
+    } catch (err: any) {
+      const message = err.response?.data?.detail || 'شماره موبایل یا رمز عبور اشتباه است.'
+      setError(message)
+      toastError(message)
     } finally {
       setLoading(false)
     }
@@ -95,11 +110,10 @@ const Login: React.FC = () => {
             {/* Form */}
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               <Input
-                {...register('email')}
-                type="email"
-                placeholder="ایمیل"
-                icon="mdi:email-outline"
-                error={errors.email?.message}
+                {...register('phone')}
+                placeholder="شماره موبایل"
+                icon="mdi:phone-outline"
+                error={errors.phone?.message}
                 className="h-12 rounded-xl border-gray-300 focus:border-blue-500"
               />
 
@@ -147,36 +161,6 @@ const Login: React.FC = () => {
                 <Icon icon="mdi:login" className="h-5 w-5 ml-2" />
                 ورود
               </Button>
-
-              {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="px-4 bg-white text-sm text-gray-500">یا</span>
-                </div>
-              </div>
-
-              {/* Social Buttons */}
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-                  icon="mdi:google"
-                >
-                  گوگل
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-                  icon="mdi:github"
-                >
-                  گیت‌هاب
-                </Button>
-              </div>
 
               {/* Register Link */}
               <p className="text-center text-sm text-gray-600">

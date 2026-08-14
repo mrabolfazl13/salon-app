@@ -3,7 +3,7 @@ from sqlmodel import Session
 from app.database import engine
 from app.models import User, Venue, Slot, Booking, PriceCompetition, Contract, UserRole, SlotStatus, CompetitionStatus
 from app.utils.auth import get_password_hash
-from datetime import datetime, date, time, timedelta
+from datetime import datetime, date, time, timedelta, timezone
 import random
 
 def seed_database():
@@ -19,7 +19,7 @@ def seed_database():
                 role=UserRole.SUPER_ADMIN,
                 is_active=True,
                 is_verified=True,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             ),
             User(
                 phone="09121111111",
@@ -28,7 +28,7 @@ def seed_database():
                 role=UserRole.VENUE_MANAGER,
                 is_active=True,
                 is_verified=True,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             ),
             User(
                 phone="09122222222",
@@ -37,7 +37,7 @@ def seed_database():
                 role=UserRole.VENUE_MANAGER,
                 is_active=True,
                 is_verified=True,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             ),
             User(
                 phone="09123333333",
@@ -46,7 +46,7 @@ def seed_database():
                 role=UserRole.USER,
                 is_active=True,
                 is_verified=True,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             ),
             User(
                 phone="09124444444",
@@ -55,7 +55,7 @@ def seed_database():
                 role=UserRole.USER,
                 is_active=True,
                 is_verified=True,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             ),
             User(
                 phone="09125555555",
@@ -64,7 +64,7 @@ def seed_database():
                 role=UserRole.USER,
                 is_active=True,
                 is_verified=True,
-                created_at=datetime.utcnow()
+                created_at=datetime.now(timezone.utc)
             ),
         ]
         session.add_all(users)
@@ -192,7 +192,7 @@ def seed_database():
                 venue_manager_id=random.choice([2, 3]),
                 offered_price=random.randint(150000, 250000),
                 status=CompetitionStatus.ACTIVE,
-                expires_at=datetime.utcnow() + timedelta(hours=random.randint(2, 12))
+                expires_at=datetime.now(timezone.utc) + timedelta(hours=random.randint(2, 12))
             )
             session.add(competition)
             competitions.append(competition)

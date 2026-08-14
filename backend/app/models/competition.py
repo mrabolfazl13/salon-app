@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import List, Optional
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 
 class CompetitionStatus(str, Enum):
@@ -19,7 +19,7 @@ class PriceCompetition(SQLModel, table=True):
     offered_price: int
     status: CompetitionStatus = Field(default=CompetitionStatus.ACTIVE)
     expires_at: datetime
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     slot: "Slot" = Relationship(
         back_populates="competitions",

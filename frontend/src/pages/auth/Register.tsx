@@ -10,14 +10,15 @@ import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import Card, { CardContent } from '@/components/ui/Card'
 import { useToast } from '@/components/ui/Toast'
+import { authService } from '@/services/auth'
 
 const registerSchema = z
   .object({
-    fullName: z.string().min(3, 'نام حداقل 3 کاراکتر'),
+    fullName: z.string().min(3, 'نام حداقل ۳ کاراکتر'),
     phone: z.string().regex(/^09[0-9]{9}$/, 'شماره موبایل معتبر وارد کنید'),
-    email: z.string().email('ایمیل معتبر وارد کنید'),
-    password: z.string().min(6, 'رمز عبور حداقل 6 کاراکتر'),
+    password: z.string().min(4, 'رمز عبور حداقل ۴ کاراکتر'),
     confirmPassword: z.string(),
+    role: z.enum(['user', 'venue_manager']),
     terms: z.boolean().refine((val) => val === true, {
       message: 'پذیرش قوانین الزامی است',
     }),
@@ -36,6 +37,7 @@ const Register: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
+  const [selectedRole, setSelectedRole] = useState<'user' | 'venue_manager'>('user')
   const navigate = useNavigate()
   const { success: toastSuccess, error: toastError } = useToast()
 
@@ -46,22 +48,30 @@ const Register: React.FC = () => {
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
+    defaultValues: {
+      role: 'user',
+    },
   })
 
   const password = watch('password')
-  const fullName = watch('fullName')
 
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true)
     setError(null)
     try {
-      await new Promise((resolve) => setTimeout(resolve, 1500))
+      await authService.register({
+        phone: data.phone,
+        full_name: data.fullName,
+        password: data.password,
+        role: data.role,
+      })
       setSuccess(true)
       toastSuccess('ثبت‌نام موفقیت‌آمیز! 🎉')
       setTimeout(() => navigate('/login'), 2000)
-    } catch (err) {
-      setError('خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.')
-      toastError('خطا در ثبت‌نام')
+    } catch (err: any) {
+      const message = err.response?.data?.detail || 'خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.'
+      setError(message)
+      toastError(message)
     } finally {
       setLoading(false)
     }
@@ -177,6 +187,36 @@ const Register: React.FC = () => {
                   transition={{ duration: 0.3 }}
                   className="space-y-4"
                 >
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">نوع حساب</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole('venue_manager')}
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                          selectedRole === 'venue_manager'
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                        }`}
+                      >
+                        <Icon icon="mdi:store" className="h-6 w-6" />
+                        <span className="text-sm font-medium">مدیر سالن</span>
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedRole('user')}
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                          selectedRole === 'user'
+                            ? 'border-blue-500 bg-blue-50 text-blue-700'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-600'
+                        }`}
+                      >
+                        <Icon icon="mdi:account" className="h-6 w-6" />
+                        <span className="text-sm font-medium">کاربر عادی</span>
+                      </button>
+                    </div>
+                  </div>
+
                   <Input
                     {...register('fullName')}
                     placeholder="نام و نام خانوادگی"
@@ -189,14 +229,6 @@ const Register: React.FC = () => {
                     placeholder="شماره موبایل"
                     icon="mdi:phone-outline"
                     error={errors.phone?.message}
-                    className="h-12 rounded-xl border-gray-300 focus:border-blue-500"
-                  />
-                  <Input
-                    {...register('email')}
-                    type="email"
-                    placeholder="ایمیل"
-                    icon="mdi:email-outline"
-                    error={errors.email?.message}
                     className="h-12 rounded-xl border-gray-300 focus:border-blue-500"
                   />
                 </motion.div>
@@ -252,7 +284,7 @@ const Register: React.FC = () => {
                             : 'قوی'}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500">حداقل ۶ کاراکتر</p>
+                      <p className="text-xs text-gray-500">حداقل ۴ کاراکتر</p>
                     </div>
                   )}
 
@@ -311,7 +343,11 @@ const Register: React.FC = () => {
                   <div className="bg-gradient-to-r from-blue-50 to-purple-50 rounded-2xl p-4 border border-blue-100/50">
                     <div className="flex items-center gap-2 text-sm text-gray-600">
                       <Icon icon="mdi:information" className="h-5 w-5 text-blue-600 flex-shrink-0" />
-                      <span>اطلاعات شما برای ارسال پیام‌های مربوط به رزرو استفاده می‌شود</span>
+                      <span>
+                        {selectedRole === 'venue_manager'
+                          ? 'به عنوان مدیر سالن می‌توانید سالن خود را مدیریت و قیمت‌گذاری کنید'
+                          : 'اطلاعات شما برای ارسال پیام‌های مربوط به رزرو استفاده می‌شود'}
+                      </span>
                     </div>
                   </div>
                 </motion.div>
@@ -349,39 +385,9 @@ const Register: React.FC = () => {
                     loading={loading}
                   >
                     <Icon icon="mdi:check" className="h-5 w-5 ml-2" />
-                    ثبت‌نام
+                    ثبت‌نام ({selectedRole === 'venue_manager' ? 'مدیر سالن' : 'کاربر'})
                   </Button>
                 )}
-              </div>
-
-              {/* Divider */}
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center">
-                  <span className="px-4 bg-white text-sm text-gray-500">یا</span>
-                </div>
-              </div>
-
-              {/* Social Buttons */}
-              <div className="grid grid-cols-2 gap-3">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-                  icon="mdi:google"
-                >
-                  گوگل
-                </Button>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="w-full border-gray-300 text-gray-700 hover:bg-gray-50"
-                  icon="mdi:github"
-                >
-                  گیت‌هاب
-                </Button>
               </div>
 
               {/* Login Link */}

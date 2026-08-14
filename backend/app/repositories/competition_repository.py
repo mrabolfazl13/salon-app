@@ -1,5 +1,5 @@
 from sqlmodel import Session, select
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional, List
 from app.models.competition import PriceCompetition, CompetitionStatus
 from app.repositories.base import BaseRepository
@@ -31,7 +31,7 @@ class CompetitionRepository(BaseRepository[PriceCompetition]):
     def get_expired_competitions(self) -> List[PriceCompetition]:
         statement = select(PriceCompetition).where(
             PriceCompetition.status == CompetitionStatus.ACTIVE,
-            PriceCompetition.expires_at < datetime.utcnow()
+            PriceCompetition.expires_at < datetime.now(timezone.utc)
         )
         return self.session.exec(statement).all()
     

@@ -26,7 +26,7 @@ class UserCreate(UserBase):
         return v
 
 class UserLogin(BaseModel):
-    phone: str
+    phone: str = Field(..., pattern=r"^09[0-9]{9}$")
     password: str = Field(..., max_length=70)
     
     @field_validator('password')

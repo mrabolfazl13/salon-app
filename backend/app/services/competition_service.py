@@ -1,5 +1,5 @@
 from fastapi import HTTPException
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.unit_of_work import UnitOfWork
 from app.models.slot import SlotStatus
 from app.models.competition import CompetitionStatus
@@ -29,7 +29,7 @@ class CompetitionService:
             "venue_id": slot.venue_id,
             "venue_manager_id": manager_id,
             "offered_price": offered_price,
-            "expires_at": datetime.utcnow() + timedelta(hours=24)
+            "expires_at": datetime.now(timezone.utc) + timedelta(hours=24)
         })
         
         return competition
@@ -53,7 +53,7 @@ class CompetitionService:
             "venue_id": slot.venue_id,
             "venue_manager_id": manager_id,
             "offered_price": offered_price,
-            "expires_at": datetime.utcnow() + timedelta(hours=24)
+            "expires_at": datetime.now(timezone.utc) + timedelta(hours=24)
         })
         
         return new_bid
@@ -63,11 +63,19 @@ class CompetitionService:
         expired = uow.competitions.get_expired_competitions()
         resolved_count = 0
         
+        # گروه‌بندی رقابت‌های منقضی شده بر اساس slot_id
+        slot_groups: dict = {}
         for comp in expired:
-            best_bid = uow.competitions.get_best_bid(comp.slot_id)
+            if comp.slot_id not in slot_groups:
+                slot_groups[comp.slot_id] = []
+            slot_groups[comp.slot_id].append(comp)
+        
+        for slot_id, competitions in slot_groups.items():
+            # گرفتن بهترین پیشنهاد برای این سانس
+            best_bid = uow.competitions.get_best_bid(slot_id)
             
             if best_bid:
-                uow.slots.update(comp.slot_id, {
+                uow.slots.update(slot_id, {
                     "current_price": best_bid.offered_price,
                     "competition_winner_id": best_bid.id,
                     "is_competition_enabled": False,
@@ -76,7 +84,11 @@ class CompetitionService:
                 uow.competitions.mark_as_won(best_bid.id)
                 resolved_count += 1
             else:
-                uow.slots.update(comp.slot_id, {"is_competition_enabled": False, "status": SlotStatus.AVAILABLE})
-                uow.competitions.mark_as_expired(comp.id)
+                uow.slots.update(slot_id, {"is_competition_enabled": False, "status": SlotStatus.AVAILABLE})
+            
+            # تمام رقابت‌های دیگر برای این سانس را منقضی کن
+            for comp in competitions:
+                if not best_bid or comp.id != best_bid.id:
+                    uow.competitions.mark_as_expired(comp.id)
         
         return resolved_count

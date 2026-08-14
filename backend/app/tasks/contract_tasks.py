@@ -8,6 +8,7 @@ def check_expired_contracts():
         expired = uow.contracts.get_expired_contracts()
         for contract in expired:
             uow.contracts.update(contract.id, {"status": "expired"})
+        uow.commit()
         return {"expired_count": len(expired)}
 
 celery_app.conf.beat_schedule.update({

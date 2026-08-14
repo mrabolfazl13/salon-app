@@ -96,5 +96,14 @@ class UnitOfWork:
         return self._repositories["contract_payments"]
 
 def get_unit_of_work():
-    with UnitOfWork() as uow:
+    uow = UnitOfWork()
+    uow._session = Session(engine)
+    try:
         yield uow
+        uow.commit()
+    except Exception:
+        uow.rollback()
+        raise
+    finally:
+        uow._session.close()
+        uow._session = None

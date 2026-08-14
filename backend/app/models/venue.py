@@ -1,6 +1,6 @@
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 from app.models.user import User
 
 class Venue(SQLModel, table=True):
@@ -18,7 +18,7 @@ class Venue(SQLModel, table=True):
     is_verified: bool = Field(default=False)
     manager_id: int = Field(foreign_key="users.id")
     club_id: Optional[int] = Field(foreign_key="clubs.id", default=None)
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     manager: "User" = Relationship(back_populates="managed_venues")
     slots: List["Slot"] = Relationship(back_populates="venue")
@@ -31,7 +31,7 @@ class Club(SQLModel, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(unique=True, max_length=100)
     owner_id: int = Field(foreign_key="users.id")
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     venues: List[Venue] = Relationship(back_populates="club")
     owner: User = Relationship()

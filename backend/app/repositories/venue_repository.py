@@ -11,8 +11,10 @@ class VenueRepository(BaseRepository[Venue]):
     def __init__(self, session: Session):
         super().__init__(Venue, session)
     
-    def get_by_manager(self, manager_id: int) -> List[Venue]:
-        return self.get_all(manager_id=manager_id)
+    def get_by_manager_id(self, manager_id: int) -> List[Venue]:
+        """گرفتن سالن‌های یک مدیر"""
+        statement = select(Venue).where(Venue.manager_id == manager_id)
+        return self.session.exec(statement).all()
     
     def get_by_club(self, club_id: int) -> List[Venue]:
         return self.get_all(club_id=club_id)

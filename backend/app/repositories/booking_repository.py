@@ -1,4 +1,5 @@
 from sqlmodel import Session, select, and_, func
+from sqlalchemy import text
 from datetime import date, datetime, timedelta
 from typing import Optional, List
 from app.models.booking import Booking, BookingStatus
@@ -15,6 +16,14 @@ class BookingRepository(BaseRepository[Booking]):
     
     def get_by_slot(self, slot_id: int) -> Optional[Booking]:
         return self.get_one(slot_id=slot_id)
+    
+    def get_by_slot_with_lock(self, slot_id: int) -> Optional[Booking]:
+        """بررسی رزرو با قفل دیتابیسی برای جلوگیری از race condition"""
+        statement = select(Booking).where(
+            Booking.slot_id == slot_id,
+            Booking.status == BookingStatus.CONFIRMED
+        ).with_for_update()
+        return self.session.exec(statement).first()
     
     def get_by_venue(self, venue_id: int, start_date: date, end_date: date) -> List[Booking]:
         statement = select(Booking).join(Slot).where(
