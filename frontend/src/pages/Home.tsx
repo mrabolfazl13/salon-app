@@ -1,401 +1,429 @@
 // src/pages/Home.tsx
-import React from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import Layout from '@/components/layout/Layout'
 import { Button } from '@/components/ui/Button'
+import { sportsApi, LiveMatch, NewsItem } from '@/services/sportsApi'
 
 const Home: React.FC = () => {
-  const features = [
-    {
-      icon: 'mdi:calendar-check',
-      title: 'رزرو آسان',
-      description: 'در چند ثانیه سالن مورد نظر خود را رزرو کنید',
-      color: 'from-blue-500 to-blue-600',
-      bg: 'bg-blue-50',
-      text: 'text-blue-600',
-    },
-    {
-      icon: 'mdi:trophy',
-      title: 'رقابت قیمت',
-      description: 'از رقابت بین سالن‌ها بهترین قیمت را پیدا کنید',
-      color: 'from-green-500 to-emerald-600',
-      bg: 'bg-green-50',
-      text: 'text-green-600',
-    },
-    {
-      icon: 'mdi:file-document',
-      title: 'قرارداد بلندمدت',
-      description: 'برای تیم‌های حرفه‌ای قرارداد ثبت کنید',
-      color: 'from-purple-500 to-indigo-600',
-      bg: 'bg-purple-50',
-      text: 'text-purple-600',
-    },
-    {
-      icon: 'mdi:account-group',
-      title: 'مدیریت تیم',
-      description: 'تیم خود را مدیریت و برنامه‌ریزی کنید',
-      color: 'from-orange-500 to-amber-600',
-      bg: 'bg-orange-50',
-      text: 'text-orange-600',
-    },
-    {
-      icon: 'mdi:shield-check',
-      title: 'امنیت بالا',
-      description: 'با سیستم امنیتی پیشرفته از اطلاعات شما محافظت می‌کنیم',
-      color: 'from-red-500 to-rose-600',
-      bg: 'bg-red-50',
-      text: 'text-red-600',
-    },
-    {
-      icon: 'mdi:rocket',
-      title: 'سرعت بالا',
-      description: 'با سرعت بالا و بدون تاخیر سالن خود را رزرو کنید',
-      color: 'from-cyan-500 to-blue-600',
-      bg: 'bg-cyan-50',
-      text: 'text-cyan-600',
-    },
-  ]
+  const [liveMatches, setLiveMatches] = useState<LiveMatch[]>([])
+  const [upcomingMatches, setUpcomingMatches] = useState<LiveMatch[]>([])
+  const [finishedMatches, setFinishedMatches] = useState<LiveMatch[]>([])
+  const [news, setNews] = useState<NewsItem[]>([])
+  const [loading, setLoading] = useState(true)
+  const [activeTab, setActiveTab] = useState<'live' | 'upcoming' | 'finished'>('live')
 
-  const stats = [
-    { value: '۵۰+', label: 'سالن فعال', icon: 'mdi:store', color: 'text-blue-600', bg: 'bg-blue-50' },
-    { value: '۱۲۰۰+', label: 'رزرو انجام شده', icon: 'mdi:calendar-check', color: 'text-green-600', bg: 'bg-green-50' },
-    { value: '۹۸%', label: 'رضایت کاربران', icon: 'mdi:star', color: 'text-purple-600', bg: 'bg-purple-50' },
-    { value: '۲۴/۷', label: 'پشتیبانی', icon: 'mdi:headset', color: 'text-orange-600', bg: 'bg-orange-50' },
-  ]
+  // Fetch sports data
+  const fetchSportsData = useCallback(async () => {
+    try {
+      setLoading(true)
+      const [matchesData, newsData] = await Promise.all([
+        sportsApi.getAllMatches(),
+        sportsApi.getSportsNews(),
+      ])
+      setLiveMatches(matchesData.live || [])
+      setUpcomingMatches(matchesData.upcoming || [])
+      setFinishedMatches(matchesData.finished || [])
+      setNews(newsData || [])
+    } catch (error) {
+      console.error('Error fetching sports data:', error)
+    } finally {
+      setLoading(false)
+    }
+  }, [])
 
-  const testimonials = [
-    {
-      name: 'علی رضایی',
-      role: 'مدیر تیم آبی‌ها',
-      comment: 'بهترین پلتفرم رزرو سالن فوتسال. خیلی سریع و آسان!',
-      rating: 5,
-    },
-    {
-      name: 'سارا حسینی',
-      role: 'بازیکن حرفه‌ای',
-      comment: 'رقابت قیمت خیلی عالی بود. بهترین قیمت رو گرفتم.',
-      rating: 5,
-    },
-    {
-      name: 'محمد کریمی',
-      role: 'مدیر سالن سبز',
-      comment: 'سیستم عالی و پشتیبانی فوق‌العاده. حتماً پیشنهاد می‌کنم.',
-      rating: 4,
-    },
+  useEffect(() => {
+    fetchSportsData()
+    // Refresh live matches every 30 seconds
+    const interval = setInterval(fetchSportsData, 30000)
+    return () => clearInterval(interval)
+  }, [fetchSportsData])
+
+  const getActiveMatches = () => {
+    switch (activeTab) {
+      case 'live': return liveMatches
+      case 'upcoming': return upcomingMatches
+      case 'finished': return finishedMatches
+    }
+  }
+
+  const formatTime = (time?: string, date?: string) => {
+    if (!time) return ''
+    return time
+  }
+
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'live': return 'bg-red-500 animate-pulse'
+      case 'upcoming': return 'bg-blue-500'
+      case 'finished': return 'bg-gray-500'
+      default: return 'bg-gray-400'
+    }
+  }
+
+  const quickActions = [
+    { icon: 'mdi:store', title: 'سالن‌ها', href: '/venues', color: 'from-blue-500 to-blue-600' },
+    { icon: 'mdi:calendar-check', title: 'رزرو', href: '/bookings', color: 'from-green-500 to-emerald-600' },
+    { icon: 'mdi:trophy', title: 'رقابت‌ها', href: '/competitions', color: 'from-purple-500 to-indigo-600' },
+    { icon: 'mdi:file-document', title: 'قراردادها', href: '/contracts', color: 'from-orange-500 to-amber-600' },
   ]
 
   return (
     <Layout>
-      {/* Hero Section */}
-      <section className="relative overflow-hidden pt-20 pb-28 md:pt-32 md:pb-40 bg-gradient-to-b from-blue-50 via-white to-white">
-        {/* Background Decorations */}
-        <div className="absolute -top-40 -right-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-float" />
-        <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-purple-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-gradient-to-r from-blue-500/5 to-purple-500/5 rounded-full blur-3xl" />
+      {/* Mobile-First Hero Section with Bottom Navigation Style */}
+      <section className="relative min-h-screen pb-8 bg-gradient-to-b from-slate-900 via-blue-900 to-slate-900 overflow-hidden">
+        {/* Animated Background */}
+        <div className="absolute inset-0 overflow-hidden">
+          <div className="absolute -top-1/2 -right-1/2 w-[800px] h-[800px] bg-blue-500/20 rounded-full blur-3xl animate-pulse" />
+          <div className="absolute -bottom-1/2 -left-1/2 w-[600px] h-[600px] bg-purple-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '1s' }} />
+          <div className="absolute top-1/4 left-1/4 w-96 h-96 bg-emerald-500/10 rounded-full blur-3xl animate-float" />
+        </div>
 
-        <div className="container relative z-10 mx-auto px-4 text-center">
-          {/* Badge */}
+        {/* Content Container */}
+        <div className="relative z-10 container mx-auto px-4 pt-8">
+          {/* Header with Logo */}
           <motion.div
-            initial={{ opacity: 0, y: 30 }}
+            initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="inline-flex items-center gap-2 px-6 py-2.5 bg-blue-600 text-white rounded-full text-sm font-medium shadow-lg shadow-blue-500/30 mb-6"
+            transition={{ duration: 0.5 }}
+            className="flex items-center justify-between mb-6"
           >
-            <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-            <Icon icon="mdi:star" className="h-4 w-4" />
-            بهترین پلتفرم رزرو سالن فوتسال
-          </motion.div>
-
-          {/* Title */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.1 }}
-          >
-            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold leading-tight text-gray-900">
-              رزرو سالن فوتسال
-              <br />
-              <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                به ساده‌ترین روش
-              </span>
-            </h1>
-          </motion.div>
-
-          {/* Description */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.2 }}
-          >
-            <p className="mt-6 text-lg md:text-xl text-gray-600 max-w-2xl mx-auto">
-              سیستم هوشمند رزرو سالن فوتسال با قابلیت رقابت قیمت و قراردادهای بلندمدت
-            </p>
-          </motion.div>
-
-          {/* Buttons - اصلاح شده با رنگ‌های مشخص */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.3 }}
-            className="mt-10 flex flex-col sm:flex-row gap-4 justify-center"
-          >
-            <Link to="/register">
-              <Button
-                variant="gradient"
-                size="lg"
-                className="px-8 py-4 text-white shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40"
-              >
-                <Icon icon="mdi:rocket" className="h-5 w-5 ml-2" />
-                شروع کنید
-              </Button>
-            </Link>
-            <Link to="/venues">
-              <Button
-                variant="outline"
-                size="lg"
-                className="px-8 py-4 border-2 border-blue-600 text-blue-600 hover:bg-blue-50 hover:border-blue-700 hover:text-blue-700"
-              >
-                <Icon icon="mdi:store" className="h-5 w-5 ml-2" />
-                مشاهده سالن‌ها
-              </Button>
-            </Link>
-          </motion.div>
-
-          {/* Trust Indicators */}
-          <motion.div
-            initial={{ opacity: 0, y: 30 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.4 }}
-            className="mt-12 flex flex-wrap items-center justify-center gap-6 text-sm"
-          >
-            <div className="flex items-center gap-2 text-gray-600">
-              <div className="flex text-yellow-400">
-                {[...Array(5)].map((_, i) => (
-                  <span key={i}>★</span>
-                ))}
+            <div className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-purple-500 rounded-2xl flex items-center justify-center shadow-lg shadow-blue-500/30">
+                <Icon icon="mdi:soccer" className="h-7 w-7 text-white" />
               </div>
-              <span>امتیاز ۴.۸ از ۵</span>
+              <div>
+                <h1 className="text-xl font-bold text-white">فوتسال</h1>
+                <p className="text-xs text-blue-300">رزرو هوشمند سالن</p>
+              </div>
             </div>
-            <div className="w-px h-6 bg-gray-300 hidden sm:block" />
-            <div className="flex items-center gap-2 text-gray-600">
-              <Icon icon="mdi:check-circle" className="h-5 w-5 text-green-500" />
-              <span>بیش از ۱۰۰۰ رزرو موفق</span>
+            <Link to="/profile">
+              <div className="w-10 h-10 bg-white/10 backdrop-blur-sm rounded-full flex items-center justify-center border border-white/20">
+                <Icon icon="mdi:account" className="h-6 w-6 text-white" />
+              </div>
+            </Link>
+          </motion.div>
+
+          {/* Main CTA Card */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="bg-white/10 backdrop-blur-md rounded-3xl p-6 border border-white/20 shadow-2xl mb-6"
+          >
+            <div className="text-center mb-6">
+              <motion.div
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.4 }}
+                className="inline-flex items-center gap-2 px-4 py-2 bg-green-500/20 backdrop-blur-sm rounded-full text-green-300 text-xs font-medium mb-4 border border-green-500/30"
+              >
+                <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
+                همین حالا رزرو کن
+              </motion.div>
+              <h2 className="text-3xl font-bold text-white mb-2">
+                سالن مورد نظرت رو
+                <br />
+                <span className="bg-gradient-to-r from-blue-400 to-purple-400 bg-clip-text text-transparent">
+                  چند لحظه‌ای رزرو کن
+                </span>
+              </h2>
+              <p className="text-blue-200 text-sm mt-3">
+                بهترین سالن‌ها با بهترین قیمت‌ها
+              </p>
             </div>
-            <div className="w-px h-6 bg-gray-300 hidden sm:block" />
-            <div className="flex items-center gap-2 text-gray-600">
-              <span className="w-2 h-2 bg-green-400 rounded-full animate-pulse" />
-              <span>پشتیبانی ۲۴/۷</span>
-            </div>
-          </motion.div>
-        </div>
-      </section>
 
-      {/* Stats Section */}
-      <section className="py-16 bg-gray-50 border-y border-gray-200">
-        <div className="container mx-auto px-4">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
-            {stats.map((stat, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className={`w-14 h-14 mx-auto ${stat.bg} rounded-2xl flex items-center justify-center mb-4`}>
-                  <Icon icon={stat.icon} className={`h-7 w-7 ${stat.color}`} />
-                </div>
-                <div className="text-2xl md:text-3xl font-bold text-gray-900">
-                  {stat.value}
-                </div>
-                <div className="text-sm text-gray-600 mt-1">
-                  {stat.label}
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* How It Works */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              چگونه کار می‌کند؟
-            </h2>
-            <p className="mt-3 text-gray-600 max-w-md mx-auto">
-              در سه مرحله ساده سالن خود را رزرو کنید
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-4xl mx-auto">
-            {[
-              { number: '۱', title: 'ثبت‌نام', description: 'حساب کاربری خود را بسازید', icon: 'mdi:account-plus' },
-              { number: '۲', title: 'انتخاب سالن', description: 'سالن مورد نظر خود را پیدا کنید', icon: 'mdi:store-search' },
-              { number: '۳', title: 'رزرو', description: 'سانس مورد نظر را رزرو کنید', icon: 'mdi:calendar-check' },
-            ].map((step, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-                className="text-center"
-              >
-                <div className="relative">
-                  <div className="w-20 h-20 mx-auto bg-gradient-to-r from-blue-600 to-purple-600 rounded-2xl flex items-center justify-center shadow-xl shadow-blue-500/25">
-                    <span className="text-2xl font-bold text-white">{step.number}</span>
-                  </div>
-                  {index < 2 && (
-                    <div className="hidden md:block absolute top-10 left-[calc(50%+3rem)] w-[calc(100%-6rem)] h-0.5 bg-gradient-to-r from-blue-300 to-purple-300" />
-                  )}
-                </div>
-                <h3 className="mt-4 text-lg font-semibold text-gray-900">{step.title}</h3>
-                <p className="mt-1 text-sm text-gray-600">{step.description}</p>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Features Section */}
-      <section className="py-20 bg-gray-50">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              چرا <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">فوتسال</span>؟
-            </h2>
-            <p className="mt-3 text-gray-600 max-w-md mx-auto">
-              امکاناتی که نیاز دارید
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {features.map((feature, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.05 }}
-                viewport={{ once: true }}
-                className="group"
-              >
-                <div className="bg-white rounded-3xl p-8 text-center shadow-sm hover:shadow-2xl transition-all duration-500 hover:-translate-y-3 h-full border border-gray-200/50">
-                  <div className={`w-16 h-16 mx-auto bg-gradient-to-r ${feature.color} rounded-2xl flex items-center justify-center shadow-lg transition-all duration-500 group-hover:scale-110 group-hover:rotate-6`}>
-                    <Icon icon={feature.icon} className="h-8 w-8 text-white" />
-                  </div>
-                  <h3 className="mt-4 text-lg font-semibold text-gray-900">{feature.title}</h3>
-                  <p className="mt-2 text-sm text-gray-600">{feature.description}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Testimonials Section */}
-      <section className="py-20 bg-white">
-        <div className="container mx-auto px-4">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-            className="text-center mb-16"
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-gray-900">
-              نظرات <span className="bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">کاربران</span>
-            </h2>
-            <p className="mt-3 text-gray-600 max-w-md mx-auto">
-              آنچه کاربران درباره ما می‌گویند
-            </p>
-          </motion.div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-5xl mx-auto">
-            {testimonials.map((testimonial, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, y: 30 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5, delay: index * 0.1 }}
-                viewport={{ once: true }}
-              >
-                <div className="bg-gray-50 rounded-3xl p-8 h-full border border-gray-200/50 hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                  <div className="flex text-yellow-400 mb-4">
-                    {[...Array(5)].map((_, i) => (
-                      <span key={i}>{i < testimonial.rating ? '★' : '☆'}</span>
-                    ))}
-                  </div>
-                  <p className="text-gray-700 text-sm leading-relaxed">
-                    "{testimonial.comment}"
-                  </p>
-                  <div className="mt-4 pt-4 border-t border-gray-200">
-                    <p className="font-semibold text-gray-900">{testimonial.name}</p>
-                    <p className="text-sm text-gray-500">{testimonial.role}</p>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* CTA Section */}
-      <section className="py-20 bg-gradient-to-r from-blue-600 to-purple-600">
-        <div className="container mx-auto px-4 text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            viewport={{ once: true }}
-          >
-            <h2 className="text-3xl md:text-4xl font-bold text-white">
-              آماده‌ای شروع کنی؟
-            </h2>
-            <p className="mt-3 text-blue-50 max-w-md mx-auto">
-              امروز ثبت‌نام کن و از امکانات بین‌نظیر ما استفاده کن
-            </p>
-            <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/register">
-                <Button
-                  variant="default"
-                  size="lg"
-                  className="px-10 py-4 bg-white text-blue-600 hover:bg-gray-100 shadow-2xl shadow-black/20 hover:shadow-black/30"
+            {/* Quick Actions Grid */}
+            <div className="grid grid-cols-2 gap-3 mb-6">
+              {quickActions.map((action, index) => (
+                <motion.div
+                  key={action.href}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.4, delay: 0.1 * index }}
                 >
-                  <Icon icon="mdi:account-plus" className="h-5 w-5 ml-2" />
+                  <Link to={action.href}>
+                    <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-4 border border-white/10 hover:bg-white/20 transition-all duration-300 active:scale-95">
+                      <div className={`w-10 h-10 mx-auto bg-gradient-to-br ${action.color} rounded-xl flex items-center justify-center mb-2 shadow-lg`}>
+                        <Icon icon={action.icon} className="h-6 w-6 text-white" />
+                      </div>
+                      <p className="text-white text-xs font-medium text-center">{action.title}</p>
+                    </div>
+                  </Link>
+                </motion.div>
+              ))}
+            </div>
+
+            {/* Main Action Buttons */}
+            <div className="flex gap-3">
+              <Link to="/register" className="flex-1">
+                <Button
+                  variant="gradient"
+                  className="w-full py-3 bg-gradient-to-r from-blue-500 to-purple-500 text-white font-bold rounded-2xl shadow-lg shadow-blue-500/30 hover:shadow-blue-500/50 transition-all active:scale-95"
+                >
+                  <Icon icon="mdi:rocket" className="h-5 w-5 ml-2" />
                   شروع رایگان
                 </Button>
               </Link>
-              <Link to="/venues">
+              <Link to="/venues" className="flex-1">
                 <Button
                   variant="outline"
-                  size="lg"
-                  className="px-10 py-4 border-2 border-white/50 text-white hover:bg-white/10 hover:border-white"
+                  className="w-full py-3 bg-white/10 backdrop-blur-sm text-white font-bold rounded-2xl border-2 border-white/30 hover:bg-white/20 transition-all active:scale-95"
                 >
                   <Icon icon="mdi:store" className="h-5 w-5 ml-2" />
-                  مشاهده سالن‌ها
+                  سالن‌ها
                 </Button>
               </Link>
             </div>
           </motion.div>
+
+          {/* Stats Row */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.6 }}
+            className="grid grid-cols-3 gap-3 mb-6"
+          >
+            {[
+              { value: '۵۰+', label: 'سالن فعال', icon: 'mdi:store', color: 'text-blue-400' },
+              { value: '۱۲۰۰+', label: 'رزرو موفق', icon: 'mdi:check-circle', color: 'text-green-400' },
+              { value: '۹۸٪', label: 'رضایت', icon: 'mdi:star', color: 'text-yellow-400' },
+            ].map((stat, index) => (
+              <div key={index} className="bg-white/5 backdrop-blur-sm rounded-2xl p-3 border border-white/10 text-center">
+                <Icon icon={stat.icon} className={`h-5 w-5 ${stat.color} mx-auto mb-1`} />
+                <div className="text-lg font-bold text-white">{stat.value}</div>
+                <div className="text-xs text-blue-200">{stat.label}</div>
+              </div>
+            ))}
+          </motion.div>
+
+          {/* Live Scores Section - Mobile Optimized */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.8 }}
+            className="bg-white rounded-3xl overflow-hidden shadow-2xl mb-6"
+          >
+            {/* Header with Tabs */}
+            <div className="bg-gradient-to-r from-blue-600 to-purple-600 p-4">
+              <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center gap-2">
+                  <Icon icon="mdi:soccer" className="h-6 w-6 text-white" />
+                  <h3 className="text-lg font-bold text-white">نتایج زنده</h3>
+                </div>
+                <span className="flex items-center gap-1 text-xs text-white/80">
+                  <span className="w-2 h-2 bg-red-400 rounded-full animate-pulse" />
+                  زنده
+                </span>
+              </div>
+
+              {/* Tab Navigation */}
+              <div className="flex bg-white/20 backdrop-blur-sm rounded-xl p-1">
+                {[
+                  { id: 'live', label: 'زنده', icon: 'mdi:live-tv' },
+                  { id: 'upcoming', label: 'آینده', icon: 'mdi:clock-outline' },
+                  { id: 'finished', label: 'پایان یافته', icon: 'mdi:check-circle' },
+                ].map((tab) => (
+                  <button
+                    key={tab.id}
+                    onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                    className={`flex-1 flex items-center justify-center gap-1 py-2 rounded-lg text-xs font-medium transition-all ${
+                      activeTab === tab.id
+                        ? 'bg-white text-blue-600 shadow-lg'
+                        : 'text-white/80 hover:text-white'
+                    }`}
+                  >
+                    <Icon icon={tab.icon} className="h-4 w-4" />
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Matches List */}
+            <div className="p-3 max-h-80 overflow-y-auto">
+              {loading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Icon icon="mdi:loading" className="h-8 w-8 text-blue-500 animate-spin" />
+                </div>
+              ) : getActiveMatches().length === 0 ? (
+                <div className="text-center py-8">
+                  <Icon icon="mdi:soccer-field" className="h-12 w-12 text-gray-300 mx-auto mb-2" />
+                  <p className="text-gray-500 text-sm">مسابقه‌ای یافت نشد</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {getActiveMatches().map((match, index) => (
+                    <motion.div
+                      key={match.id}
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.3, delay: index * 0.05 }}
+                      className="bg-gray-50 rounded-2xl p-3 border border-gray-100"
+                    >
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="text-xs text-gray-500 bg-gray-200 px-2 py-1 rounded-lg">
+                          {match.league}
+                        </span>
+                        {match.status === 'live' && (
+                          <span className="text-xs text-red-500 font-bold flex items-center gap-1">
+                            <span className="w-1.5 h-1.5 bg-red-500 rounded-full animate-pulse" />
+                            {match.minute}'
+                          </span>
+                        )}
+                        {match.status !== 'live' && (
+                          <span className="text-xs text-gray-500">
+                            {formatTime(match.time, match.date)}
+                          </span>
+                        )}
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2 flex-1">
+                          {match.homeIcon ? (
+                            <img src={match.homeIcon} alt={match.homeTeam} className="w-6 h-6 object-contain" />
+                          ) : (
+                            <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                              <Icon icon="mdi:shield" className="h-4 w-4 text-blue-500" />
+                            </div>
+                          )}
+                          <span className="text-sm font-medium text-gray-800 truncate">{match.homeTeam}</span>
+                        </div>
+                        <div className="flex items-center gap-2 px-3">
+                          <span className={`text-lg font-bold ${match.status === 'live' ? 'text-blue-600' : 'text-gray-700'}`}>
+                            {match.homeScore}
+                          </span>
+                          <span className="text-gray-400">-</span>
+                          <span className={`text-lg font-bold ${match.status === 'live' ? 'text-blue-600' : 'text-gray-700'}`}>
+                            {match.awayScore}
+                          </span>
+                        </div>
+                        <div className="flex items-center gap-2 flex-1 justify-end">
+                          <span className="text-sm font-medium text-gray-800 truncate">{match.awayTeam}</span>
+                          {match.awayIcon ? (
+                            <img src={match.awayIcon} alt={match.awayTeam} className="w-6 h-6 object-contain" />
+                          ) : (
+                            <div className="w-6 h-6 bg-purple-100 rounded-full flex items-center justify-center">
+                              <Icon icon="mdi:shield" className="h-4 w-4 text-purple-500" />
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* View All Link */}
+            <div className="p-3 border-t border-gray-100">
+              <button className="w-full text-center text-sm text-blue-600 font-medium py-2 hover:bg-blue-50 rounded-xl transition-colors">
+                مشاهده همه مسابقات
+              </button>
+            </div>
+          </motion.div>
+
+          {/* Sports News Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 1 }}
+            className="mb-6"
+          >
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Icon icon="mdi:newspaper" className="h-6 w-6 text-white" />
+                <h3 className="text-lg font-bold text-white">اخبار ورزشی</h3>
+              </div>
+              <button className="text-sm text-blue-300 hover:text-white transition-colors">
+                مشاهده همه
+              </button>
+            </div>
+
+            {/* Horizontal Scroll News Cards */}
+            <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide -mx-4 px-4">
+              {loading ? (
+                <div className="flex items-center justify-center w-full py-8">
+                  <Icon icon="mdi:loading" className="h-8 w-8 text-white animate-spin" />
+                </div>
+              ) : news.length === 0 ? (
+                <div className="text-center py-8 w-full">
+                  <Icon icon="mdi:newspaper-minus" className="h-12 w-12 text-white/30 mx-auto mb-2" />
+                  <p className="text-white/60 text-sm">اخباری یافت نشد</p>
+                </div>
+              ) : (
+                news.slice(0, 6).map((item, index) => (
+                  <motion.div
+                    key={item.id}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ duration: 0.3, delay: index * 0.05 }}
+                    className="flex-shrink-0 w-64 bg-white/10 backdrop-blur-md rounded-2xl overflow-hidden border border-white/20"
+                  >
+                    <div className={`h-32 bg-gradient-to-br ${item.color} relative p-3`}>
+                      {item.isLive && (
+                        <span className="absolute top-2 right-2 px-2 py-1 bg-red-500 text-white text-xs rounded-lg flex items-center gap-1">
+                          <span className="w-1.5 h-1.5 bg-white rounded-full animate-pulse" />
+                          زنده
+                        </span>
+                      )}
+                      <Icon icon={item.icon} className="h-8 w-8 text-white/80" />
+                    </div>
+                    <div className="p-3">
+                      <h4 className="text-sm font-semibold text-white line-clamp-2 mb-2">
+                        {item.title}
+                      </h4>
+                      <div className="flex items-center justify-between text-xs text-blue-200">
+                        <span>{item.date}</span>
+                        <span className="flex items-center gap-1">
+                          <Icon icon="mdi:eye" className="h-3 w-3" />
+                          {(item.views / 1000).toFixed(0)}k
+                        </span>
+                      </div>
+                    </div>
+                  </motion.div>
+                ))
+              )}
+            </div>
+          </motion.div>
+
+          {/* Bottom Spacing for Mobile */}
+          <div className="h-20" />
         </div>
       </section>
+
+      {/* Floating Action Button */}
+      <motion.div
+        initial={{ scale: 0 }}
+        animate={{ scale: 1 }}
+        transition={{ duration: 0.5, delay: 1.2 }}
+        className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50"
+      >
+        <Link to="/bookings">
+          <div className="w-16 h-16 bg-gradient-to-r from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-2xl shadow-blue-500/40 border-4 border-white">
+            <Icon icon="mdi:calendar-plus" className="h-8 w-8 text-white" />
+          </div>
+        </Link>
+      </motion.div>
+
+      {/* Custom Styles */}
+      <style>{`
+        .scrollbar-hide::-webkit-scrollbar {
+          display: none;
+        }
+        .scrollbar-hide {
+          -ms-overflow-style: none;
+          scrollbar-width: none;
+        }
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(-20px); }
+        }
+        .animate-float {
+          animation: float 3s ease-in-out infinite;
+        }
+      `}</style>
     </Layout>
   )
 }

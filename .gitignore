@@ -1,38 +1,51 @@
-# Python
-__pycache__/
-*.py[cod]
-*.class
-*.so
-.Python
-.env
-.venv
-venv/
-ENV/
-db.sqlite3
+```
+# Dependencies
+node_modules/
+
+# Logs and temp files
 *.log
+*.tmp
+*.swp
 
-# Docker
-*.pid
+# Environment
+.env
+.env.local
+*.env.*
 
-# IDE
+# Editors
 .vscode/
 .idea/
-*.swp
-*.swo
 
-# Frontend
-node_modules/
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+*.so
+.coverage
+coverage/
+htmlcov/
+.mypy_cache/
+.pytest_cache/
+.tox/
+.venv/
+venv/
+ENV/
+
+# Build outputs
 dist/
-dist-ssr/
-*.local
+build/
+target/
+*.out
+*.exe
+*.dll
+*.so
+*.a
+*.o
+*.obj
 
-# Tauri
-src-tauri/target/
-src-tauri/gen/
-
-# Backups
-backups/*.sql
-
-# OS
+# OS generated files
 .DS_Store
 Thumbs.db
+```
