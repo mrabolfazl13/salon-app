@@ -1,7 +1,7 @@
 # backend/app/schemas/user.py
 from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
-from typing import Optional
+from typing import Optional, Any
 from enum import Enum
 
 class UserRole(str, Enum):
@@ -48,6 +48,7 @@ class UserResponse(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
+    user: Optional[Any] = None
 
 class TokenData(BaseModel):
     phone: str | None = None

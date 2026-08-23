@@ -49,4 +49,5 @@ def get_slots_by_date_range(
 ):
     """دریافت سانس‌ها برای بازه تاریخ"""
     slots = uow.slots.get_by_venue_and_date_range(venue_id, start_date, end_date)
+    print("Slots", slots)
     return slots

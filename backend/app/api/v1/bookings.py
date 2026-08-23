@@ -1,10 +1,11 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from typing import List
+from datetime import date
 from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.schemas.booking import BookingCreate, BookingResponse
 from app.services.booking_service import BookingService
-from app.utils.auth import get_current_user
-from app.models.user import User
+from app.utils.auth import get_current_user, get_current_manager
+from app.models.user import User, UserRole
 from app.services.notification_service import notification_service
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
@@ -36,6 +37,29 @@ def get_my_bookings(
     current_user: User = Depends(get_current_user)
 ):
     return BookingService.get_user_bookings(uow, current_user.id, limit)
+
+@router.get("/venue/{venue_id}", response_model=List[BookingResponse])
+def get_venue_bookings(
+    venue_id: int,
+    start_date: date = Query(None, description="تاریخ شروع"),
+    end_date: date = Query(None, description="تاریخ پایان"),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    current_user: User = Depends(get_current_manager)
+):
+    """دریافت رزروهای یک سالن - فقط مدیر سالن"""
+    venue = uow.venues.get_by_id(venue_id)
+    if not venue:
+        raise HTTPException(status_code=404, detail="Venue not found")
+    if venue.manager_id != current_user.id and current_user.role != UserRole.SUPER_ADMIN:
+        raise HTTPException(status_code=403, detail="Access denied")
+    
+    from datetime import date as dt_date
+    if not start_date:
+        start_date = dt_date.today()
+    if not end_date:
+        end_date = dt_date.today()
+    
+    return uow.bookings.get_by_venue(venue_id, start_date, end_date)
 
 @router.delete("/{booking_id}")
 async def cancel_booking(

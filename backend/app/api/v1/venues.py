@@ -89,6 +89,19 @@ def get_venues(
         result.append(VenueResponse.from_orm_with_json(v, min_price))
     return result
 
+@router.get("/my-venues", response_model=List[VenueResponse])
+def get_my_venues(
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    current_user: User = Depends(get_current_manager)
+):
+    """لیست سالن‌های مدیر"""
+    venues = uow.venues.get_by_manager_id(current_user.id)
+    result = []
+    for v in venues:
+        min_price = get_venue_min_price(uow.session, v.id)
+        result.append(VenueResponse.from_orm_with_json(v, min_price))
+    return result
+
 @router.get("/{venue_id}", response_model=VenueResponse)
 def get_venue(
     venue_id: int,
@@ -132,19 +145,6 @@ def create_venue(
     
     min_price = get_venue_min_price(uow.session, venue.id)
     return VenueResponse.from_orm_with_json(venue, min_price)
-
-@router.get("/my-venues", response_model=List[VenueResponse])
-def get_my_venues(
-    uow: UnitOfWork = Depends(get_unit_of_work),
-    current_user: User = Depends(get_current_manager)
-):
-    """لیست سالن‌های مدیر"""
-    venues = uow.venues.get_by_manager_id(current_user.id)
-    result = []
-    for v in venues:
-        min_price = get_venue_min_price(uow.session, v.id)
-        result.append(VenueResponse.from_orm_with_json(v, min_price))
-    return result
 
 @router.put("/{venue_id}", response_model=VenueResponse)
 def update_venue(

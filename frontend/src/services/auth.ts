@@ -21,7 +21,7 @@ interface AuthResponse {
     isActive: boolean
     isVerified: boolean
   }
-  token: string
+  access_token: string
 }
 
 export const authService = {

@@ -19,7 +19,7 @@ class SlotRepository(BaseRepository[Slot]):
         """گرفتن سانس‌های یک سالن در تاریخ مشخص"""
         return self.get_all(venue_id=venue_id, slot_date=slot_date)
     
-    def get_by_venue_and_date_range(self, venue_id: int, start_date: date, end_date: date) -> List[Slot]:
+    def get_by_venue_and_date_range(self, venue_id: int, start_date: str, end_date: str) -> List[Slot]:
         """گرفتن سانس‌های یک سالن در بازه زمانی"""
         statement = select(Slot).where(
             Slot.venue_id == venue_id,

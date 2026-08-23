@@ -8,27 +8,21 @@ import { motion } from 'framer-motion'
 interface LayoutProps {
   children: React.ReactNode
   className?: string
-  isAuthenticated?: boolean
-  userRole?: string
   showSidebar?: boolean
+  userRole?: string
 }
 
 const Layout: React.FC<LayoutProps> = ({
   children,
   className,
-  isAuthenticated = false,
-  userRole = 'user',
   showSidebar = false,
+  userRole = 'user',
 }) => {
   const [sidebarOpen, setSidebarOpen] = useState(false)
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50/50">
-      <Navbar
-        isAuthenticated={isAuthenticated}
-        userRole={userRole}
-        onMenuClick={() => setSidebarOpen(!sidebarOpen)}
-      />
+      <Navbar />
       <div className="flex">
         {showSidebar && (
           <Sidebar

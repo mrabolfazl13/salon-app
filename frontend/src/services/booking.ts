@@ -31,4 +31,11 @@ export const bookingService = {
     const response = await apiClient.get('/bookings/past', { params: { limit } })
     return response.data
   },
+
+  getVenueBookings: async (venueId: number, startDate?: string, endDate?: string) => {
+    const response = await apiClient.get(`/bookings/venue/${venueId}`, {
+      params: { start_date: startDate, end_date: endDate }
+    })
+    return response.data
+  },
 }

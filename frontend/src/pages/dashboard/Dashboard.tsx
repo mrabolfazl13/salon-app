@@ -1,23 +1,8 @@
-// src/pages/dashboard/Dashboard.tsx
 import React from 'react'
-import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
-  Box,
-  Grid,
-  Card,
-  CardContent,
-  Typography,
-  Avatar,
-  LinearProgress,
-  Button,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Chip,
-  Paper,
-  useTheme,
+  Box, Grid, Typography, Button, Paper,
+  Chip, useTheme, Container,
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { formatPrice } from '@/lib/utils'
@@ -26,318 +11,237 @@ const Dashboard: React.FC = () => {
   const theme = useTheme()
 
   const stats = [
-    {
-      title: 'رزروهای امروز',
-      value: '۱۲',
-      icon: 'mdi:calendar-check',
-      color: '#3b82f6',
-      change: '+۲۰٪',
-      bg: 'rgba(59, 130, 246, 0.08)',
-    },
-    {
-      title: 'رقابت‌های فعال',
-      value: '۸',
-      icon: 'mdi:trophy',
-      color: '#10b981',
-      change: '+۵٪',
-      bg: 'rgba(16, 185, 129, 0.08)',
-    },
-    {
-      title: 'درآمد امروز',
-      value: formatPrice(2400000),
-      icon: 'mdi:coin',
-      color: '#8b5cf6',
-      change: '+۱۵٪',
-      bg: 'rgba(139, 92, 246, 0.08)',
-    },
-    {
-      title: 'کاربران جدید',
-      value: '۴۵',
-      icon: 'mdi:account-plus',
-      color: '#f59e0b',
-      change: '+۳۰٪',
-      bg: 'rgba(245, 158, 11, 0.08)',
-    },
+    { title: 'رزروهای امروز', value: '۱۲', icon: 'mdi:calendar-check', color: theme.palette.primary.main, change: '+۲۰٪' },
+    { title: 'رقابت‌های فعال', value: '۸', icon: 'mdi:trophy', color: '#10b981', change: '+۵٪' },
+    { title: 'درآمد امروز', value: formatPrice(2400000), icon: 'mdi:wallet-outline', color: '#8b5cf6', change: '+۱۵٪' },
+    { title: 'کاربران جدید', value: '۴۵', icon: 'mdi:account-group-outline', color: '#f59e0b', change: '+۳۰٪' },
   ]
 
   const recentBookings = [
-    { id: 1, venue: 'سالن آبی', date: '۱۴۰۲/۱۰/۱۵', time: '۱۷:۰۰', status: 'تایید شده' },
-    { id: 2, venue: 'سالن سبز', date: '۱۴۰۲/۱۰/۱۶', time: '۱۹:۳۰', status: 'در انتظار' },
-    { id: 3, venue: 'سالن قرمز', date: '۱۴۰۲/۱۰/۱۷', time: '۲۱:۰۰', status: 'تایید شده' },
-    { id: 4, venue: 'سالن بنفش', date: '۱۴۰۲/۱۰/۱۸', time: '۱۶:۰۰', status: 'لغو شده' },
+    { id: 1, venue: 'سالن آبی', address: 'خیابان آزادی', date: '۱۴۰۲/۱۰/۱۵', time: '۱۷:۰۰', status: 'confirmed', price: 300000 },
+    { id: 2, venue: 'سالن سبز', address: 'خیابان ولیعصر', date: '۱۴۰۲/۱۰/۱۶', time: '۱۹:۳۰', status: 'pending', price: 350000 },
+    { id: 3, venue: 'سالن قرمز', address: 'خیابان شریعتی', date: '۱۴۰۲/۱۰/۱۷', time: '۲۱:۰۰', status: 'confirmed', price: 280000 },
+    { id: 4, venue: 'سالن بنفش', address: 'خیابان کاظمی', date: '۱۴۰۲/۱۰/۱۸', time: '۱۶:۰۰', status: 'cancelled', price: 400000 },
   ]
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'تایید شده':
-        return 'success'
-      case 'در انتظار':
-        return 'warning'
-      case 'لغو شده':
-        return 'error'
-      default:
-        return 'default'
-    }
+  const statusConfig: Record<string, { label: string; color: 'success' | 'warning' | 'error' }> = {
+    confirmed: { label: 'تایید شده', color: 'success' },
+    pending: { label: 'در انتظار', color: 'warning' },
+    cancelled: { label: 'لغو شده', color: 'error' },
   }
 
+  const quickStats = [
+    { label: 'اشغال سالن‌ها', value: 72 },
+    { label: 'رضایت کاربران', value: 94 },
+    { label: 'رشد ماهانه', value: 28 },
+  ]
+
+  const quickActions = [
+    { icon: 'mdi:calendar-check', label: 'رزرو جدید' },
+    { icon: 'mdi:trophy', label: 'رقابت‌ها' },
+    { icon: 'mdi:file-document', label: 'قراردادها' },
+    { icon: 'mdi:account-group', label: 'تیم‌ها' },
+  ]
+
   return (
-    <Layout isAuthenticated userRole="user">
-      <Box sx={{ py: 2 }}>
+    <Layout>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center',
-              flexWrap: 'wrap',
-              gap: 2,
-              mb: 4,
-            }}
-          >
-            <Box>
-              <Typography variant="h4" fontWeight={700}>
-                داشبورد
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
-                به سیستم رزرو سالن فوتسال خوش آمدید
-              </Typography>
-            </Box>
-            <Button
-              variant="contained"
-              startIcon={<Icon icon="mdi:plus" className="h-5 w-5" />}
-              sx={{
-                borderRadius: 2,
-                px: 3,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                boxShadow: '0 4px 20px rgba(37,99,235,0.25)',
-              }}
-            >
-              رزرو جدید
-            </Button>
+        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
+          <Box>
+            <Typography variant="h5" sx={{ fontWeight: 700 }}>داشبورد</Typography>
+            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+              به سیستم رزرو سالن فوتسال خوش آمدید
+            </Typography>
           </Box>
-        </motion.div>
+          <Button
+            variant="contained"
+            startIcon={<Icon icon="mdi:plus" />}
+            sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, px: 2.5 }}
+          >
+            رزرو جدید
+          </Button>
+        </Box>
 
         {/* Stats */}
-        <Grid container spacing={3} sx={{ mb: 4 }}>
+        <Grid container spacing={2} sx={{ mb: 3 }}>
           {stats.map((stat, index) => (
-            <Grid item xs={12} sm={6} md={3} key={index}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.4, delay: index * 0.1 }}
-              >
-                <Card
-                  sx={{
-                    borderRadius: 3,
-                    transition: 'all 0.3s ease',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: '0 8px 40px rgba(0,0,0,0.06)',
-                    },
-                  }}
-                >
-                  <CardContent>
-                    <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                      <Box>
-                        <Typography variant="body2" color="text.secondary" fontWeight={500}>
-                          {stat.title}
-                        </Typography>
-                        <Typography variant="h4" fontWeight={700} sx={{ mt: 1 }}>
-                          {stat.value}
-                        </Typography>
-                        <Box display="flex" alignItems="center" gap={0.5} sx={{ mt: 1 }}>
-                          <Icon icon="mdi:trending-up" className="h-3 w-3 text-green-500" />
-                          <Typography variant="caption" sx={{ color: 'success.main' }}>
-                            {stat.change}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <Avatar
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          bgcolor: stat.bg,
-                          color: stat.color,
-                          borderRadius: 2,
-                        }}
-                      >
-                        <Icon icon={stat.icon} className="h-6 w-6" />
-                      </Avatar>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </motion.div>
+            <Grid size={{ xs: 6, md: 3 }} key={index}>
+              <Paper sx={{ p: 2.5, border: `1px solid ${theme.palette.divider}`, height: '100%' }}>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
+                    {stat.title}
+                  </Typography>
+                  <Box sx={{
+                    width: 36, height: 36,
+                    bgcolor: `${stat.color}10`,
+                    borderRadius: 1,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                  }}>
+                    <Icon icon={stat.icon} className="h-4.5 w-4.5" style={{ color: stat.color }} />
+                  </Box>
+                </Box>
+                <Typography variant="h5" sx={{ fontWeight: 700, mb: 0.5, fontSize: '1.3rem' }}>
+                  {stat.value}
+                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Icon icon="mdi:arrow-up-bold" className="h-3.5 w-3.5" style={{ color: '#4caf50' }} />
+                  <Typography variant="caption" sx={{ color: '#4caf50', fontWeight: 600, fontSize: '0.75rem' }}>
+                    {stat.change}
+                  </Typography>
+                </Box>
+              </Paper>
             </Grid>
           ))}
         </Grid>
 
-        {/* Recent Bookings & Chart */}
-        <Grid container spacing={3}>
-          <Grid item xs={12} md={8}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.4 }}
-            >
-              <Card sx={{ borderRadius: 3 }}>
-                <CardContent>
-                  <Box display="flex" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
-                    <Typography variant="h6" fontWeight={600}>
-                      رزروهای اخیر
-                    </Typography>
-                    <Button size="small" sx={{ borderRadius: 2 }}>
-                      مشاهده همه
-                    </Button>
-                  </Box>
+        <Grid container spacing={2}>
+          {/* Recent Bookings */}
+          <Grid size={{ xs: 12, lg: 7 }}>
+            <Paper sx={{ borderRadius: 2, border: `1px solid ${theme.palette.divider}`, height: '100%', overflow: 'hidden' }}>
+              <Box sx={{ p: 2.5, borderBottom: `1px solid ${theme.palette.divider}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Icon icon="mdi:calendar-clock" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
+                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                    رزروهای اخیر
+                  </Typography>
+                </Box>
+                <Button size="small" sx={{ textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}>
+                  مشاهده همه
+                </Button>
+              </Box>
 
-                  <List sx={{ p: 0 }}>
-                    {recentBookings.map((booking, index) => (
-                      <motion.div
-                        key={booking.id}
-                        initial={{ opacity: 0, x: -20 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ duration: 0.3, delay: index * 0.05 }}
-                      >
-                        <ListItem
-                          sx={{
-                            px: 2,
-                            py: 1.5,
-                            borderRadius: 2,
-                            mb: 1,
-                            transition: 'all 0.3s ease',
-                            '&:hover': {
-                              bgcolor: 'grey.50',
-                            },
-                          }}
-                        >
-                          <ListItemAvatar>
-                            <Avatar
-                              sx={{
-                                width: 40,
-                                height: 40,
-                                bgcolor: 'primary.main',
-                              }}
-                            >
-                              <Icon icon="mdi:calendar" className="h-5 w-5 text-white" />
-                            </Avatar>
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={
-                              <Typography variant="subtitle2" fontWeight={600}>
-                                {booking.venue}
-                              </Typography>
-                            }
-                            secondary={`${booking.date} - ${booking.time}`}
-                          />
+              <Box>
+                {recentBookings.map((booking) => {
+                  const status = statusConfig[booking.status]
+                  return (
+                    <Box
+                      key={booking.id}
+                      sx={{
+                        px: 2.5,
+                        py: 2,
+                        borderBottom: `1px solid ${theme.palette.divider}`,
+                        '&:last-child': { borderBottom: 'none' },
+                        '&:hover': { bgcolor: 'grey.50' },
+                        cursor: 'pointer',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flex: 1, minWidth: 0 }}>
+                          <Box sx={{
+                            width: 38, height: 38,
+                            bgcolor: `${theme.palette.primary.main}08`,
+                            borderRadius: 1,
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            flexShrink: 0,
+                          }}>
+                            <Icon icon="mdi:stadium" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
+                          </Box>
+                          <Box sx={{ minWidth: 0, flex: 1 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                              {booking.venue}
+                            </Typography>
+                            <Typography variant="caption" color="text.disabled">
+                              {booking.address} · {booking.date} · {booking.time}
+                            </Typography>
+                          </Box>
+                        </Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                          <Typography variant="caption" sx={{ fontWeight: 600, color: 'text.secondary', fontSize: '0.75rem' }}>
+                            {formatPrice(booking.price)}
+                          </Typography>
                           <Chip
-                            label={booking.status}
-                            color={getStatusColor(booking.status) as any}
+                            label={status?.label || booking.status}
                             size="small"
-                            sx={{ borderRadius: 1.5 }}
+                            color={status?.color || 'default'}
+                            variant="outlined"
+                            sx={{ borderRadius: 1, fontWeight: 600, fontSize: '0.7rem', height: 22 }}
                           />
-                        </ListItem>
-                      </motion.div>
-                    ))}
-                  </List>
-                </CardContent>
-              </Card>
-            </motion.div>
+                        </Box>
+                      </Box>
+                    </Box>
+                  )
+                })}
+              </Box>
+            </Paper>
           </Grid>
 
-          <Grid item xs={12} md={4}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.5, delay: 0.5 }}
-            >
-              <Card sx={{ borderRadius: 3 }}>
-                <CardContent>
-                  <Typography variant="h6" fontWeight={600} sx={{ mb: 3 }}>
-                    آمار سریع
-                  </Typography>
-
-                  <Box sx={{ mb: 3 }}>
-                    <Box display="flex" justifyContent="space-between" mb={1}>
-                      <Typography variant="body2" color="text.secondary">
-                        اشغال سالن‌ها
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        ۷۲٪
-                      </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={72}
-                      sx={{
-                        height: 8,
-                        borderRadius: 2,
-                        bgcolor: 'grey.200',
-                        '& .MuiLinearProgress-bar': {
-                          borderRadius: 2,
-                          background: 'linear-gradient(90deg, #2563eb, #7c3aed)',
-                        },
-                      }}
-                    />
+          {/* Sidebar */}
+          <Grid size={{ xs: 12, lg: 5 }}>
+            <Grid container spacing={2}>
+              {/* Quick Stats */}
+              <Grid size={{ xs: 12 }}>
+                <Paper sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2.5 }}>
+                    <Icon icon="mdi:chart-line" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      آمار سریع
+                    </Typography>
                   </Box>
 
-                  <Box sx={{ mb: 3 }}>
-                    <Box display="flex" justifyContent="space-between" mb={1}>
-                      <Typography variant="body2" color="text.secondary">
-                        رضایت کاربران
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        ۹۴٪
-                      </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={94}
-                      sx={{
-                        height: 8,
-                        borderRadius: 2,
-                        bgcolor: 'grey.200',
-                        '& .MuiLinearProgress-bar': {
-                          borderRadius: 2,
-                          background: 'linear-gradient(90deg, #10b981, #059669)',
-                        },
-                      }}
-                    />
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                    {quickStats.map((item, index) => (
+                      <Box key={index}>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.75 }}>
+                          <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem' }}>
+                            {item.label}
+                          </Typography>
+                          <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>
+                            {item.value}٪
+                          </Typography>
+                        </Box>
+                        <Box sx={{ height: 6, borderRadius: 3, bgcolor: theme.palette.grey[100], overflow: 'hidden' }}>
+                          <Box sx={{
+                            height: '100%',
+                            width: `${item.value}%`,
+                            borderRadius: 3,
+                            bgcolor: theme.palette.primary.main,
+                          }} />
+                        </Box>
+                      </Box>
+                    ))}
+                  </Box>
+                </Paper>
+              </Grid>
+
+              {/* Quick Actions */}
+              <Grid size={{ xs: 12 }}>
+                <Paper sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}` }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
+                    <Icon icon="mdi:zap" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      دسترسی سریع
+                    </Typography>
                   </Box>
 
-                  <Box>
-                    <Box display="flex" justifyContent="space-between" mb={1}>
-                      <Typography variant="body2" color="text.secondary">
-                        رشد ماهانه
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        ۲۸٪
-                      </Typography>
-                    </Box>
-                    <LinearProgress
-                      variant="determinate"
-                      value={28}
-                      sx={{
-                        height: 8,
-                        borderRadius: 2,
-                        bgcolor: 'grey.200',
-                        '& .MuiLinearProgress-bar': {
-                          borderRadius: 2,
-                          background: 'linear-gradient(90deg, #f59e0b, #d97706)',
-                        },
-                      }}
-                    />
-                  </Box>
-                </CardContent>
-              </Card>
-            </motion.div>
+                  <Grid container spacing={1.5}>
+                    {quickActions.map((action, index) => (
+                      <Grid size={{ xs: 6 }} key={index}>
+                        <Button
+                          variant="outlined"
+                          fullWidth
+                          sx={{
+                            borderRadius: 1,
+                            textTransform: 'none',
+                            py: 1.25,
+                            justifyContent: 'center',
+                            fontWeight: 600,
+                            fontSize: '0.85rem',
+                            '&:hover': { bgcolor: `${theme.palette.primary.main}05` },
+                          }}
+                          startIcon={<Icon icon={action.icon} />}
+                        >
+                          {action.label}
+                        </Button>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Paper>
+              </Grid>
+            </Grid>
           </Grid>
         </Grid>
-      </Box>
+      </Container>
     </Layout>
   )
 }

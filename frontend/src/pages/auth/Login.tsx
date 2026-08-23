@@ -27,6 +27,7 @@ const Login: React.FC = () => {
   const navigate = useNavigate()
   const { success, error: toastError } = useToast()
   const login = useAuthStore((state) => state.login)
+  const isLoading = useAuthStore((state) => state.isLoading)
 
   const {
     register,
@@ -37,20 +38,15 @@ const Login: React.FC = () => {
   })
 
   const onSubmit = async (data: LoginForm) => {
-    setLoading(true)
     setError(null)
     try {
-      const response = await authService.login({
-        phone: data.phone,
-        password: data.password,
-      })
-      // Store token in localStorage via apiClient interceptor
-      localStorage.setItem('auth-token', response.token)
+      await login(data.phone, data.password)
       success('ورود موفقیت‌آمیز! 🎉')
+      
       // Redirect based on role
-      const role = response.user.role
-      if (role === 'venue_manager' || role === 'super_admin') {
-        navigate('/dashboard')
+      const user = useAuthStore.getState().user
+      if (user?.role === 'venue_manager' || user?.role === 'super_admin') {
+        navigate('/manager-dashboard')
       } else {
         navigate('/venues')
       }
@@ -58,8 +54,6 @@ const Login: React.FC = () => {
       const message = err.response?.data?.detail || 'شماره موبایل یا رمز عبور اشتباه است.'
       setError(message)
       toastError(message)
-    } finally {
-      setLoading(false)
     }
   }
 
@@ -156,7 +150,7 @@ const Login: React.FC = () => {
                 variant="gradient"
                 size="lg"
                 className="w-full py-4 text-white shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40"
-                loading={loading}
+                loading={loading || isLoading}
               >
                 <Icon icon="mdi:login" className="h-5 w-5 ml-2" />
                 ورود

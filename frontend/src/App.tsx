@@ -1,14 +1,15 @@
 // src/App.tsx
-import React, { Suspense, lazy } from 'react'
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom'
+import React, { Suspense, lazy, useEffect } from 'react'
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from '@mui/material/styles'
+import { ThemeProvider, CircularProgress, Box } from '@mui/material'
 import CssBaseline from '@mui/material/CssBaseline'
 import { motion, AnimatePresence } from 'framer-motion'
 import { theme } from '@/theme'
 import ToastProvider from '@/components/ui/Toast'
 import Loading from '@/components/ui/Loading'
 import ProtectedRoute, { PublicRoute } from '@/components/auth/ProtectedRoute'
+import { useAuthStore } from '@/store/authStore'
 
 // Lazy loading pages
 const Home = lazy(() => import('@/pages/Home'))
@@ -44,6 +45,74 @@ const pageVariants = {
   exit: { opacity: 0, y: -20 },
 }
 
+// Component to handle auth initialization
+const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const fetchUser = useAuthStore((state) => state.fetchUser)
+  const isAuthenticated = useAuthStore((state) => state.isAuthenticated)
+  const hasInitialized = useAuthStore((state) => state.hasInitialized)
+  const initialize = useAuthStore((state) => state.initialize)
+
+  useEffect(() => {
+    if (!hasInitialized) {
+      initialize()
+    }
+  }, [initialize, hasInitialized])
+
+  if (!hasInitialized) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  return <>{children}</>
+}
+
+function AppRoutes() {
+  const location = useLocation()
+
+  return (
+    <AnimatePresence mode="wait">
+      <motion.div
+        key={location.pathname}
+        initial="initial"
+        animate="animate"
+        exit="exit"
+        variants={pageVariants}
+        transition={{ duration: 0.4 }}
+      >
+        <Routes>
+          {/* Public routes */}
+          <Route path="/" element={<Home />} />
+          <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
+          <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
+          <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
+          
+          {/* Protected user routes */}
+          <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
+          <Route path="/manager-dashboard" element={<ProtectedRoute requiredRole="venue_manager"><ManagerDashboard /></ProtectedRoute>} />
+          <Route path="/venues" element={<ProtectedRoute><Venues /></ProtectedRoute>} />
+          <Route path="/venues/:id" element={<ProtectedRoute><VenueDetail /></ProtectedRoute>} />
+          <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
+          <Route path="/bookings/:id" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
+          <Route path="/competitions" element={<ProtectedRoute><Competitions /></ProtectedRoute>} />
+          <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
+          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+          
+          {/* Admin routes */}
+          <Route path="/admin" element={<ProtectedRoute requiredRole="super_admin"><AdminDashboard /></ProtectedRoute>} />
+          <Route path="/admin/users" element={<ProtectedRoute requiredRole="super_admin"><AdminUsers /></ProtectedRoute>} />
+          <Route path="/admin/venues" element={<ProtectedRoute requiredRole="super_admin"><AdminVenues /></ProtectedRoute>} />
+          
+          {/* Fallback */}
+          <Route path="*" element={<Navigate to="/venues" replace />} />
+        </Routes>
+      </motion.div>
+    </AnimatePresence>
+  )
+}
+
 function App() {
   return (
     <ThemeProvider theme={theme}>
@@ -51,45 +120,11 @@ function App() {
       <QueryClientProvider client={queryClient}>
         <ToastProvider>
           <BrowserRouter>
-            <Suspense fallback={<Loading fullScreen />}>
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={location.pathname}
-                  initial="initial"
-                  animate="animate"
-                  exit="exit"
-                  variants={pageVariants}
-                  transition={{ duration: 0.4 }}
-                >
-                  <Routes>
-                    {/* Public routes */}
-                    <Route path="/" element={<Home />} />
-                    <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
-                    <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
-                    <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
-                    
-                    {/* Protected user routes */}
-                    <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
-                    <Route path="/manager-dashboard" element={<ProtectedRoute requiredRole="venue_manager"><ManagerDashboard /></ProtectedRoute>} />
-                    <Route path="/venues" element={<ProtectedRoute><Venues /></ProtectedRoute>} />
-                    <Route path="/venues/:id" element={<ProtectedRoute><VenueDetail /></ProtectedRoute>} />
-                    <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
-                    <Route path="/bookings/:id" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
-                    <Route path="/competitions" element={<ProtectedRoute><Competitions /></ProtectedRoute>} />
-                    <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
-                    <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-                    
-                    {/* Admin routes */}
-                    <Route path="/admin" element={<ProtectedRoute requiredRole="super_admin"><AdminDashboard /></ProtectedRoute>} />
-                    <Route path="/admin/users" element={<ProtectedRoute requiredRole="super_admin"><AdminUsers /></ProtectedRoute>} />
-                    <Route path="/admin/venues" element={<ProtectedRoute requiredRole="super_admin"><AdminVenues /></ProtectedRoute>} />
-                    
-                    {/* Fallback */}
-                    <Route path="*" element={<Navigate to="/venues" replace />} />
-                  </Routes>
-                </motion.div>
-              </AnimatePresence>
-            </Suspense>
+            <AuthInitializer>
+              <Suspense fallback={<Loading fullScreen />}>
+                <AppRoutes />
+              </Suspense>
+            </AuthInitializer>
           </BrowserRouter>
         </ToastProvider>
       </QueryClientProvider>

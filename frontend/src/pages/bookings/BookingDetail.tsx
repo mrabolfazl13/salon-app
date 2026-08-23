@@ -1,42 +1,21 @@
 import React, { useState } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
-import { motion } from 'framer-motion'
+import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Button,
-  Chip,
-  Divider,
-  Paper,
-  Avatar,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  Timeline,
-  TimelineItem,
-  TimelineSeparator,
-  TimelineConnector,
-  TimelineContent,
-  TimelineDot,
-  TimelineOppositeContent,
+  Box, Typography, Button, Chip, Divider, Paper,
+  useTheme, Grid, Container,
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import ConfirmModal from '@/components/modals/ConfirmModal'
-import { formatDate, formatDateTime, formatPrice, getStatusColor, getStatusLabel } from '@/lib/utils'
+import { formatDate, formatPrice, getStatusLabel } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 const BookingDetail: React.FC = () => {
-  const { id } = useParams()
   const navigate = useNavigate()
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [loading, setLoading] = useState(false)
+  const theme = useTheme()
 
-  // Mock booking data
   const booking = {
     id: 1,
     venue: 'سالن آبی',
@@ -72,199 +51,203 @@ const BookingDetail: React.FC = () => {
     }
   }
 
-  return (
-    <Layout isAuthenticated>
-      <Box sx={{ py: 3 }}>
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/bookings')}
-            className="mb-4"
-          >
-            <Icon icon="mdi:arrow-right" className="h-5 w-5 ml-2" />
-            بازگشت به لیست رزروها
-          </Button>
+  const statusColor = booking.status === 'confirmed' ? 'success' : booking.status === 'pending' ? 'warning' : 'error'
 
-          <Grid container spacing={3}>
-            {/* Main Content */}
-            <Grid item xs={12} lg={8}>
-              <Card sx={{ borderRadius: '16px', mb: 3 }}>
-                <CardContent>
-                  <Box display="flex" justifyContent="space-between" alignItems="flex-start">
-                    <Box>
-                      <Typography variant="h5" fontWeight={700}>
-                        {booking.venue}
+  return (
+    <Layout>
+      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
+        {/* Back Button */}
+        <Button
+          variant="text"
+          onClick={() => navigate('/bookings')}
+          sx={{ mb: 3, borderRadius: 1, textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}
+          startIcon={<Icon icon="mdi:arrow-right" />}
+        >
+          بازگشت به لیست رزروها
+        </Button>
+
+        {/* Header */}
+        <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, mb: 3, border: `1px solid ${theme.palette.divider}` }}>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+              <Box sx={{
+                width: 44, height: 44,
+                bgcolor: `${theme.palette.primary.main}08`,
+                borderRadius: 1,
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Icon icon="mdi:stadium" className="h-5 w-5" style={{ color: theme.palette.primary.main }} />
+              </Box>
+              <Box>
+                <Typography variant="h6" sx={{ fontWeight: 700 }}>{booking.venue}</Typography>
+                <Typography variant="body2" color="text.secondary">{booking.address}</Typography>
+              </Box>
+            </Box>
+            <Chip
+              label={getStatusLabel(booking.status)}
+              color={statusColor}
+              variant="outlined"
+              sx={{ borderRadius: 1, fontWeight: 600 }}
+            />
+          </Box>
+        </Paper>
+
+        <Grid container spacing={2}>
+          {/* Main Content */}
+          <Grid size={{ xs: 12, lg: 8 }}>
+            {/* Booking Info */}
+            <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, mb: 3, border: `1px solid ${theme.palette.divider}` }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2.5 }}>
+                اطلاعات رزرو
+              </Typography>
+              <Grid container spacing={2}>
+                {[
+                  { icon: 'mdi:calendar', label: 'تاریخ', value: formatDate(booking.date) },
+                  { icon: 'mdi:clock-outline', label: 'ساعت', value: booking.time },
+                  { icon: 'mdi:currency-ils', label: 'قیمت', value: formatPrice(booking.price) },
+                  { icon: 'mdi:ticket', label: 'کد رزرو', value: `#${String(booking.id).padStart(4, '0')}` },
+                ].map((item, index) => (
+                  <Grid size={{ xs: 6, md: 3 }} key={index}>
+                    <Box sx={{ p: 1.5, bgcolor: 'grey.50', borderRadius: 1, textAlign: 'center' }}>
+                      <Icon icon={item.icon} className="h-4 w-4" style={{ color: theme.palette.primary.main, marginBottom: 8 }} />
+                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 0.5 }}>
+                        {item.label}
                       </Typography>
-                      <Box display="flex" alignItems="center" gap={1} sx={{ mt: 0.5 }}>
-                        <Icon icon="mdi:map-marker" className="h-4 w-4 text-muted-foreground" />
-                        <Typography variant="body2" color="text.secondary">
-                          {booking.address}
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                        {item.value}
+                      </Typography>
+                    </Box>
+                  </Grid>
+                ))}
+              </Grid>
+            </Paper>
+
+            {/* Timeline */}
+            <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, border: `1px solid ${theme.palette.divider}` }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 3 }}>
+                مراحل رزرو
+              </Typography>
+              <Box>
+                {timelineItems.map((item, index) => {
+                  const isCompleted = item.status === 'completed'
+                  return (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'flex-start', mb: index < timelineItems.length - 1 ? 3 : 0, position: 'relative' }}>
+                      {index < timelineItems.length - 1 && (
+                        <Box sx={{
+                          position: 'absolute',
+                          right: 11,
+                          top: 24,
+                          bottom: -16,
+                          width: 2,
+                          bgcolor: isCompleted ? 'success.main' : theme.palette.grey[300],
+                        }} />
+                      )}
+                      <Box sx={{
+                        width: 24, height: 24,
+                        borderRadius: '50%',
+                        bgcolor: isCompleted ? 'success.main' : theme.palette.grey[300],
+                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        flexShrink: 0,
+                        ml: 1.5,
+                        zIndex: 1,
+                      }}>
+                        <Icon
+                          icon={isCompleted ? 'mdi:check' : 'mdi:circle-small'}
+                          className="h-3.5 w-3.5"
+                          style={{ color: 'white' }}
+                        />
+                      </Box>
+                      <Box sx={{ pt: 0.25 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600, color: isCompleted ? 'text.primary' : 'text.secondary' }}>
+                          {item.label}
+                        </Typography>
+                        <Typography variant="caption" color="text.disabled">
+                          {item.time}
                         </Typography>
                       </Box>
                     </Box>
-                    <Chip
-                      label={getStatusLabel(booking.status)}
-                      color={getStatusColor(booking.status) as any}
-                      sx={{ borderRadius: '8px' }}
-                    />
+                  )
+                })}
+              </Box>
+            </Paper>
+          </Grid>
+
+          {/* Sidebar */}
+          <Grid size={{ xs: 12, lg: 4 }}>
+            {/* Contact Info */}
+            <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, mb: 3, border: `1px solid ${theme.palette.divider}` }}>
+              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
+                اطلاعات تماس
+              </Typography>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {[
+                  { icon: 'mdi:account', label: 'رزرو کننده', value: booking.user },
+                  { icon: 'mdi:phone', label: 'شماره تماس', value: booking.phone },
+                  { icon: 'mdi:clock', label: 'تاریخ ثبت', value: booking.createdAt },
+                ].map((item, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                    <Icon icon={item.icon} className="h-4 w-4" style={{ color: theme.palette.text.secondary }} />
+                    <Box>
+                      <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>
+                        {item.label}
+                      </Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                        {item.value}
+                      </Typography>
+                    </Box>
                   </Box>
+                ))}
+              </Box>
 
-                  <Divider sx={{ my: 3 }} />
-
-                  <Grid container spacing={3}>
-                    <Grid item xs={6} sm={3}>
-                      <Typography variant="caption" color="text.secondary">
-                        تاریخ
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {formatDate(booking.date)}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <Typography variant="caption" color="text.secondary">
-                        ساعت
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        {booking.time}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <Typography variant="caption" color="text.secondary">
-                        قیمت
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600} color="primary">
-                        {formatPrice(booking.price)}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={6} sm={3}>
-                      <Typography variant="caption" color="text.secondary">
-                        کد رزرو
-                      </Typography>
-                      <Typography variant="body2" fontWeight={600}>
-                        #{String(booking.id).padStart(4, '0')}
-                      </Typography>
-                    </Grid>
-                  </Grid>
-
-                  <Divider sx={{ my: 3 }} />
-
-                  <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 2 }}>
-                    وضعیت رزرو
-                  </Typography>
-                  <Timeline position="right">
-                    {timelineItems.map((item, index) => (
-                      <TimelineItem key={index}>
-                        <TimelineOppositeContent color="text.secondary">
-                          {item.time}
-                        </TimelineOppositeContent>
-                        <TimelineSeparator>
-                          <TimelineDot
-                            color={
-                              item.status === 'completed'
-                                ? 'success'
-                                : item.status === 'pending'
-                                ? 'warning'
-                                : 'grey'
-                            }
-                          />
-                          {index < timelineItems.length - 1 && <TimelineConnector />}
-                        </TimelineSeparator>
-                        <TimelineContent>
-                          <Typography variant="body2" fontWeight={600}>
-                            {item.label}
-                          </Typography>
-                        </TimelineContent>
-                      </TimelineItem>
-                    ))}
-                  </Timeline>
-                </CardContent>
-              </Card>
-            </Grid>
-
-            {/* Sidebar */}
-            <Grid item xs={12} lg={4}>
-              <Card sx={{ borderRadius: '16px', mb: 3 }}>
-                <CardContent>
-                  <Typography variant="h6" fontWeight={600} sx={{ mb: 2 }}>
-                    اطلاعات رزرو
-                  </Typography>
-
-                  <List>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Icon icon="mdi:account" className="h-5 w-5 text-primary" />
-                      </ListItemIcon>
-                      <ListItemText primary="رزرو کننده" secondary={booking.user} />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Icon icon="mdi:phone" className="h-5 w-5 text-primary" />
-                      </ListItemIcon>
-                      <ListItemText primary="شماره تماس" secondary={booking.phone} />
-                    </ListItem>
-                    <ListItem>
-                      <ListItemIcon>
-                        <Icon icon="mdi:clock" className="h-5 w-5 text-primary" />
-                      </ListItemIcon>
-                      <ListItemText primary="تاریخ ثبت" secondary={formatDateTime(booking.createdAt)} />
-                    </ListItem>
-                  </List>
-
-                  {booking.notes && (
-                    <>
-                      <Divider sx={{ my: 2 }} />
-                      <Typography variant="subtitle2" fontWeight={600} sx={{ mb: 1 }}>
-                        توضیحات
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">
-                        {booking.notes}
-                      </Typography>
-                    </>
-                  )}
-
+              {booking.notes && (
+                <>
                   <Divider sx={{ my: 2 }} />
+                  <Box>
+                    <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>
+                      توضیحات
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', lineHeight: 1.7 }}>
+                      {booking.notes}
+                    </Typography>
+                  </Box>
+                </>
+              )}
+            </Paper>
 
-                  {booking.status === 'confirmed' && (
-                    <Button
-                      variant="contained"
-                      color="error"
-                      fullWidth
-                      sx={{
-                        borderRadius: '12px',
-                        textTransform: 'none',
-                        py: 1.5,
-                      }}
-                      onClick={() => setCancelModalOpen(true)}
-                    >
-                      <Icon icon="mdi:close" className="h-5 w-5 ml-2" />
-                      لغو رزرو
-                    </Button>
-                  )}
-
+            {/* Actions */}
+            <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, border: `1px solid ${theme.palette.divider}` }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {booking.status === 'confirmed' && (
                   <Button
                     variant="outlined"
-                    fullWidth
-                    sx={{
-                      mt: 1,
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                    }}
+                    color="error"
+                    onClick={() => setCancelModalOpen(true)}
+                    sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1 }}
+                    startIcon={<Icon icon="mdi:close-circle" />}
                   >
-                    <Icon icon="mdi:printer" className="h-5 w-5 ml-2" />
-                    چاپ فاکتور
+                    لغو رزرو
                   </Button>
-                </CardContent>
-              </Card>
-            </Grid>
+                )}
+                <Button
+                  variant="outlined"
+                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1 }}
+                  startIcon={<Icon icon="mdi:printer" />}
+                >
+                  چاپ فاکتور
+                </Button>
+                <Button
+                  variant="outlined"
+                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1 }}
+                  startIcon={<Icon icon="mdi:share" />}
+                >
+                  اشتراک‌گذاری
+                </Button>
+              </Box>
+            </Paper>
           </Grid>
-        </motion.div>
-      </Box>
+        </Grid>
+      </Container>
 
-      {/* Cancel Confirmation Modal */}
       <ConfirmModal
         open={cancelModalOpen}
         onOpenChange={setCancelModalOpen}

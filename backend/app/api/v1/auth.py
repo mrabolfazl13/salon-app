@@ -30,7 +30,8 @@ def login(user_data: UserLogin, uow: UnitOfWork = Depends(get_unit_of_work)):
     
     uow.users.update_last_login(user.id)
     access_token = create_access_token(data={"sub": user.phone})
-    return {"access_token": access_token, "token_type": "bearer"}
+    print(user, "User")
+    return {"access_token": access_token, "token_type": "bearer", "user": user}
 
 @router.get("/me", response_model=UserResponse)
 def get_me(current_user: User = Depends(get_current_user)):
