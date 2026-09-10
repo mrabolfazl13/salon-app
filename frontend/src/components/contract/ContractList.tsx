@@ -59,7 +59,7 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, onView }) => {
   return (
     <Grid container spacing={3}>
       {contracts.map((contract, index) => (
-        <Grid item xs={12} key={contract.id}>
+        <Grid size={{ xs: 12 }} key={contract.id}>
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -76,13 +76,15 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, onView }) => {
             >
               <CardContent>
                 <Box
-                  display="flex"
-                  flexDirection={{ xs: 'column', sm: 'row' }}
-                  justifyContent="space-between"
-                  alignItems={{ xs: 'flex-start', sm: 'center' }}
-                  gap={2}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'space-between',
+                    alignItems: { xs: 'flex-start', sm: 'center' },
+                    gap: 2,
+                  }}
                 >
-                  <Box display="flex" alignItems="center" gap={2}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                     <Avatar
                       sx={{
                         width: 48,
@@ -93,10 +95,10 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, onView }) => {
                       <Icon icon="mdi:file-document" className="h-6 w-6 text-white" />
                     </Avatar>
                     <Box>
-                      <Typography variant="subtitle1" fontWeight={600}>
+                      <Typography sx={{ fontWeight: 600 }} variant="subtitle1">
                         {contract.venue}
                       </Typography>
-                      <Box display="flex" alignItems="center" gap={1}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Typography variant="caption" color="text.secondary">
                           {formatDate(contract.startDate)} - {formatDate(contract.endDate)}
                         </Typography>
@@ -113,16 +115,18 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, onView }) => {
                 </Box>
 
                 <Box
-                  display="grid"
-                  gridTemplateColumns={{ xs: '1fr 1fr', sm: 'repeat(4, 1fr)' }}
-                  gap={2}
-                  sx={{ mt: 2 }}
+                  sx={{
+                    display: 'grid',
+                    gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' },
+                    gap: 2,
+                    mt: 2,
+                  }}
                 >
                   <Box>
                     <Typography variant="caption" color="text.secondary">
                       تعداد جلسات
                     </Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography sx={{ fontWeight: 600 }} variant="body2">
                       {contract.sessionsCount} جلسه
                     </Typography>
                   </Box>
@@ -130,7 +134,7 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, onView }) => {
                     <Typography variant="caption" color="text.secondary">
                       قیمت هر جلسه
                     </Typography>
-                    <Typography variant="body2" fontWeight={600}>
+                    <Typography sx={{ fontWeight: 600 }} variant="body2">
                       {formatPrice(contract.pricePerSession)}
                     </Typography>
                   </Box>
@@ -138,7 +142,7 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, onView }) => {
                     <Typography variant="caption" color="text.secondary">
                       مبلغ کل
                     </Typography>
-                    <Typography variant="body2" fontWeight={600} color="primary">
+                    <Typography sx={{ fontWeight: 600 }} variant="body2" color="primary">
                       {formatPrice(contract.totalAmount)}
                     </Typography>
                   </Box>

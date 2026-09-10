@@ -10,36 +10,41 @@ import {
   MenuItem,
   Box,
   Button,
-  Badge,
-  useTheme,
+  Divider,
 } from '@mui/material'
 import {
-  Menu as MenuIcon,
-  Notifications as NotificationsIcon,
   Person as PersonIcon,
   Logout as LogoutIcon,
-  Settings as SettingsIcon,
   Dashboard as DashboardIcon,
+  Storefront as StorefrontIcon,
+  AdminPanelSettings as AdminPanelIcon,
 } from '@mui/icons-material'
 import { Icon } from '@iconify/react'
 import { motion } from 'framer-motion'
-import { cn } from '@/lib/utils'
+import { useAuthStore } from '@/store/authStore'
+import { useNotificationStore } from '@/store/notificationStore'
+import { getInitials } from '@/lib/utils'
+import NotificationPanel from './NotificationPanel'
+
+const roleLabels: Record<string, string> = {
+  user: 'کاربر',
+  venue_manager: 'مدیر سالن',
+  club_admin: 'مدیر باشگاه',
+  super_admin: 'مدیر کل',
+}
 
 interface NavbarProps {
-  isAuthenticated?: boolean
-  userRole?: string
+  /** منوی کناری (Drawer) غیرفعال شده — ناوبری موبایل با نوار پایین انجام می‌شود */
   onMenuClick?: () => void
 }
 
-const Navbar: React.FC<NavbarProps> = ({
-  isAuthenticated = false,
-  userRole = 'user',
-  onMenuClick,
-}) => {
+const Navbar: React.FC<NavbarProps> = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
-  const [notifAnchorEl, setNotifAnchorEl] = useState<null | HTMLElement>(null)
   const navigate = useNavigate()
-  const theme = useTheme()
+  const { user, isAuthenticated, logout } = useAuthStore()
+
+  const isManager =
+    user?.role === 'venue_manager' || user?.role === 'club_admin' || user?.role === 'super_admin'
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -49,25 +54,23 @@ const Navbar: React.FC<NavbarProps> = ({
     setAnchorEl(null)
   }
 
-  const handleNotifOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setNotifAnchorEl(event.currentTarget)
-  }
-
-  const handleNotifClose = () => {
-    setNotifAnchorEl(null)
-  }
-
   const handleLogout = () => {
     handleMenuClose()
-    navigate('/login')
+    useNotificationStore.getState().reset()
+    logout()
+    navigate('/')
   }
 
   const navItems = [
     { label: 'خانه', icon: 'mdi:home', href: '/' },
-    { label: 'رزرو', icon: 'mdi:calendar', href: '/bookings' },
-    { label: 'رقابت‌ها', icon: 'mdi:trophy', href: '/competitions' },
+    { label: 'سالن‌ها', icon: 'mdi:store', href: '/venues' },
+    { label: 'بازی‌ها', icon: 'mdi:gamepad-variant', href: '/games' },
+    { label: 'رزروها', icon: 'mdi:calendar', href: '/bookings' },
     { label: 'قراردادها', icon: 'mdi:file-document', href: '/contracts' },
+    ...(isManager ? [{ label: 'رقابت‌ها', icon: 'mdi:trophy', href: '/competitions' }] : []),
   ]
+
+  const dashboardPath = isManager ? '/manager-dashboard' : '/dashboard'
 
   return (
     <motion.div
@@ -86,16 +89,6 @@ const Navbar: React.FC<NavbarProps> = ({
         }}
       >
         <Toolbar>
-          <IconButton
-            edge="start"
-            color="inherit"
-            aria-label="menu"
-            onClick={onMenuClick}
-            sx={{ mr: 2, display: { xs: 'flex', md: 'none' } }}
-          >
-            <MenuIcon />
-          </IconButton>
-
           <Link to="/" className="flex items-center gap-2 no-underline">
             <Box
               sx={{
@@ -126,6 +119,9 @@ const Navbar: React.FC<NavbarProps> = ({
 
           <Box sx={{ flexGrow: 1 }} />
 
+          {/* زنگ اعلان — در همه اندازه‌ها (موبایل + دسکتاپ) دیده می‌شود */}
+          {isAuthenticated && <NotificationPanel />}
+
           {/* Desktop Navigation */}
           <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
             {isAuthenticated ? (
@@ -150,25 +146,20 @@ const Navbar: React.FC<NavbarProps> = ({
                   </Button>
                 ))}
 
-                <IconButton onClick={handleNotifOpen} color="inherit">
-                  <Badge badgeContent={3} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-
                 <IconButton onClick={handleMenuOpen} color="inherit">
                   <Avatar
                     sx={{
                       width: 36,
                       height: 36,
                       bgcolor: 'primary.main',
+                      fontSize: '0.85rem',
                       transition: 'all 0.3s',
                       '&:hover': {
                         transform: 'scale(1.05)',
                       },
                     }}
                   >
-                    <PersonIcon />
+                    {user?.fullName ? getInitials(user.fullName) : <PersonIcon />}
                   </Avatar>
                 </IconButton>
 
@@ -181,48 +172,40 @@ const Navbar: React.FC<NavbarProps> = ({
                   sx={{
                     '& .MuiPaper-root': {
                       borderRadius: '16px',
-                      minWidth: 200,
+                      minWidth: 220,
                       boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                       mt: 1,
                     },
                   }}
                 >
+                  <Box sx={{ px: 2, py: 1.5 }}>
+                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      {user?.fullName || 'کاربر'}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary">
+                      {user ? roleLabels[user.role] || user.role : ''}
+                    </Typography>
+                  </Box>
+                  <Divider />
                   <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
-                    <PersonIcon sx={{ mr: 1 }} /> پروفایل
+                    <PersonIcon sx={{ ml: 1 }} /> پروفایل
                   </MenuItem>
-                  <MenuItem component={Link} to="/dashboard" onClick={handleMenuClose}>
-                    <DashboardIcon sx={{ mr: 1 }} /> داشبورد
+                  <MenuItem component={Link} to={dashboardPath} onClick={handleMenuClose}>
+                    <DashboardIcon sx={{ ml: 1 }} /> داشبورد
                   </MenuItem>
-                  <MenuItem component={Link} to="/settings" onClick={handleMenuClose}>
-                    <SettingsIcon sx={{ mr: 1 }} /> تنظیمات
-                  </MenuItem>
+                  {isManager && (
+                    <MenuItem component={Link} to="/manager-dashboard" onClick={handleMenuClose}>
+                      <StorefrontIcon sx={{ ml: 1 }} /> مدیریت سالن‌ها
+                    </MenuItem>
+                  )}
+                  {user?.role === 'super_admin' && (
+                    <MenuItem component={Link} to="/admin" onClick={handleMenuClose}>
+                      <AdminPanelIcon sx={{ ml: 1 }} /> پنل ادمین
+                    </MenuItem>
+                  )}
+                  <Divider />
                   <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
-                    <LogoutIcon sx={{ mr: 1 }} /> خروج
-                  </MenuItem>
-                </Menu>
-
-                <Menu
-                  anchorEl={notifAnchorEl}
-                  open={Boolean(notifAnchorEl)}
-                  onClose={handleNotifClose}
-                  transformOrigin={{ horizontal: 'left', vertical: 'top' }}
-                  anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-                  sx={{
-                    '& .MuiPaper-root': {
-                      borderRadius: '16px',
-                      minWidth: 300,
-                      maxWidth: 350,
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
-                      mt: 1,
-                    },
-                  }}
-                >
-                  <MenuItem sx={{ fontWeight: 600 }}>اعلان‌ها</MenuItem>
-                  <MenuItem>رزرو شما در تاریخ ۱۴۰۲/۱۰/۱۵ تایید شد</MenuItem>
-                  <MenuItem>رقابت قیمت جدید برای سالن آبی</MenuItem>
-                  <MenuItem>قرارداد شما تا ۱ ماه دیگر تمدید می‌شود</MenuItem>
-                  <MenuItem sx={{ color: 'primary.main', justifyContent: 'center' }}>
-                    مشاهده همه
+                    <LogoutIcon sx={{ ml: 1 }} /> خروج
                   </MenuItem>
                 </Menu>
               </>

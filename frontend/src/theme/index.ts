@@ -1,5 +1,6 @@
 // src/theme/index.ts
-import { createTheme, ThemeOptions } from '@mui/material/styles'
+import { createTheme } from '@mui/material/styles'
+import type { ThemeOptions } from '@mui/material/styles'
 
 export const themeOptions: ThemeOptions = {
   direction: 'rtl',
@@ -82,7 +83,7 @@ export const themeOptions: ThemeOptions = {
       dark: '#2563eb',
     },
     background: {
-      default: '#f1f5f9',
+      default: '#f8fafc',
       paper: '#ffffff',
     },
     text: {
@@ -273,5 +274,29 @@ export const themeOptions: ThemeOptions = {
     },
   },
 }
+
+/* ─── Design Tokens — Mobile-First Redesign ────────────────────────────
+   گرادیان آبی→بنفش فقط برای CTA اصلی، اجزای برند، Hero و حالت انتخاب‌شده */
+export const gradients = {
+  primary: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+  primaryHover: 'linear-gradient(135deg, #1d4ed8 0%, #6d28d9 100%)',
+  primarySoft: 'linear-gradient(135deg, rgba(37,99,235,0.08) 0%, rgba(124,58,237,0.08) 100%)',
+  heroOverlay: 'linear-gradient(180deg, rgba(2,6,23,0.15) 0%, rgba(2,6,23,0.72) 100%)',
+} as const
+
+export const radii = {
+  card: 20,
+  sheet: 24,
+  button: 14,
+  chip: 10,
+  image: 16,
+} as const
+
+export const shadows = {
+  card: '0 1px 3px rgba(15,23,42,0.05), 0 8px 24px rgba(15,23,42,0.05)',
+  cardHover: '0 4px 12px rgba(15,23,42,0.07), 0 16px 40px rgba(15,23,42,0.09)',
+  cta: '0 6px 20px rgba(37,99,235,0.32)',
+  nav: '0 -4px 24px rgba(15,23,42,0.06)',
+} as const
 
 export const theme = createTheme(themeOptions)

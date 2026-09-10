@@ -1,8 +1,8 @@
 from sqlmodel import SQLModel, create_engine, Session
 from app.config import settings
 from app.models import (
-    User, Venue, Club, Slot, Booking, 
-    PriceCompetition, Contract, ContractSlot, ContractPayment
+    User, Venue, Club, Slot, Booking,
+    PriceCompetition, Contract, ContractSlot, ContractPayment, Review
 )
 
 engine = create_engine(
@@ -18,3 +18,4 @@ def get_session():
 
 def init_db():
     SQLModel.metadata.create_all(engine)
+

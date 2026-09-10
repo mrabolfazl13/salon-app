@@ -5,10 +5,13 @@ from .slot import SlotCreate, SlotResponse, SlotStatus
 from .booking import BookingCreate, BookingResponse, BookingStatus
 from .competition import CompetitionCreate, CompetitionBid, CompetitionResponse, CompetitionStatus
 from .contract import ContractCreate, ContractResponse, ContractSessionCancel, RecurrenceType
+from .review import ReviewCreate, ReviewResponse, VenueRatingSummary
+from .notification import NotificationResponse, UnreadCountResponse
+from .payment import PaymentCreate, PaymentPayRequest, PaymentResponse
 
 __all__ = [
     "UserCreate",
-    "UserLogin", 
+    "UserLogin",
     "UserResponse",
     "Token",
     "VenueCreate",
@@ -26,5 +29,13 @@ __all__ = [
     "ContractCreate",
     "ContractResponse",
     "ContractSessionCancel",
-    "RecurrenceType"
+    "RecurrenceType",
+    "ReviewCreate",
+    "ReviewResponse",
+    "VenueRatingSummary",
+    "NotificationResponse",
+    "UnreadCountResponse",
+    "PaymentCreate",
+    "PaymentPayRequest",
+    "PaymentResponse"
 ]

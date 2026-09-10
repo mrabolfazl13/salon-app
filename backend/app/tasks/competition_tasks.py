@@ -10,9 +10,11 @@ def resolve_expired_competitions():
         uow.commit()
         return {"resolved_count": resolved_count}
 
-celery_app.conf.beat_schedule = {
+# ⚠️ باید با .update() انجام شود؛ انتساب مستقیم، تسک‌های ثبت‌شده در worker.py
+# (مثل cleanup_expired_pending_bookings) را پاک می‌کند
+celery_app.conf.beat_schedule.update({
     "resolve-competitions": {
         "task": "resolve_expired_competitions",
         "schedule": crontab(minute="*/30"),
     },
-}
+})

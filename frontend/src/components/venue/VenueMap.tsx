@@ -7,20 +7,25 @@ import {
   Paper,
   Typography,
   Chip,
+  Button,
   useTheme,
   CircularProgress,
 } from '@mui/material'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
+// آیکون‌های مارکر از بستهٔ محلی leaflet (بدون وابستگی به CDN)
+import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
+import markerIcon from 'leaflet/dist/images/marker-icon.png'
+import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 
 // Fix Leaflet marker icons in React
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl
 L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
+  iconRetinaUrl: markerIcon2x,
+  iconUrl: markerIcon,
+  shadowUrl: markerShadow,
 })
 
 interface Venue {
@@ -28,7 +33,7 @@ interface Venue {
   name: string
   lat: number
   lng: number
-  status: string
+  isVerified?: boolean
   address?: string
   price?: number
 }
@@ -44,18 +49,18 @@ interface VenueMapProps {
 // Component to handle map center updates
 const MapCenterUpdater: React.FC<{ center: { lat: number; lng: number }; zoom: number }> = ({ center, zoom }) => {
   const map = useMap()
-  
+
   useEffect(() => {
     map.setView([center.lat, center.lng], zoom)
   }, [center, zoom, map])
-  
+
   return null
 }
 
-// Custom marker icon based on status
-const getMarkerIcon = (status: string) => {
-  const color = status === 'available' ? '#22c55e' : '#ef4444'
-  
+// Custom marker icon based on verification status
+const getMarkerIcon = (isVerified: boolean) => {
+  const color = isVerified ? '#22c55e' : '#f59e0b'
+
   return L.divIcon({
     className: 'custom-marker',
     html: `
@@ -86,14 +91,14 @@ const getMarkerIcon = (status: string) => {
 
 const VenueMap: React.FC<VenueMapProps> = ({
   venues,
-  center = {lat: 34.6427, lng: 50.8814 },
+  center = { lat: 34.6427, lng: 50.8814 },
   zoom = 13,
   height = 400,
   onVenueClick,
 }) => {
   const theme = useTheme()
   const [isLoading, setIsLoading] = useState(true)
-  const [mapReady, setMapReady] = useState(false)
+  const [, setMapReady] = useState(false)
 
   useEffect(() => {
     // Simulate map loading
@@ -108,10 +113,10 @@ const VenueMap: React.FC<VenueMapProps> = ({
   // Calculate bounds for better view
   const getBounds = () => {
     if (venues.length === 0) return null
-    
+
     const lats = venues.map(v => v.lat)
     const lngs = venues.map(v => v.lng)
-    
+
     return {
       minLat: Math.min(...lats),
       maxLat: Math.max(...lats),
@@ -132,7 +137,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
     ? Math.max(12, Math.min(16, 12 - Math.log(Math.max(
         (bounds.maxLat - bounds.minLat) * 111,
         (bounds.maxLng - bounds.minLng) * 85
-      ) / 10)))
+      )) / 10))
     : zoom
 
   return (
@@ -154,10 +159,12 @@ const VenueMap: React.FC<VenueMapProps> = ({
       >
         {isLoading ? (
           <Box
-            display="flex"
-            alignItems="center"
-            justifyContent="center"
-            sx={{ height: '100%' }}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              height: '100%',
+            }}
           >
             <CircularProgress />
           </Box>
@@ -170,51 +177,68 @@ const VenueMap: React.FC<VenueMapProps> = ({
               whenReady={() => setMapReady(true)}
             >
               <MapCenterUpdater center={mapCenter} zoom={mapZoom} />
-              
+
               <TileLayer
                 attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
                 url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
               />
-              
+
               {/* Venue markers */}
               {venues.map((venue) => (
                 <Marker
                   key={venue.id}
                   position={[venue.lat, venue.lng]}
-                  icon={getMarkerIcon(venue.status)}
+                  icon={getMarkerIcon(Boolean(venue.isVerified))}
                   eventHandlers={{
                     click: () => onVenueClick?.(venue),
                   }}
                 >
                   <Popup>
-                    <Box sx={{ minWidth: 200, p: 1 }}>
-                      <Typography variant="subtitle1" fontWeight={600}>
+                    <Box sx={{ minWidth: 220, p: 1, direction: 'rtl' }}>
+                      <Typography sx={{ fontWeight: 600 }} variant="subtitle1">
                         {venue.name}
                       </Typography>
                       {venue.address && (
-                        <Typography variant="caption" color="text.secondary" display="block">
+                        <Typography sx={{ display: 'block', my: 0.5 }} variant="caption" color="text.secondary">
                           <Icon icon="mdi:map-marker" className="h-3 w-3 inline" />
                           {venue.address}
                         </Typography>
                       )}
-                      {venue.price && (
-                        <Typography variant="body2" fontWeight={500} sx={{ mt: 0.5 }}>
+                      {venue.price != null && venue.price > 0 && (
+                        <Typography variant="body2" sx={{ fontWeight: 500, mt: 0.5 }}>
                           {new Intl.NumberFormat('fa-IR').format(venue.price)} تومان
                         </Typography>
                       )}
                       <Chip
-                        label={venue.status === 'available' ? 'آزاد' : 'پر'}
-                        color={venue.status === 'available' ? 'success' : 'error'}
+                        label={venue.isVerified ? 'تایید شده' : 'در انتظار تایید'}
+                        color={venue.isVerified ? 'success' : 'warning'}
                         size="small"
                         sx={{ mt: 0.5 }}
                       />
+                      {onVenueClick && (
+                        <Button
+                          fullWidth
+                          size="small"
+                          onClick={() => onVenueClick(venue)}
+                          sx={{
+                            mt: 1,
+                            borderRadius: '8px',
+                            textTransform: 'none',
+                            fontWeight: 600,
+                            background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                            color: 'white',
+                          }}
+                        >
+                          مشاهده سالن
+                        </Button>
+                      )}
                     </Box>
                   </Popup>
                 </Marker>
               ))}
             </MapContainer>
 
-            {/* Legend */}
+            {/* Legend — مطابق رنگ مارکرها (وضعیت تأیید سالن) */}
             <Box
               sx={{
                 position: 'absolute',
@@ -230,7 +254,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
                 zIndex: 1000,
               }}
             >
-              <Box display="flex" alignItems="center" gap={1}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
                   sx={{
                     width: 12,
@@ -241,23 +265,23 @@ const VenueMap: React.FC<VenueMapProps> = ({
                     boxShadow: '0 2px 6px rgba(34,197,94,0.4)',
                   }}
                 />
-                <Typography variant="caption" fontSize="0.7rem">
-                  آزاد
+                <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                  تأیید شده
                 </Typography>
               </Box>
-              <Box display="flex" alignItems="center" gap={1}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                 <Box
                   sx={{
                     width: 12,
                     height: 12,
                     borderRadius: '50%',
-                    bgcolor: '#ef4444',
+                    bgcolor: '#f59e0b',
                     border: '2px solid white',
-                    boxShadow: '0 2px 6px rgba(239,68,68,0.4)',
+                    boxShadow: '0 2px 6px rgba(245,158,11,0.4)',
                   }}
                 />
-                <Typography variant="caption" fontSize="0.7rem">
-                  پر
+                <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                  در انتظار تایید
                 </Typography>
               </Box>
             </Box>
@@ -279,8 +303,8 @@ const VenueMap: React.FC<VenueMapProps> = ({
                 gap: 1,
               }}
             >
-              <Icon icon="mdi:map-marker" className="h-4 w-4 text-primary" />
-              <Typography variant="caption" fontWeight={600}>
+              <Icon icon="mdi:map-marker" className="h-4 w-4" style={{ color: theme.palette.primary.main }} />
+              <Typography sx={{ fontWeight: 600 }} variant="caption">
                 {venues.length} سالن
               </Typography>
             </Box>

@@ -1,20 +1,23 @@
+// مطابق با VenueResponse بک‌اند (snake_case)
 export interface Venue {
   id: number
   name: string
+  category: 'futsal' | 'gym'
   address: string
   latitude: number
   longitude: number
-  phone: string
-  description?: string
+  phone: string | null
+  description?: string | null
   amenities: string[]
   images: string[]
   price: number
-  rating: number
-  managerId: number
-  clubId?: number
-  isVerified: boolean
-  status: 'available' | 'busy'
-  createdAt: string
+  is_verified: boolean
+  manager_id: number
+  club_id?: number | null
+  created_at: string
+  manager_name?: string
+  average_rating?: number
+  total_reviews?: number
 }
 
 export interface VenueCreate {
@@ -26,7 +29,7 @@ export interface VenueCreate {
   description?: string
   amenities: string[]
   images: string[]
-  price: number
+  price?: number
 }
 
 export interface VenueUpdate extends Partial<VenueCreate> {}

@@ -1,15 +1,16 @@
 # backend/app/api/v1/venues.py
 from fastapi import APIRouter, Depends, HTTPException, Query
-from sqlmodel import Session
+from sqlmodel import Session, select
 from typing import List, Optional
 import json
-from datetime import date
+from datetime import date, timedelta
 
 from app.database import get_session
 from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.schemas.venue import VenueCreate, VenueResponse
 from app.repositories.venue_repository import VenueRepository, ClubRepository
 from app.repositories.slot_repository import SlotRepository
+from app.repositories.review_repository import ReviewRepository
 from app.utils.auth import get_current_user, get_current_manager, get_current_admin
 from app.models.user import User, UserRole
 from app.models.venue import Venue
@@ -19,15 +20,26 @@ from app.services.notification_service import notification_service
 router = APIRouter(prefix="/venues", tags=["Venues"])
 
 def get_venue_min_price(session: Session, venue_id: int) -> int:
-    """محاسبه حداقل قیمت سانس‌های موجود یک سالن"""
+    """حداقل قیمت سالن: برای فوتسال از سانس‌ها، برای بدنسازی از پلن‌های اشتراک"""
+    from app.models.membership import MembershipPlan
+
+    # پلن‌های اشتراک فعال (باشگاه‌های بدنسازی سانس‌محور نیستند)
+    plans = session.exec(
+        select(MembershipPlan).where(
+            MembershipPlan.venue_id == venue_id,
+            MembershipPlan.is_active == True,  # noqa: E712
+        )
+    ).all()
+    if plans:
+        return min(p.price for p in plans)
+
     slot_repo = SlotRepository(session)
-    
-    # گرفتن سانس‌های موجود برای امروز و ۳ روز آینده
+
     today = date.today()
     slots = slot_repo.get_by_venue_and_date_range(
-        venue_id, 
-        today, 
-        today
+        venue_id,
+        today,
+        today + timedelta(days=7)
     )
     
     # فیلتر سانس‌های آزاد
@@ -45,6 +57,7 @@ def get_venue_min_price(session: Session, venue_id: int) -> int:
 
 @router.get("/", response_model=List[VenueResponse])
 def get_venues(
+    category: Optional[str] = Query(None, description="نوع: futsal | gym"),
     latitude: Optional[float] = Query(None, description="عرض جغرافیایی"),
     longitude: Optional[float] = Query(None, description="طول جغرافیایی"),
     radius: float = Query(5.0, description="شعاع جستجو بر حسب کیلومتر"),
@@ -56,6 +69,7 @@ def get_venues(
 ):
     """لیست همه سالن‌ها با قابلیت فیلتر و جستجو"""
     venue_repo = VenueRepository(session)
+    review_repo = ReviewRepository(session)
     
     # جستجوی نزدیک‌ترین سالن‌ها
     if latitude and longitude:
@@ -63,30 +77,45 @@ def get_venues(
         venues = [v for v, d in venues_with_distance]
         # محاسبه قیمت برای هر سالن
         result = []
+        venue_ids = [v.id for v in venues[:limit]]
+        ratings_map = review_repo.get_ratings_for_venues(venue_ids)
         for v in venues[:limit]:
+            if category and v.category != category:
+                continue
             min_price = get_venue_min_price(session, v.id)
-            result.append(VenueResponse.from_orm_with_json(v, min_price))
+            r = ratings_map.get(v.id, {})
+            result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0)))
         return result
     
     # جستجوی متنی
     if search:
         venues = venue_repo.search_by_name_or_address(search, limit)
         result = []
+        venue_ids = [v.id for v in venues]
+        ratings_map = review_repo.get_ratings_for_venues(venue_ids)
         for v in venues:
+            if category and v.category != category:
+                continue
             min_price = get_venue_min_price(session, v.id)
-            result.append(VenueResponse.from_orm_with_json(v, min_price))
+            r = ratings_map.get(v.id, {})
+            result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0)))
         return result
     
     # فیلتر ساده
     filters = {}
     if is_verified is not None:
         filters["is_verified"] = is_verified
+    if category:
+        filters["category"] = category
     
     venues = venue_repo.get_all(limit=limit, offset=offset, **filters)
     result = []
+    venue_ids = [v.id for v in venues]
+    ratings_map = review_repo.get_ratings_for_venues(venue_ids)
     for v in venues:
         min_price = get_venue_min_price(session, v.id)
-        result.append(VenueResponse.from_orm_with_json(v, min_price))
+        r = ratings_map.get(v.id, {})
+        result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0)))
     return result
 
 @router.get("/my-venues", response_model=List[VenueResponse])
@@ -97,9 +126,12 @@ def get_my_venues(
     """لیست سالن‌های مدیر"""
     venues = uow.venues.get_by_manager_id(current_user.id)
     result = []
+    venue_ids = [v.id for v in venues]
+    ratings_map = uow.reviews.get_ratings_for_venues(venue_ids)
     for v in venues:
         min_price = get_venue_min_price(uow.session, v.id)
-        result.append(VenueResponse.from_orm_with_json(v, min_price))
+        r = ratings_map.get(v.id, {})
+        result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0)))
     return result
 
 @router.get("/{venue_id}", response_model=VenueResponse)
@@ -109,13 +141,19 @@ def get_venue(
 ):
     """جزئیات یک سالن با قیمت"""
     venue_repo = VenueRepository(session)
+    review_repo = ReviewRepository(session)
     venue = venue_repo.get_by_id(venue_id)
     
     if not venue:
         raise HTTPException(status_code=404, detail="Venue not found")
     
     min_price = get_venue_min_price(session, venue_id)
-    return VenueResponse.from_orm_with_json(venue, min_price)
+    rating_summary = review_repo.get_rating_summary(venue_id)
+    return VenueResponse.from_orm_with_json(
+        venue, min_price,
+        rating_summary["average_rating"],
+        rating_summary["total_reviews"]
+    )
 
 @router.post("/", response_model=VenueResponse)
 def create_venue(
@@ -144,7 +182,7 @@ def create_venue(
     uow.commit()
     
     min_price = get_venue_min_price(uow.session, venue.id)
-    return VenueResponse.from_orm_with_json(venue, min_price)
+    return VenueResponse.from_orm_with_json(venue, min_price, 0.0, 0)
 
 @router.put("/{venue_id}", response_model=VenueResponse)
 def update_venue(
@@ -171,11 +209,16 @@ def update_venue(
         "images": json.dumps(venue_data.images),
     }
     
-    uow.venues.update(venue_id, update_data)
+    venue = uow.venues.update(venue_id, update_data)
     uow.commit()
     
     min_price = get_venue_min_price(uow.session, venue_id)
-    return VenueResponse.from_orm_with_json(venue, min_price)
+    rating_summary = uow.reviews.get_rating_summary(venue_id)
+    return VenueResponse.from_orm_with_json(
+        venue, min_price,
+        rating_summary["average_rating"],
+        rating_summary["total_reviews"]
+    )
 
 @router.post("/{venue_id}/verify")
 def verify_venue(

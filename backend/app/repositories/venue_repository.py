@@ -15,6 +15,13 @@ class VenueRepository(BaseRepository[Venue]):
         """گرفتن سالن‌های یک مدیر"""
         statement = select(Venue).where(Venue.manager_id == manager_id)
         return self.session.exec(statement).all()
+
+    def get_by_ids(self, ids: List[int]) -> List[Venue]:
+        """گرفتن چند سالن به‌صورت یکجا (جلوگیری از N+1)"""
+        if not ids:
+            return []
+        statement = select(Venue).where(Venue.id.in_(ids))
+        return self.session.exec(statement).all()
     
     def get_by_club(self, club_id: int) -> List[Venue]:
         return self.get_all(club_id=club_id)

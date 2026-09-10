@@ -8,6 +8,14 @@ from app.repositories.slot_repository import SlotRepository
 from app.repositories.booking_repository import BookingRepository
 from app.repositories.competition_repository import CompetitionRepository
 from app.repositories.contract_repository import ContractRepository, ContractSlotRepository, ContractPaymentRepository
+from app.repositories.review_repository import ReviewRepository
+from app.repositories.notification_repository import NotificationRepository
+from app.repositories.payment_repository import BookingPaymentRepository
+from app.repositories.game_repository import (
+    GameRepository, GameParticipantRepository, GameJoinRequestRepository,
+    GameInvitationRepository, GameInviteLinkRepository,
+    GameWaitlistRepository, GamePaymentRepository,
+)
 
 class UnitOfWork:
     
@@ -94,6 +102,66 @@ class UnitOfWork:
         if "contract_payments" not in self._repositories:
             self._repositories["contract_payments"] = ContractPaymentRepository(self.session)
         return self._repositories["contract_payments"]
+
+    @property
+    def reviews(self) -> ReviewRepository:
+        if "reviews" not in self._repositories:
+            self._repositories["reviews"] = ReviewRepository(self.session)
+        return self._repositories["reviews"]
+
+    @property
+    def notifications(self) -> NotificationRepository:
+        if "notifications" not in self._repositories:
+            self._repositories["notifications"] = NotificationRepository(self.session)
+        return self._repositories["notifications"]
+
+    @property
+    def payments(self) -> BookingPaymentRepository:
+        if "payments" not in self._repositories:
+            self._repositories["payments"] = BookingPaymentRepository(self.session)
+        return self._repositories["payments"]
+
+    @property
+    def games(self) -> GameRepository:
+        if "games" not in self._repositories:
+            self._repositories["games"] = GameRepository(self.session)
+        return self._repositories["games"]
+
+    @property
+    def game_participants(self) -> GameParticipantRepository:
+        if "game_participants" not in self._repositories:
+            self._repositories["game_participants"] = GameParticipantRepository(self.session)
+        return self._repositories["game_participants"]
+
+    @property
+    def game_join_requests(self) -> GameJoinRequestRepository:
+        if "game_join_requests" not in self._repositories:
+            self._repositories["game_join_requests"] = GameJoinRequestRepository(self.session)
+        return self._repositories["game_join_requests"]
+
+    @property
+    def game_invitations(self) -> GameInvitationRepository:
+        if "game_invitations" not in self._repositories:
+            self._repositories["game_invitations"] = GameInvitationRepository(self.session)
+        return self._repositories["game_invitations"]
+
+    @property
+    def game_invite_links(self) -> GameInviteLinkRepository:
+        if "game_invite_links" not in self._repositories:
+            self._repositories["game_invite_links"] = GameInviteLinkRepository(self.session)
+        return self._repositories["game_invite_links"]
+
+    @property
+    def game_waitlist(self) -> GameWaitlistRepository:
+        if "game_waitlist" not in self._repositories:
+            self._repositories["game_waitlist"] = GameWaitlistRepository(self.session)
+        return self._repositories["game_waitlist"]
+
+    @property
+    def game_payments(self) -> GamePaymentRepository:
+        if "game_payments" not in self._repositories:
+            self._repositories["game_payments"] = GamePaymentRepository(self.session)
+        return self._repositories["game_payments"]
 
 def get_unit_of_work():
     uow = UnitOfWork()

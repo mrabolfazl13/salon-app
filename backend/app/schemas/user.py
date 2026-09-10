@@ -48,7 +48,7 @@ class UserResponse(UserBase):
 class Token(BaseModel):
     access_token: str
     token_type: str = "bearer"
-    user: Optional[Any] = None
+    user: Optional[UserResponse] = None
 
 class TokenData(BaseModel):
     phone: str | None = None

@@ -1,6 +1,7 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { authService } from '@/services/auth'
+import type { RawUser } from '@/services/auth'
 
 interface User {
   id: number
@@ -8,7 +9,22 @@ interface User {
   phone: string
   role: 'user' | 'venue_manager' | 'club_admin' | 'super_admin'
   isVerified: boolean
-  is_active?: boolean
+  isActive: boolean
+  createdAt?: string
+}
+
+// بک‌اند فیلدها را با snake_case برمی‌گرداند؛ در اینجا به camelCase تبدیل می‌کنیم
+function normalizeUser(raw: RawUser | null | undefined): User | null {
+  if (!raw) return null
+  return {
+    id: raw.id,
+    fullName: raw.full_name || '',
+    phone: raw.phone || '',
+    role: raw.role || 'user',
+    isVerified: raw.is_verified ?? false,
+    isActive: raw.is_active ?? true,
+    createdAt: raw.created_at,
+  }
 }
 
 interface AuthStore {
@@ -38,14 +54,15 @@ export const useAuthStore = create<AuthStore>()(
         const { token } = get()
         if (token) {
           try {
-            const response = await authService.getMe()
+            const me = await authService.getMe()
             set({
-              user: response.user,
+              user: normalizeUser(me),
               isAuthenticated: true,
               hasInitialized: true,
             })
           } catch (error) {
-            set({ isAuthenticated: false, user: null, hasInitialized: true })
+            localStorage.removeItem('auth-token')
+            set({ isAuthenticated: false, user: null, token: null, hasInitialized: true })
           }
         } else {
           set({ hasInitialized: true })
@@ -56,12 +73,12 @@ export const useAuthStore = create<AuthStore>()(
         set({ isLoading: true })
         try {
           const response = await authService.login({ phone, password })
-          
+
           // Store token in localStorage for API interceptor
           localStorage.setItem('auth-token', response.access_token)
-          
+
           set({
-            user: response.user,
+            user: normalizeUser(response.user),
             token: response.access_token,
             isAuthenticated: true,
             isLoading: false,
@@ -76,17 +93,14 @@ export const useAuthStore = create<AuthStore>()(
       register: async (data: any) => {
         set({ isLoading: true })
         try {
-          const response = await authService.register(data)
-          
-          // Store token in localStorage for API interceptor
-          localStorage.setItem('auth-token', response.access_token)
-          
+          // بک‌اند پس از ثبت‌نام توکن برنمی‌گرداند؛ احراز هوایی انجام نمی‌شود
+          await authService.register(data)
           set({
-            user: response.user,
-            token: response.access_token,
-            isAuthenticated: true,
             isLoading: false,
             hasInitialized: true,
+            isAuthenticated: false,
+            token: null,
+            user: null,
           })
         } catch (error) {
           set({ isLoading: false, hasInitialized: true })
@@ -117,22 +131,29 @@ export const useAuthStore = create<AuthStore>()(
           set({ isAuthenticated: false, user: null })
           return
         }
-        
+
         set({ isLoading: true })
         try {
-          const response = await authService.getMe()
+          const me = await authService.getMe()
           set({
-            user: response.user,
+            user: normalizeUser(me),
             isAuthenticated: true,
             isLoading: false,
           })
         } catch (error) {
-          set({ isAuthenticated: false, user: null, isLoading: false })
+          localStorage.removeItem('auth-token')
+          set({ isAuthenticated: false, user: null, token: null, isLoading: false })
         }
       },
     }),
     {
       name: 'auth-storage',
+      // فقط داده‌های ماندگار ذخیره می‌شوند (نه state‌های گذرا)
+      partialize: (state) => ({
+        user: state.user,
+        token: state.token,
+        isAuthenticated: state.isAuthenticated,
+      }),
     }
   )
 )

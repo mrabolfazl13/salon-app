@@ -8,10 +8,11 @@ class Venue(SQLModel, table=True):
     
     id: Optional[int] = Field(default=None, primary_key=True)
     name: str = Field(index=True, max_length=100)
+    category: str = Field(default="futsal", index=True, max_length=20)  # futsal | gym
     address: str
     latitude: float
     longitude: float
-    phone: str = Field(max_length=11)
+    phone: Optional[str] = Field(default=None, max_length=11)
     description: Optional[str] = None
     amenities: str = Field(default="[]")
     images: str = Field(default="[]")
@@ -24,6 +25,8 @@ class Venue(SQLModel, table=True):
     slots: List["Slot"] = Relationship(back_populates="venue")
     contracts: List["Contract"] = Relationship(back_populates="venue")
     club: Optional["Club"] = Relationship(back_populates="venues")
+    reviews: List["Review"] = Relationship(back_populates="venue")
+    plans: List["MembershipPlan"] = Relationship(back_populates="venue")
 
 class Club(SQLModel, table=True):
     __tablename__ = "clubs"

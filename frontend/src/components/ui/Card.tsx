@@ -6,11 +6,13 @@ import {
   CardHeader as MuiCardHeader,
   CardActions as MuiCardActions,
   CardMedia as MuiCardMedia,
+  Typography,
+} from '@mui/material'
+import type {
   CardProps as MuiCardProps,
   CardContentProps,
   CardHeaderProps,
   CardActionsProps,
-  Typography,
 } from '@mui/material'
 import { motion } from 'framer-motion'
 
@@ -47,7 +49,7 @@ export const CardActions: React.FC<CardActionsProps> = (props) => (
 export const CardMedia: React.FC<any> = (props) => <MuiCardMedia {...props} />
 
 export const CardTitle: React.FC<{ children: React.ReactNode }> = ({ children, ...props }) => (
-  <Typography variant="h5" component="h2" fontWeight={600} {...props}>
+  <Typography sx={{ fontWeight: 600 }} variant="h5" component="h2" {...props}>
     {children}
   </Typography>
 )

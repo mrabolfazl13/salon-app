@@ -12,6 +12,7 @@ export default {
       },
       colors: {
         primary: {
+          DEFAULT: '#2563eb',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',
@@ -24,6 +25,7 @@ export default {
           900: '#1e3a8a',
         },
         secondary: {
+          DEFAULT: '#7c3aed',
           50: '#f5f3ff',
           100: '#ede9fe',
           200: '#ddd6fe',
@@ -34,6 +36,17 @@ export default {
           700: '#6d28d9',
           800: '#5b21b6',
           900: '#4c1d95',
+        },
+        background: '#ffffff',
+        foreground: '#111827',
+        muted: {
+          foreground: '#6b7280',
+        },
+        input: '#e5e7eb',
+        ring: '#2563eb',
+        destructive: {
+          DEFAULT: '#ef4444',
+          foreground: '#fef2f2',
         },
       },
       animation: {

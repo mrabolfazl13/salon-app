@@ -27,3 +27,4 @@ class User(SQLModel, table=True):
     bookings: List["Booking"] = Relationship(back_populates="user")
     competitions: List["PriceCompetition"] = Relationship(back_populates="venue_manager")
     contracts: List["Contract"] = Relationship(back_populates="user")
+    reviews: List["Review"] = Relationship(back_populates="user")

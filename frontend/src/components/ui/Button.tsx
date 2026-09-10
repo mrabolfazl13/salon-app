@@ -33,14 +33,17 @@ const buttonVariants = cva(
 )
 
 export interface ButtonProps
-  extends React.ButtonHTMLAttributes<HTMLButtonElement>,
+  extends Omit<React.ComponentPropsWithoutRef<'button'>, 'onDrag' | 'onDragStart' | 'onDragEnd' | 'onAnimationStart' | 'onAnimationIteration' | 'onAnimationEnd'>,
     VariantProps<typeof buttonVariants> {
   loading?: boolean
   icon?: string
+  onDrag?: (event: React.DragEvent<HTMLButtonElement>) => void
+  onDragStart?: (event: React.DragEvent<HTMLButtonElement>) => void
+  onDragEnd?: (event: React.DragEvent<HTMLButtonElement>) => void
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, loading = false, icon, children, disabled, ...props }, ref) => {
+  ({ className, variant, size, loading = false, icon, children, disabled, onDrag, onDragStart, onDragEnd, ...props }, ref) => {
     return (
       <motion.button
         whileHover={{ scale: 1.02 }}

@@ -7,9 +7,39 @@
   * {
     @apply m-0 p-0 box-border;
   }
+  html {
+    /* جلوگیری از افقی شدن ناخواسته صفحه در موبایل */
+    overflow-x: hidden;
+  }
   body {
-    @apply bg-gray-50 text-gray-900 antialiased;
+    @apply text-gray-900 antialiased;
+    background-color: #f8fafc;
     font-family: 'Vazirmatn', system-ui, sans-serif;
+    /* Safe-area برای آیفون‌های نوچ‌دار */
+    padding-bottom: env(safe-area-inset-bottom);
+    overscroll-behavior-y: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  img {
+    max-width: 100%;
+  }
+}
+
+@layer utilities {
+  /* متغیرهای safe-area برای هدر و نوار پایین */
+  .pt-safe {
+    padding-top: env(safe-area-inset-top);
+  }
+  .pb-safe {
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+  .px-safe {
+    padding-inline: max(1rem, env(safe-area-inset-left));
+  }
+  /* هدف لمسی ≥44px فقط برای کنترل‌های موبایل (کلاس اختیاری) */
+  .touch-target {
+    min-height: 44px;
+    min-width: 44px;
   }
 }
 
@@ -36,6 +66,12 @@
   50% { transform: translateY(-20px); }
 }
 
+/* پالس برای نشانگر «زنده» — مستقل از تولید خودکار Tailwind */
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
 /* Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
@@ -52,4 +88,13 @@
 
 ::-webkit-scrollbar-thumb:hover {
   @apply bg-gray-400;
+}
+
+/* پنهان کردن اسکرول‌بار (برای اسکرول افقی) */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }

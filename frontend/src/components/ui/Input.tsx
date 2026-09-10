@@ -10,7 +10,9 @@ export interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> 
 }
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ className, type, error, icon, label, ...props }, ref) => {
+  ({ className, type, error, icon, label, id, ...props }, ref) => {
+    const autoId = React.useId()
+    const inputId = id || autoId
     return (
       <motion.div
         initial={{ opacity: 0, y: 10 }}
@@ -19,7 +21,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         className="space-y-1.5 w-full"
       >
         {label && (
-          <label className="text-sm font-medium text-foreground block">
+          <label htmlFor={inputId} className="text-sm font-medium text-foreground block">
             {label}
           </label>
         )}
@@ -31,6 +33,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             />
           )}
           <input
+            id={inputId}
             type={type}
             className={cn(
               'flex h-12 w-full rounded-2xl border-2 border-input bg-background px-4 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50 transition-all duration-200',

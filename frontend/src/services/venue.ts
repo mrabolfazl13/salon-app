@@ -21,11 +21,6 @@ export const venueService = {
     return response.data
   },
 
-  delete: async (id: number) => {
-    const response = await apiClient.delete(`/venues/${id}`)
-    return response.data
-  },
-
   getMyVenues: async () => {
     const response = await apiClient.get('/venues/my-venues')
     return response.data
@@ -33,11 +28,6 @@ export const venueService = {
 
   verify: async (id: number) => {
     const response = await apiClient.post(`/venues/${id}/verify`)
-    return response.data
-  },
-
-  getAmenities: async (id: number) => {
-    const response = await apiClient.get(`/venues/${id}/amenities`)
     return response.data
   },
 

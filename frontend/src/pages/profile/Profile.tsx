@@ -14,40 +14,123 @@ import {
   Chip,
   Tabs,
   Tab,
+  CircularProgress,
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
-import { formatDate } from '@/lib/utils'
+import { Shimmer } from '@/components/mobile'
+import { useAuthStore } from '@/store/authStore'
+import { authService } from '@/services/auth'
+import { formatDate, getInitials } from '@/lib/utils'
+import toast from 'react-hot-toast'
+
+const roleLabels: Record<string, string> = {
+  user: 'کاربر',
+  venue_manager: 'مدیر سالن',
+  club_admin: 'مدیر باشگاه',
+  super_admin: 'مدیر کل',
+}
+
+// اگر بک‌اند اندپوینت مربوطه را هنوز ندارد، پیام مناسب نمایش می‌دهد
+function friendlyError(err: any, fallback: string): string {
+  const status = err?.response?.status
+  if (status === 404 || status === 405) {
+    return 'این قابلیت هنوز در سمت سرور در دسترس نیست'
+  }
+  return err?.response?.data?.detail || fallback
+}
 
 const Profile: React.FC = () => {
-  const [tab, setTab] = useState(0)
+  const { user, updateUser } = useAuthStore()
 
-  const user = {
-    name: 'علی محمدی',
-    email: 'ali@example.com',
-    phone: '09123456789',
-    joinDate: '۱۴۰۲/۰۱/۰۱',
-    role: 'کاربر عادی',
+  const [tab, setTab] = useState(0)
+  const [fullName, setFullName] = useState(user?.fullName || '')
+  const [savingProfile, setSavingProfile] = useState(false)
+
+  const [oldPassword, setOldPassword] = useState('')
+  const [newPassword, setNewPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
+  const [savingPassword, setSavingPassword] = useState(false)
+
+  if (!user) {
+    return (
+      <Layout>
+        <Box sx={{ py: 3 }}>
+          <Shimmer variant="rounded" sx={{ height: 40, width: 220, mb: 4, borderRadius: '12px' }} />
+          <Grid container spacing={4}>
+            <Grid size={{ xs: 12, md: 4 }}>
+              <Shimmer variant="rounded" sx={{ height: 260, borderRadius: '16px' }} />
+            </Grid>
+            <Grid size={{ xs: 12, md: 8 }}>
+              <Shimmer variant="rounded" sx={{ height: 340, borderRadius: '16px' }} />
+            </Grid>
+          </Grid>
+        </Box>
+      </Layout>
+    )
+  }
+
+  const handleSaveProfile = async () => {
+    if (!fullName.trim() || fullName.trim().length < 3) {
+      toast.error('نام باید حداقل ۳ کاراکتر باشد')
+      return
+    }
+    setSavingProfile(true)
+    try {
+      await authService.updateProfile({ full_name: fullName.trim() })
+      updateUser({ fullName: fullName.trim() })
+      toast.success('پروفایل با موفقیت به‌روزرسانی شد!')
+    } catch (err: any) {
+      toast.error(friendlyError(err, 'خطا در به‌روزرسانی پروفایل'))
+    } finally {
+      setSavingProfile(false)
+    }
+  }
+
+  const handleChangePassword = async () => {
+    if (newPassword.length < 4) {
+      toast.error('رمز عبور جدید باید حداقل ۴ کاراکتر باشد')
+      return
+    }
+    if (newPassword !== confirmPassword) {
+      toast.error('رمز عبور جدید و تکرار آن مطابقت ندارند')
+      return
+    }
+    setSavingPassword(true)
+    try {
+      await authService.changePassword({
+        oldPassword,
+        newPassword,
+      })
+      toast.success('رمز عبور با موفقیت تغییر کرد!')
+      setOldPassword('')
+      setNewPassword('')
+      setConfirmPassword('')
+    } catch (err: any) {
+      toast.error(friendlyError(err, 'خطا در تغییر رمز عبور'))
+    } finally {
+      setSavingPassword(false)
+    }
   }
 
   return (
-    <Layout isAuthenticated>
+    <Layout>
       <Box sx={{ py: 3 }}>
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography variant="h4" fontWeight={700} sx={{ mb: 4 }}>
+          <Typography variant="h4" sx={{ fontWeight: 700, mb: 4 }}>
             پروفایل کاربری
           </Typography>
         </motion.div>
 
         <Grid container spacing={4}>
           {/* Sidebar */}
-          <Grid item xs={12} md={4}>
+          <Grid size={{  xs: 12, md: 4  }}>
             <motion.div
-              initial={{ opacity: 0, x: -20 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 16 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
               <Card sx={{ borderRadius: '16px', textAlign: 'center', p: 3 }}>
@@ -58,204 +141,182 @@ const Profile: React.FC = () => {
                     mx: 'auto',
                     mb: 2,
                     bgcolor: 'primary.main',
-                    fontSize: '2.5rem',
+                    fontSize: '2rem',
                   }}
                 >
-                  {user.name.slice(0, 2)}
+                  {getInitials(user.fullName) || 'ک'}
                 </Avatar>
-                <Typography variant="h6" fontWeight={600}>
-                  {user.name}
+                <Typography sx={{ fontWeight: 600 }} variant="h6">
+                  {user.fullName}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">
-                  {user.role}
+                  {roleLabels[user.role] || user.role}
                 </Typography>
                 <Chip
-                  label="تایید شده"
-                  color="success"
+                  label={user.isVerified ? 'تایید شده' : 'در انتظار تایید'}
+                  color={user.isVerified ? 'success' : 'default'}
                   size="small"
                   sx={{ mt: 1, borderRadius: '8px' }}
                 />
                 <Divider sx={{ my: 2 }} />
-                <Box textAlign="right" sx={{ spaceY: 1 }}>
-                  <Typography variant="body2">
-                    <Icon icon="mdi:email" className="h-4 w-4 inline ml-2" />
-                    {user.email}
-                  </Typography>
+                <Box sx={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 1 }}>
                   <Typography variant="body2">
                     <Icon icon="mdi:phone" className="h-4 w-4 inline ml-2" />
                     {user.phone}
                   </Typography>
-                  <Typography variant="body2">
-                    <Icon icon="mdi:calendar" className="h-4 w-4 inline ml-2" />
-                    عضویت: {user.joinDate}
-                  </Typography>
+                  {user.createdAt && (
+                    <Typography variant="body2">
+                      <Icon icon="mdi:calendar" className="h-4 w-4 inline ml-2" />
+                      عضویت: {formatDate(user.createdAt)}
+                    </Typography>
+                  )}
                 </Box>
-                <Button
-                  variant="outlined"
-                  fullWidth
-                  sx={{
-                    mt: 2,
-                    borderRadius: '10px',
-                    textTransform: 'none',
-                    color: 'error.main',
-                    borderColor: 'error.main',
-                    '&:hover': {
-                      borderColor: 'error.dark',
-                      bgcolor: 'error.light',
-                    },
-                  }}
-                >
-                  <Icon icon="mdi:logout" className="h-4 w-4 ml-2" />
-                  خروج از حساب
-                </Button>
               </Card>
             </motion.div>
           </Grid>
 
-          {/* Main Content */}
-          <Grid item xs={12} md={8}>
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.4, delay: 0.2 }}
-            >
-              <Card sx={{ borderRadius: '16px' }}>
-                <CardContent>
-                  <Tabs
-                    value={tab}
-                    onChange={(_, newValue) => setTab(newValue)}
-                    sx={{
-                      mb: 3,
-                      '& .MuiTab-root': {
-                        borderRadius: '8px',
-                        textTransform: 'none',
-                        fontWeight: 600,
-                      },
-                      '& .Mui-selected': {
-                        bgcolor: 'primary.main',
-                        color: 'white !important',
-                        borderRadius: '8px',
-                      },
-                    }}
+          {/* Content */}
+          <Grid size={{  xs: 12, md: 8  }}>
+            <Card sx={{ borderRadius: '16px' }}>
+              <CardContent>
+                <Tabs
+                  value={tab}
+                  onChange={(_, newValue) => setTab(newValue)}
+                  variant="fullWidth"
+                  sx={{
+                    mb: 3,
+                    '& .MuiTab-root': {
+                      borderRadius: '8px',
+                      textTransform: 'none',
+                      fontWeight: 600,
+                    },
+                    '& .Mui-selected': {
+                      bgcolor: 'primary.main',
+                      color: 'white !important',
+                      borderRadius: '8px',
+                    },
+                  }}
+                >
+                  <Tab label="اطلاعات شخصی" />
+                  <Tab label="تغییر رمز عبور" />
+                </Tabs>
+
+                {tab === 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
                   >
-                    <Tab label="اطلاعات شخصی" />
-                    <Tab label="تغییر رمز عبور" />
-                  </Tabs>
-
-                  {tab === 0 && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
+                    <Box
+                      component="form"
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 480 }}
                     >
-                      <Box component="form" sx={{ spaceY: 3 }}>
-                        <Grid container spacing={2}>
-                          <Grid item xs={12}>
-                            <TextField
-                              label="نام کامل"
-                              defaultValue={user.name}
-                              fullWidth
-                              sx={{
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: '10px',
-                                },
-                              }}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                              label="ایمیل"
-                              defaultValue={user.email}
-                              fullWidth
-                              sx={{
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: '10px',
-                                },
-                              }}
-                            />
-                          </Grid>
-                          <Grid item xs={12} sm={6}>
-                            <TextField
-                              label="شماره موبایل"
-                              defaultValue={user.phone}
-                              fullWidth
-                              sx={{
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: '10px',
-                                },
-                              }}
-                            />
-                          </Grid>
-                        </Grid>
-                        <Button
-                          variant="contained"
-                          sx={{
-                            borderRadius: '10px',
-                            textTransform: 'none',
-                            mt: 2,
-                            background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                          }}
-                        >
-                          ذخیره تغییرات
-                        </Button>
-                      </Box>
-                    </motion.div>
-                  )}
+                      <TextField
+                        label="نام کامل"
+                        value={fullName}
+                        onChange={(e) => setFullName(e.target.value)}
+                        fullWidth
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                      />
+                      <TextField
+                        label="شماره موبایل"
+                        value={user.phone}
+                        disabled
+                        fullWidth
+                        helperText="شماره موبایل قابل تغییر نیست"
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                      />
+                      <Button
+                        type="button"
+                        variant="contained"
+                        onClick={handleSaveProfile}
+                        disabled={savingProfile}
+                        sx={{
+                          borderRadius: '12px',
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          minHeight: { xs: 48, sm: 40 },
+                          mt: 1,
+                          maxWidth: 220,
+                          background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                        }}
+                      >
+                        {savingProfile ? (
+                          <CircularProgress size={20} sx={{ color: 'white' }} />
+                        ) : (
+                          'ذخیره تغییرات'
+                        )}
+                      </Button>
+                    </Box>
+                  </motion.div>
+                )}
 
-                  {tab === 1 && (
-                    <motion.div
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ duration: 0.3 }}
+                {tab === 1 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <Box
+                      component="form"
+                      sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 480 }}
                     >
-                      <Box component="form" sx={{ spaceY: 3 }}>
-                        <TextField
-                          label="رمز عبور فعلی"
-                          type="password"
-                          fullWidth
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: '10px',
-                            },
-                          }}
-                        />
-                        <TextField
-                          label="رمز عبور جدید"
-                          type="password"
-                          fullWidth
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: '10px',
-                            },
-                          }}
-                        />
-                        <TextField
-                          label="تکرار رمز عبور جدید"
-                          type="password"
-                          fullWidth
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: '10px',
-                            },
-                          }}
-                        />
-                        <Button
-                          variant="contained"
-                          sx={{
-                            borderRadius: '10px',
-                            textTransform: 'none',
-                            mt: 2,
-                            background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                          }}
-                        >
-                          تغییر رمز عبور
-                        </Button>
-                      </Box>
-                    </motion.div>
-                  )}
-                </CardContent>
-              </Card>
-            </motion.div>
+                      <TextField
+                        label="رمز عبور فعلی"
+                        type="password"
+                        value={oldPassword}
+                        onChange={(e) => setOldPassword(e.target.value)}
+                        fullWidth
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                      />
+                      <TextField
+                        label="رمز عبور جدید"
+                        type="password"
+                        value={newPassword}
+                        onChange={(e) => setNewPassword(e.target.value)}
+                        fullWidth
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                      />
+                      <TextField
+                        label="تکرار رمز عبور جدید"
+                        type="password"
+                        value={confirmPassword}
+                        onChange={(e) => setConfirmPassword(e.target.value)}
+                        fullWidth
+                        error={confirmPassword.length > 0 && confirmPassword !== newPassword}
+                        helperText={
+                          confirmPassword.length > 0 && confirmPassword !== newPassword
+                            ? 'رمز عبور و تکرار آن مطابقت ندارند'
+                            : undefined
+                        }
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                      />
+                      <Button
+                        type="button"
+                        variant="contained"
+                        onClick={handleChangePassword}
+                        disabled={savingPassword}
+                        sx={{
+                          borderRadius: '12px',
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          minHeight: { xs: 48, sm: 40 },
+                          mt: 1,
+                          maxWidth: 220,
+                          background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                        }}
+                      >
+                        {savingPassword ? (
+                          <CircularProgress size={20} sx={{ color: 'white' }} />
+                        ) : (
+                          'تغییر رمز عبور'
+                        )}
+                      </Button>
+                    </Box>
+                  </motion.div>
+                )}
+              </CardContent>
+            </Card>
           </Grid>
         </Grid>
       </Box>

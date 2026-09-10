@@ -36,6 +36,9 @@ import Layout from '@/components/layout/Layout'
 import { venueService } from '@/services/venue'
 import { slotService } from '@/services/slot'
 import { bookingService } from '@/services/booking'
+import { uploadService } from '@/services/upload'
+import { membershipService } from '@/services/membership'
+import { MembershipPlan, MembershipPurchase, PlanType, PLAN_TYPE_LABEL } from '@/types/membership'
 import { formatPrice } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
@@ -43,10 +46,11 @@ interface Venue {
   id: number
   name: string
   address: string
-  phone: string
+  phone: string | null
   is_verified: boolean
   price: number
   amenities: string[]
+  category?: 'futsal' | 'gym'
 }
 
 interface Slot {
@@ -119,11 +123,14 @@ const ManagerDashboard: React.FC = () => {
     name: '',
     address: '',
     phone: '',
-    latitude: 35.6892,
-    longitude: 51.3890,
+    latitude: 34.6482,
+    longitude: 50.8799,
     description: '',
     amenities: [] as string[],
+    images: [] as string[],
   })
+  const [newAmenity, setNewAmenity] = useState('')
+  const [uploadingImages, setUploadingImages] = useState(false)
 
   // Slots state
   const [slots, setSlots] = useState<Slot[]>([])
@@ -135,6 +142,29 @@ const ManagerDashboard: React.FC = () => {
   const [bookings, setBookings] = useState<Booking[]>([])
   const [bookingsLoading, setBookingsLoading] = useState(false)
   const [selectedVenueForBookings, setSelectedVenueForBookings] = useState<number | 'all'>('all')
+  // رزروهای در انتظار تأیید (Redis)
+  const [pendingList, setPendingList] = useState<any[]>([])
+  const [pendingLoading, setPendingLoading] = useState(false)
+  const [pendingActionPid, setPendingActionPid] = useState<string | null>(null)
+
+  // اشتراک‌های بدنسازی (پلن‌ها + خریدها)
+  const [planVenues, setPlanVenues] = useState<Venue[]>([])
+  const [planVenueId, setPlanVenueId] = useState<number | ''>('')
+  const [plans, setPlans] = useState<MembershipPlan[]>([])
+  const [plansLoading, setPlansLoading] = useState(false)
+  const [openCreatePlan, setOpenCreatePlan] = useState(false)
+  const [savingPlan, setSavingPlan] = useState(false)
+  const [newPlan, setNewPlan] = useState({
+    title: '',
+    plan_type: 'session' as PlanType,
+    price: '',
+    sessions_count: '',
+    duration_days: '30',
+    description: '',
+  })
+  const [venuePurchases, setVenuePurchases] = useState<MembershipPurchase[]>([])
+  const [purchasesLoading, setPurchasesLoading] = useState(false)
+  const [consumeId, setConsumeId] = useState<number | null>(null)
   const [bookingDateRange, setBookingDateRange] = useState(() => {
     const today = new Date()
     const weekLater = new Date(today)
@@ -162,6 +192,25 @@ const ManagerDashboard: React.FC = () => {
   useEffect(() => {
     if (tab === 2 && venues.length > 0) {
       fetchBookings()
+      fetchPending()
+    }
+  }, [tab, venues])
+
+  // Fetch membership plans/purchases when tab changes to Memberships
+  useEffect(() => {
+    if (tab === 3 && venues.length > 0) {
+      const gyms = venues.filter((v) => v.category === 'gym')
+      setPlanVenues(gyms)
+      if (gyms.length > 0) {
+        const id = gyms[0].id
+        setPlanVenueId(id)
+        fetchPlans(id)
+        fetchVenuePurchases(id)
+      } else {
+        setPlanVenueId('')
+        setPlans([])
+        setVenuePurchases([])
+      }
     }
   }, [tab, venues])
 
@@ -223,20 +272,188 @@ const ManagerDashboard: React.FC = () => {
     }
   }
 
+  const fetchPending = async () => {
+    setPendingLoading(true)
+    try {
+      const venuesToFetch = selectedVenueForBookings === 'all'
+        ? venues
+        : venues.filter(v => v.id === selectedVenueForBookings)
+      const allPending: any[] = []
+      for (const venue of venuesToFetch) {
+        const venuePending = await bookingService.getVenuePending(venue.id)
+        if (Array.isArray(venuePending)) allPending.push(...venuePending)
+      }
+      setPendingList(allPending)
+    } catch {
+      setPendingList([])
+    } finally {
+      setPendingLoading(false)
+    }
+  }
+
+  const fetchPlans = async (venueId: number) => {
+    setPlansLoading(true)
+    try {
+      const data = await membershipService.getPlans(venueId, true)
+      setPlans(Array.isArray(data) ? data : [])
+    } catch {
+      toast.error('خطا در دریافت پلن‌ها')
+    } finally {
+      setPlansLoading(false)
+    }
+  }
+
+  const fetchVenuePurchases = async (venueId: number) => {
+    setPurchasesLoading(true)
+    try {
+      const data = await membershipService.getVenuePurchases(venueId)
+      setVenuePurchases(Array.isArray(data) ? data : [])
+    } catch {
+      setVenuePurchases([])
+    } finally {
+      setPurchasesLoading(false)
+    }
+  }
+
+  const handleCreatePlan = async () => {
+    if (!planVenueId) {
+      toast.error('ابتدا یک سالن بدنسازی انتخاب کنید')
+      return
+    }
+    if (!newPlan.title.trim()) {
+      toast.error('عنوان پلن را وارد کنید')
+      return
+    }
+    const price = Number(newPlan.price)
+    if (!price || price <= 0) {
+      toast.error('قیمت را به درستی وارد کنید')
+      return
+    }
+    if (newPlan.plan_type === 'sessions_pack' && !Number(newPlan.sessions_count)) {
+      toast.error('تعداد جلسات پک را وارد کنید')
+      return
+    }
+    if (newPlan.plan_type === 'monthly' && !Number(newPlan.duration_days)) {
+      toast.error('مدت اعتبار (روز) را وارد کنید')
+      return
+    }
+    setSavingPlan(true)
+    try {
+      await membershipService.createPlan({
+        venue_id: planVenueId,
+        title: newPlan.title.trim(),
+        plan_type: newPlan.plan_type,
+        price,
+        sessions_count: newPlan.plan_type === 'sessions_pack' ? Number(newPlan.sessions_count) : null,
+        duration_days: newPlan.plan_type === 'monthly' ? Number(newPlan.duration_days) : null,
+        description: newPlan.description.trim() || null,
+      })
+      toast.success('پلن ایجاد شد ✅')
+      setOpenCreatePlan(false)
+      setNewPlan({ title: '', plan_type: 'session', price: '', sessions_count: '', duration_days: '30', description: '' })
+      await fetchPlans(planVenueId)
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'خطا در ایجاد پلن')
+    } finally {
+      setSavingPlan(false)
+    }
+  }
+
+  const handleDeactivatePlan = async (planId: number) => {
+    try {
+      await membershipService.deactivatePlan(planId)
+      toast.success('پلن غیرفعال شد')
+      if (planVenueId) await fetchPlans(planVenueId)
+    } catch {
+      toast.error('خطا در غیرفعال‌سازی پلن')
+    }
+  }
+
+  const handleConsume = async (purchaseId: number) => {
+    setConsumeId(purchaseId)
+    try {
+      const updated = await membershipService.consumeSession(purchaseId)
+      toast.success(`جلسه کسر شد — باقی‌مانده: ${updated.sessions_remaining ?? 0}`)
+      setVenuePurchases((prev) => prev.map((p) => (p.id === purchaseId ? updated : p)))
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'خطا در کسر جلسه')
+    } finally {
+      setConsumeId(null)
+    }
+  }
+
+  const handleConfirmPending = async (pid: string) => {
+    setPendingActionPid(pid)
+    try {
+      await bookingService.confirmPending(pid)
+      toast.success('رزرو تایید شد و در دیتابیس ثبت شد ✅')
+      await Promise.all([fetchBookings(), fetchPending()])
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'خطا در تایید رزرو')
+    } finally {
+      setPendingActionPid(null)
+    }
+  }
+
+  const handleRejectPending = async (pid: string) => {
+    setPendingActionPid(pid)
+    try {
+      await bookingService.rejectPending(pid)
+      toast.success('رزرو رد شد و سانس آزاد گردید')
+      await Promise.all([fetchBookings(), fetchPending()])
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'خطا در رد رزرو')
+    } finally {
+      setPendingActionPid(null)
+    }
+  }
+
   const handleCreateVenue = async () => {
     try {
       await venueService.create({
         ...newVenue,
         amenities: newVenue.amenities.filter(a => a.trim()),
-        images: [],
+        images: newVenue.images,
       })
       toast.success('سالن با موفقیت ایجاد شد')
       setOpenCreateVenue(false)
-      setNewVenue({ name: '', address: '', phone: '', latitude: 35.6892, longitude: 51.3890, description: '', amenities: [] })
+      setNewVenue({ name: '', address: '', phone: '', latitude: 34.6482, longitude: 50.8799, description: '', amenities: [], images: [] })
+      setNewAmenity('')
       fetchVenues()
     } catch (error: any) {
       toast.error(error.response?.data?.detail || 'خطا در ایجاد سالن')
     }
+  }
+
+  const addAmenity = () => {
+    const a = newAmenity.trim()
+    if (a && !newVenue.amenities.includes(a)) {
+      setNewVenue({ ...newVenue, amenities: [...newVenue.amenities, a] })
+    }
+    setNewAmenity('')
+  }
+
+  const removeAmenity = (a: string) => {
+    setNewVenue(prev => ({ ...prev, amenities: prev.amenities.filter(x => x !== a) }))
+  }
+
+  const handleImageUpload = async (fileList: FileList | null) => {
+    if (!fileList || fileList.length === 0) return
+    const files = Array.from(fileList).slice(0, 10)
+    setUploadingImages(true)
+    try {
+      const urls = await uploadService.uploadImages(files)
+      setNewVenue(prev => ({ ...prev, images: [...prev.images, ...urls] }))
+      toast.success(`${urls.length} عکس با موفقیت آپلود شد`)
+    } catch (error: any) {
+      toast.error(error.response?.data?.detail || 'خطا در آپلود عکس‌ها')
+    } finally {
+      setUploadingImages(false)
+    }
+  }
+
+  const removeImage = (url: string) => {
+    setNewVenue(prev => ({ ...prev, images: prev.images.filter(x => x !== url) }))
   }
 
   const handleGenerateSlots = async () => {
@@ -297,7 +514,7 @@ const ManagerDashboard: React.FC = () => {
 
   if (loading) {
     return (
-      <Layout isAuthenticated userRole="venue_manager">
+      <Layout userRole="venue_manager">
         <Box sx={{
           minHeight: '100vh',
           background: 'linear-gradient(180deg, #f0f5ff 0%, #ffffff 100%)',
@@ -315,7 +532,7 @@ const ManagerDashboard: React.FC = () => {
   }
 
   return (
-    <Layout isAuthenticated userRole="venue_manager">
+    <Layout userRole="venue_manager">
       <Box sx={{
         minHeight: '100vh',
         background: 'linear-gradient(180deg, #f0f5ff 0%, #ffffff 100%)',
@@ -525,6 +742,14 @@ const ManagerDashboard: React.FC = () => {
                   </Box>
                 }
               />
+              <Tab
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Icon icon="mdi:card-account-details-star" className="h-4 w-4" />
+                    اشتراک‌ها
+                  </Box>
+                }
+              />
             </Tabs>
           </Box>
 
@@ -603,9 +828,17 @@ const ManagerDashboard: React.FC = () => {
                   <motion.div variants={containerVariants} initial="hidden" animate="visible">
                     <Grid container spacing={3}>
                       {venues.map((venue) => {
-                        const amenities: string[] = typeof venue.amenities === 'string'
-                          ? JSON.parse(venue.amenities)
-                          : (venue.amenities || [])
+                        let amenities: string[] = venue.amenities || []
+                        if (typeof venue.amenities === 'string') {
+                          try {
+                            const parsed = JSON.parse(venue.amenities)
+                            amenities = Array.isArray(parsed) ? parsed : []
+                          } catch {
+                            amenities = []
+                          }
+                        } else if (!Array.isArray(amenities)) {
+                          amenities = []
+                        }
                         return (
                           <Grid size={{ xs: 12, md: 6 }} key={venue.id}>
                             <motion.div variants={itemVariants}>
@@ -1083,7 +1316,7 @@ const ManagerDashboard: React.FC = () => {
                       <Button
                         variant="contained"
                         fullWidth
-                        onClick={fetchBookings}
+                        onClick={() => { fetchBookings(); fetchPending() }}
                         disabled={bookingsLoading}
                         sx={{
                           borderRadius: '10px',
@@ -1101,6 +1334,94 @@ const ManagerDashboard: React.FC = () => {
                       </Button>
                     </Grid>
                   </Grid>
+                </Paper>
+
+                {/* رزروهای در انتظار تأیید (قبل از ثبت در دیتابیس) */}
+                <Paper
+                  elevation={0}
+                  sx={{
+                    borderRadius: '16px',
+                    p: 2.5,
+                    mb: 3,
+                    border: '1px solid rgba(245,158,11,0.25)',
+                    background: 'rgba(255,247,237,0.9)',
+                    backdropFilter: 'blur(10px)',
+                  }}
+                >
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: pendingList.length ? 2 : 0 }}>
+                    <Icon icon="mdi:clock-alert-outline" className="h-5 w-5" style={{ color: '#d97706' }} />
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      رزروهای در انتظار تأیید
+                    </Typography>
+                    <Chip label={pendingList.length} size="small" color="warning" sx={{ borderRadius: '8px' }} />
+                  </Box>
+                  {pendingLoading ? (
+                    <Box sx={{ textAlign: 'center', py: 3 }}>
+                      <CircularProgress size={28} sx={{ color: '#d97706' }} />
+                    </Box>
+                  ) : pendingList.length === 0 ? (
+                    <Typography variant="body2" color="text.secondary">
+                      رزروی در انتظار تأیید نیست
+                    </Typography>
+                  ) : (
+                    <Grid container spacing={1.5}>
+                      {pendingList.map((p) => (
+                        <Grid size={{ xs: 12 }} key={p.id}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: 2,
+                              flexWrap: 'wrap',
+                              p: 1.5,
+                              borderRadius: '12px',
+                              background: 'rgba(255,255,255,0.85)',
+                              border: '1px solid rgba(245,158,11,0.2)',
+                            }}
+                          >
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                {p.venue_name || 'سالن'}
+                              </Typography>
+                              <Typography variant="caption" color="text.secondary">
+                                {p.slot_date ? `${p.slot_date} — ${p.start_time}` : ''}
+                                {p.slot_date ? '  •  ' : ''}
+                                {formatPrice(p.payment_amount)}
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                              <Button
+                                size="small"
+                                variant="contained"
+                                disabled={pendingActionPid === p.id}
+                                onClick={() => handleConfirmPending(p.id)}
+                                sx={{
+                                  borderRadius: '8px',
+                                  textTransform: 'none',
+                                  fontWeight: 600,
+                                  bgcolor: '#16a34a',
+                                  '&:hover': { bgcolor: '#15803d' },
+                                }}
+                              >
+                                {pendingActionPid === p.id ? <CircularProgress size={16} color="inherit" /> : 'تأیید'}
+                              </Button>
+                              <Button
+                                size="small"
+                                variant="outlined"
+                                color="error"
+                                disabled={pendingActionPid === p.id}
+                                onClick={() => handleRejectPending(p.id)}
+                                sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 600 }}
+                              >
+                                رد
+                              </Button>
+                            </Box>
+                          </Box>
+                        </Grid>
+                      ))}
+                    </Grid>
+                  )}
                 </Paper>
 
                 {/* Bookings List */}
@@ -1214,6 +1535,265 @@ const ManagerDashboard: React.FC = () => {
                 )}
               </motion.div>
             )}
+
+            {/* Memberships Tab — مدیریت اشتراک بدنسازی */}
+            {tab === 3 && (
+              <motion.div
+                key="memberships"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                {planVenues.length === 0 ? (
+                  <Paper
+                    sx={{
+                      p: 5,
+                      borderRadius: '16px',
+                      textAlign: 'center',
+                      border: '1px dashed rgba(0,0,0,0.12)',
+                      bgcolor: 'rgba(0,0,0,0.01)',
+                    }}
+                  >
+                    <Box sx={{
+                      width: 72, height: 72, borderRadius: '50%',
+                      background: 'linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1))',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      mx: 'auto', mb: 2,
+                    }}>
+                      <Icon icon="mdi:weight-lifter" className="h-8 w-8" style={{ color: '#2563eb' }} />
+                    </Box>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
+                      شما سالن بدنسازی ندارید
+                    </Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      مدیریت اشتراک‌ها مخصوص سالن‌های بدنسازی است.
+                    </Typography>
+                  </Paper>
+                ) : (
+                  <>
+                    {/* انتخاب سالن + دکمه پلن جدید */}
+                    <Paper sx={{ p: 2.5, borderRadius: '16px', mb: 3, border: '1px solid rgba(0,0,0,0.06)' }}>
+                      <Grid container spacing={2} sx={{ alignItems: 'center' }}>
+                        <Grid size={{ xs: 12, sm: 7 }}>
+                          <FormControl fullWidth size="small">
+                            <InputLabel>سالن بدنسازی</InputLabel>
+                            <Select
+                              value={planVenueId}
+                              label="سالن بدنسازی"
+                              onChange={(e) => {
+                                const id = Number(e.target.value)
+                                setPlanVenueId(id)
+                                fetchPlans(id)
+                                fetchVenuePurchases(id)
+                              }}
+                            >
+                              {planVenues.map((v) => (
+                                <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                              ))}
+                            </Select>
+                          </FormControl>
+                        </Grid>
+                        <Grid size={{ xs: 12, sm: 5 }}>
+                          <Button
+                            fullWidth
+                            variant="contained"
+                            onClick={() => setOpenCreatePlan(true)}
+                            startIcon={<Icon icon="mdi:plus" className="h-4 w-4" />}
+                            sx={{
+                              borderRadius: '10px',
+                              textTransform: 'none',
+                              fontWeight: 600,
+                              py: 1.1,
+                              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                              boxShadow: '0 4px 10px rgba(37,99,235,0.2)',
+                              '&:hover': { background: 'linear-gradient(135deg, #1d4ed8, #6d28d9)' },
+                            }}
+                          >
+                            ایجاد پلن اشتراک
+                          </Button>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+
+                    {/* لیست پلن‌ها */}
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
+                      پلن‌های اشتراک
+                    </Typography>
+                    {plansLoading ? (
+                      <Box sx={{ textAlign: 'center', py: 4 }}>
+                        <CircularProgress size={28} />
+                      </Box>
+                    ) : plans.length === 0 ? (
+                      <Paper sx={{ p: 3, borderRadius: '16px', textAlign: 'center', mb: 3, border: '1px dashed rgba(0,0,0,0.12)' }}>
+                        <Typography variant="body2" color="text.secondary">
+                          هنوز پلنی ایجاد نکرده‌اید.
+                        </Typography>
+                      </Paper>
+                    ) : (
+                      <Grid container spacing={2} sx={{ mb: 3 }}>
+                        {plans.map((plan) => (
+                          <Grid size={{ xs: 12, sm: 6, md: 4 }} key={plan.id}>
+                            <Card sx={{ borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', height: '100%', opacity: plan.is_active ? 1 : 0.55 }}>
+                              <CardContent sx={{ p: 2.5, '&:last-child': { pb: 2.5 } }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1, mb: 1 }}>
+                                  <Typography variant="body1" sx={{ fontWeight: 700 }} noWrap>
+                                    {plan.title}
+                                  </Typography>
+                                  <Chip
+                                    label={plan.is_active ? 'فعال' : 'غیرفعال'}
+                                    size="small"
+                                    sx={{
+                                      borderRadius: '8px',
+                                      fontWeight: 600,
+                                      fontSize: '0.7rem',
+                                      height: 24,
+                                      flexShrink: 0,
+                                      bgcolor: plan.is_active ? 'rgba(5,150,105,0.1)' : 'rgba(0,0,0,0.06)',
+                                      color: plan.is_active ? '#059669' : 'text.secondary',
+                                    }}
+                                  />
+                                </Box>
+                                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+                                  {PLAN_TYPE_LABEL[plan.plan_type]}
+                                  {plan.plan_type === 'sessions_pack' && plan.sessions_count
+                                    ? ` · ${new Intl.NumberFormat('fa-IR').format(plan.sessions_count)} جلسه`
+                                    : ''}
+                                  {plan.plan_type === 'monthly' && plan.duration_days
+                                    ? ` · ${new Intl.NumberFormat('fa-IR').format(plan.duration_days)} روز`
+                                    : ''}
+                                </Typography>
+                                {plan.description && (
+                                  <Typography variant="body2" color="text.secondary" sx={{ mb: 1, fontSize: '0.8rem' }}>
+                                    {plan.description}
+                                  </Typography>
+                                )}
+                                <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', mb: 1.5 }}>
+                                  {formatPrice(plan.price)}
+                                </Typography>
+                                {plan.is_active && (
+                                  <Button
+                                    size="small"
+                                    variant="outlined"
+                                    color="error"
+                                    onClick={() => handleDeactivatePlan(plan.id)}
+                                    sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 600 }}
+                                  >
+                                    غیرفعال‌سازی
+                                  </Button>
+                                )}
+                              </CardContent>
+                            </Card>
+                          </Grid>
+                        ))}
+                      </Grid>
+                    )}
+
+                    {/* خریدهای کاربران */}
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1.5 }}>
+                      خریدهای کاربران
+                    </Typography>
+                    {purchasesLoading ? (
+                      <Box sx={{ textAlign: 'center', py: 4 }}>
+                        <CircularProgress size={28} />
+                      </Box>
+                    ) : venuePurchases.length === 0 ? (
+                      <Paper sx={{ p: 3, borderRadius: '16px', textAlign: 'center', border: '1px dashed rgba(0,0,0,0.12)' }}>
+                        <Typography variant="body2" color="text.secondary">
+                          هنوز خریدی ثبت نشده است.
+                        </Typography>
+                      </Paper>
+                    ) : (
+                      <TableContainer
+                        component={Paper}
+                        sx={{ borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}
+                      >
+                        <Table>
+                          <TableHead>
+                            <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
+                              <TableCell sx={{ fontWeight: 700 }}>پلن</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }}>مبلغ</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }}>وضعیت</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }}>جلسات باقی‌مانده</TableCell>
+                              <TableCell sx={{ fontWeight: 700 }}>عملیات</TableCell>
+                            </TableRow>
+                          </TableHead>
+                          <TableBody>
+                            {venuePurchases.map((p) => {
+                              const canConsume =
+                                p.status === 'paid' &&
+                                (p.plan_type === 'session' || p.plan_type === 'sessions_pack') &&
+                                (p.sessions_remaining ?? 0) > 0
+                              return (
+                                <TableRow key={p.id} sx={{ '&:hover': { bgcolor: 'rgba(37,99,235,0.02)' } }}>
+                                  <TableCell>
+                                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{p.plan_title}</Typography>
+                                    <Typography variant="caption" color="text.secondary">
+                                      {p.plan_type ? PLAN_TYPE_LABEL[p.plan_type] : ''}
+                                      {p.expires_at ? ` · اعتبار تا ${new Date(p.expires_at).toLocaleDateString('fa-IR')}` : ''}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Typography variant="body2">{formatPrice(p.amount)}</Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    <Chip
+                                      label={p.status === 'paid' ? 'پرداخت شده' : p.status === 'pending' ? 'در انتظار' : 'لغو شده'}
+                                      size="small"
+                                      sx={{
+                                        borderRadius: '8px',
+                                        fontWeight: 600,
+                                        fontSize: '0.7rem',
+                                        height: 24,
+                                        bgcolor:
+                                          p.status === 'paid'
+                                            ? 'rgba(5,150,105,0.1)'
+                                            : p.status === 'pending'
+                                              ? 'rgba(245,158,11,0.1)'
+                                              : 'rgba(239,68,68,0.1)',
+                                        color: p.status === 'paid' ? '#059669' : p.status === 'pending' ? '#d97706' : '#ef4444',
+                                      }}
+                                    />
+                                  </TableCell>
+                                  <TableCell>
+                                    <Typography variant="body2">
+                                      {p.sessions_remaining != null
+                                        ? new Intl.NumberFormat('fa-IR').format(p.sessions_remaining)
+                                        : '—'}
+                                    </Typography>
+                                  </TableCell>
+                                  <TableCell>
+                                    {canConsume ? (
+                                      <Button
+                                        size="small"
+                                        variant="contained"
+                                        disabled={consumeId === p.id}
+                                        onClick={() => handleConsume(p.id)}
+                                        sx={{
+                                          borderRadius: '8px',
+                                          textTransform: 'none',
+                                          fontWeight: 600,
+                                          background: 'linear-gradient(135deg, #059669, #10b981)',
+                                          '&:hover': { background: 'linear-gradient(135deg, #047857, #059669)' },
+                                        }}
+                                      >
+                                        {consumeId === p.id ? <CircularProgress size={16} sx={{ color: 'white' }} /> : 'کسر جلسه'}
+                                      </Button>
+                                    ) : (
+                                      <Typography variant="caption" color="text.secondary">—</Typography>
+                                    )}
+                                  </TableCell>
+                                </TableRow>
+                              )
+                            })}
+                          </TableBody>
+                        </Table>
+                      </TableContainer>
+                    )}
+                  </>
+                )}
+              </motion.div>
+            )}
           </AnimatePresence>
         </Box>
       </Box>
@@ -1298,6 +1878,96 @@ const ManagerDashboard: React.FC = () => {
               },
             }}
           />
+          {/* امکانات سالن */}
+          <Box sx={{ mb: 2.5 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>امکانات سالن</Typography>
+            <Box sx={{ display: 'flex', gap: 1, mb: 1.5 }}>
+              <TextField
+                size="small"
+                placeholder="مثلاً: پارکینگ، دوش، رختکن..."
+                value={newAmenity}
+                onChange={(e) => setNewAmenity(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addAmenity() } }}
+                slotProps={{ input: { sx: { borderRadius: '10px' } } }}
+              />
+              <Button
+                onClick={addAmenity}
+                variant="outlined"
+                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, borderColor: 'rgba(37,99,235,0.3)', color: 'primary.main' }}
+              >
+                افزودن
+              </Button>
+            </Box>
+            {newVenue.amenities.length > 0 && (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                {newVenue.amenities.map(a => (
+                  <Chip
+                    key={a}
+                    label={a}
+                    size="small"
+                    onDelete={() => removeAmenity(a)}
+                    sx={{ borderRadius: '6px', bgcolor: 'rgba(37,99,235,0.08)', color: 'primary.main', fontWeight: 500 }}
+                  />
+                ))}
+              </Box>
+            )}
+          </Box>
+          {/* عکس‌های سالن */}
+          <Box sx={{ mb: 1 }}>
+            <Typography variant="subtitle2" sx={{ mb: 1, fontWeight: 600 }}>
+              عکس‌های سالن <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>(حداکثر ۱۰ عکس، هرکدام تا ۵MB)</span>
+            </Typography>
+            <Box
+              onClick={() => document.getElementById('venue-image-upload')?.click()}
+              onDragOver={(e) => e.preventDefault()}
+              onDrop={(e) => { e.preventDefault(); handleImageUpload(e.dataTransfer.files) }}
+              sx={{
+                border: '2px dashed rgba(37,99,235,0.25)',
+                borderRadius: '12px',
+                p: 3,
+                textAlign: 'center',
+                cursor: 'pointer',
+                bgcolor: 'rgba(37,99,235,0.03)',
+                transition: 'all 0.2s',
+                '&:hover': { borderColor: 'rgba(37,99,235,0.5)', bgcolor: 'rgba(37,99,235,0.06)' },
+              }}
+            >
+              {uploadingImages ? (
+                <CircularProgress size={32} />
+              ) : (
+                <Box>
+                  <Icon icon="mdi:camera-plus-outline" className="h-8 w-8" style={{ color: '#2563eb' }} />
+                  <Typography variant="body2" sx={{ mt: 1, color: 'text.secondary' }}>
+                    برای انتخاب عکس کلیک کنید یا بکشید و رها کنید
+                  </Typography>
+                </Box>
+              )}
+              <input
+                id="venue-image-upload"
+                type="file"
+                accept="image/jpeg,image/png,image/webp,image/gif"
+                multiple
+                style={{ display: 'none' }}
+                onClick={(e) => e.stopPropagation()}
+                onChange={(e) => { handleImageUpload(e.target.files); e.target.value = '' }}
+              />
+            </Box>
+            {newVenue.images.length > 0 && (
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1.5 }}>
+                {newVenue.images.map((img, i) => (
+                  <Box key={i} sx={{ position: 'relative', width: 80, height: 80, borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)' }}>
+                    <img src={img} alt={`عکس ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    <Box
+                      onClick={() => removeImage(img)}
+                      sx={{ position: 'absolute', top: 2, left: 2, width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(239,68,68,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                    >
+                      <Icon icon="mdi:close" className="h-3 w-3" style={{ color: 'white' }} />
+                    </Box>
+                  </Box>
+                ))}
+              </Box>
+            )}
+          </Box>
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
           <Button
@@ -1405,6 +2075,126 @@ const ManagerDashboard: React.FC = () => {
             }}
           >
             ایجاد سانس‌ها
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Create Plan Dialog — پلن اشتراک بدنسازی */}
+      <Dialog
+        open={openCreatePlan}
+        onClose={() => !savingPlan && setOpenCreatePlan(false)}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{
+          paper: {
+            sx: {
+              borderRadius: '20px',
+              overflow: 'hidden',
+            },
+          },
+        }}
+      >
+        <Box sx={{
+          background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+          px: 3,
+          py: 2.5,
+        }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
+            <Icon icon="mdi:card-account-details-star" className="h-5 w-5" />
+            پلن اشتراک جدید
+          </Typography>
+        </Box>
+        <DialogContent sx={{ pt: 3, pb: 1, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+          <TextField
+            fullWidth
+            label="عنوان پلن"
+            placeholder="مثلاً: اشتراک ماهانه"
+            value={newPlan.title}
+            onChange={(e) => setNewPlan({ ...newPlan, title: e.target.value })}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+          />
+          <FormControl fullWidth size="medium">
+            <InputLabel>نوع پلن</InputLabel>
+            <Select
+              value={newPlan.plan_type}
+              label="نوع پلن"
+              onChange={(e) => setNewPlan({ ...newPlan, plan_type: e.target.value as PlanType })}
+            >
+              <MenuItem value="session">جلسه‌ای (تکی)</MenuItem>
+              <MenuItem value="sessions_pack">پک جلسه‌ای</MenuItem>
+              <MenuItem value="monthly">ماهانه (مدت‌دار)</MenuItem>
+            </Select>
+          </FormControl>
+          <TextField
+            fullWidth
+            type="number"
+            label="قیمت (تومان)"
+            value={newPlan.price}
+            onChange={(e) => setNewPlan({ ...newPlan, price: e.target.value })}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+          />
+          {newPlan.plan_type === 'sessions_pack' && (
+            <TextField
+              fullWidth
+              type="number"
+              label="تعداد جلسات"
+              value={newPlan.sessions_count}
+              onChange={(e) => setNewPlan({ ...newPlan, sessions_count: e.target.value })}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            />
+          )}
+          {newPlan.plan_type === 'monthly' && (
+            <TextField
+              fullWidth
+              type="number"
+              label="مدت اعتبار (روز)"
+              value={newPlan.duration_days}
+              onChange={(e) => setNewPlan({ ...newPlan, duration_days: e.target.value })}
+              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            />
+          )}
+          <TextField
+            fullWidth
+            multiline
+            rows={2}
+            label="توضیحات (اختیاری)"
+            value={newPlan.description}
+            onChange={(e) => setNewPlan({ ...newPlan, description: e.target.value })}
+            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+          />
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
+          <Button
+            onClick={() => setOpenCreatePlan(false)}
+            variant="outlined"
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              px: 3,
+              fontWeight: 600,
+              borderColor: 'rgba(0,0,0,0.1)',
+              color: 'text.secondary',
+            }}
+          >
+            انصراف
+          </Button>
+          <Button
+            onClick={handleCreatePlan}
+            variant="contained"
+            disabled={savingPlan}
+            sx={{
+              borderRadius: '10px',
+              textTransform: 'none',
+              px: 3,
+              fontWeight: 600,
+              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+              boxShadow: '0 4px 10px rgba(37,99,235,0.2)',
+              '&:hover': {
+                background: 'linear-gradient(135deg, #1d4ed8, #6d28d9)',
+              },
+            }}
+          >
+            {savingPlan ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'ایجاد پلن'}
           </Button>
         </DialogActions>
       </Dialog>

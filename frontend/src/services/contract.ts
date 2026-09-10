@@ -1,46 +1,56 @@
 import apiClient from './api'
 
+// شکل پاسخ قرارداد از سمت بک‌اند (snake_case)
+export interface ContractData {
+  id: number
+  venue_id: number
+  start_date: string
+  end_date: string
+  day_of_week: number
+  start_time: string
+  recurrence: 'weekly' | 'biweekly' | 'monthly'
+  original_price: number
+  discounted_price: number
+  total_amount: number
+  status: string
+  description: string | null
+}
+
+export interface ContractCreateData {
+  venueId: number
+  startDate: string
+  endDate: string
+  dayOfWeek: number
+  startTime: string
+  recurrence: 'weekly' | 'biweekly' | 'monthly'
+  discountedPrice: number
+  description?: string
+}
+
 export const contractService = {
-  getAll: async (params?: any) => {
-    const response = await apiClient.get('/contracts', { params })
+  // لیست قراردادهای کاربر فعلی
+  getAll: async (): Promise<ContractData[]> => {
+    const response = await apiClient.get('/contracts')
     return response.data
   },
 
-  getById: async (id: number) => {
+  // جزئیات یک قرارداد
+  getById: async (id: number): Promise<ContractData> => {
     const response = await apiClient.get(`/contracts/${id}`)
     return response.data
   },
 
-  create: async (data: any) => {
-    const response = await apiClient.post('/contracts', data)
-    return response.data
-  },
-
-  cancelSession: async (data: { contractId: number; sessionDate: string; reason: string }) => {
-    const response = await apiClient.post('/contracts/cancel-session', data)
-    return response.data
-  },
-
-  renew: async (contractId: number, newEndDate: string) => {
-    const response = await apiClient.post(`/contracts/${contractId}/renew`, { newEndDate })
-    return response.data
-  },
-
-  getCalendar: async (contractId: number, year: number, month: number) => {
-    const response = await apiClient.get(`/contracts/${contractId}/calendar`, {
-      params: { year, month },
-    })
-    return response.data
-  },
-
-  getSummary: async (contractId: number) => {
-    const response = await apiClient.get(`/contracts/${contractId}/summary`)
-    return response.data
-  },
-
-  getUpcomingSessions: async (daysAhead: number = 7) => {
-    const response = await apiClient.get('/contracts/upcoming-sessions', {
-      params: { daysAhead },
+  // ثبت قرارداد بلندمدت جدید
+  create: async (data: ContractCreateData): Promise<ContractData> => {
+    const response = await apiClient.post('/contracts', {
+      venue_id: data.venueId,
+      start_date: data.startDate,
+      end_date: data.endDate,
+      day_of_week: data.dayOfWeek,
+      start_time: data.startTime,
+      recurrence: data.recurrence,
+      discounted_price: data.discountedPrice,
+      description: data.description || null,
     })
     return response.data
   },

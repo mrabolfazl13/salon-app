@@ -15,6 +15,13 @@ class SlotRepository(BaseRepository[Slot]):
         statement = select(Slot).where(Slot.id == slot_id).with_for_update()
         return self.session.exec(statement).first()
 
+    def get_by_ids(self, ids: List[int]) -> List[Slot]:
+        """گرفتن چند سانس به‌صورت یکجا (جلوگیری از N+1)"""
+        if not ids:
+            return []
+        statement = select(Slot).where(Slot.id.in_(ids))
+        return self.session.exec(statement).all()
+
     def get_by_venue_and_date(self, venue_id: int, slot_date: date) -> List[Slot]:
         """گرفتن سانس‌های یک سالن در تاریخ مشخص"""
         return self.get_all(venue_id=venue_id, slot_date=slot_date)
@@ -67,19 +74,20 @@ class SlotRepository(BaseRepository[Slot]):
         return existing.status == SlotStatus.AVAILABLE
     
     def check_slot_conflict(self, venue_id: int, slot_date: date, start_time: time, duration: int = 90) -> Optional[Slot]:
-        """بررسی تداخل زمانی با سانس‌های دیگر"""
-        end_time = (datetime.combine(slot_date, start_time) + timedelta(minutes=duration)).time()
-        
-        statement = select(Slot).where(
-            Slot.venue_id == venue_id,
-            Slot.slot_date == slot_date,
-            Slot.status != SlotStatus.BLOCKED,
-            or_(
-                and_(Slot.start_time <= start_time, Slot.start_time + interval > start_time),
-                and_(Slot.start_time >= start_time, Slot.start_time < end_time)
-            )
-        )
-        return self.session.exec(statement).first()
+        """بررسی تداخل زمانی با سانس‌های دیگر (بر اساس مدت واقعی هر سانس)"""
+        new_start = datetime.combine(slot_date, start_time)
+        new_end = new_start + timedelta(minutes=duration)
+
+        existing = self.get_all(venue_id=venue_id, slot_date=slot_date)
+        for slot in existing:
+            if slot.status == SlotStatus.BLOCKED:
+                continue
+            s_start = datetime.combine(slot_date, slot.start_time)
+            s_end = s_start + timedelta(minutes=slot.duration or duration)
+            # تداخل زمانی: شروع هرکدام قبل از پایان دیگری باشد
+            if s_start < new_end and s_end > new_start:
+                return slot
+        return None
     
     def block_slot(self, slot_id: int, reason: str = None) -> Optional[Slot]:
         """مسدود کردن سانس (برای تعمیرات و غیره)"""

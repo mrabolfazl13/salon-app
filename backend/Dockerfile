@@ -1,9 +1,15 @@
-FROM python:3.11-slim
+FROM python:3.11-bookworm
 
 WORKDIR /app
 
+RUN echo "deb http://mirror.shatel.ir/debian bookworm main contrib non-free non-free-firmware" > /etc/apt/sources.list && \
+    echo "deb http://mirror.shatel.ir/debian bookworm-updates main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
+    echo "deb http://mirror.shatel.ir/debian bookworm-backports main contrib non-free non-free-firmware" >> /etc/apt/sources.list && \
+    echo "deb http://mirror.shatel.ir/debian-security bookworm-security main contrib non-free non-free-firmware" >> /etc/apt/sources.list
 
-RUN apt-get update && apt-get install -y --no-install-recommends \
+# نصب پکیج‌ها
+RUN apt update && \
+    apt install -y \
     gcc \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*

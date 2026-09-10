@@ -1,6 +1,9 @@
 # backend/app/main.py
+import os
+
 from fastapi import FastAPI, Depends, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.staticfiles import StaticFiles
 from contextlib import asynccontextmanager
 from datetime import datetime, timezone
 
@@ -9,14 +12,16 @@ from app.database import init_db
 from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.api.v1 import (
     auth_router, venues_router, slots_router,
-    bookings_router, competitions_router, contracts_router, admin_router
+    bookings_router, competitions_router, contracts_router, admin_router,
+    upload_router, reviews_router, notifications_router, payments_router,
+    games_router, memberships_router
 )
 from app.utils.websocket import manager
 from app.utils.auth import get_password_hash
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print("🚀 Starting up...")
+    print("Starting up...")
     init_db()
     
     # ایجاد داده‌های اولیه
@@ -24,7 +29,7 @@ async def lifespan(app: FastAPI):
     # seed_database()
     
     yield
-    print("👋 Shutting down...")
+    print("Shutting down...")
 
 app = FastAPI(
     title="Futsal Booking System API",
@@ -36,7 +41,7 @@ app = FastAPI(
 # CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_origins=settings.allowed_origins_list,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -80,6 +85,17 @@ app.include_router(bookings_router, prefix="/api/v1")
 app.include_router(competitions_router, prefix="/api/v1")
 app.include_router(contracts_router, prefix="/api/v1")
 app.include_router(admin_router, prefix="/api/v1")
+app.include_router(upload_router, prefix="/api/v1")
+app.include_router(reviews_router, prefix="/api/v1")
+app.include_router(notifications_router, prefix="/api/v1")
+app.include_router(payments_router, prefix="/api/v1")
+app.include_router(games_router, prefix="/api/v1")
+app.include_router(memberships_router, prefix="/api/v1")
+
+# Static files - عکس‌های واقعی سالن‌ها
+_static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")
+if os.path.isdir(_static_dir):
+    app.mount("/static", StaticFiles(directory=_static_dir), name="static")
 
 @app.get("/")
 async def root():

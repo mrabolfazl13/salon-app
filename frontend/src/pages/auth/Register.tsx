@@ -1,7 +1,7 @@
 // src/pages/auth/Register.tsx
 import React, { useState } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
-import { useForm } from 'react-hook-form'
+import { useForm, type FieldErrors } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion } from 'framer-motion'
@@ -9,8 +9,14 @@ import { Icon } from '@iconify/react'
 import { Button } from '@/components/ui/Button'
 import { Input } from '@/components/ui/Input'
 import Card, { CardContent } from '@/components/ui/Card'
-import { useToast } from '@/components/ui/Toast'
+import { useToast } from '@/hooks/useToast'
 import { authService } from '@/services/auth'
+
+// تبدیل ارقام فارسی/عربی به لاتین (برای قبول شماره موبایل با ارقام فارسی)
+const toLatinDigits = (value: string): string =>
+  value
+    .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
+    .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
 
 const registerSchema = z
   .object({
@@ -37,14 +43,16 @@ const Register: React.FC = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [success, setSuccess] = useState(false)
-  const [selectedRole, setSelectedRole] = useState<'user' | 'venue_manager'>('user')
+  const [successRole, setSuccessRole] = useState<'user' | 'venue_manager'>('user')
   const navigate = useNavigate()
   const { success: toastSuccess, error: toastError } = useToast()
 
   const {
     register,
     handleSubmit,
+    trigger,
     watch,
+    setValue,
     formState: { errors },
   } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -53,7 +61,33 @@ const Register: React.FC = () => {
     },
   })
 
+  // نقش انتخاب‌شده مستقیماً از state فرم خوانده می‌شود تا با دادهٔ سابمیت یکسان باشد
+  const selectedRole = watch('role')
+
   const password = watch('password')
+
+  // فیلدهای متعلق به هر گام از فرم ثبت‌نام
+  const stepFields: Record<number, (keyof RegisterForm)[]> = {
+    1: ['fullName', 'phone'],
+    2: ['password', 'confirmPassword'],
+    3: ['terms'],
+  }
+
+  // اعتبارسنجی فقط فیلدهای گام فعلی قبل از رفتن به گام بعد
+  const handleNext = async () => {
+    const valid = await trigger(stepFields[step], { shouldFocus: true })
+    if (valid) setStep(step + 1)
+  }
+
+  // هنگام سابمیت نامعتبر، پرش خودکار به اولین گامِ دارای خطا تا پیام دیده شود
+  const onInvalidSubmit = (errs: FieldErrors<RegisterForm>) => {
+    for (let s = 1; s <= 3; s++) {
+      if (stepFields[s].some((f) => errs[f])) {
+        setStep(s)
+        return
+      }
+    }
+  }
 
   const onSubmit = async (data: RegisterForm) => {
     setLoading(true)
@@ -65,9 +99,17 @@ const Register: React.FC = () => {
         password: data.password,
         role: data.role,
       })
-      setSuccess(true)
-      toastSuccess('ثبت‌نام موفقیت‌آمیز! 🎉')
-      setTimeout(() => navigate('/login'), 2000)
+      if (data.role === 'venue_manager') {
+        // مدیر سالن: منتظر تایید مدیر نرم‌افزار
+        setSuccessRole('venue_manager')
+        setSuccess(true)
+        toastSuccess('ثبت‌نام موفق! حساب شما در انتظار تایید مدیر نرم‌افزار است')
+        setTimeout(() => navigate('/login'), 6000)
+      } else {
+        // کاربر عادی: باید ایمیل/شماره را تایید کند تا بتواند رزرو کند
+        toastSuccess('ثبت‌نام موفقیت‌آمیز! حالا ایمیل خود را تایید کنید')
+        navigate(`/verify?phone=${data.phone}`)
+      }
     } catch (err: any) {
       const message = err.response?.data?.detail || 'خطا در ثبت‌نام. لطفاً دوباره تلاش کنید.'
       setError(message)
@@ -96,10 +138,12 @@ const Register: React.FC = () => {
               <Icon icon="mdi:check" className="h-12 w-12 text-white" />
             </motion.div>
             <h2 className="text-3xl font-bold mt-6 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-              ثبت‌نام موفق! 🎉
+              {successRole === 'venue_manager' ? 'در انتظار تایید ⏳' : 'ثبت‌نام موفق! 🎉'}
             </h2>
             <p className="text-gray-600 mt-2">
-              حساب کاربری شما با موفقیت ایجاد شد.
+              {successRole === 'venue_manager'
+                ? 'حساب شما با موفقیت ایجاد شد. پس از تایید مدیر نرم‌افزار می‌توانید وارد شوید.'
+                : 'حساب کاربری شما با موفقیت ایجاد شد.'}
             </p>
             <div className="mt-6 flex justify-center">
               <div className="w-8 h-8 border-4 border-blue-600 border-t-transparent rounded-full animate-spin" />
@@ -178,7 +222,7 @@ const Register: React.FC = () => {
               </motion.div>
             )}
 
-            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+            <form onSubmit={handleSubmit(onSubmit, onInvalidSubmit)} className="space-y-5">
               {/* Step 1: Personal Info */}
               {step === 1 && (
                 <motion.div
@@ -192,7 +236,7 @@ const Register: React.FC = () => {
                     <div className="grid grid-cols-2 gap-3">
                       <button
                         type="button"
-                        onClick={() => setSelectedRole('venue_manager')}
+                        onClick={() => setValue('role', 'venue_manager')}
                         className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
                           selectedRole === 'venue_manager'
                             ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -204,7 +248,7 @@ const Register: React.FC = () => {
                       </button>
                       <button
                         type="button"
-                        onClick={() => setSelectedRole('user')}
+                        onClick={() => setValue('role', 'user')}
                         className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
                           selectedRole === 'user'
                             ? 'border-blue-500 bg-blue-50 text-blue-700'
@@ -226,6 +270,11 @@ const Register: React.FC = () => {
                   />
                   <Input
                     {...register('phone')}
+                    onChange={(e) => {
+                      // نرمال‌سازی ارقام فارسی/عربی به لاتین هنگام تایپ
+                      e.target.value = toLatinDigits(e.target.value)
+                      register('phone').onChange(e)
+                    }}
                     placeholder="شماره موبایل"
                     icon="mdi:phone-outline"
                     error={errors.phone?.message}
@@ -372,7 +421,7 @@ const Register: React.FC = () => {
                     type="button"
                     variant="gradient"
                     className="flex-1 text-white shadow-2xl shadow-blue-500/25"
-                    onClick={() => setStep(step + 1)}
+                    onClick={handleNext}
                   >
                     بعدی
                     <Icon icon="mdi:arrow-left" className="h-5 w-5" />

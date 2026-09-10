@@ -5,9 +5,9 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  DialogProps as MuiDialogProps,
   IconButton,
 } from '@mui/material'
+import type { DialogProps as MuiDialogProps } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { motion, AnimatePresence } from 'framer-motion'
 

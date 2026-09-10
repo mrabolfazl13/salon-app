@@ -1,7 +1,6 @@
 // src/components/ui/Loading.tsx
 import React from 'react'
 import { Box, CircularProgress, Typography, Backdrop } from '@mui/material'
-import { Icon } from '@iconify/react'
 import { motion } from 'framer-motion'
 
 interface LoadingProps {
@@ -23,11 +22,13 @@ const Loading: React.FC<LoadingProps> = ({
 
   const content = (
     <Box
-      display="flex"
-      flexDirection="column"
-      alignItems="center"
-      justifyContent="center"
-      gap={2}
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center',
+        justifyContent: 'center',
+        gap: 2,
+      }}
     >
       <motion.div
         animate={{ rotate: 360 }}
