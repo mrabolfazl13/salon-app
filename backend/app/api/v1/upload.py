@@ -48,3 +48,24 @@ async def upload_images(
         urls.append(url)
 
     return {"urls": urls, "count": len(urls)}
+
+
+@router.post("/receipt")
+async def upload_receipt(
+    file: UploadFile = File(..., description="فیش واریزی (یک فایل، jpg/png/webp/gif، حداکثر ۵ مگابایت)"),
+    current_user: User = Depends(get_current_user),
+):
+    """آپلود فیش واریزی/رسید پرداخت (یک فایل، حداکثر ۵ مگابایت)"""
+    content_type = (file.content_type or "").lower()
+    if content_type not in ALLOWED_TYPES:
+        raise HTTPException(status_code=400, detail=f"فرمت {file.filename or content_type} مجاز نیست (فقط jpg, png, webp, gif)")
+
+    data = await file.read()
+    if len(data) > MAX_SIZE_MB * 1024 * 1024:
+        raise HTTPException(status_code=400, detail=f"حجم {file.filename} بیشتر از {MAX_SIZE_MB} مگابایت است")
+
+    try:
+        url = storage_service.upload_bytes(data, file.filename or "receipt.jpg", prefix="receipts/")
+    except StorageError as e:
+        raise HTTPException(status_code=503, detail=str(e))
+    return {"url": url}

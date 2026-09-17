@@ -13,11 +13,18 @@ from app.repositories.slot_repository import SlotRepository
 from app.repositories.review_repository import ReviewRepository
 from app.utils.auth import get_current_user, get_current_manager, get_current_admin
 from app.models.user import User, UserRole
-from app.models.venue import Venue
+from app.models.venue import Venue, VenuePaymentMode
 from app.models.slot import SlotStatus
 from app.services.notification_service import notification_service
 
 router = APIRouter(prefix="/venues", tags=["Venues"])
+
+def _pm_field(value):
+    """payment_mode optional -> dict for model (None => omit so default applies)"""
+    if value is None:
+        return {}
+    return {"payment_mode": VenuePaymentMode(value)}
+
 
 def get_venue_min_price(session: Session, venue_id: int) -> int:
     """حداقل قیمت سالن: برای فوتسال از سانس‌ها، برای بدنسازی از پلن‌های اشتراک"""
@@ -178,6 +185,7 @@ def create_venue(
         "images": json.dumps(venue_data.images),
         "manager_id": current_user.id,
         "default_slot_price": venue_data.default_slot_price,
+    **_pm_field(venue_data.payment_mode),
     })
     
     uow.commit()
@@ -209,6 +217,7 @@ def update_venue(
         "amenities": json.dumps(venue_data.amenities),
         "images": json.dumps(venue_data.images),
         "default_slot_price": venue_data.default_slot_price,
+    **_pm_field(venue_data.payment_mode),
     }
     
     venue = uow.venues.update(venue_id, update_data)

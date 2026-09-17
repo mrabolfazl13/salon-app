@@ -3,7 +3,8 @@ import json
 from fastapi import HTTPException
 from app.unit_of_work import UnitOfWork
 from app.models.slot import SlotStatus
-from app.models.booking import BookingStatus
+from app.models.booking import BookingStatus, ReceiptStatus
+from app.models.venue import VenuePaymentMode
 from app.models.contract import ContractStatus
 from app.services.coupon_service import CouponService
 from app.services.loyalty_service import LoyaltyService
@@ -65,6 +66,11 @@ class BookingService:
         if pending_booking_service.has_pending_for_slot(slot_id):
             raise HTTPException(status_code=400, detail="Slot is already pending confirmation")
 
+        # اسنپ‌شوت روش پرداخت سالن در لحظه رزرو (برای confirm + پاسخ رزرو معلق)
+        venue = uow.venues.get_by_id(slot.venue_id)
+        pm = venue.payment_mode if venue else None
+        pm_value = pm.value if pm is not None else None
+
         # ── موتور قیمت سمت سرور — تنها مبدأ مبلغ قابل پرداخت ──
         pricing = PricingService.compute_booking_price(
             uow.session, slot, current_user,
@@ -76,6 +82,9 @@ class BookingService:
             "loyalty_points_used": pricing["loyalty"]["points"] if pricing["loyalty"] else 0,
             "pricing_breakdown": json.dumps(pricing["breakdown"], ensure_ascii=False),
             "deal_applied": bool(pricing.get("deal")),
+            "payment_mode": pm_value,
+            "needs_receipt": (pm == VenuePaymentMode.BANK_RECEIPT) if pm is not None else False,
+            "receipt_status": "none",
         }
 
         # تا مدیر سالن تأیید یا رد کند، سانس رزرو شده می‌ماند تا کسی دیگر نتواند رزرو کند
@@ -117,7 +126,7 @@ class BookingService:
             raise HTTPException(status_code=404, detail="Slot not found")
 
         if slot.status != SlotStatus.BOOKED:
-            # سانس دیگر در حالت رزرو نیست (مثلاً آزاد شده) — رکورد معلق را پاک کن
+            # سانس دیگر در حالت رزرو نیست (مثلا‌ آزاد شده) — رکورد معلق را پاک کن
             pending_booking_service.remove(pending["id"])
             BookingService.release_pending_promotions(uow, pending)
             raise HTTPException(status_code=400, detail="Slot is no longer held for this booking")
@@ -137,16 +146,28 @@ class BookingService:
                 detail="این سانس بخشی از یک قرارداد فعال است و امکان رزرو آن وجود ندارد",
             )
 
+        # اسنپ‌شوت روش پرداخت از لحظه رزرو — روی رزرو قطعی ثبت می‌شود
+        pm_value = pending.get("payment_mode")
+        try:
+            pm = VenuePaymentMode(pm_value) if pm_value else None
+        except ValueError:
+            pm = None
+        is_bank_receipt = (pm == VenuePaymentMode.BANK_RECEIPT)
+
         # حالا داخل دیتابیس می‌نشیند — اجزای قیمت برای ممیزی/بازگشت وجه ثبت می‌شوند
+        # bank_receipt: رزرو تا تأییدِ رسید در حالت pending (در انتظار پرداخت) می‌ماند
         booking = uow.bookings.create({
             "slot_id": pending["slot_id"],
             "user_id": pending["user_id"],
             "payment_amount": pending["payment_amount"],
-            "status": BookingStatus.CONFIRMED,
+            "status": BookingStatus.PENDING if is_bank_receipt else BookingStatus.CONFIRMED,
             "discount_amount": int(pending.get("discount_amount") or 0),
             "coupon_code": pending.get("coupon_code"),
             "loyalty_points_used": int(pending.get("loyalty_points_used") or 0),
             "pricing_breakdown": pending.get("pricing_breakdown"),
+            "payment_mode": pm,
+            "needs_receipt": bool(is_bank_receipt),
+            "receipt_status": ReceiptStatus.NONE,
         })
 
         # اتصال redemption کوپن به رزرو قطعی
@@ -175,13 +196,14 @@ class BookingService:
         booking = uow.bookings.get_by_id(booking_id)
         if not booking:
             raise HTTPException(status_code=404, detail="Booking not found")
-        
+
         if booking.user_id != user_id:
             raise HTTPException(status_code=403, detail="Not your booking")
-        
-        if booking.status != BookingStatus.CONFIRMED:
+
+        # CONFIRMED (پرداخت‌شده/در انتظار) و PENDING (رزروی پرداخت‌نشدهٔ فیش/محل) قابل لغو است
+        if booking.status not in (BookingStatus.CONFIRMED, BookingStatus.PENDING):
             raise HTTPException(status_code=400, detail="Cannot cancel this booking")
-        
+
         slot = uow.slots.get_by_id(booking.slot_id)
         restore_status = SlotStatus.RESERVED if (slot and slot.is_contract_slot) else SlotStatus.AVAILABLE
         uow.slots.update(booking.slot_id, {"status": restore_status})

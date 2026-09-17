@@ -4,6 +4,8 @@ from enum import Enum
 from typing import Optional, List
 
 from app.schemas.payment import PaymentResponse
+from app.models.venue import VenuePaymentMode
+from app.models.booking import ReceiptStatus
 
 class BookingStatus(str, Enum):
     PENDING = "pending"
@@ -38,13 +40,26 @@ class BookingResponse(BaseModel):
     loyalty_points_used: int = 0
     pricing_breakdown: Optional[List[dict]] = None
 
+    # روش پرداخت + وضعیت رسید (لیست‌ها سبک: فقط وضعیت + مبلغ)
+    payment_mode: Optional[VenuePaymentMode] = None
+    needs_receipt: bool = False
+    receipt_status: ReceiptStatus = ReceiptStatus.NONE
+
     class Config:
         from_attributes = True
 
 
 class BookingDetailResponse(BookingResponse):
-    """جزئیات یک رزرو + آخرین فاکتور پرداخت"""
+    """جزئیات یک رزرو + آخرین فاکتور پرداخت + فیلدهای کامل رسید"""
     payment: Optional[PaymentResponse] = None
+    receipt_amount: Optional[int] = None
+    receipt_reference: Optional[str] = None
+    receipt_bank: Optional[str] = None
+    receipt_image: Optional[str] = None
+    receipt_submitted_at: Optional[datetime] = None
+    receipt_reviewed_at: Optional[datetime] = None
+    receipt_review_note: Optional[str] = None
+    receipt_reviewed_by: Optional[int] = None
 
 
 class PendingBookingResponse(BaseModel):
@@ -68,6 +83,11 @@ class PendingBookingResponse(BaseModel):
     coupon_code: Optional[str] = None
     loyalty_points_used: int = 0
     pricing_breakdown: Optional[List[dict]] = None
+
+    # اسنپ‌شوت روش پرداخت + وضعیت رسید (برای نمایش در فرانت‌اند)
+    payment_mode: Optional[VenuePaymentMode] = None
+    needs_receipt: bool = False
+    receipt_status: ReceiptStatus = ReceiptStatus.NONE
 
     class Config:
         from_attributes = True

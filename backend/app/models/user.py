@@ -1,3 +1,4 @@
+import importlib
 from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional, List
 from datetime import datetime, timezone
@@ -25,7 +26,7 @@ class User(SQLModel, table=True):
     notify_deals: bool = Field(default=False)  # اشتراک اعلان سانس‌های تخفیفی
     
     managed_venues: List["Venue"] = Relationship(back_populates="manager")
-    bookings: List["Booking"] = Relationship(back_populates="user")
+    bookings: List["Booking"] = Relationship(back_populates="user", sa_relationship_kwargs={"foreign_keys": lambda: [importlib.import_module("app.models.booking").Booking.__table__.c.user_id]})
     competitions: List["PriceCompetition"] = Relationship(back_populates="venue_manager")
     contracts: List["Contract"] = Relationship(back_populates="user",
                                          sa_relationship_kwargs={"foreign_keys": "[Contract.user_id]"})

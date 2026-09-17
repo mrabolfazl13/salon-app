@@ -62,7 +62,7 @@ class StorageService:
         scheme = "https" if settings.MINIO_SECURE else "http"
         return f"{scheme}://{settings.MINIO_ENDPOINT}"
 
-    def upload_bytes(self, data: bytes, filename: str = "image.jpg") -> str:
+    def upload_bytes(self, data: bytes, filename: str = "image.jpg", prefix: str = "venues/") -> str:
         """آپلود بایت‌ها و برگرداندن URL عمومی فایل"""
         client = self._get_client()
         try:
@@ -73,7 +73,7 @@ class StorageService:
         ext = mimetypes.guess_extension(mimetypes.guess_type(filename)[0] or "") or ""
         if not ext:
             ext = ".jpg"
-        object_name = f"venues/{uuid.uuid4().hex}{ext}"
+        object_name = f"{prefix}{uuid.uuid4().hex}{ext}"
         content_type = mimetypes.guess_type(filename)[0] or "application/octet-stream"
 
         try:

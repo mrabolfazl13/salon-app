@@ -1,11 +1,25 @@
 # backend/app/schemas/venue.py
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 from datetime import datetime
 from typing import Optional, List
 import json
 
 # موبایل (09XXXXXXXXX) یا تلفن ثابت (0XX-XXXXXXX / 0XXXXXXXXX)
 PHONE_PATTERN = r"^0(9[0-9]{9}|2[0-9]-?[0-9]{7,8})$"
+
+# روش‌های پرداخت مجاز سالن (gateway | bank_receipt | pay_in_place)
+PAYMENT_MODES = ("gateway", "bank_receipt", "pay_in_place")
+
+
+def _as_payment_mode(v):
+    """اعتبارسنجی payment_mode — مقدار نامعتبر -> ۴۲۲ فارسی."""
+    if v is None:
+        return v
+    s = str(v)
+    if s not in PAYMENT_MODES:
+        raise ValueError("روش پرداخت نامعتبر است (gateway | bank_receipt | pay_in_place)")
+    return s
+
 
 class VenueBase(BaseModel):
     name: str = Field(..., min_length=3, max_length=100)
@@ -22,8 +36,17 @@ class VenueBase(BaseModel):
         default=None, ge=1,
         description="مبنای پیش‌فرض قیمت سانس (قابل تنظیم توسط مدیر)")
 
+
 class VenueCreate(VenueBase):
-    pass
+    payment_mode: Optional[str] = Field(
+        default=None,
+        description="روش پرداخت سالن: gateway | bank_receipt | pay_in_place (پیش‌فرض: bank_receipt)")
+
+    @field_validator("payment_mode")
+    @classmethod
+    def _check_payment_mode(cls, v):
+        return _as_payment_mode(v)
+
 
 class VenueResponse(VenueBase):
     id: int
@@ -33,13 +56,15 @@ class VenueResponse(VenueBase):
     created_at: datetime
     average_rating: float = 0.0
     total_reviews: int = 0
-    
+    payment_mode: Optional[str] = None
+
     class Config:
         from_attributes = True
-        
+
     @classmethod
     def from_orm_with_json(cls, venue, min_price: int = None, average_rating: float = 0.0, total_reviews: int = 0):
         """تبدیل مدل با JSON fields به List"""
+        pm = getattr(venue, "payment_mode", None)
         data = {
             "id": venue.id,
             "name": venue.name,
@@ -57,8 +82,9 @@ class VenueResponse(VenueBase):
             "default_slot_price": venue.default_slot_price,
             "average_rating": average_rating or 0.0,
             "total_reviews": total_reviews or 0,
+            "payment_mode": (pm.value if pm is not None else "bank_receipt"),
         }
-        
+
         # تبدیل JSON string به List
         if venue.amenities:
             try:
@@ -67,7 +93,7 @@ class VenueResponse(VenueBase):
                 data["amenities"] = []
         else:
             data["amenities"] = []
-            
+
         if venue.images:
             try:
                 data["images"] = json.loads(venue.images)
@@ -75,5 +101,5 @@ class VenueResponse(VenueBase):
                 data["images"] = []
         else:
             data["images"] = []
-            
+
         return cls(**data)
