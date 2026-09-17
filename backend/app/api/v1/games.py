@@ -437,6 +437,25 @@ def get_payment_summary(
     return GameService.get_payment_summary(uow, game_id)
 
 
+@router.post("/{game_id}/payments/remind", response_model=dict)
+async def remind_game_payments(
+    game_id: int,
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+):
+    """یادآوری پرداخت سهم به بازیکنانِ بدهکار — سازمان‌ده/مدیر؛ هر دقیقه یک‌بار."""
+    result, notifications = GameService.remind_payments(uow, game_id, current_user.id)
+    if result["sent"] == 0:
+        return {"sent": 0}
+    from app.utils.rate_limit import cooldown_guard
+    if not cooldown_guard(f"game-pay-reminder:{game_id}:{current_user.id}", 60):
+        raise HTTPException(status_code=429,
+                            detail="هر دقیقه فقط یک یادآوری قابل ارسال است",
+                            headers={"Retry-After": "60"})
+    await GameService.dispatch_notifications(uow, notifications)
+    return {"sent": result["sent"]}
+
+
 @router.post("/{game_id}/payments/{participant_id}/pay", response_model=dict)
 async def pay_share(
     game_id: int,

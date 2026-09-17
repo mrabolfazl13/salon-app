@@ -29,6 +29,8 @@ from app.models.venue import Venue
 from app.models.user import User
 from app.repositories.venue_repository import VenueRepository
 from app.schemas.game import GameCreate, GameUpdate, InviteLinkCreate
+from app.models.transaction import TransactionMethod, TransactionSourceType
+from app.services.finance_service import FinanceService
 
 
 def _utcnow() -> datetime:
@@ -438,7 +440,8 @@ class GameService:
             raise _err(409, "NOT_A_PARTICIPANT", "شما عضو این بازی نیستید.")
 
         booking, slot, venue = GameService._chain(uow, game)
-        GameService._deactivate_participant(uow, game, booking, participant)
+        GameService._deactivate_participant(uow, game, booking, slot, participant,
+                                            actor_id=user_id)
         promoted = GameService._promote_from_waitlist(uow, game, booking)
         game = GameService._refresh_status(uow, game)
 
@@ -453,8 +456,29 @@ class GameService:
         return {"game": GameService.to_response(uow, game, None, chain=(booking, slot, venue))}, notifications
 
     @staticmethod
+    def _record_share_refund(uow: UnitOfWork, payment: GamePayment,
+                             slot: Optional[Slot], actor_id: Optional[int], note: str):
+        """دفتر کل: ردیف refund منفی-جهت برای هر سهم مستردشده (الگو: لغو رزرو).
+
+        ردیف درآمدی اصلیِ `game-payment:{id}` دست‌نخورده می‌ماند؛ کلید
+        idempotency `'game-refund:{game_payment_id}` دوباره‌ثبت را خنثی می‌کند.
+        """
+        FinanceService.record_refund(
+            uow,
+            amount=payment.amount,
+            original_source_id=payment.id,
+            venue_id=slot.venue_id if slot else None,
+            counterparty_user_id=payment.user_id,
+            source_type=TransactionSourceType.GAME_PAYMENT,
+            description=f"بازگشت وجه {note} — سهم بازی #{payment.game_id}",
+            idempotency_key=f"game-refund:{payment.id}",
+            created_by=actor_id,
+        )
+
+    @staticmethod
     def _deactivate_participant(uow: UnitOfWork, game: Game, booking: Booking,
-                                participant: GameParticipant):
+                                slot: Optional[Slot], participant: GameParticipant,
+                                actor_id: Optional[int] = None):
         participant.status = ParticipantStatus.LEFT
         participant.left_at = _utcnow()
         uow.session.add(participant)
@@ -463,6 +487,7 @@ class GameService:
             payment.status = GamePaymentStatus.REFUNDED
             payment.updated_at = _utcnow()
             uow.session.add(payment)
+            GameService._record_share_refund(uow, payment, slot, actor_id, "خروج بازیکن")
         elif payment and payment.status == GamePaymentStatus.PENDING:
             uow.session.delete(payment)
         uow.session.flush()
@@ -489,7 +514,9 @@ class GameService:
         payment = uow.game_payments.get_by_participant(target.id)
         if payment and payment.status == GamePaymentStatus.PAID:
             payment.status = GamePaymentStatus.REFUNDED
+            payment.updated_at = _utcnow()
             uow.session.add(payment)
+            GameService._record_share_refund(uow, payment, slot, actor_id, "حذف بازیکن")
         elif payment and payment.status == GamePaymentStatus.PENDING:
             uow.session.delete(payment)
         uow.session.flush()
@@ -901,12 +928,16 @@ class GameService:
         uow.session.add(game)
         uow.game_invite_links.deactivate_all(game.id)
 
-        # استرداد سهم‌های پرداختی
+        booking_, slot_, _venue_ = GameService._chain(uow, game)
+        # استرداد سهم‌های پرداختی + ردیف معکوس دفتر کل (idempotent)
         for payment in uow.game_payments.list_by_game(game.id):
             if payment.status == GamePaymentStatus.PAID:
                 payment.status = GamePaymentStatus.REFUNDED
                 payment.updated_at = _utcnow()
                 uow.session.add(payment)
+                GameService._record_share_refund(uow, payment, slot_, actor_id,
+                                                 "لغو بازی")
+        uow.session.flush()
 
         # رد درخواست‌های باز + انصراف دعوت‌نامه‌ها
         for req, _ in uow.game_join_requests.get_pending_for_game(game.id):
@@ -1011,7 +1042,7 @@ class GameService:
             raise _err(404, "PARTICIPANT_NOT_FOUND", "شرکت‌کننده یافت نشد.")
         if participant.user_id != user_id:
             raise _err(403, "NOT_AUTHORIZED", "فقط خودِ بازیکن می‌تواند سهمش را بپردازد.")
-        booking, _, _ = GameService._chain(uow, game)
+        booking, slot, _venue = GameService._chain(uow, game)
 
         payment = uow.game_payments.get_by_participant(participant_id)
         if not payment:
@@ -1031,6 +1062,20 @@ class GameService:
         uow.session.add(payment)
         uow.session.flush()
 
+        # دفتر کل: درآمد سهم بازی (append-only، idempotency با شناسه پرداخت)
+        FinanceService.record_income(
+            uow,
+            amount=payment.amount,
+            source_type=TransactionSourceType.GAME_PAYMENT,
+            source_id=payment.id,
+            venue_id=slot.venue_id if slot else None,
+            counterparty_user_id=user_id,
+            method=TransactionMethod.GATEWAY,
+            description=f"سهم بازی #{game.id}",
+            idempotency_key=f"game-payment:{payment.id}",
+            created_by=user_id,
+        )
+
         user = uow.users.get_by_id(user_id)
         notifications = [{
             "user_id": game.organizer_id,
@@ -1046,6 +1091,42 @@ class GameService:
                             "gateway": payment.gateway, "payment_reference": payment.payment_reference,
                             "created_at": payment.created_at, "paid_at": payment.paid_at},
                 "notifications": notifications}
+
+    # ─────────────────────────── یادآوری پرداخت ───────────────────────────
+
+    @staticmethod
+    def remind_payments(uow: UnitOfWork, game_id: int, actor_id: int
+                        ) -> Tuple[dict, List[dict]]:
+        """یادآوری پرداخت سهم — فقط سازمان‌ده/مدیر؛ به هر بازیکنِ سهم‌پرداخت‌نشده.
+
+        فراخوان (ارگانایزر) از گیرندگان مستثناست. پیام شامل سالن، تاریخ جلالی
+        و مبلغ بدهی هر بازیکن است.
+        """
+        game = GameService._get_game_or_404(uow, game_id)
+        actor = uow.game_participants.get_by_game_and_user(game.id, actor_id)
+        GameService._require_manage_permission(game, actor)
+        booking, slot, venue = GameService._chain(uow, game)
+
+        from app.utils.jalali import jalali_string
+        date_str = jalali_string(slot.slot_date) if slot else str(slot.slot_date if slot else "")
+        venue_name = venue.name if venue else "نامشخص"
+
+        notifications: List[dict] = []
+        for payment in uow.game_payments.list_by_game(game.id):
+            if payment.status != GamePaymentStatus.PENDING:
+                continue
+            if payment.user_id == actor_id:
+                continue
+            notifications.append({
+                "user_id": payment.user_id,
+                "title": "یادآوری پرداخت سهم بازی",
+                "message": f"سهم شما ({payment.amount:,} تومان) برای بازی «{game.name}» "
+                           f"در {venue_name} — {date_str} هنوز پرداخت نشده است.",
+                "data": {"game_id": game.id, "game_name": game.name,
+                         "payment_id": payment.id, "amount": payment.amount},
+                "notif_type": "game_payment_reminder",
+            })
+        return {"sent": len(notifications)}, notifications
 
     # ─────────────────────────── dispatch اعلان‌ها ───────────────────────────
 

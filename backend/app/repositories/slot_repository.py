@@ -1,9 +1,11 @@
 # backend/app/repositories/slot_repository.py
 from sqlmodel import Session, select, and_, or_, func
+from sqlalchemy import case
 from datetime import date, time, datetime, timedelta
 from typing import Optional, List, Tuple
 from app.models.slot import Slot, SlotStatus
 from app.repositories.base import BaseRepository
+from app.utils.time_guard import is_past_slot
 
 class SlotRepository(BaseRepository[Slot]):
     
@@ -72,14 +74,19 @@ class SlotRepository(BaseRepository[Slot]):
         if not existing:
             return True
         return existing.status == SlotStatus.AVAILABLE
-    
-    def check_slot_conflict(self, venue_id: int, slot_date: date, start_time: time, duration: int = 90) -> Optional[Slot]:
-        """بررسی تداخل زمانی با سانس‌های دیگر (بر اساس مدت واقعی هر سانس)"""
+    def check_slot_conflict(self, venue_id: int, slot_date: date, start_time: time, duration: int = 90, exclude_slot_id: Optional[int] = None) -> Optional[Slot]:
+        """بررسی تداخل زمانی با سانس‌های دیگر (بر اساس مدت واقعی هر سانس).
+
+        exclude_slot_id: در جابه‌جایی سانس قرارداد (reschedule) سانسِ خودش
+        نباید با خودش تداخل شمرده شود.
+        """
         new_start = datetime.combine(slot_date, start_time)
         new_end = new_start + timedelta(minutes=duration)
 
-        existing = self.get_all(venue_id=venue_id, slot_date=slot_date)
+        existing = self.get_all(venue_id=venue_id, slot_date=slot_date, limit=1000)
         for slot in existing:
+            if exclude_slot_id is not None and slot.id == exclude_slot_id:
+                continue
             if slot.status == SlotStatus.BLOCKED:
                 continue
             s_start = datetime.combine(slot_date, slot.start_time)
@@ -88,7 +95,34 @@ class SlotRepository(BaseRepository[Slot]):
             if s_start < new_end and s_end > new_start:
                 return slot
         return None
-    
+
+    def release_contract_slot(self, slot_id: int) -> Optional[Slot]:
+        """آزادسازی سانس قرارداد از ید قرارداد (رد/لغو/استثنای سانس).
+
+        نوشتن مستقیم attribute چون BaseRepository.update مقدار None را
+        نادیده می‌گیرد و باید contract_id هم null شود.
+        """
+        slot = self.get_by_id(slot_id)
+        if not slot:
+            return None
+        slot.status = SlotStatus.AVAILABLE
+        slot.is_contract_slot = False
+        slot.contract_id = None
+        self.session.add(slot)
+        self.session.flush()
+        return slot
+
+    def relocate_contract_slot(self, slot_id: int, new_date: date, new_time: time) -> Optional[Slot]:
+        """جابه‌جایی فیزیکی سانس قرارداد (reschedule / move_whole)."""
+        slot = self.get_by_id(slot_id)
+        if not slot:
+            return None
+        slot.slot_date = new_date
+        slot.start_time = new_time
+        self.session.add(slot)
+        self.session.flush()
+        return slot
+
     def block_slot(self, slot_id: int, reason: str = None) -> Optional[Slot]:
         """مسدود کردن سانس (برای تعمیرات و غیره)"""
         return self.update(slot_id, {
@@ -101,7 +135,12 @@ class SlotRepository(BaseRepository[Slot]):
         return self.update(slot_id, {"status": SlotStatus.AVAILABLE})
     
     def update_price(self, slot_id: int, new_price: int) -> Optional[Slot]:
-        """به‌روزرسانی قیمت سانس"""
+        """به‌روزرسانی قیمت سانس — سانس‌های گذشته تغییر قیمت نمی‌گیرند"""
+        slot = self.get_by_id(slot_id)
+        if slot is None:
+            return None
+        if is_past_slot(slot.slot_date, slot.start_time):
+            return None
         return self.update(slot_id, {"current_price": new_price})
     
     def enable_competition(self, slot_id: int) -> Optional[Slot]:
@@ -152,8 +191,17 @@ class SlotRepository(BaseRepository[Slot]):
             "total_revenue": total_revenue
         }
     
-    def create_daily_slots(self, venue_id: int, slot_date: date, start_hour: int = 8, end_hour: int = 23, interval_minutes: int = 90) -> List[Slot]:
-        """ایجاد خودکار سانس‌های روزانه برای یک سالن"""
+    def create_daily_slots(self, venue_id: int, slot_date: date, start_hour: int = 8, end_hour: int = 23, interval_minutes: int = 90, base_price: Optional[int] = None) -> List[Slot]:
+        """ایجاد خودکار سانس‌های روزانه — قیمت هر سانس از موتور قیمت سمت سرور.
+
+        مبنای قیمت: venue.default_slot_price (fallback config.DEFAULT_SLOT_PRICE)؛
+        base_price روی سانس همان لنگر قوانین می‌ماند و current_price خروجی
+        resolve_price (بدون قوانین: برابر مبنای پیش‌فرض — سازگار با رفتار قبلی).
+        """
+        from app.services.pricing_service import PricingService
+
+        if base_price is None:
+            base_price = PricingService.venue_base_price(self.session, venue_id)
         slots_created = []
         current_hour = start_hour
         current_minute = 0
@@ -169,13 +217,16 @@ class SlotRepository(BaseRepository[Slot]):
                     current_minute = current_minute % 60
                 continue
             
+            final_price, _rule_ids = PricingService.resolve_price(
+                self.session, venue_id, slot_date, start_time,
+                base_price=base_price, duration=interval_minutes)
             slot = self.create({
                 "venue_id": venue_id,
                 "slot_date": slot_date,
                 "start_time": start_time,
                 "duration": interval_minutes,
-                "base_price": 200000,
-                "current_price": 200000,
+                "base_price": base_price,
+                "current_price": final_price,
                 "status": SlotStatus.AVAILABLE
             })
             slots_created.append(slot)
@@ -220,3 +271,59 @@ class SlotRepository(BaseRepository[Slot]):
         if available_slots:
             return min(s.current_price for s in available_slots)
         return 0
+
+
+    # ---------- تحلیل‌های مالی/ occupancy ----------
+
+    def occupancy_summary(
+        self, venue_ids: Optional[List[int]], start_date: date, end_date: date
+    ) -> Tuple[int, int]:
+        """(total_active, occupied) — فعال = هر وضعیتی جز مسدود؛ اشغال = booked/reserved."""
+        active = [SlotStatus.AVAILABLE, SlotStatus.BOOKED, SlotStatus.RESERVED, SlotStatus.IN_COMPETITION]
+        stmt = select(
+            func.count(),
+            func.sum(case((Slot.status.in_([SlotStatus.BOOKED, SlotStatus.RESERVED]), 1), else_=0)),
+        ).where(Slot.status.in_(active), Slot.slot_date >= start_date, Slot.slot_date <= end_date)
+        if venue_ids is not None:
+            stmt = stmt.where(Slot.venue_id.in_(venue_ids))
+        total, occupied = self.session.exec(stmt).one()
+        return int(total or 0), int(occupied or 0)
+
+    def occupancy_by_venue(
+        self, venue_ids: List[int], start_date: date, end_date: date
+    ) -> dict:
+        """occupancy تفکیک‌شده بر حسب سالن در بازه — {venue_id: (total_active, occupied)}."""
+        active = [SlotStatus.AVAILABLE, SlotStatus.BOOKED, SlotStatus.RESERVED, SlotStatus.IN_COMPETITION]
+        stmt = select(
+            Slot.venue_id,
+            func.count(),
+            func.sum(case((Slot.status.in_([SlotStatus.BOOKED, SlotStatus.RESERVED]), 1), else_=0)),
+        ).where(
+            Slot.status.in_(active),
+            Slot.venue_id.in_(venue_ids),
+            Slot.slot_date >= start_date,
+            Slot.slot_date <= end_date,
+        ).group_by(Slot.venue_id)
+        return {int(v): (int(t or 0), int(o or 0)) for v, t, o in self.session.exec(stmt).all()}
+
+    def demand_profile(
+        self, venue_ids: Optional[List[int]], start_date: date, end_date: date
+    ) -> dict:
+        """پروفایل تقاضا به تفکیک (روز هفته, ساعت) — wire get_time_slots_analytics در مقیاس چند سالنه.
+
+        خروجی: {(weekday:int 0=یکشنبه, hour:int): {"total": n, "booked": m}} — تک کوئری.
+        """
+        active = [SlotStatus.AVAILABLE, SlotStatus.BOOKED, SlotStatus.RESERVED, SlotStatus.IN_COMPETITION]
+        stmt = select(Slot.slot_date, Slot.start_time, Slot.status).where(
+            Slot.status.in_(active), Slot.slot_date >= start_date, Slot.slot_date <= end_date
+        )
+        if venue_ids is not None:
+            stmt = stmt.where(Slot.venue_id.in_(venue_ids))
+        profile: dict = {}
+        for slot_date, start_time, status in self.session.exec(stmt).all():
+            key = ((slot_date.weekday() + 1) % 7, start_time.hour)  # دامنه %w (0=یکشنبه)
+            bucket = profile.setdefault(key, {"total": 0, "booked": 0})
+            bucket["total"] += 1
+            if status in (SlotStatus.BOOKED, SlotStatus.RESERVED):
+                bucket["booked"] += 1
+        return profile

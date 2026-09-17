@@ -91,7 +91,20 @@ class NotificationService:
         }
         await manager.broadcast_to_role("admins", notification)
 
-    # ─────────────────────────── اعلان‌های دامنه ───────────────────────────
+    async def notify_manager_room(self, manager_id: Optional[int], title: str, message: str,
+                                  data: dict = None, notif_type: str = "manager"):
+        """اعلان مدیرِ مسئول — کانال شخصی مدیر (الگوی notify_new_pending_booking).
+
+        broadcast به کل اتاق managers فقط برای رویدادهای عمومی (رقابت/سیستم)
+        است؛ درخواست‌های قرارداد به مدیر همان سالن می‌رسد — روی کانال شخصیِ
+        مدیرِ متصل، پیام در همین اتاق (managers) هم دیده می‌شود.
+        بدون manager_id مشخص هیچ اعلانی داده نمی‌شود (نه query سراسری).
+        """
+        if not manager_id:
+            return
+        await self.send_to_user(manager_id, title, message, data, notif_type=notif_type)
+
+# ─────────────────────────── اعلان‌های دامنه ───────────────────────────
 
     async def notify_new_pending_booking(self, user_id: int, booking_details: dict):
         await self.send_to_user(user_id, "⏳ رزرو جدید در انتظار تأیید",
@@ -120,8 +133,61 @@ class NotificationService:
 
     async def notify_contract_created(self, user_id: int, contract_details: dict):
         await self.send_to_user(user_id, "📄 قرارداد جدید ثبت شد",
-            f"قرارداد شما برای سالن {contract_details.get('venue_name')} با موفقیت ثبت شد.",
+            f"قرارداد شما برای سالن {contract_details.get('venue_name')} با موفقیت ثبت شد و در انتظار تأیید مدیر است.",
             contract_details, notif_type="contract")
+
+    async def notify_contract_pending_review(self, manager_id: Optional[int], contract_details: dict):
+        await self.notify_manager_room(
+            manager_id, "📄 درخواست قرارداد جدید",
+            f"درخواست قرارداد جدید برای سالن {contract_details.get('venue_name')} ثبت شد؛ برای بررسی به پنل مدیریتی مراجعه کنید.",
+            contract_details, notif_type="contract_pending")
+
+    async def notify_contract_approved(self, user_id: int, contract_details: dict):
+        await self.send_to_user(user_id, "✅ قرارداد شما تأیید شد",
+            f"قرارداد سالن {contract_details.get('venue_name')} تأیید و فعال شد. جزئیات پرداخت در پرونده قرارداد قابل مشاهده است.",
+            contract_details, notif_type="contract_approved")
+
+    async def notify_contract_rejected(self, user_id: int, contract_details: dict):
+        await self.send_to_user(user_id, "❌ قرارداد رد شد",
+            f"متأسفانه درخواست قرارداد شما برای سالن {contract_details.get('venue_name')} رد شد. دلیل: {contract_details.get('reason', 'بدون ذکر دلیل')}",
+            contract_details, notif_type="contract_rejected")
+
+    async def notify_contract_cancelled(self, user_id: int, contract_details: dict):
+        await self.send_to_user(user_id, "🚫 قرارداد لغو شد",
+            f"قرارداد سالن {contract_details.get('venue_name')} لغو شد و سانس‌های آینده آزاد گردیدند.",
+            contract_details, notif_type="contract_cancelled")
+
+    async def notify_contract_renewal_objection(self, manager_id: Optional[int], contract_details: dict):
+        await self.notify_manager_room(
+            manager_id, "🔁 درخواست تمدید قرارداد",
+            f"قرارداد {contract_details.get('contract_id')} در آستانه تمدید خودکار است؛ کاربر اعتراض ثبت کرده است.",
+            contract_details, notif_type="contract_renewal")
+
+    async def notify_contract_session_change(self, user_id: int, session_details: dict):
+        await self.send_to_user(user_id, session_details.get("title", "تغییر سانس قرارداد"),
+            session_details.get("message", ""), session_details, notif_type="contract_session")
+
+    async def notify_contract_session_cancel_request(self, manager_id: Optional[int], request_details: dict):
+        await self.notify_manager_room(
+            manager_id, "⏹ درخواست لغو سانس قرارداد",
+            f"کاربر لغو سانس {request_details.get('session_date')} قرارداد #{request_details.get('contract_id')} را درخواست کرد.",
+            request_details, notif_type="contract_session_request")
+
+    async def notify_contract_overdue(self, user_id: int, overdue_details: dict):
+        await self.send_to_user(user_id, "⚠️ قسط قرارداد معوق شد",
+            overdue_details.get("message", f"قسط قرارداد #{overdue_details.get('contract_id')} سررسید را رد کرده است."),
+            overdue_details, notif_type="contract_overdue")
+
+    async def notify_contract_overdue_manager(self, manager_id: Optional[int], overdue_details: dict):
+        await self.notify_manager_room(
+            manager_id, "⚠️ قسط معوق قرارداد",
+            overdue_details.get("message", f"قرارداد #{overdue_details.get('contract_id')} قسط معوق دارد."),
+            overdue_details, notif_type="contract_overdue")
+
+    async def notify_contract_payment(self, user_id: int, payment_details: dict):
+        await self.send_to_user(user_id, "💳 پرداخت قسط قرارداد",
+            payment_details.get("message", "پرداخت قسط قرارداد ثبت شد."),
+            payment_details, notif_type="contract_payment")
 
 
 notification_service = NotificationService()

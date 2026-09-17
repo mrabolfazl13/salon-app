@@ -8,6 +8,7 @@ class SlotStatus(str, Enum):
     BOOKED = "booked"
     BLOCKED = "blocked"
     IN_COMPETITION = "in_competition"
+    RESERVED = "reserved"
 
 class Slot(SQLModel, table=True):
     __tablename__ = "slots"
@@ -24,6 +25,10 @@ class Slot(SQLModel, table=True):
     competition_winner_id: Optional[int] = Field(default=None, foreign_key="price_competitions.id", sa_column_kwargs={"nullable": True})
     is_contract_slot: bool = Field(default=False)
     contract_id: Optional[int] = Field(foreign_key="contracts.id", default=None)
+    # سانس لحظه‌آخری (Open-slot deal) — قیمت تخفیفیِ اعلامی مدیریت
+    is_deal: bool = Field(default=False)
+    deal_price: Optional[int] = Field(default=None)
+    deal_expires_at: Optional[datetime] = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     venue: "Venue" = Relationship(back_populates="slots")
