@@ -23,6 +23,7 @@ import { Icon } from '@iconify/react'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
+import { useStaffMe } from '@/hooks/useStaffMe'
 import { getInitials } from '@/lib/utils'
 import NotificationPanel from './NotificationPanel'
 
@@ -45,6 +46,10 @@ const Navbar: React.FC<NavbarProps> = () => {
 
   const isManager =
     user?.role === 'venue_manager' || user?.role === 'club_admin' || user?.role === 'super_admin'
+  // کارمند انتصابی (role=user با انتساب فعال در /staff/me) — همان ناوبری کنسول‌ها
+  const staffQuery = useStaffMe()
+  const isStaff = (staffQuery.data?.length ?? 0) > 0
+  const canConsoleNav = isManager || isStaff
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -65,9 +70,12 @@ const Navbar: React.FC<NavbarProps> = () => {
     { label: 'خانه', icon: 'mdi:home', href: '/' },
     { label: 'سالن‌ها', icon: 'mdi:store', href: '/venues' },
     { label: 'بازی‌ها', icon: 'mdi:gamepad-variant', href: '/games' },
+    { label: 'تیم\u200cها', icon: 'mdi:account-group', href: '/teams' },
     { label: 'رزروها', icon: 'mdi:calendar', href: '/bookings' },
     { label: 'قراردادها', icon: 'mdi:file-document', href: '/contracts' },
-    ...(isManager ? [{ label: 'رقابت‌ها', icon: 'mdi:trophy', href: '/competitions' }] : []),
+    ...(isAuthenticated ? [{ label: 'شگفت\u200cانگیز', icon: 'mdi:fire', href: '/deals' }] : []),
+    ...(isManager ? [{ label: 'رقابت\u200cها', icon: 'mdi:trophy', href: '/competitions' }, { label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'مدیریت قراردادها', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }] : []),
+    ...(!isManager && isStaff ? [{ label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'قراردادها (مدیریت)', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }] : []),
   ]
 
   const dashboardPath = isManager ? '/manager-dashboard' : '/dashboard'
@@ -190,12 +198,43 @@ const Navbar: React.FC<NavbarProps> = () => {
                   <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
                     <PersonIcon sx={{ ml: 1 }} /> پروفایل
                   </MenuItem>
+                  <MenuItem component={Link} to="/teams" onClick={handleMenuClose}>
+                    <Icon icon="mdi:account-group" style={{ marginLeft: 8 }} /> تیم‌ها
+                  </MenuItem>
                   <MenuItem component={Link} to={dashboardPath} onClick={handleMenuClose}>
                     <DashboardIcon sx={{ ml: 1 }} /> داشبورد
                   </MenuItem>
                   {isManager && (
                     <MenuItem component={Link} to="/manager-dashboard" onClick={handleMenuClose}>
                       <StorefrontIcon sx={{ ml: 1 }} /> مدیریت سالن‌ها
+                    </MenuItem>
+                  )}
+                  <MenuItem component={Link} to="/deals" onClick={handleMenuClose}>
+                    <Icon icon="mdi:fire" style={{ marginLeft: 8 }} /> شگفت\u200cانگیزها
+                  </MenuItem>
+                  {canConsoleNav && (
+                    <MenuItem component={Link} to="/manager/pricing" onClick={handleMenuClose}>
+                      <Icon icon="mdi:tag-percent-outline" style={{ marginLeft: 8 }} /> قیمت\u200cگذاری
+                    </MenuItem>
+                  )}
+                  {canConsoleNav && (
+                    <MenuItem component={Link} to="/finance" onClick={handleMenuClose}>
+                      <Icon icon="mdi:cash-register" style={{ marginLeft: 8 }} /> امور مالی
+                    </MenuItem>
+                  )}
+                  {canConsoleNav && (
+                    <MenuItem component={Link} to="/manager/crm" onClick={handleMenuClose}>
+                      <Icon icon="mdi:account-heart-outline" style={{ marginLeft: 8 }} /> مشتریان
+                    </MenuItem>
+                  )}
+                  {canConsoleNav && (
+                    <MenuItem component={Link} to="/manager/contracts" onClick={handleMenuClose}>
+                      <Icon icon="mdi:file-document-check-outline" style={{ marginLeft: 8 }} /> مدیریت قراردادها
+                    </MenuItem>
+                  )}
+                  {isManager && (
+                    <MenuItem component={Link} to="/manager/teams" onClick={handleMenuClose}>
+                      <Icon icon="mdi:handshake-outline" style={{ marginLeft: 8 }} /> تیم‌های همکار
                     </MenuItem>
                   )}
                   {user?.role === 'super_admin' && (

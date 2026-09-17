@@ -388,6 +388,13 @@ export function useLeaveWaitlist(gameId: number) {
   })
 }
 
+/** یادآوری پرداخت سهم — سازمان‌ده/مدیر؛ ۴۲۹ با جزئیه فارسی کول‌داون در UI surfaced */
+export function useRemindGamePayments(gameId: number) {
+  return useMutation({
+    mutationFn: () => gameService.remindPayments(gameId),
+  })
+}
+
 export function usePayShare(gameId: number) {
   const qc = useQueryClient()
   return useMutation({

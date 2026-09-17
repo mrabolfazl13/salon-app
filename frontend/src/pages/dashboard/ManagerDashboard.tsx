@@ -1,5 +1,5 @@
 // frontend/src/pages/dashboard/ManagerDashboard.tsx
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
@@ -11,6 +11,7 @@ import {
   CardContent,
   Button,
   Chip,
+  Checkbox,
   Tabs,
   Tab,
   Dialog,
@@ -18,6 +19,7 @@ import {
   DialogActions,
   CircularProgress,
   TextField,
+  Tooltip,
   Avatar,
   Divider,
   Paper,
@@ -36,10 +38,15 @@ import Layout from '@/components/layout/Layout'
 import { venueService } from '@/services/venue'
 import { slotService } from '@/services/slot'
 import { bookingService } from '@/services/booking'
+import { dealService, type DealAvailableItem } from '@/services/deals'
+import DealPublishDialog, { type PublishSlot } from '@/components/deals/DealPublishDialog'
+import ConfirmModal from '@/components/modals/ConfirmModal'
+import SlotWeekGrid from '@/components/manager/SlotWeekGrid'
 import { uploadService } from '@/services/upload'
 import { membershipService } from '@/services/membership'
 import { MembershipPlan, MembershipPurchase, PlanType, PLAN_TYPE_LABEL } from '@/types/membership'
 import { formatPrice } from '@/lib/utils'
+import PersianDatePicker, { PersianDateRangePicker } from '@/components/ui/PersianDatePicker'
 import toast from 'react-hot-toast'
 
 interface Venue {
@@ -61,8 +68,9 @@ interface Slot {
   duration: number
   base_price: number
   current_price: number
-  status: 'available' | 'booked' | 'blocked' | 'in_competition'
+  status: 'available' | 'booked' | 'blocked' | 'in_competition' | 'reserved' | (string & {})
   is_competition_enabled: boolean
+  is_contract_slot?: boolean
 }
 
 interface Booking {
@@ -102,6 +110,7 @@ const statusColors: Record<string, string> = {
   booked: '#2563eb',
   blocked: '#ef4444',
   in_competition: '#f59e0b',
+  reserved: '#8b5cf6',
 }
 
 const statusLabels: Record<string, string> = {
@@ -109,6 +118,7 @@ const statusLabels: Record<string, string> = {
   booked: 'رزرو شده',
   blocked: 'مسدود',
   in_competition: 'مسابقه',
+  reserved: 'رزرو قرارداد',
 }
 
 const ManagerDashboard: React.FC = () => {
@@ -137,6 +147,19 @@ const ManagerDashboard: React.FC = () => {
   const [slotsLoading, setSlotsLoading] = useState(false)
   const [selectedVenueForSlots, setSelectedVenueForSlots] = useState<number | 'all'>('all')
   const [slotFilterDate, setSlotFilterDate] = useState(() => new Date().toISOString().split('T')[0])
+
+  // Deals — انتشار سانس لحظه آخری روی تب سانس‌ها
+  const [dealsMap, setDealsMap] = useState<Record<number, DealAvailableItem>>({})
+  const [dealSelection, setDealSelection] = useState<number[]>([])
+  const [publishOpen, setPublishOpen] = useState(false)
+  const [unpublishBusy, setUnpublishBusy] = useState<number | null>(null)
+
+  // مسدود/آزاد کردن سانس (slot.block سمت بک‌اند) + اقدام گروهی رزروهای در انتظار
+  const [slotActionBusy, setSlotActionBusy] = useState<number | null>(null)
+  const [blockConfirmSlot, setBlockConfirmSlot] = useState<Slot | null>(null)
+  const [pendingSelection, setPendingSelection] = useState<string[]>([])
+  const [bulkAction, setBulkAction] = useState<'confirm' | 'reject' | null>(null)
+  const [bulkBusy, setBulkBusy] = useState(false)
 
   // Bookings state
   const [bookings, setBookings] = useState<Booking[]>([])
@@ -185,6 +208,7 @@ const ManagerDashboard: React.FC = () => {
   useEffect(() => {
     if (tab === 1 && venues.length > 0) {
       fetchSlots()
+      fetchDeals()
     }
   }, [tab, venues])
 
@@ -229,6 +253,7 @@ const ManagerDashboard: React.FC = () => {
   const fetchSlots = async () => {
     setSlotsLoading(true)
     setSlots([])
+    setDealSelection([])
     try {
       const venuesToFetch = selectedVenueForSlots === 'all'
         ? venues
@@ -244,6 +269,55 @@ const ManagerDashboard: React.FC = () => {
       toast.error('خطا در دریافت سانس‌ها')
     } finally {
       setSlotsLoading(false)
+    }
+  }
+
+  // فعال بودن دیل از SlotResponse خوانده نمی‌شود ← GET /deals/available (فقط آینده/فعال)
+  const fetchDeals = async () => {
+    try {
+      const items = await dealService.available({ limit: 200 })
+      const map: Record<number, DealAvailableItem> = {}
+      for (const it of items) map[it.slot_id] = it
+      setDealsMap(map)
+    } catch {
+      setDealsMap({})
+    }
+  }
+
+  const isFutureSlot = (slot: Slot): boolean => {
+    const today = new Date().toISOString().split('T')[0]
+    if (slot.slot_date > today) return true
+    if (slot.slot_date < today) return false
+    const now = new Date()
+    const hm = (slot.start_time || '00:00').slice(0, 5)
+    const [h, m] = hm.split(':').map(Number)
+    return h > now.getHours() || (h === now.getHours() && m > now.getMinutes())
+  }
+
+  const publishableSlots = useMemo(
+    () => slots.filter((s) => s.status === 'available' && isFutureSlot(s) && !dealsMap[s.id]),
+    [slots, dealsMap],
+  )
+
+  const selectedDealSlots: PublishSlot[] = slots
+    .filter((s) => dealSelection.includes(s.id))
+    .map((s) => ({ id: s.id, venue_id: s.venue_id, slot_date: s.slot_date, start_time: s.start_time }))
+
+  const toggleDealSelection = (slotId: number) => {
+    setDealSelection((prev) => (prev.includes(slotId) ? prev.filter((x) => x !== slotId) : [...prev, slotId]))
+  }
+
+  const handleUnpublish = async (slotId: number) => {
+    setUnpublishBusy(slotId)
+    try {
+      await dealService.unpublish(slotId)
+      toast.success('تخفیف سانس برداشته شد')
+      await Promise.all([fetchDeals(), fetchSlots()])
+      setDealSelection((prev) => prev.filter((x) => x !== slotId))
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'خطا در لغو تخفیف')
+    } finally {
+      setUnpublishBusy(null)
     }
   }
 
@@ -278,6 +352,7 @@ const ManagerDashboard: React.FC = () => {
       const venuesToFetch = selectedVenueForBookings === 'all'
         ? venues
         : venues.filter(v => v.id === selectedVenueForBookings)
+      setPendingSelection([])
       const allPending: any[] = []
       for (const venue of venuesToFetch) {
         const venuePending = await bookingService.getVenuePending(venue.id)
@@ -406,6 +481,60 @@ const ManagerDashboard: React.FC = () => {
     } finally {
       setPendingActionPid(null)
     }
+  }
+
+  const faDigits = (n: number): string => new Intl.NumberFormat('fa-IR').format(n)
+
+  const handleBlockSlot = async (slot: Slot) => {
+    setSlotActionBusy(slot.id)
+    try {
+      await slotService.block(slot.id)
+      toast.success('سانس مسدود شد')
+      await fetchSlots()
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'خطا در مسدود کردن سانس')
+    } finally {
+      setSlotActionBusy(null)
+      setBlockConfirmSlot(null)
+    }
+  }
+
+  const handleUnblockSlot = async (slot: Slot) => {
+    setSlotActionBusy(slot.id)
+    try {
+      await slotService.unblock(slot.id)
+      toast.success('سانس آزاد شد')
+      await fetchSlots()
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'خطا در آزاد کردن سانس')
+    } finally {
+      setSlotActionBusy(null)
+    }
+  }
+
+  const togglePendingSelection = (pid: string) => {
+    setPendingSelection((prev) => (prev.includes(pid) ? prev.filter((x) => x !== pid) : [...prev, pid]))
+  }
+
+  const bulkApply = async () => {
+    if (!bulkAction || pendingSelection.length === 0) return
+    setBulkBusy(true)
+    const targets = [...pendingSelection]
+    const results = await Promise.allSettled(
+      targets.map((pid) => (bulkAction === 'confirm' ? bookingService.confirmPending(pid) : bookingService.rejectPending(pid))),
+    )
+    const ok = results.filter((r) => r.status === 'fulfilled').length
+    const failed = targets.length - ok
+    setBulkAction(null)
+    setPendingSelection([])
+    toast.success(`${faDigits(ok)} رزرو ${bulkAction === 'confirm' ? 'تأیید' : 'رد'} شد${failed > 0 ? ` — ${faDigits(failed)} ناموفق` : ''}`)
+    if (failed > 0) {
+      const first = results.find((r) => r.status === 'rejected') as PromiseRejectedResult | undefined
+      const detail = (first?.reason as any)?.response?.data?.detail
+      if (detail) toast.error(String(detail))
+    }
+    await Promise.all([fetchBookings(), fetchPending()])
+    setBulkBusy(false)
   }
 
   const handleCreateVenue = async () => {
@@ -750,6 +879,14 @@ const ManagerDashboard: React.FC = () => {
                   </Box>
                 }
               />
+              <Tab
+                label={
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                    <Icon icon="mdi:view-grid-outline" className="h-4 w-4" />
+                    تقویم هفتگی
+                  </Box>
+                }
+              />
             </Tabs>
           </Box>
 
@@ -1076,17 +1213,12 @@ const ManagerDashboard: React.FC = () => {
                       </FormControl>
                     </Grid>
                     <Grid size={{ xs: 12, sm: 4 }}>
-                      <TextField
+                      <PersianDatePicker
                         fullWidth
                         size="small"
-                        type="date"
                         label="تاریخ"
                         value={slotFilterDate}
-                        onChange={(e) => setSlotFilterDate(e.target.value)}
-                        slotProps={{
-                          inputLabel: { shrink: true },
-                          input: { sx: { borderRadius: '10px' } },
-                        }}
+                        onChange={setSlotFilterDate}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 4 }}>
@@ -1112,6 +1244,53 @@ const ManagerDashboard: React.FC = () => {
                     </Grid>
                   </Grid>
                 </Paper>
+
+                {/* نوار ابزار دیل — انتخاب چندسانسی و عرضه به‌عنوان تخفیف‌دار */}
+                {publishableSlots.length > 0 && (
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      borderRadius: '16px',
+                      px: 2,
+                      py: 1.5,
+                      mb: 2,
+                      border: '1px solid rgba(245,158,11,0.3)',
+                      background: 'rgba(255,247,237,0.9)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      gap: 2,
+                      flexWrap: 'wrap',
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                      <Checkbox
+                        size="small"
+                        checked={dealSelection.length > 0 && dealSelection.length === publishableSlots.length}
+                        indeterminate={dealSelection.length > 0 && dealSelection.length < publishableSlots.length}
+                        onChange={(e) =>
+                          setDealSelection(e.target.checked ? publishableSlots.map((s) => s.id) : [])
+                        }
+                      />
+                      <Icon icon="mdi:lightning-bolt" className="h-5 w-5" style={{ color: '#d97706' }} />
+                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                        {dealSelection.length > 0
+                          ? (new Intl.NumberFormat('fa-IR')).format(dealSelection.length) + ' سانس انتخاب شده — عرضه به‌عنوان تخفیف‌دار'
+                          : 'عرضه به‌عنوان تخفیف‌دار — سانس‌های آزاد آینده را علامت بزنید'}
+                      </Typography>
+                    </Box>
+                    <Button
+                      size="small"
+                      variant="contained"
+                      disabled={dealSelection.length === 0}
+                      onClick={() => setPublishOpen(true)}
+                      sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}
+                      startIcon={<Icon icon="mdi:rocket-launch-outline" className="h-4 w-4" />}
+                    >
+                      انتشار {dealSelection.length ? `(${dealSelection.length})` : ''}
+                    </Button>
+                  </Paper>
+                )}
 
                 {/* Slots List */}
                 {slotsLoading ? (
@@ -1191,6 +1370,8 @@ const ManagerDashboard: React.FC = () => {
                           <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>مدت (دقیقه)</TableCell>
                           <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>قیمت</TableCell>
                           <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>وضعیت</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>تخفیف داینامیک</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>عملیات</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -1225,7 +1406,7 @@ const ManagerDashboard: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <Chip
-                                label={statusLabels[slot.status] || slot.status}
+                                label={statusLabels[slot.status] || 'نامشخص'}
                                 size="small"
                                 sx={{
                                   borderRadius: '8px',
@@ -1236,6 +1417,73 @@ const ManagerDashboard: React.FC = () => {
                                   color: statusColors[slot.status] || '#6b7280',
                                 }}
                               />
+                            </TableCell>
+                            <TableCell>
+                              {dealsMap[slot.id] ? (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                                  <Chip
+                                    label="ویژه 🔥"
+                                    size="small"
+                                    sx={{
+                                      borderRadius: '8px',
+                                      fontWeight: 800,
+                                      fontSize: '0.68rem',
+                                      height: 24,
+                                      bgcolor: 'rgba(245,158,11,0.15)',
+                                      color: '#d97706',
+                                    }}
+                                  />
+                                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#059669' }}>
+                                    {formatPrice(dealsMap[slot.id].deal_price)}
+                                  </Typography>
+                                  <Button
+                                    size="small"
+                                    color="error"
+                                    onClick={() => handleUnpublish(slot.id)}
+                                    disabled={unpublishBusy === slot.id}
+                                    sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.7rem' }}
+                                  >
+                                    {unpublishBusy === slot.id ? '…' : 'لغو تخفیف'}
+                                  </Button>
+                                </Box>
+                              ) : slot.status === 'available' && isFutureSlot(slot) ? (
+                                <Checkbox
+                                  size="small"
+                                  checked={dealSelection.includes(slot.id)}
+                                  onChange={() => toggleDealSelection(slot.id)}
+                                />
+                              ) : (
+                                <Typography variant="caption" sx={{ color: 'text.secondary' }}>—</Typography>
+                              )}
+                            </TableCell>
+                            <TableCell>
+                              {slot.status === 'available' && !slot.is_contract_slot && isFutureSlot(slot) ? (
+                                <Button
+                                  size="small"
+                                  color="warning"
+                                  variant="outlined"
+                                  disabled={slotActionBusy === slot.id}
+                                  onClick={() => setBlockConfirmSlot(slot)}
+                                  sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.7rem', borderRadius: '8px' }}
+                                  startIcon={slotActionBusy === slot.id ? undefined : <Icon icon="mdi:lock-outline" className="h-3.5 w-3.5" />}
+                                >
+                                  {slotActionBusy === slot.id ? '...' : 'مسدود'}
+                                </Button>
+                              ) : slot.status === 'blocked' && isFutureSlot(slot) ? (
+                                <Button
+                                  size="small"
+                                  color="success"
+                                  variant="outlined"
+                                  disabled={slotActionBusy === slot.id}
+                                  onClick={() => handleUnblockSlot(slot)}
+                                  sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.7rem', borderRadius: '8px' }}
+                                  startIcon={slotActionBusy === slot.id ? undefined : <Icon icon="mdi:lock-open-variant-outline" className="h-3.5 w-3.5" />}
+                                >
+                                  {slotActionBusy === slot.id ? '...' : 'آزاد'}
+                                </Button>
+                              ) : (
+                                <Typography variant="caption" sx={{ color: 'text.disabled' }}>—</Typography>
+                              )}
                             </TableCell>
                           </TableRow>
                         ))}
@@ -1284,32 +1532,13 @@ const ManagerDashboard: React.FC = () => {
                         </Select>
                       </FormControl>
                     </Grid>
-                    <Grid size={{ xs: 12, sm: 3 }}>
-                      <TextField
-                        fullWidth
+                    <Grid size={{ xs: 12, sm: 6 }}>
+                      <PersianDateRangePicker
                         size="small"
-                        type="date"
-                        label="از تاریخ"
-                        value={bookingDateRange.start}
-                        onChange={(e) => setBookingDateRange(prev => ({ ...prev, start: e.target.value }))}
-                        slotProps={{
-                          inputLabel: { shrink: true },
-                          input: { sx: { borderRadius: '10px' } },
-                        }}
-                      />
-                    </Grid>
-                    <Grid size={{ xs: 12, sm: 3 }}>
-                      <TextField
-                        fullWidth
-                        size="small"
-                        type="date"
-                        label="تا تاریخ"
-                        value={bookingDateRange.end}
-                        onChange={(e) => setBookingDateRange(prev => ({ ...prev, end: e.target.value }))}
-                        slotProps={{
-                          inputLabel: { shrink: true },
-                          input: { sx: { borderRadius: '10px' } },
-                        }}
+                        start={bookingDateRange.start}
+                        end={bookingDateRange.end}
+                        onStartChange={(v) => setBookingDateRange(prev => ({ ...prev, start: v }))}
+                        onEndChange={(v) => setBookingDateRange(prev => ({ ...prev, end: v }))}
                       />
                     </Grid>
                     <Grid size={{ xs: 12, sm: 3 }}>
@@ -1354,6 +1583,38 @@ const ManagerDashboard: React.FC = () => {
                       رزروهای در انتظار تأیید
                     </Typography>
                     <Chip label={pendingList.length} size="small" color="warning" sx={{ borderRadius: '8px' }} />
+                    {pendingList.length > 0 && (
+                      <Tooltip title="انتخاب همه">
+                        <Checkbox
+                          size="small"
+                          checked={pendingSelection.length > 0 && pendingSelection.length === pendingList.length}
+                          indeterminate={pendingSelection.length > 0 && pendingSelection.length < pendingList.length}
+                          onChange={(e) => setPendingSelection(e.target.checked ? pendingList.map((p) => p.id) : [])}
+                        />
+                      </Tooltip>
+                    )}
+                    <Box sx={{ flex: 1 }} />
+                    {pendingSelection.length > 0 && (
+                      <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        <Button
+                          size="small"
+                          variant="contained"
+                          onClick={() => setBulkAction('confirm')}
+                          sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, bgcolor: '#16a34a', '&:hover': { bgcolor: '#15803d' } }}
+                        >
+                          تأیید انتخاب‌شده‌ها ({faDigits(pendingSelection.length)})
+                        </Button>
+                        <Button
+                          size="small"
+                          variant="outlined"
+                          color="error"
+                          onClick={() => setBulkAction('reject')}
+                          sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700 }}
+                        >
+                          رد انتخاب‌شده‌ها ({faDigits(pendingSelection.length)})
+                        </Button>
+                      </Box>
+                    )}
                   </Box>
                   {pendingLoading ? (
                     <Box sx={{ textAlign: 'center', py: 3 }}>
@@ -1380,15 +1641,22 @@ const ManagerDashboard: React.FC = () => {
                               border: '1px solid rgba(245,158,11,0.2)',
                             }}
                           >
-                            <Box sx={{ minWidth: 0 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                                {p.venue_name || 'سالن'}
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+                              <Checkbox
+                                size="small"
+                                checked={pendingSelection.includes(p.id)}
+                                onChange={() => togglePendingSelection(p.id)}
+                              />
+                              <Box sx={{ minWidth: 0 }}>
+                                <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                  {p.venue_name || 'سالن'}
                               </Typography>
                               <Typography variant="caption" color="text.secondary">
                                 {p.slot_date ? `${p.slot_date} — ${p.start_time}` : ''}
                                 {p.slot_date ? '  •  ' : ''}
                                 {formatPrice(p.payment_amount)}
                               </Typography>
+                              </Box>
                             </Box>
                             <Box sx={{ display: 'flex', gap: 1 }}>
                               <Button
@@ -1794,9 +2062,71 @@ const ManagerDashboard: React.FC = () => {
                 )}
               </motion.div>
             )}
+
+            {/* Week Calendar Tab — تقویم هفتگی سانس‌ها (شنبه–جمعه) */}
+            {tab === 4 && (
+              <motion.div
+                key="week-calendar"
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -10 }}
+                transition={{ duration: 0.3 }}
+              >
+                <SlotWeekGrid
+                  venues={venues.map((v) => ({ id: v.id, name: v.name }))}
+                  venueNameOf={getVenueName}
+                />
+              </motion.div>
+            )}
           </AnimatePresence>
         </Box>
       </Box>
+
+      <DealPublishDialog
+        open={publishOpen}
+        slots={selectedDealSlots}
+        venueNameOf={(vid) => getVenueName(vid)}
+        onClose={() => setPublishOpen(false)}
+        onPublished={() => {
+          setPublishOpen(false)
+          setDealSelection([])
+          fetchDeals()
+          fetchSlots()
+        }}
+      />
+
+      {/* تأیید مسدودسازی سانس (بدون دلیل — فقط Confirm) */}
+      <ConfirmModal
+        open={Boolean(blockConfirmSlot)}
+        onOpenChange={(v) => { if (!v) setBlockConfirmSlot(null) }}
+        title="مسدود این سانس؟"
+        description={
+          blockConfirmSlot
+            ? `سانس ${blockConfirmSlot.start_time.slice(0, 5)} از تاریخ ${blockConfirmSlot.slot_date} مسدود می‌شود و در دسترس رزرو عمومی نخواهد بود.`
+            : ''
+        }
+        confirmText="مسدود کردن"
+        cancelText="انصراف"
+        variant="destructive"
+        loading={slotActionBusy === (blockConfirmSlot?.id ?? -1)}
+        onConfirm={() => { if (blockConfirmSlot) void handleBlockSlot(blockConfirmSlot) }}
+      />
+
+      {/* اقدام گروهی روی رزروهای در انتظار تأیید — حلقه‌ی endpointهای تکی */}
+      <ConfirmModal
+        open={bulkAction !== null}
+        onOpenChange={(v) => { if (!v) setBulkAction(null) }}
+        title={bulkAction === 'confirm' ? 'تأیید انتخاب‌شده‌ها' : 'رد انتخاب‌شده‌ها'}
+        description={
+          bulkAction === 'confirm'
+            ? `${faDigits(pendingSelection.length)} رزرو در انتظار تأیید در دیتابیس ثبت خواهند شد. در صورت خطای هر مورد، پیام سرور نمایش داده می‌شود.`
+            : `${faDigits(pendingSelection.length)} رزرو رد و سانس‌های مربوط آزاد خواهند شد. این عمل قابل بازگشت نیست.`
+        }
+        confirmText={bulkAction === 'confirm' ? 'تأیید همه' : 'رد همه'}
+        variant={bulkAction === 'reject' ? 'destructive' : 'default'}
+        loading={bulkBusy}
+        onConfirm={() => void bulkApply()}
+      />
 
       {/* Create Venue Dialog */}
       <Dialog
@@ -2030,18 +2360,10 @@ const ManagerDashboard: React.FC = () => {
           </Typography>
         </Box>
         <DialogContent sx={{ pt: 3, pb: 1 }}>
-          <TextField
-            fullWidth
-            type="date"
+          <PersianDatePicker
             label="تاریخ"
             value={slotDate}
-            onChange={(e) => setSlotDate(e.target.value)}
-            slotProps={{
-              inputLabel: { shrink: true },
-              input: {
-                sx: { borderRadius: '10px' },
-              },
-            }}
+            onChange={setSlotDate}
           />
         </DialogContent>
         <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>

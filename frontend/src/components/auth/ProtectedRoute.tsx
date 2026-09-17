@@ -7,17 +7,25 @@ import toast from 'react-hot-toast'
 interface ProtectedRouteProps {
   children: React.ReactNode
   requiredRole?: 'user' | 'venue_manager' | 'club_admin' | 'super_admin'
+  /**
+   * کنسول‌های عملیاتی سالن (مالی/قیمت‌گذاری/قراردادها/CRM): برای هر کاربر
+   * لاگین‌کرده رندر می‌شود — کارمندِ انتصابی (role=user با کد دسترسی)؛ تصمیم
+   * نهایی با بک‌اند (۴۰۳) و کنسول‌ها ForbiddenPanel را تمیز نمایش می‌دهند.
+   */
+  allowStaff?: boolean
 }
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
   requiredRole,
+  allowStaff = false,
 }) => {
   const { isAuthenticated, user, isLoading } = useAuthStore()
   const location = useLocation()
 
   const isRoleAllowed =
     !requiredRole ||
+    allowStaff ||
     user?.role === requiredRole ||
     user?.role === 'super_admin' ||
     (requiredRole === 'venue_manager' && user?.role === 'club_admin')

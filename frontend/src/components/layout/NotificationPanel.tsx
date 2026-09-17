@@ -41,6 +41,10 @@ const typeIcons: Record<string, { icon: string; color: string }> = {
   game_cancelled: { icon: 'mdi:close-octagon', color: '#dc2626' },
   game_payment_paid: { icon: 'mdi:credit-card-check-outline', color: '#0891b2' },
   game: { icon: 'mdi:gamepad-variant', color: '#7c3aed' },
+  // ---- Team notifications (team_* / dues_*) ----
+  team: { icon: 'mdi:shield-account-outline', color: '#2563eb' },
+  team_invitation: { icon: 'mdi:email-fast-outline', color: '#7c3aed' },
+  dues: { icon: 'mdi:cash-clock-outline', color: '#0891b2' },
 }
 
 function timeAgo(iso: string): string {
@@ -76,6 +80,13 @@ const NotificationPanel: React.FC = () => {
     if (typeof gameId === 'number') {
       setAnchorEl(null)
       navigate(`/games/${gameId}`)
+      return
+    }
+    // Deep-link به صفحه تیم برای اعلان‌های تیم/حصه (data.team_id)
+    const teamId = n.data?.team_id
+    if (typeof teamId === 'number') {
+      setAnchorEl(null)
+      navigate(`/teams/${teamId}`)
     }
   }
 
@@ -150,7 +161,17 @@ const NotificationPanel: React.FC = () => {
               {notifications.map((n) => {
                 const t =
                   typeIcons[n.type] ||
-                  (n.type.startsWith('game_') ? typeIcons.game : typeIcons.info)
+                  (n.type.startsWith('game_')
+                    ? typeIcons.game
+                    : n.type.startsWith('contract')
+                      ? typeIcons.contract
+                      : n.type.startsWith('dues_')
+                        ? typeIcons.dues
+                        : n.type.startsWith('team_') || n.type === 'team'
+                          ? n.type.startsWith('team_invitation')
+                            ? typeIcons.team_invitation
+                            : typeIcons.team
+                          : typeIcons.info)
                 return (
                   <motion.div
                     key={n.id}

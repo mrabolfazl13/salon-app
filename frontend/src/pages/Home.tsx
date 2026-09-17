@@ -3,7 +3,7 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography } from '@mui/material'
+import { Box, Button, Typography } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import MobileHeader from '@/components/mobile/MobileHeader'
 import SearchBar from '@/components/mobile/SearchBar'
@@ -63,15 +63,31 @@ const Home: React.FC = () => {
     }
   }, [])
 
-  // موقعیت مکانی (اختیاری — در صورت رد دسترسی، بی‌صدا رد می‌شود)
-  useEffect(() => {
+  // موقعیت مکانی (اختیاری — تلاش خودکار بی‌صدا + درخواست صریح با دکمه،
+  // چون در اندروید/Tauri و مرورگرها دیالوگ دسترسی فقط با درخواست کاربر مطمئن اجرا می‌شود)
+  const [locBusy, setLocBusy] = useState(false)
+  const [locFailed, setLocFailed] = useState(false)
+  const requestLocation = useCallback((silent = false) => {
     if (!navigator.geolocation) return
+    setLocBusy(true)
     navigator.geolocation.getCurrentPosition(
-      (pos) => setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      () => undefined,
-      { timeout: 8000 },
+      (pos) => {
+        setLocBusy(false)
+        setCoords({ lat: pos.coords.latitude, lng: pos.coords.longitude })
+      },
+      () => {
+        setLocBusy(false)
+        if (!silent) {
+          // اشتراک‌گذاری پیام یکنواخت در UI پایین همین بخش
+          setLocFailed(true)
+        }
+      },
+      { timeout: 12000, maximumAge: 300000, enableHighAccuracy: false },
     )
   }, [])
+  useEffect(() => {
+    requestLocation(true)
+  }, [requestLocation])
 
   useEffect(() => {
     let cancelled = false
@@ -238,12 +254,85 @@ const Home: React.FC = () => {
           </Box>
         </motion.div>
 
+        {/* بنر شگفت‌انگیزها — سانس‌های لحظه آخری */}
+        <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
+          <Box
+            onClick={() => navigate(isAuthenticated ? '/deals' : '/login')}
+            sx={{
+              position: 'relative',
+              overflow: 'hidden',
+              borderRadius: `${radii.card}px`,
+              background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+              color: '#fff',
+              px: 2.5,
+              py: 2.25,
+              mb: 4,
+              cursor: 'pointer',
+              boxShadow: '0 10px 30px rgba(239,68,68,0.28)',
+            }}
+          >
+            <Box sx={{ position: 'absolute', bottom: -50, left: -30, width: 150, height: 150, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)' }} />
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontWeight: 800, fontSize: '1.02rem' }}>🔥 شگفت‌انگیزهای لحظه آخری</Typography>
+                <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.9)', mt: 0.25 }}>
+                  سانس‌های تخفیف‌دار نزدیک تو — تا مهلت تمام نشده رزرو کن
+                </Typography>
+              </Box>
+              <Box
+                sx={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 0.5,
+                  px: 1.5,
+                  py: 0.75,
+                  borderRadius: `${radii.button}px`,
+                  bgcolor: 'rgba(255,255,255,0.2)',
+                  fontSize: '0.78rem',
+                  fontWeight: 700,
+                  flexShrink: 0,
+                }}
+              >
+                مشاهده
+                <Icon icon="mdi:arrow-left" style={{ width: 15, height: 15 }} />
+              </Box>
+            </Box>
+          </Box>
+        </motion.div>
+
         {/* نزدیک شما */}
         <SectionHeader
           title="سالن‌های نزدیک شما"
           actionLabel="مشاهده همه"
           onAction={() => navigate('/venues')}
         />
+        {!coords && (
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, px: 0.25 }}>
+            <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', flex: 1, minWidth: 0 }}>
+              {locFailed
+                ? 'دسترسی مکان رد شد؛ از تنظیمات مرورگر/برنامه فعالش کنید.'
+                : 'برای پیشنهاد بر اساس نزدیک‌ترین سالن، موقعیت مکانی را فعال کنید.'}
+            </Typography>
+            <Button
+              size="small"
+              disabled={locBusy}
+              onClick={() => {
+                setLocFailed(false)
+                requestLocation()
+              }}
+              startIcon={<Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} />}
+              sx={{
+                textTransform: 'none',
+                fontWeight: 700,
+                borderRadius: '10px',
+                flexShrink: 0,
+                color: 'primary.main',
+              }}
+            >
+              {locBusy ? 'در حال دریافت…' : 'فعال‌سازی'}
+            </Button>
+          </Box>
+        )}
         {nearbyLoading ? (
           <Box sx={{ mb: 4 }}>
             <VenueCardSkeletonList count={2} />

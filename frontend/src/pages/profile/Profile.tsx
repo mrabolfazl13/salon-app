@@ -1,5 +1,15 @@
 import React, { useState } from 'react'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import {
+  useDealSubscription,
+  useMyLoyalty,
+  useSetDealSubscription,
+} from '@/hooks/useDeals'
+import { LOYALTY_REASON_LABELS } from '@/components/pricing/shared'
+import { useSetMarketingConsent } from '@/hooks/useCrm'
+import { formatRial } from '@/components/finance/shared'
+import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { Icon } from '@iconify/react'
 import {
   Box,
@@ -15,6 +25,9 @@ import {
   Tabs,
   Tab,
   CircularProgress,
+  Switch,
+  FormControlLabel,
+  Alert,
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { Shimmer } from '@/components/mobile'
@@ -50,6 +63,14 @@ const Profile: React.FC = () => {
   const [newPassword, setNewPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [savingPassword, setSavingPassword] = useState(false)
+
+  // امتیاز وفاداری + اشتراک اعلان تخفیف‌های لحظه‌ای (GET/PUT /deals/subscription)
+  const loyaltyQuery = useMyLoyalty(8)
+  const setConsent = useSetMarketingConsent()
+  const [marketingConsent, setMarketingConsent] = useState(false)
+  const [consentKnown, setConsentKnown] = useState(false)
+  const subscriptionQuery = useDealSubscription()
+  const setSubscription = useSetDealSubscription()
 
   if (!user) {
     return (
@@ -171,6 +192,28 @@ const Profile: React.FC = () => {
                     </Typography>
                   )}
                 </Box>
+                <Box sx={{ display: 'flex', gap: 1, mt: 2, justifyContent: 'center' }}>
+                  <Button
+                    component={Link}
+                    to="/teams"
+                    size="small"
+                    variant="outlined"
+                    startIcon={<Icon icon="mdi:account-group" />}
+                    sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, color: '#2563eb', borderColor: 'rgba(37,99,235,0.4)' }}
+                  >
+                    تیم‌های من
+                  </Button>
+                  <Button
+                    component={Link}
+                    to="/teams/discover"
+                    size="small"
+                    variant="outlined"
+                    startIcon={<Icon icon="mdi:magnify" />}
+                    sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
+                  >
+                    کاوش تیم‌ها
+                  </Button>
+                </Box>
               </Card>
             </motion.div>
           </Grid>
@@ -199,6 +242,7 @@ const Profile: React.FC = () => {
                 >
                   <Tab label="اطلاعات شخصی" />
                   <Tab label="تغییر رمز عبور" />
+                  <Tab label="وفاداری و اعلان" />
                 </Tabs>
 
                 {tab === 0 && (
@@ -312,6 +356,193 @@ const Profile: React.FC = () => {
                           'تغییر رمز عبور'
                         )}
                       </Button>
+                    </Box>
+                  </motion.div>
+                )}
+
+                {tab === 2 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {/* کارت امتیاز وفاداری */}
+                    <Box
+                      sx={{
+                        borderRadius: '16px',
+                        p: 3,
+                        mb: 3,
+                        color: 'white',
+                        background: 'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)',
+                        boxShadow: '0 10px 30px rgba(245,158,11,0.25)',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
+                        <Box>
+                          <Typography variant="caption" sx={{ opacity: 0.85, fontWeight: 600 }}>امتیاز وفاداری</Typography>
+                          <Typography variant="h3" sx={{ fontWeight: 900, mt: 0.5, fontVariantNumeric: 'tabular-nums' }}>
+                            {loyaltyQuery.isPending ? '…' : toPersianDigits(loyaltyQuery.data?.balance ?? 0)}
+                          </Typography>
+                          {loyaltyQuery.data && (
+                            <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.9 }}>
+                              ارزش هر امتیاز {formatRial(loyaltyQuery.data.point_value_rial)} — موجودی شما ≈ {formatRial(loyaltyQuery.data.balance * loyaltyQuery.data.point_value_rial)}
+                            </Typography>
+                          )}
+                        </Box>
+                        <Icon icon="mdi:card-account-details-star" className="h-12 w-12" style={{ opacity: 0.35 }} />
+                      </Box>
+                      <Typography variant="caption" sx={{ display: 'block', mt: 1.5, opacity: 0.85 }}>
+                        با هر رزرو تأییدشده امتیاز می‌گیرید و هنگام رزرو می‌توانید تا ۵۰٪ مبلغ را با امتیاز بپردازید.
+                      </Typography>
+                    </Box>
+
+                    {/* تاریخچه امتیاز */}
+                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>تاریخچه امتیازها</Typography>
+                    {loyaltyQuery.isPending ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}><CircularProgress size={26} /></Box>
+                    ) : loyaltyQuery.isError ? (
+                      <Alert severity="warning" sx={{ borderRadius: '12px' }}>دریافت تاریخچه ممکن نشد</Alert>
+                    ) : (loyaltyQuery.data?.history?.length ?? 0) === 0 ? (
+                      <Typography variant="body2" color="text.secondary" sx={{ pb: 2 }}>هنوز ردیف امتیازی ثبت نشده است.</Typography>
+                    ) : (
+                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+                        {loyaltyQuery.data!.history.map((h) => (
+                          <Box
+                            key={h.id}
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              gap: 1,
+                              px: 2,
+                              py: 1.25,
+                              borderRadius: '12px',
+                              border: '1px solid rgba(15,23,42,0.06)',
+                              bgcolor: h.points >= 0 ? 'rgba(5,150,105,0.05)' : 'rgba(220,38,38,0.04)',
+                            }}
+                          >
+                            <Box sx={{ minWidth: 0 }}>
+                              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                                {LOYALTY_REASON_LABELS[h.reason] ?? h.reason}
+                              </Typography>
+                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                                {formatJalaliDateTime(h.created_at, { format: 'numeric' })}
+                              </Typography>
+                            </Box>
+                            <Typography
+                              variant="body2"
+                              sx={{ fontWeight: 900, fontVariantNumeric: 'tabular-nums', color: h.points >= 0 ? '#059669' : '#dc2626', whiteSpace: 'nowrap' }}
+                              dir="rtl"
+                            >
+                              {h.points >= 0 ? '+' : '−'}{toPersianDigits(Math.abs(h.points))} امتیاز
+                            </Typography>
+                          </Box>
+                        ))}
+                      </Box>
+                    )}
+
+                    {/* اطلاع‌رسانی لحظه آخری — GET/PUT /deals/subscription */}
+                    <Divider sx={{ mb: 2 }} />
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 2,
+                        px: 2,
+                        py: 1.75,
+                        borderRadius: '14px',
+                        border: '1px solid rgba(245,158,11,0.35)',
+                        bgcolor: 'rgba(255,247,237,0.7)',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+                        <Icon icon="mdi:fire-alert-outline" className="h-6 w-6" style={{ color: '#d97706', flexShrink: 0 }} />
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 800 }}>اطلاع‌رسانی تخفیف‌های لحظه‌ای</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                            فقط برای سالن‌هایی که آن‌ها را به علاقه‌مندی اضافه کرده‌اید اعلان می‌شود.
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={!!subscriptionQuery.data?.notify_deals}
+                            disabled={subscriptionQuery.isPending || subscriptionQuery.isError || setSubscription.isPending}
+                            onChange={(e) =>
+                              setSubscription.mutate(e.target.checked, {
+                                onSuccess: () => toast.success(e.target.checked ? 'اشتراک تخفیف‌ها فعال شد 🔔' : 'اشتراک غیرفعال شد'),
+                                onError: () => toast.error('خطا در ذخیره تنظیمات'),
+                              })
+                            }
+                          />
+                        }
+                        label=""
+                        sx={{ mr: 0 }}
+                      />
+                    </Box>
+                    {subscriptionQuery.isError && (
+                      <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
+                        دریافت وضعیت اشتراک ممکن نشد — با بارگذاری مجدد تلاش کنید.
+                      </Typography>
+                                        )}
+                    <Box sx={{ height: 2 }} />
+
+                    {/* رضایت بازاریابی — PUT /crm/consent (self-service، همه سالن‌ها).
+                        بک‌اند GET برای خواندن وضعیت فعلی ندارد ⇒ سوئیچ با مقدار
+                        محلی خوش‌بینانه شروع می‌شود و پاسخ سرور همان را تثبیت می‌کند. */}
+                    <Box
+                      sx={{
+                        mt: 2,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'space-between',
+                        gap: 2,
+                        px: 2,
+                        py: 1.75,
+                        borderRadius: '14px',
+                        border: '1px solid rgba(37,99,235,0.3)',
+                        bgcolor: 'rgba(239,246,255,0.7)',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
+                        <Icon icon="mdi:bullhorn-outline" className="h-6 w-6" style={{ color: '#2563eb', flexShrink: 0 }} />
+                        <Box sx={{ minWidth: 0 }}>
+                          <Typography variant="body2" sx={{ fontWeight: 800 }}>دریافت پیام‌های بازاریابی</Typography>
+                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                            با فعال بودن این گزینه، سالن‌ها می‌توانند به شما کمپین/تخفیف پیامک کنند. فعلی:
+                            {' '}{consentKnown ? (marketingConsent ? 'فعال' : 'غیرفعال') : 'نامشخص (ثبت نشده)'}
+                          </Typography>
+                        </Box>
+                      </Box>
+                      <FormControlLabel
+                        control={
+                          <Switch
+                            checked={marketingConsent}
+                            disabled={setConsent.isPending}
+                            onChange={(e) => {
+                              const next = e.target.checked
+                              setMarketingConsent(next)
+                              setConsent.mutate(
+                                { marketing_consent: next },
+                                {
+                                  onSuccess: () => {
+                                    setConsentKnown(true)
+                                    toast.success(next ? 'رضایت بازاریابی فعال شد 📣' : 'رضایت بازاریابی لغو شد')
+                                  },
+                                  onError: () => {
+                                    setMarketingConsent(!next)
+                                    toast.error('خطا در ذخیره رضایت')
+                                  },
+                                },
+                              )
+                            }}
+                          />
+                        }
+                        label=""
+                        sx={{ mr: 0 }}
+                      />
                     </Box>
                   </motion.div>
                 )}

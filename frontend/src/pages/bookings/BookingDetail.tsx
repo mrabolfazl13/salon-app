@@ -3,6 +3,7 @@ import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import {
   Box,
+  CircularProgress,
   Typography,
   Button,
   Chip,
@@ -16,7 +17,9 @@ import {
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import ConfirmModal from '@/components/modals/ConfirmModal'
+import VenueThumb from '@/components/venue/VenueThumb'
 import { bookingService } from '@/services/booking'
+import { venueService } from '@/services/venue'
 import type { PaymentItem } from '@/services/payment'
 import {
   formatPrice,
@@ -28,6 +31,7 @@ import {
   getMuiStatusColor,
 } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import PricingBreakdown, { normalizeBreakdown } from '@/components/deals/PricingBreakdown'
 
 interface ApiBooking {
   id: number
@@ -38,9 +42,15 @@ interface ApiBooking {
   payment_amount: number
   // اطلاعات تکمیلی (اختیاری؛ از بک‌اند ارسال می‌شود)
   venue_name?: string
+  venue_images?: string[] | string
   slot_date?: string
   start_time?: string
   duration?: number
+  // اجزای تخفیف سمت سرور — ریز قیمت پس از تأیید/ثبت
+  discount_amount?: number
+  coupon_code?: string | null
+  loyalty_points_used?: number
+  pricing_breakdown?: unknown
   // آخرین فاکتور پرداخت (از اندپوینت جزئیات رزرو)
   payment?: PaymentItem | null
 }
@@ -61,6 +71,7 @@ const BookingDetail: React.FC = () => {
   const [notFound, setNotFound] = useState(false)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [cancelling, setCancelling] = useState(false)
+  const [rebookBusy, setRebookBusy] = useState(false)
 
   const fetchBooking = useCallback(async () => {
     setLoading(true)
@@ -100,6 +111,35 @@ const BookingDetail: React.FC = () => {
 
   const handlePrint = () => {
     window.print()
+  }
+
+  // رزرو دوباره — پاسخ بک‌اند venue_id ندارد؛ تطبیق با جست‌وجوی نام سالن و
+  // ناوبری /venues/{id}?date=&time= (الگوی preselect لینک دیل در VenueDetail)
+  const handleRebook = async () => {
+    if (!booking) return
+    if (!booking.slot_date || !booking.start_time || !booking.venue_name) {
+      toast.error('اطلاعات سانس این رزرو کامل نیست')
+      return
+    }
+    setRebookBusy(true)
+    try {
+      const results: any = await venueService.getAll({ search: booking.venue_name, limit: 50 })
+      const list = Array.isArray(results) ? results : []
+      const venue =
+        list.find((v: any) => v.name === booking.venue_name) ??
+        (list.length === 1 ? list[0] : null)
+      if (!venue) {
+        toast.error('سالن مورد نظر پیدا نشد — از فهرست سالن‌ها انتخاب کنید')
+        navigate('/venues')
+        return
+      }
+      const time = String(booking.start_time).slice(0, 5)
+      navigate(`/venues/${venue.id}?date=${booking.slot_date}&time=${time}`)
+    } catch {
+      toast.error('خطا در آماده‌سازی رزرو دوباره')
+    } finally {
+      setRebookBusy(false)
+    }
   }
 
   const handleShare = async () => {
@@ -180,14 +220,12 @@ const BookingDetail: React.FC = () => {
         <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, mb: 3, border: `1px solid ${theme.palette.divider}` }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box sx={{
-                width: 44, height: 44,
-                bgcolor: `${theme.palette.primary.main}08`,
-                borderRadius: 1,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Icon icon="mdi:stadium" className="h-5 w-5" style={{ color: theme.palette.primary.main }} />
-              </Box>
+              <VenueThumb
+                images={booking.venue_images}
+                name={booking.venue_name || `سالن #${booking.slot_id}`}
+                size={44}
+                radius={8}
+              />
               <Box>
                 <Typography variant="h6" sx={{ fontWeight: 700 }}>
                   {booking.venue_name || `سالن #${booking.slot_id}`}
@@ -241,6 +279,15 @@ const BookingDetail: React.FC = () => {
                   </Typography>
                 </Grid>
               </Grid>
+
+              {normalizeBreakdown(booking.pricing_breakdown) && (
+                <Box sx={{ mt: 2 }}>
+                  <PricingBreakdown
+                    steps={normalizeBreakdown(booking.pricing_breakdown) ?? []}
+                    payable={Number(booking.payment_amount) || null}
+                  />
+                </Box>
+              )}
 
               {/* اطلاعات فاکتور پرداخت */}
               {booking.payment && (() => {
@@ -336,6 +383,15 @@ const BookingDetail: React.FC = () => {
                     لغو رزرو
                   </Button>
                 )}
+                <Button
+                  variant="contained"
+                  onClick={handleRebook}
+                  disabled={rebookBusy || !booking.slot_date}
+                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1, background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
+                  startIcon={rebookBusy ? <CircularProgress size={18} color="inherit" /> : <Icon icon="mdi:calendar-refresh" />}
+                >
+                  رزرو دوباره
+                </Button>
                 <Button
                   variant="outlined"
                   onClick={handlePrint}

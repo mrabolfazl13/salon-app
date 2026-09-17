@@ -35,7 +35,8 @@ const ForgotPassword: React.FC = () => {
     setLoading(true)
     try {
       const res = await authService.forgotPassword({ phone: cleanPhone })
-      if (res.dev_code) setDevCode(res.dev_code)
+      // dev_code فقط در حالت توسعه و فقط اگر بک‌اند آن را برگردانده باشد؛ وگرنه جریان عادی «کد ارسال شد»
+      if (import.meta.env.DEV && res.dev_code) setDevCode(res.dev_code)
       toastSuccess('کد بازیابی ارسال شد')
       setStep(2)
     } catch (err: any) {
@@ -213,8 +214,8 @@ const ForgotPassword: React.FC = () => {
                   </motion.div>
                 )}
 
-                {/* Dev Code Hint */}
-                {devCode && (
+                {/* Dev Code Hint — فقط در حالت توسعه و فقط وقتی API کد را برگرداند */}
+                {import.meta.env.DEV && devCode && (
                   <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-sm flex items-center gap-2">
                     <Icon icon="mdi:lightbulb-on-outline" className="h-5 w-5 flex-shrink-0" />
                     <span>

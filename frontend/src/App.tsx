@@ -35,6 +35,16 @@ const Contracts = lazy(() => import('@/pages/contracts/Contracts'))
 const ContractDetail = lazy(() => import('@/pages/contracts/ContractDetail'))
 const Profile = lazy(() => import('@/pages/profile/Profile'))
 const ManagerDashboard = lazy(() => import('@/pages/dashboard/ManagerDashboard'))
+const FinanceConsole = lazy(() => import('@/pages/finance/FinanceConsole'))
+const ManagerPricing = lazy(() => import('@/pages/manager/pricing/ManagerPricing'))
+const Deals = lazy(() => import('@/pages/deals/Deals'))
+const ManagerContracts = lazy(() => import('@/pages/manager/contracts/ManagerContracts'))
+const ManagerContractDetail = lazy(() => import('@/pages/manager/contracts/ManagerContractDetail'))
+const ManagerTeams = lazy(() => import('@/pages/manager/teams/ManagerTeams'))
+const ManagerCrm = lazy(() => import('@/pages/manager/crm/ManagerCrm'))
+const Teams = lazy(() => import('@/pages/teams/Teams'))
+const TeamDiscover = lazy(() => import('@/pages/teams/TeamDiscover'))
+const TeamDetail = lazy(() => import('@/pages/teams/TeamDetail'))
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
 const AdminUsers = lazy(() => import('@/pages/admin/Users'))
 const AdminVenues = lazy(() => import('@/pages/admin/Venues'))
@@ -185,6 +195,9 @@ function AppRoutes() {
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search />} />
             <Route path="/favorites" element={<Favorites />} />
+            {/* بازدید سالن‌ها بدون لاگین آزاد است — اقدام رزرو داخل صفحه گیت می‌شود */}
+            <Route path="/venues" element={<Venues />} />
+            <Route path="/venues/:id" element={<VenueDetail />} />
             <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
             <Route path="/register" element={<PublicRoute><Register /></PublicRoute>} />
             <Route path="/forgot-password" element={<PublicRoute><ForgotPassword /></PublicRoute>} />
@@ -193,8 +206,12 @@ function AppRoutes() {
             {/* Protected user routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/manager-dashboard" element={<ProtectedRoute requiredRole="venue_manager"><ManagerDashboard /></ProtectedRoute>} />
-            <Route path="/venues" element={<ProtectedRoute><Venues /></ProtectedRoute>} />
-            <Route path="/venues/:id" element={<ProtectedRoute><VenueDetail /></ProtectedRoute>} />
+            {/* کنسول‌های عملیاتی — گیت لاگین + allowStaff: کارمند انتصابی (role=user)
+                هم باز می‌کند؛ ۴۰۳ بک‌اند با ForbiddenPanel/توست فارسی مدیریت می‌شود */}
+            <Route path="/finance" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><FinanceConsole /></ProtectedRoute>} />
+            <Route path="/manager/pricing" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerPricing /></ProtectedRoute>} />
+            {/* شگفت‌انگیزها — فقط کاربران لاگین‌کرده (همان گیت ProtectedRoute نقش کاربر) */}
+            <Route path="/deals" element={<ProtectedRoute><Deals /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
             <Route path="/bookings/:id" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
             <Route path="/competitions" element={<ProtectedRoute><Competitions /></ProtectedRoute>} />
@@ -205,7 +222,17 @@ function AppRoutes() {
             <Route path="/games" element={<GamesExplore />} />
             <Route path="/games/new" element={<ProtectedRoute><GameCreate /></ProtectedRoute>} />
             <Route path="/games/:id" element={<GameDetail />} />
+
+            {/* Team routes (user area — protected) */}
+            <Route path="/teams" element={<ProtectedRoute><Teams /></ProtectedRoute>} />
+            <Route path="/teams/discover" element={<ProtectedRoute><TeamDiscover /></ProtectedRoute>} />
+            <Route path="/teams/:id" element={<ProtectedRoute><TeamDetail /></ProtectedRoute>} />
             <Route path="/contracts/:id" element={<ProtectedRoute><ContractDetail /></ProtectedRoute>} />
+            <Route path="/manager/contracts" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerContracts /></ProtectedRoute>} />
+            <Route path="/manager/contracts/:id" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerContractDetail /></ProtectedRoute>} />
+            <Route path="/manager/teams" element={<ProtectedRoute requiredRole="venue_manager"><ManagerTeams /></ProtectedRoute>} />
+            {/* کنسول مشتریان/پرسنل — گیت لاگین؛ کارمندِ انتصابی (role=user) هم باز می‌کند و ۴۰۳ بک‌اند با پنل دوستانه مدیریت می‌شود */}
+            <Route path="/manager/crm" element={<ProtectedRoute><ManagerCrm /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
             {/* Admin routes */}

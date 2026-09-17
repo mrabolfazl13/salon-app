@@ -506,6 +506,7 @@ const GameDetail: React.FC = () => {
             game={game}
             participants={participantsQ.data ?? []}
             currentUserId={me?.id}
+            canManage={canManage}
           />
         </SectionCard>
 

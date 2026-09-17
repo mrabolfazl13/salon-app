@@ -16,6 +16,7 @@ interface NavItem {
 const ITEMS: NavItem[] = [
   { label: 'خانه', icon: 'home', href: '/' },
   { label: 'جستجو', icon: 'magnify', href: '/search' },
+  { label: 'شگفت‌انگیز', icon: 'fire', href: '/deals', requiresAuth: true },
   { label: 'رزروها', icon: 'calendar-check', href: '/bookings', requiresAuth: true },
   { label: 'علاقه‌مندی', icon: 'heart', href: '/favorites' },
   { label: 'پروفایل', icon: 'account-circle', href: '/profile', requiresAuth: true },

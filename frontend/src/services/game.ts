@@ -231,4 +231,10 @@ export const gameService = {
     const response = await apiClient.post(`/games/${gameId}/payments/${participantId}/pay`)
     return response.data
   },
+
+  /** یادآوری پرداخت سهم به بدهکاران — سازمان‌ده/مدیر؛ ۴۲۹ = کول‌داون یک‌دقیقه‌ای */
+  remindPayments: async (gameId: number): Promise<{ sent: number }> => {
+    const response = await apiClient.post(`/games/${gameId}/payments/remind`)
+    return response.data
+  },
 }

@@ -33,6 +33,7 @@ interface WsPayload {
 export const useWebSocket = () => {
   const userId = useAuthStore((s) => s.user?.id)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const token = useAuthStore((s) => s.token)
 
   const wsRef = useRef<WebSocket | null>(null)
   const retryRef = useRef(0)
@@ -48,7 +49,9 @@ export const useWebSocket = () => {
     const connect = () => {
       if (closedRef.current) return
 
-      const wsUrl = `${getWsBase()}/ws/user/${userId}`
+      // بک‌اند روی WebSocket هم JWT می‌خواهد: کلوز 4401 (توکن نامعتبر) یا 4403 (غیرمجاز)
+      const q = token ? `?token=${encodeURIComponent(token)}` : ''
+      const wsUrl = `${getWsBase()}/ws/user/${userId}${q}`
       let ws: WebSocket
       try {
         ws = new WebSocket(wsUrl)
@@ -109,7 +112,7 @@ export const useWebSocket = () => {
       wsRef.current?.close()
       wsRef.current = null
     }
-  }, [isAuthenticated, userId])
+  }, [isAuthenticated, userId, token])
 }
 
 export default useWebSocket

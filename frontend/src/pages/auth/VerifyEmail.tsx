@@ -35,7 +35,9 @@ const VerifyEmail: React.FC = () => {
     setLoading(true)
     try {
       const res = await authService.requestEmailVerify({ phone, email })
-      if (res.dev_code) setDevCode(res.dev_code)
+      // dev_code فقط در حالت توسعه و فقط اگر بک‌اند آن را برگردانده باشد نمایش داده می‌شود؛
+      // در پروداکشن مسیر عادی «کد ارسال شد» بدون هیچ باکس کمکی render می‌شود
+      if (import.meta.env.DEV && res.dev_code) setDevCode(res.dev_code)
       toast.success('کد تایید ارسال شد')
       setStep(2)
     } catch (err: any) {
@@ -132,7 +134,7 @@ const VerifyEmail: React.FC = () => {
                 <form onSubmit={handleConfirm}>
                   <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
                     کد ۶ رقمی را که به ایمیل <b>{email}</b> ارسال شد وارد کنید
-                    {devCode && (
+                    {import.meta.env.DEV && devCode && (
                       <Box sx={{ mt: 1, fontWeight: 700, direction: 'ltr' }}>
                         (حالت توسعه — کد: {devCode})
                       </Box>

@@ -12,13 +12,13 @@ import {
   Button,
   Tabs,
   Tab,
-  Avatar,
   Skeleton,
   Alert,
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import PaymentDialog from '@/components/bookings/PaymentDialog'
+import VenueThumb from '@/components/venue/VenueThumb'
 import { EmptyState } from '@/components/mobile'
 import { bookingService } from '@/services/booking'
 import { paymentService, PaymentItem } from '@/services/payment'
@@ -43,6 +43,7 @@ interface ApiBooking {
   payment_amount: number
   // اطلاعات تکمیلی (اختیاری؛ از بک‌اند ارسال می‌شود)
   venue_name?: string
+  venue_images?: string[] | string
   slot_date?: string
   start_time?: string
   duration?: number
@@ -226,15 +227,7 @@ const Bookings: React.FC = () => {
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <Avatar
-                            sx={{
-                              width: 48,
-                              height: 48,
-                              bgcolor: 'primary.main',
-                            }}
-                          >
-                            <Icon icon="mdi:calendar" className="h-6 w-6 text-white" />
-                          </Avatar>
+                          <VenueThumb images={booking.venue_images} name={booking.venue_name || `سالن #${booking.slot_id}`} size={48} />
                           <Box>
                             <Typography sx={{ fontWeight: 600 }} variant="subtitle1">
                               {booking.venue_name || `سالن #${booking.slot_id}`}

@@ -12,9 +12,14 @@ export const bookingService = {
     return response.data
   },
 
-  create: async (data: { slotId: number }) => {
-    // Backend expects snake_case: { slot_id }
-    const response = await apiClient.post('/bookings', { slot_id: data.slotId })
+  create: async (data: { slotId: number; discountCode?: string | null; useLoyaltyPoints?: boolean }): Promise<any> => {
+    // Backend expects snake_case: { slot_id, discount_code?, use_loyalty_points? }
+    // هیچ مبلغی از کلاینت پذیرفته نمی‌شود — کوپن/امتیاز فقط ارجاع‌اند
+    const response = await apiClient.post('/bookings', {
+      slot_id: data.slotId,
+      discount_code: data.discountCode?.trim() || undefined,
+      use_loyalty_points: !!data.useLoyaltyPoints,
+    })
     return response.data
   },
 

@@ -1,13 +1,15 @@
 // frontend/src/components/game/PaymentSection.tsx
-// بخش پرداخت بازی — خلاصه سهم‌ها (split)، پرداخت سهم کاربر جاری (mock)، یا توضیح organizer_pays/free
+// بخش پرداخت بازی — خلاصه سهم‌ها (split)، پرداخت سهم کاربر جاری (mock)، «یادآوری پرداخت»
+// (POST remind — فقط سازمان‌ده/ادمین؛ ۴۲۹ کول‌داون یک‌دقیقه‌ای) یا توضیح organizer_pays/free
 
-import React from 'react'
-import { Box, Typography, Chip, LinearProgress, Divider } from '@mui/material'
+import React, { useState } from 'react'
+import { isAxiosError } from 'axios'
+import { Box, Typography, Chip, LinearProgress, Divider, Tooltip } from '@mui/material'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 
 import type { Game, GamePayment, Participant } from '@/types/game'
-import { usePayShare, usePaymentSummary } from '@/hooks/useGames'
+import { usePayShare, usePaymentSummary, useRemindGamePayments } from '@/hooks/useGames'
 import { formatPrice } from '@/utils/helpers'
 import { Button } from '@/components/ui/Button'
 import { Shimmer } from '@/components/mobile'
@@ -18,6 +20,8 @@ interface Props {
   game: Game
   participants: Participant[]
   currentUserId?: number | null
+  /** سازمان‌ده یا ادمین بازی — دکمه «یادآوری پرداخت» */
+  canManage?: boolean
 }
 
 const nameOf = (participants: Participant[], userId: number): string => {
@@ -64,10 +68,13 @@ const PaymentRow: React.FC<{ payment: GamePayment; participants: Participant[] }
   </Box>
 )
 
-const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUserId }) => {
+const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUserId, canManage = false }) => {
   const enabled = game.payment_mode !== 'free'
   const summaryQ = usePaymentSummary(gameId, enabled)
   const payShare = usePayShare(gameId)
+  const remind = useRemindGamePayments(gameId)
+  // ۴۲۹ (هر دقیقه یک‌بار) → غیرفعال تا ریمونت/رفرش بعدی
+  const [remindLocked, setRemindLocked] = useState(false)
 
   // حالت رایگان
   if (game.payment_mode === 'free') {
@@ -95,6 +102,22 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
   const total = summary?.payments.length ?? 0
   const paidCount = summary?.paid_count ?? 0
   const progress = total > 0 ? (paidCount / total) * 100 : 0
+
+  const unpaidCount = summary ? summary.payments.filter((p) => p.status !== 'paid').length : 0
+
+  const handleRemind = () => {
+    remind.mutate(undefined, {
+      onSuccess: (data) => {
+        const sent = typeof data?.sent === 'number' ? data.sent : 0
+        if (sent === 0) toast('بدهکار جدیدی برای یادآوری نیست', { icon: '✅' })
+        else toast.success(`${sent.toLocaleString('fa-IR')} یادآوری ارسال شد`)
+      },
+      onError: (err) => {
+        if (isAxiosError(err) && err.response?.status === 429) setRemindLocked(true)
+        toast.error(getGameError(err, 'ارسال یادآوری ناموفق بود'))
+      },
+    })
+  }
 
   const myParticipant = currentUserId
     ? participants.find((p) => p.user_id === currentUserId && p.status === 'accepted')
@@ -133,6 +156,22 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
                 {`${paidCount.toLocaleString('fa-IR')} پرداخت‌شده از ${total.toLocaleString('fa-IR')}`}
               </Typography>
             </Box>
+            {canManage && summary && unpaidCount > 0 && (
+              <Tooltip title={remindLocked ? 'هر دقیقه فقط یک یادآوری قابل ارسال است' : `${unpaidCount.toLocaleString('fa-IR')} بازیکن بدهکار`}>
+                <span>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    icon="mdi:bell-alert-outline"
+                    loading={remind.isPending}
+                    disabled={remindLocked}
+                    onClick={handleRemind}
+                  >
+                    یادآوری پرداخت
+                  </Button>
+                </span>
+              </Tooltip>
+            )}
             {canPay && (
               <Button size="sm" variant="gradient" icon="mdi:credit-card-outline" loading={payShare.isPending} onClick={handlePay}>
                 پرداخت سهم من

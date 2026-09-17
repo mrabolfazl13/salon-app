@@ -1,6 +1,6 @@
 // src/pages/venues/VenueDetail.tsx — جزئیات سالن: موبایل‌فرست (گالری/تاریخ/سانس/CTA) + دسکتاپ تب‌دار
 import React, { useState, useEffect, useMemo } from 'react'
-import { useParams, useNavigate } from 'react-router-dom'
+import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
@@ -27,14 +27,18 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
+  TextField,
   Rating,
   IconButton,
+  Checkbox,
+  FormControlLabel,
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import TimeSlotPicker from '@/components/booking/TimeSlotPicker'
 import ReviewSection from '@/components/venue/ReviewSection'
 import PlanCards from '@/components/membership/PlanCards'
 import MembershipPurchaseDialog from '@/components/membership/MembershipPurchaseDialog'
+import CompetitionBidDialog, { type BidTargetSlot } from '@/components/competition/CompetitionBidDialog'
 import { membershipService } from '@/services/membership'
 import type { MembershipPlan } from '@/types/membership'
 import { useAuthStore } from '@/store/authStore'
@@ -50,6 +54,10 @@ import {
   VenueDetailSkeleton,
 } from '@/components/mobile'
 import { bookingService } from '@/services/booking'
+import { loyaltyService, type LoyaltyHistory } from '@/services/loyalty'
+import PricingBreakdown, { normalizeBreakdown } from '@/components/deals/PricingBreakdown'
+import { formatRial } from '@/components/finance/shared'
+import { toPersianDigits } from '@/lib/jalali'
 import { venueService } from '@/services/venue'
 import { slotService } from '@/services/slot'
 import { formatPrice, formatTimeFa, getSlotEndTime } from '@/lib/utils'
@@ -71,9 +79,45 @@ function safeJsonParse<T>(value: unknown, fallback: T): T {
   return fallback
 }
 
+// تصویر با fallback گرادیانی — فایل غایب/آدرس شکسته دیگر آیکون شکسته نشان نمی‌دهد
+const LoadSafeImage: React.FC<{ src: string; alt: string; sx?: Record<string, unknown> }> = ({
+  src,
+  alt,
+  sx,
+}) => {
+  const [failed, setFailed] = useState(false)
+  if (!src || failed) {
+    return (
+      <Box
+        sx={{
+          width: '100%',
+          height: '100%',
+          background: gradients.primary,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          ...sx,
+        }}
+      >
+        <Icon icon="mdi:stadium-variant" style={{ width: 64, height: 64, color: 'rgba(255,255,255,0.35)' }} />
+      </Box>
+    )
+  }
+  return (
+    <Box
+      component="img"
+      src={src}
+      alt={alt}
+      onError={() => setFailed(true)}
+      sx={{ objectFit: 'cover', ...sx }}
+    />
+  )
+}
+
 const VenueDetail: React.FC = () => {
   const { id } = useParams()
   const navigate = useNavigate()
+  const [searchParams] = useSearchParams()
   const [tab, setTab] = useState(0)
   const [loading, setLoading] = useState(true)
   const [bookingLoading, setBookingLoading] = useState(false)
@@ -89,6 +133,13 @@ const VenueDetail: React.FC = () => {
   const [plans, setPlans] = useState<MembershipPlan[]>([])
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null)
   const [purchaseOpen, setPurchaseOpen] = useState(false)
+  const [bidSlot, setBidSlot] = useState<BidTargetSlot | null>(null)
+
+  // ارتقای تسویه — کوپن، امتیاز وفاداری و ریز قیمت (اعتبارسنجی/اعمال سمت سرور)
+  const [discountCode, setDiscountCode] = useState('')
+  const [useLoyalty, setUseLoyalty] = useState(false)
+  const [loyalty, setLoyalty] = useState<LoyaltyHistory | null>(null)
+  const [bookingResult, setBookingResult] = useState<any | null>(null)
 
   const dates = useMemo(() => buildDateOptions(14), [])
   const isGym = venue?.category === 'gym'
@@ -98,6 +149,16 @@ const VenueDetail: React.FC = () => {
     fetchVenueData()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id])
+
+  // موجودی وفاداری — هنگام باز شدن دیالوگ رزرو (برای چک‌باکس «استفاده از امتیازها»)
+  useEffect(() => {
+    if (confirmOpen && isAuthenticated) {
+      loyaltyService
+        .me()
+        .then(setLoyalty)
+        .catch(() => setLoyalty(null))
+    }
+  }, [confirmOpen, isAuthenticated])
 
   const fetchVenueData = async () => {
     setLoading(true)
@@ -121,8 +182,61 @@ const VenueDetail: React.FC = () => {
         nextTwoWeeks.setDate(nextTwoWeeks.getDate() + 13)
         const startDate = today.toISOString().split('T')[0]
         const endDate = nextTwoWeeks.toISOString().split('T')[0]
-        const slotsData = await slotService.getByVenueAndDateRange(Number(id), startDate, endDate)
-        setSlots(slotsData || [])
+        const slotsData = (await slotService.getByVenueAndDateRange(Number(id), startDate, endDate)) || []
+        setSlots(slotsData)
+
+        // پیش‌انتخاب سانس از لینک دیل (/venues/:id?slot=…&date=…) — قیمت نهایی سمت سرور
+        const preId = Number(searchParams.get('slot'))
+        if (preId) {
+          const pre = slotsData.find((s: any) => Number(s.id) === preId && s.status === 'available')
+          if (pre) {
+            const st = String(pre.start_time).slice(0, 5)
+            setSelectedDate(String(pre.slot_date))
+            setSelectedSlot({
+              id: pre.id,
+              date: String(pre.slot_date),
+              duration: Number(pre.duration) || 90,
+              startTime: formatTimeFa(st),
+              endTime: getSlotEndTime(st, Number(pre.duration) || 90),
+              price: pre.current_price || 0,
+              status: 'available',
+              available: true,
+            })
+            setTab(1)
+            toast('سانس تخفیف‌دار از بازار لحظه آخری انتخاب شد — قیمت نهایی هنگام ثبت توسط سرور اعمال می‌شود', { icon: '🔥', duration: 6000 })
+          }
+        } else {
+          // رزرو دوباره (/venues/:id?date=YYYY-MM-DD&time=HH:MM): slot_id بین تاریخ‌ها پایدار
+          // نیست — تطبیق با تاریخ+ساعت شروع با همان سازوکار پیش‌انتخاب لینک دیل
+          const preDate = (searchParams.get('date') || '').trim()
+          const preTime = (searchParams.get('time') || '').trim()
+          if (preDate && preTime) {
+            const want = preTime.slice(0, 5)
+            const match = slotsData.find(
+              (s: any) => String(s.slot_date) === preDate && String(s.start_time).slice(0, 5) === want,
+            )
+            setTab(1)
+            setSelectedDate(preDate)
+            if (match && match.status === 'available') {
+              const st = String(match.start_time).slice(0, 5)
+              setSelectedSlot({
+                id: match.id,
+                date: String(match.slot_date),
+                duration: Number(match.duration) || 90,
+                startTime: formatTimeFa(st),
+                endTime: getSlotEndTime(st, Number(match.duration) || 90),
+                price: match.current_price || 0,
+                status: 'available',
+                available: true,
+              })
+              toast('سانس قبلی پیش‌انتخاب شد — برای ثبت «ادامه رزرو» را بزنید', { icon: '🔁' })
+            } else if (match) {
+              toast.error('این سانس دیگر آزاد نیست — سانسِ همان ساعت/روز دیگر را انتخاب کنید')
+            } else {
+              toast('سانسی با این تاریخ و ساعت پیدا نشد')
+            }
+          }
+        }
       }
     } catch (error) {
       toast.error('خطا در دریافت اطلاعات سالن')
@@ -148,16 +262,28 @@ const VenueDetail: React.FC = () => {
     }
     setBookingLoading(true)
     try {
-      await bookingService.create({ slotId: selectedSlot.id })
+      const result = await bookingService.create({
+        slotId: selectedSlot.id,
+        discountCode: discountCode.trim() || null,
+        useLoyaltyPoints: useLoyalty,
+      })
+      // ریز قیمت و مبلغ قابل پرداخت از پاسخ سرور — هیچ مبلغی اینجا محاسبه نمی‌شود
+      setBookingResult(result)
       toast.success('رزرو شما ثبت شد و در انتظار تایید مدیر سالن است ⏳', { duration: 5000 })
       await fetchVenueData()
-      setSelectedSlot(null)
-      setConfirmOpen(false)
     } catch (error: any) {
       toast.error(error.response?.data?.detail || 'خطا در رزرو')
     } finally {
       setBookingLoading(false)
     }
+  }
+
+  const closeConfirm = () => {
+    setConfirmOpen(false)
+    setBookingResult(null)
+    setDiscountCode('')
+    setUseLoyalty(false)
+    setSelectedSlot(null)
   }
 
   // محاسبهٔ صحیح ساعت پایان بر اساس مدت واقعی هر سانس
@@ -171,6 +297,7 @@ const VenueDetail: React.FC = () => {
       startTime: formatTimeFa(start),
       endTime: getSlotEndTime(start, duration),
       price: slot.current_price || slot.price || 0,
+      status: (slot.status as string) || 'available',
       available: slot.status === 'available',
     }
   })
@@ -187,6 +314,22 @@ const VenueDetail: React.FC = () => {
       ? 'امروز'
       : `${selectedDateOption.weekday} ${selectedDateOption.day} ${selectedDateOption.month}`
     : ''
+
+  // اقدام رقابت قیمت — گیت لاگین مطابق سایر اقدامات محافظت‌شدهٔ همین صفحه
+  const handleBid = (slot: any) => {
+    if (!isAuthenticated) {
+      toast('ابتدا وارد حساب خود شوید', { icon: '🔐' })
+      navigate('/login')
+      return
+    }
+    setBidSlot({
+      id: Number(slot.id),
+      date: slot.date,
+      startTime: slot.startTime,
+      endTime: slot.endTime,
+      price: slot.price,
+    })
+  }
 
   const handleCta = () => {
     if (!selectedSlot) {
@@ -265,9 +408,8 @@ const VenueDetail: React.FC = () => {
                 }}
               >
                 {images.map((img, i) => (
-                  <Box
+                  <LoadSafeImage
                     key={i}
-                    component="img"
                     src={toFullUrl(img)}
                     alt={`${venue.name} ${i + 1}`}
                     sx={{
@@ -433,6 +575,7 @@ const VenueDetail: React.FC = () => {
                           slot={s}
                           selected={selectedSlot?.id === s.id}
                           onSelect={(slot) => setSelectedSlot(slot)}
+                          onBid={handleBid}
                         />
                       ))}
                     </Box>
@@ -537,8 +680,12 @@ const VenueDetail: React.FC = () => {
         <Box sx={{ display: { xs: 'none', md: 'block' } }}>
           <Box sx={{ position: 'relative', height: 400, overflow: 'hidden' }}>
             {mainImage ? (
-              <img src={mainImage} alt={venue.name}
-                style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+              <LoadSafeImage
+                key={mainImage}
+                src={mainImage}
+                alt={venue.name}
+                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+              />
             ) : (
               <Box sx={{
                 width: '100%', height: '100%',
@@ -716,6 +863,7 @@ const VenueDetail: React.FC = () => {
                           <TimeSlotPicker
                             slots={slotList}
                             onSelect={(slot) => setSelectedSlot(slot)}
+                            onBid={handleBid}
                           />
 
                           {selectedSlot && (
@@ -876,10 +1024,72 @@ const VenueDetail: React.FC = () => {
         </Box>
       </Box>
 
+      {/* نوار شناور تایید دسکتاپ — بدون نیاز به اسکرول بعد از انتخاب سانس */}
+      {!isGym && selectedSlot && tab === 1 && (
+        <Box
+          sx={{
+            display: { xs: 'none', md: 'block' },
+            position: 'fixed',
+            bottom: 28,
+            left: '50%',
+            transform: 'translateX(-50%)',
+            zIndex: 60,
+            width: '100%',
+            maxWidth: 560,
+            px: 3,
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 2,
+              bgcolor: 'rgba(255,255,255,0.97)',
+              backdropFilter: 'blur(12px)',
+              borderRadius: '16px',
+              border: '1px solid rgba(15,23,42,0.08)',
+              boxShadow: '0 8px 30px rgba(2,8,23,0.14)',
+              px: 2.5,
+              py: 1.75,
+            }}
+          >
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+              <Icon icon="mdi:clock-outline" className="h-5 w-5" style={{ color: '#2563eb', flexShrink: 0 }} />
+              <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }} noWrap>
+                {selectedSlot.startTime} - {selectedSlot.endTime}
+              </Typography>
+            </Box>
+            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Typography variant="body2" sx={{ fontWeight: 800, color: 'primary.main' }} noWrap>
+                {formatPrice(selectedSlot.price)}
+              </Typography>
+            </Box>
+            <Button
+              variant="contained"
+              onClick={() => setConfirmOpen(true)}
+              sx={{
+                borderRadius: '12px',
+                textTransform: 'none',
+                py: 1,
+                px: 3,
+                fontWeight: 700,
+                flexShrink: 0,
+                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                boxShadow: '0 4px 15px rgba(37,99,235,0.3)',
+                '&:hover': { background: 'linear-gradient(135deg, #1d4ed8, #6d28d9)' },
+              }}
+            >
+              <Icon icon="mdi:check-circle" className="h-5 w-5 ml-2" />
+              تایید و رزرو
+            </Button>
+          </Box>
+        </Box>
+      )}
+
       {/* Confirmation Dialog — مشترک موبایل و دسکتاپ */}
       <Dialog
         open={confirmOpen}
-        onClose={() => !bookingLoading && setConfirmOpen(false)}
+        onClose={() => !bookingLoading && closeConfirm()}
         slotProps={{
           paper: { sx: { borderRadius: '20px', maxWidth: 400, p: 1 } }
         }}
@@ -896,36 +1106,110 @@ const VenueDetail: React.FC = () => {
           <Typography variant="h6" sx={{ fontWeight: 700 }}>تایید رزرو</Typography>
         </DialogTitle>
         <DialogContent>
-          <Box sx={{ textAlign: 'center', mb: 2 }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>سالن: {venue.name}</Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
-              سانس: {selectedSlot?.startTime} - {selectedSlot?.endTime}
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', mt: 1 }}>
-              {formatPrice(selectedSlot?.price)}
-            </Typography>
-          </Box>
+          {bookingResult ? (
+            <Box>
+              <Box sx={{ textAlign: 'center', mb: 2 }}>
+                <Typography variant="body2" sx={{ fontWeight: 800, color: '#059669', mb: 0.5 }}>
+                  ✅ رزرو ثبت شد — در انتظار تأیید مدیر سالن
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main' }}>
+                  قابل پرداخت: {formatRial(Number(bookingResult.payment_amount) || 0)}
+                </Typography>
+                {bookingResult.coupon_code && (
+                  <Typography variant="caption" sx={{ color: '#db2777', fontWeight: 700 }}>
+                    کد «{bookingResult.coupon_code}» اعمال شد 🎟️
+                  </Typography>
+                )}
+              </Box>
+              <PricingBreakdown
+                steps={normalizeBreakdown(bookingResult.pricing_breakdown) ?? []}
+                payable={Number(bookingResult.payment_amount) || null}
+              />
+            </Box>
+          ) : (
+            <>
+              <Box sx={{ textAlign: 'center', mb: 2 }}>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>سالن: {venue.name}</Typography>
+                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+                  سانس: {selectedSlot?.startTime} - {selectedSlot?.endTime}
+                </Typography>
+                <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', mt: 1 }}>
+                  {formatPrice(selectedSlot?.price)}
+                </Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+                  قیمت نهایی سمت سرور محاسبه می‌شود (قوانین + تخفیف‌ها)
+                </Typography>
+              </Box>
+              {isAuthenticated && (
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <TextField
+                    label="کد تخفیف (اختیاری)"
+                    value={discountCode}
+                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                    size="small"
+                    fullWidth
+                    placeholder="مثلاً: نوروز۱۴۰۵"
+                    slotProps={{ input: { sx: { borderRadius: '10px' } } }}
+                  />
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        checked={useLoyalty}
+                        disabled={!loyalty || loyalty.balance <= 0}
+                        onChange={(e) => setUseLoyalty(e.target.checked)}
+                        size="small"
+                      />
+                    }
+                    label={
+                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                        استفاده از امتیازها (تا ۵۰٪)
+                        {loyalty ? (
+                          <Box component="span" sx={{ display: 'block', color: 'text.secondary', fontSize: '0.72rem' }}>
+                            موجودی: {toPersianDigits(loyalty.balance)} امتیاز ≈ {formatRial(loyalty.balance * loyalty.point_value_rial)}
+                          </Box>
+                        ) : null}
+                      </Typography>
+                    }
+                  />
+                </Box>
+              )}
+            </>
+          )}
         </DialogContent>
-        <DialogActions sx={{ justifyContent: 'center', pb: 2, gap: 1 }}>
+        <DialogActions sx={{ justifyContent: bookingResult ? 'center' : 'space-between', pb: 2, gap: 1 }}>
+          {!bookingResult && (
+            <Button
+              onClick={closeConfirm}
+              disabled={bookingLoading}
+              variant="outlined"
+              sx={{ borderRadius: '10px', textTransform: 'none', px: 3 }}
+            >
+              انصراف
+            </Button>
+          )}
           <Button
-            onClick={() => setConfirmOpen(false)}
-            disabled={bookingLoading}
-            variant="outlined"
-            sx={{ borderRadius: '10px', textTransform: 'none', px: 3 }}
-          >
-            انصراف
-          </Button>
-          <Button
-            onClick={handleBooking}
+            onClick={bookingResult ? closeConfirm : handleBooking}
             disabled={bookingLoading}
             variant="contained"
             sx={{
               borderRadius: '10px', textTransform: 'none', px: 3,
-              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              '&:hover': { background: 'linear-gradient(135deg, #1d4ed8, #6d28d9)' },
+              background: bookingResult
+                ? 'linear-gradient(135deg, #059669, #10b981)'
+                : 'linear-gradient(135deg, #2563eb, #7c3aed)',
+              '&:hover': {
+                background: bookingResult
+                  ? 'linear-gradient(135deg, #047857, #059669)'
+                  : 'linear-gradient(135deg, #1d4ed8, #6d28d9)',
+              },
             }}
           >
-            {bookingLoading ? <CircularProgress size={20} sx={{ color: 'white' }} /> : 'تایید رزرو'}
+            {bookingLoading ? (
+              <CircularProgress size={20} sx={{ color: 'white' }} />
+            ) : bookingResult ? (
+              'بستن'
+            ) : (
+              'تایید رزرو'
+            )}
           </Button>
         </DialogActions>
       </Dialog>
@@ -939,6 +1223,18 @@ const VenueDetail: React.FC = () => {
         onSuccess={() => {
           setPurchaseOpen(false)
           toast.success('اشتراک شما با موفقیت فعال شد 🎉')
+        }}
+      />
+
+      {/* دیالوگ پیشنهاد قیمت در رقابت (سانس‌های in_competition) */}
+      <CompetitionBidDialog
+        slot={bidSlot}
+        open={Boolean(bidSlot)}
+        venueName={venue?.name}
+        onClose={() => setBidSlot(null)}
+        onBidSuccess={() => {
+          setBidSlot(null)
+          fetchVenueData()
         }}
       />
     </Layout>

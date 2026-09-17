@@ -30,13 +30,16 @@ import { slotService } from '@/services/slot'
 import type { Slot } from '@/services/slot'
 import { competitionService } from '@/services/competition'
 import { formatPrice } from '@/lib/utils'
+import PersianDatePicker from '@/components/ui/PersianDatePicker'
 import toast from 'react-hot-toast'
 
-const slotStatusConfig: Record<string, { label: string; color: 'success' | 'warning' | 'error' | 'info' | 'default' }> = {
+const slotStatusConfig: Record<string, { label: string; color: 'success' | 'warning' | 'error' | 'info' | 'default' | 'secondary' }> = {
   available: { label: 'آزاد', color: 'success' },
   booked: { label: 'رزرو شده', color: 'error' },
   blocked: { label: 'مسدود', color: 'default' },
   in_competition: { label: 'در حال رقابت', color: 'warning' },
+  reserved: { label: 'رزرو قرارداد', color: 'secondary' },
+  unknown: { label: 'نامشخص', color: 'default' },
 }
 
 const Competitions: React.FC = () => {
@@ -164,8 +167,9 @@ const Competitions: React.FC = () => {
               رقابت قیمت
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 4, lineHeight: 1.8 }}>
-              بخش رقابت قیمت مخصوص مدیران سالن است. مدیران می‌توانند برای سانس‌های آزاد سالن خود
-              رقابت قیمت راه‌اندازی کنند تا با بهترین قیمت ممکن، سانس‌های خود را پر کنند.
+              مدیران سالن برای سانس‌های آزادشان رقابت قیمت راه‌اندازی می‌کنند. شما می‌توانید در
+              صفحهٔ هر سالن، سانس‌های «در حال رقابت» را با برچسب «رقابت با بقیه» پیدا کنید و
+              پیشنهاد قیمت کمتری ثبت کنید؛ در پایان رقابت، کمترین پیشنهاد برنده می‌شود.
             </Typography>
             <Button
               component={Link}
@@ -240,14 +244,10 @@ const Competitions: React.FC = () => {
                 )}
               </Grid>
               <Grid size={{  xs: 12, sm: 4  }}>
-                <TextField
-                  type="date"
+                <PersianDatePicker
                   label="تاریخ"
                   value={date}
-                  onChange={(e) => setDate(e.target.value)}
-                  fullWidth
-                  slotProps={{ inputLabel: { shrink: true } }}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                  onChange={setDate}
                 />
               </Grid>
               <Grid size={{  xs: 12, sm: 2  }}>
@@ -294,7 +294,7 @@ const Competitions: React.FC = () => {
         ) : (
           <Grid container spacing={2}>
             {slots.map((slot, index) => {
-              const conf = slotStatusConfig[slot.status] || slotStatusConfig.blocked
+              const conf = slotStatusConfig[slot.status] ?? slotStatusConfig.unknown
               return (
                 <Grid size={{  xs: 12, sm: 6, md: 4  }} key={slot.id}>
                   <motion.div

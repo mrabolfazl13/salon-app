@@ -1,5 +1,15 @@
 import apiClient from './api'
 
+// وضعیت سانس — reserved یعنی سانس تعهدشدهٔ قرارداد؛ (string & {}) اجازه می‌دهد
+// وضعیت‌های جدیدِ آیندهٔ بک‌اند بدون شکست UI (fallback «نامشخص») نمایش داده شوند
+export type SlotStatus =
+  | 'available'
+  | 'booked'
+  | 'blocked'
+  | 'in_competition'
+  | 'reserved'
+  | (string & {})
+
 export interface Slot {
   id: number
   venue_id: number
@@ -8,8 +18,20 @@ export interface Slot {
   duration: number
   base_price: number
   current_price: number
-  status: 'available' | 'booked' | 'blocked' | 'in_competition'
+  status: SlotStatus
   is_competition_enabled: boolean
+  is_contract_slot: boolean
+  // Open-slot deal (بازار لحظه‌آخری) — frontend deal chips
+  is_deal?: boolean | null
+  deal_price?: number | null
+  deal_expires_at?: string | null
+}
+
+// پاسخ یکسان block/unblock — آینه‌ی SlotBlockResponse بک‌اند
+export interface SlotBlockResult {
+  slot_id: number
+  venue_id: number
+  status: SlotStatus
 }
 
 export const slotService = {
@@ -34,6 +56,18 @@ export const slotService = {
   // دریافت سانس‌ها برای بازه تاریخ
   getByVenueAndDateRange: async (venueId: number, startDate: string, endDate: string): Promise<Slot[]> => {
     const response = await apiClient.get(`/slots/venue/${venueId}/range`, { params: { start_date: startDate, end_date: endDate } })
+    return response.data
+  },
+
+  // مسدود کردن سانس آزادِ آینده — slot.block (مالک/سرپرست/کارمند با کد)
+  block: async (slotId: number): Promise<SlotBlockResult> => {
+    const response = await apiClient.post(`/slots/${slotId}/block`)
+    return response.data
+  },
+
+  // آزاد کردن سانس مسدودشده‌ی آینده — slot.block (بدون بدنه)
+  unblock: async (slotId: number): Promise<SlotBlockResult> => {
+    const response = await apiClient.post(`/slots/${slotId}/unblock`)
     return response.data
   },
 }
