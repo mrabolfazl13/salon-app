@@ -18,7 +18,8 @@ from app.schemas.team import (
     TeamBookingListResponse, TeamCreate, TeamDuesGenerate, TeamDuesListResponse,
     TeamDuesPayRequest, TeamDuesVoidRequest, TeamInviteCreate, TeamInvitationResponse,
     TeamJoinRequestCreate, TeamJoinRequestResponse, TeamListResponse, TeamMemberResponse,
-    TeamResponse, TeamRoleUpdate, TeamTransferCaptain, TeamUpdate,
+    TeamMessageCreate, TeamMessageItem, TeamMessageListResponse, TeamResponse,
+    TeamRoleUpdate, TeamTransferCaptain, TeamUnreadCountResponse, TeamUpdate,
 )
 from app.services.team_service import TeamService
 from app.utils.auth import get_current_manager, get_current_user
@@ -373,3 +374,48 @@ def list_audit(
 ):
     """تراکنش‌های ممیزی تیم — فقط مدیران؛ جدیدترین اول."""
     return TeamService.list_audit(uow, team_id, current_user, limit, offset)
+
+
+# ─────────────────────────── چت تیم ───────────────────────────
+
+@router.get("/{team_id}/messages", response_model=TeamMessageListResponse)
+def list_messages(
+    team_id: int,
+    limit: int = Query(default=50, ge=1, le=200),
+    before_id: Optional[int] = Query(default=None),
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+):
+    """پیام‌های چت تیم — جدیدترین اول؛ cursor با before_id (id < before_id)."""
+    return TeamService.list_messages(uow, team_id, current_user, limit, before_id)
+
+
+@router.post("/{team_id}/messages", response_model=TeamMessageItem,
+             status_code=status.HTTP_201_CREATED)
+async def post_message(
+    team_id: int,
+    data: TeamMessageCreate,
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+):
+    msg, notifications = TeamService.post_message(uow, team_id, current_user, data)
+    await TeamService.dispatch_notifications(uow, notifications)
+    return msg
+
+
+@router.post("/{team_id}/messages/read", response_model=TeamUnreadCountResponse)
+def mark_messages_read(
+    team_id: int,
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+):
+    return TeamService.mark_messages_read(uow, team_id, current_user)
+
+
+@router.get("/{team_id}/unread-count", response_model=TeamUnreadCountResponse)
+def unread_count(
+    team_id: int,
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+):
+    return TeamService.unread_count(uow, team_id, current_user)

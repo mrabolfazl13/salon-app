@@ -26,8 +26,8 @@ from app.models.booking import Booking, BookingStatus
 from app.models.slot import Slot
 from app.models.team import (
     Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamBooking, TeamDues,
-    TeamVisibility, TeamMemberRole, TeamMemberStatus, TeamInvitationStatus,
-    TeamJoinRequestStatus, TeamAuditAction, TeamDuesMethod,
+    TeamMessage, TeamVisibility, TeamMemberRole, TeamMemberStatus,
+    TeamInvitationStatus, TeamJoinRequestStatus, TeamAuditAction, TeamDuesMethod,
 )
 from app.models.transaction import (
     CounterpartyType, FinancialTransaction, TransactionDirection,
@@ -35,7 +35,8 @@ from app.models.transaction import (
 )
 from app.models.user import User
 from app.schemas.team import (
-    TeamCreate, TeamUpdate, TeamInviteCreate, TeamDuesGenerate, TeamJoinRequestCreate,
+    TeamCreate, TeamUpdate, TeamInviteCreate, TeamDuesGenerate,
+    TeamJoinRequestCreate, TeamMessageCreate,
 )
 from app.services.finance_service import FinanceService
 
@@ -153,6 +154,34 @@ class TeamService:
             })
         return out
 
+    @staticmethod
+    def refresh_official_status(uow: UnitOfWork, team: Team,
+                                actor_id: Optional[int] = None) -> List[dict]:
+        """رسمی‌شدن تیم پس از تغییر تعداد اعضای فعال — یک‌بار برای همیشه (idempotent)."""
+        if team.is_official:
+            return []
+        active_count = uow.team_members.count_by_status(
+            team.id, [TeamMemberStatus.ACTIVE])
+        if active_count < team.min_members:
+            return []
+        team.is_official = True
+        team.official_since = _utcnow()
+        team.updated_at = _utcnow()
+        uow.session.add(team)
+        uow.session.flush()
+        TeamService._audit(
+            uow, team.id, TeamAuditAction.TEAM_BECAME_OFFICIAL,
+            actor_id if actor_id is not None else team.captain_id,
+            {"member_count": active_count, "quota": team.min_members})
+        return [{
+            "user_id": uid,
+            "title": "🎉 تیم شما رسمی شد",
+            "message": f"تیم «{team.name}» رسمی شد — به حدنصاب {team.min_members} عضو رسیدید.",
+            "data": {"team_id": team.id, "team_name": team.name,
+                     "quota": team.min_members},
+            "notif_type": "team_official",
+        } for uid in uow.team_members.active_user_ids(team.id)]
+
     # ─────────────────────────── ساخت / خواندن ───────────────────────────
 
     @staticmethod
@@ -179,11 +208,15 @@ class TeamService:
             "data": {"team_id": team.id, "team_name": team.name},
             "notif_type": "team_created",
         }]
+        notifications += TeamService.refresh_official_status(uow, team, user.id)
         return TeamService.to_response(uow, team, user), notifications
 
     @staticmethod
-    def to_response(uow: UnitOfWork, team: Team, viewer: Optional[User]) -> dict:
-        count = uow.team_members.count_by_status(team.id, [TeamMemberStatus.ACTIVE])
+    def to_response(uow: UnitOfWork, team: Team, viewer: Optional[User],
+                    member_count: Optional[int] = None) -> dict:
+        count = (member_count if member_count is not None
+                 else uow.team_members.count_by_status(
+                     team.id, [TeamMemberStatus.ACTIVE]))
         resp = {
             "id": team.id, "name": team.name, "description": team.description,
             "sport": team.sport, "logo_url": team.logo_url,
@@ -192,6 +225,8 @@ class TeamService:
             "captain_id": team.captain_id,
             "captain_name": TeamService._user_name(uow, team.captain_id),
             "is_active": team.is_active, "member_count": count,
+            "quota": team.min_members, "is_official": team.is_official,
+            "official_since": team.official_since,
             "created_at": team.created_at, "updated_at": team.updated_at,
             "my_role": None, "my_status": None,
             "has_open_join_request": False, "has_pending_invitation": False,
@@ -220,9 +255,11 @@ class TeamService:
 
     @staticmethod
     def list_my_teams(uow: UnitOfWork, user_id: int) -> List[dict]:
+        rows = uow.teams.list_by_member(user_id)
+        counts = uow.team_members.count_active_by_team([t.id for t, _ in rows])
         out = []
-        for team, member in uow.teams.list_by_member(user_id):
-            resp = TeamService.to_response(uow, team, None)
+        for team, member in rows:
+            resp = TeamService.to_response(uow, team, None, counts.get(team.id, 0))
             resp["my_role"] = member.role.value
             resp["my_status"] = member.status.value
             out.append(resp)
@@ -240,8 +277,7 @@ class TeamService:
                 select(User).where(col(User.id).in_(captain_ids))).all()}
         items = []
         for t in rows:
-            resp = TeamService.to_response(uow, t, None)
-            resp["member_count"] = counts.get(t.id, 0)
+            resp = TeamService.to_response(uow, t, None, counts.get(t.id, 0))
             resp["captain_name"] = names.get(t.captain_id)
             items.append(resp)
         return {"items": items, "total": total, "limit": limit, "offset": offset}
@@ -459,6 +495,7 @@ class TeamService:
             uow, team, "🎉 دعوت پذیرفته شد",
             f"{user.full_name} دعوت تیم «{team.name}» را پذیرفت.",
             "team_invitation_accepted", exclude_user_id=user.id)
+        notifications += TeamService.refresh_official_status(uow, team, user.id)
         return TeamService.to_response(uow, team, user), notifications
 
     @staticmethod
@@ -517,6 +554,7 @@ class TeamService:
             "data": {"team_id": team.id, "team_name": team.name},
             "notif_type": "team_removed",
         }]
+        notifications += TeamService.refresh_official_status(uow, team, actor.id)
         return {"message": "عضو حذف شد."}, notifications
 
     @staticmethod
@@ -543,6 +581,7 @@ class TeamService:
             uow, team, "👋 عضو تیم خارج شد",
             f"{user.full_name} از تیم «{team.name}» خارج شد.",
             "team_left", exclude_user_id=user.id)
+        notifications += TeamService.refresh_official_status(uow, team, user.id)
         return {"message": "از تیم خارج شدید."}, notifications
 
     @staticmethod
@@ -706,6 +745,8 @@ class TeamService:
             "✅ درخواست پیوستن تأیید شد" if approve else "❌ درخواست پیوستن رد شد",
             f"{name} {'به تیم اضافه شد' if approve else 'رد شد'} (تیم «{team.name}»).",
             "team_join_request_decided", exclude_user_id=req.user_id)
+        if approve:
+            notifications += TeamService.refresh_official_status(uow, team, actor.id)
         return {"message": "درخواست بررسی شد.", "request_id": req.id,
                 "status": req.status.value}, notifications
 
@@ -751,6 +792,67 @@ class TeamService:
                                      else str(r.action)),
                           "data": data, "created_at": r.created_at})
         return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+    # ─────────────────────────── چت تیم ───────────────────────────
+
+    @staticmethod
+    def list_messages(uow: UnitOfWork, team_id: int, actor: User,
+                      limit: int, before_id: Optional[int]) -> dict:
+        team = TeamService._get_team_or_404(uow, team_id)
+        TeamService._require_active_member(uow, team, actor.id)
+        rows = uow.team_messages.list_by_team(team.id, before_id, limit + 1)
+        has_more = len(rows) > limit
+        rows = rows[:limit]
+        names = {}
+        user_ids = list({m.user_id for m in rows})
+        if user_ids:
+            names = {u.id: u.full_name for u in uow.session.exec(
+                select(User).where(col(User.id).in_(user_ids))).all()}
+        return {
+            "items": [{
+                "id": m.id, "user_id": m.user_id,
+                "full_name": names.get(m.user_id), "content": m.content,
+                "created_at": m.created_at,
+            } for m in rows],
+            "has_more": has_more,
+        }
+
+    @staticmethod
+    def post_message(uow: UnitOfWork, team_id: int, actor: User,
+                     data: TeamMessageCreate) -> Tuple[dict, List[dict]]:
+        """ارسال پیام چت — عمداً رویداد ممیزی ندارد (حجم بالای چت)."""
+        team = TeamService._get_team_or_404(uow, team_id)
+        TeamService._require_active_member(uow, team, actor.id)
+        msg = uow.team_messages.create(TeamMessage(
+            team_id=team.id, user_id=actor.id, content=data.content))
+        recipients = [uid for uid in uow.team_members.active_user_ids(team.id)
+                      if uid != actor.id]
+        notifications = [{
+            "user_id": uid,
+            "title": f"💬 پیام جدید در تیم {team.name}",
+            "message": f"{actor.full_name}: {msg.content[:200]}",
+            "data": {"team_id": team.id, "team_name": team.name},
+            "notif_type": "team_message",
+        } for uid in recipients]
+        return {"id": msg.id, "user_id": actor.id, "full_name": actor.full_name,
+                "content": msg.content, "created_at": msg.created_at}, notifications
+
+    @staticmethod
+    def mark_messages_read(uow: UnitOfWork, team_id: int, actor: User) -> dict:
+        team = TeamService._get_team_or_404(uow, team_id)
+        member = TeamService._require_active_member(uow, team, actor.id)
+        member.last_seen_message_at = _utcnow()
+        member.updated_at = _utcnow()
+        uow.session.add(member)
+        uow.session.flush()
+        return {"unread": 0}
+
+    @staticmethod
+    def unread_count(uow: UnitOfWork, team_id: int, actor: User) -> dict:
+        team = TeamService._get_team_or_404(uow, team_id)
+        member = TeamService._require_active_member(uow, team, actor.id)
+        return {"unread": uow.team_messages.unread_count(
+            team.id, member.last_seen_message_at, exclude_user_id=actor.id)}
 
     # ─────────────────────────── dispatch اعلان‌ها ───────────────────────────
 
@@ -1098,6 +1200,10 @@ class TeamService:
                 "captain_name": captains.get(team.captain_id, (None, None))[0],
                 "captain_phone": captains.get(team.captain_id, (None, None))[1],
                 "members_count": len(member_ids),
+                "member_count": len(member_ids),
+                "quota": team.min_members,
+                "is_official": team.is_official,
+                "official_since": team.official_since,
                 "total_bookings_at_my_venues": len(booked_ids),
                 "upcoming_bookings_at_my_venues": sum(1 for d in dates if d >= today),
                 "spent_at_my_venues": sum(booking_meta[b][1] for b in booked_ids),

@@ -32,7 +32,7 @@ from app.repositories.customer_repository import (VenueCustomerRepository,
 from app.repositories.team_repository import (
     TeamRepository, TeamMemberRepository, TeamInvitationRepository,
     TeamJoinRequestRepository, TeamBookingRepository, TeamDuesRepository,
-    TeamAuditEventRepository,
+    TeamAuditEventRepository, TeamMessageRepository,
 )
 
 class UnitOfWork:
@@ -264,6 +264,12 @@ class UnitOfWork:
         if "team_dues" not in self._repositories:
             self._repositories["team_dues"] = TeamDuesRepository(self.session)
         return self._repositories["team_dues"]
+
+    @property
+    def team_messages(self) -> TeamMessageRepository:
+        if "team_messages" not in self._repositories:
+            self._repositories["team_messages"] = TeamMessageRepository(self.session)
+        return self._repositories["team_messages"]
 
     @property
     def team_audits(self) -> TeamAuditEventRepository:

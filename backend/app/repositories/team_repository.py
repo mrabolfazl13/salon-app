@@ -12,7 +12,7 @@ from sqlmodel import Session, col, select
 
 from app.models.team import (
     Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamBooking, TeamDues,
-    TeamAuditEvent, TeamAuditAction, TeamMemberStatus, TeamInvitationStatus,
+    TeamAuditEvent, TeamMessage, TeamAuditAction, TeamMemberStatus, TeamInvitationStatus,
     TeamJoinRequestStatus,
 )
 from app.models.user import User
@@ -372,3 +372,31 @@ class TeamAuditEventRepository(BaseRepository[TeamAuditEvent]):
                 .order_by(col(TeamAuditEvent.created_at).desc(), col(TeamAuditEvent.id).desc())
                 .offset(offset).limit(limit))
         return list(self.session.exec(stmt).all()), int(total)
+
+
+class TeamMessageRepository(BaseRepository[TeamMessage]):
+    """چت تیم — کوئری‌های صفحه‌بندی cursor-based و شمارش خوانده‌نشده."""
+
+    def __init__(self, session: Session):
+        super().__init__(TeamMessage, session)
+
+    def list_by_team(self, team_id: int, before_id: Optional[int],
+                     limit: int) -> List[TeamMessage]:
+        """جدیدترین‌ها اول (id desc)؛ cursor: پیام‌های با id < before_id."""
+        conds = [TeamMessage.team_id == team_id]
+        if before_id is not None:
+            conds.append(col(TeamMessage.id) < before_id)
+        stmt = (select(TeamMessage).where(and_(*conds))
+                .order_by(col(TeamMessage.id).desc()).limit(limit))
+        return list(self.session.exec(stmt).all())
+
+    def unread_count(self, team_id: int, since: Optional[datetime],
+                     exclude_user_id: Optional[int] = None) -> int:
+        """پیام‌های بعد از since؛ since=None ⇒ همه پیام‌ها خوانده‌نشده."""
+        conds = [TeamMessage.team_id == team_id]
+        if since is not None:
+            conds.append(col(TeamMessage.created_at) > since)
+        if exclude_user_id is not None:
+            conds.append(col(TeamMessage.user_id) != exclude_user_id)
+        stmt = select(sa_func.count()).select_from(TeamMessage).where(and_(*conds))
+        return int(self.session.exec(stmt).one())

@@ -10,10 +10,12 @@ Architecture rules:
   counterparty_ref=team_id (counterparty column FKs to users, for a team it is null).
 """
 from sqlmodel import SQLModel, Field
-from sqlalchemy import CheckConstraint, UniqueConstraint
+from sqlalchemy import CheckConstraint, UniqueConstraint, Index
 from typing import Optional
 from datetime import datetime, date, timezone
 from enum import Enum
+
+from app.config import settings
 
 
 def _utcnow() -> datetime:
@@ -78,6 +80,7 @@ class TeamAuditAction(str, Enum):
     DUES_PAID = "dues_paid"
     DUES_VOIDED = "dues_voided"
     BOOKING_LINKED = "booking_linked"
+    TEAM_BECAME_OFFICIAL = "team_became_official"
 
 
 # ─────────────────────────── Team ───────────────────────────
@@ -96,6 +99,10 @@ class Team(SQLModel, table=True):
     sport: str = Field(default="futsal", max_length=30, index=True)
     visibility: TeamVisibility = Field(default=TeamVisibility.PRIVATE, index=True)
     is_active: bool = Field(default=True, index=True)
+    # حدنصاب رسمی‌شدن (تعداد اعضای فعال لازم) — عمداً اسنپ‌شات در تیم
+    min_members: int = Field(default=settings.TEAM_MIN_MEMBERS)
+    is_official: bool = Field(default=False, index=True)
+    official_since: Optional[datetime] = None
 
     created_at: datetime = Field(default_factory=_utcnow)
     updated_at: datetime = Field(default_factory=_utcnow)
@@ -117,6 +124,8 @@ class TeamMember(SQLModel, table=True):
     invited_by: Optional[int] = Field(default=None, foreign_key="users.id")
     joined_at: datetime = Field(default_factory=_utcnow)
     left_at: Optional[datetime] = None
+    # زمان آخرین خواندن چت تیم (پایه شمارش پیام‌های خوانده‌نشده)
+    last_seen_message_at: Optional[datetime] = None
 
     created_at: datetime = Field(default_factory=_utcnow)
     updated_at: datetime = Field(default_factory=_utcnow)
@@ -211,4 +220,20 @@ class TeamAuditEvent(SQLModel, table=True):
     actor_id: Optional[int] = Field(default=None, foreign_key="users.id")
     action: TeamAuditAction
     data: str = Field(default="{}")
+    created_at: datetime = Field(default_factory=_utcnow)
+
+
+# ─────────────────────────── Chat (پیام‌های تیمی) ───────────────────────────
+
+class TeamMessage(SQLModel, table=True):
+    """پیام چت تیم — بدون ممیزی به‌ازای هر پیام (حجم بالا؛ عمداً audit نمی‌شود)."""
+    __tablename__ = "team_messages"
+    __table_args__ = (
+        Index("ix_team_messages_team_created", "team_id", "created_at"),
+    )
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    team_id: int = Field(foreign_key="teams.id", index=True)
+    user_id: int = Field(foreign_key="users.id", index=True)
+    content: str = Field(max_length=2000)
     created_at: datetime = Field(default_factory=_utcnow)

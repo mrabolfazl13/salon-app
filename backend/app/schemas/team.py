@@ -3,7 +3,7 @@
 from datetime import date, datetime
 from typing import List, Optional
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, Field, field_validator, model_validator
 
 from app.models.team import (
     TeamVisibility, TeamMemberRole, TeamMemberStatus,
@@ -39,6 +39,9 @@ class TeamResponse(BaseModel):
     captain_name: Optional[str] = None
     is_active: bool
     member_count: int = 0
+    quota: int = 0
+    is_official: bool = False
+    official_since: Optional[datetime] = None
     created_at: datetime
     updated_at: datetime
     # وضعیت کاربر جاری (None اگر عضو نیست)
@@ -248,7 +251,43 @@ class TeamPartnerItem(BaseModel):
     captain_name: Optional[str] = None
     captain_phone: Optional[str] = None
     members_count: int = 0
+    member_count: int = 0
+    quota: int = 0
+    is_official: bool = False
+    official_since: Optional[datetime] = None
     total_bookings_at_my_venues: int = 0
     upcoming_bookings_at_my_venues: int = 0
     spent_at_my_venues: int = Field(default=0, description="مجموع payment_amount رزروهای منتسب (ریال)")
     last_booking_date: Optional[date] = None
+
+
+# ─────────────────────────── Chat (پیام‌های تیمی) ───────────────────────────
+
+class TeamMessageCreate(BaseModel):
+    """متن پیام چت — strip می‌شود؛ خالی‌بودن ⇒ 422."""
+    content: str = Field(..., min_length=1, max_length=2000)
+
+    @field_validator("content", mode="before")
+    @classmethod
+    def _strip(cls, v):
+        return v.strip() if isinstance(v, str) else v
+
+
+class TeamMessageItem(BaseModel):
+    id: int
+    user_id: int
+    full_name: Optional[str] = None
+    content: str
+    created_at: datetime
+
+    class Config:
+        from_attributes = True
+
+
+class TeamMessageListResponse(BaseModel):
+    items: List[TeamMessageItem]
+    has_more: bool = False
+
+
+class TeamUnreadCountResponse(BaseModel):
+    unread: int = 0

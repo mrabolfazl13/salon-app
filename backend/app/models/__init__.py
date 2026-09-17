@@ -1,7 +1,7 @@
 from .user import User, UserRole
-from .venue import Venue, Club
+from .venue import Venue, Club, VenuePaymentMode
 from .slot import Slot, SlotStatus
-from .booking import Booking, BookingStatus
+from .booking import Booking, BookingStatus, ReceiptStatus
 from .competition import PriceCompetition, CompetitionStatus
 from .contract import (
     Contract, ContractSlot, ContractPayment, ContractAuditEvent,
@@ -32,16 +32,16 @@ from .staff import StaffAssignment, SecurityAuditEvent
 from .customer import VenueCustomer, CrmCampaign
 from .team import (
     Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamBooking, TeamDues,
-    TeamAuditEvent, TeamVisibility, TeamMemberRole, TeamMemberStatus,
+    TeamAuditEvent, TeamMessage, TeamVisibility, TeamMemberRole, TeamMemberStatus,
     TeamInvitationStatus, TeamJoinRequestStatus, TeamDuesMethod, TeamAuditAction,
 )
 
 # ترتیب import مهم است
 __all__ = [
     "User", "UserRole",
-    "Venue", "Club",
+    "Venue", "Club", "VenuePaymentMode",
     "Slot", "SlotStatus",
-    "Booking", "BookingStatus",
+    "Booking", "BookingStatus", "ReceiptStatus",
     "PriceCompetition", "CompetitionStatus",
     "Contract", "ContractSlot", "ContractPayment", "ContractAuditEvent",
     "ContractStatus", "PaymentStatus", "RecurrenceType",
@@ -64,7 +64,7 @@ __all__ = [
     "LoyaltyPoint", "LoyaltyReason",
     "FavoriteVenue",
     "Team", "TeamMember", "TeamInvitation", "TeamJoinRequest", "TeamBooking", "TeamDues",
-    "TeamAuditEvent", "TeamVisibility", "TeamMemberRole", "TeamMemberStatus",
+    "TeamAuditEvent", "TeamMessage", "TeamVisibility", "TeamMemberRole", "TeamMemberStatus",
     "TeamInvitationStatus", "TeamJoinRequestStatus", "TeamDuesMethod", "TeamAuditAction",
     "StaffAssignment", "SecurityAuditEvent",
     "VenueCustomer", "CrmCampaign",
