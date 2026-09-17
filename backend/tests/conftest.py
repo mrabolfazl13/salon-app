@@ -40,6 +40,21 @@ from app.models.game import (
     GameInviteLink, GameWaitlist, GamePayment,
 )
 from app.models.notification import Notification
+from app.models.contract import Contract, ContractSlot, ContractPayment, ContractAuditEvent
+from app.models.transaction import FinancialTransaction, ExpenseCategory
+from app.models.payment import BookingPayment
+from app.models.membership import MembershipPlan, MembershipPurchase
+from app.models.holiday import Holiday
+from app.models.pricing_rule import PricingRule
+from app.models.coupon import Coupon, CouponRedemption
+from app.models.loyalty import LoyaltyPoint
+from app.models.favorite import FavoriteVenue
+from app.models.team import (
+    Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamBooking, TeamDues,
+    TeamAuditEvent,
+)
+from app.models.staff import StaffAssignment, SecurityAuditEvent
+from app.models.customer import VenueCustomer, CrmCampaign
 from app.utils.auth import get_current_user
 from app.api.v1.games import get_optional_user
 from app.database import get_session
@@ -101,8 +116,16 @@ SQLModel.metadata.create_all(test_engine)
 # ─────────────────────────── پاک‌سازی ───────────────────────────
 
 _TABLES_CLEAN_ORDER = [
+    TeamAuditEvent, TeamDues, TeamBooking, TeamJoinRequest, TeamInvitation,
+    TeamMember, Team,
+    CouponRedemption, Coupon, LoyaltyPoint, FavoriteVenue,
+    PricingRule, Holiday,
+    FinancialTransaction, ExpenseCategory,
+    MembershipPurchase, MembershipPlan, BookingPayment,
     GamePayment, GameWaitlist, GameInviteLink, GameInvitation,
     GameJoinRequest, GameParticipant, Game,
+    ContractAuditEvent, ContractPayment, ContractSlot, Contract,
+    StaffAssignment, SecurityAuditEvent, CrmCampaign, VenueCustomer,
     Booking, Slot, Notification, Venue, User,
 ]
 
@@ -218,7 +241,10 @@ def seed(db):
                           status=status, payment_amount=price)
         db.add(booking)
         db.commit()
+        # refresh همه پس از آخرین commit — وگرنه venue/slot expired+detached می‌مانند
         db.refresh(booking)
+        db.refresh(slot)
+        db.refresh(venue)
         db.close()  # آزادکردن write-lock
         return {"venue": venue, "slot": slot, "booking": booking}
 
