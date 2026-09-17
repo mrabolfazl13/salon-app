@@ -13,7 +13,7 @@ from app.models.loyalty import LoyaltyPoint, LoyaltyReason
 from app.models.pricing_rule import PricingRule
 from app.models.slot import Slot, SlotStatus
 from app.models.user import User, UserRole
-from app.models.venue import Venue
+from app.models.venue import Venue, VenuePaymentMode
 from app.services.pricing_service import PricingService
 from helpers import auth, FakeRedis
 
@@ -32,7 +32,8 @@ def _fresh():
     return Session(test_engine)
 
 
-def _setup_full_flow():
+def _setup_full_flow(payment_mode=None):
+    vkw = {"payment_mode": payment_mode} if payment_mode is not None else {}
     with _fresh() as s:
         manager = User(phone="09322000001", full_name="مدیر", hashed_password="x",
                        role=UserRole.VENUE_MANAGER)
@@ -42,7 +43,7 @@ def _setup_full_flow():
         s.commit()
         s.refresh(manager); s.refresh(user)
         venue = Venue(name="سالن فلو", address="آ", latitude=35.7, longitude=51.4,
-                      phone="0912", manager_id=manager.id)
+                      phone="0912", manager_id=manager.id, **vkw)
         s.add(venue)
         s.commit()
         s.refresh(venue)
@@ -106,7 +107,7 @@ def test_compute_rejects_past_slot(db):
 
 
 def test_end_to_end_booking_persists_components(client, db, seed, fake_redis):
-    ctx = _setup_full_flow()
+    ctx = _setup_full_flow(VenuePaymentMode.PAY_IN_PLACE)
     (_, mphone), (uid, uphone) = ctx["m"], ctx["u"]
     r = client.post("/api/v1/bookings/",
                     json={"slot_id": ctx["slot"], "discount_code": "flow10",

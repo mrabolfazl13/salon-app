@@ -15,7 +15,7 @@ from app.models.payment import BookingPaymentStatus
 from app.models.slot import Slot, SlotStatus
 from app.models.transaction import FinancialTransaction, TransactionType
 from app.models.user import User, UserRole
-from app.models.venue import Venue
+from app.models.venue import Venue, VenuePaymentMode
 from app.tasks.pending_booking_tasks import cleanup_expired_pending_bookings
 from helpers import auth, FakeRedis
 
@@ -43,10 +43,11 @@ def _user(phone, role=UserRole.USER):
         return u.id, u.phone
 
 
-def _venue(manager_id):
+def _venue(manager_id, payment_mode=None):
+    kw = {"payment_mode": payment_mode} if payment_mode is not None else {}
     with _fresh() as s:
         v = Venue(name="کوپنی", address="آ", latitude=35.7, longitude=51.4,
-                  phone="0912", manager_id=manager_id)
+                  phone="0912", manager_id=manager_id, **kw)
         s.add(v)
         s.commit()
         return v.id
@@ -69,13 +70,13 @@ def _create_coupon(client, phone, vid=None, **over):
     return client.post("/api/v1/coupons/", headers=auth(phone), json=body)
 
 
-def _setup(actors_tag="41"):
+def _setup(actors_tag="41", venue_pm=None):
     m_id, m = _user(f"0934100000{actors_tag}", UserRole.VENUE_MANAGER)
     u_id, u = _user(f"0934100010{actors_tag}")
     u2_id, u2 = _user(f"0934100020{actors_tag}")
     sup_id, sup = _user(f"0934100030{actors_tag}", UserRole.SUPER_ADMIN)
-    v1 = _venue(m_id)
-    v2 = _venue(m_id)
+    v1 = _venue(m_id, venue_pm)
+    v2 = _venue(m_id, venue_pm)
     return {"m": m, "m_id": m_id, "u": u, "u_id": u_id,
             "u2": u2, "u2_id": u2_id, "sup": sup, "v1": v1, "v2": v2}
 
@@ -286,7 +287,7 @@ def minutes_ago():
 
 def test_ledger_reflects_net_discounted_amount(client, fake_redis):
     """درآمد ثبت‌شده = مبلغ خالصِ پرداختی(کاهش‌یافته)؛ تخفیف هرگز در دفتر کل نمی‌آید."""
-    a = _setup("10")
+    a = _setup("10", venue_pm=VenuePaymentMode.PAY_IN_PLACE)
     assert _create_coupon(client, a["m"], a["v1"], code="NET").status_code == 200
     with _fresh() as s:
         sid = _slot(s, a["v1"])
