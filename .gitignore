@@ -49,3 +49,7 @@ target/
 .DS_Store
 Thumbs.db
 ```
+# Generated Flutter platform scaffolding
+android/web/
+android/windows/
+
