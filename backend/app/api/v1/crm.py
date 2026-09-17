@@ -197,7 +197,9 @@ async def create_campaign(
                             detail="segment یا customer_ids الزامی است")
     if data.segment and data.segment not in SEGMENTS:
         raise HTTPException(status_code=400, detail="segment نامعتبر است")
-    already = uow.crm_campaigns.count_for_venue_on(venue.id, date.today())
+    # created_at در UTC ذخیره می‌شود؛ سقف «امروز» باید روز UTC باشد.
+    already = uow.crm_campaigns.count_for_venue_on(
+        venue.id, datetime.now(timezone.utc).date())
     if already >= settings.CRM_CAMPAIGN_DAILY_LIMIT:
         raise HTTPException(
             status_code=400,

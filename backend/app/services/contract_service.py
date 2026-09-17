@@ -330,7 +330,8 @@ class ContractService:
             # درخواست تقسیط کاربر — نبودِ پلن صریح مدیر ⇒ همان تعداد؛
             # clamp مستند به سقف InstallmentPlan (۲۴ — تقویم ماهانه)
             plan = InstallmentPlan(count=min(contract.desired_installments, 24))
-        self.generate_payment_schedule(updated, actor, plan, approved_on=now.date())
+        # due_date یک تاریخ تقویمی است؛ مبنای آن روز محلی است نه UTC (approved_at)
+        self.generate_payment_schedule(updated, actor, plan, approved_on=date.today())
         return updated
 
     def _apply_approval_amendment(self, contract: Contract, data: ContractApprove, actor: User) -> dict:

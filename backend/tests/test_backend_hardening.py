@@ -201,7 +201,7 @@ def test_alembic_chain_fresh_sqlite_upgrade_and_downgrade(tmp_path):
     assert {"bookings", "slots", "financial_transactions", "teams",
             "staff_assignments", "game_payments"} <= tables
     check = _run(["-m", "alembic", "-c", "alembic.ini", "current"], url)
-    assert "l2r012contractdays" in check.stdout or check.stderr == ""
+    assert "m0s015teamofficialchat" in check.stdout or check.stderr == ""
     down = _run(["-m", "alembic", "-c", "alembic.ini", "downgrade", "base"], url)
     assert down.returncode == 0, down.stderr[-1500:]
     leftover = [r[0] for r in sqlite3.connect(str(db)).execute(

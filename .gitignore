@@ -53,3 +53,11 @@ Thumbs.db
 android/web/
 android/windows/
 
+
+# Test/build junk (wave 12)
+backend/tests/_game_test.db
+backend/tests/_game_test.db-*
+backend/_tmp*.db
+backend/_tmp*.db-*
+*.db-wal
+*.db-shm

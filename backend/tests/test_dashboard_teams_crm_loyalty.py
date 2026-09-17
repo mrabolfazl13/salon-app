@@ -90,7 +90,8 @@ def test_dashboard_prev_month_and_active_teams(client):
     uid, _ = _user("093802000002")
     _slot_booking(vid, uid, date.today() + timedelta(days=1))
 
-    today = date.today()
+    # occurred_at در UTC ذخیره می‌شود؛ سبدهای ماه/روز داشبورد باید روز UTC باشند.
+    today = datetime.now(timezone.utc).date()
     first_this = today.replace(day=1)
     last_month_end = first_this - timedelta(days=1)
     last_month_start = last_month_end.replace(day=1)

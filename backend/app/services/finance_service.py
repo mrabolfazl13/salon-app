@@ -409,7 +409,7 @@ class FinanceService:
 
     @staticmethod
     def _norm_range(from_date: Optional[date], to_date: Optional[date]) -> Tuple[date, date]:
-        today = date.today()
+        today = datetime.now(timezone.utc).date()  # UTC day (occurred_at is UTC)
         if from_date and not to_date:
             to_date = today
         if to_date and not from_date:
@@ -499,7 +499,7 @@ class FinanceService:
         scope = venue_scope if venue_scope is not None else \
             FinanceService.resolve_scope(uow, actor, venue_id)
         f, t = FinanceService._norm_range(from_date, to_date)
-        today = date.today()
+        today = datetime.now(timezone.utc).date()  # UTC day (occurred_at is UTC)
         first_month = today.replace(day=1)
 
         # ماه قبل از ماهِ شامل `to` — همان فیلتر دامنه‌ی سالن‌ها

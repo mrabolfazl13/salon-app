@@ -51,7 +51,7 @@ from app.models.loyalty import LoyaltyPoint
 from app.models.favorite import FavoriteVenue
 from app.models.team import (
     Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamBooking, TeamDues,
-    TeamAuditEvent,
+    TeamAuditEvent, TeamMessage,
 )
 from app.models.staff import StaffAssignment, SecurityAuditEvent
 from app.models.customer import VenueCustomer, CrmCampaign
@@ -116,6 +116,7 @@ SQLModel.metadata.create_all(test_engine)
 # ─────────────────────────── پاک‌سازی ───────────────────────────
 
 _TABLES_CLEAN_ORDER = [
+    TeamMessage,
     TeamAuditEvent, TeamDues, TeamBooking, TeamJoinRequest, TeamInvitation,
     TeamMember, Team,
     CouponRedemption, Coupon, LoyaltyPoint, FavoriteVenue,
