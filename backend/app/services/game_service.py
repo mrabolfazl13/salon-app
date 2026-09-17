@@ -1,4 +1,4 @@
-﻿# backend/app/services/game_service.py
+# backend/app/services/game_service.py
 """سرویس کسب‌وکار سیستم بازی گروهی (Group Booking / Open Game).
 
 اصول:
@@ -8,6 +8,7 @@
 - خطاها ساختارمند: detail = {"code": "GAME_FULL", "message": "..."}
 - اعلان‌ها: متدها لیست نوتیفیکیشن برمی‌گردانند؛ روتر async آن‌ها را dispatch می‌کند.
 """
+import json
 import secrets
 import uuid
 from datetime import datetime, timedelta, timezone
@@ -31,6 +32,8 @@ from app.repositories.venue_repository import VenueRepository
 from app.schemas.game import GameCreate, GameUpdate, InviteLinkCreate
 from app.models.transaction import TransactionMethod, TransactionSourceType
 from app.services.finance_service import FinanceService
+from app.services.loyalty_service import LoyaltyService
+from app.config import settings
 
 
 def _utcnow() -> datetime:
@@ -219,6 +222,9 @@ class GameService:
             "max_players": game.max_players, "skill_level": game.skill_level,
             "payment_mode": game.payment_mode, "status": game.status,
             "created_at": game.created_at, "updated_at": game.updated_at,
+            "result_set": game.result_set,
+            "winner_ids": json.loads(game.winner_ids) if game.winner_ids else None,
+            "result_set_at": game.result_set_at,
             "organizer_name": None,
             "current_players": count,
             "venue_id": venue.id if venue else None,
@@ -909,6 +915,59 @@ class GameService:
         }]
         booking, slot, venue = GameService._chain(uow, game)
         return GameService.to_response(uow, game, None, chain=(booking, slot, venue)), notifications
+
+    @staticmethod
+    def set_result(uow: UnitOfWork, game_id: int, actor_id: int,
+                   winner_ids: List[int]) -> dict:
+        """ثبت نتیجه بازی + جایزه برد — فقط برگزارکننده/مدیرِ بازی.
+
+        ضدتکرار: esult_set یک‌بار؛ جایزه هر برنده با (user, GAME_WIN, game, id)
+        یکتا است و فراخوان دوباره no-op می‌شود. نتیجه، وضعیت را COMPLETED می‌کند.
+        """
+        game = uow.games.get_by_id_with_lock(game_id)
+        if not game:
+            raise _err(404, "GAME_NOT_FOUND", "بازی مورد نظر یافت نشد.")
+        actor = uow.game_participants.get_by_game_and_user(game.id, actor_id)
+        GameService._require_manage_permission(game, actor)
+
+        if game.result_set:
+            raise _err(409, "RESULT_ALREADY_SET", "برای این بازی قبلاً نتیجه ثبت شده است")
+
+        # dedup با حفظ ترتیب
+        unique_ids: List[int] = []
+        seen = set()
+        for uid in winner_ids:
+            if uid not in seen:
+                seen.add(uid)
+                unique_ids.append(uid)
+
+        accepted_ids = {p.user_id for p in uow.game_participants.list_accepted(game.id)}
+        invalid = [uid for uid in unique_ids if uid not in accepted_ids]
+        if invalid:
+            raise _err(422, "WINNER_NOT_PARTICIPANT",
+                       "برندگان باید از شرکت‌کننده‌های فعلی بازی باشند.")
+
+        game.result_set = True
+        game.winner_ids = json.dumps(unique_ids)
+        game.result_set_at = _utcnow()
+        if game.status != GameStatus.COMPLETED:
+            game.status = GameStatus.COMPLETED
+        game.updated_at = _utcnow()
+        uow.session.add(game)
+        uow.session.flush()
+
+        awarded = 0
+        for uid in unique_ids:
+            row = LoyaltyService.award_for_game_win(uow.session, game.id, uid)
+            if row:
+                awarded += 1
+
+        return {
+            "game_id": game.id,
+            "winner_ids": unique_ids,
+            "awarded": awarded,
+            "points_each": int(settings.LOYALTY_POINTS_PER_GAME_WIN),
+        }
 
     @staticmethod
     def cancel_game(uow: UnitOfWork, game_id: int, actor_id: int) -> Tuple[dict, List[dict]]:

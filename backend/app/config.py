@@ -17,8 +17,13 @@ class Settings(BaseSettings):
     LOYALTY_RIALS_PER_POINT: int = 10000
     # تیم: سقف اعضای (قطعی + در انتظار پاسخ) هر تیم
     TEAM_MAX_MEMBERS: int = 50
+    # تیم: حدنصاب رسمی‌شدن — تعداد اعضای فعال لازم (قابل تنظیم از env)
+    TEAM_MIN_MEMBERS: int = 5
     # سقف خرج امتیاز: حداکثر چند درصد قیمت نهایی (قبل کوپن) با امتیاز تخفیف بگیرد
     LOYALTY_REDEEM_MAX_PERCENT: int = 50
+    # وفاداری — اهدای امتیاز به‌ازای برد در بازی گروهی و ثبت نظر (قابل تنظیم از env)
+    LOYALTY_POINTS_PER_GAME_WIN: int = 500
+    LOYALTY_POINTS_PER_REVIEW: int = 50
     # CRM: سقف کمپین بازاریابی به‌ازای هر سالن در هر روز (brief §4)
     CRM_CAMPAIGN_DAILY_LIMIT: int = 1
 

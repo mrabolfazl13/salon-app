@@ -119,6 +119,11 @@ class Game(SQLModel, table=True):
     created_at: datetime = Field(default_factory=_utcnow)
     updated_at: datetime = Field(default_factory=_utcnow)
 
+    # نتیجه بازی — ثبت یک‌باره توسط برگزارکننده/مدیر بازی
+    result_set: bool = Field(default=False)
+    winner_ids: Optional[str] = Field(default=None)  # JSON string از لیست شناسه‌ها
+    result_set_at: Optional[datetime] = Field(default=None)
+
     booking: Optional["Booking"] = Relationship()
     participants: List["GameParticipant"] = Relationship(back_populates="game")
     join_requests: List["GameJoinRequest"] = Relationship(back_populates="game")

@@ -9,6 +9,7 @@ from app.repositories.review_repository import ReviewRepository
 from app.utils.auth import get_current_user
 from app.models.user import User
 from app.models.review import Review
+from app.services.loyalty_service import LoyaltyService
 
 router = APIRouter(prefix="/reviews", tags=["Reviews"])
 
@@ -103,6 +104,10 @@ def create_review(
         comment=review_data.comment
     )
     created = uow.reviews.create(review)
+    uow.commit()
+
+    # جایزه وفاداری ثبت نظر — فقط در create؛ ضدتکرار با (user, review, source_id)
+    LoyaltyService.award_for_review(uow.session, created.id, current_user.id)
     uow.commit()
 
     return ReviewResponse(

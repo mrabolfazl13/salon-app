@@ -18,6 +18,8 @@ from app.models.loyalty import LoyaltyPoint, LoyaltyReason
 from app.repositories.loyalty_repository import LoyaltyRepository
 
 SOURCE_BOOKING = "booking"
+SOURCE_GAME = "game"
+SOURCE_REVIEW = "review"
 
 
 class LoyaltyService:
@@ -70,6 +72,30 @@ class LoyaltyService:
             user_id=booking.user_id, points=int(booking.loyalty_points_used),
             reason=LoyaltyReason.LOYALTY_REFUND,
             source_type=SOURCE_BOOKING, source_id=booking.id,
+        )
+
+    @staticmethod
+    def award_for_game_win(session: Session, game_id: int,
+                           user_id: int) -> Optional[LoyaltyPoint]:
+        """جایزه برد بازی — یک‌بار به‌ازای هر (user, game) با ضدتکرار منبع."""
+        points = int(settings.LOYALTY_POINTS_PER_GAME_WIN)
+        if points <= 0:
+            return None
+        return LoyaltyRepository(session).add_points(
+            user_id=user_id, points=points, reason=LoyaltyReason.GAME_WIN,
+            source_type=SOURCE_GAME, source_id=game_id,
+        )
+
+    @staticmethod
+    def award_for_review(session: Session, review_id: int,
+                         user_id: int) -> Optional[LoyaltyPoint]:
+        """جایزه ثبت نظر — یک‌بار به‌ازای هر review id (ضدتکرار منبع)."""
+        points = int(settings.LOYALTY_POINTS_PER_REVIEW)
+        if points <= 0:
+            return None
+        return LoyaltyRepository(session).add_points(
+            user_id=user_id, points=points, reason=LoyaltyReason.REVIEW,
+            source_type=SOURCE_REVIEW, source_id=review_id,
         )
 
     @staticmethod

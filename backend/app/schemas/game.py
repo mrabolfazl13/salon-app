@@ -111,6 +111,11 @@ class GameResponse(BaseModel):
     has_pending_join_request: bool = False
     has_pending_invitation: bool = False
 
+    # نتیجه بازی (در صورت ثبت توسط برگزارکننده/مدیر)
+    result_set: bool = False
+    winner_ids: Optional[List[int]] = None
+    result_set_at: Optional[datetime] = None
+
     class Config:
         from_attributes = True
 
@@ -266,3 +271,16 @@ class GameActionResponse(BaseModel):
 
 class MyInvitationsResponse(BaseModel):
     invitations: List[InvitationResponse] = []
+
+
+class GameResultRequest(BaseModel):
+    """ثبت نتیجه بازی — فقط برگزارکننده یا مدیرِ بازی. لیست برندگان غیرخالی."""
+    winner_ids: List[int] = Field(..., min_length=1)
+
+
+class GameResultResponse(BaseModel):
+    """خروجی ثبت نتیجه + جایزه وفاداری هر برنده."""
+    game_id: int
+    winner_ids: List[int]
+    awarded: int
+    points_each: int

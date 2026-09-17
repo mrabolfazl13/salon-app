@@ -22,6 +22,8 @@ class LoyaltyReason(str, Enum):
     COUPON_REDEMPTION = "coupon_redemption"  # امتیاز کنارِ مصرف کوپن (افقی در آینده)
     LOYALTY_REDEEM = "loyalty_redeem"        # خرج امتیاز در رزرو (منفی)
     LOYALTY_REFUND = "loyalty_refund"        # بازگشت امتیاز خرج‌شده در لغو (مثبت)
+    GAME_WIN = "game_win"                    # برد در بازی گروهی (به‌ازای هر بازی/کاربر یکتا)
+    REVIEW = "review"                        # ثبت نظر برای سالن (به‌ازای هر نظر یکتا)
 
 
 class LoyaltyPoint(SQLModel, table=True):

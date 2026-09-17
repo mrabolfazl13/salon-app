@@ -25,6 +25,7 @@ from app.schemas.game import (
     JoinRequestResponse, InvitationCreate, InvitationResponse,
     InviteLinkCreate, InviteLinkResponse, WaitlistResponse,
     TokenPreviewResponse, GamePaymentSummary, GameActionResponse,
+    GameResultRequest, GameResultResponse,
 )
 from app.services.game_service import GameService
 
@@ -223,6 +224,17 @@ async def complete_game(
     game, notifications = GameService.transition_status(uow, game_id, current_user.id, GameStatus.COMPLETED)
     await GameService.dispatch_notifications(uow, notifications)
     return game
+
+
+@router.post("/{game_id}/result", response_model=GameResultResponse)
+def set_game_result(
+    game_id: int,
+    data: GameResultRequest,
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+):
+    """ثبت نتیجه بازی (لیست برندگان) + جایزه وفاداری برد — برگزارکننده یا مدیرِ بازی."""
+    return GameService.set_result(uow, game_id, current_user.id, data.winner_ids)
 
 
 # ─────────────────────────── Join / Leave ───────────────────────────
