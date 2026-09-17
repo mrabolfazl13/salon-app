@@ -1,3 +1,5 @@
+from typing import Optional
+
 from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel, Field, EmailStr
 
@@ -6,6 +8,8 @@ from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
 from app.services.auth_service import AuthService
 from app.services import verification_service
 from app.utils.auth import create_access_token, get_current_user, get_password_hash
+from app.utils.rate_limit import auth_rate_limit, verification_rate_limit
+from app.config import settings
 from app.models.user import User, UserRole
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -40,8 +44,22 @@ class ResetPasswordRequest(BaseModel):
     new_password: str = Field(..., min_length=4, max_length=70)
 
 
+class AuthMessageResponse(BaseModel):
+    message: str
+
+
+class DevCodeMessageResponse(AuthMessageResponse):
+    """پاسخ درخواست کد — کلید dev_code فقط با روشن‌بودن DEBUG_ALLOW_DEV_CODE در پاسخ می‌آید."""
+
+    dev_code: Optional[str] = None
+
+
 @router.post("/register", response_model=UserResponse)
-def register(user_data: UserCreate, uow: UnitOfWork = Depends(get_unit_of_work)):
+def register(
+    user_data: UserCreate,
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    _rate_limit: None = Depends(auth_rate_limit),
+):
     """ثبت‌نام با شماره و رمز عبور
 
     - کاربر عادی: برای رزرو باید بعداً ایمیل (یا شماره) خود را تأیید کند
@@ -62,7 +80,11 @@ def register(user_data: UserCreate, uow: UnitOfWork = Depends(get_unit_of_work))
 
 
 @router.post("/login", response_model=Token)
-def login(user_data: UserLogin, uow: UnitOfWork = Depends(get_unit_of_work)):
+def login(
+    user_data: UserLogin,
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    _rate_limit: None = Depends(auth_rate_limit),
+):
     user = AuthService.authenticate_user(uow, user_data.phone, user_data.password)
     if not user:
         raise HTTPException(status_code=401, detail="Incorrect phone or password")
@@ -86,29 +108,35 @@ def get_me(current_user: User = Depends(get_current_user)):
 
 # ─────────────────────────── تایید ایمیل (کد یکبار مصرف) ───────────────────────────
 
-@router.post("/verify/email/request")
+@router.post("/verify/email/request", response_model=DevCodeMessageResponse, response_model_exclude_none=True)
 def request_email_verification(
     data: EmailVerifyRequest,
-    uow: UnitOfWork = Depends(get_unit_of_work)
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    _rate_limit: None = Depends(verification_rate_limit),
 ):
-    """درخواست کد تایید به ایمیل (روش رایگان). در حالت توسعه کد در dev_code برمی‌گردد."""
+    """درخواست کد تایید به ایمیل (روش رایگان).
+
+    dev_code تنها در صورتی در پاسخ برمی‌گردد که DEBUG_ALLOW_DEV_CODE=true باشد؛
+    در حالت عادی کد فقط در لاگ سمت سرور ثبت می‌شود.
+    """
     user = uow.users.get_by_phone(data.phone)
     if not user:
         raise HTTPException(status_code=404, detail="کاربر یافت نشد")
     if user.is_verified:
-        return {"message": "شماره شما از قبل تایید شده است", "dev_code": ""}
+        return {"message": "شماره شما از قبل تایید شده است"}
 
     dev_code = verification_service.request_email_code(data.phone, data.email)
-    return {
-        "message": "کد تایید به ایمیل شما ارسال شد",
-        "dev_code": dev_code,
-    }
+    resp = {"message": "کد تایید به ایمیل شما ارسال شد"}
+    if settings.DEBUG_ALLOW_DEV_CODE and dev_code:
+        resp["dev_code"] = dev_code
+    return resp
 
 
 @router.post("/verify/email/confirm")
 def confirm_email_verification(
     data: EmailVerifyConfirm,
-    uow: UnitOfWork = Depends(get_unit_of_work)
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    _rate_limit: None = Depends(verification_rate_limit),
 ):
     """تایید کد یکبار مصرف و فعال‌سازی امکان رزرو"""
     user = uow.users.get_by_phone(data.phone)
@@ -153,15 +181,17 @@ def change_password(
     return {"message": "رمز عبور با موفقیت تغییر کرد"}
 
 
-@router.post("/forgot-password")
+@router.post("/forgot-password", response_model=DevCodeMessageResponse, response_model_exclude_none=True)
 def forgot_password(
     data: ForgotPasswordRequest,
-    uow: UnitOfWork = Depends(get_unit_of_work)
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    _rate_limit: None = Depends(auth_rate_limit),
 ):
     """درخواست کد یکبار مصرف بازیابی رمز.
 
     برای جلوگیری از افشای وجود حساب، پاسخ همیشه یکسان است.
-    در حالت توسعه کد در dev_code برگردانده می‌شود.
+    کد بازیابی بدون DEBUG_ALLOW_DEV_CODE=true هرگز در پاسخ (dev_code)
+    برگردانده نمی‌شود و فقط در لاگ سمت سرور ثبت می‌گردد.
     """
     user = uow.users.get_by_phone(data.phone)
     generic = {"message": "اگر حسابی با این شماره وجود داشته باشد، کد بازیابی برای شما ارسال می‌شود."}
@@ -169,13 +199,17 @@ def forgot_password(
         return generic
 
     dev_code = verification_service.request_password_reset_code(data.phone)
-    return {"message": generic["message"], "dev_code": dev_code}
+    resp = {"message": generic["message"]}
+    if settings.DEBUG_ALLOW_DEV_CODE and dev_code:
+        resp["dev_code"] = dev_code
+    return resp
 
 
 @router.post("/reset-password")
 def reset_password(
     data: ResetPasswordRequest,
-    uow: UnitOfWork = Depends(get_unit_of_work)
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    _rate_limit: None = Depends(auth_rate_limit),
 ):
     """بازیابی رمز عبور با کد یکبار مصرف"""
     user = uow.users.get_by_phone(data.phone)

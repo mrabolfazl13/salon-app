@@ -3,6 +3,7 @@ from datetime import datetime, timedelta, timezone
 from app.unit_of_work import UnitOfWork
 from app.models.slot import SlotStatus
 from app.models.competition import CompetitionStatus
+from app.utils.time_guard import is_past_slot
 
 class CompetitionService:
     
@@ -11,6 +12,10 @@ class CompetitionService:
         slot = uow.slots.get_by_id(slot_id)
         if not slot:
             raise HTTPException(status_code=404, detail="Slot not found")
+
+        # نگهبان زمانی: شروع رقابت روی سانس گذشته مجاز نیست
+        if is_past_slot(slot.slot_date, slot.start_time):
+            raise HTTPException(status_code=400, detail="این سانس شروع شده و امکان رقابت قیمت وجود ندارد")
         
         venue = uow.venues.get_by_id(slot.venue_id)
         if venue.manager_id != manager_id:
@@ -75,12 +80,16 @@ class CompetitionService:
             best_bid = uow.competitions.get_best_bid(slot_id)
             
             if best_bid:
-                uow.slots.update(slot_id, {
-                    "current_price": best_bid.offered_price,
+                slot = uow.slots.get_by_id(slot_id)
+                updates = {
                     "competition_winner_id": best_bid.id,
                     "is_competition_enabled": False,
                     "status": SlotStatus.AVAILABLE
-                })
+                }
+                # نگهبان زمانی: قیمت سانس گذشته با قطعی‌شدن رقابت تغییر نمی‌کند
+                if slot is None or not is_past_slot(slot.slot_date, slot.start_time):
+                    updates["current_price"] = best_bid.offered_price
+                uow.slots.update(slot_id, updates)
                 uow.competitions.mark_as_won(best_bid.id)
                 resolved_count += 1
             else:

@@ -7,14 +7,32 @@ from app.repositories.venue_repository import VenueRepository, ClubRepository
 from app.repositories.slot_repository import SlotRepository
 from app.repositories.booking_repository import BookingRepository
 from app.repositories.competition_repository import CompetitionRepository
-from app.repositories.contract_repository import ContractRepository, ContractSlotRepository, ContractPaymentRepository
+from app.repositories.contract_repository import (
+    ContractRepository, ContractSlotRepository, ContractPaymentRepository,
+    ContractAuditEventRepository,
+)
 from app.repositories.review_repository import ReviewRepository
 from app.repositories.notification_repository import NotificationRepository
 from app.repositories.payment_repository import BookingPaymentRepository
+from app.repositories.transaction_repository import TransactionRepository, ExpenseCategoryRepository
 from app.repositories.game_repository import (
     GameRepository, GameParticipantRepository, GameJoinRequestRepository,
     GameInvitationRepository, GameInviteLinkRepository,
     GameWaitlistRepository, GamePaymentRepository,
+)
+from app.repositories.holiday_repository import HolidayRepository
+from app.repositories.pricing_rule_repository import PricingRuleRepository
+from app.repositories.coupon_repository import CouponRepository, CouponRedemptionRepository
+from app.repositories.loyalty_repository import LoyaltyRepository
+from app.repositories.favorite_repository import FavoriteVenueRepository
+from app.repositories.staff_repository import (StaffAssignmentRepository,
+                                                 SecurityAuditEventRepository)
+from app.repositories.customer_repository import (VenueCustomerRepository,
+                                                  CrmCampaignRepository)
+from app.repositories.team_repository import (
+    TeamRepository, TeamMemberRepository, TeamInvitationRepository,
+    TeamJoinRequestRepository, TeamBookingRepository, TeamDuesRepository,
+    TeamAuditEventRepository,
 )
 
 class UnitOfWork:
@@ -104,6 +122,12 @@ class UnitOfWork:
         return self._repositories["contract_payments"]
 
     @property
+    def contract_audits(self) -> ContractAuditEventRepository:
+        if "contract_audits" not in self._repositories:
+            self._repositories["contract_audits"] = ContractAuditEventRepository(self.session)
+        return self._repositories["contract_audits"]
+
+    @property
     def reviews(self) -> ReviewRepository:
         if "reviews" not in self._repositories:
             self._repositories["reviews"] = ReviewRepository(self.session)
@@ -120,6 +144,18 @@ class UnitOfWork:
         if "payments" not in self._repositories:
             self._repositories["payments"] = BookingPaymentRepository(self.session)
         return self._repositories["payments"]
+
+    @property
+    def transactions(self) -> TransactionRepository:
+        if "transactions" not in self._repositories:
+            self._repositories["transactions"] = TransactionRepository(self.session)
+        return self._repositories["transactions"]
+
+    @property
+    def expense_categories(self) -> ExpenseCategoryRepository:
+        if "expense_categories" not in self._repositories:
+            self._repositories["expense_categories"] = ExpenseCategoryRepository(self.session)
+        return self._repositories["expense_categories"]
 
     @property
     def games(self) -> GameRepository:
@@ -162,6 +198,108 @@ class UnitOfWork:
         if "game_payments" not in self._repositories:
             self._repositories["game_payments"] = GamePaymentRepository(self.session)
         return self._repositories["game_payments"]
+
+    @property
+    def holidays(self) -> HolidayRepository:
+        if "holidays" not in self._repositories:
+            self._repositories["holidays"] = HolidayRepository(self.session)
+        return self._repositories["holidays"]
+
+    @property
+    def pricing_rules(self) -> PricingRuleRepository:
+        if "pricing_rules" not in self._repositories:
+            self._repositories["pricing_rules"] = PricingRuleRepository(self.session)
+        return self._repositories["pricing_rules"]
+
+    @property
+    def coupons(self) -> CouponRepository:
+        if "coupons" not in self._repositories:
+            self._repositories["coupons"] = CouponRepository(self.session)
+        return self._repositories["coupons"]
+
+    @property
+    def coupon_redemptions(self) -> CouponRedemptionRepository:
+        if "coupon_redemptions" not in self._repositories:
+            self._repositories["coupon_redemptions"] = CouponRedemptionRepository(self.session)
+        return self._repositories["coupon_redemptions"]
+
+    @property
+    def loyalty(self) -> LoyaltyRepository:
+        if "loyalty" not in self._repositories:
+            self._repositories["loyalty"] = LoyaltyRepository(self.session)
+        return self._repositories["loyalty"]
+
+    @property
+    def teams(self) -> TeamRepository:
+        if "teams" not in self._repositories:
+            self._repositories["teams"] = TeamRepository(self.session)
+        return self._repositories["teams"]
+
+    @property
+    def team_members(self) -> TeamMemberRepository:
+        if "team_members" not in self._repositories:
+            self._repositories["team_members"] = TeamMemberRepository(self.session)
+        return self._repositories["team_members"]
+
+    @property
+    def team_invitations(self) -> TeamInvitationRepository:
+        if "team_invitations" not in self._repositories:
+            self._repositories["team_invitations"] = TeamInvitationRepository(self.session)
+        return self._repositories["team_invitations"]
+
+    @property
+    def team_join_requests(self) -> TeamJoinRequestRepository:
+        if "team_join_requests" not in self._repositories:
+            self._repositories["team_join_requests"] = TeamJoinRequestRepository(self.session)
+        return self._repositories["team_join_requests"]
+
+    @property
+    def team_bookings(self) -> TeamBookingRepository:
+        if "team_bookings" not in self._repositories:
+            self._repositories["team_bookings"] = TeamBookingRepository(self.session)
+        return self._repositories["team_bookings"]
+
+    @property
+    def team_dues(self) -> TeamDuesRepository:
+        if "team_dues" not in self._repositories:
+            self._repositories["team_dues"] = TeamDuesRepository(self.session)
+        return self._repositories["team_dues"]
+
+    @property
+    def team_audits(self) -> TeamAuditEventRepository:
+        if "team_audits" not in self._repositories:
+            self._repositories["team_audits"] = TeamAuditEventRepository(self.session)
+        return self._repositories["team_audits"]
+
+    @property
+    def staff(self) -> StaffAssignmentRepository:
+        if "staff" not in self._repositories:
+            self._repositories["staff"] = StaffAssignmentRepository(self.session)
+        return self._repositories["staff"]
+
+    @property
+    def security_audits(self) -> SecurityAuditEventRepository:
+        if "security_audits" not in self._repositories:
+            self._repositories["security_audits"] = SecurityAuditEventRepository(self.session)
+        return self._repositories["security_audits"]
+
+    @property
+    def customers(self) -> VenueCustomerRepository:
+        if "customers" not in self._repositories:
+            self._repositories["customers"] = VenueCustomerRepository(self.session)
+        return self._repositories["customers"]
+
+    @property
+    def crm_campaigns(self) -> CrmCampaignRepository:
+        if "crm_campaigns" not in self._repositories:
+            self._repositories["crm_campaigns"] = CrmCampaignRepository(self.session)
+        return self._repositories["crm_campaigns"]
+
+    @property
+    def favorites(self) -> FavoriteVenueRepository:
+        if "favorites" not in self._repositories:
+            self._repositories["favorites"] = FavoriteVenueRepository(self.session)
+        return self._repositories["favorites"]
 
 def get_unit_of_work():
     uow = UnitOfWork()

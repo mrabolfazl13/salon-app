@@ -7,7 +7,10 @@ from app.schemas.payment import PaymentCreate, PaymentPayRequest, PaymentRespons
 from app.models.booking import BookingStatus
 from app.models.payment import BookingPayment, BookingPaymentStatus
 from app.models.user import User
+from app.models.transaction import TransactionMethod, TransactionSourceType
+from app.services.finance_service import FinanceService
 from app.utils.auth import get_current_user
+from app.utils.rate_limit import payment_rate_limit
 from app.services.notification_service import notification_service
 
 router = APIRouter(prefix="/payments", tags=["Payments"])
@@ -41,6 +44,7 @@ def create_payment(
     data: PaymentCreate,
     uow: UnitOfWork = Depends(get_unit_of_work),
     current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(payment_rate_limit),
 ):
     """ایجاد فاکتور پرداخت برای یک رزرو تأییدشده (در انتظار پرداخت کاربر)"""
     booking = uow.bookings.get_by_id(data.booking_id)
@@ -80,6 +84,7 @@ async def pay_payment(
     data: PaymentPayRequest,
     uow: UnitOfWork = Depends(get_unit_of_work),
     current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(payment_rate_limit),
 ):
     """شبیه‌سازی درگاه پرداخت — تأیید پرداخت با اطلاعات کارت"""
     payment = uow.payments.get_by_id(payment_id)
@@ -113,12 +118,26 @@ async def pay_payment(
 
     # ثبت شناسه تراکنش روی رزرو
     booking = uow.bookings.get_by_id(payment.booking_id)
+    slot = uow.slots.get_by_id(booking.slot_id) if booking else None
     if booking:
         uow.bookings.update(booking.id, {"payment_transaction_id": transaction_id})
+
+    # دفتر کل: درآمد پرداخت رزرو (append-only، idempotency با شناسه فاکتور)
+    FinanceService.record_income(
+        uow,
+        amount=payment.amount,
+        source_type=TransactionSourceType.BOOKING_PAYMENT,
+        source_id=payment.id,
+        venue_id=slot.venue_id if slot else None,
+        counterparty_user_id=payment.user_id,
+        method=TransactionMethod.GATEWAY,
+        description=f"پرداخت رزرو #{payment.booking_id}",
+        idempotency_key=f"booking-payment:{payment.id}",
+        created_by=current_user.id,
+    )
     uow.commit()
 
     # اعلان‌ها
-    slot = uow.slots.get_by_id(booking.slot_id) if booking else None
     venue = uow.venues.get_by_id(slot.venue_id) if slot else None
     venue_name = venue.name if venue else "نامشخص"
     date_str = str(slot.slot_date) if slot else ""

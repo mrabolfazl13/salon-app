@@ -177,6 +177,7 @@ def create_venue(
         "amenities": json.dumps(venue_data.amenities),
         "images": json.dumps(venue_data.images),
         "manager_id": current_user.id,
+        "default_slot_price": venue_data.default_slot_price,
     })
     
     uow.commit()
@@ -207,6 +208,7 @@ def update_venue(
         "description": venue_data.description,
         "amenities": json.dumps(venue_data.amenities),
         "images": json.dumps(venue_data.images),
+        "default_slot_price": venue_data.default_slot_price,
     }
     
     venue = uow.venues.update(venue_id, update_data)
@@ -251,25 +253,37 @@ def set_venue_prices(
         raise HTTPException(status_code=403, detail="Access denied")
     
     # prices format: {"17:00": 300000, "18:30": 350000, ...}
-    # Update prices for slots on this venue
+    # فقط سانس‌های امروز (از ساعت شروع به بعد) و آینده قیمت‌گذاری می‌شوند؛
+    # سانس‌های گذشته هرگز تغییر قیمت نمی‌دهند.
     from app.models.slot import Slot
     from sqlmodel import select
-    from datetime import date
+    from app.utils.time_guard import is_past_slot
     
     # Get all slots for this venue
     statement = select(Slot).where(Slot.venue_id == venue_id)
     slots = uow.session.exec(statement).all()
     
+    updated_slots = 0
+    skipped_past = 0
     for slot in slots:
         slot_time = slot.start_time.strftime("%H:%M")
-        if slot_time in prices:
-            price = int(prices[slot_time])
-            slot.base_price = price
-            slot.current_price = price
+        if slot_time not in prices:
+            continue
+        if is_past_slot(slot.slot_date, slot.start_time):
+            skipped_past += 1
+            continue
+        price = int(prices[slot_time])
+        slot.base_price = price
+        slot.current_price = price
+        updated_slots += 1
     
     uow.commit()
     
-    return {"message": f"Prices updated for {len(slots)} slots"}
+    return {
+        "message": f"Prices updated for {updated_slots} slots",
+        "updated": updated_slots,
+        "skipped_past": skipped_past,
+    }
 
 @router.get("/{venue_id}/prices")
 def get_venue_prices(

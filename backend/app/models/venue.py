@@ -19,6 +19,8 @@ class Venue(SQLModel, table=True):
     is_verified: bool = Field(default=False)
     manager_id: int = Field(foreign_key="users.id")
     club_id: Optional[int] = Field(foreign_key="clubs.id", default=None)
+    # مبنای پیش‌فرض قیمت سانس برای تولید خودکار + موتور قیمت (null ⇒ config.DEFAULT_SLOT_PRICE)
+    default_slot_price: Optional[int] = Field(default=None)
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     
     manager: "User" = Relationship(back_populates="managed_venues")

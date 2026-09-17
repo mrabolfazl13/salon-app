@@ -22,9 +22,11 @@ class User(SQLModel, table=True):
     created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_login: Optional[datetime] = None
+    notify_deals: bool = Field(default=False)  # اشتراک اعلان سانس‌های تخفیفی
     
     managed_venues: List["Venue"] = Relationship(back_populates="manager")
     bookings: List["Booking"] = Relationship(back_populates="user")
     competitions: List["PriceCompetition"] = Relationship(back_populates="venue_manager")
-    contracts: List["Contract"] = Relationship(back_populates="user")
+    contracts: List["Contract"] = Relationship(back_populates="user",
+                                         sa_relationship_kwargs={"foreign_keys": "[Contract.user_id]"})
     reviews: List["Review"] = Relationship(back_populates="user")

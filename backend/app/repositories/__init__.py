@@ -13,6 +13,11 @@ from .game_repository import (
     GameInvitationRepository, GameInviteLinkRepository,
     GameWaitlistRepository, GamePaymentRepository,
 )
+from .holiday_repository import HolidayRepository
+from .pricing_rule_repository import PricingRuleRepository
+from .coupon_repository import CouponRepository, CouponRedemptionRepository
+from .loyalty_repository import LoyaltyRepository
+from .favorite_repository import FavoriteVenueRepository
 
 __all__ = [
     "BaseRepository",
@@ -35,4 +40,7 @@ __all__ = [
     "GameInviteLinkRepository",
     "GameWaitlistRepository",
     "GamePaymentRepository",
+    "HolidayRepository", "PricingRuleRepository",
+    "CouponRepository", "CouponRedemptionRepository",
+    "LoyaltyRepository", "FavoriteVenueRepository",
 ]

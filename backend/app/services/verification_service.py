@@ -1,8 +1,9 @@
 # backend/app/services/verification_service.py
 """سرویس تأیید هویت کاربر — کد یکبار مصرف (OTP) ارسال‌شده به ایمیل
 
-روش رایگان: ارسال کد به ایمیل. اگر SMTP پیکربندی نشده باشد (حالت توسعه)،
-کد در پاسخ API و لاگ برمی‌گردد تا فرآیند قابل تست باشد.
+روش رایگان: ارسال کد به ایمیل. در نبود SMTP، فقط «درخواست کد برای فلان
+شماره» در لاگ ثبت می‌شود — هرگز خودِ کد. قرار دادن کد در پاسخ API
+(dev_code) تنها با flag توسعه DEBUG_ALLOW_DEV_CODE=true مجاز است.
 """
 import logging
 import random
@@ -43,16 +44,18 @@ def _hash_code(code: str) -> str:
 def request_email_code(phone: str, email: str) -> str:
     """تولید کد و ارسال به ایمیل.
 
-    برگشتی: در حالت توسعه (بدون SMTP) خودِ کد را برمی‌گرداند، وگرنه رشته خالی.
+    برگشتی: خودِ کد فقط وقتی DEBUG_ALLOW_DEV_CODE روشن است برمی‌گردد؛ وگرنه رشته خالی.
     """
     code = f"{random.randint(0, 999999):06d}"
     _get_redis().set(_code_key(phone), _hash_code(code), ex=OTP_TTL_SECONDS)
 
     sent = _send_email(email, code)
     if not sent:
-        logger.warning("SMTP not configured — verification code for %s (phone %s): %s", email, phone, code)
-        return code
-    return ""
+        # هرگز مقدار کد در لاگ ثبت نمی‌شود — فقط اینکه برای چه کسی کد درخواست شد
+        logger.warning("verification code requested for email %s (phone %s) — SMTP not configured",
+                       email, phone)
+    # افشای کد در پاسخ API فقط با flag توسعه؛ در لاگ هیچ‌وقت مقدار کد نمی‌ماند
+    return code if settings.DEBUG_ALLOW_DEV_CODE else ""
 
 
 def confirm_code(phone: str, code: str) -> bool:
@@ -69,13 +72,15 @@ def confirm_code(phone: str, code: str) -> bool:
 def request_password_reset_code(phone: str) -> str:
     """تولید کد یکبار مصرف بازیابی رمز.
 
-    چون درگاه پیامک در دسترس نیست، کد همیشه در حالت توسعه برگردانده
-    می‌شود (dev_code) تا کاربر بتواند جریان را کامل کند.
+    کد بازیابی هیچ‌جا (لاگ یا پاسخ) افشا نمی‌شود؛ در پاسخ API
+    (dev_code) تنها با DEBUG_ALLOW_DEV_CODE=true بازگردانده می‌شود.
     """
     code = f"{random.randint(0, 999999):06d}"
     _get_redis().set(_reset_key(phone), _hash_code(code), ex=OTP_TTL_SECONDS)
-    logger.info("password reset code for %s: %s", phone, code)
-    return code
+    # مقدار کد هرگز لاگ نمی‌شود — دفتر لاگ‌ها کانال کم‌امنیت است
+    logger.info("password reset code requested for phone %s", phone)
+    # بدون flag توسعه، کد هرگز در پاسخ API قرار نمی‌گیرد
+    return code if settings.DEBUG_ALLOW_DEV_CODE else ""
 
 
 def confirm_reset_code(phone: str, code: str) -> bool:

@@ -53,6 +53,35 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, settings.JWT_SECRET, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
 
+
+def decode_access_token(token: Optional[str]) -> Optional[dict]:
+    """اعتبارسنجی و decode کردن JWT. در صورت نامعتبر/منقضی بودن None برمی‌گرداند.
+
+    بین وابستگی احراز هویت HTTP (get_current_user) و نقاط پایانی WebSocket مشترک است.
+    """
+    if not token:
+        return None
+    try:
+        return jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
+    except JWTError:
+        return None
+
+
+def get_user_by_token(token: Optional[str], session: Session) -> Optional[User]:
+    """کاربر متناظر با یک JWT معتبر را از دیتابیس پیدا می‌کند.
+
+    در صورت توکن خراب/منقضی یا نبودِ کاربر None برمی‌گرداند (بدون raise؛
+    تشخیص وضعیت کاربر غیرفعال با فراخوان است). بدون این، نقطه پایان
+    WebSocket نباید به وابستگی HTTP Bearer متصل باشد.
+    """
+    payload = decode_access_token(token)
+    if payload is None:
+        return None
+    phone = payload.get("sub")
+    if not phone:
+        return None
+    return session.exec(select(User).where(User.phone == phone)).first()
+
 async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     session: Session = Depends(get_session)
@@ -63,16 +92,9 @@ async def get_current_user(
         detail="Could not validate credentials",
         headers={"WWW-Authenticate": "Bearer"},
     )
-    try:
-        payload = jwt.decode(token, settings.JWT_SECRET, algorithms=[settings.JWT_ALGORITHM])
-        phone: str = payload.get("sub")
-        if phone is None:
-            raise credentials_exception
-        token_data = TokenData(phone=phone)
-    except JWTError:
+    if decode_access_token(token) is None:
         raise credentials_exception
-    
-    user = session.exec(select(User).where(User.phone == token_data.phone)).first()
+    user = get_user_by_token(token, session)
     if user is None:
         raise credentials_exception
     if not user.is_active:

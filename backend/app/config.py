@@ -10,8 +10,28 @@ class Settings(BaseSettings):
     ADMIN_PHONE: str = "09123456789"
     ADMIN_PASSWORD: str = "admin123"
     PENDING_BOOKING_TTL_HOURS: int = 4
+    # موتور قیمت — مبنای پیش‌فرض تولید سانس (null بودن venue.default_slot_price)
+    DEFAULT_SLOT_PRICE: int = 200000
+    # وفاداری: هر LOYALTY_RIALS_PER_POINT ریالِ پرداختی = ۱ امتیاز؛
+    # ارزش هر امتیاز در خرج هم همین ریال است (سرعت ۱:۱ ساده و قابل تنظیم از env)
+    LOYALTY_RIALS_PER_POINT: int = 10000
+    # تیم: سقف اعضای (قطعی + در انتظار پاسخ) هر تیم
+    TEAM_MAX_MEMBERS: int = 50
+    # سقف خرج امتیاز: حداکثر چند درصد قیمت نهایی (قبل کوپن) با امتیاز تخفیف بگیرد
+    LOYALTY_REDEEM_MAX_PERCENT: int = 50
+    # CRM: سقف کمپین بازاریابی به‌ازای هر سالن در هر روز (brief §4)
+    CRM_CAMPAIGN_DAILY_LIMIT: int = 1
 
-    # SMTP برای ارسال کد تأیید ایمیل — اگر خالی باشد، حالت توسعه (کد در پاسخ/لاگ برمی‌گردد)
+    # محیط اجرا — در production فقط Alembic اسکیما را می‌سازد (create_all غیرفعال)
+    APP_ENV: str = "development"
+    # ساخت خودکار جداول هنگام استارت — فقط مسیر توسعه؛ با false کاملاً خاموش می‌شود
+    AUTO_CREATE_ALL: bool = True
+    # لاگ کوئری‌های SQL (به‌جای مقدار هاردکدشده‌ی قدیمی)
+    DB_ECHO: bool = False
+    # افشای کد توسعه‌ای (dev_code) در پاسخ API — فقط وقتی روشن باشد؛ وگرنه کد فقط در لاگ سرور
+    DEBUG_ALLOW_DEV_CODE: bool = False
+
+    # SMTP برای ارسال کد تأیید ایمیل — اگر خالی باشد، کد فقط لاگ می‌شود
     SMTP_HOST: str = ""
     SMTP_PORT: int = 587
     SMTP_USER: str = ""

@@ -1,11 +1,16 @@
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from typing import List
+import json
 from datetime import date
 from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.schemas.booking import BookingCreate, BookingResponse, BookingDetailResponse, PendingBookingResponse
 from app.services.booking_service import BookingService
 from app.services.pending_booking_service import pending_booking_service
+from app.services.finance_service import FinanceService
 from app.utils.auth import get_current_user, get_current_manager
+from app.utils.permissions import Perm
+from app.utils.staff_access import ensure_venue_permission
+from app.utils.rate_limit import booking_rate_limit
 from app.models.user import User, UserRole
 from app.models.slot import SlotStatus
 from app.services.notification_service import notification_service
@@ -21,6 +26,21 @@ def _check_venue_manager(uow: UnitOfWork, venue_id: int, current_user: User) -> 
     if venue.manager_id != current_user.id and current_user.role != UserRole.SUPER_ADMIN:
         raise HTTPException(status_code=403, detail="Access denied")
     return venue
+
+
+def _venue_image_list(venue) -> list:
+    """تصاویر سالن از JSON رشته‌ای به لیست اسامی/URLها"""
+    import json
+    if not venue or not getattr(venue, "images", None):
+        return []
+    raw = venue.images
+    if isinstance(raw, list):
+        return [str(x) for x in raw]
+    try:
+        parsed = json.loads(raw)
+        return parsed if isinstance(parsed, list) else []
+    except (ValueError, TypeError):
+        return []
 
 
 def _enrich_pending(uow: UnitOfWork, records: list) -> list:
@@ -40,9 +60,12 @@ def _enrich_pending(uow: UnitOfWork, records: list) -> list:
         if slot:
             venue = venues.get(slot.venue_id)
             data["venue_name"] = venue.name if venue else None
+            data["venue_images"] = _venue_image_list(venue)
             data["slot_date"] = slot.slot_date
             data["start_time"] = slot.start_time
             data["duration"] = slot.duration
+        if isinstance(data.get("pricing_breakdown"), str):
+            data["pricing_breakdown"] = json.loads(data["pricing_breakdown"])
         enriched.append(PendingBookingResponse(**data))
     return enriched
 
@@ -62,11 +85,13 @@ def get_my_pending_bookings(
 @router.get("/venue/{venue_id}/pending", response_model=List[PendingBookingResponse])
 def get_venue_pending_bookings(
     venue_id: int,
+    request: Request,
     uow: UnitOfWork = Depends(get_unit_of_work),
-    current_user: User = Depends(get_current_manager)
+    current_user: User = Depends(get_current_user)
 ):
-    """رزروهای در انتظار تأیید یک سالن - فقط مدیر همان سالن"""
-    _check_venue_manager(uow, venue_id, current_user)
+    """رزروهای در انتظار تأیید یک سالن — مالک سالن یا کارکنان با booking.pending_list"""
+    ensure_venue_permission(uow, current_user, venue_id,
+                            [Perm.BOOKING_PENDING_LIST], request)
     records = pending_booking_service.list_by_venue(venue_id)
     return _enrich_pending(uow, records)
 
@@ -74,14 +99,16 @@ def get_venue_pending_bookings(
 @router.post("/pending/{pending_id}/confirm", response_model=BookingResponse)
 async def confirm_pending_booking(
     pending_id: str,
+    request: Request,
     uow: UnitOfWork = Depends(get_unit_of_work),
-    current_user: User = Depends(get_current_manager)
+    current_user: User = Depends(get_current_user)
 ):
-    """تأیید رزرو معلق توسط مدیر سالن → ذخیره در دیتابیس"""
+    """تأیید رزرو معلق — مدیر سالن یا کارکنان با booking.confirm → ذخیره در دیتابیس"""
     pending = pending_booking_service.get(pending_id)
     if not pending:
         raise HTTPException(status_code=404, detail="Pending booking not found")
-    _check_venue_manager(uow, pending["venue_id"], current_user)
+    ensure_venue_permission(uow, current_user, pending["venue_id"],
+                            [Perm.BOOKING_CONFIRM], request)
 
     booking = BookingService.confirm_pending(uow, pending)
     uow.commit()
@@ -96,25 +123,35 @@ async def confirm_pending_booking(
             "time": str(slot.start_time) if slot else "",
         }
     )
-    return booking
+    # commit باعث expire شدن نمونه می‌شود؛ قبل از model_dump تازه‌سازی لازم است
+    uow.session.refresh(booking)
+    data = booking.model_dump()
+    if isinstance(data.get("pricing_breakdown"), str):
+        data["pricing_breakdown"] = json.loads(data["pricing_breakdown"])
+    return BookingResponse(**data)
 
 
 @router.post("/pending/{pending_id}/reject")
 async def reject_pending_booking(
     pending_id: str,
+    request: Request,
     uow: UnitOfWork = Depends(get_unit_of_work),
-    current_user: User = Depends(get_current_manager)
+    current_user: User = Depends(get_current_user)
 ):
-    """رد رزرو معلق توسط مدیر سالن → آزاد شدن سانس"""
+    """رد رزرو معلق — مدیر سالن یا کارکنان با booking.confirm → آزاد شدن سانس"""
     pending = pending_booking_service.get(pending_id)
     if not pending:
         raise HTTPException(status_code=404, detail="Pending booking not found")
-    _check_venue_manager(uow, pending["venue_id"], current_user)
+    ensure_venue_permission(uow, current_user, pending["venue_id"],
+                            [Perm.BOOKING_CONFIRM], request)
 
     pending_booking_service.remove(pending_id)
     slot = uow.slots.get_by_id(pending["slot_id"])
     if slot and slot.status == SlotStatus.BOOKED:
-        uow.slots.update(slot.id, {"status": SlotStatus.AVAILABLE})
+        # سانس قرارداد پس از رد شدن دوباره RESERVED می‌شود، نه AVAILABLE
+        restore = SlotStatus.RESERVED if slot.is_contract_slot else SlotStatus.AVAILABLE
+        uow.slots.update(slot.id, {"status": restore})
+    BookingService.release_pending_promotions(uow, pending)
     uow.commit()
 
     venue = uow.venues.get_by_id(pending["venue_id"])
@@ -140,7 +177,9 @@ async def cancel_pending_booking(
     pending_booking_service.remove(pending_id)
     slot = uow.slots.get_by_id(pending["slot_id"])
     if slot and slot.status == SlotStatus.BOOKED:
-        uow.slots.update(slot.id, {"status": SlotStatus.AVAILABLE})
+        restore = SlotStatus.RESERVED if slot.is_contract_slot else SlotStatus.AVAILABLE
+        uow.slots.update(slot.id, {"status": restore})
+    BookingService.release_pending_promotions(uow, pending)
     uow.commit()
 
     await notification_service.notify_booking_cancelled(current_user.id, {})
@@ -153,7 +192,8 @@ async def cancel_pending_booking(
 async def create_booking(
     booking_data: BookingCreate,
     uow: UnitOfWork = Depends(get_unit_of_work),
-    current_user: User = Depends(get_current_user)
+    current_user: User = Depends(get_current_user),
+    _rate_limit: None = Depends(booking_rate_limit),
 ):
     """ثبت رزرو — ابتدا در انتظار تأیید مدیر سالن قرار می‌گیرد (Redis)"""
     if current_user.role == UserRole.USER and not current_user.is_verified:
@@ -162,7 +202,12 @@ async def create_booking(
             detail="برای رزرو، ابتدا ایمیل یا شماره موبایل خود را تایید کنید"
         )
 
-    pending = BookingService.create_booking(uow, booking_data.slot_id, current_user.id)
+    pending = BookingService.create_booking(
+        uow, booking_data.slot_id, current_user.id,
+        current_user=current_user,
+        discount_code=booking_data.discount_code,
+        use_loyalty_points=booking_data.use_loyalty_points,
+    )
     uow.commit()
 
     slot = uow.slots.get_by_id(booking_data.slot_id)
@@ -180,9 +225,15 @@ async def create_booking(
     data = dict(pending)
     if slot:
         data["venue_name"] = venue.name if venue else None
+        data["venue_images"] = _venue_image_list(venue)
         data["slot_date"] = slot.slot_date
         data["start_time"] = slot.start_time
         data["duration"] = slot.duration
+    for k in ("discount_amount", "coupon_code", "loyalty_points_used", "pricing_breakdown"):
+        if k in pending:
+            data[k] = pending[k]
+    if isinstance(data.get("pricing_breakdown"), str):
+        data["pricing_breakdown"] = json.loads(data["pricing_breakdown"])
     return PendingBookingResponse(**data)
 
 def _enrich_bookings(uow: UnitOfWork, bookings: list) -> list:
@@ -202,9 +253,12 @@ def _enrich_bookings(uow: UnitOfWork, bookings: list) -> list:
         if slot:
             venue = venues.get(slot.venue_id)
             data["venue_name"] = venue.name if venue else None
+            data["venue_images"] = _venue_image_list(venue)
             data["slot_date"] = slot.slot_date
             data["start_time"] = slot.start_time
             data["duration"] = slot.duration
+        if isinstance(data.get("pricing_breakdown"), str):
+            data["pricing_breakdown"] = json.loads(data["pricing_breakdown"])
         enriched.append(BookingResponse(**data))
     return enriched
 
@@ -245,13 +299,14 @@ def get_past_bookings(
 @router.get("/venue/{venue_id}", response_model=List[BookingResponse])
 def get_venue_bookings(
     venue_id: int,
+    request: Request,
     start_date: date = Query(None, description="تاریخ شروع"),
     end_date: date = Query(None, description="تاریخ پایان"),
     uow: UnitOfWork = Depends(get_unit_of_work),
-    current_user: User = Depends(get_current_manager)
+    current_user: User = Depends(get_current_user)
 ):
-    """دریافت رزروهای قطعی یک سالن - فقط مدیر سالن"""
-    _check_venue_manager(uow, venue_id, current_user)
+    """دریافت رزروهای قطعی یک سالن — مدیر سالن یا کارکنان با booking.view"""
+    ensure_venue_permission(uow, current_user, venue_id, [Perm.BOOKING_VIEW], request)
     
     from datetime import date as dt_date
     if not start_date:
@@ -264,20 +319,22 @@ def get_venue_bookings(
 @router.get("/{booking_id}", response_model=BookingDetailResponse)
 def get_booking_detail(
     booking_id: int,
+    request: Request,
     uow: UnitOfWork = Depends(get_unit_of_work),
     current_user: User = Depends(get_current_user)
 ):
-    """جزئیات یک رزرو + آخرین فاکتور پرداخت — مالک، مدیر سالن، یا سرپرست"""
+    """جزئیات یک رزرو + آخرین فاکتور پرداخت — مالک، مدیر/کارکنان سالن (booking.view)، سرپرست"""
     booking = uow.bookings.get_by_id(booking_id)
     if not booking:
         raise HTTPException(status_code=404, detail="Booking not found")
 
     if booking.user_id != current_user.id and current_user.role != UserRole.SUPER_ADMIN:
-        # دسترسی مدیر سالن: سانس → سالن → manager_id
+        # دسترسی سلسله‌مراتبی: سانس → سالن → مالک/کارکنان با booking.view
         slot = uow.slots.get_by_id(booking.slot_id)
-        venue = uow.venues.get_by_id(slot.venue_id) if slot else None
-        if not venue or venue.manager_id != current_user.id:
+        if slot is None:
             raise HTTPException(status_code=403, detail="Access denied")
+        ensure_venue_permission(uow, current_user, slot.venue_id,
+                                [Perm.BOOKING_VIEW], request)
 
     data = _enrich_bookings(uow, [booking])[0].model_dump()
     payment = uow.payments.get_latest_for_booking(booking_id)
@@ -303,6 +360,19 @@ async def cancel_booking(
     if paid_payment:
         uow.payments.update(paid_payment.id, {"status": BookingPaymentStatus.REFUNDED})
         refunded_amount = paid_payment.amount
+        # دفتر کل: ردیف بازگشت وجه متناظر با پرداخت اولیه — ردیف اصلی دست‌نخورده
+        paid_tx = uow.transactions.get_by_idempotency_key(f"booking-payment:{paid_payment.id}")
+        slot = uow.slots.get_by_id(result.slot_id) if result and result.slot_id else None
+        FinanceService.record_refund(
+            uow,
+            amount=refunded_amount,
+            original_source_id=paid_payment.id,
+            venue_id=slot.venue_id if slot else None,
+            counterparty_user_id=paid_payment.user_id,
+            description=f"بازگشت وجه لغو رزرو #{booking_id}",
+            idempotency_key=f"booking-refund:{paid_payment.id}",
+            created_by=current_user.id,
+        )
 
     uow.commit()
 

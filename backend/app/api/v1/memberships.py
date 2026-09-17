@@ -16,6 +16,15 @@ from app.models.membership import (
 )
 from app.models.user import User
 from app.models.venue import Venue
+from app.models.transaction import (
+    FinancialTransaction,
+    TransactionDirection,
+    TransactionMethod,
+    TransactionSourceType,
+    TransactionStatus,
+    TransactionType,
+    CounterpartyType,
+)
 from app.schemas.membership import (
     MembershipPayRequest,
     MembershipPlanCreate,
@@ -223,6 +232,27 @@ def pay_purchase(
     elif plan.plan_type == PlanType.MONTHLY:
         purchase.expires_at = now + timedelta(days=plan.duration_days or 30)
     session.add(purchase)
+
+    # دفتر کل: درآمد خرید اشتراک (append-only، idempotency با شناسه فاکتور)
+    ledger_key = f"membership-purchase:{purchase.id}"
+    if not session.exec(select(FinancialTransaction).where(
+            FinancialTransaction.idempotency_key == ledger_key)).first():
+        session.add(FinancialTransaction(
+            idempotency_key=ledger_key,
+            type=TransactionType.PAYMENT,
+            direction=TransactionDirection.INCOME,
+            amount=purchase.amount,
+            method=TransactionMethod.GATEWAY,
+            status=TransactionStatus.CLEARED,
+            counterparty=purchase.user_id,
+            counterparty_type=CounterpartyType.USER,
+            venue_id=purchase.venue_id,
+            source_type=TransactionSourceType.MEMBERSHIP_PURCHASE,
+            source_id=purchase.id,
+            description=f"خرید اشتراک «{plan.title}»",
+            created_by=current_user.id,
+            cleared_at=now,
+        ))
     session.commit()
     session.refresh(purchase)
     return _purchase_response(session, purchase)

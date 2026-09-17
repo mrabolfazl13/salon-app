@@ -18,6 +18,9 @@ class VenueBase(BaseModel):
     amenities: List[str] = Field(default_factory=list)
     images: List[str] = Field(default_factory=list)
     price: Optional[int] = Field(default=None, description="قیمت هر جلسه (حداقل قیمت)")
+    default_slot_price: Optional[int] = Field(
+        default=None, ge=1,
+        description="مبنای پیش‌فرض قیمت سانس (قابل تنظیم توسط مدیر)")
 
 class VenueCreate(VenueBase):
     pass
@@ -51,6 +54,7 @@ class VenueResponse(VenueBase):
             "club_id": venue.club_id,
             "created_at": venue.created_at,
             "price": min_price or 0,
+            "default_slot_price": venue.default_slot_price,
             "average_rating": average_rating or 0.0,
             "total_reviews": total_reviews or 0,
         }

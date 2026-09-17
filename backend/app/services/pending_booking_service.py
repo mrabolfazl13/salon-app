@@ -49,8 +49,9 @@ class PendingBookingService:
         """آیا برای این سانس رزرو در انتظار تأیید وجود دارد؟"""
         return _get_redis().exists(_slot_key(slot_id)) > 0
 
-    def create(self, slot_id: int, venue_id: int, user_id: int, payment_amount: int) -> dict:
-        """ایجاد رزرو معلق در Redis"""
+    def create(self, slot_id: int, venue_id: int, user_id: int, payment_amount: int,
+               extra: Optional[dict] = None) -> dict:
+        """ایجاد رزرو معلق در Redis — extra: اجزای قیمت سرویشده (کوپن/امتیاز/breakdown)"""
         r = _get_redis()
         pid = uuid.uuid4().hex
         now = datetime.now(timezone.utc)
@@ -64,6 +65,8 @@ class PendingBookingService:
             "payment_amount": payment_amount,
             "expires_at": (now + PENDING_TTL).isoformat(),
         }
+        if extra:
+            record.update(extra)
         ttl = int(PENDING_TTL.total_seconds())
         pipe = r.pipeline()
         pipe.set(_booking_key(pid), json.dumps(record), ex=ttl)
