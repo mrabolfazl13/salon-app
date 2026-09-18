@@ -212,6 +212,19 @@ export function useCompleteGame(gameId: number) {
   })
 }
 
+/** ثبت نتیجه بازی — برگزارکننده/ادمین؛ به هر برنده امتیاز وفاداری برد اضافه میشود */
+export function useSetGameResult(gameId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (winnerIds: number[]) => gameService.setResult(gameId, winnerIds),
+    onSuccess: () => {
+      invalidateGameScope(qc, gameId)
+      qc.invalidateQueries({ queryKey: ['loyalty', 'me'] })
+    },
+    onError: (error) => syncOnConflict(qc, error, gameId),
+  })
+}
+
 export function useJoinGame(gameId: number) {
   const qc = useQueryClient()
   return useMutation({

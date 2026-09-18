@@ -15,7 +15,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAcceptTeamInvitation, useDeclineTeamInvitation, useMyTeamInvitations, useMyTeams, useTeamJoinRequests } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
 import { TeamFormDialog } from '@/components/team'
-import { SPORT_EMOJI, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
+import { SPORT_EMOJI, TeamQuotaProgress, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
 import type { Team, TeamInvitation } from '@/types/team'
 import { TEAM_MEMBER_STATUS_LABELS, TEAM_ROLE_LABELS } from '@/types/team'
 import { toPersianDigits } from '@/lib/jalali'
@@ -172,11 +172,14 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
                 </Typography>
               )}
             </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 'auto' }}>
-              <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: '#334155', fontSize: '0.75rem', fontWeight: 700 }}>
-                <Icon icon="mdi:account-group-outline" style={{ width: 15, height: 15 }} />
-                {`${toPersianDigits(team.member_count)} نفر`}
-              </Box>
+            <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+              <TeamQuotaProgress
+                memberCount={team.member_count}
+                quota={team.quota}
+                isOfficial={team.is_official}
+                showHint
+                compact
+              />
               <JoinRequestsBadge team={team} />
             </Box>
           </Box>

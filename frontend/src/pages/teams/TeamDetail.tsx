@@ -18,11 +18,13 @@ import {
   SPORT_EMOJI,
   TeamBalancePanel,
   TeamBookingsPanel,
+  TeamChatPanel,
   TeamDuesPanel,
   TeamFormDialog,
   TeamInviteDialog,
   TeamJoinRequestList,
   TeamMemberList,
+  TeamQuotaProgress,
   TeamVisibilityChip,
   TeamRoleBadge,
   getTeamError,
@@ -37,6 +39,7 @@ import {
   useTeam,
   useTeamJoinRequests,
   useTeamMembers,
+  useTeamUnreadCount,
 } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
 import { useAuthStore } from '@/store/authStore'
@@ -71,6 +74,7 @@ const TeamDetail: React.FC = () => {
 
   const membersQ = useTeamMembers(teamId, !!team && (isViewer || team.visibility !== 'private'))
   const joinRequestsQ = useTeamJoinRequests(teamId, isManager && team?.is_active === true)
+  const unreadQ = useTeamUnreadCount(teamId, isMember, 15000)
   const myInvitesQ = useMyTeamInvitations(isAuthenticated)
   const myInvitation = useMemo(
     () => (myInvitesQ.data ?? []).find((i) => i.team_id === teamId && i.status === 'pending' && i.member_id),
@@ -124,7 +128,6 @@ const TeamDetail: React.FC = () => {
     return <Layout><ErrorState description="بارگذاری تیم ممکن نشد." onRetry={() => teamQ.refetch()} /></Layout>
   }
 
-  const memberCountLabel = `${toPersianDigits(team.member_count)} عضو`
   const openRequests = joinRequestsQ.data?.length ?? 0
 
   const handleLeave = () => {
@@ -166,6 +169,7 @@ const TeamDetail: React.FC = () => {
 
   const tabs: { label: string; show: boolean; badge?: number }[] = [
     { label: 'اعضا', show: true },
+    { label: 'گفتگو', show: isMember, badge: unreadQ.data?.unread },
     { label: 'درخواست‌ها', show: isManager && team.is_active, badge: openRequests },
     { label: 'بازی‌ها و رزروها', show: isMember },
     { label: 'حصه‌ها', show: isMember },
@@ -244,10 +248,12 @@ const TeamDetail: React.FC = () => {
               {team.my_role && <TeamRoleBadge role={team.my_role} />}
             </Box>
           </Box>
-          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, color: '#334155', fontWeight: 800, fontSize: '0.85rem' }}>
-            <Icon icon="mdi:account-group-outline" style={{ width: 18, height: 18 }} />
-            {memberCountLabel}
-          </Box>
+          <TeamQuotaProgress
+            memberCount={team.member_count}
+            quota={team.quota}
+            isOfficial={team.is_official}
+            showHint={isMember || isManager}
+          />
         </Box>
 
         <Divider sx={{ my: 2 }} />
@@ -343,6 +349,8 @@ const TeamDetail: React.FC = () => {
       {currentTab === 'درخواست‌ها' && (
         <TeamJoinRequestList teamId={teamId} requests={joinRequestsQ.data ?? []} />
       )}
+
+      {currentTab === 'گفتگو' && <TeamChatPanel teamId={teamId} />}
 
       {currentTab === 'بازی‌ها و رزروها' && <TeamBookingsPanel team={team} />}
       {currentTab === 'حصه‌ها' && <TeamDuesPanel team={team} members={membersQ.data ?? []} isManager={isManager} />}

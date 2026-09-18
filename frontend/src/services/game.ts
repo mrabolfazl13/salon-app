@@ -22,6 +22,7 @@ import type {
   GamePaymentSummary,
   PayShareResponse,
   MessageResponse,
+  GameResultResponse,
 } from '@/types/game'
 
 export const gameService = {
@@ -113,6 +114,12 @@ export const gameService = {
 
   complete: async (gameId: number): Promise<Game> => {
     const response = await apiClient.post(`/games/${gameId}/complete`)
+    return response.data
+  },
+
+  /** ثبت نتیجه بازی (لیست برندگان) + امتیاز وفاداری برد — برگزارکننده یا ادمینِ بازی */
+  setResult: async (gameId: number, winnerIds: number[]): Promise<GameResultResponse> => {
+    const response = await apiClient.post(`/games/${gameId}/result`, { winner_ids: winnerIds })
     return response.data
   },
 

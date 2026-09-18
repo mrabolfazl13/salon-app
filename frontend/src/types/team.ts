@@ -17,6 +17,9 @@ export interface Team {
   captain_name?: string | null
   is_active: boolean
   member_count: number
+  quota: number
+  is_official: boolean
+  official_since?: string | null
   created_at: string
   updated_at: string
   my_role: TeamRole | null
@@ -158,10 +161,33 @@ export interface TeamPartner {
   captain_name?: string | null
   captain_phone?: string | null
   members_count: number
+  member_count: number
+  quota: number
+  is_official: boolean
+  official_since?: string | null
   total_bookings_at_my_venues: number
   upcoming_bookings_at_my_venues: number
   spent_at_my_venues: number
   last_booking_date?: string | null
+}
+
+// ─────────────────────────── Chat (پیام‌های تیمی) ───────────────────────────
+
+export interface TeamMessage {
+  id: number
+  user_id: number
+  full_name?: string | null
+  content: string
+  created_at: string
+}
+
+export interface TeamMessageList {
+  items: TeamMessage[]
+  has_more: boolean
+}
+
+export interface TeamUnreadCount {
+  unread: number
 }
 
 // ─────────────────────────── Payloads ───────────────────────────

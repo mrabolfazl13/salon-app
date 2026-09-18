@@ -23,6 +23,10 @@ export interface Game {
   payment_mode: PaymentMode
   status: GameStatus
   created_at: string
+
+  result_set?: boolean
+  winner_ids?: number[] | null
+  result_set_at?: string | null
   updated_at: string
 
   organizer_name?: string | null
@@ -135,6 +139,28 @@ export interface GamePaymentSummary {
   paid_count: number
   pending_count: number
   payments: GamePayment[]
+}
+
+export interface GameResultPayload {
+  winner_ids: number[]
+}
+
+export interface GameResultResponse {
+  game_id: number
+  winner_ids: number[]
+  awarded: number
+  points_each: number
+}
+
+export interface GameResultPayload {
+  winner_ids: number[]
+}
+
+export interface GameResultResponse {
+  game_id: number
+  winner_ids: number[]
+  awarded: number
+  points_each: number
 }
 
 export interface GameActionResponse {

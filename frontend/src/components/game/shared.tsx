@@ -33,6 +33,27 @@ export function getGameError(err: unknown, fallback = 'خطایی رخ داد. �
   return fallback
 }
 
+/** پیام فارسیِ خطاهای ثبت نتیجه بازی — کدهای ساختارمند بک‌اند اول ترجمه می‌شوند */
+const GAME_RESULT_ERRORS: Record<string, string> = {
+  RESULT_ALREADY_SET: 'برای این بازی قبلاً نتیجه ثبت شده است.',
+  WINNER_NOT_PARTICIPANT: 'برندگان باید از شرکت‌کننده‌های فعلی بازی باشند.',
+  NOT_AUTHORIZED: 'فقط برگزارکننده یا مدیر بازی می‌تواند نتیجه را ثبت کند.',
+  GAME_NOT_FOUND: 'بازی مورد نظر یافت نشد.',
+  GAME_CANCELLED: 'این بازی لغو شده و ثبت نتیجه ممکن نیست.',
+}
+
+export function getGameResultError(err: unknown, fallback = 'ثبت نتیجه ممکن نشد. لطفاً دوباره تلاش کنید.'): string {
+  if (isAxiosError(err)) {
+    const detail = err.response?.data?.detail
+    const code =
+      detail && typeof detail === 'object' && typeof (detail as { code?: unknown }).code === 'string'
+        ? (detail as { code: string }).code
+        : undefined
+    if (code && GAME_RESULT_ERRORS[code]) return GAME_RESULT_ERRORS[code]
+  }
+  return getGameError(err, fallback)
+}
+
 const STATUS_COLORS: Record<GameStatus, { bg: string; fg: string; icon: string }> = {
   draft: { bg: 'rgba(100,116,139,0.10)', fg: '#64748b', icon: 'mdi:file-document-outline' },
   open: { bg: 'rgba(16,185,129,0.10)', fg: '#059669', icon: 'mdi:account-group-outline' },

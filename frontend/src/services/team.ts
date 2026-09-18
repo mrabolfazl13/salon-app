@@ -22,8 +22,11 @@ import type {
   TeamInvitePayload,
   TeamJoinRequest,
   TeamMember,
+  TeamMessage,
+  TeamMessageList,
   TeamPartner,
   TeamRole,
+  TeamUnreadCount,
   TeamUpdatePayload,
 } from '@/types/team'
 
@@ -146,6 +149,30 @@ export const teamService = {
 
   rejectJoinRequest: async (teamId: number, requestId: number): Promise<TeamActionResponse> => {
     const response = await apiClient.post(`/teams/${teamId}/join-requests/${requestId}/reject`)
+    return response.data
+  },
+
+  // ─────────────────────────── چت تیم ───────────────────────────
+
+  getMessages: async (teamId: number, limit = 50, beforeId?: number): Promise<TeamMessageList> => {
+    const response = await apiClient.get(`/teams/${teamId}/messages`, {
+      params: beforeId ? { limit, before_id: beforeId } : { limit },
+    })
+    return response.data
+  },
+
+  postMessage: async (teamId: number, content: string): Promise<TeamMessage> => {
+    const response = await apiClient.post(`/teams/${teamId}/messages`, { content })
+    return response.data
+  },
+
+  markMessagesRead: async (teamId: number): Promise<TeamUnreadCount> => {
+    const response = await apiClient.post(`/teams/${teamId}/messages/read`)
+    return response.data
+  },
+
+  getUnreadCount: async (teamId: number): Promise<TeamUnreadCount> => {
+    const response = await apiClient.get(`/teams/${teamId}/unread-count`)
     return response.data
   },
 

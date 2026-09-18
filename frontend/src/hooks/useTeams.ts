@@ -5,6 +5,7 @@
 
 import {
   keepPreviousData,
+  useInfiniteQuery,
   useMutation,
   useQuery,
   useQueryClient,
@@ -37,6 +38,8 @@ export const teamKeys = {
   balance: (id: number) => ['teams', id, 'balance'] as const,
   bookings: (id: number, page: { limit: number; offset: number }) => ['teams', id, 'bookings', page] as const,
   audit: (id: number, page: { limit: number; offset: number }) => ['teams', id, 'audit', page] as const,
+  messages: (id: number) => ['teams', id, 'messages'] as const,
+  unreadCount: (id: number) => ['teams', id, 'unread-count'] as const,
   myInvitations: () => ['teams', 'my-invitations'] as const,
   partners: (venueId?: number) => ['teams', 'manager', 'partners', { venueId: venueId ?? 'all' }] as const,
 }
@@ -146,6 +149,30 @@ export function useTeamAudit(
     queryFn: () => teamService.getAudit(teamId as number, page.limit, page.offset),
     enabled: enabled && teamId !== null && teamId > 0,
     placeholderData: keepPreviousData,
+  })
+}
+
+/** پیام‌های چت تیم — صفحه‌بندی cursor جدیدترین‌اول (before_id)؛ polling اختیاری */
+export function useTeamMessages(teamId: number | null, enabled = true, refetchInterval: number | false = false) {
+  return useInfiniteQuery({
+    queryKey: teamKeys.messages(teamId ?? 0),
+    queryFn: ({ pageParam }) => teamService.getMessages(teamId as number, 50, pageParam),
+    initialPageParam: undefined as number | undefined,
+    getNextPageParam: (lastPage) => {
+      if (!lastPage.has_more || lastPage.items.length === 0) return undefined
+      return lastPage.items[lastPage.items.length - 1].id
+    },
+    enabled: enabled && teamId !== null && teamId > 0,
+    refetchInterval,
+  })
+}
+
+export function useTeamUnreadCount(teamId: number | null, enabled = true, refetchInterval: number | false = false) {
+  return useQuery({
+    queryKey: teamKeys.unreadCount(teamId ?? 0),
+    queryFn: () => teamService.getUnreadCount(teamId as number),
+    enabled: enabled && teamId !== null && teamId > 0,
+    refetchInterval,
   })
 }
 
@@ -355,6 +382,28 @@ export function useVoidTeamDue(teamId: number) {
       qc.invalidateQueries({ queryKey: teamKeys.balance(teamId) })
     },
     onError: (error) => syncOnConflict(qc, error, teamId),
+  })
+}
+
+export function usePostTeamMessage(teamId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (content: string) => teamService.postMessage(teamId, content),
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: teamKeys.messages(teamId) })
+      qc.invalidateQueries({ queryKey: teamKeys.unreadCount(teamId) })
+      qc.invalidateQueries({ queryKey: teamKeys.detail(teamId) })
+    },
+  })
+}
+
+export function useMarkTeamMessagesRead(teamId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: () => teamService.markMessagesRead(teamId),
+    onSuccess: (res) => {
+      qc.setQueryData(teamKeys.unreadCount(teamId), res)
+    },
   })
 }
 

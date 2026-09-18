@@ -23,7 +23,7 @@ import { useMyVenues } from '@/hooks/useFinance'
 import { useManagerTeamPartners } from '@/hooks/useTeams'
 import type { TeamPartner } from '@/types/team'
 import { ErrorBox, formatRial } from '@/components/finance/shared'
-import { SPORT_EMOJI } from '@/components/team/shared'
+import { SPORT_EMOJI, TeamOfficialBadge } from '@/components/team/shared'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
 import { radii, shadows } from '@/theme'
 
@@ -147,7 +147,16 @@ const ManagerTeams: React.FC = () => {
                       <Box sx={{ fontSize: '1.1rem', lineHeight: 1 }}>{SPORT_EMOJI[p.sport] ?? '🏅'}</Box>
                       <Box sx={{ minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }} noWrap>{p.name}</Typography>
-                        <Chip label={`تیم #${toPersianDigits(p.team_id)}`} size="small" sx={{ height: 18, fontSize: '0.6rem', mt: 0.25 }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25, flexWrap: 'wrap' }}>
+                          <Chip label={`تیم #${toPersianDigits(p.team_id)}`} size="small" sx={{ height: 18, fontSize: '0.6rem' }} />
+                          {p.is_official ? (
+                            <TeamOfficialBadge size="small" />
+                          ) : (
+                            <Typography sx={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700 }}>
+                              {p.quota > 0 ? `${toPersianDigits(p.member_count)} از ${toPersianDigits(p.quota)} عضو` : `${toPersianDigits(p.member_count)} عضو`}
+                            </Typography>
+                          )}
+                        </Box>
                       </Box>
                     </Box>
                   </TableCell>

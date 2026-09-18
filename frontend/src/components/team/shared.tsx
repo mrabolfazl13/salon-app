@@ -2,12 +2,13 @@
 // اجزای مشترک تیم: نگاشتار خطای TEAM_* به جمله‌ی فارسی، چیپ‌ها و بج‌ها — الگوی game/shared.tsx
 
 import React from 'react'
-import { Box, Chip } from '@mui/material'
+import { Box, Chip, LinearProgress, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { isAxiosError } from 'axios'
 
 import type { TeamMemberStatus, TeamRole, TeamVisibility } from '@/types/team'
 import { TEAM_MEMBER_STATUS_LABELS, TEAM_ROLE_LABELS, TEAM_VISIBILITY_LABELS } from '@/types/team'
+import { toPersianDigits } from '@/lib/jalali'
 
 /**
  * پیام‌های فارسی خطاهای ساختارمند تیم (detail = {code, message}).
@@ -172,5 +173,74 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
         '& .MuiChip-label': { px: 1 },
       }}
     />
+  )
+}
+
+// ─────────────────────────── وضعیت رسمی‌شدن تیم ───────────────────────────
+
+/** بج «رسمی ✅» — وقتی تیم به حد نصاب اعضا رسیده باشد */
+export const TeamOfficialBadge: React.FC<{ size?: 'small' | 'medium' }> = ({ size = 'small' }) => (
+  <Box
+    component="span"
+    sx={{
+      display: 'inline-flex',
+      alignItems: 'center',
+      gap: 0.4,
+      px: 0.9,
+      py: 0.25,
+      borderRadius: '999px',
+      bgcolor: 'rgba(124,58,237,0.10)',
+      color: '#7c3aed',
+      fontSize: size === 'small' ? '0.66rem' : '0.72rem',
+      fontWeight: 800,
+      whiteSpace: 'nowrap',
+    }}
+  >
+    <Icon icon="mdi:shield-star-outline" style={{ width: size === 'small' ? 13 : 15, height: size === 'small' ? 13 : 15 }} />
+    {'رسمی ✅'}
+  </Box>
+)
+
+/** نوار پیشرفت «X از Y عضو» + بج رسمی + راهنمای حد نصاب (فقط برای اعضا/مدیران) */
+export const TeamQuotaProgress: React.FC<{
+  memberCount: number
+  quota: number
+  isOfficial?: boolean
+  showHint?: boolean
+  compact?: boolean
+}> = ({ memberCount, quota, isOfficial = false, showHint = false, compact = false }) => {
+  const total = quota > 0 ? quota : 0
+  const ratio = total > 0 ? Math.min(memberCount / total, 1) : 0
+  const reached = isOfficial || (total > 0 && memberCount >= total)
+  const color = reached ? '#7c3aed' : '#2563eb'
+  return (
+    <Box sx={{ minWidth: compact ? 108 : 150 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.75, mb: 0.5 }}>
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, color: '#334155', fontSize: '0.72rem', fontWeight: 700 }}>
+          <Icon icon="mdi:account-group-outline" style={{ width: 14, height: 14 }} />
+          {total > 0
+            ? `${toPersianDigits(memberCount)} از ${toPersianDigits(total)} عضو`
+            : `${toPersianDigits(memberCount)} عضو`}
+        </Box>
+        {isOfficial && <TeamOfficialBadge />}
+      </Box>
+      {total > 0 && (
+        <LinearProgress
+          variant="determinate"
+          value={ratio * 100}
+          sx={{
+            height: 5,
+            borderRadius: 999,
+            bgcolor: 'rgba(15,23,42,0.06)',
+            '& .MuiLinearProgress-bar': { bgcolor: color, borderRadius: 999 },
+          }}
+        />
+      )}
+      {showHint && !isOfficial && total > 0 && (
+        <Typography sx={{ fontSize: '0.66rem', color: '#b45309', mt: 0.5, fontWeight: 600 }}>
+          {`برای رسمی‌شدن تیم به حداقل ${toPersianDigits(total)} عضو نیاز دارید`}
+        </Typography>
+      )}
+    </Box>
   )
 }

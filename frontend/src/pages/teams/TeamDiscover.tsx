@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
 import { useMyTeamInvitations, useMyTeams, useRequestJoinTeam, useTeamsDiscover } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
-import { SPORT_EMOJI, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
+import { SPORT_EMOJI, TeamQuotaProgress, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
 import type { Team } from '@/types/team'
 import { toPersianDigits } from '@/lib/jalali'
 import { radii, shadows } from '@/theme'
@@ -95,6 +95,12 @@ const DiscoverCard: React.FC<{ team: Team; mine: boolean; invited: boolean; onRe
             {team.description}
           </Typography>
         )}
+        <TeamQuotaProgress
+          memberCount={team.member_count}
+          quota={team.quota}
+          isOfficial={team.is_official}
+          compact
+        />
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mt: 'auto' }}>
           <TeamVisibilityChip visibility={team.visibility} />
           {team.visibility === 'public' && !mine && !invited && (

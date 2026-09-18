@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/Button'
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import {
   CapacityBar,
+  GameResultDialog,
   GameStatusChip,
   InviteLinkDialog,
   InviteUserDialog,
@@ -45,7 +46,7 @@ import {
 import { useToast } from '@/hooks/useToast'
 import { useAuthStore } from '@/store/authStore'
 import { PAYMENT_MODE_LABELS } from '@/types/game'
-import { formatPersianDate, formatPrice } from '@/utils/helpers'
+import { formatPersianDate, formatPersianDateTime, formatPrice } from '@/utils/helpers'
 import { radii, shadows } from '@/theme'
 
 const SPORT_EMOJI: Record<string, string> = {
@@ -128,6 +129,7 @@ const GameDetail: React.FC = () => {
   const [inviteLinkOpen, setInviteLinkOpen] = useState(false)
   const [inviteUserOpen, setInviteUserOpen] = useState(false)
   const [editOpen, setEditOpen] = useState(false)
+  const [resultOpen, setResultOpen] = useState(false)
   const [confirmCancel, setConfirmCancel] = useState(false)
   const [confirmLeave, setConfirmLeave] = useState(false)
 
@@ -168,6 +170,11 @@ const GameDetail: React.FC = () => {
   const joinable = game.status === 'open' || game.status === 'full'
   const myStatus = game.my_participant_status
   const isWaitlisted = game.my_waitlist_position != null && game.my_waitlist_position > 0
+  const canSetResult = canManage && !game.result_set && game.status !== 'cancelled' && game.status !== 'draft'
+  const winnerList = (game.winner_ids ?? []).map((uid) => ({
+    userId: uid,
+    name: participantsQ.data?.find((p) => p.user_id === uid)?.full_name ?? `کاربر ${uid}`,
+  }))
 
   const handleJoin = () => {
     joinGame.mutate(undefined, {
@@ -483,6 +490,49 @@ const GameDetail: React.FC = () => {
           </SectionCard>
         )}
 
+        {(canSetResult || game.result_set) && (
+          <SectionCard title="نتیجه بازی" icon="mdi:trophy-outline">
+            {game.result_set ? (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.2, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.10)', color: '#059669', fontSize: '0.68rem', fontWeight: 800 }}>
+                    <Icon icon="mdi:check-decagram" style={{ width: 14, height: 14 }} />
+                    نتیجه ثبت شده
+                  </Box>
+                  {game.result_set_at && (
+                    <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                      {formatPersianDateTime(game.result_set_at)}
+                    </Typography>
+                  )}
+                </Box>
+                {winnerList.length === 0 ? (
+                  <Typography sx={{ fontSize: '0.82rem', color: '#64748b' }}>برنده‌ی ثبت‌شده‌ای موجود نیست.</Typography>
+                ) : (
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                    {winnerList.map((w) => (
+                      <Box key={w.userId} component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1.1, py: 0.4, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309', fontSize: '0.78rem', fontWeight: 700 }}>
+                        <Icon icon="mdi:trophy" style={{ width: 14, height: 14 }} />
+                        {w.name}
+                      </Box>
+                    ))}
+                  </Box>
+                )}
+              </Box>
+            ) : (
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+                  بازی به پایان رسیده؟ نتیجه و برندگان را ثبت کنید تا امتیاز وفاداری به آنان اضافه شود.
+                </Typography>
+                <Box>
+                  <Button variant="gradient" icon="mdi:trophy-outline" onClick={() => setResultOpen(true)}>
+                    ثبت نتیجه بازی
+                  </Button>
+                </Box>
+              </Box>
+            )}
+          </SectionCard>
+        )}
+
         <SectionCard title={`بازیکنان (${game.current_players.toLocaleString('fa-IR')})`} icon="mdi:account-group-outline">
           {participantsQ.isLoading ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
@@ -533,6 +583,13 @@ const GameDetail: React.FC = () => {
       </Box>
 
       {/* ─────────── دیالوگ‌ها ─────────── */}
+      <GameResultDialog
+        open={resultOpen}
+        onClose={() => setResultOpen(false)}
+        gameId={gameId}
+        participants={participantsQ.data ?? []}
+        onSuccess={() => refetch()}
+      />
       <InviteLinkDialog gameId={gameId} open={inviteLinkOpen} onClose={() => setInviteLinkOpen(false)} />
       <InviteUserDialog gameId={gameId} open={inviteUserOpen} onClose={() => setInviteUserOpen(false)} />
       <GameFormDialog open={editOpen} onClose={() => setEditOpen(false)} game={game} />
