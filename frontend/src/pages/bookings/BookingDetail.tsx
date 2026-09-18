@@ -17,6 +17,7 @@ import {
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import ConfirmModal from '@/components/modals/ConfirmModal'
+import BookingPaymentPanel from '@/components/bookings/BookingPaymentPanel'
 import VenueThumb from '@/components/venue/VenueThumb'
 import { bookingService } from '@/services/booking'
 import { venueService } from '@/services/venue'
@@ -53,6 +54,17 @@ interface ApiBooking {
   pricing_breakdown?: unknown
   // آخرین فاکتور پرداخت (از اندپوینت جزئیات رزرو)
   payment?: PaymentItem | null
+  // روش پرداخت + فیلدهای کامل فیش واریزی
+  payment_mode?: string | null
+  needs_receipt?: boolean
+  receipt_status?: string | null
+  receipt_amount?: number | null
+  receipt_reference?: string | null
+  receipt_bank?: string | null
+  receipt_image?: string | null
+  receipt_submitted_at?: string | null
+  receipt_reviewed_at?: string | null
+  receipt_review_note?: string | null
 }
 
 const paymentStatusMeta: Record<string, { label: string; color: 'success' | 'warning' | 'error' | 'info' }> = {
@@ -372,6 +384,9 @@ const BookingDetail: React.FC = () => {
                 عملیات
               </Typography>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                {(booking.payment_mode === 'bank_receipt' || booking.payment_mode === 'pay_in_place') && (
+                  <BookingPaymentPanel booking={booking} onChanged={fetchBooking} />
+                )}
                 {(booking.status === 'confirmed' || booking.status === 'pending') && (
                   <Button
                     variant="outlined"

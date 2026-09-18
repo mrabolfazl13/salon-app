@@ -17,6 +17,7 @@ import {
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import ConfirmModal from '@/components/modals/ConfirmModal'
+import BookingPaymentPanel from '@/components/bookings/BookingPaymentPanel'
 import PaymentDialog from '@/components/bookings/PaymentDialog'
 import VenueThumb from '@/components/venue/VenueThumb'
 import { EmptyState } from '@/components/mobile'
@@ -47,6 +48,11 @@ interface ApiBooking {
   slot_date?: string
   start_time?: string
   duration?: number
+  // روش پرداخت + وضعیت فیش واریزی
+  payment_mode?: string | null
+  needs_receipt?: boolean
+  receipt_status?: string | null
+  receipt_review_note?: string | null
   // رزرو معلق در Redis (در انتظار تایید مدیر سالن)
   isPendingRedis?: boolean
 }
@@ -276,6 +282,7 @@ const Bookings: React.FC = () => {
                             )}
                           {booking.status === 'confirmed' &&
                             !booking.isPendingRedis &&
+                            (booking.payment_mode ?? 'gateway') === 'gateway' &&
                             (paidBookingIds.has(Number(booking.id)) ? (
                               <Chip
                                 label="پرداخت شده"
@@ -335,6 +342,11 @@ const Bookings: React.FC = () => {
                           )}
                         </Box>
                       </Box>
+                      {!booking.isPendingRedis && (booking.payment_mode === 'bank_receipt' || booking.payment_mode === 'pay_in_place') && (
+                        <Box sx={{ mt: 2 }}>
+                          <BookingPaymentPanel booking={booking} compact onChanged={fetchBookings} />
+                        </Box>
+                      )}
                     </CardContent>
                   </Card>
                 </motion.div>

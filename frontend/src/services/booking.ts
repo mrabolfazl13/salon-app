@@ -1,5 +1,6 @@
 // frontend/src/services/booking.ts
 import apiClient from './api'
+import type { CollectInPersonBody, ReceiptSubmitBody } from '@/types/booking'
 
 export const bookingService = {
   getAll: async (params?: any) => {
@@ -69,6 +70,32 @@ export const bookingService = {
 
   cancelPending: async (pendingId: string) => {
     const response = await apiClient.delete(`/bookings/pending/${pendingId}`)
+    return response.data
+  },
+
+  // ===== فیش واریزی / پرداخت در محل =====
+
+  /** ثبت فیش واریزی توسط صاحب رزرو — 201 { message, receipt_status } */
+  submitReceipt: async (bookingId: number, body: ReceiptSubmitBody) => {
+    const response = await apiClient.post(`/bookings/${bookingId}/receipt`, body)
+    return response.data
+  },
+
+  /** تأیید فیش توسط مدیر — { message, receipt_status, amount } */
+  approveReceipt: async (bookingId: number) => {
+    const response = await apiClient.post(`/bookings/${bookingId}/receipt/approve`)
+    return response.data
+  },
+
+  /** رد فیش توسط مدیر — دلیل حداقل ۴ حرف — { message, receipt_status } */
+  rejectReceipt: async (bookingId: number, reason: string) => {
+    const response = await apiClient.post(`/bookings/${bookingId}/receipt/reject`, { reason })
+    return response.data
+  },
+
+  /** ثبت دریافت وجه در محل توسط مدیر — { message, amount } */
+  collectInPerson: async (bookingId: number, body: CollectInPersonBody = {}) => {
+    const response = await apiClient.post(`/bookings/${bookingId}/collect-in-person`, body)
     return response.data
   },
 }

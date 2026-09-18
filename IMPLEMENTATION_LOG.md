@@ -76,3 +76,26 @@ No fixes were required - all gates green; integration spot-checks FE<->BE all OK
 - PDF exports (only CSV finance export exists)
 - Booking-slot waitlist (game waitlist only)
 - Rate-limit cooldowns are in-process; Redis-backed cooldown needed for multi-worker deploy
+
+## Wave 12 — post-review fixes
+
+Date: 2026-09-17. Post-review wave: venue payment modes, loyalty expansion, team official/chat.
+
+- Venue payment modes: `gateway` | `bank_receipt` (default) | `pay_in_place` — venue-level
+  setting, snapshotted onto each booking at reserve time. Bank-receipt flow: user uploads receipt
+  (`POST /bookings/:id/receipt` + `POST /upload/receipt`) → manager approve/reject
+  (`/receipt/approve`, `/receipt/reject`); in-place collection by manager
+  (`POST /bookings/:id/collect-in-person`, cash/card). Cancellation refunds now cover bank-receipt
+  and in-place ledger entries (idempotent `booking-refund:<tx_id>`).
+- Loyalty expansion: game-result winners auto-credit `game_win` points
+  (`POST /games/:id/result`, one-time `result_set`); reviews credit `review` points on create.
+  New `LoyaltyReason` values `game_win` / `review`; tunable via
+  `LOYALTY_POINTS_PER_GAME_WIN` / `LOYALTY_POINTS_PER_REVIEW`.
+- Teams: quorum/official status (`min_members`, `is_official`, `official_since`; audit
+  `team_became_official`) and team chat (messages, unread count, `last_seen_message_at` read
+  markers, `team_message` notifications).
+- Migrations: m0s013paymentmodes → m0s014pointsgamewin → m0s015teamofficialchat (single head).
+- Tests: 315 passed.
+- Frontend: payment-mode UI (venue setting, receipt upload/review, in-place collect), game-result
+  dialog, loyalty labels, team chat panel + quorum badges, and account menu available on all
+  breakpoints with profile quick links/logout.
