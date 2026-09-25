@@ -24,6 +24,7 @@ class LoyaltyReason(str, Enum):
     LOYALTY_REFUND = "loyalty_refund"        # بازگشت امتیاز خرج‌شده در لغو (مثبت)
     GAME_WIN = "game_win"                    # برد در بازی گروهی (به‌ازای هر بازی/کاربر یکتا)
     REVIEW = "review"                        # ثبت نظر برای سالن (به‌ازای هر نظر یکتا)
+    QUIZ = "quiz"                            # پاسخ درست چالش هفتگی (به‌ازای هر تلاش یکتا)
 
 
 class LoyaltyPoint(SQLModel, table=True):

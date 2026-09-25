@@ -90,6 +90,16 @@ def manager_partners(
     return TeamService.list_manager_partners(uow, current_user, venue_id)
 
 
+@router.get("/standings", response_model=dict)
+def league_standings(
+    limit: int = Query(default=50, ge=1, le=100),
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+):
+    """جدول لیگ تیم‌ها — برد/شکست از بازی‌های ثبت‌نتیجه که اعضای فعال تیم شرکت کرده‌اند."""
+    return TeamService.standings(uow, current_user.id, limit)
+
+
 # ─────────────────────────── جزئیات / ویرایش / غیرفعال‌سازی ───────────────────────────
 
 @router.get("/{team_id}", response_model=TeamResponse)

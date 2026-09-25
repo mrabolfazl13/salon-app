@@ -21,6 +21,7 @@ from .deals import router as deals_router
 from .teams import router as teams_router
 from .staff import router as staff_router
 from .crm import router as crm_router
+from .quiz import router as quiz_router
 
 __all__ = [
     "auth_router",
@@ -46,4 +47,5 @@ __all__ = [
     "teams_router",
     "staff_router",
     "crm_router",
+    "quiz_router",
 ]

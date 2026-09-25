@@ -59,6 +59,73 @@ class TeamRepository(BaseRepository[Team]):
         rows = self.session.exec(stmt.offset(offset).limit(limit)).all()
         return list(rows), int(total)
 
+    def standings_rows(self) -> List[Tuple[int, str, Optional[str], bool, int, List[int], int, int]]:
+        """ردف خام جدول لیگ: تیم‌هایی که حداقل اعضای فعالشان در بازی‌های ثبت‌نتیجه شرکت کرده.
+
+        بازی = رویداد کاربرمحور؛ برد تیم = برد هر یک از اعضای فعال آن تیم در بازی.
+        بازگشتی: (team_id, name, logo_url, is_official, member_count, member_ids, played, won)
+        """
+        from app.models.game import Game, GameParticipant, ParticipantStatus
+
+        teams = self.session.exec(
+            select(Team).where(Team.is_active == True)  # noqa: E712
+        ).all()
+        members_rows = self.session.exec(
+            select(TeamMember.team_id, TeamMember.user_id).where(
+                col(TeamMember.status) == TeamMemberStatus.ACTIVE)
+        ).all()
+        games = self.session.exec(
+            select(Game.id, Game.winner_ids).where(
+                Game.status == "completed",
+                Game.result_set == True,  # noqa: E712
+                col(Game.winner_ids).isnot(None))
+        ).all()
+        accepted_rows = self.session.exec(
+            select(GameParticipant.game_id, GameParticipant.user_id).where(
+                col(GameParticipant.status) == ParticipantStatus.ACCEPTED)
+        ).all()
+
+        members_by_team: dict = {}
+        teams_by_user: dict = {}
+        for tid, uid in members_rows:
+            members_by_team.setdefault(int(tid), set()).add(int(uid))
+            teams_by_user.setdefault(int(uid), set()).add(int(tid))
+        accepted_by_game: dict = {}
+        for gid, uid in accepted_rows:
+            accepted_by_game.setdefault(int(gid), set()).add(int(uid))
+
+        played_cnt: dict = {}
+        won_cnt: dict = {}
+        for gid, winner_json in games:
+            participants = accepted_by_game.get(gid, set())
+            game_teams: set = set()
+            for uid in participants:
+                game_teams |= teams_by_user.get(uid, set())
+            if not game_teams:
+                continue
+            for tid in game_teams:
+                played_cnt[tid] = played_cnt.get(tid, 0) + 1
+            try:
+                winners = {int(w) for w in json.loads(winner_json or "[]")}
+            except (TypeError, ValueError):
+                winners = set()
+            winner_teams: set = set()
+            for uid in winners:
+                winner_teams |= teams_by_user.get(uid, set())
+            for tid in winner_teams & game_teams:
+                won_cnt[tid] = won_cnt.get(tid, 0) + 1
+
+        team_by_id = {int(t.id): t for t in teams}
+        out = []
+        for tid in played_cnt:
+            t = team_by_id.get(tid)
+            if t is None:
+                continue
+            mids = sorted(members_by_team.get(tid, set()))
+            out.append((tid, str(t.name), t.logo_url, bool(t.is_official),
+                        len(mids), mids, played_cnt[tid], won_cnt.get(tid, 0)))
+        return out
+
 
 class TeamMemberRepository(BaseRepository[TeamMember]):
 

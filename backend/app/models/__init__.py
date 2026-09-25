@@ -35,6 +35,7 @@ from .team import (
     TeamAuditEvent, TeamMessage, TeamVisibility, TeamMemberRole, TeamMemberStatus,
     TeamInvitationStatus, TeamJoinRequestStatus, TeamDuesMethod, TeamAuditAction,
 )
+from .quiz import QuizQuestion, QuizAttempt
 
 # ترتیب import مهم است
 __all__ = [
@@ -68,4 +69,5 @@ __all__ = [
     "TeamInvitationStatus", "TeamJoinRequestStatus", "TeamDuesMethod", "TeamAuditAction",
     "StaffAssignment", "SecurityAuditEvent",
     "VenueCustomer", "CrmCampaign",
+    "QuizQuestion", "QuizAttempt",
 ]

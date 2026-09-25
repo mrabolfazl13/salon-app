@@ -113,4 +113,6 @@ export const LOYALTY_REASON_LABELS: Record<string, string> = {
   coupon_redemption: 'ثبت کد تخفیف',
   loyalty_redeem: 'خرج امتیاز در رزرو',
   loyalty_refund: 'بازگشت امتیاز در لغو',
+  game_win: 'برد در بازی',
+  review: 'ثبت نظر',
 }

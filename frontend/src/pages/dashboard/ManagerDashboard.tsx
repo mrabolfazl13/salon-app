@@ -41,11 +41,19 @@ import { bookingService } from '@/services/booking'
 import { dealService, type DealAvailableItem } from '@/services/deals'
 import DealPublishDialog, { type PublishSlot } from '@/components/deals/DealPublishDialog'
 import ConfirmModal from '@/components/modals/ConfirmModal'
+import { ReceiptReviewDialog, InPersonCollectDialog } from '@/components/bookings/ManagerReceiptDialogs'
 import SlotWeekGrid from '@/components/manager/SlotWeekGrid'
 import { uploadService } from '@/services/upload'
 import { membershipService } from '@/services/membership'
 import { MembershipPlan, MembershipPurchase, PlanType, PLAN_TYPE_LABEL } from '@/types/membership'
-import { formatPrice } from '@/lib/utils'
+import {
+  formatPrice,
+  getPaymentModeLabel,
+  getPaymentModeIcon,
+  getReceiptStatusLabel,
+  getReceiptStatusMuiColor,
+  PAYMENT_MODE_CHIP_STYLE,
+} from '@/lib/utils'
 import PersianDatePicker, { PersianDateRangePicker } from '@/components/ui/PersianDatePicker'
 import toast from 'react-hot-toast'
 
@@ -58,6 +66,12 @@ interface Venue {
   price: number
   amenities: string[]
   category?: 'futsal' | 'gym'
+  description?: string | null
+  images?: string[]
+  latitude?: number
+  longitude?: number
+  payment_mode?: string | null
+  default_slot_price?: number | null
 }
 
 interface Slot {
@@ -80,6 +94,10 @@ interface Booking {
   booked_at: string
   status: string
   payment_amount: number
+  venue_id?: number
+  payment_mode?: string | null
+  needs_receipt?: boolean
+  receipt_status?: string | null
 }
 
 // Animation variants
@@ -138,9 +156,15 @@ const ManagerDashboard: React.FC = () => {
     description: '',
     amenities: [] as string[],
     images: [] as string[],
+    category: 'futsal',
+    payment_mode: 'bank_receipt',
   })
   const [newAmenity, setNewAmenity] = useState('')
   const [uploadingImages, setUploadingImages] = useState(false)
+  const [editingVenueId, setEditingVenueId] = useState<number | null>(null)
+  const [savingVenue, setSavingVenue] = useState(false)
+  const [reviewTarget, setReviewTarget] = useState<Booking | null>(null)
+  const [inPersonTarget, setInPersonTarget] = useState<Booking | null>(null)
 
   // Slots state
   const [slots, setSlots] = useState<Slot[]>([])
@@ -537,20 +561,80 @@ const ManagerDashboard: React.FC = () => {
     setBulkBusy(false)
   }
 
-  const handleCreateVenue = async () => {
+  const resetVenueForm = () => {
+    setNewVenue({
+      name: '',
+      address: '',
+      phone: '',
+      latitude: 34.6482,
+      longitude: 50.8799,
+      description: '',
+      amenities: [],
+      images: [],
+      category: 'futsal',
+      payment_mode: 'bank_receipt',
+    })
+    setNewAmenity('')
+  }
+
+  const openCreateVenueDialog = () => {
+    setEditingVenueId(null)
+    resetVenueForm()
+    setOpenCreateVenue(true)
+  }
+
+  const openEditVenueDialog = (venue: Venue) => {
+    setEditingVenueId(venue.id)
+    setNewVenue({
+      name: venue.name ?? '',
+      address: venue.address ?? '',
+      phone: venue.phone ?? '',
+      latitude: venue.latitude ?? 34.6482,
+      longitude: venue.longitude ?? 50.8799,
+      description: (venue.description as string) ?? '',
+      amenities: Array.isArray(venue.amenities) ? venue.amenities : [],
+      images: Array.isArray(venue.images) ? venue.images : [],
+      category: venue.category ?? 'futsal',
+      payment_mode: venue.payment_mode ?? 'bank_receipt',
+    })
+    setNewAmenity('')
+    setOpenCreateVenue(true)
+  }
+
+  const handleSaveVenue = async () => {
+    const name = newVenue.name.trim()
+    if (name.length < 3) {
+      toast.error('نام سالن باید حداقل ۳ حرف باشد')
+      return
+    }
+    if (!newVenue.address.trim()) {
+      toast.error('آدرس سالن را وارد کنید')
+      return
+    }
+    setSavingVenue(true)
+    const payload = {
+      ...newVenue,
+      name,
+      address: newVenue.address.trim(),
+      amenities: newVenue.amenities.filter((a) => a.trim()),
+      images: newVenue.images,
+    }
     try {
-      await venueService.create({
-        ...newVenue,
-        amenities: newVenue.amenities.filter(a => a.trim()),
-        images: newVenue.images,
-      })
-      toast.success('سالن با موفقیت ایجاد شد')
+      if (editingVenueId) {
+        await venueService.update(editingVenueId, payload)
+        toast.success('سالن با موفقیت ویرایش شد')
+      } else {
+        await venueService.create(payload)
+        toast.success('سالن با موفقیت ایجاد شد')
+      }
       setOpenCreateVenue(false)
-      setNewVenue({ name: '', address: '', phone: '', latitude: 34.6482, longitude: 50.8799, description: '', amenities: [], images: [] })
-      setNewAmenity('')
+      setEditingVenueId(null)
+      resetVenueForm()
       fetchVenues()
     } catch (error: any) {
-      toast.error(error.response?.data?.detail || 'خطا در ایجاد سالن')
+      toast.error(error.response?.data?.detail || (editingVenueId ? 'خطا در ویرایش سالن' : 'خطا در ایجاد سالن'))
+    } finally {
+      setSavingVenue(false)
     }
   }
 
@@ -711,7 +795,7 @@ const ManagerDashboard: React.FC = () => {
                 </Box>
                 <Button
                   variant="contained"
-                  onClick={() => setOpenCreateVenue(true)}
+                  onClick={openCreateVenueDialog}
                   sx={{
                     borderRadius: '12px',
                     textTransform: 'none',
@@ -941,7 +1025,7 @@ const ManagerDashboard: React.FC = () => {
                       </Typography>
                       <Button
                         variant="contained"
-                        onClick={() => setOpenCreateVenue(true)}
+                        onClick={openCreateVenueDialog}
                         sx={{
                           borderRadius: '12px',
                           textTransform: 'none',
@@ -1094,8 +1178,8 @@ const ManagerDashboard: React.FC = () => {
                                   <Divider sx={{ mb: 2 }} />
 
                                   {/* Info Row */}
-                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
                                         <Icon icon="mdi:phone" className="h-4 w-4" style={{ color: '#9ca3af' }} />
                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
@@ -1108,6 +1192,20 @@ const ManagerDashboard: React.FC = () => {
                                           {formatPrice(venue.price)}
                                         </Typography>
                                       </Box>
+                                      <Chip
+                                        icon={<Icon icon={getPaymentModeIcon(venue.payment_mode)} className="h-3.5 w-3.5" />}
+                                        label={getPaymentModeLabel(venue.payment_mode)}
+                                        size="small"
+                                        sx={{
+                                          borderRadius: '6px',
+                                          fontSize: '0.65rem',
+                                          height: 24,
+                                          fontWeight: 600,
+                                          bgcolor: PAYMENT_MODE_CHIP_STYLE[venue.payment_mode ?? '']?.bg ?? 'rgba(100,116,139,0.1)',
+                                          color: PAYMENT_MODE_CHIP_STYLE[venue.payment_mode ?? '']?.color ?? '#64748b',
+                                          '& .MuiChip-icon': { color: 'inherit' },
+                                        }}
+                                      />
                                     </Box>
                                   </Box>
 
@@ -1160,6 +1258,29 @@ const ManagerDashboard: React.FC = () => {
                                       startIcon={<Icon icon="mdi:eye-outline" className="h-4 w-4" />}
                                     >
                                       مشاهده
+                                    </Button>
+                                    <Button
+                                      variant="outlined"
+                                      size="small"
+                                      onClick={() => openEditVenueDialog(venue)}
+                                      sx={{
+                                        borderRadius: '10px',
+                                        textTransform: 'none',
+                                        px: 2,
+                                        py: 0.75,
+                                        fontWeight: 600,
+                                        fontSize: '0.8rem',
+                                        flex: 1,
+                                        borderColor: 'rgba(217,119,6,0.3)',
+                                        color: '#d97706',
+                                        '&:hover': {
+                                          borderColor: '#d97706',
+                                          background: 'rgba(217,119,6,0.04)',
+                                        },
+                                      }}
+                                      startIcon={<Icon icon="mdi:pencil-outline" className="h-4 w-4" />}
+                                    >
+                                      ویرایش
                                     </Button>
                                   </Box>
                                 </CardContent>
@@ -1750,6 +1871,7 @@ const ManagerDashboard: React.FC = () => {
                           <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>مبلغ</TableCell>
                           <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>تاریخ رزرو</TableCell>
                           <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>وضعیت</TableCell>
+                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>پرداخت / رسید</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -1794,6 +1916,54 @@ const ManagerDashboard: React.FC = () => {
                                   color: booking.status === 'confirmed' ? '#059669' : '#ef4444',
                                 }}
                               />
+                            </TableCell>
+                            <TableCell>
+                              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, alignItems: 'flex-start' }}>
+                                <Chip
+                                  icon={<Icon icon={getPaymentModeIcon(booking.payment_mode)} className="h-3.5 w-3.5" />}
+                                  label={getPaymentModeLabel(booking.payment_mode)}
+                                  size="small"
+                                  sx={{
+                                    borderRadius: '8px',
+                                    fontWeight: 600,
+                                    fontSize: '0.68rem',
+                                    height: 22,
+                                    bgcolor: PAYMENT_MODE_CHIP_STYLE[booking.payment_mode ?? '']?.bg ?? 'rgba(100,116,139,0.1)',
+                                    color: PAYMENT_MODE_CHIP_STYLE[booking.payment_mode ?? '']?.color ?? '#64748b',
+                                    '& .MuiChip-icon': { color: 'inherit' },
+                                  }}
+                                />
+                                {booking.payment_mode === 'bank_receipt' && booking.receipt_status && booking.receipt_status !== 'none' && (
+                                  <Chip
+                                    label={getReceiptStatusLabel(booking.receipt_status)}
+                                    color={getReceiptStatusMuiColor(booking.receipt_status)}
+                                    size="small"
+                                    sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.68rem', height: 22 }}
+                                  />
+                                )}
+                                {booking.payment_mode === 'bank_receipt' && booking.receipt_status === 'submitted' && (
+                                  <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => setReviewTarget(booking)}
+                                    sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, minHeight: 32, bgcolor: '#d97706', '&:hover': { bgcolor: '#b45309' } }}
+                                    startIcon={<Icon icon="mdi:receipt-text-check-outline" className="h-4 w-4" />}
+                                  >
+                                    بررسی فیش
+                                  </Button>
+                                )}
+                                {booking.payment_mode === 'pay_in_place' && booking.status !== 'cancelled' && (
+                                  <Button
+                                    size="small"
+                                    variant="contained"
+                                    onClick={() => setInPersonTarget(booking)}
+                                    sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, minHeight: 32, bgcolor: '#059669', '&:hover': { bgcolor: '#047857' } }}
+                                    startIcon={<Icon icon="mdi:cash-register" className="h-4 w-4" />}
+                                  >
+                                    ثبت دریافت در محل
+                                  </Button>
+                                )}
+                              </Box>
                             </TableCell>
                           </TableRow>
                         ))}
@@ -2150,7 +2320,7 @@ const ManagerDashboard: React.FC = () => {
         }}>
           <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
             <Icon icon="mdi:store-plus" className="h-5 w-5" />
-            افزودن سالن جدید
+            {editingVenueId ? 'ویرایش سالن' : 'افزودن سالن جدید'}
           </Typography>
         </Box>
         <DialogContent sx={{ pt: 3, pb: 1 }}>
@@ -2194,6 +2364,26 @@ const ManagerDashboard: React.FC = () => {
               },
             }}
           />
+          <FormControl fullWidth sx={{ mb: 2.5 }}>
+            <InputLabel>روش پرداخت</InputLabel>
+            <Select
+              value={newVenue.payment_mode}
+              label="روش پرداخت"
+              onChange={(e) => setNewVenue({ ...newVenue, payment_mode: e.target.value })}
+              sx={{ borderRadius: '10px' }}
+            >
+              <MenuItem value="gateway">درگاه آنلاین</MenuItem>
+              <MenuItem value="bank_receipt">فیش واریزی (پیش‌فرض)</MenuItem>
+              <MenuItem value="pay_in_place">پرداخت در محل</MenuItem>
+            </Select>
+            <Typography variant="caption" sx={{ color: 'text.secondary', mt: 0.75, display: 'block' }}>
+              {newVenue.payment_mode === 'gateway'
+                ? 'کاربر هنگام رزرو، آنلاین از طریق درگاه پرداخت می‌کند.'
+                : newVenue.payment_mode === 'pay_in_place'
+                  ? 'مبلغ هنگام حضور در سالن به‌صورت نقدی یا کارت‌خوان دریافت می‌شود.'
+                  : 'کاربر تصویر فیش واریزی را ارسال می‌کند و مدیر آن را تأیید یا رد می‌کند.'}
+            </Typography>
+          </FormControl>
           <TextField
             fullWidth
             label="توضیحات"
@@ -2315,7 +2505,8 @@ const ManagerDashboard: React.FC = () => {
             انصراف
           </Button>
           <Button
-            onClick={handleCreateVenue}
+            onClick={handleSaveVenue}
+            disabled={savingVenue}
             variant="contained"
             sx={{
               borderRadius: '10px',
@@ -2329,7 +2520,7 @@ const ManagerDashboard: React.FC = () => {
               },
             }}
           >
-            ایجاد سالن
+            {savingVenue ? <CircularProgress size={20} sx={{ color: 'white' }} /> : editingVenueId ? 'ذخیره تغییرات' : 'ایجاد سالن'}
           </Button>
         </DialogActions>
       </Dialog>
@@ -2520,6 +2711,23 @@ const ManagerDashboard: React.FC = () => {
           </Button>
         </DialogActions>
       </Dialog>
+
+      <ReceiptReviewDialog
+        open={Boolean(reviewTarget)}
+        onClose={() => setReviewTarget(null)}
+        bookingId={reviewTarget?.id ?? null}
+        venueName={reviewTarget ? getVenueName((reviewTarget as any).venue_id) : undefined}
+        onDone={() => { fetchBookings(); fetchPending() }}
+      />
+
+      <InPersonCollectDialog
+        open={Boolean(inPersonTarget)}
+        onClose={() => setInPersonTarget(null)}
+        bookingId={inPersonTarget?.id ?? null}
+        defaultAmount={inPersonTarget?.payment_amount}
+        venueName={inPersonTarget ? getVenueName((inPersonTarget as any).venue_id) : undefined}
+        onDone={() => { fetchBookings(); fetchPending() }}
+      />
     </Layout>
   )
 }

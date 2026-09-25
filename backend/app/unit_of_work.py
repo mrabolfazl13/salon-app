@@ -34,6 +34,7 @@ from app.repositories.team_repository import (
     TeamJoinRequestRepository, TeamBookingRepository, TeamDuesRepository,
     TeamAuditEventRepository, TeamMessageRepository,
 )
+from app.repositories.quiz_repository import QuizQuestionRepository, QuizAttemptRepository
 
 class UnitOfWork:
     
@@ -306,6 +307,18 @@ class UnitOfWork:
         if "favorites" not in self._repositories:
             self._repositories["favorites"] = FavoriteVenueRepository(self.session)
         return self._repositories["favorites"]
+
+    @property
+    def quiz_questions(self) -> QuizQuestionRepository:
+        if "quiz_questions" not in self._repositories:
+            self._repositories["quiz_questions"] = QuizQuestionRepository(self.session)
+        return self._repositories["quiz_questions"]
+
+    @property
+    def quiz_attempts(self) -> QuizAttemptRepository:
+        if "quiz_attempts" not in self._repositories:
+            self._repositories["quiz_attempts"] = QuizAttemptRepository(self.session)
+        return self._repositories["quiz_attempts"]
 
 def get_unit_of_work():
     uow = UnitOfWork()

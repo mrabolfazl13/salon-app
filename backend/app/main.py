@@ -20,7 +20,7 @@ from app.api.v1 import (
     games_router, memberships_router, finance_router,
     holidays_router, pricing_router, coupons_router,
     loyalty_router, favorites_router, deals_router,
-    teams_router, staff_router, crm_router,
+    teams_router, staff_router, crm_router, quiz_router,
 )
 from app.utils.websocket import manager
 from app.utils.staff_access import flush_security_denials
@@ -198,6 +198,7 @@ app.include_router(deals_router, prefix="/api/v1")
 app.include_router(teams_router, prefix="/api/v1")
 app.include_router(staff_router, prefix="/api/v1")
 app.include_router(crm_router, prefix="/api/v1")
+app.include_router(quiz_router, prefix="/api/v1")
 
 # Static files - عکس‌های واقعی سالن‌ها
 _static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")

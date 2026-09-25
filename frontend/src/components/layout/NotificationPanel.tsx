@@ -44,6 +44,8 @@ const typeIcons: Record<string, { icon: string; color: string }> = {
   // ---- Team notifications (team_* / dues_*) ----
   team: { icon: 'mdi:shield-account-outline', color: '#2563eb' },
   team_invitation: { icon: 'mdi:email-fast-outline', color: '#7c3aed' },
+  team_message: { icon: 'mdi:message-text-outline', color: '#0891b2' },
+  team_official: { icon: 'mdi:shield-star-outline', color: '#7c3aed' },
   dues: { icon: 'mdi:cash-clock-outline', color: '#0891b2' },
 }
 

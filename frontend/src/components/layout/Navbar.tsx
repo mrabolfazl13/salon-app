@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+﻿import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import {
   AppBar,
@@ -16,7 +16,6 @@ import {
   Person as PersonIcon,
   Logout as LogoutIcon,
   Dashboard as DashboardIcon,
-  Storefront as StorefrontIcon,
   AdminPanelSettings as AdminPanelIcon,
 } from '@mui/icons-material'
 import { Icon } from '@iconify/react'
@@ -38,6 +37,9 @@ interface NavbarProps {
   /** منوی کناری (Drawer) غیرفعال شده — ناوبری موبایل با نوار پایین انجام می‌شود */
   onMenuClick?: () => void
 }
+
+const muiIconSx = { ml: 1, fontSize: 20 }
+const iconifyStyle = { marginLeft: 8, fontSize: 18 }
 
 const Navbar: React.FC<NavbarProps> = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
@@ -80,6 +82,24 @@ const Navbar: React.FC<NavbarProps> = () => {
 
   const dashboardPath = isManager ? '/manager-dashboard' : '/dashboard'
 
+  // آیتم‌های منوی آواتار — در همه اندازه‌ها (موبایل + دسکتاپ) در دسترس
+  const menuItems = [
+    { to: '/profile', label: 'پروفایل', icon: <PersonIcon sx={muiIconSx} /> },
+    { to: '/teams', label: 'تیم\u200cها', icon: <Icon icon="mdi:account-group" style={iconifyStyle} /> },
+    { to: '/games', label: 'بازی\u200cها', icon: <Icon icon="mdi:gamepad-variant" style={iconifyStyle} /> },
+    ...(canConsoleNav ? [{ to: '/competitions', label: 'رقابت\u200cها', icon: <Icon icon="mdi:trophy" style={iconifyStyle} /> }] : []),
+    { to: dashboardPath, label: isManager ? 'داشبورد مدیریت' : 'داشبورد', icon: <DashboardIcon sx={muiIconSx} /> },
+    { to: '/deals', label: 'شگفت\u200cانگیزها', icon: <Icon icon="mdi:fire" style={iconifyStyle} /> },
+    ...(canConsoleNav ? [
+      { to: '/manager/pricing', label: 'قیمت\u200cگذاری', icon: <Icon icon="mdi:tag-percent-outline" style={iconifyStyle} /> },
+      { to: '/finance', label: 'امور مالی', icon: <Icon icon="mdi:cash-register" style={iconifyStyle} /> },
+      { to: '/manager/crm', label: 'مشتریان', icon: <Icon icon="mdi:account-heart-outline" style={iconifyStyle} /> },
+      { to: '/manager/contracts', label: 'مدیریت قراردادها', icon: <Icon icon="mdi:file-document-check-outline" style={iconifyStyle} /> },
+    ] : []),
+    ...(isManager ? [{ to: '/manager/teams', label: 'تیم\u200cهای همکار', icon: <Icon icon="mdi:handshake-outline" style={iconifyStyle} /> }] : []),
+    ...(user?.role === 'super_admin' ? [{ to: '/admin', label: 'پنل ادمین', icon: <AdminPanelIcon sx={muiIconSx} /> }] : []),
+  ]
+
   return (
     <motion.div
       initial={{ y: -100 }}
@@ -107,6 +127,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
+                flexShrink: 0,
               }}
             >
               <Icon icon="mdi:soccer" className="h-6 w-6 text-white" />
@@ -130,44 +151,62 @@ const Navbar: React.FC<NavbarProps> = () => {
           {/* زنگ اعلان — در همه اندازه‌ها (موبایل + دسکتاپ) دیده می‌شود */}
           {isAuthenticated && <NotificationPanel />}
 
-          {/* Desktop Navigation */}
-          <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
+          {/* دکمه‌های ناوبری — فقط دسکتاپ؛ موبایل با نوار پایین + منوی آواتار */}
+          {isAuthenticated && (
+            <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
+              {navItems.map((item) => (
+                <Button
+                  key={item.href}
+                  component={Link}
+                  to={item.href}
+                  color="inherit"
+                  sx={{
+                    borderRadius: '10px',
+                    textTransform: 'none',
+                    fontWeight: 500,
+                    '&:hover': {
+                      background: 'rgba(37, 99, 235, 0.08)',
+                    },
+                  }}
+                  startIcon={<Icon icon={item.icon} />}
+                >
+                  {item.label}
+                </Button>
+              ))}
+            </Box>
+          )}
+
+          {/* بلوک حساب کاربری — در همه بریک‌پوینت‌ها (روی موبایل هم آواتار + خروج + بخش‌های فرعی) */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              mr: { xs: 0.5, md: 1 },
+              flexShrink: 0,
+            }}
+          >
             {isAuthenticated ? (
               <>
-                {navItems.map((item) => (
-                  <Button
-                    key={item.href}
-                    component={Link}
-                    to={item.href}
-                    color="inherit"
-                    sx={{
-                      borderRadius: '10px',
-                      textTransform: 'none',
-                      fontWeight: 500,
-                      '&:hover': {
-                        background: 'rgba(37, 99, 235, 0.08)',
-                      },
-                    }}
-                    startIcon={<Icon icon={item.icon} />}
-                  >
-                    {item.label}
-                  </Button>
-                ))}
-
-                <IconButton onClick={handleMenuOpen} color="inherit">
+                <IconButton
+                  onClick={handleMenuOpen}
+                  color="inherit"
+                  aria-label="منوی حساب کاربری"
+                  sx={{ p: { xs: 0.5, md: 0.75 } }}
+                >
                   <Avatar
                     sx={{
-                      width: 36,
-                      height: 36,
+                      width: { xs: 32, md: 36 },
+                      height: { xs: 32, md: 36 },
                       bgcolor: 'primary.main',
-                      fontSize: '0.85rem',
+                      fontSize: '0.8rem',
                       transition: 'all 0.3s',
                       '&:hover': {
                         transform: 'scale(1.05)',
                       },
                     }}
                   >
-                    {user?.fullName ? getInitials(user.fullName) : <PersonIcon />}
+                    {user?.fullName ? getInitials(user.fullName) : <PersonIcon fontSize="small" />}
                   </Avatar>
                 </IconButton>
 
@@ -181,6 +220,9 @@ const Navbar: React.FC<NavbarProps> = () => {
                     '& .MuiPaper-root': {
                       borderRadius: '16px',
                       minWidth: 220,
+                      maxWidth: 'calc(100vw - 24px)',
+                      maxHeight: 'calc(100vh - 80px)',
+                      overflowY: 'auto',
                       boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
                       mt: 1,
                     },
@@ -195,56 +237,23 @@ const Navbar: React.FC<NavbarProps> = () => {
                     </Typography>
                   </Box>
                   <Divider />
-                  <MenuItem component={Link} to="/profile" onClick={handleMenuClose}>
-                    <PersonIcon sx={{ ml: 1 }} /> پروفایل
-                  </MenuItem>
-                  <MenuItem component={Link} to="/teams" onClick={handleMenuClose}>
-                    <Icon icon="mdi:account-group" style={{ marginLeft: 8 }} /> تیم‌ها
-                  </MenuItem>
-                  <MenuItem component={Link} to={dashboardPath} onClick={handleMenuClose}>
-                    <DashboardIcon sx={{ ml: 1 }} /> داشبورد
-                  </MenuItem>
-                  {isManager && (
-                    <MenuItem component={Link} to="/manager-dashboard" onClick={handleMenuClose}>
-                      <StorefrontIcon sx={{ ml: 1 }} /> مدیریت سالن‌ها
+                  {menuItems.map((item) => (
+                    <MenuItem
+                      key={item.to}
+                      component={Link}
+                      to={item.to}
+                      onClick={handleMenuClose}
+                      sx={{ borderRadius: '10px', mx: 0.5, textTransform: 'none' }}
+                    >
+                      {item.icon} {item.label}
                     </MenuItem>
-                  )}
-                  <MenuItem component={Link} to="/deals" onClick={handleMenuClose}>
-                    <Icon icon="mdi:fire" style={{ marginLeft: 8 }} /> شگفت\u200cانگیزها
-                  </MenuItem>
-                  {canConsoleNav && (
-                    <MenuItem component={Link} to="/manager/pricing" onClick={handleMenuClose}>
-                      <Icon icon="mdi:tag-percent-outline" style={{ marginLeft: 8 }} /> قیمت\u200cگذاری
-                    </MenuItem>
-                  )}
-                  {canConsoleNav && (
-                    <MenuItem component={Link} to="/finance" onClick={handleMenuClose}>
-                      <Icon icon="mdi:cash-register" style={{ marginLeft: 8 }} /> امور مالی
-                    </MenuItem>
-                  )}
-                  {canConsoleNav && (
-                    <MenuItem component={Link} to="/manager/crm" onClick={handleMenuClose}>
-                      <Icon icon="mdi:account-heart-outline" style={{ marginLeft: 8 }} /> مشتریان
-                    </MenuItem>
-                  )}
-                  {canConsoleNav && (
-                    <MenuItem component={Link} to="/manager/contracts" onClick={handleMenuClose}>
-                      <Icon icon="mdi:file-document-check-outline" style={{ marginLeft: 8 }} /> مدیریت قراردادها
-                    </MenuItem>
-                  )}
-                  {isManager && (
-                    <MenuItem component={Link} to="/manager/teams" onClick={handleMenuClose}>
-                      <Icon icon="mdi:handshake-outline" style={{ marginLeft: 8 }} /> تیم‌های همکار
-                    </MenuItem>
-                  )}
-                  {user?.role === 'super_admin' && (
-                    <MenuItem component={Link} to="/admin" onClick={handleMenuClose}>
-                      <AdminPanelIcon sx={{ ml: 1 }} /> پنل ادمین
-                    </MenuItem>
-                  )}
+                  ))}
                   <Divider />
-                  <MenuItem onClick={handleLogout} sx={{ color: 'error.main' }}>
-                    <LogoutIcon sx={{ ml: 1 }} /> خروج
+                  <MenuItem
+                    onClick={handleLogout}
+                    sx={{ color: 'error.main', borderRadius: '10px', mx: 0.5, fontWeight: 700, '&:hover': { bgcolor: 'rgba(220,38,38,0.06)' } }}
+                  >
+                    <LogoutIcon sx={muiIconSx} /> خروج
                   </MenuItem>
                 </Menu>
               </>
@@ -254,7 +263,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                   component={Link}
                   to="/login"
                   color="inherit"
-                  sx={{ borderRadius: '10px', textTransform: 'none' }}
+                  sx={{ borderRadius: '10px', textTransform: 'none', px: { xs: 1, md: 2 } }}
                 >
                   ورود
                 </Button>
@@ -265,6 +274,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                   sx={{
                     borderRadius: '10px',
                     textTransform: 'none',
+                    px: { xs: 1.5, md: 2 },
                     background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
                   }}
                 >

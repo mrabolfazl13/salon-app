@@ -55,6 +55,7 @@ from app.models.team import (
 )
 from app.models.staff import StaffAssignment, SecurityAuditEvent
 from app.models.customer import VenueCustomer, CrmCampaign
+from app.models.quiz import QuizQuestion, QuizAttempt
 from app.utils.auth import get_current_user
 from app.api.v1.games import get_optional_user
 from app.database import get_session
@@ -116,6 +117,7 @@ SQLModel.metadata.create_all(test_engine)
 # ─────────────────────────── پاک‌سازی ───────────────────────────
 
 _TABLES_CLEAN_ORDER = [
+    QuizAttempt, QuizQuestion,
     TeamMessage,
     TeamAuditEvent, TeamDues, TeamBooking, TeamJoinRequest, TeamInvitation,
     TeamMember, Team,

@@ -11,7 +11,19 @@ export const venueService = {
     return response.data
   },
 
-  create: async (data: { name: string; address: string; latitude: number; longitude: number; phone: string; description?: string; amenities?: string[]; images?: string[] }) => {
+  create: async (data: {
+    name: string
+    address: string
+    latitude: number
+    longitude: number
+    phone?: string | null
+    description?: string
+    amenities?: string[]
+    images?: string[]
+    category?: string
+    payment_mode?: string
+    default_slot_price?: number | null
+  }) => {
     const response = await apiClient.post('/venues', data)
     return response.data
   },

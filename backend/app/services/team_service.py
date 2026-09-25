@@ -281,6 +281,43 @@ class TeamService:
             resp["captain_name"] = names.get(t.captain_id)
             items.append(resp)
         return {"items": items, "total": total, "limit": limit, "offset": offset}
+
+    @staticmethod
+    def standings(uow: UnitOfWork, user_id: int, limit: int = 50) -> dict:
+        """جدول لیگ تیم‌ها بر پایه نتایج بازی‌های ثبت‌شده (برد/بازی انجام‌شده)."""
+        rows = uow.teams.standings_rows()
+        captain_names = {}
+        captain_ids = list({r[0] for r in rows})
+        if captain_ids:
+            team_ids = [tid for tid, *_ in rows]
+            captains = {int(t.id): t.captain_id for t in uow.session.exec(
+                select(Team).where(col(Team.id).in_(team_ids))).all()}
+            user_ids = list({c for c in captains.values()})
+            if user_ids:
+                names = {u.id: u.full_name for u in uow.session.exec(
+                    select(User).where(col(User.id).in_(user_ids))).all()}
+                captain_names = {tid: names.get(captains.get(tid)) for tid in team_ids}
+
+        scored = []
+        for tid, name, logo, official, member_count, mids, played, won in rows:
+            lost = max(played - won, 0)
+            win_rate = round(won / played * 100, 1) if played else 0.0
+            scored.append({
+                "team_id": tid, "team_name": name, "logo_url": logo,
+                "is_official": official, "member_count": member_count,
+                "played": played, "won": won, "lost": lost,
+                "win_rate": win_rate, "points": won * 3,
+                "captain_name": captain_names.get(tid),
+                "_mine": user_id in mids,
+            })
+        scored.sort(key=lambda r: (-r["won"], -r["played"], -r["member_count"], r["team_name"]))
+        my_rank = None
+        for idx, r in enumerate(scored):
+            r["rank"] = idx + 1
+            if r.pop("_mine") and my_rank is None:
+                my_rank = idx + 1
+        top = scored[:limit]
+        return {"items": top, "total": len(scored), "my_rank": my_rank, "my_team_ranked": my_rank is not None}
     # ─────────────────────────── ویرایش / غیرفعال‌سازی ───────────────────────────
 
     @staticmethod

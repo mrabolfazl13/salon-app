@@ -176,3 +176,63 @@ export function countContractSessions(
   }
   return count
 }
+
+// ─────────────── روش پرداخت + وضعیت فیش واریزی ───────────────
+
+export const PAYMENT_MODE_LABELS: Record<string, string> = {
+  gateway: 'درگاه آنلاین',
+  bank_receipt: 'فیش واریزی',
+  pay_in_place: 'پرداخت در محل',
+}
+
+export function getPaymentModeLabel(mode?: string | null): string {
+  if (!mode) return 'نامشخص'
+  return PAYMENT_MODE_LABELS[mode] ?? mode
+}
+
+export function getPaymentModeIcon(mode?: string | null): string {
+  if (mode === 'gateway') return 'mdi:credit-card-wireless-outline'
+  if (mode === 'pay_in_place') return 'mdi:cash-register'
+  return 'mdi:receipt-text-outline'
+}
+
+export const RECEIPT_STATUS_LABELS: Record<string, string> = {
+  none: 'بدون فیش',
+  submitted: 'در انتظار بررسی مدیر',
+  approved: 'تأیید شده',
+  rejected: 'رد شده',
+}
+
+export function getReceiptStatusLabel(status?: string | null): string {
+  if (!status) return RECEIPT_STATUS_LABELS.none
+  return RECEIPT_STATUS_LABELS[status] ?? status
+}
+
+export function getReceiptStatusMuiColor(status?: string | null): 'default' | 'warning' | 'success' | 'error' {
+  if (status === 'submitted') return 'warning'
+  if (status === 'approved') return 'success'
+  if (status === 'rejected') return 'error'
+  return 'default'
+}
+
+/** رنگ چیپ روش پرداخت در جدول مدیر */
+export const PAYMENT_MODE_CHIP_STYLE: Record<string, { bg: string; color: string }> = {
+  gateway: { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' },
+  bank_receipt: { bg: 'rgba(217,119,6,0.1)', color: '#d97706' },
+  pay_in_place: { bg: 'rgba(5,150,105,0.1)', color: '#059669' },
+}
+
+/** ترجمهٔ خطاهای شناخته‌شدهٔ بک‌اند دربارهٔ پرداخت/فیش به متن دوستانه */
+export function translatePaymentError(message: string, fallback: string): string {
+  const m = (message || '').trim()
+  if (!m) return fallback
+  if (/at least 4 characters/i.test(m) || /min_length|should have at least 4/i.test(m)) {
+    return 'دلیل رد فیش باید حداقل ۴ حرف باشد'
+  }
+  if (/greater than 0|must be greater than 0/i.test(m)) return 'مبلغ باید بیشتر از صفر باشد'
+  if (m.includes('قبلا پیشرفته')) return 'این رزرو قبلاً پرداخت شده است'
+  if (m.includes('ارسال نشده')) return 'فیشی برای این رزرو ثبت نشده است'
+  if (m.includes('در محل نیست')) return 'روش پرداخت این رزرو «پرداخت در محل» نیست'
+  if (m.includes('فیش واریزی استفاده نمی‌کند')) return 'این رزرو از روش فیش واریزی استفاده نمی‌کند'
+  return m
+}
