@@ -402,7 +402,7 @@ const BookingDetail: React.FC = () => {
                   variant="contained"
                   onClick={handleRebook}
                   disabled={rebookBusy || !booking.slot_date}
-                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1, background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
+                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 800, py: 1, background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)', color: '#1c1917', boxShadow: '0 4px 14px rgba(245,158,11,0.35)', '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' } }}
                   startIcon={rebookBusy ? <CircularProgress size={18} color="inherit" /> : <Icon icon="mdi:calendar-refresh" />}
                 >
                   رزرو دوباره

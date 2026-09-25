@@ -1,7 +1,14 @@
 // frontend/src/services/api.ts
 import axios from 'axios'
+import { fetch as tauriFetch } from '@tauri-apps/plugin-http'
 
 const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
+
+// فقط داخل اپ Tauri: fetch لایه native (فاقد CORS) جایگزین fetch وب‌ویو می‌شود
+const isTauri = typeof window !== 'undefined' && '__TAURI_INTERNALS__' in window
+if (isTauri) {
+  window.fetch = tauriFetch
+}
 
 export const apiClient = axios.create({
   baseURL: API_URL,
@@ -9,6 +16,7 @@ export const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
   timeout: 30000,
+  adapter: isTauri ? 'fetch' : undefined,
 })
 
 // Helper to get token from zustand persist store

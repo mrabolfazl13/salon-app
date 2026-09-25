@@ -203,7 +203,7 @@ const VenueDetail: React.FC = () => {
               available: true,
             })
             setTab(1)
-            toast('سانس تخفیف‌دار از بازار لحظه آخری انتخاب شد — قیمت نهایی هنگام ثبت توسط سرور اعمال می‌شود', { icon: '🔥', duration: 6000 })
+            toast('سانس تخفیف‌دار از بازار لحظه آخری انتخاب شد — قیمت نهایی هنگام ثبت توسط سرور اعمال می‌شود', { duration: 6000 })
           }
         } else {
           // رزرو دوباره (/venues/:id?date=YYYY-MM-DD&time=HH:MM): slot_id بین تاریخ‌ها پایدار
@@ -229,7 +229,7 @@ const VenueDetail: React.FC = () => {
                 status: 'available',
                 available: true,
               })
-              toast('سانس قبلی پیش‌انتخاب شد — برای ثبت «ادامه رزرو» را بزنید', { icon: '🔁' })
+              toast('سانس قبلی پیش‌انتخاب شد — برای ثبت «ادامه رزرو» را بزنید')
             } else if (match) {
               toast.error('این سانس دیگر آزاد نیست — سانسِ همان ساعت/روز دیگر را انتخاب کنید')
             } else {
@@ -247,7 +247,7 @@ const VenueDetail: React.FC = () => {
 
   const handleBuyPlan = (plan: MembershipPlan) => {
     if (!isAuthenticated) {
-      toast('ابتدا وارد حساب خود شوید', { icon: '🔐' })
+      toast('ابتدا وارد حساب خود شوید')
       navigate('/login')
       return
     }
@@ -260,6 +260,11 @@ const VenueDetail: React.FC = () => {
       toast.error('لطفاً یک سانس را انتخاب کنید')
       return
     }
+    if (!isAuthenticated) {
+      toast('برای رزرو ابتدا وارد حساب خود شوید')
+      navigate('/login')
+      return
+    }
     setBookingLoading(true)
     try {
       const result = await bookingService.create({
@@ -269,7 +274,7 @@ const VenueDetail: React.FC = () => {
       })
       // ریز قیمت و مبلغ قابل پرداخت از پاسخ سرور — هیچ مبلغی اینجا محاسبه نمی‌شود
       setBookingResult(result)
-      toast.success('رزرو شما ثبت شد و در انتظار تایید مدیر سالن است ⏳', { duration: 5000 })
+      toast.success('رزرو شما ثبت شد و در انتظار تایید مدیر سالن است', { duration: 5000 })
       await fetchVenueData()
     } catch (error: any) {
       toast.error(error.response?.data?.detail || 'خطا در رزرو')
@@ -318,7 +323,7 @@ const VenueDetail: React.FC = () => {
   // اقدام رقابت قیمت — گیت لاگین مطابق سایر اقدامات محافظت‌شدهٔ همین صفحه
   const handleBid = (slot: any) => {
     if (!isAuthenticated) {
-      toast('ابتدا وارد حساب خود شوید', { icon: '🔐' })
+      toast('ابتدا وارد حساب خود شوید')
       navigate('/login')
       return
     }
@@ -333,7 +338,7 @@ const VenueDetail: React.FC = () => {
 
   const handleCta = () => {
     if (!selectedSlot) {
-      toast('ابتدا یک سانس را انتخاب کنید', { icon: '👆' })
+      toast('ابتدا یک سانس را انتخاب کنید')
       return
     }
     setConfirmOpen(true)
@@ -352,7 +357,13 @@ const VenueDetail: React.FC = () => {
   if (!venue) {
     return (
       <Layout>
-        <Box sx={{ minHeight: '100vh', background: 'linear-gradient(180deg, #f0f5ff 0%, #ffffff 100%)' }}>
+        <Box
+          sx={{
+            minHeight: '100vh',
+            background: (t) =>
+              t.palette.mode === 'dark' ? '#0b1220' : 'linear-gradient(180deg, #f5f7fb 0%, #ffffff 100%)',
+          }}
+        >
           <Container maxWidth="lg" sx={{ py: 8 }}>
             <Button
               variant="contained"
@@ -363,7 +374,7 @@ const VenueDetail: React.FC = () => {
                 fontWeight: 600,
                 px: 4,
                 py: 1.5,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                background: gradients.primary,
                 mb: 3,
               }}
             >
@@ -385,7 +396,13 @@ const VenueDetail: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ minHeight: '100vh', background: 'linear-gradient(180deg, #f0f5ff 0%, #ffffff 100%)' }}>
+      <Box
+        sx={{
+          minHeight: '100vh',
+          background: (t) =>
+            t.palette.mode === 'dark' ? '#0b1220' : 'linear-gradient(180deg, #f5f7fb 0%, #ffffff 100%)',
+        }}
+      >
         {/* ==================== موبایل: گالری هیرو ==================== */}
         <Box sx={{ display: { xs: 'block', md: 'none' } }}>
           <Box
@@ -488,14 +505,14 @@ const VenueDetail: React.FC = () => {
 
           {/* ==================== موبایل: اطلاعات اصلی ==================== */}
           <Box sx={{ px: 2, pt: 2, pb: 26, maxWidth: 640, mx: 'auto' }}>
-            <Typography sx={{ fontWeight: 800, fontSize: '1.3rem', color: '#0f172a', lineHeight: 1.5 }}>
+            <Typography sx={{ fontWeight: 800, fontSize: '1.3rem', color: 'text.primary', lineHeight: 1.5 }}>
               {venue.name}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 0.75, flexWrap: 'wrap' }}>
               <MobileRating value={venue.average_rating || 0} count={venue.total_reviews || 0} size="md" />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                <Icon icon="mdi:map-marker-outline" style={{ width: 18, height: 18, color: '#64748b' }} />
-                <Typography variant="body2" sx={{ color: '#64748b', minWidth: 0 }}>
+                <Icon icon="mdi:map-marker-outline" style={{ width: 18, height: 18, color: '#94a3b8' }} />
+                <Typography variant="body2" sx={{ color: 'text.secondary', minWidth: 0 }}>
                   {venue.address}
                 </Typography>
               </Box>
@@ -511,10 +528,12 @@ const VenueDetail: React.FC = () => {
                     icon={<Icon icon="mdi:check-circle-outline" style={{ width: 15, height: 15 }} />}
                     sx={{
                       borderRadius: '10px',
-                      bgcolor: 'rgba(37,99,235,0.07)',
-                      color: '#2563eb',
+                      bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
+                      color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#b45309'),
                       fontWeight: 600,
-                      '& .MuiChip-icon': { color: '#2563eb' },
+                      '& .MuiChip-icon': {
+                        color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#b45309'),
+                      },
                     }}
                   />
                 ))}
@@ -524,7 +543,7 @@ const VenueDetail: React.FC = () => {
             {venue.description && (
               <Paper
                 elevation={0}
-                sx={{ mt: 2, p: 2, borderRadius: `${radii.card}px`, bgcolor: 'background.paper', border: '1px solid rgba(15,23,42,0.06)' }}
+                sx={{ mt: 2, p: 2, borderRadius: `${radii.card}px`, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
               >
                 <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 0.75 }}>درباره سالن</Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.9 }}>
@@ -536,10 +555,10 @@ const VenueDetail: React.FC = () => {
             {isGym ? (
               /* باشگاه: پلن‌های اشتراک (جلسه‌ای / پک / ماهانه) به‌جای سانس */
               <Box sx={{ mt: 3 }}>
-                <SectionHeader title="🎟️ خرید اشتراک" subtitle="بدون نیاز به رزرو سانس" />
+                <SectionHeader title="خرید اشتراک" subtitle="بدون نیاز به رزرو سانس" />
                 {plans.length === 0 ? (
                   <EmptyState
-                    emoji="🏋️"
+                    icon="mdi:dumbbell"
                     title="پلن اشتراکی تعریف نشده"
                     description="هنوز مدیر این باشگاه پلن اشتراکی ثبت نکرده است. برای اطلاع از قیمت‌ها تماس بگیرید."
                   />
@@ -551,19 +570,19 @@ const VenueDetail: React.FC = () => {
               <>
                 {/* انتخاب تاریخ — اسکرول افقی */}
                 <Box sx={{ mt: 3 }}>
-                  <SectionHeader title="📅 انتخاب تاریخ" subtitle="۱۴ روز آینده" />
+                  <SectionHeader title="انتخاب تاریخ" subtitle="۱۴ روز آینده" />
                   <DateSelector dates={dates} value={selectedDate} onChange={setSelectedDate} />
                 </Box>
 
                 {/* سانس‌های روز انتخابی */}
                 <Box sx={{ mt: 3 }}>
                   <SectionHeader
-                    title="🕐 سانس‌ها"
+                    title="سانس‌ها"
                     subtitle={daySlots.length > 0 ? `${daySlots.length} سانس در ${dateLabel}` : dateLabel}
                   />
                   {daySlots.length === 0 ? (
                     <EmptyState
-                      emoji="😴"
+                      icon="mdi:power-sleep"
                       title="در این روز سانسی موجود نیست"
                       description="تاریخ دیگری را انتخاب کنید یا به روزهای بعد سر بزنید."
                     />
@@ -587,17 +606,17 @@ const VenueDetail: React.FC = () => {
             {/* تماس و موقعیت — اطلاعات ثانویه */}
             <Paper
               elevation={0}
-              sx={{ mt: 3, borderRadius: `${radii.card}px`, bgcolor: 'background.paper', border: '1px solid rgba(15,23,42,0.06)', overflow: 'hidden' }}
+              sx={{ mt: 3, borderRadius: `${radii.card}px`, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}
             >
               <List sx={{ p: 0 }}>
                 {venue.phone && (
                 <ListItem
-                  sx={{ px: 2, py: 1.75, borderBottom: '1px solid rgba(15,23,42,0.05)' }}
+                  sx={{ px: 2, py: 1.75, borderBottom: '1px solid', borderColor: 'divider' }}
                   secondaryAction={
                     <Button
                       href={`tel:${venue.phone}`}
                       size="small"
-                      sx={{ textTransform: 'none', fontWeight: 700, color: '#2563eb' }}
+                      sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.main' }}
                     >
                       تماس
                     </Button>
@@ -638,7 +657,7 @@ const VenueDetail: React.FC = () => {
 
             {/* نظرات */}
             <Box sx={{ mt: 3 }}>
-              <SectionHeader title="⭐ نظرات کاربران" />
+              <SectionHeader title="نظرات کاربران" />
               <ReviewSection
                 venueId={venue.id}
                 averageRating={venue.average_rating}
@@ -689,7 +708,7 @@ const VenueDetail: React.FC = () => {
             ) : (
               <Box sx={{
                 width: '100%', height: '100%',
-                background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                background: gradients.primary,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
               }}>
                 <Icon icon="mdi:stadium-variant" className="h-24 w-24" style={{ color: 'rgba(255,255,255,0.3)' }} />
@@ -747,7 +766,7 @@ const VenueDetail: React.FC = () => {
               <Grid container spacing={3}>
                 {/* Main Content */}
                 <Grid size={{ xs: 12, lg: 8 }}>
-                  <Card sx={{ borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                  <Card sx={{ borderRadius: `${radii.card}px`, overflow: 'hidden', boxShadow: shadows.card, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
                     <CardContent sx={{ p: 3 }}>
                       <Tabs
                         value={tab}
@@ -764,7 +783,7 @@ const VenueDetail: React.FC = () => {
                             py: 1,
                             color: 'text.secondary',
                             '&.Mui-selected': {
-                              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                              background: gradients.primary,
                               color: 'white',
                             },
                           },
@@ -815,11 +834,11 @@ const VenueDetail: React.FC = () => {
 
                           {/* Price & Manager Info */}
                           <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'rgba(37,99,235,0.05)', flex: 1, minWidth: 150 }}>
+                            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.10)' : 'rgba(245,158,11,0.08)'), flex: 1, minWidth: 150 }}>
                               <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>قیمت هر جلسه</Typography>
-                              <Typography variant="h5" sx={{ fontWeight: 800, color: 'primary.main' }}>{formatPrice(venue.price)}</Typography>
+                              <Typography variant="h5" sx={{ fontWeight: 800, color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309') }}>{formatPrice(venue.price)}</Typography>
                             </Paper>
-                            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: 'rgba(37,99,235,0.05)', flex: 1, minWidth: 150 }}>
+                            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(37,99,235,0.05)'), flex: 1, minWidth: 150 }}>
                               <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>مدیر سالن</Typography>
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                 <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem' }}>
@@ -878,14 +897,18 @@ const VenueDetail: React.FC = () => {
                                   mt: 3,
                                   p: 3,
                                   borderRadius: '16px',
-                                  background: 'linear-gradient(135deg, rgba(37,99,235,0.05), rgba(124,58,237,0.05))',
-                                  border: '1px solid rgba(37,99,235,0.15)',
+                                  background: (t) =>
+                                    t.palette.mode === 'dark'
+                                      ? 'linear-gradient(135deg, rgba(251,191,36,0.10), rgba(249,115,22,0.06))'
+                                      : 'linear-gradient(135deg, rgba(245,158,11,0.07), rgba(249,115,22,0.05))',
+                                  border: '1px solid',
+                                  borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.30)' : 'rgba(245,158,11,0.28)'),
                                 }}
                               >
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
                                   <Box sx={{
                                     width: 48, height: 48, borderRadius: '12px',
-                                    background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                                    background: gradients.primary,
                                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                                   }}>
                                     <Icon icon="mdi:calendar-check" className="h-6 w-6" style={{ color: 'white' }} />
@@ -913,14 +936,15 @@ const VenueDetail: React.FC = () => {
                                     textTransform: 'none',
                                     py: 1.5,
                                     fontSize: '1rem',
-                                    fontWeight: 700,
-                                    background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                                    boxShadow: '0 4px 15px rgba(37,99,235,0.3)',
-                                    '&:hover': { background: 'linear-gradient(135deg, #1d4ed8, #6d28d9)' },
+                                    fontWeight: 800,
+                                    background: gradients.brandEnergy,
+                                    color: '#1c1917',
+                                    boxShadow: '0 4px 15px rgba(245,158,11,0.35)',
+                                    '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
                                   }}
                                 >
                                   {bookingLoading ? (
-                                    <CircularProgress size={24} sx={{ color: 'white' }} />
+                                    <CircularProgress size={24} sx={{ color: '#1c1917' }} />
                                   ) : (
                                     <><Icon icon="mdi:check-circle" className="h-5 w-5 ml-2" />تایید و رزرو</>
                                   )}
@@ -950,7 +974,7 @@ const VenueDetail: React.FC = () => {
                 {/* Sidebar */}
                 <Grid size={{ xs: 12, lg: 4 }}>
                   <Box sx={{ position: 'sticky', top: 24 }}>
-                    <Card sx={{ borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.06)', mb: 3 }}>
+                    <Card sx={{ borderRadius: `${radii.card}px`, overflow: 'hidden', boxShadow: shadows.card, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', mb: 3 }}>
                       <CardContent sx={{ p: 3 }}>
                         <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Icon icon="mdi:phone-in-talk" className="h-5 w-5" style={{ color: '#2563eb' }} />
@@ -979,13 +1003,13 @@ const VenueDetail: React.FC = () => {
                       </CardContent>
                     </Card>
 
-                    <Card sx={{ borderRadius: '20px', overflow: 'hidden', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.06)' }}>
+                    <Card sx={{ borderRadius: `${radii.card}px`, overflow: 'hidden', boxShadow: shadows.card, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
                       <CardContent sx={{ p: 3, textAlign: 'center' }}>
                         <Box sx={{ mb: 2 }}>
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                             {isGym ? 'از قیمت' : 'قیمت هر جلسه'}
                           </Typography>
-                          <Typography variant="h4" sx={{ fontWeight: 800, color: 'primary.main', mt: 0.5 }}>
+                          <Typography variant="h4" sx={{ fontWeight: 800, color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), mt: 0.5 }}>
                             {formatPrice(isGym ? (minPlanPrice ?? venue.price) : venue.price)}
                           </Typography>
                         </Box>
@@ -1005,10 +1029,11 @@ const VenueDetail: React.FC = () => {
                             textTransform: 'none',
                             py: 1.5,
                             fontSize: '0.95rem',
-                            fontWeight: 700,
-                            background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                            boxShadow: '0 4px 15px rgba(37,99,235,0.3)',
-                            '&:hover': { background: 'linear-gradient(135deg, #1d4ed8, #6d28d9)' },
+                            fontWeight: 800,
+                            background: gradients.brandEnergy,
+                            color: '#1c1917',
+                            boxShadow: '0 4px 15px rgba(245,158,11,0.35)',
+                            '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
                           }}
                         >
                           <Icon icon={isGym ? 'mdi:card-account-details-star' : 'mdi:calendar-plus'} className="h-5 w-5 ml-2" />
@@ -1044,23 +1069,24 @@ const VenueDetail: React.FC = () => {
               display: 'flex',
               alignItems: 'center',
               gap: 2,
-              bgcolor: 'rgba(255,255,255,0.97)',
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(18,26,43,0.96)' : 'rgba(255,255,255,0.97)'),
               backdropFilter: 'blur(12px)',
               borderRadius: '16px',
-              border: '1px solid rgba(15,23,42,0.08)',
+              border: '1px solid',
+              borderColor: 'divider',
               boxShadow: '0 8px 30px rgba(2,8,23,0.14)',
               px: 2.5,
               py: 1.75,
             }}
           >
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-              <Icon icon="mdi:clock-outline" className="h-5 w-5" style={{ color: '#2563eb', flexShrink: 0 }} />
+              <Icon icon="mdi:clock-outline" className="h-5 w-5" style={{ color: '#f59e0b', flexShrink: 0 }} />
               <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }} noWrap>
                 {selectedSlot.startTime} - {selectedSlot.endTime}
               </Typography>
             </Box>
             <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" sx={{ fontWeight: 800, color: 'primary.main' }} noWrap>
+              <Typography variant="body2" sx={{ fontWeight: 800, color: 'text.primary' }} noWrap>
                 {formatPrice(selectedSlot.price)}
               </Typography>
             </Box>
@@ -1074,9 +1100,10 @@ const VenueDetail: React.FC = () => {
                 px: 3,
                 fontWeight: 700,
                 flexShrink: 0,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                boxShadow: '0 4px 15px rgba(37,99,235,0.3)',
-                '&:hover': { background: 'linear-gradient(135deg, #1d4ed8, #6d28d9)' },
+                background: gradients.brandEnergy,
+                color: '#1c1917',
+                boxShadow: '0 4px 15px rgba(245,158,11,0.35)',
+                '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
               }}
             >
               <Icon icon="mdi:check-circle" className="h-5 w-5 ml-2" />
@@ -1097,11 +1124,11 @@ const VenueDetail: React.FC = () => {
         <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
           <Box sx={{
             width: 64, height: 64, borderRadius: '50%',
-            background: 'linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1))',
+            background: 'linear-gradient(135deg, rgba(251,191,36,0.18), rgba(249,115,22,0.12))',
             display: 'flex', alignItems: 'center', justifyContent: 'center',
             mx: 'auto', mb: 2,
           }}>
-            <Icon icon="mdi:calendar-check" className="h-8 w-8" style={{ color: '#2563eb' }} />
+            <Icon icon="mdi:calendar-check" className="h-8 w-8" style={{ color: '#d97706' }} />
           </Box>
           <Typography variant="h6" sx={{ fontWeight: 700 }}>تایید رزرو</Typography>
         </DialogTitle>
@@ -1110,14 +1137,14 @@ const VenueDetail: React.FC = () => {
             <Box>
               <Box sx={{ textAlign: 'center', mb: 2 }}>
                 <Typography variant="body2" sx={{ fontWeight: 800, color: '#059669', mb: 0.5 }}>
-                  ✅ رزرو ثبت شد — در انتظار تأیید مدیر سالن
+                  رزرو ثبت شد — در انتظار تأیید مدیر سالن
                 </Typography>
                 <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main' }}>
                   قابل پرداخت: {formatRial(Number(bookingResult.payment_amount) || 0)}
                 </Typography>
                 {bookingResult.coupon_code && (
                   <Typography variant="caption" sx={{ color: '#db2777', fontWeight: 700 }}>
-                    کد «{bookingResult.coupon_code}» اعمال شد 🎟️
+                    کد «{bookingResult.coupon_code}» اعمال شد
                   </Typography>
                 )}
               </Box>
@@ -1176,7 +1203,7 @@ const VenueDetail: React.FC = () => {
             </>
           )}
         </DialogContent>
-        <DialogActions sx={{ justifyContent: bookingResult ? 'center' : 'space-between', pb: 2, gap: 1 }}>
+        <DialogActions sx={{ justifyContent: bookingResult ? 'center' : 'space-between', pb: 2, gap: 1, flexWrap: 'wrap' }}>
           {!bookingResult && (
             <Button
               onClick={closeConfirm}
@@ -1187,30 +1214,51 @@ const VenueDetail: React.FC = () => {
               انصراف
             </Button>
           )}
-          <Button
-            onClick={bookingResult ? closeConfirm : handleBooking}
-            disabled={bookingLoading}
-            variant="contained"
-            sx={{
-              borderRadius: '10px', textTransform: 'none', px: 3,
-              background: bookingResult
-                ? 'linear-gradient(135deg, #059669, #10b981)'
-                : 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              '&:hover': {
-                background: bookingResult
-                  ? 'linear-gradient(135deg, #047857, #059669)'
-                  : 'linear-gradient(135deg, #1d4ed8, #6d28d9)',
-              },
-            }}
-          >
-            {bookingLoading ? (
-              <CircularProgress size={20} sx={{ color: 'white' }} />
-            ) : bookingResult ? (
-              'بستن'
-            ) : (
-              'تایید رزرو'
-            )}
-          </Button>
+          {bookingResult ? (
+            <>
+              <Button
+                onClick={closeConfirm}
+                variant="outlined"
+                sx={{ borderRadius: '10px', textTransform: 'none', px: 3 }}
+              >
+                بعداً
+              </Button>
+              <Button
+                onClick={() => {
+                  const id = bookingResult.id
+                  closeConfirm()
+                  if (id) navigate(`/bookings/${id}`)
+                }}
+                variant="contained"
+                sx={{
+                  borderRadius: '10px', textTransform: 'none', px: 3,
+                  background: 'linear-gradient(135deg, #059669, #10b981)',
+                  '&:hover': { background: 'linear-gradient(135deg, #047857, #059669)' },
+                }}
+              >
+                پرداخت و تکمیل رزرو
+              </Button>
+            </>
+          ) : (
+            <Button
+              onClick={handleBooking}
+              disabled={bookingLoading}
+              variant="contained"
+              sx={{
+                borderRadius: '10px', textTransform: 'none', px: 3,
+                fontWeight: 800,
+                background: gradients.brandEnergy,
+                color: '#1c1917',
+                '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
+              }}
+            >
+              {bookingLoading ? (
+                <CircularProgress size={20} sx={{ color: '#1c1917' }} />
+              ) : (
+                'تایید رزرو'
+              )}
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
 
@@ -1222,7 +1270,7 @@ const VenueDetail: React.FC = () => {
         onClose={() => setPurchaseOpen(false)}
         onSuccess={() => {
           setPurchaseOpen(false)
-          toast.success('اشتراک شما با موفقیت فعال شد 🎉')
+          toast.success('اشتراک شما با موفقیت فعال شد')
         }}
       />
 

@@ -220,7 +220,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
         </Box>
 
         <TextField
-          label="قیمت پیشنهادی (تومان)"
+          label="قیمت پیشنهادی (ریال)"
           value={amount}
           onChange={(e) => setAmount(toLatinDigits(e.target.value).slice(0, 9))}
           fullWidth
@@ -232,13 +232,13 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
             validationError ??
             (bestPrice != null
               ? `برای برنده شدن باید کمتر از بهترین پیشنهاد (${formatPrice(bestPrice)}) باشد`
-              : 'حداقل ۱ تومان و کمتر از قیمت فعلی سانس')
+              : 'حداقل ۱ ریال و کمتر از قیمت فعلی سانس')
           }
           slotProps={{
             htmlInput: { min: 1, step: 1 },
             input: {
               endAdornment: (
-                <Typography variant="caption" sx={{ color: 'text.secondary', pr: 1 }}>تومان</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', pr: 1 }}>ریال</Typography>
               ),
               startAdornment: (
                 <Icon icon="mdi:currency-usd" style={{ width: 18, height: 18, marginLeft: 8, color: '#94a3b8' }} />

@@ -33,6 +33,7 @@ import {
   getMuiStatusColor,
 } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import { gradients } from '@/theme'
 
 // شکل رزرو از سمت بک‌اند (snake_case)
 interface ApiBooking {
@@ -163,8 +164,9 @@ const Bookings: React.FC = () => {
               fontWeight: 600,
             },
             '& .Mui-selected': {
-              bgcolor: 'primary.main',
-              color: 'white !important',
+              background: gradients.brandEnergy,
+              color: '#1c1917 !important',
+              fontWeight: 800,
               borderRadius: '8px',
             },
           }}
@@ -198,7 +200,7 @@ const Bookings: React.FC = () => {
           </Grid>
         ) : filtered.length === 0 ? (
           <EmptyState
-            emoji="📅"
+            icon="mdi:calendar-blank-outline"
             title="رزرویی یافت نشد"
             description="هنوز رزروی در این بخش ندارید. یک سالن پیدا کنید و بازی بعدی‌تان را رزرو کنید."
             actionLabel="پیدا کردن سالن"
@@ -216,9 +218,16 @@ const Bookings: React.FC = () => {
                   <Card
                     sx={{
                       borderRadius: '16px',
+                      bgcolor: 'background.paper',
+                      border: '1px solid',
+                      borderColor: 'divider',
                       transition: 'all 0.3s',
                       '&:hover': {
-                        boxShadow: '0 8px 40px rgba(0,0,0,0.08)',
+                        boxShadow: (t) =>
+                          t.palette.mode === 'dark'
+                            ? '0 8px 40px rgba(0,0,0,0.45)'
+                            : '0 8px 40px rgba(0,0,0,0.08)',
+                        borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.35)' : 'rgba(245,158,11,0.45)'),
                       },
                     }}
                   >

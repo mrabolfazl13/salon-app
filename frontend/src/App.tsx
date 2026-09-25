@@ -7,10 +7,11 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { Toaster } from 'react-hot-toast'
-import { theme } from '@/theme'
+import { getTheme } from '@/theme'
 import Loading from '@/components/ui/Loading'
 import ProtectedRoute, { PublicRoute } from '@/components/auth/ProtectedRoute'
 import { useAuthStore } from '@/store/authStore'
+import { useThemeStore } from '@/store/themeStore'
 import { useWebSocket } from '@/hooks/useWebSocket'
 
 // Lazy loading pages
@@ -38,6 +39,7 @@ const ManagerDashboard = lazy(() => import('@/pages/dashboard/ManagerDashboard')
 const FinanceConsole = lazy(() => import('@/pages/finance/FinanceConsole'))
 const ManagerPricing = lazy(() => import('@/pages/manager/pricing/ManagerPricing'))
 const Deals = lazy(() => import('@/pages/deals/Deals'))
+const Quiz = lazy(() => import('@/pages/quiz/Quiz'))
 const ManagerContracts = lazy(() => import('@/pages/manager/contracts/ManagerContracts'))
 const ManagerContractDetail = lazy(() => import('@/pages/manager/contracts/ManagerContractDetail'))
 const ManagerTeams = lazy(() => import('@/pages/manager/teams/ManagerTeams'))
@@ -91,7 +93,8 @@ const NotFound: React.FC = () => {
           sx={{
             p: { xs: 4, md: 6 },
             borderRadius: '24px',
-            border: `1px solid ${theme.palette.divider}`,
+            border: '1px solid',
+            borderColor: 'divider',
           }}
         >
           <Box
@@ -101,13 +104,13 @@ const NotFound: React.FC = () => {
               mx: 'auto',
               mb: 3,
               borderRadius: '20px',
-              background: 'linear-gradient(135deg, #2563eb15, #7c3aed15)',
+              background: 'linear-gradient(135deg, rgba(245,158,11,0.14), rgba(37,99,235,0.14))',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Icon icon="mdi:compass-off-outline" className="h-10 w-10" style={{ color: '#2563eb' }} />
+            <Icon icon="mdi:compass-off-outline" className="h-10 w-10" style={{ color: '#f59e0b' }} />
           </Box>
           <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
             ۴۰۴
@@ -212,6 +215,7 @@ function AppRoutes() {
             <Route path="/manager/pricing" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerPricing /></ProtectedRoute>} />
             {/* شگفت‌انگیزها — فقط کاربران لاگین‌کرده (همان گیت ProtectedRoute نقش کاربر) */}
             <Route path="/deals" element={<ProtectedRoute><Deals /></ProtectedRoute>} />
+            <Route path="/quiz" element={<ProtectedRoute><Quiz /></ProtectedRoute>} />
             <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
             <Route path="/bookings/:id" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
             <Route path="/competitions" element={<ProtectedRoute><Competitions /></ProtectedRoute>} />
@@ -250,8 +254,15 @@ function AppRoutes() {
 }
 
 function App() {
+  const mode = useThemeStore((s) => s.mode)
+
+  // همگام‌سازی کلاس dark روی <html> برای کلاس‌های dark: در Tailwind
+  useEffect(() => {
+    document.documentElement.classList.toggle('dark', mode === 'dark')
+  }, [mode])
+
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeProvider theme={getTheme(mode)}>
       <CssBaseline />
       <QueryClientProvider client={queryClient}>
         <Toaster
@@ -261,6 +272,9 @@ function App() {
               direction: 'rtl',
               fontFamily: 'Vazirmatn, sans-serif',
               borderRadius: '12px',
+              background: mode === 'dark' ? '#121a2b' : '#ffffff',
+              color: mode === 'dark' ? '#eef2f7' : '#0f172a',
+              border: `1px solid ${mode === 'dark' ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.06)'}`,
             },
           }}
         />

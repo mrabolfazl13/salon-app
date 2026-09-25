@@ -1,7 +1,8 @@
 import React, { useMemo } from 'react'
-import { Box, Typography, IconButton } from '@mui/material'
+import { Box, Typography, IconButton, useTheme } from '@mui/material'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
+import { gradients } from '@/theme'
 
 export interface DateOption {
   iso: string // YYYY-MM-DD
@@ -20,6 +21,7 @@ interface Props {
 /** انتخاب تاریخ — اسکرول افقی با فلش‌های قبلی/بعدی (جهت‌دار برای RTL) */
 const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null)
+  const dark = useTheme().palette.mode === 'dark'
 
   const currentIndex = useMemo(() => Math.max(0, dates.findIndex((d) => d.iso === value)), [dates, value])
 
@@ -35,7 +37,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
         onClick={() => scrollBy(-1)}
         disabled={currentIndex <= 0}
         aria-label="تاریخ قبل"
-        sx={{ width: 40, height: 40, flexShrink: 0, color: '#2563eb', bgcolor: 'background.paper', border: '1px solid rgba(15,23,42,0.07)' }}
+        sx={{ width: 40, height: 40, flexShrink: 0, color: 'primary.main', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
       >
         <Icon icon="mdi:chevron-right" style={{ width: 22, height: 22 }} />
       </IconButton>
@@ -69,10 +71,12 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
                 borderRadius: 16,
                 cursor: 'pointer',
                 fontFamily: 'inherit',
-                border: active ? 'none' : '1px solid rgba(15,23,42,0.07)',
-                background: active ? 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' : '#ffffff',
-                boxShadow: active ? '0 6px 18px rgba(37,99,235,0.28)' : 'none',
-                color: active ? '#fff' : '#0f172a',
+                border: active ? 'none' : `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.07)'}`,
+                background: active ? gradients.brandEnergy : dark ? '#121a2b' : '#ffffff',
+                boxShadow: active
+                  ? dark ? '0 6px 18px rgba(245,158,11,0.25)' : '0 6px 18px rgba(245,158,11,0.35)'
+                  : 'none',
+                color: active ? '#1c1917' : dark ? '#eef2f7' : '#0f172a',
               }}
               aria-pressed={active}
             >
@@ -92,7 +96,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
         onClick={() => scrollBy(1)}
         disabled={currentIndex >= dates.length - 1}
         aria-label="تاریخ بعد"
-        sx={{ width: 40, height: 40, flexShrink: 0, color: '#2563eb', bgcolor: 'background.paper', border: '1px solid rgba(15,23,42,0.07)' }}
+        sx={{ width: 40, height: 40, flexShrink: 0, color: 'primary.main', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
       >
         <Icon icon="mdi:chevron-left" style={{ width: 22, height: 22 }} />
       </IconButton>

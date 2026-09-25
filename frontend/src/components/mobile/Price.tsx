@@ -15,8 +15,8 @@ const sizes = {
   lg: { main: '1.35rem', label: '0.78rem' },
 } as const
 
-/** قیمت برجسته و خوانا — «از: ۳۸۰٬۰۰۰ تومان» */
-const Price: React.FC<Props> = ({ value, from = false, size = 'md', color = '#0f172a' }) => {
+/** قیمت برجسته و خوانا — «از: ۳۸۰٬۰۰۰ ریال» */
+const Price: React.FC<Props> = ({ value, from = false, size = 'md', color }) => {
   const s = sizes[size]
   return (
     <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5, flexWrap: 'wrap' }}>
@@ -28,7 +28,13 @@ const Price: React.FC<Props> = ({ value, from = false, size = 'md', color = '#0f
       <Typography
         component="span"
         dir="rtl"
-        sx={{ fontSize: s.main, fontWeight: 800, color, letterSpacing: '-0.01em', fontVariantNumeric: 'tabular-nums' }}
+        sx={{
+          fontSize: s.main,
+          fontWeight: 800,
+          color: color ?? 'text.primary',
+          letterSpacing: '-0.01em',
+          fontVariantNumeric: 'tabular-nums',
+        }}
       >
         {formatPrice(value)}
       </Typography>

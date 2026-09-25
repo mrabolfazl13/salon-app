@@ -206,7 +206,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
                       )}
                       {venue.price != null && venue.price > 0 && (
                         <Typography variant="body2" sx={{ fontWeight: 500, mt: 0.5 }}>
-                          {new Intl.NumberFormat('fa-IR').format(venue.price)} تومان
+                          {new Intl.NumberFormat('fa-IR').format(venue.price)} ریال
                         </Typography>
                       )}
                       <Chip

@@ -115,4 +115,5 @@ export const LOYALTY_REASON_LABELS: Record<string, string> = {
   loyalty_refund: 'بازگشت امتیاز در لغو',
   game_win: 'برد در بازی',
   review: 'ثبت نظر',
+  quiz: 'پاسخ درست چالش هفتگی',
 }

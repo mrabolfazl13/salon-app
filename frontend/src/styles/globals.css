@@ -4,6 +4,24 @@
 @tailwind utilities;
 
 @layer base {
+  :root {
+    --app-bg: #f6f7f9;
+    --app-surface: #ffffff;
+    --app-text: #0f172a;
+    --app-text-secondary: #5b6472;
+    --app-line: rgba(15, 23, 42, 0.06);
+    color-scheme: light;
+  }
+
+  .dark {
+    --app-bg: #0b1220;
+    --app-surface: #121a2b;
+    --app-text: #eef2f7;
+    --app-text-secondary: #9aa7b8;
+    --app-line: rgba(255, 255, 255, 0.08);
+    color-scheme: dark;
+  }
+
   * {
     @apply m-0 p-0 box-border;
   }
@@ -12,13 +30,15 @@
     overflow-x: hidden;
   }
   body {
-    @apply text-gray-900 antialiased;
-    background-color: #f8fafc;
+    @apply antialiased;
+    background-color: var(--app-bg);
+    color: var(--app-text);
     font-family: 'Vazirmatn', system-ui, sans-serif;
     /* Safe-area برای آیفون‌های نوچ‌دار */
     padding-bottom: env(safe-area-inset-bottom);
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
+    transition: background-color 0.3s ease, color 0.3s ease;
   }
   img {
     max-width: 100%;
@@ -41,23 +61,37 @@
     min-height: 44px;
     min-width: 44px;
   }
+  .app-surface {
+    background-color: var(--app-surface);
+  }
+  .app-line {
+    border-color: var(--app-line);
+  }
+  .text-app-secondary {
+    color: var(--app-text-secondary);
+  }
 }
 
 @layer components {
+  /* متن گرادیانی برند — کهربایی تا نارنجی */
   .gradient-text {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent;
+    @apply bg-gradient-to-l from-amber-500 via-orange-500 to-amber-600 bg-clip-text text-transparent;
   }
   .gradient-bg {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600;
+    @apply bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700;
   }
-  .card-hover {
-    @apply transition-all duration-300 hover:-translate-y-2 hover:shadow-2xl;
+  /* دکمه انرژی برند — متن تیره روی کهربایی */
+  .btn-energy {
+    @apply bg-gradient-to-l from-amber-400 to-orange-500 text-stone-900 font-bold hover:shadow-lg hover:shadow-amber-500/30 transition-all duration-300;
   }
   .btn-gradient {
-    @apply bg-gradient-to-r from-blue-600 to-purple-600 text-white hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300;
+    @apply bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700 text-white hover:shadow-lg hover:shadow-blue-500/30 transition-all duration-300;
+  }
+  .card-hover {
+    @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-2xl;
   }
   .glass {
-    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-xl;
+    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-xl dark:bg-slate-900/70 dark:border-white/10;
   }
 }
 
@@ -83,11 +117,11 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  @apply bg-gray-300 rounded-full;
+  @apply bg-gray-300 rounded-full dark:bg-slate-700;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  @apply bg-gray-400;
+  @apply bg-gray-400 dark:bg-slate-600;
 }
 
 /* پنهان کردن اسکرول‌بار (برای اسکرول افقی) */
@@ -97,4 +131,12 @@
 .scrollbar-hide {
   -ms-overflow-style: none;
   scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

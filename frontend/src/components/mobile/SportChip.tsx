@@ -1,10 +1,14 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/material'
 import { motion } from 'framer-motion'
+import { Icon } from '@iconify/react'
 import { radii } from '@/theme'
 
 export interface Sport {
   key: string
+  /** آیکون SVG (mdi) — جایگزین ایموجی در چیپ‌ها */
+  icon: string
+  /** @deprecated فقط برای منوهای متنی قدیمی نگه داشته شده */
   emoji: string
   label: string
   /** فیلتر اعمال‌شده روی venueService */
@@ -13,14 +17,14 @@ export interface Sport {
 }
 
 export const SPORTS: Sport[] = [
-  { key: 'futsal', emoji: '⚽', label: 'فوتسال', category: 'futsal' },
-  { key: 'football', emoji: '🥅', label: 'فوتبال', category: 'futsal', query: 'فوتبال' },
-  { key: 'basketball', emoji: '🏀', label: 'بسکتبال', category: 'futsal', query: 'بسکتبال' },
-  { key: 'volleyball', emoji: '🏐', label: 'والیبال', category: 'futsal', query: 'والیبال' },
-  { key: 'tennis', emoji: '🎾', label: 'تنیس', category: 'futsal', query: 'تنیس' },
-  { key: 'badminton', emoji: '🏸', label: 'بدمینتون', category: 'futsal', query: 'بدمینتون' },
-  { key: 'gym', emoji: '🏋️', label: 'بدنسازی', category: 'gym' },
-  { key: 'pool', emoji: '🎱', label: 'بیلیارد', category: 'futsal', query: 'بیلیارد' },
+  { key: 'futsal', icon: 'mdi:soccer', emoji: '⚽', label: 'فوتسال', category: 'futsal' },
+  { key: 'football', icon: 'mdi:soccer-field', emoji: '🥅', label: 'فوتبال', category: 'futsal', query: 'فوتبال' },
+  { key: 'basketball', icon: 'mdi:basketball', emoji: '🏀', label: 'بسکتبال', category: 'futsal', query: 'بسکتبال' },
+  { key: 'volleyball', icon: 'mdi:volleyball', emoji: '🏐', label: 'والیبال', category: 'futsal', query: 'والیبال' },
+  { key: 'tennis', icon: 'mdi:tennis', emoji: '🎾', label: 'تنیس', category: 'futsal', query: 'تنیس' },
+  { key: 'badminton', icon: 'mdi:badminton', emoji: '🏸', label: 'بدمینتون', category: 'futsal', query: 'بدمینتون' },
+  { key: 'gym', icon: 'mdi:dumbbell', emoji: '🏋️', label: 'بدنسازی', category: 'gym' },
+  { key: 'pool', icon: 'mdi:billiards', emoji: '🎱', label: 'بیلیارد', category: 'futsal', query: 'بیلیارد' },
 ]
 
 interface Props {
@@ -31,6 +35,7 @@ interface Props {
 
 /** چیپ ورزش — اسکرول افقی در Home */
 const SportChip: React.FC<Props> = ({ sport, active = false, onClick }) => {
+  const dark = useTheme().palette.mode === 'dark'
   return (
     <motion.button
       whileTap={{ scale: 0.95 }}
@@ -41,27 +46,40 @@ const SportChip: React.FC<Props> = ({ sport, active = false, onClick }) => {
         flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
-        gap: 4,
+        gap: 6,
         minWidth: 76,
         height: 76,
         padding: '8px 12px',
         borderRadius: radii.card,
-        border: active ? '1.5px solid transparent' : '1px solid rgba(15,23,42,0.07)',
-        background: active ? 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)' : '#ffffff',
-        boxShadow: active ? '0 6px 18px rgba(37,99,235,0.28)' : '0 1px 3px rgba(15,23,42,0.05)',
+        border: active
+          ? '1.5px solid transparent'
+          : `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.07)'}`,
+        background: active
+          ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)'
+          : dark ? '#121a2b' : '#ffffff',
+        boxShadow: active
+          ? dark ? '0 6px 18px rgba(245,158,11,0.25)' : '0 6px 18px rgba(245,158,11,0.35)'
+          : dark ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 3px rgba(15,23,42,0.05)',
         cursor: 'pointer',
         fontFamily: 'inherit',
         flexShrink: 0,
       }}
       aria-pressed={active}
     >
-      <span style={{ fontSize: '1.5rem', lineHeight: 1 }}>{sport.emoji}</span>
+      <Icon
+        icon={sport.icon}
+        style={{
+          width: 26,
+          height: 26,
+          color: active ? '#1c1917' : dark ? '#fbbf24' : '#d97706',
+        }}
+      />
       <Typography
         component="span"
         sx={{
           fontSize: '0.72rem',
-          fontWeight: 600,
-          color: active ? '#fff' : '#334155',
+          fontWeight: active ? 800 : 600,
+          color: active ? '#1c1917' : dark ? '#bcc7d4' : '#334155',
           whiteSpace: 'nowrap',
         }}
       >

@@ -1,7 +1,7 @@
 import React from 'react'
-import { Box, InputBase, IconButton } from '@mui/material'
+import { Box, InputBase, IconButton, useTheme } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { radii, shadows } from '@/theme'
+import { radii, shadows, shadowsDark } from '@/theme'
 
 interface Props {
   value?: string
@@ -28,6 +28,8 @@ const SearchBar: React.FC<Props> = ({
   autoFocus = false,
   startAdornment,
 }) => {
+  const theme = useTheme()
+  const dark = theme.palette.mode === 'dark'
   return (
     <Box
       onClick={readOnly ? onClick : undefined}
@@ -39,17 +41,18 @@ const SearchBar: React.FC<Props> = ({
         px: 2,
         borderRadius: `${radii.button}px`,
         bgcolor: 'background.paper',
-        border: '1px solid rgba(15,23,42,0.07)',
-        boxShadow: shadows.card,
+        border: '1px solid',
+        borderColor: 'divider',
+        boxShadow: dark ? shadowsDark.card : shadows.card,
         cursor: readOnly ? 'pointer' : 'text',
         transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
         '&:focus-within': {
-          borderColor: 'rgba(37,99,235,0.45)',
-          boxShadow: '0 0 0 3px rgba(37,99,235,0.10)',
+          borderColor: dark ? 'rgba(251,191,36,0.55)' : 'rgba(245,158,11,0.6)',
+          boxShadow: dark ? '0 0 0 3px rgba(251,191,36,0.14)' : '0 0 0 3px rgba(245,158,11,0.14)',
         },
       }}
     >
-      <Icon icon="mdi:magnify" style={{ width: 22, height: 22, color: '#94a3b8', flexShrink: 0 }} />
+      <Icon icon="mdi:magnify" style={{ width: 22, height: 22, color: dark ? '#fbbf24' : '#d97706', flexShrink: 0 }} />
       <InputBase
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
@@ -59,7 +62,11 @@ const SearchBar: React.FC<Props> = ({
         autoFocus={autoFocus}
         fullWidth
         inputProps={{ 'aria-label': 'جستجو' }}
-        sx={{ fontSize: '0.95rem', '& ::placeholder': { color: '#94a3b8' } }}
+        sx={{
+          fontSize: '0.95rem',
+          color: 'text.primary',
+          '& ::placeholder': { color: 'text.secondary', opacity: 0.8 },
+        }}
       />
       {startAdornment}
       {!readOnly && value && (
@@ -71,7 +78,7 @@ const SearchBar: React.FC<Props> = ({
             onChange?.('')
           }}
           aria-label="پاک کردن"
-          sx={{ width: 44, height: 44, color: '#94a3b8' }}
+          sx={{ width: 44, height: 44, color: 'text.secondary' }}
         >
           <Icon icon="mdi:close-circle" style={{ width: 20, height: 20 }} />
         </IconButton>

@@ -288,7 +288,7 @@ export const InPersonCollectDialog: React.FC<{
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
           <TextField
             fullWidth
-            label={`مبلغ دریافتی (تومان)${defaultAmount ? ` — پیش‌فرض ${formatPrice(defaultAmount)}` : ''}`}
+            label={`مبلغ دریافتی (ریال)${defaultAmount ? ` — پیش‌فرض ${formatPrice(defaultAmount)}` : ''}`}
             value={amount}
             onChange={(e) => { setAmount(e.target.value); setError(null) }}
             disabled={busy}

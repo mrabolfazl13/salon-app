@@ -35,9 +35,12 @@ import {
   MenuItem,
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
+import { useQuery } from '@tanstack/react-query'
 import { venueService } from '@/services/venue'
 import { slotService } from '@/services/slot'
 import { bookingService } from '@/services/booking'
+import { contractService } from '@/services/contract'
+import { financeService, type SeriesPoint } from '@/services/finance'
 import { dealService, type DealAvailableItem } from '@/services/deals'
 import DealPublishDialog, { type PublishSlot } from '@/components/deals/DealPublishDialog'
 import ConfirmModal from '@/components/modals/ConfirmModal'
@@ -52,9 +55,12 @@ import {
   getPaymentModeIcon,
   getReceiptStatusLabel,
   getReceiptStatusMuiColor,
+  getBookingStatusLabel,
+  getBookingStatusStyle,
   PAYMENT_MODE_CHIP_STYLE,
 } from '@/lib/utils'
 import PersianDatePicker, { PersianDateRangePicker } from '@/components/ui/PersianDatePicker'
+import { toPersianDigits } from '@/lib/jalali'
 import toast from 'react-hot-toast'
 
 interface Venue {
@@ -92,6 +98,7 @@ interface Booking {
   slot_id: number
   user_id: number
   booked_at: string
+  slot_date?: string
   status: string
   payment_amount: number
   venue_id?: number
@@ -143,6 +150,9 @@ const ManagerDashboard: React.FC = () => {
   const [tab, setTab] = useState(0)
   const [venues, setVenues] = useState<Venue[]>([])
   const [loading, setLoading] = useState(true)
+  const navigate = useNavigate()
+  // درخواست‌های قرارداد معوق — بج روی کارت آمار، لینک به صفحه بررسی
+  const [pendingContractCount, setPendingContractCount] = useState(0)
   const [openCreateVenue, setOpenCreateVenue] = useState(false)
   const [openGenerateSlots, setOpenGenerateSlots] = useState(false)
   const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null)
@@ -171,6 +181,12 @@ const ManagerDashboard: React.FC = () => {
   const [slotsLoading, setSlotsLoading] = useState(false)
   const [selectedVenueForSlots, setSelectedVenueForSlots] = useState<number | 'all'>('all')
   const [slotFilterDate, setSlotFilterDate] = useState(() => new Date().toISOString().split('T')[0])
+
+  // Navigate to venue management: when viewing a venue from list, switch to Slots tab
+  const handleViewVenue = (venue: Venue) => {
+    setSelectedVenueForSlots(venue.id)
+    setTab(1)
+  }
 
   // Deals — انتشار سانس لحظه آخری روی تب سانس‌ها
   const [dealsMap, setDealsMap] = useState<Record<number, DealAvailableItem>>({})
@@ -222,11 +238,49 @@ const ManagerDashboard: React.FC = () => {
     }
   })
 
-  const navigate = useNavigate()
-
   useEffect(() => {
     fetchVenues()
   }, [])
+
+  // شمارش درخواست‌های قرارداد معوق برای بج کارت آمار
+  useEffect(() => {
+    contractService.managerPending()
+      .then((rows) => setPendingContractCount(rows.length))
+      .catch(() => setPendingContractCount(0))
+  }, [])
+
+  // گزارش هفتگی سانس‌های محبوب — ۷ روز گذشته (جمع‌بندی روز/ساعت از دفتر مالی)
+  const weeklyPopQ = useQuery({
+    queryKey: ['manager', 'weekly-popularity'],
+    enabled: tab === 0,
+    staleTime: 5 * 60_000,
+    gcTime: 0,
+    refetchOnWindowFocus: false,
+    retry: 0,
+    queryFn: async () => {
+      const to = new Date().toISOString().split('T')[0]
+      const fromD = new Date()
+      fromD.setDate(fromD.getDate() - 6)
+      const from = fromD.toISOString().split('T')[0]
+      const [weekday, hour] = await Promise.all([
+        financeService.getRevenueSeries({ group_by: 'weekday', from, to }),
+        financeService.getRevenueSeries({ group_by: 'hour', from, to }),
+      ])
+      return { weekday: weekday.points, hour: hour.points, from, to }
+    },
+  })
+  const popularDays = useMemo(
+    () => [...(weeklyPopQ.data?.weekday ?? [])].sort((a, b) => b.count - a.count).slice(0, 3),
+    [weeklyPopQ.data],
+  )
+  const popularHours = useMemo(
+    () => [...(weeklyPopQ.data?.hour ?? [])].sort((a, b) => b.count - a.count).slice(0, 3),
+    [weeklyPopQ.data],
+  )
+  const weeklyTotalBookings = useMemo(
+    () => (weeklyPopQ.data?.weekday ?? []).reduce((s, p) => s + p.count, 0),
+    [weeklyPopQ.data],
+  )
 
   // Fetch slots when tab changes to Slots
   useEffect(() => {
@@ -236,9 +290,9 @@ const ManagerDashboard: React.FC = () => {
     }
   }, [tab, venues])
 
-  // Fetch bookings when tab changes to Bookings
+  // Fetch bookings when tab changes to Bookings (and on first load for dashboard KPIs)
   useEffect(() => {
-    if (tab === 2 && venues.length > 0) {
+    if ((tab === 2 || tab === 0) && venues.length > 0) {
       fetchBookings()
       fetchPending()
     }
@@ -284,9 +338,14 @@ const ManagerDashboard: React.FC = () => {
         : venues.filter(v => v.id === selectedVenueForSlots)
 
       const allSlots: Slot[] = []
-      for (const venue of venuesToFetch) {
-        const venueSlots = await slotService.getByVenueAndDate(venue.id, slotFilterDate)
-        allSlots.push(...venueSlots.map(s => ({ ...s, venue_id: venue.id })))
+      const results = await Promise.allSettled(
+        venuesToFetch.map(async (venue) => {
+          const venueSlots = await slotService.getByVenueAndDate(venue.id, slotFilterDate)
+          return venueSlots.map((s) => ({ ...s, venue_id: venue.id }))
+        }),
+      )
+      for (const r of results) {
+        if (r.status === 'fulfilled') allSlots.push(...r.value)
       }
       setSlots(allSlots)
     } catch (error) {
@@ -354,13 +413,18 @@ const ManagerDashboard: React.FC = () => {
         : venues.filter(v => v.id === selectedVenueForBookings)
 
       const allBookings: Booking[] = []
-      for (const venue of venuesToFetch) {
-        const venueBookings = await bookingService.getVenueBookings(
-          venue.id,
-          bookingDateRange.start,
-          bookingDateRange.end
-        )
-        allBookings.push(...venueBookings.map((b: Booking) => ({ ...b, venue_id: venue.id })))
+      const results = await Promise.allSettled(
+        venuesToFetch.map(async (venue) => {
+          const venueBookings = await bookingService.getVenueBookings(
+            venue.id,
+            bookingDateRange.start,
+            bookingDateRange.end
+          )
+          return venueBookings.map((b: Booking) => ({ ...b, venue_id: venue.id }))
+        }),
+      )
+      for (const r of results) {
+        if (r.status === 'fulfilled') allBookings.push(...r.value)
       }
       setBookings(allBookings)
     } catch (error) {
@@ -378,9 +442,11 @@ const ManagerDashboard: React.FC = () => {
         : venues.filter(v => v.id === selectedVenueForBookings)
       setPendingSelection([])
       const allPending: any[] = []
-      for (const venue of venuesToFetch) {
-        const venuePending = await bookingService.getVenuePending(venue.id)
-        if (Array.isArray(venuePending)) allPending.push(...venuePending)
+      const results = await Promise.allSettled(
+        venuesToFetch.map((venue) => bookingService.getVenuePending(venue.id)),
+      )
+      for (const r of results) {
+        if (r.status === 'fulfilled' && Array.isArray(r.value)) allPending.push(...r.value)
       }
       setPendingList(allPending)
     } catch {
@@ -685,8 +751,20 @@ const ManagerDashboard: React.FC = () => {
   // Calculate stats from real data
   const totalRevenue = bookings.reduce((sum: number, b: Booking) => sum + b.payment_amount, 0)
   const availableSlots = slots.filter(s => s.status === 'available').length
+  const todayIso = new Date().toISOString().split('T')[0]
+  const todayBookings = bookings.filter(b => b.slot_date === todayIso).length
 
-  const stats = [
+  const stats: Array<{
+    label: string
+    value: string | number
+    icon: string
+    gradient: string
+    lightBg: string
+    color: string
+    href?: string
+    badge?: number
+    hint?: string
+  }> = [
     {
       label: 'سالن‌های من',
       value: venues.length,
@@ -697,7 +775,7 @@ const ManagerDashboard: React.FC = () => {
     },
     {
       label: 'رزروهای امروز',
-      value: bookings.length,
+      value: todayBookings,
       icon: 'mdi:calendar-check-outline',
       gradient: 'linear-gradient(135deg, #059669, #10b981)',
       lightBg: 'rgba(5,150,105,0.08)',
@@ -718,6 +796,19 @@ const ManagerDashboard: React.FC = () => {
       gradient: 'linear-gradient(135deg, #dc2626, #ef4444)',
       lightBg: 'rgba(220,38,38,0.08)',
       color: '#dc2626',
+      href: '/competitions',
+      hint: 'رقابت قیمت بگذار',
+    },
+    {
+      label: 'درخواست‌های قرارداد',
+      value: pendingContractCount,
+      icon: 'mdi:file-document-edit-outline',
+      gradient: 'linear-gradient(135deg, #7c3aed, #2563eb)',
+      lightBg: 'rgba(124,58,237,0.08)',
+      color: '#7c3aed',
+      href: '/manager/contracts',
+      badge: pendingContractCount,
+      hint: 'برای بررسی',
     },
   ]
 
@@ -832,12 +923,14 @@ const ManagerDashboard: React.FC = () => {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
                   <motion.div custom={index} variants={statCardVariants}>
                     <Card
+                      onClick={stat.href ? () => navigate(stat.href as string) : undefined}
                       sx={{
                         borderRadius: '20px',
                         overflow: 'hidden',
                         boxShadow: '0 4px 20px rgba(0,0,0,0.06)',
                         border: '1px solid rgba(0,0,0,0.04)',
                         transition: 'all 0.3s ease',
+                        cursor: stat.href ? 'pointer' : 'default',
                         '&:hover': {
                           transform: 'translateY(-4px)',
                           boxShadow: '0 12px 40px rgba(0,0,0,0.1)',
@@ -871,6 +964,31 @@ const ManagerDashboard: React.FC = () => {
                             }}
                           >
                             <Icon icon={stat.icon} className="h-7 w-7" style={{ color: stat.color }} />
+                            {typeof stat.badge === 'number' && stat.badge > 0 && (
+                              <Box
+                                sx={{
+                                  position: 'absolute',
+                                  top: -6,
+                                  insetInlineEnd: -6,
+                                  minWidth: 22,
+                                  height: 22,
+                                  px: 0.5,
+                                  borderRadius: '999px',
+                                  bgcolor: '#dc2626',
+                                  color: '#fff',
+                                  fontSize: '0.7rem',
+                                  fontWeight: 800,
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  border: '2px solid',
+                                  borderColor: 'background.paper',
+                                  zIndex: 1,
+                                }}
+                              >
+                                {stat.badge}
+                              </Box>
+                            )}
                           </Box>
                           <Box sx={{ minWidth: 0 }}>
                             <Typography
@@ -890,6 +1008,14 @@ const ManagerDashboard: React.FC = () => {
                             <Typography variant="body2" sx={{ color: 'text.secondary', fontWeight: 500, fontSize: '0.85rem' }}>
                               {stat.label}
                             </Typography>
+                            {stat.hint && (
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, mt: 0.25 }}>
+                                <Typography sx={{ color: '#d97706', fontWeight: 700, fontSize: '0.72rem' }}>
+                                  {stat.hint}
+                                </Typography>
+                                <Icon icon="mdi:arrow-left" style={{ width: 13, height: 13, color: '#d97706' }} />
+                              </Box>
+                            )}
                           </Box>
                         </Box>
                       </CardContent>
@@ -899,6 +1025,55 @@ const ManagerDashboard: React.FC = () => {
               ))}
             </Grid>
           </motion.div>
+
+          {/* گزارش هفتگی سانس‌های محبوب */}
+          {weeklyPopQ.isSuccess && weeklyTotalBookings > 0 && (
+            <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+              <Card sx={{ borderRadius: '20px', boxShadow: '0 4px 20px rgba(0,0,0,0.06)', border: '1px solid rgba(0,0,0,0.04)', mb: 4 }}>
+                <CardContent sx={{ p: 3, '&:last-child': { pb: 3 } }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, flexWrap: 'wrap', mb: 2 }}>
+                    <Box sx={{ width: 36, height: 36, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', bgcolor: 'rgba(217,119,6,0.10)' }}>
+                      <Icon icon="mdi:fire-circle-outline" style={{ width: 20, height: 20, color: '#d97706' }} />
+                    </Box>
+                    <Typography sx={{ fontWeight: 800, fontSize: '0.95rem' }}>
+                      {`سانس‌های محبوب ۷ روز اخیر — ${toPersianDigits(weeklyTotalBookings)} رزرو`}
+                    </Typography>
+                    <Button
+                      size="small"
+                      onClick={() => navigate('/finance')}
+                      sx={{ mr: 'auto', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem' }}
+                      endIcon={<Icon icon="mdi:arrow-left" style={{ width: 14, height: 14 }} />}
+                    >
+                      جزئیات مالی
+                    </Button>
+                  </Box>
+                  <Grid container spacing={3}>
+                    {([['روزهای شلوغ', popularDays], ['ساعت‌های شلوغ', popularHours]] as Array<[string, SeriesPoint[]]>).map(([title, pts]) => {
+                      const max = Math.max(...pts.map((p) => p.count), 1)
+                      return (
+                        <Grid size={{ xs: 12, sm: 6 }} key={title}>
+                          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary', mb: 1 }}>{title}</Typography>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                            {pts.map((p) => (
+                              <Box key={p.key} sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                                <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, width: 64, flexShrink: 0 }}>{p.label}</Typography>
+                                <Box sx={{ flex: 1, height: 8, borderRadius: '999px', bgcolor: 'rgba(15,23,42,0.06)', overflow: 'hidden' }}>
+                                  <Box sx={{ width: `${Math.round((p.count / max) * 100)}%`, height: '100%', borderRadius: '999px', background: 'linear-gradient(90deg, #f59e0b, #f97316)' }} />
+                                </Box>
+                                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', width: 44, textAlign: 'end', fontVariantNumeric: 'tabular-nums' }}>
+                                  {`${toPersianDigits(p.count)} رزرو`}
+                                </Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        </Grid>
+                      )
+                    })}
+                  </Grid>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
 
           {/* Tabs */}
           <Box sx={{ mb: 3 }}>
@@ -1236,29 +1411,29 @@ const ManagerDashboard: React.FC = () => {
                                     >
                                       ایجاد سانس
                                     </Button>
-                                    <Button
-                                      variant="outlined"
-                                      size="small"
-                                      onClick={() => navigate(`/venues/${venue.id}`)}
-                                      sx={{
-                                        borderRadius: '10px',
-                                        textTransform: 'none',
-                                        px: 2,
-                                        py: 0.75,
-                                        fontWeight: 600,
-                                        fontSize: '0.8rem',
-                                        flex: 1,
-                                        borderColor: 'rgba(37,99,235,0.2)',
-                                        color: 'primary.main',
-                                        '&:hover': {
-                                          borderColor: 'primary.main',
-                                          background: 'rgba(37,99,235,0.04)',
-                                        },
-                                      }}
-                                      startIcon={<Icon icon="mdi:eye-outline" className="h-4 w-4" />}
-                                    >
-                                      مشاهده
-                                    </Button>
+<Button
+  variant="outlined"
+  size="small"
+  onClick={() => handleViewVenue(venue)}
+  sx={{
+    borderRadius: '10px',
+    textTransform: 'none',
+    px: 2,
+    py: 0.75,
+    fontWeight: 600,
+    fontSize: '0.8rem',
+    flex: 1,
+    borderColor: 'rgba(37,99,235,0.2)',
+    color: 'primary.main',
+    '&:hover': {
+      borderColor: 'primary.main',
+      background: 'rgba(37,99,235,0.04)',
+    },
+  }}
+  startIcon={<Icon icon="mdi:eye-outline" className="h-4 w-4" />}
+>
+  مدیریت
+</Button>
                                     <Button
                                       variant="outlined"
                                       size="small"
@@ -1905,15 +2080,15 @@ const ManagerDashboard: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <Chip
-                                label={booking.status === 'confirmed' ? 'تایید شده' : booking.status === 'cancelled' ? 'لغو شده' : booking.status}
+                                label={getBookingStatusLabel(booking.status)}
                                 size="small"
                                 sx={{
                                   borderRadius: '8px',
                                   fontWeight: 600,
                                   fontSize: '0.7rem',
                                   height: 24,
-                                  bgcolor: booking.status === 'confirmed' ? 'rgba(5,150,105,0.1)' : 'rgba(239,68,68,0.1)',
-                                  color: booking.status === 'confirmed' ? '#059669' : '#ef4444',
+                                  bgcolor: getBookingStatusStyle(booking.status).bg,
+                                  color: getBookingStatusStyle(booking.status).color,
                                 }}
                               />
                             </TableCell>
@@ -2641,7 +2816,7 @@ const ManagerDashboard: React.FC = () => {
           <TextField
             fullWidth
             type="number"
-            label="قیمت (تومان)"
+            label="قیمت (ریال)"
             value={newPlan.price}
             onChange={(e) => setNewPlan({ ...newPlan, price: e.target.value })}
             sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}

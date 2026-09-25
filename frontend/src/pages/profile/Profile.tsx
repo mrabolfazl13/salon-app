@@ -1,12 +1,16 @@
-﻿import React, { useState } from 'react'
+﻿import React, { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import {
   useDealSubscription,
   useMyLoyalty,
   useSetDealSubscription,
 } from '@/hooks/useDeals'
 import { useStaffMe } from '@/hooks/useStaffMe'
+import { bookingService } from '@/services/booking'
+import { teamService } from '@/services/team'
+import { gameService } from '@/services/game'
 import { LOYALTY_REASON_LABELS } from '@/components/pricing/shared'
 import { useSetMarketingConsent } from '@/hooks/useCrm'
 import { formatRial } from '@/components/finance/shared'
@@ -76,6 +80,58 @@ const Profile: React.FC = () => {
   const setSubscription = useSetDealSubscription()
   // کارمند انتصابی — برای رابط‌های فرعی (رقابت‌ها/امور مالی) در «مرور سریع»
   const staffQuery = useStaffMe()
+
+  // دستاوردها — فقط وقتی تب باز است داده‌ها گرفته می‌شوند
+  const achievementsOpen = tab === 3
+  const achBookings = useQuery({
+    queryKey: ['achievements', 'bookings'],
+    queryFn: () => bookingService.getAll(),
+    enabled: achievementsOpen,
+    staleTime: 60_000,
+  })
+  const achTeams = useQuery({
+    queryKey: ['achievements', 'teams'],
+    queryFn: () => teamService.getMyTeams(),
+    enabled: achievementsOpen,
+    staleTime: 60_000,
+  })
+  const achGames = useQuery({
+    queryKey: ['achievements', 'games'],
+    queryFn: () => gameService.getMyGames(),
+    enabled: achievementsOpen,
+    staleTime: 60_000,
+  })
+
+  const achievementPending = achievementsOpen && (achBookings.isPending || achTeams.isPending || achGames.isPending)
+  const achievementFailed = achBookings.isError || achTeams.isError || achGames.isError
+
+  const badges = useMemo(() => {
+    const bookings: any[] = achBookings.data ?? []
+    const teams: any[] = achTeams.data ?? []
+    const games: any[] = achGames.data ?? []
+    const uid = user?.id
+    const successfulBookings = bookings.filter((b) => b.status === 'confirmed' || b.status === 'completed').length
+    const completedBookings = bookings.filter((b) => b.status === 'completed').length
+    const captainTeams = teams.filter((t) => t.my_role === 'captain').length
+    const officialTeams = teams.filter((t) => t.is_official).length
+    const wins = games.filter((g) => g.result_set && Array.isArray(g.winner_ids) && uid != null && g.winner_ids.includes(uid)).length
+    const hostedGames = games.filter((g) => g.organizer_id === uid).length
+    const playedGames = games.filter((g) => g.status === 'completed' && (g.my_participant_status === 'accepted' || g.organizer_id === uid)).length
+    const balance = loyaltyQuery.data?.balance ?? 0
+    return [
+      { key: 'first-booking', label: 'شروع مسیر', desc: 'اولین رزرو تأییدشده', icon: 'mdi:calendar-check', goal: 1, progress: Math.min(successfulBookings, 1) },
+      { key: 'regular', label: 'بازی منظم', desc: '۵ رزرو تکمیل‌شده', icon: 'mdi:run-fast', goal: 5, progress: completedBookings },
+      { key: 'captain', label: 'کاپیتان', desc: 'کاپیتان یک تیم', icon: 'mdi:account-group', goal: 1, progress: Math.min(captainTeams, 1) },
+      { key: 'official', label: 'تیم رسمی', desc: 'عضو یک تیم رسمی', icon: 'mdi:medal', goal: 1, progress: Math.min(officialTeams, 1) },
+      { key: 'first-win', label: 'اولین برد', desc: 'برد در یک بازی ثبت‌شده', icon: 'mdi:trophy', goal: 1, progress: Math.min(wins, 1) },
+      { key: 'triple-win', label: 'هتریک', desc: '۳ برد در بازی‌ها', icon: 'mdi:crown', goal: 3, progress: wins },
+      { key: 'host', label: 'میزبان', desc: 'برگزار کردن یک بازی', icon: 'mdi:flag-checkered', goal: 1, progress: Math.min(hostedGames, 1) },
+      { key: 'team-player', label: 'بازی تیمی', desc: 'حضور در ۳ بازی تکمیل‌شده', icon: 'mdi:handshake', goal: 3, progress: playedGames },
+      { key: 'loyal-star', label: 'ستاره وفادار', desc: '۱۰۰ امتیاز وفاداری', icon: 'mdi:star-four-points', goal: 100, progress: balance },
+    ]
+  }, [achBookings.data, achTeams.data, achGames.data, loyaltyQuery.data, user?.id])
+
+  const unlockedCount = badges.filter((b) => b.progress >= b.goal).length
 
   if (!user) {
     return (
@@ -198,8 +254,11 @@ const Profile: React.FC = () => {
                     height: 100,
                     mx: 'auto',
                     mb: 2,
-                    bgcolor: 'primary.main',
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)',
+                    color: '#1c1917',
                     fontSize: '2rem',
+                    fontWeight: 800,
+                    boxShadow: '0 8px 24px rgba(245,158,11,0.35)',
                   }}
                 >
                   {getInitials(user.fullName) || 'ک'}
@@ -229,7 +288,7 @@ const Profile: React.FC = () => {
                         fontWeight: 700,
                         cursor: 'pointer',
                         bgcolor: 'rgba(245,158,11,0.14)',
-                        color: '#b45309',
+                        color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#b45309'),
                         '&:hover': { bgcolor: 'rgba(245,158,11,0.22)' },
                       }}
                     />
@@ -298,13 +357,14 @@ const Profile: React.FC = () => {
                           py: 1.75,
                           px: 1,
                           borderRadius: '12px',
-                          border: '1px solid rgba(15,23,42,0.06)',
-                          bgcolor: 'rgba(248,250,252,0.6)',
+                          border: '1px solid',
+                          borderColor: 'divider',
+                          bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(248,250,252,0.6)'),
                           textDecoration: 'none',
                           transition: 'all 0.2s',
                           '&:hover': {
-                            bgcolor: 'rgba(37,99,235,0.06)',
-                            borderColor: 'rgba(37,99,235,0.25)',
+                            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.10)' : 'rgba(245,158,11,0.07)'),
+                            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.4)' : 'rgba(245,158,11,0.45)'),
                             transform: 'translateY(-1px)',
                           },
                         }}
@@ -317,14 +377,14 @@ const Profile: React.FC = () => {
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            bgcolor: 'rgba(37,99,235,0.08)',
+                            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
                           }}
                         >
-                          <Icon icon={q.icon} style={{ fontSize: 22, color: '#2563eb' }} />
+                          <Icon icon={q.icon} style={{ fontSize: 22, color: '#d97706' }} />
                         </Box>
                         <Typography
                           variant="caption"
-                          sx={{ fontWeight: 700, color: '#334155', textAlign: 'center', lineHeight: 1.4 }}
+                          sx={{ fontWeight: 700, color: 'text.primary', textAlign: 'center', lineHeight: 1.4 }}
                         >
                           {q.label}
                         </Typography>
@@ -352,8 +412,9 @@ const Profile: React.FC = () => {
                       fontWeight: 600,
                     },
                     '& .Mui-selected': {
-                      bgcolor: 'primary.main',
-                      color: 'white !important',
+                      background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)',
+                      color: '#1c1917 !important',
+                      fontWeight: 800,
                       borderRadius: '8px',
                     },
                   }}
@@ -361,6 +422,7 @@ const Profile: React.FC = () => {
                   <Tab label="اطلاعات شخصی" />
                   <Tab label="تغییر رمز عبور" />
                   <Tab label="وفاداری و اعلان" />
+                  <Tab label="دستاوردها" />
                 </Tabs>
 
                 {tab === 0 && (
@@ -403,7 +465,8 @@ const Profile: React.FC = () => {
                           minHeight: { xs: 48, sm: 40 },
                           mt: 1,
                           maxWidth: 220,
-                          background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                          background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #1d4ed8 100%)',
+                          boxShadow: '0 4px 14px rgba(29,78,216,0.30)',
                         }}
                       >
                         {savingProfile ? (
@@ -471,7 +534,8 @@ const Profile: React.FC = () => {
                           minHeight: { xs: 48, sm: 40 },
                           mt: 1,
                           maxWidth: 220,
-                          background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                          background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #1d4ed8 100%)',
+                          boxShadow: '0 4px 14px rgba(29,78,216,0.30)',
                         }}
                       >
                         {savingPassword ? (
@@ -546,7 +610,8 @@ const Profile: React.FC = () => {
                               px: 2,
                               py: 1.25,
                               borderRadius: '12px',
-                              border: '1px solid rgba(15,23,42,0.06)',
+                              border: '1px solid',
+                              borderColor: 'divider',
                               bgcolor: h.points >= 0 ? 'rgba(5,150,105,0.05)' : 'rgba(220,38,38,0.04)',
                             }}
                           >
@@ -583,7 +648,7 @@ const Profile: React.FC = () => {
                         py: 1.75,
                         borderRadius: '14px',
                         border: '1px solid rgba(245,158,11,0.35)',
-                        bgcolor: 'rgba(255,247,237,0.7)',
+                        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,0.10)' : 'rgba(255,247,237,0.7)'),
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
@@ -602,7 +667,7 @@ const Profile: React.FC = () => {
                             disabled={subscriptionQuery.isPending || subscriptionQuery.isError || setSubscription.isPending}
                             onChange={(e) =>
                               setSubscription.mutate(e.target.checked, {
-                                onSuccess: () => toast.success(e.target.checked ? 'اشتراک تخفیف‌ها فعال شد 🔔' : 'اشتراک غیرفعال شد'),
+                                onSuccess: () => toast.success(e.target.checked ? 'اشتراک تخفیف‌ها فعال شد' : 'اشتراک غیرفعال شد'),
                                 onError: () => toast.error('خطا در ذخیره تنظیمات'),
                               })
                             }
@@ -633,7 +698,7 @@ const Profile: React.FC = () => {
                         py: 1.75,
                         borderRadius: '14px',
                         border: '1px solid rgba(37,99,235,0.3)',
-                        bgcolor: 'rgba(239,246,255,0.7)',
+                        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(37,99,235,0.12)' : 'rgba(239,246,255,0.7)'),
                       }}
                     >
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
@@ -659,7 +724,7 @@ const Profile: React.FC = () => {
                                 {
                                   onSuccess: () => {
                                     setConsentKnown(true)
-                                    toast.success(next ? 'رضایت بازاریابی فعال شد 📣' : 'رضایت بازاریابی لغو شد')
+                                    toast.success(next ? 'رضایت بازاریابی فعال شد' : 'رضایت بازاریابی لغو شد')
                                   },
                                   onError: () => {
                                     setMarketingConsent(!next)
@@ -674,6 +739,121 @@ const Profile: React.FC = () => {
                         sx={{ mr: 0 }}
                       />
                     </Box>
+                  </motion.div>
+                )}
+
+                {tab === 3 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    {/* خلاصه پیشرفت */}
+                    <Box
+                      sx={{
+                        borderRadius: '16px',
+                        p: 2.5,
+                        mb: 3,
+                        color: 'white',
+                        background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 55%, #2563eb 100%)',
+                        boxShadow: '0 10px 30px rgba(79,70,229,0.25)',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        gap: 2,
+                      }}
+                    >
+                      <Box>
+                        <Typography variant="caption" sx={{ opacity: 0.85, fontWeight: 600 }}>نشان‌های شما</Typography>
+                        <Typography variant="h5" sx={{ fontWeight: 900, mt: 0.5 }}>
+                          {achievementPending ? '…' : `${toPersianDigits(unlockedCount)} از ${toPersianDigits(badges.length)} نشان باز شده`}
+                        </Typography>
+                      </Box>
+                      <Icon icon="mdi:trophy" style={{ width: 40, height: 40, opacity: 0.4 }} />
+                    </Box>
+
+                    {achievementFailed && (
+                      <Alert severity="warning" sx={{ borderRadius: '12px', mb: 2 }}>
+                        برخی داده‌ها دریافت نشد — دوباره تلاش کنید.
+                      </Alert>
+                    )}
+
+                    {achievementPending ? (
+                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress size={28} /></Box>
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'grid',
+                          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
+                          gap: 1.5,
+                        }}
+                      >
+                        {badges.map((b, i) => {
+                          const unlocked = b.progress >= b.goal
+                          return (
+                            <motion.div
+                              key={b.key}
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.25, delay: i * 0.04 }}
+                            >
+                              <Box
+                                sx={{
+                                  position: 'relative',
+                                  textAlign: 'center',
+                                  p: 2,
+                                  borderRadius: '16px',
+                                  height: '100%',
+                                  border: '1px solid',
+                                  borderColor: unlocked ? 'rgba(245,158,11,0.5)' : 'divider',
+                                  bgcolor: unlocked
+                                    ? (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.08)' : 'rgba(255,247,237,0.8)')
+                                    : 'transparent',
+                                  boxShadow: unlocked ? '0 8px 24px rgba(245,158,11,0.18)' : 'none',
+                                }}
+                              >
+                                <Box
+                                  sx={{
+                                    width: 52,
+                                    height: 52,
+                                    mx: 'auto',
+                                    mb: 1,
+                                    borderRadius: '50%',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    background: unlocked
+                                      ? 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)'
+                                      : (t) => (t.palette.mode === 'dark' ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.15)'),
+                                  }}
+                                >
+                                  <Icon
+                                    icon={b.icon}
+                                    style={{ width: 26, height: 26, color: unlocked ? '#1c1917' : (b.progress > 0 ? '#d97706' : '#94a3b8') }}
+                                  />
+                                </Box>
+                                <Typography variant="body2" sx={{ fontWeight: 800, color: unlocked ? 'text.primary' : 'text.secondary' }}>
+                                  {b.label}
+                                </Typography>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+                                  {b.desc}
+                                </Typography>
+                                {!unlocked && (
+                                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontWeight: 700, color: '#d97706', fontVariantNumeric: 'tabular-nums' }}>
+                                    {toPersianDigits(Math.min(b.progress, b.goal))}/{toPersianDigits(b.goal)}
+                                  </Typography>
+                                )}
+                                {unlocked && (
+                                  <Box sx={{ position: 'absolute', top: 8, insetInlineEnd: 8 }}>
+                                    <Icon icon="mdi:check-circle" style={{ width: 18, height: 18, color: '#059669' }} />
+                                  </Box>
+                                )}
+                              </Box>
+                            </motion.div>
+                          )
+                        })}
+                      </Box>
+                    )}
                   </motion.div>
                 )}
               </CardContent>

@@ -24,7 +24,9 @@ import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import { useStaffMe } from '@/hooks/useStaffMe'
 import { getInitials } from '@/lib/utils'
+import { gradients } from '@/theme'
 import NotificationPanel from './NotificationPanel'
+import ThemeToggle from '@/components/ui/ThemeToggle'
 
 const roleLabels: Record<string, string> = {
   user: 'کاربر',
@@ -73,10 +75,11 @@ const Navbar: React.FC<NavbarProps> = () => {
     { label: 'سالن‌ها', icon: 'mdi:store', href: '/venues' },
     { label: 'بازی‌ها', icon: 'mdi:gamepad-variant', href: '/games' },
     { label: 'تیم\u200cها', icon: 'mdi:account-group', href: '/teams' },
+    { label: 'رقابت\u200cها', icon: 'mdi:trophy', href: '/competitions' },
     { label: 'رزروها', icon: 'mdi:calendar', href: '/bookings' },
     { label: 'قراردادها', icon: 'mdi:file-document', href: '/contracts' },
-    ...(isAuthenticated ? [{ label: 'شگفت\u200cانگیز', icon: 'mdi:fire', href: '/deals' }] : []),
-    ...(isManager ? [{ label: 'رقابت\u200cها', icon: 'mdi:trophy', href: '/competitions' }, { label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'مدیریت قراردادها', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }] : []),
+    ...(isAuthenticated ? [{ label: 'شگفت\u200cانگیز', icon: 'mdi:lightning-bolt', href: '/deals' }] : []),
+    ...(isManager ? [{ label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'مدیریت قراردادها', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }] : []),
     ...(!isManager && isStaff ? [{ label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'قراردادها (مدیریت)', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }] : []),
   ]
 
@@ -87,9 +90,9 @@ const Navbar: React.FC<NavbarProps> = () => {
     { to: '/profile', label: 'پروفایل', icon: <PersonIcon sx={muiIconSx} /> },
     { to: '/teams', label: 'تیم\u200cها', icon: <Icon icon="mdi:account-group" style={iconifyStyle} /> },
     { to: '/games', label: 'بازی\u200cها', icon: <Icon icon="mdi:gamepad-variant" style={iconifyStyle} /> },
-    ...(canConsoleNav ? [{ to: '/competitions', label: 'رقابت\u200cها', icon: <Icon icon="mdi:trophy" style={iconifyStyle} /> }] : []),
+    { to: '/competitions', label: 'رقابت\u200cها', icon: <Icon icon="mdi:trophy" style={iconifyStyle} /> },
     { to: dashboardPath, label: isManager ? 'داشبورد مدیریت' : 'داشبورد', icon: <DashboardIcon sx={muiIconSx} /> },
-    { to: '/deals', label: 'شگفت\u200cانگیزها', icon: <Icon icon="mdi:fire" style={iconifyStyle} /> },
+    { to: '/deals', label: 'شگفت\u200cانگیزها', icon: <Icon icon="mdi:lightning-bolt" style={iconifyStyle} /> },
     ...(canConsoleNav ? [
       { to: '/manager/pricing', label: 'قیمت\u200cگذاری', icon: <Icon icon="mdi:tag-percent-outline" style={iconifyStyle} /> },
       { to: '/finance', label: 'امور مالی', icon: <Icon icon="mdi:cash-register" style={iconifyStyle} /> },
@@ -110,10 +113,12 @@ const Navbar: React.FC<NavbarProps> = () => {
         position="sticky"
         elevation={0}
         sx={{
-          background: 'rgba(255,255,255,0.8)',
+          background: (t) =>
+            t.palette.mode === 'dark' ? 'rgba(11,18,32,0.82)' : 'rgba(255,255,255,0.82)',
           backdropFilter: 'blur(12px)',
           borderBottom: '1px solid',
-          borderColor: 'rgba(0,0,0,0.05)',
+          borderColor: 'divider',
+          color: 'text.primary',
         }}
       >
         <Toolbar>
@@ -122,21 +127,22 @@ const Navbar: React.FC<NavbarProps> = () => {
               sx={{
                 width: 40,
                 height: 40,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                background: gradients.brandEnergy,
                 borderRadius: '12px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 flexShrink: 0,
+                boxShadow: '0 4px 14px rgba(245,158,11,0.3)',
               }}
             >
-              <Icon icon="mdi:soccer" className="h-6 w-6 text-white" />
+              <Icon icon="mdi:soccer" className="h-6 w-6" style={{ color: '#1c1917' }} />
             </Box>
             <Typography
               variant="h6"
               sx={{
-                fontWeight: 700,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                fontWeight: 800,
+                background: 'linear-gradient(135deg, #d97706, #ea580c)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 display: { xs: 'none', sm: 'block' },
@@ -147,6 +153,9 @@ const Navbar: React.FC<NavbarProps> = () => {
           </Link>
 
           <Box sx={{ flexGrow: 1 }} />
+
+          {/* کلید حالت روشن/تاریک */}
+          <ThemeToggle />
 
           {/* زنگ اعلان — در همه اندازه‌ها (موبایل + دسکتاپ) دیده می‌شود */}
           {isAuthenticated && <NotificationPanel />}
@@ -165,7 +174,10 @@ const Navbar: React.FC<NavbarProps> = () => {
                     textTransform: 'none',
                     fontWeight: 500,
                     '&:hover': {
-                      background: 'rgba(37, 99, 235, 0.08)',
+                      background: (t) =>
+                        t.palette.mode === 'dark'
+                          ? 'rgba(251,191,36,0.1)'
+                          : 'rgba(245,158,11,0.09)',
                     },
                   }}
                   startIcon={<Icon icon={item.icon} />}
@@ -198,8 +210,10 @@ const Navbar: React.FC<NavbarProps> = () => {
                     sx={{
                       width: { xs: 32, md: 36 },
                       height: { xs: 32, md: 36 },
-                      bgcolor: 'primary.main',
+                      background: gradients.brandEnergy,
+                      color: '#1c1917',
                       fontSize: '0.8rem',
+                      fontWeight: 800,
                       transition: 'all 0.3s',
                       '&:hover': {
                         transform: 'scale(1.05)',
@@ -223,7 +237,10 @@ const Navbar: React.FC<NavbarProps> = () => {
                       maxWidth: 'calc(100vw - 24px)',
                       maxHeight: 'calc(100vh - 80px)',
                       overflowY: 'auto',
-                      boxShadow: '0 4px 20px rgba(0,0,0,0.08)',
+                      boxShadow: (t) =>
+                        t.palette.mode === 'dark'
+                          ? '0 4px 20px rgba(0,0,0,0.5)'
+                          : '0 4px 20px rgba(15,23,42,0.1)',
                       mt: 1,
                     },
                   }}
@@ -274,8 +291,15 @@ const Navbar: React.FC<NavbarProps> = () => {
                   sx={{
                     borderRadius: '10px',
                     textTransform: 'none',
+                    fontWeight: 700,
                     px: { xs: 1.5, md: 2 },
-                    background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                    background: gradients.brandEnergy,
+                    color: '#1c1917',
+                    boxShadow: '0 4px 14px rgba(245,158,11,0.3)',
+                    '&:hover': {
+                      background: gradients.brandEnergy,
+                      filter: 'brightness(1.05)',
+                    },
                   }}
                 >
                   ثبت‌نام

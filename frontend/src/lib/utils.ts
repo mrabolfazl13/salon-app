@@ -7,7 +7,7 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('fa-IR').format(price) + ' تومان'
+  return new Intl.NumberFormat('fa-IR').format(price) + ' ریال'
 }
 
 // نمایش جلالی یکنواخت (منطق مشترک در src/lib/jalali.ts)
@@ -220,6 +220,33 @@ export const PAYMENT_MODE_CHIP_STYLE: Record<string, { bg: string; color: string
   gateway: { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' },
   bank_receipt: { bg: 'rgba(217,119,6,0.1)', color: '#d97706' },
   pay_in_place: { bg: 'rgba(5,150,105,0.1)', color: '#059669' },
+}
+
+/** برچسب فارسی وضعیت رزرو + استایل چیپ مشترک */
+export const BOOKING_STATUS_LABELS: Record<string, string> = {
+  pending: 'در انتظار تأیید',
+  confirmed: 'تأیید شده',
+  cancelled: 'لغو شده',
+  completed: 'تکمیل شده',
+}
+
+export function getBookingStatusLabel(status?: string | null): string {
+  if (!status) return 'نامشخص'
+  return BOOKING_STATUS_LABELS[status] ?? status
+}
+
+export function getBookingStatusStyle(status?: string | null): { bg: string; color: string } {
+  switch (status) {
+    case 'confirmed':
+      return { bg: 'rgba(5,150,105,0.1)', color: '#059669' }
+    case 'completed':
+      return { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' }
+    case 'cancelled':
+      return { bg: 'rgba(239,68,68,0.1)', color: '#ef4444' }
+    case 'pending':
+    default:
+      return { bg: 'rgba(217,119,6,0.1)', color: '#d97706' }
+  }
 }
 
 /** ترجمهٔ خطاهای شناخته‌شدهٔ بک‌اند دربارهٔ پرداخت/فیش به متن دوستانه */

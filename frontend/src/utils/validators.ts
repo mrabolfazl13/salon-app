@@ -33,7 +33,7 @@ export const venueSchema = z.object({
   description: z.string().optional(),
   amenities: z.array(z.string()),
   images: z.array(z.string()),
-  price: z.number().min(10000, 'قیمت حداقل ۱۰,۰۰۰ تومان'),
+  price: z.number().min(10000, 'قیمت حداقل ۱۰,۰۰۰ ریال'),
 })
 
 export const bookingSchema = z.object({
@@ -49,5 +49,5 @@ export const contractSchema = z.object({
   recurrence: z.string().min(1, 'لطفاً نوع تکرار را انتخاب کنید'),
   dayOfWeek: z.string().min(1, 'لطفاً روز هفته را انتخاب کنید'),
   startTime: z.string().min(1, 'لطفاً ساعت شروع را انتخاب کنید'),
-  pricePerSession: z.number().min(10000, 'قیمت هر جلسه حداقل ۱۰,۰۰۰ تومان'),
+  pricePerSession: z.number().min(10000, 'قیمت هر جلسه حداقل ۱۰,۰۰۰ ریال'),
 })

@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Chip, Badge } from '@mui/material'
+import { Box, Typography, Chip, Badge, useTheme } from '@mui/material'
 import { motion } from 'framer-motion'
 import Layout from '@/components/layout/Layout'
 import VenueCard from '@/components/venue/VenueCard'
@@ -12,6 +12,7 @@ import {
   FilterBottomSheet,
   SearchBar,
   EmptyState,
+  ErrorState,
   VenueCardSkeletonList,
   SPORTS,
   type VenueFilters,
@@ -44,7 +45,10 @@ const Segmented: React.FC<{
   value: string
   onChange: (v: string) => void
   fullWidth?: boolean
-}> = ({ options, value, onChange, fullWidth = false }) => (
+}> = ({ options, value, onChange, fullWidth = false }) => {
+  const theme = useTheme()
+  const dark = theme.palette.mode === 'dark'
+  return (
   <Box
     sx={{
       display: 'flex',
@@ -52,7 +56,7 @@ const Segmented: React.FC<{
       p: 0.5,
       width: fullWidth ? '100%' : 'auto',
       borderRadius: `${radii.button}px`,
-      bgcolor: 'rgba(15,23,42,0.05)',
+      bgcolor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)',
     }}
   >
     {options.map((o) => {
@@ -74,9 +78,13 @@ const Segmented: React.FC<{
             userSelect: 'none',
             fontWeight: active ? 800 : 600,
             fontSize: '0.85rem',
-            color: active ? '#1d4ed8' : '#64748b',
-            bgcolor: active ? '#fff' : 'transparent',
-            boxShadow: active ? '0 2px 8px rgba(15,23,42,0.10)' : 'none',
+            color: active ? '#92400e' : dark ? '#9aa7b8' : '#64748b',
+            bgcolor: active ? (dark ? '#fbbf24' : '#fff') : 'transparent',
+            boxShadow: active
+              ? dark
+                ? '0 2px 10px rgba(251,191,36,0.25)'
+                : '0 2px 8px rgba(15,23,42,0.10)'
+              : 'none',
             transition: 'all 0.2s ease',
           }}
         >
@@ -86,12 +94,14 @@ const Segmented: React.FC<{
       )
     })}
   </Box>
-)
+  )
+}
 
 const Venues: React.FC = () => {
   const [search, setSearch] = useState('')
   const [venues, setVenues] = useState<Venue[]>([])
   const [loading, setLoading] = useState(true)
+  const [fetchError, setFetchError] = useState(false)
   const [view, setView] = useState<'list' | 'map'>('list')
   const [category, setCategory] = useState<'futsal' | 'gym'>('futsal')
   const [filters, setFilters] = useState<VenueFilters>({})
@@ -109,9 +119,13 @@ const Venues: React.FC = () => {
 
   const getVenues = async () => {
     setLoading(true)
+    setFetchError(false)
     try {
       const items = await venueService.getAll({ category })
       if (items) setVenues(items)
+    } catch {
+      setFetchError(true)
+      setVenues([])
     } finally {
       setLoading(false)
     }
@@ -164,7 +178,7 @@ const Venues: React.FC = () => {
       const s = SPORTS.find((x) => x.key === filters.sportKey)
       chips.push({
         key: 'sport',
-        label: s ? `${s.emoji} ${s.label}` : filters.sportKey,
+        label: s ? s.label : filters.sportKey,
         onRemove: () => setFilters((f) => ({ ...f, sportKey: undefined })),
       })
     }
@@ -217,9 +231,27 @@ const Venues: React.FC = () => {
         {/* هدر صفحه — هم‌سبک سلام Home */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
           <Box sx={{ mb: 2.5 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: '1.35rem', color: '#0f172a', lineHeight: 1.4 }}>
-              {category === 'futsal' ? '🏟️ سالن‌های فوتسال' : '🏋️ باشگاه‌های بدنسازی'}
-            </Typography>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <Box
+                sx={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)',
+                  color: '#1c1917',
+                  boxShadow: '0 4px 12px rgba(245,158,11,0.30)',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} style={{ width: 22, height: 22 }} />
+              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.35rem', color: 'text.primary', lineHeight: 1.4 }}>
+                {category === 'futsal' ? 'سالن‌های فوتسال' : 'باشگاه‌های بدنسازی'}
+              </Typography>
+            </Box>
             <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 0.25 }}>
               {category === 'futsal'
                 ? 'سالن مورد نظر خود را در قم پیدا و رزرو کنید'
@@ -263,16 +295,19 @@ const Venues: React.FC = () => {
               justifyContent: 'center',
               borderRadius: `${radii.button}px`,
               bgcolor: 'background.paper',
-              border: hasFilters ? '1px solid rgba(37,99,235,0.45)' : '1px solid rgba(15,23,42,0.07)',
+              border: '1px solid',
+              borderColor: hasFilters
+                ? (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.55)' : 'rgba(245,158,11,0.6)')
+                : 'divider',
               boxShadow: shadows.card,
-              color: hasFilters ? '#2563eb' : '#64748b',
+              color: hasFilters ? (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309') : 'text.secondary',
               cursor: 'pointer',
               transition: 'all 0.2s ease',
             }}
           >
             <Badge
               badgeContent={activeFilterCount}
-              color="primary"
+              color="secondary"
               sx={{ '& .MuiBadge-badge': { minWidth: 16, height: 16, fontSize: '0.6rem' } }}
             >
               <Icon icon="mdi:tune-variant" style={{ width: 22, height: 22 }} />
@@ -290,13 +325,16 @@ const Venues: React.FC = () => {
                 size="small"
                 onDelete={c.onRemove}
                 sx={{
-                  bgcolor: 'rgba(37,99,235,0.08)',
-                  color: '#1d4ed8',
+                  bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
+                  color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#92400e'),
                   fontWeight: 700,
                   fontSize: '0.75rem',
                   height: 30,
                   borderRadius: '10px',
-                  '& .MuiChip-deleteIcon': { color: '#2563eb', fontSize: 16 },
+                  '& .MuiChip-deleteIcon': {
+                    color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#d97706'),
+                    fontSize: 16,
+                  },
                 }}
               />
             ))}
@@ -307,10 +345,10 @@ const Venues: React.FC = () => {
                 alignItems: 'center',
                 gap: 0.5,
                 cursor: 'pointer',
-                color: '#64748b',
+                color: 'text.secondary',
                 fontSize: '0.78rem',
                 fontWeight: 600,
-                '&:hover': { color: '#dc2626' },
+                '&:hover': { color: '#ef4444' },
               }}
             >
               <Icon icon="mdi:filter-remove-outline" style={{ width: 16, height: 16 }} />
@@ -329,8 +367,8 @@ const Venues: React.FC = () => {
               px: 1.5,
               py: 0.75,
               borderRadius: '10px',
-              bgcolor: 'rgba(37,99,235,0.08)',
-              color: '#1d4ed8',
+              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
+              color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#92400e'),
               fontSize: '0.8rem',
               fontWeight: 700,
               minWidth: 0,
@@ -354,6 +392,12 @@ const Venues: React.FC = () => {
         {view === 'list' ? (
           loading ? (
             <VenueCardSkeletonList count={6} />
+          ) : fetchError ? (
+            <ErrorState
+              title="خطا در دریافت سالن‌ها"
+              description="مشکلی در ارتباط با سرور پیش آمد."
+              onRetry={getVenues}
+            />
           ) : filteredVenues.length === 0 ? (
             <EmptyState
               icon={category === 'futsal' ? 'mdi:stadium-outline' : 'mdi:dumbbell'}
@@ -374,7 +418,8 @@ const Venues: React.FC = () => {
             sx={{
               borderRadius: `${radii.card}px`,
               overflow: 'hidden',
-              border: '1px solid rgba(15,23,42,0.07)',
+              border: '1px solid',
+              borderColor: 'divider',
               boxShadow: shadows.card,
               height: { xs: '62dvh', md: 'calc(100vh - 300px)' },
               minHeight: 340,

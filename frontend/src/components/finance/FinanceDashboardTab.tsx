@@ -174,76 +174,78 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
 
   return (
     <Box>
-      {/* فیلترها: سالن + بازه جلالی */}
-      <SectionCard title="فیلتر گزارش‌ها" icon="mdi:filter-variant" color="#7c3aed" dense>
-        <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>سالن</InputLabel>
-              <Select
-                value={venueSel}
-                label="سالن"
-                onChange={(e) => setVenueSel(e.target.value as number | 'all')}
-                sx={{ borderRadius: '10px' }}
-              >
-                <MenuItem value="all">همه سالن‌های من</MenuItem>
-                {venues.map((v) => (
-                  <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {[
-                { label: '۷ روز', days: 6 },
-                { label: '۳۰ روز', days: 30 },
-                { label: '۹۰ روز', days: 90 },
-              ].map((preset) => (
-                <Chip
-                  key={preset.days}
-                  label={preset.label}
-                  size="small"
-                  onClick={() => {
-                    setFrom(isoDaysAgo(preset.days))
-                    setTo(getTodayISO())
-                  }}
-                  sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.7rem' }}
-                  variant={from === isoDaysAgo(preset.days) ? 'filled' : 'outlined'}
-                  color="primary"
-                />
-              ))}
-            </Box>
-          </Grid>
-          <Grid size={{ xs: 6, sm: 5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <RangeInputs from={from} to={to} onFrom={setFrom} onTo={setTo} />
-            </Box>
-          </Grid>
-        </Grid>
-      </SectionCard>
-
-      {/* داشبورد — خطای کوئری اصلی */}
-      {dashboard.isError ? (
-        <Box sx={{ mt: 3 }}>
-          <SectionCard title="شاخص‌های کلیدی" icon="mdi:chart-box-outline">
-            <ErrorBox message={extractError(dashboard.error, 'خطا در دریافت داشبورد مالی')} onRetry={() => dashboard.refetch()} />
-          </SectionCard>
-        </Box>
-      ) : (
-        <Box sx={{ mt: 3 }}>
-          <Grid container spacing={2}>
-            {(dashboard.isPending ? Array.from({ length: 8 }, () => null) : kpis).map((k, i) =>
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>خلاصه عملکرد</Typography>
+        {dashboard.isError ? (
+          <ErrorBox message={extractError(dashboard.error, 'خطا در دریافت داشبورد مالی')} onRetry={() => dashboard.refetch()} />
+        ) : (
+          <Grid container spacing={1.5}>
+            {(dashboard.isPending ? Array.from({ length: 4 }, () => null) : kpis.slice(0, 4)).map((k, i) =>
               k === null ? (
-                <Grid size={{ xs: 6, sm: 4, md: 3 }} key={`sk-${i}`}>
+                <Grid size={{ xs: 6, md: 3 }} key={`sk-${i}`}>
                   <KpiCard label="" value="" icon="mdi:chart-line" loading />
                 </Grid>
               ) : (
-                <Grid size={{ xs: 6, sm: 4, md: 3 }} key={k.label}>
+                <Grid size={{ xs: 6, md: 3 }} key={k.label}>
                   <KpiCard label={k.label} value={k.value} sub={k.sub} icon={k.icon} color={k.color} end={k.end} />
                 </Grid>
               ),
             )}
+          </Grid>
+        )}
+      </Box>
+
+      <SectionCard title="فیلتر گزارش‌ها" icon="mdi:filter-variant" color="#7c3aed" dense>
+        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'center' } }}>
+          <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 180 } }}>
+            <InputLabel>سالن</InputLabel>
+            <Select
+              value={venueSel}
+              label="سالن"
+              onChange={(e) => setVenueSel(e.target.value as number | 'all')}
+              sx={{ borderRadius: '10px' }}
+            >
+              <MenuItem value="all">همه سالن‌های من</MenuItem>
+              {venues.map((v) => (
+                <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+              ))}
+            </Select>
+          </FormControl>
+          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: { xs: 'flex-start', md: 'center' } }}>
+            {[
+              { label: '۷ روز', days: 6 },
+              { label: '۳۰ روز', days: 30 },
+              { label: '۹۰ روز', days: 90 },
+            ].map((preset) => (
+              <Chip
+                key={preset.days}
+                label={preset.label}
+                size="small"
+                onClick={() => {
+                  setFrom(isoDaysAgo(preset.days))
+                  setTo(getTodayISO())
+                }}
+                sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.7rem' }}
+                variant={from === isoDaysAgo(preset.days) ? 'filled' : 'outlined'}
+                color="primary"
+              />
+            ))}
+          </Box>
+          <Box sx={{ flex: 1, minWidth: { xs: '100%', md: 0 } }}>
+            <RangeInputs from={from} to={to} onFrom={setFrom} onTo={setTo} />
+          </Box>
+        </Box>
+      </SectionCard>
+
+      {!dashboard.isError && !dashboard.isPending && kpis.length > 4 && (
+        <Box sx={{ mt: 3 }}>
+          <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5, color: 'text.secondary' }}>سایر شاخص‌ها</Typography>
+          <Grid container spacing={1.5}>
+            {kpis.slice(4).map((k) => (
+              <Grid size={{ xs: 6, sm: 4, md: 3 }} key={k.label}>
+                <KpiCard label={k.label} value={k.value} sub={k.sub} icon={k.icon} color={k.color} end={k.end} />
+              </Grid>
+            ))}
           </Grid>
         </Box>
       )}

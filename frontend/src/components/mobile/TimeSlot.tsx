@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Typography, useTheme } from '@mui/material'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { formatTimeFa, getSlotEndTime } from '@/lib/utils'
@@ -33,8 +33,9 @@ const HINT_BY_STATUS: Record<string, string> = {
   reserved: 'رزرو قرارداد',
 }
 
-/** سانس قابل‌انتخاب (موبایل) — ردیت کارت با گرادیان در حالت انتخاب */
+/** سانس قابل‌انتخاب (موبایل) — حالت انتخاب با گرادیان کهربایی برند */
 const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) => {
+  const dark = useTheme().palette.mode === 'dark'
   const st = statusOf(slot)
   const bidable = st === 'in_competition'
   const isReserved = st === 'reserved'
@@ -77,16 +78,18 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
         border: selected
           ? '1.5px solid transparent'
           : bidable
-            ? '1.5px solid rgba(124,58,237,0.45)'
-            : '1px solid rgba(15,23,42,0.08)',
+            ? `1.5px solid ${dark ? 'rgba(251,191,36,0.45)' : 'rgba(217,119,6,0.45)'}`
+            : `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'}`,
         background: selected
-          ? gradients.primary
+          ? gradients.brandEnergy
           : bidable
-            ? 'rgba(124,58,237,0.04)'
+            ? dark ? 'rgba(251,191,36,0.06)' : 'rgba(245,158,11,0.05)'
             : disabled
-              ? 'rgba(15,23,42,0.03)'
-              : '#ffffff',
-        boxShadow: selected ? '0 6px 18px rgba(37,99,235,0.28)' : 'none',
+              ? dark ? 'rgba(255,255,255,0.03)' : 'rgba(15,23,42,0.03)'
+              : dark ? '#121a2b' : '#ffffff',
+        boxShadow: selected
+          ? dark ? '0 6px 18px rgba(245,158,11,0.25)' : '0 6px 18px rgba(245,158,11,0.35)'
+          : 'none',
         cursor: disabled ? 'not-allowed' : 'pointer',
         fontFamily: 'inherit',
         textAlign: 'start',
@@ -104,10 +107,10 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
             justifyContent: 'center',
             flexShrink: 0,
             bgcolor: selected
-              ? 'rgba(255,255,255,0.18)'
+              ? 'rgba(28,25,23,0.14)'
               : bidable
-                ? 'rgba(124,58,237,0.1)'
-                : 'rgba(37,99,235,0.07)',
+                ? dark ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.12)'
+                : dark ? 'rgba(96,165,250,0.12)' : 'rgba(37,99,235,0.07)',
           }}
         >
           <Icon
@@ -115,7 +118,13 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
             style={{
               width: 20,
               height: 20,
-              color: selected ? '#fff' : bidable ? '#7c3aed' : disabled ? '#94a3b8' : '#2563eb',
+              color: selected
+                ? '#1c1917'
+                : bidable
+                  ? dark ? '#fbbf24' : '#d97706'
+                  : disabled
+                    ? dark ? '#5b6879' : '#94a3b8'
+                    : dark ? '#60a5fa' : '#2563eb',
             }}
           />
         </Box>
@@ -124,7 +133,11 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
             sx={{
               fontSize: '0.92rem',
               fontWeight: 700,
-              color: selected ? '#fff' : disabled ? '#94a3b8' : '#0f172a',
+              color: selected
+                ? '#1c1917'
+                : disabled
+                  ? dark ? '#5b6879' : '#94a3b8'
+                  : dark ? '#eef2f7' : '#0f172a',
               whiteSpace: 'nowrap',
               fontVariantNumeric: 'tabular-nums',
             }}
@@ -136,12 +149,12 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
             sx={{
               fontSize: '0.7rem',
               color: selected
-                ? 'rgba(255,255,255,0.8)'
+                ? 'rgba(28,25,23,0.75)'
                 : bidable
-                  ? '#7c3aed'
+                  ? dark ? '#fbbf24' : '#d97706'
                   : isReserved
-                    ? '#8b5cf6'
-                    : '#64748b',
+                    ? dark ? '#a78bfa' : '#8b5cf6'
+                    : dark ? '#9aa7b8' : '#64748b',
             }}
           >
             {subLabel}
@@ -153,7 +166,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
         {!disabled &&
           !bidable &&
           (selected ? (
-            <Price value={slot.price} size="sm" color="#ffffff" />
+            <Price value={slot.price} size="sm" color="#1c1917" />
           ) : (
             <Price value={slot.price} size="sm" />
           ))}
@@ -166,8 +179,10 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
               px: 1.25,
               py: 0.5,
               borderRadius: '999px',
-              background: 'linear-gradient(135deg, #f59e0b, #7c3aed)',
-              color: '#fff',
+              background: dark
+                ? 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(249,115,22,0.2))'
+                : 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(249,115,22,0.16))',
+              color: dark ? '#fcd34d' : '#b45309',
               fontSize: '0.68rem',
               fontWeight: 700,
             }}
@@ -182,8 +197,8 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
               px: 1.25,
               py: 0.5,
               borderRadius: '999px',
-              bgcolor: 'rgba(139,92,246,0.12)',
-              color: '#7c3aed',
+              bgcolor: dark ? 'rgba(167,139,250,0.16)' : 'rgba(139,92,246,0.12)',
+              color: dark ? '#c4b5fd' : '#7c3aed',
               fontSize: '0.68rem',
               fontWeight: 700,
             }}
@@ -197,13 +212,13 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
               width: 24,
               height: 24,
               borderRadius: '50%',
-              bgcolor: 'rgba(255,255,255,0.25)',
+              bgcolor: 'rgba(28,25,23,0.18)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
             }}
           >
-            <Icon icon="mdi:check" style={{ width: 16, height: 16, color: '#fff' }} />
+            <Icon icon="mdi:check" style={{ width: 16, height: 16, color: '#1c1917' }} />
           </Box>
         )}
       </Box>

@@ -395,7 +395,7 @@ const Competitions: React.FC = () => {
               </Box>
               <TextField
                 type="number"
-                label="قیمت پیشنهادی (تومان)"
+                label="قیمت پیشنهادی (ریال)"
                 value={offerPrice}
                 onChange={(e) => setOfferPrice(Number(e.target.value))}
                 fullWidth

@@ -17,7 +17,7 @@ interface LayoutProps {
 
 const Layout: React.FC<LayoutProps> = ({ children, className }) => {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50/50 flex flex-col">
+    <div className="min-h-screen bg-gradient-to-br from-gray-50 via-white to-gray-50/50 dark:from-[#0b1220] dark:via-[#0b1220] dark:to-[#101a30] flex flex-col">
       <Navbar />
       <motion.main
         initial={{ opacity: 0, y: 20 }}

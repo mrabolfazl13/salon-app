@@ -103,13 +103,12 @@ const ManagerCrm: React.FC = () => {
           </Box>
         </Box>
 
-        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, mt: -5, position: 'relative', zIndex: 2, pb: 6 }}>
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 1.5, sm: 2, md: 4 }, mt: -5, position: 'relative', zIndex: 2, pb: 10 }}>
           {venuesQuery.isPending ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
               <CircularProgress sx={{ color: '#7c3aed' }} />
             </Box>
           ) : venuesQuery.isError ? (
-            // کارمندِ بدون انتساب/مدیریت — پنل دوستانه (هر دو منبع دامنه خطا دادند)
             isForbidden(venuesQuery.error) ? (
               <Box sx={{ bgcolor: 'rgba(255,255,255,0.94)', borderRadius: '18px', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 28px rgba(15,23,42,0.08)' }}>
                 <ForbiddenPanel detail="پنل مشتریان برای حساب کاربری شما باز است، اما بک‌اند هنوز دسترسی لازم (crm.view یا customer.view_basic) را برای شما ثبت نکرده است؛ از مدیر سالن بخواهید شما را در بخش «پرسنل» با دسترسی مناسب انتصاب کند." />
@@ -119,34 +118,34 @@ const ManagerCrm: React.FC = () => {
             )
           ) : (
             <>
-              {venues.length === 0 && (
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.94)', borderRadius: '18px', p: 2, mb: 2, border: '1px solid rgba(0,0,0,0.05)' }}>
+              {venues.length === 0 ? (
+                <Box sx={{ bgcolor: 'rgba(255,255,255,0.94)', borderRadius: '18px', p: 2, border: '1px solid rgba(0,0,0,0.05)' }}>
                   <ForbiddenPanel detail="شما سالنی تحت مدیریت ندارید و در هیچ سالنی با دسترسی CRM انتصاب نشده‌اید." />
                 </Box>
-              )}
-
-              {/* انتخاب سالن */}
-              {venues.length > 0 && (
-                <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mb: 2 }}>
-                  {venues.map((v) => (
-                    <Button
-                      key={v.id}
-                      size="small"
-                      variant={venueId === v.id ? 'contained' : 'outlined'}
-                      onClick={() => setVenueId(v.id)}
-                      sx={{
-                        borderRadius: '10px', textTransform: 'none', fontWeight: 700, fontSize: '0.78rem',
-                        ...(venueId === v.id ? { background: 'linear-gradient(135deg,#2563eb,#7c3aed)' } : {}),
-                      }}
-                    >
-                      {v.name}
-                    </Button>
-                  ))}
-                </Box>
-              )}
-
-              {venues.length > 0 && (
+              ) : (
                 <>
+                  {/* انتخاب سالن — چیپ اسکرول‌افقی موبایل */}
+                  <Box sx={{ display: 'flex', gap: 1, overflowX: 'auto', pb: 1, mb: 2, scrollbarWidth: 'none', '&::-webkit-scrollbar': { display: 'none' } }}>
+                    {venues.map((v) => (
+                      <Button
+                        key={v.id}
+                        size="small"
+                        variant={venueId === v.id ? 'contained' : 'outlined'}
+                        onClick={() => setVenueId(v.id)}
+                        disableElevation
+                        sx={{
+                          borderRadius: '10px', textTransform: 'none', fontWeight: 700, fontSize: '0.78rem',
+                          whiteSpace: 'nowrap', flexShrink: 0,
+                          ...(venueId === v.id
+                            ? { background: 'linear-gradient(135deg,#2563eb,#7c3aed)', color: 'white' }
+                            : { borderColor: 'rgba(124,58,237,0.25)', color: '#7c3aed' }),
+                        }}
+                      >
+                        {v.name}
+                      </Button>
+                    ))}
+                  </Box>
+
                   <Box
                     sx={{
                       bgcolor: 'rgba(255,255,255,0.92)', borderRadius: '16px',
@@ -161,7 +160,7 @@ const ManagerCrm: React.FC = () => {
                       scrollButtons={false}
                       sx={{
                         '& .MuiTabs-indicator': { borderRadius: '4px 4px 0 0', bgcolor: '#7c3aed' },
-                        '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, fontSize: '0.88rem', minHeight: 52 },
+                        '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, fontSize: '0.85rem', minHeight: 50, px: 1.5 },
                         '& .Mui-selected': { color: '#7c3aed !important' },
                       }}
                     >

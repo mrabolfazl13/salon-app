@@ -7,6 +7,7 @@ import {
   Slider,
   Switch,
   Typography,
+  useTheme,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { formatPrice } from '@/lib/utils'
@@ -47,6 +48,7 @@ const FilterBottomSheet: React.FC<Props> = ({
 }) => {
   const ceiling = Math.max(priceCeiling, 100000)
   const [draft, setDraft] = useState<VenueFilters>(value)
+  const dark = useTheme().palette.mode === 'dark'
 
   // همگام‌سازی با فیلترهای اعمال‌شده هر بار که شیت باز می‌شود
   useEffect(() => {
@@ -97,7 +99,7 @@ const FilterBottomSheet: React.FC<Props> = ({
             borderTopLeftRadius: radii.sheet,
             borderTopRightRadius: radii.sheet,
             maxHeight: '86dvh',
-            bgcolor: '#ffffff',
+            bgcolor: 'background.paper',
           },
         },
       }}
@@ -105,49 +107,61 @@ const FilterBottomSheet: React.FC<Props> = ({
       <Box sx={{ px: 2.5, pt: 1.5, pb: 'calc(24px + env(safe-area-inset-bottom))' }}>
         {/* هندل + هدر */}
         <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0.5 }}>
-          <Box sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: 'rgba(15,23,42,0.12)' }} />
+          <Box sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: dark ? 'rgba(255,255,255,0.16)' : 'rgba(15,23,42,0.12)' }} />
         </Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.05rem' }}>
+          <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary' }}>
             فیلترها
             {activeCount > 0 && (
-              <Box component="span" sx={{ fontSize: '0.75rem', color: '#2563eb', mr: 1 }}>
+              <Box component="span" sx={{ fontSize: '0.75rem', color: dark ? '#fbbf24' : '#d97706', mr: 1, fontWeight: 700 }}>
                 ({activeCount.toLocaleString('fa-IR')})
               </Box>
             )}
           </Typography>
-          <IconButton onClick={onClose} aria-label="بستن" sx={{ width: 44, height: 44 }}>
+          <IconButton onClick={onClose} aria-label="بستن" sx={{ width: 44, height: 44, color: 'text.primary' }}>
             <Icon icon="mdi:close" style={{ width: 22, height: 22 }} />
           </IconButton>
         </Box>
 
         {/* نوع ورزش */}
-        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 1.25, color: '#334155' }}>
+        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 1.25, color: 'text.primary' }}>
           نوع ورزش
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-          {SPORTS.map((sport) => (
-            <Chip
-              key={sport.key}
-              icon={<span style={{ fontSize: 16 }}>{sport.emoji}</span>}
-              label={sport.label}
-              onClick={() => handleSport(sport)}
-              color="primary"
-              sx={{
-                borderRadius: '10px',
-                fontWeight: 600,
-                bgcolor: draft.sportKey === sport.key ? 'rgba(37,99,235,0.1)' : 'rgba(15,23,42,0.04)',
-                border: draft.sportKey === sport.key ? '1px solid #2563eb' : '1px solid transparent',
-              }}
-            />
-          ))}
+          {SPORTS.map((sport) => {
+            const on = draft.sportKey === sport.key
+            return (
+              <Chip
+                key={sport.key}
+                icon={
+                  <Icon
+                    icon={sport.icon}
+                    style={{ width: 16, height: 16, color: on ? (dark ? '#fcd34d' : '#b45309') : (dark ? '#fbbf24' : '#d97706') }}
+                  />
+                }
+                label={sport.label}
+                onClick={() => handleSport(sport)}
+                sx={{
+                  borderRadius: '10px',
+                  fontWeight: 600,
+                  bgcolor: on
+                    ? dark ? 'rgba(251,191,36,0.16)' : 'rgba(245,158,11,0.12)'
+                    : dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.04)',
+                  color: on ? (dark ? '#fcd34d' : '#b45309') : 'text.primary',
+                  border: on
+                    ? `1px solid ${dark ? '#fbbf24' : '#f59e0b'}`
+                    : '1px solid transparent',
+                }}
+              />
+            )
+          })}
         </Box>
 
         {/* محدوده قیمت */}
-        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 0.5, color: '#334155' }}>
+        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 0.5, color: 'text.primary' }}>
           محدوده قیمت
         </Typography>
-        <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mb: 1 }}>
+        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 1 }}>
           {formatPrice(priceRange[0])} تا {formatPrice(priceRange[1])}
         </Typography>
         <Slider
@@ -171,7 +185,7 @@ const FilterBottomSheet: React.FC<Props> = ({
         {/* امکانات */}
         {amenityOptions.length > 0 && (
           <>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 1.25, color: '#334155' }}>
+            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 1.25, color: 'text.primary' }}>
               امکانات
             </Typography>
             <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
@@ -185,9 +199,13 @@ const FilterBottomSheet: React.FC<Props> = ({
                     sx={{
                       borderRadius: '10px',
                       fontWeight: 600,
-                      bgcolor: on ? 'rgba(37,99,235,0.1)' : 'rgba(15,23,42,0.04)',
-                      border: on ? '1px solid #2563eb' : '1px solid transparent',
-                      color: on ? '#2563eb' : '#334155',
+                      bgcolor: on
+                        ? dark ? 'rgba(251,191,36,0.16)' : 'rgba(245,158,11,0.12)'
+                        : dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.04)',
+                      border: on
+                        ? `1px solid ${dark ? '#fbbf24' : '#f59e0b'}`
+                        : '1px solid transparent',
+                      color: on ? (dark ? '#fcd34d' : '#b45309') : 'text.primary',
                     }}
                   />
                 )
@@ -199,8 +217,8 @@ const FilterBottomSheet: React.FC<Props> = ({
         {/* فقط تأیید شده */}
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Icon icon="mdi:shield-check" style={{ width: 20, height: 20, color: '#16a34a' }} />
-            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#334155' }}>
+            <Icon icon="mdi:shield-check" style={{ width: 20, height: 20, color: dark ? '#34d399' : '#16a34a' }} />
+            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'text.primary' }}>
               فقط سالن‌های تأیید شده
             </Typography>
           </Box>
@@ -232,9 +250,12 @@ const FilterBottomSheet: React.FC<Props> = ({
               flex: 1,
               background: 'none',
               boxShadow: 'none',
-              border: '1.5px solid rgba(15,23,42,0.12)',
-              color: '#475569',
-              '&:hover': { background: 'rgba(15,23,42,0.04)', border: '1.5px solid rgba(15,23,42,0.2)' },
+              border: `1.5px solid ${dark ? 'rgba(255,255,255,0.16)' : 'rgba(15,23,42,0.12)'}`,
+              color: 'text.secondary',
+              '&:hover': {
+                background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.04)',
+                border: `1.5px solid ${dark ? 'rgba(255,255,255,0.24)' : 'rgba(15,23,42,0.2)'}`,
+              },
             }}
           >
             پاک کردن

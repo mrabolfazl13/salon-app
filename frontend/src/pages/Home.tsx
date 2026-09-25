@@ -1,6 +1,6 @@
 // src/pages/Home.tsx — موبایل‌فرست: سلام + جستجو + ورزش‌های محبوب + نزدیک شما + محبوب‌ها + اخیراً دیده‌شده
 import React, { useState, useEffect, useCallback, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { Box, Button, Typography } from '@mui/material'
@@ -14,11 +14,37 @@ import { VenueCardSkeletonList, Shimmer } from '@/components/mobile/Skeletons'
 import { useAuthStore } from '@/store/authStore'
 import { useRecentlyViewedStore } from '@/store/recentlyViewedStore'
 import { venueService } from '@/services/venue'
+import { competitionService, type ActiveCompetition } from '@/services/competition'
 import { sportsApi } from '@/services/sportsApi'
 import type { LiveMatch, NewsItem } from '@/services/sportsApi'
 import type { Venue } from '@/types'
 import { parseList, toFullUrl } from '@/utils/venueMedia'
+import { formatPrice } from '@/lib/utils'
+import { toPersianDigits, formatJalaliDate } from '@/lib/jalali'
 import { gradients, radii, shadows } from '@/theme'
+
+// برچسب زمان باقی‌مانده برای بنر رقابت‌های داغ
+function remainingLabel(ms: number): string {
+  if (ms <= 0) return 'رو به پایان'
+  const totalMin = Math.floor(ms / 60000)
+  const d = Math.floor(totalMin / 1440)
+  const h = Math.floor((totalMin % 1440) / 60)
+  const m = totalMin % 60
+  const parts: string[] = []
+  if (d) parts.push(`${toPersianDigits(d)} روز`)
+  if (h) parts.push(`${toPersianDigits(h)} ساعت`)
+  if (!d && m) parts.push(`${toPersianDigits(m)} دقیقه`)
+  return parts.length ? parts.join(' و ') : 'کمتر از ۱ دقیقه'
+}
+
+// دسترسی سریع به بخش‌هایی که پیش‌تر پشت منوی پروفایل مخفی بودند
+const FEATURE_TILES = [
+  { label: 'تیم‌ها', sub: 'ساخت و عضویت', icon: 'mdi:account-group', href: '/teams' },
+  { label: 'بازی‌ها', sub: 'هم‌تیمی پیدا کن', icon: 'mdi:gamepad-variant', href: '/games' },
+  { label: 'رقابت', sub: 'قیمت دلخواه', icon: 'mdi:trophy-outline', href: '/competitions' },
+  { label: 'چالش هفتگی', sub: 'جایزه بگیر', icon: 'mdi:brain', href: '/quiz' },
+  { label: 'وفاداری', sub: 'امتیاز و جوایز', icon: 'mdi:star-four-points-outline', href: '/profile' },
+] as const
 
 const venueGrid = {
   display: 'grid',
@@ -39,6 +65,7 @@ const Home: React.FC = () => {
   // ---- سالن‌ها ----
   const [venues, setVenues] = useState<Venue[]>([])
   const [venuesLoading, setVenuesLoading] = useState(true)
+  const [venuesError, setVenuesError] = useState(false)
   const [coords, setCoords] = useState<{ lat: number; lng: number } | null>(null)
   const [nearby, setNearby] = useState<Venue[]>([])
   const [nearbyLoading, setNearbyLoading] = useState(true)
@@ -51,12 +78,39 @@ const Home: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'live' | 'upcoming' | 'finished'>('live')
 
+  // ---- رقابت‌های داغ (بنر) ----
+  const [hotComps, setHotComps] = useState<ActiveCompetition[]>([])
+  const [now, setNow] = useState(() => Date.now())
   useEffect(() => {
     let cancelled = false
+    competitionService
+      .getActive()
+      .then((res) => !cancelled && setHotComps(Array.isArray(res?.items) ? res.items : []))
+      .catch(() => !cancelled && setHotComps([]))
+    return () => {
+      cancelled = true
+    }
+  }, [])
+  // تیک زنده‌ی شمارش معکوس — فقط وقتی رقابتی فعال وجود دارد
+  useEffect(() => {
+    if (hotComps.length === 0) return
+    const id = setInterval(() => setNow(Date.now()), 1000)
+    return () => clearInterval(id)
+  }, [hotComps.length])
+  // حذف مواردی که مهلتشان گذشته
+  const liveHotComps = useMemo(
+    () => hotComps.filter((c) => new Date(c.expires_at).getTime() > now),
+    [hotComps, now]
+  )
+
+  useEffect(() => {
+    let cancelled = false
+    setVenuesLoading(true)
+    setVenuesError(false)
     venueService
       .getAll({ limit: 48 })
       .then((data: Venue[]) => !cancelled && setVenues(data))
-      .catch(() => !cancelled && setVenues([]))
+      .catch(() => !cancelled && setVenuesError(true))
       .finally(() => !cancelled && setVenuesLoading(false))
     return () => {
       cancelled = true
@@ -188,6 +242,204 @@ const Home: React.FC = () => {
           />
         </Box>
 
+        {/* دسترسی سریع — تیم‌ها / بازی‌ها / رقابت / وفاداری */}
+        <Box
+          sx={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
+            gap: 1.25,
+            mb: 4,
+          }}
+        >
+          {FEATURE_TILES.map((t, i) => (
+            <motion.div
+              key={t.href}
+              initial={{ opacity: 0, y: 12 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.25, delay: i * 0.04 }}
+              whileTap={{ scale: 0.96 }}
+            >
+              <Box
+                component={Link}
+                to={t.href}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  alignItems: 'center',
+                  gap: 0.75,
+                  py: 1.75,
+                  px: 0.5,
+                  minHeight: 88,
+                  borderRadius: '16px',
+                  textDecoration: 'none',
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  boxShadow: shadows.card,
+                  transition: 'border-color 0.2s ease',
+                  '&:hover': {
+                    borderColor: (th) => (th.palette.mode === 'dark' ? 'rgba(251,191,36,0.45)' : 'rgba(245,158,11,0.55)'),
+                  },
+                }}
+              >
+                <Box
+                  sx={{
+                    width: 40,
+                    height: 40,
+                    borderRadius: '12px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#d97706'),
+                    bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(251,191,36,0.12)' : 'rgba(245,158,11,0.10)'),
+                  }}
+                >
+                  <Icon icon={t.icon} style={{ width: 22, height: 22 }} />
+                </Box>
+                <Box sx={{ textAlign: 'center' }}>
+                  <Box sx={{ fontSize: '0.74rem', fontWeight: 800, color: 'text.primary' }}>{t.label}</Box>
+                  <Box sx={{ fontSize: '0.6rem', color: 'text.secondary', mt: 0.25 }}>{t.sub}</Box>
+                </Box>
+              </Box>
+            </motion.div>
+          ))}
+        </Box>
+
+        {/* رقابت‌های داغ — قیمت در حال کاهش، با شمارش معکوس */}
+        {liveHotComps.length > 0 && (
+          <Box sx={{ mb: 4 }}>
+            <SectionHeader title="رقابت‌های داغ" subtitle="تا پایان مهلت، قیمت پایین می‌آید" />
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 1.5,
+                overflowX: 'auto',
+                pb: 1,
+                scrollSnapType: 'x mandatory',
+                scrollbarWidth: 'none',
+                '&::-webkit-scrollbar': { display: 'none' },
+              }}
+            >
+              {liveHotComps.map((c, i) => {
+                const msLeft = new Date(c.expires_at).getTime() - now
+                const offPct = c.current_price > 0 ? Math.max(0, Math.round(((c.current_price - c.best_price) / c.current_price) * 100)) : 0
+                return (
+                  <motion.div
+                    key={c.slot_id}
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.25, delay: i * 0.04 }}
+                    whileTap={{ scale: 0.97 }}
+                    style={{ scrollSnapAlign: 'start', flex: '0 0 min(300px, 82vw)' }}
+                  >
+                    <Box
+                      component={Link}
+                      to={`/venues/${c.venue_id}`}
+                      sx={{
+                        display: 'block',
+                        textDecoration: 'none',
+                        p: 2,
+                        borderRadius: '16px',
+                        border: '1px solid rgba(245,158,11,0.45)',
+                        bgcolor: 'background.paper',
+                        boxShadow: shadows.card,
+                        background: (th) =>
+                          th.palette.mode === 'dark'
+                            ? 'linear-gradient(135deg, rgba(251,191,36,0.10), rgba(249,115,22,0.06))'
+                            : 'linear-gradient(135deg, rgba(255,247,237,0.9), rgba(255,251,235,0.7))',
+                      }}
+                    >
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, mb: 1 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+                          <Icon icon="mdi:trophy" style={{ width: 18, height: 18, color: '#f59e0b', flexShrink: 0 }} />
+                          <Box
+                                sx={{
+                                  fontSize: '0.78rem',
+                                  fontWeight: 800,
+                                  color: 'text.primary',
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap',
+                                }}
+                              >
+                            {c.venue_name ?? 'سالن'}
+                          </Box>
+                        </Box>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: 0.5,
+                            px: 1,
+                            py: 0.4,
+                            borderRadius: '999px',
+                            bgcolor: msLeft < 3 * 3600_000 ? 'rgba(220,38,38,0.12)' : 'rgba(245,158,11,0.14)',
+                            color: msLeft < 3 * 3600_000 ? '#dc2626' : '#b45309',
+                            fontSize: '0.68rem',
+                            fontWeight: 800,
+                            whiteSpace: 'nowrap',
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          <Icon icon="mdi:timer-sand" style={{ width: 14, height: 14 }} />
+                          {remainingLabel(msLeft)}
+                        </Box>
+                      </Box>
+
+                      <Box sx={{ fontSize: '0.72rem', color: 'text.secondary', mb: 1 }}>
+                        {formatJalaliDate(c.date)} — {toPersianDigits(c.start_time)}
+                        {' · '}
+                        {toPersianDigits(c.bid_count)} پیشنهاد
+                      </Box>
+
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+                        <Box
+                          component="span"
+                          sx={{
+                            fontSize: '0.75rem',
+                            color: 'text.secondary',
+                            textDecoration: 'line-through',
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          {formatPrice(c.current_price)}
+                        </Box>
+                        <Box
+                          component="span"
+                          sx={{
+                            fontSize: '0.95rem',
+                            fontWeight: 900,
+                            color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
+                            fontVariantNumeric: 'tabular-nums',
+                          }}
+                        >
+                          {formatPrice(c.best_price)}
+                        </Box>
+                        {offPct > 0 && (
+                          <Box
+                            component="span"
+                            sx={{
+                              px: 0.75,
+                              py: 0.15,
+                              borderRadius: '999px',
+                              fontSize: '0.65rem',
+                              fontWeight: 800,
+                              color: '#1c1917',
+                              bgcolor: '#fbbf24',
+                            }}
+                          >
+                            {toPersianDigits(offPct)}٪ تخفیف
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  </motion.div>
+                )
+              })}
+            </Box>
+          </Box>
+        )}
+
         {/* ورزش‌های محبوب */}
         <SectionHeader title="ورزش‌های محبوب" subtitle="زودتر برو سراغ بازی" />
         <Box sx={{ mb: 4 }}>
@@ -212,7 +464,7 @@ const Home: React.FC = () => {
               py: 3,
               mb: 4,
               cursor: 'pointer',
-              boxShadow: '0 10px 30px rgba(37,99,235,0.35)',
+              boxShadow: '0 10px 30px rgba(15,23,42,0.35)',
             }}
           >
             <Box
@@ -223,12 +475,39 @@ const Home: React.FC = () => {
                 width: 160,
                 height: 160,
                 borderRadius: '50%',
-                bgcolor: 'rgba(255,255,255,0.12)',
+                bgcolor: 'rgba(245,158,11,0.18)',
               }}
             />
-            <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', mb: 0.5 }}>
-              {isAuthenticated ? 'همین حالا سانس رزرو کن ⚡' : 'همین حالا رایگان شروع کن ⚡'}
-            </Typography>
+            <Box
+              sx={{
+                position: 'absolute',
+                bottom: -60,
+                insetInlineStart: -30,
+                width: 140,
+                height: 140,
+                borderRadius: '50%',
+                border: '2px dashed rgba(255,255,255,0.14)',
+              }}
+            />
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
+              <Box
+                sx={{
+                  width: 30,
+                  height: 30,
+                  borderRadius: '9px',
+                  background: gradients.brandEnergy,
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  flexShrink: 0,
+                }}
+              >
+                <Icon icon="mdi:lightning-bolt" style={{ width: 18, height: 18, color: '#1c1917' }} />
+              </Box>
+              <Typography sx={{ fontWeight: 800, fontSize: '1.1rem' }}>
+                {isAuthenticated ? 'همین حالا سانس رزرو کن' : 'همین حالا رایگان شروع کن'}
+              </Typography>
+            </Box>
             <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.85)' }}>
               {isAuthenticated
                 ? 'بهترین سالن‌ها با بهترین قیمت، چند لحظه‌ای'
@@ -243,9 +522,10 @@ const Home: React.FC = () => {
                 px: 1.75,
                 py: 0.75,
                 borderRadius: `${radii.button}px`,
-                bgcolor: 'rgba(255,255,255,0.18)',
+                background: gradients.brandEnergy,
+                color: '#1c1917',
                 fontSize: '0.8rem',
-                fontWeight: 700,
+                fontWeight: 800,
               }}
             >
               {isAuthenticated ? 'مشاهده سالن‌ها' : 'شروع رایگان'}
@@ -262,7 +542,7 @@ const Home: React.FC = () => {
               position: 'relative',
               overflow: 'hidden',
               borderRadius: `${radii.card}px`,
-              background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
+              background: gradients.deals,
               color: '#fff',
               px: 2.5,
               py: 2.25,
@@ -274,7 +554,10 @@ const Home: React.FC = () => {
             <Box sx={{ position: 'absolute', bottom: -50, left: -30, width: 150, height: 150, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)' }} />
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
               <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 800, fontSize: '1.02rem' }}>🔥 شگفت‌انگیزهای لحظه آخری</Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Icon icon="mdi:fire" style={{ width: 20, height: 20, flexShrink: 0 }} />
+                  <Typography sx={{ fontWeight: 800, fontSize: '1.02rem' }}>شگفت‌انگیزهای لحظه آخری</Typography>
+                </Box>
                 <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.9)', mt: 0.25 }}>
                   سانس‌های تخفیف‌دار نزدیک تو — تا مهلت تمام نشده رزرو کن
                 </Typography>
@@ -360,6 +643,34 @@ const Home: React.FC = () => {
           <Box sx={{ mb: 4 }}>
             <VenueCardSkeletonList count={3} />
           </Box>
+        ) : venuesError ? (
+          <Box sx={{ mb: 4, textAlign: 'center', py: 3 }}>
+            <Icon icon="mdi:cloud-alert-outline" style={{ width: 40, height: 40, color: '#ef4444' }} />
+            <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 1 }}>
+              دریافت سالن‌ها ممکن نشد
+            </Typography>
+            <Button
+              size="small"
+              variant="outlined"
+              startIcon={<Icon icon="mdi:refresh" />}
+              onClick={() => {
+                setVenuesLoading(true)
+                setVenuesError(false)
+                venueService
+                  .getAll({ limit: 48 })
+                  .then((data: Venue[]) => setVenues(data))
+                  .catch(() => setVenuesError(true))
+                  .finally(() => setVenuesLoading(false))
+              }}
+              sx={{ mt: 1.5, textTransform: 'none', borderRadius: '999px' }}
+            >
+              تلاش مجدد
+            </Button>
+          </Box>
+        ) : popular.length === 0 ? (
+          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mb: 4 }}>
+            هنوز سالنی ثبت نشده است.
+          </Typography>
         ) : (
           <Box sx={{ ...venueGrid, mb: 4 }}>
             {popular.map((v) => (
@@ -393,7 +704,8 @@ const Home: React.FC = () => {
                     scrollSnapAlign: 'start',
                     borderRadius: `${radii.card}px`,
                     bgcolor: 'background.paper',
-                    border: '1px solid rgba(15,23,42,0.06)',
+                    border: '1px solid',
+                    borderColor: 'divider',
                     boxShadow: shadows.card,
                     overflow: 'hidden',
                     cursor: 'pointer',
@@ -409,10 +721,10 @@ const Home: React.FC = () => {
                     sx={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }}
                   />
                   <Box sx={{ p: 1.5 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.85rem' }} noWrap>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'text.primary' }} noWrap>
                       {v.name}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.72rem', color: '#64748b', mt: 0.25 }} noWrap>
+                    <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', mt: 0.25 }} noWrap>
                       {v.address}
                     </Typography>
                   </Box>
@@ -485,8 +797,8 @@ const Home: React.FC = () => {
               </Box>
             ) : getActiveMatches().length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Icon icon="mdi:soccer-field" style={{ width: 44, height: 44, color: '#cbd5e1' }} />
-                <Typography sx={{ color: '#64748b', fontSize: '0.85rem', mt: 1 }}>
+                <Icon icon="mdi:soccer-field" style={{ width: 44, height: 44, color: '#94a3b8' }} />
+                <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 1 }}>
                   مسابقه‌ای یافت نشد
                 </Typography>
               </Box>
@@ -499,9 +811,9 @@ const Home: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25, delay: index * 0.04 }}
                   >
-                    <Box sx={{ bgcolor: 'rgba(15,23,42,0.03)', borderRadius: '16px', p: 1.5 }}>
+                    <Box sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.03)'), borderRadius: '16px', p: 1.5 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography sx={{ fontSize: '0.68rem', color: '#64748b', bgcolor: 'rgba(15,23,42,0.06)', px: 1, py: 0.25, borderRadius: '8px' }}>
+                        <Typography sx={{ fontSize: '0.68rem', color: 'text.secondary', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.06)'), px: 1, py: 0.25, borderRadius: '8px' }}>
                           {match.league}
                         </Typography>
                         {match.status === 'live' ? (
@@ -510,7 +822,7 @@ const Home: React.FC = () => {
                             {match.minute}'
                           </Box>
                         ) : (
-                          <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>
                             {formatTime(match.time, match.date)}
                           </Typography>
                         )}
@@ -520,20 +832,20 @@ const Home: React.FC = () => {
                           {match.homeIcon ? (
                             <img src={match.homeIcon} alt={match.homeTeam} style={{ width: 24, height: 24, objectFit: 'contain' }} />
                           ) : (
-                            <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <Icon icon="mdi:shield" style={{ width: 15, height: 15, color: '#2563eb' }} />
+                            <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: 'rgba(37,99,235,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Icon icon="mdi:shield" style={{ width: 15, height: 15, color: '#3b82f6' }} />
                             </Box>
                           )}
-                          <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#0f172a' }} noWrap>
+                          <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }} noWrap>
                             {match.homeTeam}
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1, flexShrink: 0 }}>
-                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: match.status === 'live' ? '#2563eb' : '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: match.status === 'live' ? '#f59e0b' : 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
                             {match.homeScore}
                           </Typography>
-                          <Typography sx={{ color: '#94a3b8' }}>-</Typography>
-                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: match.status === 'live' ? '#2563eb' : '#0f172a', fontVariantNumeric: 'tabular-nums' }}>
+                          <Typography sx={{ color: 'text.secondary' }}>-</Typography>
+                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: match.status === 'live' ? '#f59e0b' : 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
                             {match.awayScore}
                           </Typography>
                         </Box>
@@ -541,11 +853,11 @@ const Home: React.FC = () => {
                           {match.awayIcon ? (
                             <img src={match.awayIcon} alt={match.awayTeam} style={{ width: 24, height: 24, objectFit: 'contain' }} />
                           ) : (
-                            <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: 'rgba(124,58,237,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                              <Icon icon="mdi:shield" style={{ width: 15, height: 15, color: '#7c3aed' }} />
+                            <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: 'rgba(245,158,11,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                              <Icon icon="mdi:shield" style={{ width: 15, height: 15, color: '#d97706' }} />
                             </Box>
                           )}
-                          <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#0f172a' }} noWrap>
+                          <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }} noWrap>
                             {match.awayTeam}
                           </Typography>
                         </Box>
@@ -579,8 +891,8 @@ const Home: React.FC = () => {
             </>
           ) : news.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 4, width: '100%' }}>
-              <Icon icon="mdi:newspaper-minus" style={{ width: 40, height: 40, color: '#cbd5e1' }} />
-              <Typography sx={{ color: '#64748b', fontSize: '0.85rem', mt: 1 }}>اخباری یافت نشد</Typography>
+              <Icon icon="mdi:newspaper-minus" style={{ width: 40, height: 40, color: '#94a3b8' }} />
+              <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 1 }}>اخباری یافت نشد</Typography>
             </Box>
           ) : (
             news.slice(0, 6).map((item, index) => (
@@ -598,7 +910,8 @@ const Home: React.FC = () => {
                     borderRadius: `${radii.card}px`,
                     overflow: 'hidden',
                     bgcolor: 'background.paper',
-                    border: '1px solid rgba(15,23,42,0.06)',
+                    border: '1px solid',
+                    borderColor: 'divider',
                     boxShadow: shadows.card,
                   }}
                 >
@@ -625,13 +938,13 @@ const Home: React.FC = () => {
                         زنده
                       </Box>
                     )}
-                    <Icon icon={item.icon} style={{ width: 34, height: 34, color: '#2563eb' }} />
+                    <Icon icon={item.icon} style={{ width: 34, height: 34, color: '#d97706' }} />
                   </Box>
                   <Box sx={{ p: 1.5 }}>
-                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#0f172a', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '2.4em' }}>
+                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: 'text.primary', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '2.4em' }}>
                       {item.title}
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1, fontSize: '0.68rem', color: '#64748b' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1, fontSize: '0.68rem', color: 'text.secondary' }}>
                       <span>{item.date}</span>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
                         <Icon icon="mdi:eye-outline" style={{ width: 13, height: 13 }} />

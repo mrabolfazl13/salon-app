@@ -46,11 +46,12 @@ const Dialog: React.FC<DialogProps> = ({
             {...props}
           >
             {title && (
-              <DialogTitle>
+              <DialogTitle sx={{ fontWeight: 800 }}>
                 {title}
                 <IconButton
                   onClick={onClose}
-                  sx={{ position: 'absolute', right: 8, top: 8 }}
+                  aria-label="بستن"
+                  sx={{ position: 'absolute', insetInlineEnd: 8, top: 8 }}
                 >
                   <Icon icon="mdi:close" />
                 </IconButton>

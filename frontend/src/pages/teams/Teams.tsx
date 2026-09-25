@@ -5,6 +5,7 @@
 import React, { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
+import { useQuery } from '@tanstack/react-query'
 import { Icon } from '@iconify/react'
 import { Box, Card, Chip, Grid, Typography } from '@mui/material'
 
@@ -16,6 +17,8 @@ import { useAcceptTeamInvitation, useDeclineTeamInvitation, useMyTeamInvitations
 import { useToast } from '@/hooks/useToast'
 import { TeamFormDialog } from '@/components/team'
 import { SPORT_EMOJI, TeamQuotaProgress, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
+import { teamService } from '@/services/team'
+import type { StandingsItem } from '@/services/team'
 import type { Team, TeamInvitation } from '@/types/team'
 import { TEAM_MEMBER_STATUS_LABELS, TEAM_ROLE_LABELS } from '@/types/team'
 import { toPersianDigits } from '@/lib/jalali'
@@ -189,6 +192,83 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
   )
 }
 
+const RANK_MEDAL: Record<number, string> = { 1: '#f59e0b', 2: '#94a3b8', 3: '#b45309' }
+
+const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
+  const q = useQuery({
+    queryKey: ['teams', 'standings'],
+    queryFn: () => teamService.getStandings(20),
+    enabled,
+    staleTime: 60_000,
+    retry: 0,
+  })
+  const items = q.data?.items ?? []
+  if (!q.isSuccess || items.length === 0) return null
+
+  return (
+    <Card sx={{ borderRadius: `${radii.card}px`, boxShadow: shadows.card, border: '1px solid rgba(15,23,42,0.06)', mb: 3 }}>
+      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <Icon icon="mdi:trophy-outline" style={{ width: 18, height: 18, color: '#f59e0b' }} />
+          <Typography sx={{ fontSize: '0.85rem', fontWeight: 900, color: '#0f172a' }}>جدول لیگ</Typography>
+          {q.data?.my_rank && (
+            <Chip
+              label={`رتبه شما: ${toPersianDigits(q.data.my_rank)}`}
+              size="small"
+              sx={{ height: 22, fontSize: '0.66rem', fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', mr: 'auto' }}
+            />
+          )}
+        </Box>
+        {/* هدر ستون‌ها */}
+        <Box sx={{ display: 'grid', gridTemplateColumns: '34px 1fr 46px 46px 46px 52px', gap: 0.5, px: 0.5, fontSize: '0.62rem', fontWeight: 800, color: '#64748b' }}>
+          <Box>#</Box><Box>تیم</Box><Box sx={{ textAlign: 'center' }}>بازی</Box>
+          <Box sx={{ textAlign: 'center' }}>برد</Box><Box sx={{ textAlign: 'center' }}>باخت</Box>
+          <Box sx={{ textAlign: 'center' }}>امتیاز</Box>
+        </Box>
+        {items.map((row: StandingsItem, i: number) => (
+          <motion.div key={row.team_id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, delay: i * 0.03 }}>
+            <Box
+              component={Link}
+              to={`/teams/${row.team_id}`}
+              sx={{
+                display: 'grid',
+                gridTemplateColumns: '34px 1fr 46px 46px 46px 52px',
+                gap: 0.5,
+                alignItems: 'center',
+                px: 0.5,
+                py: 0.75,
+                borderRadius: '10px',
+                textDecoration: 'none',
+                bgcolor: q.data?.my_rank === row.rank ? 'rgba(245,158,11,0.08)' : 'transparent',
+                '&:hover': { bgcolor: 'rgba(15,23,42,0.04)' },
+              }}
+            >
+              <Box sx={{ fontWeight: 900, fontSize: '0.8rem', color: RANK_MEDAL[row.rank] ?? '#64748b', textAlign: 'center' }}>
+                {toPersianDigits(row.rank)}
+              </Box>
+              <Box sx={{ minWidth: 0 }}>
+                <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }} noWrap>
+                  {row.team_name}
+                  {row.is_official && (
+                    <Icon icon="mdi:shield-check" style={{ width: 12, height: 12, color: '#059669', marginInlineStart: 4, verticalAlign: -2 }} />
+                  )}
+                </Typography>
+                <Typography sx={{ fontSize: '0.62rem', color: '#64748b' }}>
+                  {`${toPersianDigits(row.win_rate)}٪ برد · ${toPersianDigits(row.member_count)} عضو`}
+                </Typography>
+              </Box>
+              <Box sx={{ textAlign: 'center', fontSize: '0.74rem', color: '#334155', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.played)}</Box>
+              <Box sx={{ textAlign: 'center', fontSize: '0.74rem', fontWeight: 800, color: '#059669', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.won)}</Box>
+              <Box sx={{ textAlign: 'center', fontSize: '0.74rem', color: '#dc2626', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.lost)}</Box>
+              <Box sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 900, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.points)}</Box>
+            </Box>
+          </motion.div>
+        ))}
+      </Box>
+    </Card>
+  )
+}
+
 const Teams: React.FC = () => {
   const navigate = useNavigate()
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
@@ -217,6 +297,8 @@ const Teams: React.FC = () => {
           </Button>
         </Box>
       </Box>
+
+      <LeagueStandingsPanel enabled={isAuthenticated} />
 
       {invites.length > 0 && (
         <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>

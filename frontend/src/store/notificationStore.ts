@@ -5,6 +5,7 @@ interface NotificationStore {
   notifications: NotificationItem[]
   unreadCount: number
   loading: boolean
+  fetchError: boolean
   fetchNotifications: () => Promise<void>
   fetchUnreadCount: () => Promise<void>
   addNotification: (n: NotificationItem) => void
@@ -18,14 +19,15 @@ export const useNotificationStore = create<NotificationStore>()((set, get) => ({
   notifications: [],
   unreadCount: 0,
   loading: false,
+  fetchError: false,
 
   fetchNotifications: async () => {
-    set({ loading: true })
+    set({ loading: true, fetchError: false })
     try {
       const list = await notificationService.getAll({ limit: 30 })
       set({ notifications: list })
     } catch {
-      // خطای شبکه نادیده گرفته می‌شود؛ شمارش از طریق fetchUnreadCount
+      set({ fetchError: true })
     } finally {
       set({ loading: false })
     }
@@ -79,5 +81,5 @@ export const useNotificationStore = create<NotificationStore>()((set, get) => ({
     }
   },
 
-  reset: () => set({ notifications: [], unreadCount: 0, loading: false }),
+  reset: () => set({ notifications: [], unreadCount: 0, loading: false, fetchError: false }),
 }))

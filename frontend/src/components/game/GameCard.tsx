@@ -179,7 +179,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                     {game.price_per_player.toLocaleString('fa-IR')}
                   </Typography>
                   <Typography component="span" sx={{ fontSize: '0.68rem', color: 'text.secondary' }}>
-                    تومان / نفر
+                    ریال / نفر
                   </Typography>
                 </Box>
               )}

@@ -41,8 +41,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             className={cn(
               'w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4',
               variant === 'destructive'
-                ? 'bg-red-100 text-red-600'
-                : 'bg-primary/10 text-primary'
+                ? 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400'
+                : 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400'
             )}
           >
             <Icon
@@ -51,8 +51,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             />
           </div>
         </motion.div>
-        <h2 className="text-lg font-semibold mb-2">{title}</h2>
-        <p className="text-sm text-muted-foreground">{description}</p>
+        <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">{title}</h2>
+        <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
       </div>
       <div className="flex gap-2 justify-center mt-4">
         <Button

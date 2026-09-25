@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
-  Box, Typography, Paper, useTheme, Skeleton, Chip, InputBase,
+  Box, Typography, Paper, useTheme, Skeleton, Chip, InputBase, Alert, Button,
   FormControl, InputLabel, Select, MenuItem,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar,
 } from '@mui/material'
@@ -25,6 +25,7 @@ const Users: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -32,6 +33,7 @@ const Users: React.FC = () => {
 
   const fetchData = async () => {
     setLoading(true)
+    setError(null)
     try {
       const [allUsers, userStats] = await Promise.all([
         adminService.getUsers(),
@@ -40,7 +42,7 @@ const Users: React.FC = () => {
       setUsers(allUsers || [])
       setStats(userStats)
     } catch {
-      // بک‌اند در دسترس نیست
+      setError('خطا در دریافت اطلاعات از سرور')
     } finally {
       setLoading(false)
     }
@@ -71,6 +73,20 @@ const Users: React.FC = () => {
           {users.length} کاربر در سیستم ثبت‌نام کرده‌اند
         </Typography>
       </Box>
+
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 3, borderRadius: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={fetchData}>
+              تلاش مجدد
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      )}
 
       <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 3 }}>
         {miniStats.map((stat, index) => (

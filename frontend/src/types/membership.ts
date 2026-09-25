@@ -9,7 +9,7 @@ export interface MembershipPlan {
   venue_id: number
   title: string
   plan_type: PlanType
-  price: number // تومان
+  price: number // ریال
   sessions_count: number | null
   duration_days: number | null
   description: string | null

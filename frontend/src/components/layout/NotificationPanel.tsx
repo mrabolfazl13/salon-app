@@ -60,7 +60,7 @@ function timeAgo(iso: string): string {
 const NotificationPanel: React.FC = () => {
   const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const navigate = useNavigate()
-  const { notifications, unreadCount, loading, fetchNotifications, fetchUnreadCount, markAsRead, markAllAsRead } =
+  const { notifications, unreadCount, loading, fetchError, fetchNotifications, fetchUnreadCount, markAsRead, markAllAsRead } =
     useNotificationStore()
 
   // دریافت شمارش خوانده‌نشده هنگام mount
@@ -150,6 +150,16 @@ const NotificationPanel: React.FC = () => {
               <Typography variant="body2" color="text.secondary">
                 در حال بارگذاری...
               </Typography>
+            </Box>
+          ) : fetchError && notifications.length === 0 ? (
+            <Box sx={{ textAlign: 'center', py: 5 }}>
+              <Icon icon="mdi:cloud-alert-outline" className="h-10 w-10" style={{ color: '#ef4444' }} />
+              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                دریافت اعلان‌ها ممکن نشد
+              </Typography>
+              <Button size="small" onClick={fetchNotifications} sx={{ mt: 1, textTransform: 'none' }}>
+                تلاش مجدد
+              </Button>
             </Box>
           ) : notifications.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 5 }}>

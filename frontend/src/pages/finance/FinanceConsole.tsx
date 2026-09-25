@@ -95,14 +95,16 @@ const FinanceConsole: React.FC = () => {
           </Box>
         </Box>
 
-        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, mt: -5, position: 'relative', zIndex: 2, pb: 6 }}>
+        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 1.5, sm: 2, md: 4 }, mt: -5, position: 'relative', zIndex: 2, pb: 10 }}>
           {venuesQuery.isPending ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
               <CircularProgress sx={{ color: '#2563eb' }} />
             </Box>
           ) : venuesQuery.isError ? (
             isForbiddenError(venuesQuery.error) ? (
-              <ForbiddenPanel detail="حساب شما هیچ سالنی تحت مدیریت ندارد و در هیچ سالنی با دسترسی مالی انتصاب نشده است؛ از مدیر سالن بخواهید شما را در بخش «پرسنل» ثبت کند." />
+              <Box sx={{ bgcolor: 'rgba(255,255,255,0.94)', borderRadius: '18px', p: 2, border: '1px solid rgba(0,0,0,0.05)' }}>
+                <ForbiddenPanel detail="حساب شما هیچ سالنی تحت مدیریت ندارد و در هیچ سالنی با دسترسی مالی انتصاب نشده است؛ از مدیر سالن بخواهید شما را در بخش «پرسنل» ثبت کند." />
+              </Box>
             ) : (
               <ErrorBox message="خطا در دریافت سالن‌های شما" onRetry={() => venuesQuery.refetch()} />
             )
@@ -114,63 +116,59 @@ const FinanceConsole: React.FC = () => {
                 </Box>
               )}
 
-              <Box
-                sx={{
-                  bgcolor: 'rgba(255,255,255,0.92)',
-                  borderRadius: '16px',
-                  border: '1px solid rgba(0,0,0,0.05)',
-                  boxShadow: '0 8px 28px rgba(15,23,42,0.06)',
-                  px: { xs: 1, md: 2 },
-                  mb: 3,
-                }}
-              >
-                <Tabs
-                  value={tab}
-                  onChange={(_, v) => changeTab(v)}
-                  variant="scrollable"
-                  scrollButtons={false}
-                  sx={{
-                    '& .MuiTabs-indicator': { borderRadius: '4px 4px 0 0' },
-                    '& .MuiTab-root': {
-                      textTransform: 'none',
-                      fontWeight: 700,
-                      fontSize: '0.88rem',
-                      minHeight: 52,
-                    },
-                  }}
-                >
-                  <Tab
-                    value="dashboard"
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Icon icon="mdi:chart-box" className="h-4 w-4" /> داشبورد مالی
-                      </Box>
-                    }
-                  />
-                  <Tab
-                    value="transactions"
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Icon icon="mdi:book-ledger" className="h-4 w-4" /> هزینه‌ها و تراکنش‌ها
-                      </Box>
-                    }
-                  />
-                  <Tab
-                    value="accounts"
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Icon icon="mdi:account-group" className="h-4 w-4" /> حساب‌ها
-                      </Box>
-                    }
-                  />
-                </Tabs>
-              </Box>
+              {venues.length > 0 && (
+                <>
+                  <Box
+                    sx={{
+                      bgcolor: 'rgba(255,255,255,0.96)',
+                      borderRadius: '16px',
+                      border: '1px solid rgba(0,0,0,0.05)',
+                      boxShadow: '0 8px 28px rgba(15,23,42,0.06)',
+                      px: { xs: 0.5, sm: 1, md: 2 },
+                      mb: { xs: 2, md: 3 },
+                    }}
+                  >
+                    <Tabs
+                      value={tab}
+                      onChange={(_, v) => changeTab(v)}
+                      variant="scrollable"
+                      scrollButtons={false}
+                      allowScrollButtonsMobile
+                      sx={{
+                        '& .MuiTabs-flexContainer': { gap: 0.5 },
+                        '& .MuiTabs-indicator': { display: 'none' },
+                        '& .MuiTab-root': {
+                          textTransform: 'none',
+                          fontWeight: 700,
+                          fontSize: '0.82rem',
+                          minHeight: 48,
+                          minWidth: 'auto',
+                          px: 2,
+                          borderRadius: '12px',
+                          mr: 0,
+                          color: '#64748b',
+                          transition: 'all 0.2s ease',
+                          '&.Mui-selected': {
+                            background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                            color: 'white',
+                            boxShadow: '0 4px 12px rgba(37,99,235,0.25)',
+                          },
+                        },
+                      }}
+                    >
+                      <Tab value="dashboard" icon={<Icon icon="mdi:chart-box" style={{ width: 18, height: 18 }} />} iconPosition="start" label="داشبورد" />
+                      <Tab value="transactions" icon={<Icon icon="mdi:book-ledger" style={{ width: 18, height: 18 }} />} iconPosition="start" label="تراکنش‌ها" />
+                      <Tab value="accounts" icon={<Icon icon="mdi:account-group" style={{ width: 18, height: 18 }} />} iconPosition="start" label="حساب‌ها" />
+                    </Tabs>
+                  </Box>
 
-              <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
-                {tab === 'dashboard' && <FinanceDashboardTab venues={venues} />}
-                {tab === 'transactions' && <TransactionsPanel venues={venues} />}
-                {tab === 'accounts' && <AccountsPanel venues={venues} />}
-              </motion.div>
+                  <motion.div key={tab} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.25 }}>
+                    {tab === 'dashboard' && <FinanceDashboardTab venues={venues} />}
+                    {tab === 'transactions' && <TransactionsPanel venues={venues} />}
+                    {tab === 'accounts' && <AccountsPanel venues={venues} />}
+                  </motion.div>
+                </>
+              )}
             </>
           )}
         </Box>

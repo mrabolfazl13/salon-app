@@ -243,7 +243,7 @@ const BookingPaymentPanel: React.FC<Props> = ({ booking, compact = false, onChan
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
         <TextField
-          label="مبلغ فیش (تومان)"
+          label="مبلغ فیش (ریال)"
           value={amount}
           onChange={(e) => setAmount(e.target.value)}
           size="small"

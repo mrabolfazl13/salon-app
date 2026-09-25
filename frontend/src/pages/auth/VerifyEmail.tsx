@@ -78,8 +78,13 @@ const VerifyEmail: React.FC = () => {
               sx={{
                 p: { xs: 3, md: 4 },
                 borderRadius: '24px',
-                border: `1px solid rgba(0,0,0,0.08)`,
-                boxShadow: '0 4px 24px rgba(37,99,235,0.08)',
+                bgcolor: 'background.paper',
+                border: '1px solid',
+                borderColor: 'divider',
+                boxShadow: (t) =>
+                  t.palette.mode === 'dark'
+                    ? '0 4px 24px rgba(0,0,0,0.40)'
+                    : '0 4px 24px rgba(37,99,235,0.08)',
               }}
             >
               <Box sx={{ textAlign: 'center', mb: 4 }}>
@@ -87,11 +92,12 @@ const VerifyEmail: React.FC = () => {
                   sx={{
                     width: 64, height: 64, mx: 'auto', mb: 2,
                     borderRadius: '18px',
-                    background: 'linear-gradient(135deg, #2563eb 0%, #7c3aed 100%)',
+                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)',
+                    boxShadow: '0 10px 26px rgba(245,158,11,0.35)',
                     display: 'flex', alignItems: 'center', justifyContent: 'center',
                   }}
                 >
-                  <Icon icon="mdi:email-check-outline" style={{ fontSize: 32, color: 'white' }} />
+                  <Icon icon="mdi:email-check-outline" style={{ fontSize: 32, color: '#1c1917' }} />
                 </Box>
                 <Typography variant="h5" sx={{ fontWeight: 700 }}>تایید شماره و ایمیل</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
@@ -102,7 +108,7 @@ const VerifyEmail: React.FC = () => {
               {success ? (
                 <Box sx={{ textAlign: 'center', py: 2 }}>
                   <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
-                    ایمیل شما با موفقیت تایید شد. حالا می‌توانید رزرو کنید. 🎉
+                    ایمیل شما با موفقیت تایید شد. حالا می‌توانید رزرو کنید.
                   </Alert>
                   <Button component={Link} to="/venues" variant="contained" size="large"
                     sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, px: 4 }}>
@@ -155,8 +161,9 @@ const VerifyEmail: React.FC = () => {
                   <Button
                     fullWidth color="inherit" sx={{ mt: 1, textTransform: 'none' }}
                     onClick={() => { setStep(1); setCode('') }}
+                    startIcon={<Icon icon="mdi:arrow-right" />}
                   >
-                    ← تغییر ایمیل یا شماره
+                    تغییر ایمیل یا شماره
                   </Button>
                 </form>
               )}

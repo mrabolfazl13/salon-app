@@ -30,6 +30,28 @@ import type {
   TeamUpdatePayload,
 } from '@/types/team'
 
+export interface StandingsItem {
+  rank: number
+  team_id: number
+  team_name: string
+  logo_url: string | null
+  is_official: boolean
+  member_count: number
+  played: number
+  won: number
+  lost: number
+  win_rate: number
+  points: number
+  captain_name: string | null
+}
+
+export interface StandingsResponse {
+  items: StandingsItem[]
+  total: number
+  my_rank: number | null
+  my_team_ranked: boolean
+}
+
 export const teamService = {
   // ─────────────────────────── ساخت / لیست من ───────────────────────────
 
@@ -68,6 +90,11 @@ export const teamService = {
     const response = await apiClient.get('/teams/manager/partners', {
       params: venueId ? { venue_id: venueId } : undefined,
     })
+    return response.data
+  },
+
+  getStandings: async (limit = 50): Promise<StandingsResponse> => {
+    const response = await apiClient.get('/teams/standings', { params: { limit } })
     return response.data
   },
 

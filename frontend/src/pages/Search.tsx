@@ -86,7 +86,7 @@ const Search: React.FC = () => {
             zIndex: 30,
             py: 1.5,
             mb: 1,
-            bgcolor: 'rgba(248,250,252,0.92)',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(11,18,32,0.92)' : 'rgba(246,247,249,0.92)'),
             backdropFilter: 'blur(12px)',
           }}
         >
@@ -94,7 +94,7 @@ const Search: React.FC = () => {
             <IconButton
               onClick={() => (value ? setValue('') : navigate(-1))}
               aria-label="بازگشت"
-              sx={{ width: 44, height: 44, bgcolor: 'background.paper', border: '1px solid rgba(15,23,42,0.07)', flexShrink: 0 }}
+              sx={{ width: 44, height: 44, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0, color: 'text.primary' }}
             >
               <Icon icon="mdi:arrow-right" style={{ width: 22, height: 22 }} />
             </IconButton>
@@ -133,12 +133,12 @@ const Search: React.FC = () => {
                         minHeight: 48,
                         borderRadius: `${radii.button}px`,
                         cursor: 'pointer',
-                        '&:hover': { bgcolor: 'rgba(15,23,42,0.04)' },
+                        '&:hover': { bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.04)') },
                       }}
                       onClick={() => pickQuery(q)}
                     >
                       <Icon icon="mdi:history" style={{ width: 20, height: 20, color: '#94a3b8', flexShrink: 0 }} />
-                      <Typography sx={{ flex: 1, fontSize: '0.88rem', fontWeight: 500, color: '#0f172a' }} noWrap>
+                      <Typography sx={{ flex: 1, fontSize: '0.88rem', fontWeight: 500, color: 'text.primary' }} noWrap>
                         {q}
                       </Typography>
                       <IconButton
@@ -175,15 +175,19 @@ const Search: React.FC = () => {
                       py: 1,
                       minHeight: 44,
                       borderRadius: '999px',
-                      border: '1px solid rgba(15,23,42,0.08)',
+                      border: '1px solid',
+                      borderColor: 'divider',
                       bgcolor: 'background.paper',
                       fontFamily: 'inherit',
                       fontSize: '0.82rem',
                       fontWeight: 600,
-                      color: '#334155',
+                      color: 'text.primary',
                       cursor: 'pointer',
                       transition: 'all 0.2s ease',
-                      '&:hover': { borderColor: 'rgba(37,99,235,0.4)', color: '#2563eb' },
+                      '&:hover': {
+                        borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.5)' : 'rgba(245,158,11,0.55)'),
+                        color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
+                      },
                     }}
                   >
                     <Icon icon="mdi:magnify" style={{ width: 16, height: 16, color: '#94a3b8' }} />
@@ -207,7 +211,7 @@ const Search: React.FC = () => {
           <ErrorState onRetry={() => setRetryKey((k) => k + 1)} />
         ) : results.length === 0 ? (
           <EmptyState
-            emoji="🔍"
+            icon="mdi:magnify"
             title={`سالنی با «${submitted || value.trim()}» پیدا نشد`}
             description="اسم دیگری را امتحان کنید یا در دسته‌بندی‌ها بگردید."
             actionLabel="مشاهده همه سالن‌ها"
@@ -215,7 +219,7 @@ const Search: React.FC = () => {
           />
         ) : (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            <Typography sx={{ fontSize: '0.78rem', color: '#64748b', px: 0.5 }}>
+            <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', px: 0.5 }}>
               {results.length.toLocaleString('fa-IR')} نتیجه برای «{submitted}»
             </Typography>
             {results.map((v) => {
@@ -232,11 +236,12 @@ const Search: React.FC = () => {
                     p: 1.25,
                     borderRadius: `${radii.card}px`,
                     bgcolor: 'background.paper',
-                    border: '1px solid rgba(15,23,42,0.06)',
+                    border: '1px solid',
+                    borderColor: 'divider',
                     boxShadow: shadows.card,
                     cursor: 'pointer',
                     transition: 'all 0.2s ease',
-                    '&:hover': { borderColor: 'rgba(37,99,235,0.3)' },
+                    '&:hover': { borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.45)' : 'rgba(245,158,11,0.55)') },
                   }}
                 >
                   <Box
@@ -253,11 +258,11 @@ const Search: React.FC = () => {
                       borderRadius: '14px',
                       objectFit: 'cover',
                       flexShrink: 0,
-                      bgcolor: 'rgba(15,23,42,0.05)',
+                      bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)'),
                     }}
                   />
                   <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }} noWrap>
+                    <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: 'text.primary' }} noWrap>
                       {v.name}
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>

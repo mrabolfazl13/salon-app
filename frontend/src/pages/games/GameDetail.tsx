@@ -397,7 +397,7 @@ const GameDetail: React.FC = () => {
               game.payment_mode === 'free'
                 ? 'رایگان'
                 : game.payment_mode === 'split_payment' && game.price_per_player
-                  ? `${PAYMENT_MODE_LABELS.split_payment} — ${formatPrice(game.price_per_player)} تومان/نفر`
+                  ? `${PAYMENT_MODE_LABELS.split_payment} — ${formatPrice(game.price_per_player)} / نفر`
                   : PAYMENT_MODE_LABELS[game.payment_mode]
             }
           />

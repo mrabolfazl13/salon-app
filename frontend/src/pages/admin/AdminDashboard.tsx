@@ -3,13 +3,14 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
-  Box, Typography, Grid, Paper, useTheme, Skeleton, Chip, Button, Avatar,
+  Box, Typography, Grid, Paper, useTheme, Skeleton, Chip, Button, Avatar, Alert,
   Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { adminService } from '@/services/admin'
 import type { UserStats, VenueStats, AdminUser } from '@/services/admin'
 import { formatDate, getInitials } from '@/lib/utils'
+import toast from 'react-hot-toast'
 
 const roleConfig: Record<string, { label: string; color: 'default' | 'info' | 'secondary' | 'warning' }> = {
   user: { label: 'کاربر', color: 'default' },
@@ -24,6 +25,7 @@ const AdminDashboard: React.FC = () => {
   const [venueStats, setVenueStats] = useState<VenueStats | null>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const [pendingManagers, setPendingManagers] = useState<AdminUser[]>([])
   const [actingId, setActingId] = useState<number | null>(null)
 
@@ -33,6 +35,7 @@ const AdminDashboard: React.FC = () => {
 
   const fetchData = async () => {
     setLoading(true)
+    setError(null)
     try {
       const [uStats, vStats, allUsers, pendingMgrs] = await Promise.all([
         adminService.getUserStats(),
@@ -45,7 +48,7 @@ const AdminDashboard: React.FC = () => {
       setUsers(allUsers || [])
       setPendingManagers(pendingMgrs || [])
     } catch {
-      // بک‌اند در دسترس نیست؛ صفحه با داده‌های خالی نمایش داده می‌شود
+      setError('خطا در دریافت اطلاعات از سرور')
     } finally {
       setLoading(false)
     }
@@ -57,7 +60,7 @@ const AdminDashboard: React.FC = () => {
       await adminService.approveUser(id)
       await fetchData()
     } catch {
-      // خطا
+      toast.error('خطا در تأیید کاربر')
     } finally {
       setActingId(null)
     }
@@ -69,7 +72,7 @@ const AdminDashboard: React.FC = () => {
       await adminService.rejectUser(id)
       await fetchData()
     } catch {
-      // خطا
+      toast.error('خطا در رد درخواست')
     } finally {
       setActingId(null)
     }
@@ -97,6 +100,20 @@ const AdminDashboard: React.FC = () => {
           نمای کلی کاربران و سالن‌های سیستم
         </Typography>
       </Box>
+
+      {error && (
+        <Alert
+          severity="error"
+          sx={{ mb: 3, borderRadius: 2 }}
+          action={
+            <Button color="inherit" size="small" onClick={fetchData}>
+              تلاش مجدد
+            </Button>
+          }
+        >
+          {error}
+        </Alert>
+      )}
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         {stats.map((stat, index) => (

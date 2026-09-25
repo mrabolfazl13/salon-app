@@ -12,7 +12,7 @@ interface Props {
   onImage?: boolean
 }
 
-/** دکمه ❤️ علاقه‌مندی — با انیمیشن ۲۰۰ms و ذخیره کلاینت‌ساید */
+/** دکمه قلب علاقه‌مندی — با انیمیشن ۲۰۰ms و ذخیره کلاینت‌ساید */
 const FavoriteButton: React.FC<Props> = ({ venue, size = 'md', onImage = true }) => {
   const isFav = useFavoritesStore((s) => s.favorites.some((f) => f.id === venue.id))
   const toggle = useFavoritesStore((s) => s.toggle)
@@ -22,7 +22,10 @@ const FavoriteButton: React.FC<Props> = ({ venue, size = 'md', onImage = true })
     e.preventDefault()
     e.stopPropagation()
     const added = toggle(venue)
-    toast(added ? 'به علاقه‌مندی‌ها اضافه شد ❤️' : 'از علاقه‌مندی‌ها حذف شد', { duration: 1800 })
+    toast(added ? 'به علاقه‌مندی‌ها اضافه شد' : 'از علاقه‌مندی‌ها حذف شد', {
+      icon: added ? '❤' : undefined,
+      duration: 1800,
+    })
   }
 
   return (
@@ -33,10 +36,16 @@ const FavoriteButton: React.FC<Props> = ({ venue, size = 'md', onImage = true })
         width: dim,
         height: dim,
         borderRadius: '50%',
-        bgcolor: onImage ? 'rgba(255,255,255,0.92)' : 'transparent',
+        bgcolor: onImage
+          ? (t) => (t.palette.mode === 'dark' ? 'rgba(11,18,32,0.72)' : 'rgba(255,255,255,0.92)')
+          : 'transparent',
         backdropFilter: onImage ? 'blur(6px)' : undefined,
         boxShadow: onImage ? '0 2px 10px rgba(15,23,42,0.15)' : 'none',
-        '&:hover': { bgcolor: onImage ? '#fff' : 'rgba(239,68,68,0.08)' },
+        '&:hover': {
+          bgcolor: onImage
+            ? (t) => (t.palette.mode === 'dark' ? 'rgba(11,18,32,0.88)' : '#ffffff')
+            : 'rgba(239,68,68,0.08)',
+        },
       }}
     >
       <motion.span

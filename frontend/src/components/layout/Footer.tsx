@@ -30,7 +30,7 @@ const Footer: React.FC = () => {
           px: 2,
           mt: 'auto',
           borderTop: '1px solid',
-          borderColor: 'rgba(0,0,0,0.05)',
+          borderColor: 'divider',
           bgcolor: 'background.paper',
         }}
       >
@@ -53,20 +53,20 @@ const Footer: React.FC = () => {
                 sx={{
                   width: 36,
                   height: 36,
-                  background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                  background: 'linear-gradient(135deg, #fbbf24, #f97316)',
                   borderRadius: '10px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                 }}
               >
-                <Icon icon="mdi:soccer" className="h-5 w-5 text-white" />
+                <Icon icon="mdi:soccer" className="h-5 w-5" style={{ color: '#1c1917' }} />
               </Box>
               <Typography
                 sx={{
-                  fontWeight: 700,
+                  fontWeight: 800,
                   fontSize: '1rem',
-                  background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
+                  background: 'linear-gradient(135deg, #d97706, #ea580c)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}

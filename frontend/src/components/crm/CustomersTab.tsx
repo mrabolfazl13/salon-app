@@ -152,7 +152,6 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
         </FormControl>
       </Box>
 
-      {/* جدول */}
       {query.isPending ? (
         <LoadingBox text="در حال دریافت مشتریان..." />
       ) : query.isError ? (
@@ -162,87 +161,156 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
       ) : items.length === 0 ? (
         <EmptyBox icon="mdi:account-group-outline" title="مشتری‌ای با این فیلترها پیدا نشد" text="ابتدا در سالن خود رزرو ثبت کنید تا مشتریان اینجا نمایش داده شوند." />
       ) : (
-        <Box
-          sx={{
-            borderRadius: '16px', overflow: 'auto', bgcolor: 'rgba(255,255,255,0.92)',
-            border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 28px rgba(15,23,42,0.06)',
-          }}
-        >
-          <Table size="small" sx={{ minWidth: 880 }}>
-            <TableHead>
-              <TableRow>
-                {['مشتری', 'موبایل', 'رزرو', 'مجموع پرداختی', 'مانده', 'امتیاز', 'آخرین بازدید', 'گروه', ''].map((h, i) => (
-                  <TableCell key={i} sx={{ fontWeight: 800, whiteSpace: 'nowrap', bgcolor: 'rgba(248,250,252,0.8)' }}>{h}</TableCell>
-                ))}
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {items.map((row) => (
-                <TableRow
-                  key={row.user_id}
-                  hover
-                  sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(37,99,235,0.04)' } }}
-                  onClick={() => setDetailUserId(row.user_id)}
-                >
-                  <TableCell>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                        {row.full_name ?? '—'}
-                      </Typography>
-                      {row.tags.slice(0, 2).map((t) => (
-                        <Chip key={t} label={t} size="small" sx={{ height: 16, fontSize: '0.6rem', borderRadius: '6px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
-                      ))}
-                    </Box>
-                  </TableCell>
-                  <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }} dir="ltr">{row.phone ?? '—'}</TableCell>
-                  <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.bookings_count)}</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{formatRial(row.total_spend)}</TableCell>
-                  <TableCell
-                    sx={{
-                      fontWeight: 800, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
-                      color: row.balance_due > 0 ? '#dc2626' : row.balance_due < 0 ? '#059669' : 'text.secondary',
-                    }}
+        <>
+          <Box sx={{ display: { xs: 'none', md: 'block' }, borderRadius: '16px', overflow: 'auto', bgcolor: 'rgba(255,255,255,0.92)', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 28px rgba(15,23,42,0.06)' }}>
+            <Table size="small" sx={{ minWidth: 880 }}>
+              <TableHead>
+                <TableRow>
+                  {['مشتری', 'موبایل', 'رزرو', 'مجموع پرداختی', 'مانده', 'امتیاز', 'آخرین بازدید', 'گروه', ''].map((h, i) => (
+                    <TableCell key={i} sx={{ fontWeight: 800, whiteSpace: 'nowrap', bgcolor: 'rgba(248,250,252,0.8)' }}>{h}</TableCell>
+                  ))}
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {items.map((row) => (
+                  <TableRow
+                    key={row.user_id}
+                    hover
+                    sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(37,99,235,0.04)' } }}
+                    onClick={() => setDetailUserId(row.user_id)}
                   >
-                    {row.balance_due > 0 ? formatRial(row.balance_due) : row.balance_due < 0 ? formatRial(-row.balance_due) + ' (اعتبار)' : '—'}
-                  </TableCell>
-                  <TableCell align="center">
-                    <Tooltip title="امتیاز وفاداری">
-                      <Chip
-                        icon={<Icon icon="mdi:star-four-points" />}
-                        label={toPersianDigits(row.loyalty_balance ?? 0)}
-                        size="small"
-                        sx={{ height: 22, fontSize: '0.68rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: '#b45309', '& .MuiChip-icon': { color: '#d97706' } }}
-                      />
-                    </Tooltip>
-                  </TableCell>
-                  <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                    <Typography variant="caption" sx={{ display: 'block', fontWeight: 600 }}>
+                    <TableCell>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          {row.full_name ?? '—'}
+                        </Typography>
+                        {row.tags.slice(0, 2).map((t) => (
+                          <Chip key={t} label={t} size="small" sx={{ height: 16, fontSize: '0.6rem', borderRadius: '6px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
+                        ))}
+                      </Box>
+                    </TableCell>
+                    <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }} dir="ltr">{row.phone ?? '—'}</TableCell>
+                    <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.bookings_count)}</TableCell>
+                    <TableCell sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{formatRial(row.total_spend)}</TableCell>
+                    <TableCell
+                      sx={{
+                        fontWeight: 800, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
+                        color: row.balance_due > 0 ? '#dc2626' : row.balance_due < 0 ? '#059669' : 'text.secondary',
+                      }}
+                    >
+                      {row.balance_due > 0 ? formatRial(row.balance_due) : row.balance_due < 0 ? formatRial(-row.balance_due) + ' (اعتبار)' : '—'}
+                    </TableCell>
+                    <TableCell align="center">
+                      <Tooltip title="امتیاز وفاداری">
+                        <Chip
+                          icon={<Icon icon="mdi:star-four-points" />}
+                          label={toPersianDigits(row.loyalty_balance ?? 0)}
+                          size="small"
+                          sx={{ height: 22, fontSize: '0.68rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: '#b45309', '& .MuiChip-icon': { color: '#d97706' } }}
+                        />
+                      </Tooltip>
+                    </TableCell>
+                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
+                      <Typography variant="caption" sx={{ display: 'block', fontWeight: 600 }}>
+                        {row.last_booking_date ? formatJalaliDate(row.last_booking_date, { format: 'numeric' }) : '—'}
+                      </Typography>
+                      {inactiveBadge(row)}
+                    </TableCell>
+                    <TableCell><SegmentChip segment={row.segment} /></TableCell>
+                    <TableCell onClick={(e) => e.stopPropagation()}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                        <Tooltip title="رضایت بازاریابی">
+                          <Box component="span" sx={{ display: 'inline-flex', px: 0.5 }}><ConsentIcon consent={row.marketing_consent} /></Box>
+                        </Tooltip>
+                        <Tooltip title={row.is_vip ? 'حذف از مشتریان ویژه' : 'افزودن به مشتریان ویژه'}>
+                          <IconButton size="small" onClick={() => toggleVip(row)} disabled={updateCustomer.isPending}>
+                            <Icon
+                              icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'}
+                              className="h-5 w-5"
+                              style={{ color: row.is_vip ? '#d97706' : '#9ca3af' }}
+                            />
+                          </IconButton>
+                        </Tooltip>
+                      </Box>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Box>
+
+          <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 1.5 }}>
+            {items.map((row) => (
+              <Box
+                key={row.user_id}
+                onClick={() => setDetailUserId(row.user_id)}
+                sx={{
+                  p: 2, borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.92)',
+                  border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 16px rgba(15,23,42,0.04)',
+                  cursor: 'pointer', '&:active': { transform: 'scale(0.98)' },
+                }}
+              >
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
+                  <Box sx={{ minWidth: 0 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      {row.full_name ?? '—'}
+                    </Typography>
+                    <Typography variant="caption" dir="ltr" sx={{ color: 'text.secondary', display: 'block' }}>
+                      {row.phone ?? '—'}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
+                    <ConsentIcon consent={row.marketing_consent} />
+                    <IconButton size="small" onClick={() => toggleVip(row)} disabled={updateCustomer.isPending} sx={{ p: 0.5 }}>
+                      <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" style={{ color: row.is_vip ? '#d97706' : '#9ca3af' }} />
+                    </IconButton>
+                  </Box>
+                </Box>
+
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+                  <SegmentChip segment={row.segment} />
+                  <Chip
+                    icon={<Icon icon="mdi:calendar-check-outline" />}
+                    label={`${toPersianDigits(row.bookings_count)} رزرو`}
+                    size="small"
+                    sx={{ height: 22, fontSize: '0.68rem', fontWeight: 700, borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }}
+                  />
+                  <Chip
+                    icon={<Icon icon="mdi:star-four-points" />}
+                    label={toPersianDigits(row.loyalty_balance ?? 0)}
+                    size="small"
+                    sx={{ height: 22, fontSize: '0.68rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: '#b45309', '& .MuiChip-icon': { color: '#d97706' } }}
+                  />
+                  {row.tags.slice(0, 2).map((t) => (
+                    <Chip key={t} label={t} size="small" sx={{ height: 22, fontSize: '0.62rem', borderRadius: '8px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
+                  ))}
+                </Box>
+
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, borderTop: '1px dashed rgba(0,0,0,0.06)' }}>
+                  <Box>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>پرداختی</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                      {formatRial(row.total_spend)}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'center' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>مانده</Typography>
+                    <Typography variant="body2" sx={{ fontWeight: 800, color: row.balance_due > 0 ? '#dc2626' : row.balance_due < 0 ? '#059669' : 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
+                      {row.balance_due > 0 ? formatRial(row.balance_due) : row.balance_due < 0 ? formatRial(-row.balance_due) : '—'}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ textAlign: 'left' }}>
+                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>بازدید</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
                       {row.last_booking_date ? formatJalaliDate(row.last_booking_date, { format: 'numeric' }) : '—'}
                     </Typography>
                     {inactiveBadge(row)}
-                  </TableCell>
-                  <TableCell><SegmentChip segment={row.segment} /></TableCell>
-                  <TableCell onClick={(e) => e.stopPropagation()}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-                      <Tooltip title="رضایت بازاریابی">
-                        <Box component="span" sx={{ display: 'inline-flex', px: 0.5 }}><ConsentIcon consent={row.marketing_consent} /></Box>
-                      </Tooltip>
-                      <Tooltip title={row.is_vip ? 'حذف از مشتریان ویژه' : 'افزودن به مشتریان ویژه'}>
-                        <IconButton size="small" onClick={() => toggleVip(row)} disabled={updateCustomer.isPending}>
-                          <Icon
-                            icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'}
-                            className="h-5 w-5"
-                            style={{ color: row.is_vip ? '#d97706' : '#9ca3af' }}
-                          />
-                        </IconButton>
-                      </Tooltip>
-                    </Box>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </Box>
+                  </Box>
+                </Box>
+              </Box>
+            ))}
+          </Box>
+        </>
       )}
 
       {!query.isPending && !query.isError && total > PAGE_SIZE && (

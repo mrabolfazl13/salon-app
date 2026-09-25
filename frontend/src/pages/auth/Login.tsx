@@ -1,6 +1,6 @@
 // src/pages/auth/Login.tsx — صفحه ورود موبایل‌اپ‌استایل (منطق حفظ شده: useForm + zod + authStore)
 import React, { useState } from 'react'
-import { useNavigate, Link } from 'react-router-dom'
+import { useNavigate, Link as RouterLink } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -14,6 +14,7 @@ import {
   Typography,
   Paper,
   Alert,
+  Link,
 } from '@mui/material'
 import { PrimaryButton } from '@/components/mobile'
 import { useToast } from '@/hooks/useToast'
@@ -33,9 +34,13 @@ const fieldSx = {
     minHeight: 52,
     fontSize: '0.95rem',
     bgcolor: 'background.paper',
-    '& fieldset': { borderColor: 'rgba(15,23,42,0.1)' },
-    '&:hover fieldset': { borderColor: 'rgba(37,99,235,0.4)' },
-    '&.Mui-focused fieldset': { borderColor: '#2563eb', borderWidth: 1.5 },
+    '& fieldset': {
+      borderColor: (t: any) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.14)' : 'rgba(15,23,42,0.1)'),
+    },
+    '&:hover fieldset': {
+      borderColor: (t: any) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.5)' : 'rgba(245,158,11,0.55)'),
+    },
+    '&.Mui-focused fieldset': { borderColor: '#f59e0b', borderWidth: 1.5 },
   },
 } as const
 
@@ -59,7 +64,7 @@ const Login: React.FC = () => {
     setError(null)
     try {
       await login(data.phone, data.password)
-      success('ورود موفقیت‌آمیز! 🎉')
+      success('ورود موفقیت‌آمیز!')
 
       // Redirect based on role
       const user = useAuthStore.getState().user
@@ -89,7 +94,10 @@ const Login: React.FC = () => {
         justifyContent: 'center',
         px: 2.5,
         py: 'calc(24px + env(safe-area-inset-top))',
-        background: 'linear-gradient(180deg, #f0f5ff 0%, #f8fafc 45%, #ffffff 100%)',
+        background: (t) =>
+          t.palette.mode === 'dark'
+            ? 'radial-gradient(1200px 600px at 50% -10%, #16233f 0%, #0b1220 60%)'
+            : 'linear-gradient(180deg, #f0f5ff 0%, #f8fafc 45%, #ffffff 100%)',
         position: 'relative',
         overflow: 'hidden',
       }}
@@ -115,7 +123,7 @@ const Login: React.FC = () => {
           width: 340,
           height: 340,
           borderRadius: '50%',
-          background: 'rgba(124,58,237,0.08)',
+          background: 'rgba(245,158,11,0.10)',
           filter: 'blur(60px)',
         }}
       />
@@ -137,17 +145,17 @@ const Login: React.FC = () => {
               height: 76,
               margin: '0 auto 16px',
               borderRadius: 22,
-              background: gradients.primary,
+              background: gradients.brandEnergy,
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              boxShadow: '0 12px 30px rgba(37,99,235,0.35)',
+              boxShadow: '0 12px 30px rgba(245,158,11,0.40)',
             }}
           >
-            <Icon icon="mdi:soccer" style={{ width: 40, height: 40, color: '#fff' }} />
+            <Icon icon="mdi:soccer" style={{ width: 40, height: 40, color: '#1c1917' }} />
           </motion.div>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: '#0f172a' }}>
-            خوش آمدید 👋
+          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: 'text.primary' }}>
+            خوش آمدید
           </Typography>
           <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem', mt: 0.5 }}>
             برای رزرو سالن فوتسال وارد شوید
@@ -159,9 +167,10 @@ const Login: React.FC = () => {
           sx={{
             p: 3,
             borderRadius: `${radii.card}px`,
-            bgcolor: 'rgba(255,255,255,0.9)',
+            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(18,26,43,0.92)' : 'rgba(255,255,255,0.9)'),
             backdropFilter: 'blur(12px)',
-            border: '1px solid rgba(15,23,42,0.06)',
+            border: '1px solid',
+            borderColor: 'divider',
             boxShadow: shadows.card,
           }}
         >
@@ -233,13 +242,15 @@ const Login: React.FC = () => {
 
               <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                 <Link
+                  component={RouterLink}
                   to="/forgot-password"
-                  style={{
+                  sx={{
                     fontSize: '0.82rem',
                     fontWeight: 700,
-                    color: '#2563eb',
+                    color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
                     textDecoration: 'none',
                     padding: '6px 4px',
+                    '&:hover': { textDecoration: 'underline' },
                   }}
                 >
                   رمز عبور را فراموش کردید؟
@@ -262,7 +273,16 @@ const Login: React.FC = () => {
           sx={{ textAlign: 'center', mt: 3, fontSize: '0.9rem', color: 'text.secondary' }}
         >
           حساب ندارید؟{' '}
-          <Link to="/register" style={{ color: '#2563eb', fontWeight: 800, textDecoration: 'none' }}>
+          <Link
+            component={RouterLink}
+            to="/register"
+            sx={{
+              color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
+              fontWeight: 800,
+              textDecoration: 'none',
+              '&:hover': { textDecoration: 'underline' },
+            }}
+          >
             ثبت‌نام کنید
           </Link>
         </Typography>

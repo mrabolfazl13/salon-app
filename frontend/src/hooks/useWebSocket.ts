@@ -4,11 +4,13 @@ import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import type { NotificationItem } from '@/services/notification'
 
-// تبدیل آدرس HTTP API به آدرس WebSocket
+// تبدیل آدرس HTTP API به آدرس WebSocket (هم آدرس مطلق و هم مسیر نسبی dev)
 const getWsBase = (): string => {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1'
   try {
-    const url = new URL(apiUrl)
+    // در dev مقدار نسبی است (/api/v1) → از origin خود صفحه استفاده می‌شود و
+    // پروکسی /ws وایت‌پوینت Vite آن را به بک‌اند می‌رساند
+    const url = new URL(apiUrl, window.location.origin)
     const proto = url.protocol === 'https:' ? 'wss:' : 'ws:'
     return `${proto}//${url.host}`
   } catch {

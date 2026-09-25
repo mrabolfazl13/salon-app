@@ -5,7 +5,7 @@ import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Layout from '@/components/layout/Layout'
 import VenueCard from '@/components/venue/VenueCard'
-import { EmptyState, SectionHeader, VenueCardSkeletonList } from '@/components/mobile'
+import { EmptyState, ErrorState, SectionHeader, VenueCardSkeletonList } from '@/components/mobile'
 import { venueService } from '@/services/venue'
 import { useFavoritesStore } from '@/store/favoritesStore'
 import type { Venue } from '@/types/venue'
@@ -17,22 +17,28 @@ const Favorites: React.FC = () => {
 
   const [venues, setVenues] = useState<Venue[]>([])
   const [loading, setLoading] = useState<boolean>(favorites.length > 0)
+  const [fetchError, setFetchError] = useState(false)
 
   useEffect(() => {
     if (favorites.length === 0) {
       setVenues([])
       setLoading(false)
+      setFetchError(false)
       return
     }
     let cancelled = false
     setLoading(true)
+    setFetchError(false)
     venueService
       .getAll({ limit: 100 })
       .then((data: Venue[]) => {
         if (!cancelled) setVenues(Array.isArray(data) ? data : [])
       })
       .catch(() => {
-        if (!cancelled) setVenues([])
+        if (!cancelled) {
+          setFetchError(true)
+          setVenues([])
+        }
       })
       .finally(() => {
         if (!cancelled) setLoading(false)
@@ -58,7 +64,7 @@ const Favorites: React.FC = () => {
     <Layout>
       <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
         <SectionHeader
-          title="❤️ علاقه‌مندی‌ها"
+          title="علاقه‌مندی‌ها"
           subtitle={
             favorites.length > 0
               ? `${favorites.length} سالن ذخیره‌شده`
@@ -70,10 +76,15 @@ const Favorites: React.FC = () => {
 
         {loading ? (
           <VenueCardSkeletonList count={Math.min(favorites.length, 3)} />
+        ) : fetchError ? (
+          <ErrorState
+            title="خطا در دریافت سالن‌ها"
+            description="مشکلی در ارتباط با سرور پیش آمد."
+          />
         ) : favoriteVenues.length === 0 ? (
           favorites.length > 0 ? (
             <EmptyState
-              emoji="🗑️"
+              icon="mdi:trash-can-outline"
               title="سالن‌های ذخیره‌شده در دسترس نیستند"
               description="به نظر می‌رسد سالن‌هایی که ذخیره کرده بودید حذف شده‌اند. می‌توانید لیست را پاک کنید یا سالن جدیدی پیدا کنید."
               actionLabel="پاک کردن لیست"
@@ -81,7 +92,7 @@ const Favorites: React.FC = () => {
             />
           ) : (
             <EmptyState
-              emoji="❤️"
+              icon="mdi:heart-outline"
               title="هنوز سالنی ذخیره نکرده‌اید"
               description="روی آیکون قلب در هر سالن بزنید تا اینجا ذخیره شود و سریع‌تر به آن دسترسی داشته باشید."
               actionLabel="مشاهده سالن‌ها"
