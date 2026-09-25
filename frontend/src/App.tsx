@@ -9,6 +9,8 @@ import { Icon } from '@iconify/react'
 import { Toaster } from 'react-hot-toast'
 import { getTheme } from '@/theme'
 import Loading from '@/components/ui/Loading'
+import UpdateDialog from '@/components/modals/UpdateDialog'
+import { useUpdateStore } from '@/store/updateStore'
 import ProtectedRoute, { PublicRoute } from '@/components/auth/ProtectedRoute'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
@@ -261,6 +263,12 @@ function App() {
     document.documentElement.classList.toggle('dark', mode === 'dark')
   }, [mode])
 
+  // چک خودکار بروزرسانی هنگام اجرای اپ (فقط داخل Tauri، با کوولدان ۱۸ ساعته)
+  useEffect(() => {
+    const t = setTimeout(() => void useUpdateStore.getState().runAutoCheck(), 3000)
+    return () => clearTimeout(t)
+  }, [])
+
   return (
     <ThemeProvider theme={getTheme(mode)}>
       <CssBaseline />
@@ -278,6 +286,7 @@ function App() {
             },
           }}
         />
+        <UpdateDialog />
         <BrowserRouter>
           <AuthInitializer>
             <Suspense fallback={<Loading fullScreen />}>

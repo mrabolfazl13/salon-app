@@ -1,4 +1,4 @@
-﻿import React, { useMemo, useState } from 'react'
+﻿import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
@@ -38,6 +38,8 @@ import Layout from '@/components/layout/Layout'
 import { Shimmer } from '@/components/mobile'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
+import { useUpdateStore } from '@/store/updateStore'
+import { getAppVersion, isTauri } from '@/services/update'
 import { authService } from '@/services/auth'
 import { formatDate, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
@@ -61,6 +63,12 @@ function friendlyError(err: any, fallback: string): string {
 const Profile: React.FC = () => {
   const { user, updateUser, logout } = useAuthStore()
   const navigate = useNavigate()
+
+  const [profileAppVersion, setProfileAppVersion] = useState('')
+  const updateAvailable = useUpdateStore((s) => s.availableSilently)
+  useEffect(() => {
+    void getAppVersion().then(setProfileAppVersion)
+  }, [])
 
   const [tab, setTab] = useState(0)
   const [fullName, setFullName] = useState(user?.fullName || '')
@@ -326,6 +334,33 @@ const Profile: React.FC = () => {
                 >
                   خروج از حساب
                 </Button>
+              </Card>
+
+              {/* بروزرسانی برنامه — چک دستی + بج نسخه جدید */}
+              <Card sx={{ borderRadius: '16px', mt: 3 }}>
+                <CardContent sx={{ p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
+                  <Box>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                      <Icon icon="mdi:cellphone-arrow-down" className="h-5 w-5" />
+                      بروزرسانی برنامه
+                      {updateAvailable && (
+                        <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main' }} />
+                      )}
+                    </Typography>
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                      نسخه فعلی: {profileAppVersion || '—'}
+                    </Typography>
+                  </Box>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={() => void useUpdateStore.getState().check(true)}
+                    disabled={!isTauri()}
+                    sx={{ minHeight: 40, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
+                  >
+                    {isTauri() ? 'بررسی بروزرسانی' : 'فقط در اپ موبایل'}
+                  </Button>
+                </CardContent>
               </Card>
 
               {/* مرور سریع — دسترسی مستقیم به بخش‌های فرعی (جواب به «دسترسی بد تیم‌ها/رقابت») */}
