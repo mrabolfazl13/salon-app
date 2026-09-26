@@ -3,6 +3,8 @@ import toast from 'react-hot-toast'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import type { NotificationItem } from '@/services/notification'
+import { Button } from '@/components/ui/Button'
+import { useNavigate } from 'react-router-dom'
 
 // تبدیل آدرس HTTP API به آدرس WebSocket (هم آدرس مطلق و هم مسیر نسبی dev)
 const getWsBase = (): string => {
@@ -36,6 +38,7 @@ export const useWebSocket = () => {
   const userId = useAuthStore((s) => s.user?.id)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const token = useAuthStore((s) => s.token)
+  const navigate = useNavigate()
 
   const wsRef = useRef<WebSocket | null>(null)
   const retryRef = useRef(0)
@@ -84,7 +87,46 @@ export const useWebSocket = () => {
             created_at: new Date().toISOString(),
           }
           addNotification(notif)
-          toast(notif.title, { icon: '🔔', duration: 4000 })
+
+          // نمایش toast سفارشی برای یادآوری بازی با دکمه لغو
+          if (notif.type === 'booking_reminder' && notif.data?.booking_id) {
+            const bookingId = notif.data.booking_id as number
+            toast(
+              (t) => (
+                <div className="flex flex-col gap-2">
+                  <span className="font-semibold">{notif.title}</span>
+                  <span className="text-sm text-gray-600 dark:text-gray-400">
+                    {notif.message}
+                  </span>
+                  <div className="flex gap-2 mt-1">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        navigate(`/bookings/${bookingId}`)
+                        toast.dismiss(t.id)
+                      }}
+                    >
+                      مشاهده رزرو
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      onClick={() => {
+                        navigate(`/bookings/${bookingId}?cancel=true`)
+                        toast.dismiss(t.id)
+                      }}
+                    >
+                      لغو سریع
+                    </Button>
+                  </div>
+                </div>
+              ),
+              { duration: 8000, icon: '⏰' },
+            )
+          } else {
+            toast(notif.title, { icon: '🔔', duration: 4000 })
+          }
         } catch {
           // پیام غیر JSON نادیده گرفته می‌شود
         }

@@ -36,6 +36,7 @@ from .team import (
     TeamInvitationStatus, TeamJoinRequestStatus, TeamDuesMethod, TeamAuditAction,
 )
 from .quiz import QuizQuestion, QuizAttempt
+from .waitlist import WaitlistEntry
 
 # ترتیب import مهم است
 __all__ = [
@@ -70,4 +71,5 @@ __all__ = [
     "StaffAssignment", "SecurityAuditEvent",
     "VenueCustomer", "CrmCampaign",
     "QuizQuestion", "QuizAttempt",
+    "WaitlistEntry",
 ]

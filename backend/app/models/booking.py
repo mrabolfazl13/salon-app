@@ -46,6 +46,11 @@ class Booking(SQLModel, table=True):
     receipt_reviewed_at: Optional[datetime] = Field(default=None)
     receipt_review_note: Optional[str] = Field(default=None, max_length=500)
     receipt_reviewed_by: Optional[int] = Field(default=None, foreign_key="users.id")
+    
+    # QR Check-in tracking
+    check_in_code: Optional[str] = Field(default=None, max_length=64, index=True)  # unique code for QR
+    checked_in_at: Optional[datetime] = Field(default=None)  # when user actually checked in
+    checked_in_by: Optional[int] = Field(default=None, foreign_key="users.id")  # manager who verified
 
     slot: "Slot" = Relationship(back_populates="bookings")
     user: "User" = Relationship(back_populates="bookings", sa_relationship_kwargs={"foreign_keys": lambda: [Booking.__table__.c.user_id]})

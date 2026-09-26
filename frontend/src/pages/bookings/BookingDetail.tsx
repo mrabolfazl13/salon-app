@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { useNavigate, useParams } from 'react-router-dom'
+import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import {
   Box,
@@ -14,6 +14,9 @@ import {
   Container,
   Skeleton,
   Alert,
+  Dialog,
+  DialogContent,
+  DialogTitle,
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import ConfirmModal from '@/components/modals/ConfirmModal'
@@ -21,6 +24,7 @@ import BookingPaymentPanel from '@/components/bookings/BookingPaymentPanel'
 import VenueThumb from '@/components/venue/VenueThumb'
 import { bookingService } from '@/services/booking'
 import { venueService } from '@/services/venue'
+import { checkinService } from '@/services/checkin'
 import type { PaymentItem } from '@/services/payment'
 import {
   formatPrice,
@@ -78,12 +82,49 @@ const BookingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
   const theme = useTheme()
+  const [searchParams] = useSearchParams()
   const [booking, setBooking] = useState<ApiBooking | null>(null)
   const [loading, setLoading] = useState(true)
   const [notFound, setNotFound] = useState(false)
   const [cancelModalOpen, setCancelModalOpen] = useState(false)
   const [cancelling, setCancelling] = useState(false)
   const [rebookBusy, setRebookBusy] = useState(false)
+  const [qrCodeData, setQrCodeData] = useState<string | null>(null)
+  const [qrDialogOpen, setQrDialogOpen] = useState(false)
+  const [checkinLoading, setCheckinLoading] = useState(false)
+  const [checkedInAt, setCheckedInAt] = useState<string | null>(null)
+
+  // باز کردن خودکار مودال لغو وقتی از یادآوری اومده
+  useEffect(() => {
+    if (searchParams.get('cancel') === 'true') {
+      setCancelModalOpen(true)
+      // پاک کردن query param برای جلوگیری از باز شدن مجدد در refresh
+      navigate(`/bookings/${id}`, { replace: true })
+    }
+  }, [searchParams, id, navigate])
+
+  // دریافت QR code بعد از لود رزرو
+  useEffect(() => {
+    if (booking && booking.status === 'confirmed' && !qrCodeData) {
+      fetchQrCode()
+    }
+  }, [booking])
+
+  const fetchQrCode = async () => {
+    if (!booking || booking.status !== 'confirmed') return
+    try {
+      setCheckinLoading(true)
+      const data = await checkinService.getQrCode(booking.id)
+      setQrCodeData(data.qr_code)
+      if (data.checked_in_at) {
+        setCheckedInAt(data.checked_in_at)
+      }
+    } catch (err) {
+      // خطا را نادیده بگیر — ممکن است هنوز کد تولید نشده باشد
+    } finally {
+      setCheckinLoading(false)
+    }
+  }
 
   const fetchBooking = useCallback(async () => {
     setLoading(true)
@@ -352,6 +393,62 @@ const BookingDetail: React.FC = () => {
                 )
               })()}
 
+              {/* QR Code Check-in */}
+              {booking.status === 'confirmed' && (
+                <>
+                  <Divider sx={{ my: 3 }} />
+                  
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                      کد ورود (Check-in)
+                    </Typography>
+                    {checkedInAt && (
+                      <Chip
+                        label={`ورود ثبت شد: ${formatDateTime(checkedInAt)}`}
+                        size="small"
+                        color="success"
+                        sx={{ borderRadius: 1, fontWeight: 600 }}
+                        icon={<Icon icon="mdi:check-circle" />}
+                      />
+                    )}
+                  </Box>
+
+                  {!qrCodeData ? (
+                    <Skeleton variant="rounded" height={80} sx={{ borderRadius: 2 }} />
+                  ) : (
+                    <Paper
+                      onClick={() => setQrDialogOpen(true)}
+                      sx={{
+                        p: 3,
+                        textAlign: 'center',
+                        cursor: 'pointer',
+                        border: `2px dashed ${theme.palette.primary.main}`,
+                        bgcolor: `${theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.05)'}`,
+                        '&:hover': {
+                          bgcolor: `${theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.08)'}`,
+                        },
+                      }}
+                    >
+                      <Typography
+                        variant="h3"
+                        sx={{
+                          fontFamily: 'monospace',
+                          letterSpacing: '0.2em',
+                          fontWeight: 700,
+                          color: 'primary.main',
+                          userSelect: 'all',
+                        }}
+                      >
+                        {qrCodeData}
+                      </Typography>
+                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                        برای نمایش کد بزرگ کلیک کنید
+                      </Typography>
+                    </Paper>
+                  )}
+                </>
+              )}
+
               <Divider sx={{ my: 3 }} />
 
               <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
@@ -448,6 +545,56 @@ const BookingDetail: React.FC = () => {
         onConfirm={handleCancel}
         loading={cancelling}
       />
+
+      {/* QR Code Dialog */}
+      <Dialog
+        open={qrDialogOpen}
+        onClose={() => setQrDialogOpen(false)}
+        maxWidth="sm"
+        fullWidth
+      >
+        <DialogTitle sx={{ textAlign: 'center', fontWeight: 700, pb: 1 }}>
+          کد ورود به سالن
+        </DialogTitle>
+        <DialogContent>
+          {qrCodeData && (
+            <Box sx={{ textAlign: 'center', py: 3 }}>
+              <Typography
+                variant="h2"
+                sx={{
+                  fontFamily: 'monospace',
+                  letterSpacing: '0.15em',
+                  fontWeight: 800,
+                  color: 'primary.main',
+                  mb: 2,
+                  userSelect: 'all',
+                }}
+              >
+                {qrCodeData}
+              </Typography>
+              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+                این کد را به مسئول سالن ارائه دهید
+              </Typography>
+              {checkedInAt ? (
+                <Alert severity="success" sx={{ borderRadius: 2 }}>
+                  ورود شما در تاریخ {formatDateTime(checkedInAt)} ثبت شده است
+                </Alert>
+              ) : (
+                <Alert severity="info" sx={{ borderRadius: 2 }}>
+                  هنوز وارد نشده‌اید — کد را به مدیر سالن نشان دهید
+                </Alert>
+              )}
+              <Button
+                onClick={() => setQrDialogOpen(false)}
+                variant="contained"
+                sx={{ mt: 3, borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+              >
+                بستن
+              </Button>
+            </Box>
+          )}
+        </DialogContent>
+      </Dialog>
     </Layout>
   )
 }

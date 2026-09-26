@@ -55,6 +55,7 @@ import {
 } from '@/components/mobile'
 import { bookingService } from '@/services/booking'
 import { loyaltyService, type LoyaltyHistory } from '@/services/loyalty'
+import { waitlistService } from '@/services/waitlist'
 import PricingBreakdown, { normalizeBreakdown } from '@/components/deals/PricingBreakdown'
 import { formatRial } from '@/components/finance/shared'
 import { toPersianDigits } from '@/lib/jalali'
@@ -121,6 +122,7 @@ const VenueDetail: React.FC = () => {
   const [tab, setTab] = useState(0)
   const [loading, setLoading] = useState(true)
   const [bookingLoading, setBookingLoading] = useState(false)
+  const [waitlistLoading, setWaitlistLoading] = useState(false)
   const [venue, setVenue] = useState<any>(null)
   const [slots, setSlots] = useState<any[]>([])
   const [selectedSlot, setSelectedSlot] = useState<any>(null)
@@ -134,6 +136,22 @@ const VenueDetail: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null)
   const [purchaseOpen, setPurchaseOpen] = useState(false)
   const [bidSlot, setBidSlot] = useState<BidTargetSlot | null>(null)
+
+  const joinWaitlist = async () => {
+    if (!selectedSlot || !isAuthenticated) {
+      toast.error('برای ورود به صف انتظار باید وارد شوید')
+      return
+    }
+    setWaitlistLoading(true)
+    try {
+      const result = await waitlistService.join(selectedSlot.id)
+      toast.success(result.message)
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'خطا در ورود به صف انتظار')
+    } finally {
+      setWaitlistLoading(false)
+    }
+  }
 
   // ارتقای تسویه — کوپن، امتیاز وفاداری و ریز قیمت (اعتبارسنجی/اعمال سمت سرور)
   const [discountCode, setDiscountCode] = useState('')
@@ -925,30 +943,64 @@ const VenueDetail: React.FC = () => {
                                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>قیمت:</Typography>
                                   <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>{formatPrice(selectedSlot.price)}</Typography>
                                 </Box>
-                                <Button
-                                  variant="contained"
-                                  fullWidth
-                                  onClick={() => setConfirmOpen(true)}
-                                  disabled={bookingLoading}
-                                  sx={{
-                                    mt: 2.5,
-                                    borderRadius: '12px',
-                                    textTransform: 'none',
-                                    py: 1.5,
-                                    fontSize: '1rem',
-                                    fontWeight: 800,
-                                    background: gradients.brandEnergy,
-                                    color: '#1c1917',
-                                    boxShadow: '0 4px 15px rgba(245,158,11,0.35)',
-                                    '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
-                                  }}
-                                >
-                                  {bookingLoading ? (
-                                    <CircularProgress size={24} sx={{ color: '#1c1917' }} />
-                                  ) : (
-                                    <><Icon icon="mdi:check-circle" className="h-5 w-5 ml-2" />تایید و رزرو</>
-                                  )}
-                                </Button>
+                                
+                                {/* اگر سانس پر است، دکمه ورود به صف انتظار نشان بده */}
+                                {selectedSlot.status === 'booked' ? (
+                                  <Button
+                                    variant="outlined"
+                                    fullWidth
+                                    onClick={joinWaitlist}
+                                    disabled={waitlistLoading || !isAuthenticated}
+                                    startIcon={<Icon icon="mdi:clock-outline" />}
+                                    sx={{
+                                      mt: 2.5,
+                                      borderRadius: '12px',
+                                      textTransform: 'none',
+                                      py: 1.5,
+                                      fontSize: '1rem',
+                                      fontWeight: 700,
+                                      borderColor: 'warning.main',
+                                      color: 'warning.main',
+                                      '&:hover': {
+                                        borderColor: 'warning.dark',
+                                        bgcolor: 'rgba(245,158,11,0.08)',
+                                      },
+                                    }}
+                                  >
+                                    {waitlistLoading ? (
+                                      <CircularProgress size={24} />
+                                    ) : !isAuthenticated ? (
+                                      'ورود به صف انتظار (نیاز به ورود)'
+                                    ) : (
+                                      'ورود به صف انتظار'
+                                    )}
+                                  </Button>
+                                ) : (
+                                  <Button
+                                    variant="contained"
+                                    fullWidth
+                                    onClick={() => setConfirmOpen(true)}
+                                    disabled={bookingLoading}
+                                    sx={{
+                                      mt: 2.5,
+                                      borderRadius: '12px',
+                                      textTransform: 'none',
+                                      py: 1.5,
+                                      fontSize: '1rem',
+                                      fontWeight: 800,
+                                      background: gradients.brandEnergy,
+                                      color: '#1c1917',
+                                      boxShadow: '0 4px 15px rgba(245,158,11,0.35)',
+                                      '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
+                                    }}
+                                  >
+                                    {bookingLoading ? (
+                                      <CircularProgress size={24} sx={{ color: '#1c1917' }} />
+                                    ) : (
+                                      <><Icon icon="mdi:check-circle" className="h-5 w-5 ml-2" />تایید و رزرو</>
+                                    )}
+                                  </Button>
+                                )}
                               </Paper>
                             </motion.div>
                           )}

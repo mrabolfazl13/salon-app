@@ -19,6 +19,11 @@ celery_app.conf.update(
             "task": "app.tasks.cleanup_expired_pending_bookings",
             "schedule": 600.0,
         },
+        # هر ساعت یادآوری رزروهای ۲ ساعت آینده
+        "send-booking-reminders": {
+            "task": "app.tasks.reminder_tasks.send_booking_reminders",
+            "schedule": 3600.0,  # every hour
+        },
     },
 )
 

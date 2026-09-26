@@ -810,6 +810,16 @@ const ManagerDashboard: React.FC = () => {
       badge: pendingContractCount,
       hint: 'برای بررسی',
     },
+    {
+      label: 'ثبت ورود (QR)',
+      value: 'اسکن کد',
+      icon: 'mdi:qrcode-scan',
+      gradient: 'linear-gradient(135deg, #0891b2, #06b6d4)',
+      lightBg: 'rgba(8,145,178,0.08)',
+      color: '#0891b2',
+      href: '/manager/checkin',
+      hint: 'ورود کاربران',
+    },
   ]
 
   const getVenueName = (venueId: number) => {

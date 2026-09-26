@@ -359,6 +359,11 @@ async def cancel_booking(
     if not result:
         raise HTTPException(status_code=400, detail="Cannot cancel")
 
+    # Notify first person in waitlist if slot became available
+    if result.slot_id:
+        from app.tasks.reminder_tasks import notify_waitlist_on_cancellation
+        notify_waitlist_on_cancellation.delay(result.slot_id)
+
     # بازگشت وجه (شبیه‌سازی): فاکتور پرداختی به refunded تبدیل می‌شود
     refunded_amount = 0
     if paid_payment:

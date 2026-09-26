@@ -46,6 +46,7 @@ const ManagerContracts = lazy(() => import('@/pages/manager/contracts/ManagerCon
 const ManagerContractDetail = lazy(() => import('@/pages/manager/contracts/ManagerContractDetail'))
 const ManagerTeams = lazy(() => import('@/pages/manager/teams/ManagerTeams'))
 const ManagerCrm = lazy(() => import('@/pages/manager/crm/ManagerCrm'))
+const ManagerCheckin = lazy(() => import('@/pages/manager/ManagerCheckin'))
 const Teams = lazy(() => import('@/pages/teams/Teams'))
 const TeamDiscover = lazy(() => import('@/pages/teams/TeamDiscover'))
 const TeamDetail = lazy(() => import('@/pages/teams/TeamDetail'))
@@ -239,6 +240,7 @@ function AppRoutes() {
             <Route path="/manager/teams" element={<ProtectedRoute requiredRole="venue_manager"><ManagerTeams /></ProtectedRoute>} />
             {/* کنسول مشتریان/پرسنل — گیت لاگین؛ کارمندِ انتصابی (role=user) هم باز می‌کند و ۴۰۳ بک‌اند با پنل دوستانه مدیریت می‌شود */}
             <Route path="/manager/crm" element={<ProtectedRoute><ManagerCrm /></ProtectedRoute>} />
+            <Route path="/manager/checkin" element={<ProtectedRoute requiredRole="venue_manager"><ManagerCheckin /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
 
             {/* Admin routes */}
