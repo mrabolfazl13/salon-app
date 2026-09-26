@@ -6,7 +6,7 @@ from app.models.waitlist import WaitlistEntry
 from app.models.slot import Slot, SlotStatus
 from app.models.booking import Booking, BookingStatus
 from app.models.user import User
-from app.services.auth import get_current_user
+from app.utils.auth import get_current_user
 from app.services.notification_service import NotificationService
 from datetime import datetime, timedelta
 from typing import List

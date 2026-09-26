@@ -4,7 +4,7 @@ from sqlmodel import Session, select
 from app.database import get_session
 from app.models.booking import Booking
 from app.services.checkin_service import CheckInService
-from app.services.auth import get_current_user
+from app.utils.auth import get_current_user
 from app.models.user import User, UserRole
 from typing import Optional
 
