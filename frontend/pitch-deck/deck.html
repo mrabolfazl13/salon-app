@@ -1,0 +1,1052 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+<meta charset="utf-8">
+<title>فوتسال — سامانه هوشمند رزرو سالن</title>
+<style>/*__FONTS__*/</style>
+<style>/*__CSS__*/</style>
+</head>
+<body>
+
+<!-- ════════════════════ 01 · COVER ════════════════════ -->
+<section class="page dark">
+  <div class="fx">
+    <div class="glow" style="width:340px;height:340px;background:rgba(245,158,11,.30);top:-90px;left:-70px"></div>
+    <div class="glow" style="width:400px;height:400px;background:rgba(37,99,235,.45);bottom:-130px;right:-100px"></div>
+    <svg class="pitch-bg" viewBox="0 0 794 1123" preserveAspectRatio="none" style="opacity:.07">
+      <g fill="none" stroke="#fff" stroke-width="1.6">
+        <rect x="70" y="150" width="654" height="820" rx="8"/>
+        <line x1="70" y1="560" x2="724" y2="560"/>
+        <circle cx="397" cy="560" r="86"/>
+        <circle cx="397" cy="560" r="4" fill="#fff"/>
+        <path d="M255 150 v110 h284 v-110 M255 260 h284"/>
+        <path d="M255 960 v-110 h284 v110 M255 850 h284"/>
+        <path d="M70 470 q58 90 0 180 M724 470 q-58 90 0 180"/>
+      </g>
+    </svg>
+  </div>
+
+  <div class="pad" style="position:relative;z-index:2">
+    <div class="row" style="justify-content:space-between">
+      <div class="row gap-10">
+        <div class="mark"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2.2 3.1 2.2-1.2 3.6h-3.8L8.9 6.4 12 4.2ZM5.1 8.9l2.6.6 1.2 3.6-3 2.3-2.3-1.5a8 8 0 0 1 1.5-5Zm13.8 0a8 8 0 0 1 1.5 5l-2.3 1.5-3-2.3 1.2-3.6 2.6-.6Zm-4.6 7.4 2.3 1.6-.9 2.9a8 8 0 0 1-3.7.1l1.2-3.5-.1-1.1h1.2Zm-4.6 0-.1 1.1 1.2 3.5a8 8 0 0 1-3.7-.1l-.9-2.9 2.3-1.6h1.2Z"/></svg></div>
+        <div>
+          <div style="font-size:14pt;font-weight:800;letter-spacing:-.01em">فوتسال</div>
+          <div class="sm on-dark" style="font-size:7.4pt;margin-top:-1px">سامانه رزرو آنلاین سالن</div>
+        </div>
+      </div>
+      <div class="chip on-dark">نسخه ۰٫۲٫۰ · منتشرشده</div>
+    </div>
+
+    <div style="margin-top:auto;padding:10mm 0 0">
+      <div class="kicker on-dark">معرفی محصول · ۱۴۰۴</div>
+      <h1 style="font-size:41pt;font-weight:800;line-height:1.22;margin:6mm 0 0;letter-spacing:-.025em">
+        سالن ورزشی‌ات را<br>
+        <span style="background:var(--g-energy);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent">دیجیتال، پرفروش</span><br>
+        و بدون دغدغه اداره کن
+      </h1>
+      <p class="lead on-dark" style="max-width:132mm;margin-top:7mm;font-size:11.4pt">
+        یک پلتفرم یکپارچه برای رزرو سانس فوتسال و سالن بدنسازی؛ از کشف سالن و رقابت قیمت روی سانس‌های خالی
+        تا قراردادها، مالی، باشگاه مشتریان و ثبت ورود با QR — همه در یک اپلیکیشن فارسی و راست‌به‌چپ.
+      </p>
+
+      <div class="chiprow" style="margin-top:8mm">
+        <span class="chip on-dark">۲۲۴ اندپوینت API</span>
+        <span class="chip on-dark">۳۶ صفحه فعال</span>
+        <span class="chip on-dark">۸ اتوماسیون زمان‌بندی‌شده</span>
+        <span class="chip on-dark">اندروید + وب</span>
+        <span class="chip on-dark">دارک‌مود کامل</span>
+      </div>
+    </div>
+
+    <div class="divider on-dark" style="margin:12mm 0 5mm;opacity:.14"></div>
+    <div class="row" style="justify-content:space-between;align-items:flex-end">
+      <div class="sm on-dark" style="line-height:2">
+        تهیه‌کننده و توسعه‌دهنده: <b style="color:#fff">آرش</b> · تیم فنی مستقل<br>
+        <span style="opacity:.6">مستند محصول — قابل ارائه به مدیران سالن و سرمایه‌گذار</span>
+      </div>
+      <div style="text-align:left">
+        <div class="sm on-dark" style="font-weight:700">varzesh3.ir</div>
+        <div class="xs" style="direction:ltr">api.varzesh3.ir</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ════════════════════ 02 · PROBLEM ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">مسئله</div>
+    <h1 class="h1">رزرو سالن، هنوز هم <span class="grad-text">تلفنی</span> است</h1>
+    <p class="lead" style="max-width:150mm;margin-top:3mm">
+      مدیریت یک سالن ورزشی یعنی درگیری مداوم با دفتر ثبت دستی، تماس‌های بی‌پاسخ، سانس‌های پر نشده
+      و حساب‌وکتابی که هیچ‌وقت شفاف نیست. این هزینه‌های پنهان، مستقیم به درآمد ضربه می‌زنند.
+    </p>
+  </div>
+
+  <div class="grid g-2" style="gap:12px">
+    <div class="tile">
+      <div class="row gap-10" style="align-items:flex-start">
+        <div class="ic" style="color:#ef4444;background:rgba(239,68,68,.10)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 15.5c-1.25 0-2.45-.2-3.57-.57a1 1 0 0 0-1.02.24l-2.2 2.2a15.05 15.05 0 0 1-6.59-6.59l2.2-2.2a1 1 0 0 0 .25-1.02A11.36 11.36 0 0 1 8.5 4a1 1 0 0 0-1-1H4a1 1 0 0 0-1 1c0 9.39 7.61 17 17 17a1 1 0 0 0 1-1v-3.5a1 1 0 0 0-1-1Z"/><path d="M12.9 5.6 14.5 4l1.6 1.6L17.7 4l1.8 1.8-1.6 1.6-2.9-1.8Z" opacity=".5"/></svg></div>
+        <div>
+          <div class="h3">تماس و واتساپ بی‌پایان</div>
+          <div class="sm" style="margin-top:4px">هر رزرو یعنی چند بار زنگ، پیام و چک کردن دفتر. وقت پرسنل می‌رود و اشتباه انسانی وارد می‌شود.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="row gap-10" style="align-items:flex-start">
+        <div class="ic" style="color:#d97706;background:rgba(245,158,11,.12)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2Zm0 14H5V9h14v9Z"/><path d="M7 11h5v5H7z" opacity=".45"/></svg></div>
+        <div>
+          <div class="h3">سانس‌های مرده و درآمد از دست رفته</div>
+          <div class="sm" style="margin-top:4px">سانس خالی امروز، هیچ‌وقت قابل فروش نیست. بدون ابزار پویای قیمت‌گذاری، ظرفیت واقعی پر نمی‌شود.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="row gap-10" style="align-items:flex-start">
+        <div class="ic" style="color:#7c3aed;background:rgba(124,58,237,.10)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5.2 3.4 10 8 11 4.6-1 8-5.8 8-11V5l-8-3Zm0 4.5 4 1.5v3.2c0 3-1.6 5.7-4 6.6-2.4-.9-4-3.6-4-6.6V8l4-1.5Z" opacity=".28"/><path d="M12 2 4 5v6c0 5.2 3.4 10 8 11 4.6-1 8-5.8 8-11V5l-8-3Zm6 9.1c0 4.2-2.6 8.1-6 9.1-3.4-1-6-4.9-6-9.1V6.3l6-2.2 6 2.2v4.8Z"/></svg></div>
+        <div>
+          <div class="h3">عدم حضور و بی‌انضباطی</div>
+          <div class="sm" style="margin-top:4px">کاربر رزرو می‌کند و نمی‌آید. سالن ضرر می‌کند و راهی برای اثبات حضور یا جریمه وجود ندارد.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="row gap-10" style="align-items:flex-start">
+        <div class="ic" style="color:#0891b2;background:rgba(8,145,178,.10)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M4 20V10h3v10H4Zm6.5 0V4h3v16h-3ZM17 20v-7h3v7h-3Z" opacity=".85"/><path d="M3 21h18v1H3z"/></svg></div>
+        <div>
+          <div class="h3">مالی بدون شفافیت</div>
+          <div class="sm" style="margin-top:4px">فیش واریزی در تلگرام، بدهی قراردادها در اکسل، و هیچ گزارشی که بگوید این ماه چقدر درآمد واقعی بوده.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="row gap-10" style="align-items:flex-start">
+        <div class="ic" style="color:#059669;background:rgba(16,185,129,.11)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13Zm8 0c-.3 0-.7 0-1.1.05 1.3.9 2.1 2 2.1 3.45V19h6v-2.5c0-2.3-4.7-3.5-7-3.5Z"/></svg></div>
+        <div>
+          <div class="h3">بازگشت نداشتن مشتری</div>
+          <div class="sm" style="margin-top:4px">هیچ رابطه‌ای با مشتری نگه داشته نمی‌شود؛ نه باشگاه مشتریان، نه پیام هدفمند، نه دلیلی برای برگشت.</div>
+        </div>
+      </div>
+    </div>
+    <div class="tile">
+      <div class="row gap-10" style="align-items:flex-start">
+        <div class="ic" style="color:#dc2626;background:rgba(220,38,38,.10)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3 2 20h20L12 3Zm0 3.6 6.9 11.8H5.1L12 6.6Z"/><path d="M11 10h2v4.5h-2zM11 15.6h2v2h-2z"/></svg></div>
+        <div>
+          <div class="h3">تداخل و دوباره‌کاری</div>
+          <div class="sm" style="margin-top:4px">دو نفر یک سانس را می‌فروشند، قرارداد هفتگی با رزرو تکی برخورد می‌کند، و تعطیلات رسمی در قیمت لحاظ نمی‌شود.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tile mt-6" style="background:var(--g-primary);border:none;color:#fff;padding:16px 18px">
+    <div class="row gap-14">
+      <div style="font-size:30pt;font-weight:800;line-height:1;letter-spacing:-.02em">۳۰٪+</div>
+      <div>
+        <div style="font-size:10.5pt;font-weight:700">ظرفیت بلااستفاده</div>
+        <div class="sm on-dark" style="margin-top:3px;color:rgba(238,242,247,.72)">
+          در یک سالن متوسط، بیش از سی درصد سانس‌ها بدون فروش می‌گذرند. راه‌حل، قیمت‌گذاری پویا و فروش لحظه‌آخری است — نه تماس بیشتر.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span></div>
+  <div class="pnum">۰۲</div>
+</section>
+
+<!-- ════════════════════ 03 · SOLUTION ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">راه‌حل</div>
+    <h1 class="h1">یک پلتفرم، دو مخاطب</h1>
+    <p class="lead" style="max-width:150mm;margin-top:3mm">
+      فوتسال هم برای بازیکن و هم برای مدیر سالن ساخته شده است. بازیکن در چند ثانیه سانس می‌خرد؛
+      مدیر همزمان قیمت، ظرفیت، مالی و مشتریان را از یک کنسول می‌بیند.
+    </p>
+  </div>
+
+  <div class="grid g-21" style="gap:12px">
+    <div class="tile" style="border-top:3px solid var(--amber)">
+      <div class="row gap-10" style="margin-bottom:9px">
+        <div class="ic" style="color:#d97706;background:rgba(245,158,11,.13)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 2.5 3.2 2.3-1.2 3.7H10L8.8 6.8 12 4.5ZM5.3 9.3l2.6.6 1.2 3.6-3 2.2-2.2-1.4c.3-1.8 1-3.5 1.4-5Zm13.4 0c.5 1.5 1.2 3.2 1.4 5l-2.2 1.4-3-2.2 1.2-3.6 2.6-.6Zm-4.5 7.4 2.3 1.5-.9 2.9c-1.2.4-2.5.5-3.7.1l1.2-3.5v-1h1.1Zm-4.4 0v1l1.2 3.5c-1.2.4-2.5.3-3.7-.1l-.9-2.9 2.3-1.5h1.1Z"/></svg></div>
+        <div>
+          <div class="h3">برای بازیکن و تیم</div>
+          <div class="sm">تجربه‌ای که باعث می‌شود برگردد</div>
+        </div>
+      </div>
+      <ul class="ul">
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>جست‌وجوی سالن با نقشه، فاصله و «نزدیک من»</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>تقویم شمسی و انتخاب سانس با وضعیت زنده</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>رقابت قیمت روی سانس‌های درخواستی</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>سانس‌های شگفت‌انگیز لحظه‌آخری با تخفیف</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>صف انتظار، یادآوری دو ساعته و کد QR ورود</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>امتیاز وفاداری، پکیج جلسه‌ای، چالش هفتگی</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>ساخت تیم، بازی دوستانه و تقسیم هزینه</span></li>
+      </ul>
+    </div>
+
+    <div class="tile" style="border-top:3px solid var(--blue)">
+      <div class="row gap-10" style="margin-bottom:9px">
+        <div class="ic" style="color:#1d4ed8;background:rgba(37,99,235,.10)"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 21V8l4-3 4 3v13H3Zm10 0V4l8 3v14h-8Zm2-2h4V7.2l-4-1.5V19ZM5 19h2v-2H5v2Zm0-4h2v-2H5v2Z"/></svg></div>
+        <div>
+          <div class="h3">برای مدیر سالن</div>
+          <div class="sm">کنسول عملیاتی کامل</div>
+        </div>
+      </div>
+      <ul class="ul">
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>تقویم هفتگی سانس‌ها</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>موتور قیمت‌گذاری پویا</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>کنسول مالی و خروجی CSV</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>قراردادهای اجاره هفتگی</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>باشگاه مشتریان و کمپین</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>پرسنل با دسترسی تفکیکی</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>بررسی فیش و ثبت ورود</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="mt-6">
+    <div class="sm" style="font-weight:700;margin-bottom:8px;font-size:9pt;color:var(--navy)">پلتفرم در یک نگاه</div>
+    <div class="grid g-4" style="gap:10px">
+      <div class="tile" style="text-align:center;padding:13px 10px"><div class="stat-n" style="color:var(--blue-dark)">۳۶</div><div class="stat-l">صفحه فعال در اپ</div></div>
+      <div class="tile" style="text-align:center;padding:13px 10px"><div class="stat-n" style="color:var(--amber-dk)">۲۲۴</div><div class="stat-l">اندپوینت API</div></div>
+      <div class="tile" style="text-align:center;padding:13px 10px"><div class="stat-n" style="color:var(--green-dk)">۳۵</div><div class="stat-l">جدول دامنه</div></div>
+      <div class="tile" style="text-align:center;padding:13px 10px"><div class="stat-n" style="color:var(--purple)">۸</div><div class="stat-l">اتوماسیون زمان‌بندی</div></div>
+    </div>
+  </div>
+
+  <div class="grid g-3 mt-6" style="gap:10px">
+    <div class="tile" style="padding:13px 14px">
+      <div class="chip green">وب · PWA</div>
+      <div class="sm" style="margin-top:7px">React 18 + TypeScript + MUI، کاملاً راست‌به‌چپ با تقویم جلالی</div>
+    </div>
+    <div class="tile" style="padding:13px 14px">
+      <div class="chip">اندروید</div>
+      <div class="sm" style="margin-top:7px">بسته‌بندی Tauri v2 با به‌روزرسانی درون‌برنامه‌ای روی APK</div>
+    </div>
+    <div class="tile" style="padding:13px 14px">
+      <div class="chip cyan">پنل مدیر/ادمین</div>
+      <div class="sm" style="margin-top:7px">کنسول‌های تحت وب با احراز نقش و دسترسی پرسنلی</div>
+    </div>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span></div>
+  <div class="pnum">۰۳</div>
+</section>
+
+<!-- ════════════════════ 04 · PLAYER EXPERIENCE ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">تجربه بازیکن</div>
+    <h1 class="h2">از جست‌وجو تا ورود به سالن، در سه دقیقه</h1>
+  </div>
+
+  <div class="row gap-18" style="align-items:flex-start">
+    <div style="flex:1;min-width:0">
+      <div class="steps">
+        <div class="step"><b>کشف سالن</b><span>جست‌وجوی متنی، فیلتر دسته (فوتسال/بدنسازی)، نقشه و «نزدیک من»، امتیاز و نظرات دیگران، نشان «تأییدشده».</span></div>
+        <div class="step"><b>انتخاب سانس</b><span>تقویم شمسی با ناوبری «امروز/فردا»، قیمت هر سانس و وضعیت رنگی: آزاد، پر، در حال رقابت، رزرو قرارداد، مسدود.</span></div>
+        <div class="step"><b>ثبت و پرداخت</b><span>اعمال خودکار کد تخفیف و امتیاز وفاداری، نمایش ریز قیمت، و یکی از سه روش: پرداخت آنلاین، فیش واریزی، یا پرداخت در محل.</span></div>
+        <div class="step"><b>یادآوری</b><span>دو ساعت قبل از سانس، اعلان بلادرنگ با دکمه «لغو سریع» مستقیم روی نوتیفیکیشن.</span></div>
+        <div class="step"><b>ورود با QR</b><span>نمایش کد دوازده‌رقبی در صفحه رزرو؛ مسئول سالن تأیید می‌کند و حضور ثبت می‌شود.</span></div>
+        <div class="step"><b>امتیاز و نظر</b><span>پس از اتمام سانس، امتیاز وفاداری خودکار اضافه و امکان ثبت نظر و امتیاز سالن.</span></div>
+      </div>
+
+      <div class="tile mt-6" style="background:rgba(245,158,11,.07);border-color:rgba(245,158,11,.24)">
+        <div class="row gap-10" style="align-items:flex-start">
+          <div class="ic" style="color:#d97706;background:rgba(245,158,11,.16);width:34px;height:34px;border-radius:11px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="currentColor" width="17" height="17" style="width:17px;height:17px;position:relative;z-index:1"><path d="M13 2 4 14h6l-1 8 9-12h-6l1-8Z"/></svg></div>
+          <div>
+            <div style="font-weight:700;font-size:9.6pt">سانس پر است؟ تمام نشد.</div>
+            <div class="sm" style="margin-top:3px">وارد <b>صف انتظار</b> می‌شوی؛ به‌محض لغو شدن یک رزرو، نوبت تو اعلان می‌شود و دو ساعت وقت رزرو داری — وگرنه به نفر بعدی می‌رسد.</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="col gap-10" style="flex-direction:row">
+      <!-- phone 1: slot picker -->
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="scr">
+          <div class="top"><b>سالن الماس</b><span style="font-size:5.6pt;color:#5b6472">۱۲۰۰ م</span></div>
+          <div class="cardx">
+            <div class="lbl">امروز · پنجشنبه ۵ مهر</div>
+            <div class="slotgrid" style="margin-top:5px">
+              <div class="slot">۱۶:۰۰</div><div class="slot b">۱۷:۰۰</div><div class="slot c">۱۸:۰۰</div>
+              <div class="slot">۱۹:۰۰</div><div class="slot">۲۰:۰۰</div><div class="slot b">۲۱:۰۰</div>
+            </div>
+          </div>
+          <div class="cardx">
+            <div class="row" style="justify-content:space-between"><span class="lbl">قیمت سانس</span><span class="v">۸۰۰٬۰۰۰ ت</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:3px"><span class="lbl">تخفیف وفاداری</span><span class="v" style="color:#059669">–۵۰٬۰۰۰</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:3px;border-top:1px solid #e2e8f0;padding-top:3px"><span class="lbl" style="font-weight:800">قابل پرداخت</span><span class="v" style="color:#d97706">۷۵۰٬۰۰۰</span></div>
+          </div>
+          <div class="btn">رزرو سانس</div>
+          <div class="btn b2">ورود به صف انتظار</div>
+          <div class="navbar"><i class="on"></i><i></i><i></i><i></i></div>
+        </div>
+      </div>
+      <!-- phone 2: qr -->
+      <div class="phone">
+        <div class="notch"></div>
+        <div class="scr">
+          <div class="top"><b>رزرو من</b><span class="chip" style="font-size:4.8pt;padding:2px 5px">تأییدشده</span></div>
+          <div class="cardx">
+            <div class="lbl">کد ورود به سالن</div>
+            <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:2px;margin:6px 0">
+              <div style="height:9px;background:#0f172a;border-radius:2px"></div><div style="height:9px;background:#e2e8f0;border-radius:2px"></div><div style="height:9px;background:#0f172a;border-radius:2px"></div><div style="height:9px;background:#0f172a;border-radius:2px"></div><div style="height:9px;background:#e2e8f0;border-radius:2px"></div>
+              <div style="height:9px;background:#e2e8f0;border-radius:2px"></div><div style="height:9px;background:#0f172a;border-radius:2px"></div><div style="height:9px;background:#0f172a;border-radius:2px"></div><div style="height:9px;background:#e2e8f0;border-radius:2px"></div><div style="height:9px;background:#0f172a;border-radius:2px"></div>
+              <div style="height:9px;background:#0f172a;border-radius:2px"></div><div style="height:9px;background:#e2e8f0;border-radius:2px"></div><div style="height:9px;background:#f59e0b;border-radius:2px"></div><div style="height:9px;background:#0f172a;border-radius:2px"></div><div style="height:9px;background:#e2e8f0;border-radius:2px"></div>
+            </div>
+            <div style="text-align:center;font-family:ui-monospace,monospace;font-size:8.4pt;font-weight:800;letter-spacing:.14em;color:#1d4ed8">A3F9K2L7M1X5</div>
+          </div>
+          <div class="cardx">
+            <div class="row" style="justify-content:space-between"><span class="lbl">وضعیت</span><span class="v" style="color:#059669">هنوز وارد نشده</span></div>
+            <div class="row" style="justify-content:space-between;margin-top:3px"><span class="lbl">سانس</span><span class="v">۲۰:۰۰ — ۲۱:۳۰</span></div>
+          </div>
+          <div class="btn b2">چاپ فاکتور</div>
+          <div class="navbar"><i></i><i></i><i class="on"></i><i></i></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span><span>تجربه کاربری · موبایل‌محور</span></div>
+  <div class="pnum">۰۴</div>
+</section>
+
+<!-- ════════════════════ 05 · YIELD / REVENUE TOOLS ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">افزایش فروش</div>
+    <h1 class="h2">چهار ابزاری که سانس مرده را به درآمد تبدیل می‌کنند</h1>
+  </div>
+
+  <div class="grid g-2" style="gap:12px">
+    <div class="tile" style="border-right:3px solid var(--amber)">
+      <div class="row gap-10" style="margin-bottom:7px">
+        <span class="chip amber">۰۱</span>
+        <div class="h3">رقابت قیمت روی سانس</div>
+      </div>
+      <div class="sm">
+        مدیر روی سانس‌های کم‌تقاضا «مزایده» راه می‌اندازد؛ کاربران پیشنهاد قیمت می‌دهند و در لحظه بهترین پیشنهاد را می‌بینند.
+        پس از پایان مهلت، تسک خودکار برنده را مشخص و رزرو را ثبت می‌کند.
+      </div>
+      <div class="chiprow" style="margin-top:9px">
+        <span class="chip ghost">بلادرنگ با WebSocket</span><span class="chip ghost">تسک ۳۰ دقیقه‌ای</span><span class="chip ghost">اتمام خودکار</span>
+      </div>
+    </div>
+
+    <div class="tile" style="border-right:3px solid var(--red)">
+      <div class="row gap-10" style="margin-bottom:7px">
+        <span class="chip red">۰۲</span>
+        <div class="h3">سانس‌های شگفت‌انگیز</div>
+      </div>
+      <div class="sm">
+        بازاری لحظه‌آخری با قیمت کف‌دار شده؛ مدیر سانس تخفیف‌دار منتشر می‌کند و سیستم به‌صورت خودکار به علاقه‌مندان و
+        مشترکین اعلان می‌فرستد. قفل دیتابیسی از فروش بیش‌ازحد جلوگیری می‌کند.
+      </div>
+      <div class="chiprow" style="margin-top:9px">
+        <span class="chip ghost">اشتراک هدفمند</span><span class="chip ghost">ضد بیش‌فروشی</span><span class="chip ghost">فیلتر سروری</span>
+      </div>
+    </div>
+
+    <div class="tile" style="border-right:3px solid var(--blue)">
+      <div class="row gap-10" style="margin-bottom:7px">
+        <span class="chip">۰۳</span>
+        <div class="h3">قیمت‌گذاری پویا</div>
+      </div>
+      <div class="sm">
+        قوانین ترکیبی بر اساس روز هفته، بازه ساعتی و تعطیلات رسمی با اولویت‌بندی. موتور «پیش‌نمایش قیمت» قبل از
+        ذخیره، قیمت نهایی هر سانس را محاسبه و نشان می‌دهد.
+      </div>
+      <div class="chiprow" style="margin-top:9px">
+        <span class="chip ghost">درصد / مبلغ / ثابت</span><span class="chip ghost">تقویم تعطیلات</span><span class="chip ghost">پیش‌نمایش زنده</span>
+      </div>
+    </div>
+
+    <div class="tile" style="border-right:3px solid var(--purple)">
+      <div class="row gap-10" style="margin-bottom:7px">
+        <span class="chip purple">۰۴</span>
+        <div class="h3">قرارداد اجاره هفتگی</div>
+      </div>
+      <div class="sm">
+        تیم‌های ثابت، سانس‌های تکرارشونده می‌خرند. سیستم خودکار سری سانس می‌سازد، اقساط را می‌گیرد، سررسید گذشته را
+        علامت می‌زند و نزدیک پایان قرارداد یادآوری تمدید می‌فرستد.
+      </div>
+      <div class="chiprow" style="margin-top:9px">
+        <span class="chip ghost">اقساط</span><span class="chip ghost">تمدید خودکار</span><span class="chip ghost">کارپوشی ممیزی</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- revenue chart mock -->
+  <div class="tile mt-6">
+    <div class="row" style="justify-content:space-between;margin-bottom:10px">
+      <div class="h3">نمونه گزارش هفتگی سانس‌های محبوب</div>
+      <div class="chiprow"><span class="chip amber">پیک: پنجشنبه ۲۰:۰۰</span><span class="chip ghost">۷ روز گذشته</span></div>
+    </div>
+    <div class="bars" style="height:74px">
+      <div style="height:38%"></div><div style="height:52%"></div><div style="height:44%"></div><div style="height:61%"></div><div class="hot" style="height:96%"></div><div class="hot" style="height:82%"></div><div style="height:35%"></div>
+    </div>
+    <div class="barlbl">
+      <span>شنبه</span><span>یکشنبه</span><span>دوشنبه</span><span>سه‌شنبه</span><span>چهارشنبه</span><span>پنجشنبه</span><span>جمعه</span>
+    </div>
+    <div class="divider" style="margin:12px 0"></div>
+    <div class="sm">
+      این نمودار در داشبورد مدیر، روز و ساعت اوج تقاضا را نشان می‌دهد تا قیمت پایه، تخفیف و زمان‌بندی سانس‌ها
+      بر اساس داده واقعی چیده شود — نه حدس.
+    </div>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span><span>مدیریت درآمد</span></div>
+  <div class="pnum">۰۵</div>
+</section>
+
+<!-- ════════════════════ 06 · MANAGER CONSOLE ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">کنسول مدیر</div>
+    <h1 class="h2">کل سالن، در یک صفحه</h1>
+    <p class="lead" style="max-width:150mm;margin-top:2mm">
+      داشبورد مدیریت فوتسال، تقویم سانس‌ها، مالی، قیمت‌گذاری، قراردادها، مشتریان و پرسنل را در یک پنل جمع می‌کند
+      و هر بخش با احراز نقش محافظت شده است.
+    </p>
+  </div>
+
+  <div class="brow">
+    <div class="bar"><i></i><i></i><i></i><span>varzesh3.ir/manager-dashboard</span></div>
+    <div class="body">
+      <div class="row" style="justify-content:space-between;margin-bottom:9px">
+        <div style="font-size:9.4pt;font-weight:800">داشبورد مدیریت</div>
+        <div class="row gap-6"><span class="chip">۳ سالن</span><span class="chip amber">۲ فیش در انتظار</span></div>
+      </div>
+      <div class="kpi">
+        <div style="background:rgba(37,99,235,.07)"><div class="n" style="color:#1d4ed8">۴۸</div><div class="l">رزرو امروز</div></div>
+        <div style="background:rgba(16,185,129,.07)"><div class="n" style="color:#059669">۳۲م</div><div class="l">درآمد بازه</div></div>
+        <div style="background:rgba(220,38,38,.07)"><div class="n" style="color:#dc2626">۱۱</div><div class="l">سانس آزاد</div></div>
+        <div style="background:rgba(124,58,237,.07)"><div class="n" style="color:#7c3aed">۵</div><div class="l">درخواست قرارداد</div></div>
+      </div>
+
+      <div class="row gap-8" style="margin-top:10px;align-items:stretch">
+        <div style="flex:1.4;border:1px solid var(--hairline);border-radius:11px;padding:9px">
+          <div style="font-size:6.4pt;font-weight:700;color:var(--slate);margin-bottom:6px">تقویم هفتگی سانس‌ها</div>
+          <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:3px">
+            <div style="font-size:5pt;color:var(--slate-lt);text-align:center">ش</div><div style="font-size:5pt;color:var(--slate-lt);text-align:center">ی</div><div style="font-size:5pt;color:var(--slate-lt);text-align:center">د</div><div style="font-size:5pt;color:var(--slate-lt);text-align:center">س</div><div style="font-size:5pt;color:var(--slate-lt);text-align:center">چ</div><div style="font-size:5pt;color:var(--slate-lt);text-align:center">پ</div><div style="font-size:5pt;color:var(--slate-lt);text-align:center">ج</div>
+            <div style="height:15px;border-radius:4px;background:rgba(16,185,129,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(239,68,68,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(16,185,129,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(245,158,11,.42)"></div><div style="height:15px;border-radius:4px;background:rgba(239,68,68,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(239,68,68,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(100,116,139,.22)"></div>
+            <div style="height:15px;border-radius:4px;background:rgba(239,68,68,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(16,185,129,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(37,99,235,.30)"></div><div style="height:15px;border-radius:4px;background:rgba(37,99,235,.30)"></div><div style="height:15px;border-radius:4px;background:rgba(239,68,68,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(245,158,11,.42)"></div><div style="height:15px;border-radius:4px;background:rgba(100,116,139,.22)"></div>
+            <div style="height:15px;border-radius:4px;background:rgba(16,185,129,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(239,68,68,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(239,68,68,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(16,185,129,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(245,158,11,.42)"></div><div style="height:15px;border-radius:4px;background:rgba(239,68,68,.35)"></div><div style="height:15px;border-radius:4px;background:rgba(100,116,139,.22)"></div>
+          </div>
+          <div class="row gap-6" style="margin-top:7px;flex-wrap:wrap">
+            <span style="font-size:5pt;display:flex;align-items:center;gap:2px"><i style="width:6px;height:6px;border-radius:2px;background:rgba(16,185,129,.5);display:block"></i>آزاد</span>
+            <span style="font-size:5pt;display:flex;align-items:center;gap:2px"><i style="width:6px;height:6px;border-radius:2px;background:rgba(239,68,68,.5);display:block"></i>رزرو</span>
+            <span style="font-size:5pt;display:flex;align-items:center;gap:2px"><i style="width:6px;height:6px;border-radius:2px;background:rgba(245,158,11,.6);display:block"></i>رقابت</span>
+            <span style="font-size:5pt;display:flex;align-items:center;gap:2px"><i style="width:6px;height:6px;border-radius:2px;background:rgba(37,99,235,.5);display:block"></i>قرارداد</span>
+          </div>
+        </div>
+
+        <div style="flex:1;border:1px solid var(--hairline);border-radius:11px;padding:9px">
+          <div style="font-size:6.4pt;font-weight:700;color:var(--slate);margin-bottom:6px">صف اقدامات</div>
+          <div style="border-radius:7px;padding:5px 6px;margin-bottom:4px;background:rgba(245,158,11,.09);border:1px solid rgba(245,158,11,.24);display:flex;justify-content:space-between;align-items:center"><span style="font-size:5.6pt;font-weight:700;color:#a16207">فیش واریزی — علی رضایی</span><span style="font-size:4.8pt;color:#a16207">بررسی</span></div>
+          <div style="border-radius:7px;padding:5px 6px;margin-bottom:4px;background:rgba(37,99,235,.07);border:1px solid rgba(37,99,235,.20);display:flex;justify-content:space-between;align-items:center"><span style="font-size:5.6pt;font-weight:700;color:#1d4ed8">پرداخت در محل — تیم برق</span><span style="font-size:4.8pt">دریافت</span></div>
+          <div style="border-radius:7px;padding:5px 6px;margin-bottom:4px;background:rgba(124,58,237,.07);border:1px solid rgba(124,58,237,.20);display:flex;justify-content:space-between;align-items:center"><span style="font-size:5.6pt;font-weight:700;color:#7c3aed">قرارداد جدید — ۸ سانس</span><span style="font-size:4.8pt">تأیید</span></div>
+          <div style="border-radius:7px;padding:5px 6px;background:rgba(8,145,178,.07);border:1px solid rgba(8,145,178,.20);display:flex;justify-content:space-between;align-items:center"><span style="font-size:5.6pt;font-weight:700;color:#0891b2">ثبت ورود با QR</span><span style="font-size:4.8pt">باز کردن</span></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g-3 mt-6" style="gap:10px">
+    <div class="tile" style="padding:12px 13px">
+      <div class="h3" style="font-size:10pt">کنسول مالی</div>
+      <div class="sm" style="margin-top:5px">دفتر درآمد/هزینه، نمودار سری درآمد، درآمد به تفکیک منبع، نرخ اشغال، سانس‌های کم‌تقاضا، صورت‌حساب مشتری و خروجی CSV.</div>
+    </div>
+    <div class="tile" style="padding:12px 13px">
+      <div class="h3" style="font-size:10pt">مدیریت رزرو و فیش</div>
+      <div class="sm" style="margin-top:5px">صف تأیید دستی با انقضای چهار ساعته، بررسی و تأیید/رد فیش واریزی، ثبت دریافت وجه در محل، و لغو با بازگشت وجه خودکار.</div>
+    </div>
+    <div class="tile" style="padding:12px 13px">
+      <div class="h3" style="font-size:10pt">پرسنل با دسترسی تفکیکی</div>
+      <div class="sm" style="margin-top:5px">انتصاب کارمند برای هر سالن با کدهای مجوز ظریف و کارپوشی امنیتی؛ مدیر می‌تواند دسترسی را محدود یا لغو کند.</div>
+    </div>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span><span>پنل مدیریت</span></div>
+  <div class="pnum">۰۶</div>
+</section>
+
+<!-- ════════════════════ 07 · RETENTION / CRM ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">نگهداشت مشتری</div>
+    <h1 class="h2">باشگاه مشتریان، وفاداری و اعلان هوشمند</h1>
+    <p class="lead" style="max-width:152mm;margin-top:2mm">
+      گرفتن مشتری جدید هزینه دارد؛ نگه داشتن مشتری فعلی ارزان‌تر. فوتسال هر دو طرف این معادله را ساخته است.
+    </p>
+  </div>
+
+  <div class="grid g-2" style="gap:12px">
+    <div class="tile">
+      <div class="row gap-10" style="margin-bottom:8px">
+        <div class="ic" style="color:#d97706;background:rgba(245,158,11,.13);width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;position:relative;z-index:1"><path d="M12 2 9.1 8.6 2 9.3l5.4 4.7L5.8 21 12 17.3 18.2 21l-1.6-7 5.4-4.7-7.1-.7L12 2Z"/></svg></div>
+        <div class="h3">امتیاز وفاداری</div>
+      </div>
+      <div class="sm">دفتر امتیاز با نه دلیل متفاوت: اتمام سانس، برتری در بازی، ثبت نظر، پاسخ به چالش هفتگی، تخفیف ابطال، بازگشت وجه، و تنظیم دستی مدیر. امتیاز تا ۵۰٪ مبلغ قابل خرج است.</div>
+    </div>
+
+    <div class="tile">
+      <div class="row gap-10" style="margin-bottom:8px">
+        <div class="ic" style="color:#1d4ed8;background:rgba(37,99,235,.10);width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;position:relative;z-index:1"><path d="M20 4H4a2 2 0 0 0-2 2v3h20V6a2 2 0 0 0-2-2Zm0 7H4a2 2 0 0 0-2 2v5h2.9a2.1 2.1 0 0 0 4.2 0h5.6a2.1 2.1 0 0 0 4.2 0H22v-5a2 2 0 0 0-2-2Z"/></svg></div>
+        <div class="h3">کد تخفیف</div>
+      </div>
+      <div class="sm">کدهای درصدی یا ثابت با سقف مصرف، بازه اعتبار و محدودیت تعداد؛ ثبت‌نام خودکار در لحظه رزرو و امکان لغو در صورت انصراف.</div>
+    </div>
+
+    <div class="tile">
+      <div class="row gap-10" style="margin-bottom:8px">
+        <div class="ic" style="color:#7c3aed;background:rgba(124,58,237,.10);width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;position:relative;z-index:1"><path d="M16 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm-8 0a3 3 0 1 0 0-6 3 3 0 0 0 0 6Zm0 2c-2.3 0-7 1.2-7 3.5V19h14v-2.5C15 14.2 10.3 13 8 13Zm8 0c-.3 0-.7 0-1.1.05 1.3.9 2.1 2 2.1 3.45V19h6v-2.5c0-2.3-4.7-3.5-7-3.5Z"/></svg></div>
+        <div class="h3">باشگاه مشتریان (CRM)</div>
+      </div>
+      <div class="sm">پروفایل هر مشتری با برچسب، یادداشت، نشان VIP و رضایت بازاریابی. کمپین بر اساس بخش‌بندی مخاطب راه می‌افتد و شمارنده ارسال/رد شدن گزارش می‌شود.</div>
+    </div>
+
+    <div class="tile">
+      <div class="row gap-10" style="margin-bottom:8px">
+        <div class="ic" style="color:#0891b2;background:rgba(8,145,178,.10);width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;position:relative;z-index:1"><path d="M12 22a2 2 0 0 0 2-2h-4a2 2 0 0 0 2 2Zm7-6v-5a7 7 0 0 0-5-6.7V4a2 2 0 1 0-4 0v.3A7 7 0 0 0 5 11v5l-2 2v1h18v-1l-2-2Z"/></svg></div>
+        <div class="h3">اعلان بلادرنگ</div>
+      </div>
+      <div class="sm">کانال WebSocket روی اتاق نقش، اعلان درون‌برنامه‌ای تایپ‌شده، شمارنده خوانده‌نشده، و اشتراک داوطلبانه در «سانس‌های شگفت‌انگیز».</div>
+    </div>
+
+    <div class="tile">
+      <div class="row gap-10" style="margin-bottom:8px">
+        <div class="ic" style="color:#059669;background:rgba(16,185,129,.11);width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;position:relative;z-index:1"><path d="M19 3H5a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V5a2 2 0 0 0-2-2Zm-7 3 4.5 8h-9L12 6Z"/></svg></div>
+        <div class="h3">چالش ورزشی هفتگی</div>
+      </div>
+      <div class="sm">هر هفته یک پرسش اطلاعات ورزشی با جایزه امتیازی — مکانیزمی ساده که کاربر را هفت‌به‌هفت به اپ برمی‌گرداند.</div>
+    </div>
+
+    <div class="tile">
+      <div class="row gap-10" style="margin-bottom:8px">
+        <div class="ic" style="color:#dc2626;background:rgba(220,38,38,.10);width:36px;height:36px;border-radius:11px;display:flex;align-items:center;justify-content:center"><svg viewBox="0 0 24 24" fill="currentColor" style="width:18px;height:18px;position:relative;z-index:1"><path d="M20 2H4a2 2 0 0 0-2 2v18l4-4h14a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2Zm-7 12h-2v-2h2v2Zm0-4h-2V6h2v4Z"/></svg></div>
+        <div class="h3">نظر و امتیاز سالن</div>
+      </div>
+      <div class="sm">کاربر بعد از سانس امتیاز می‌دهد؛ میانگین امتیاز در کارت سالن و صفحه جزئیات نمایش داده و به مدیر بازخورد می‌شود.</div>
+    </div>
+  </div>
+
+  <div class="tile mt-6" style="background:var(--g-primary);border:none;color:#fff">
+    <div class="row gap-18" style="align-items:center">
+      <div style="flex:1">
+        <div style="font-size:10.5pt;font-weight:800">هشدار خودکار مشتری از‌دست‌رفته</div>
+        <div class="sm on-dark" style="margin-top:4px;color:rgba(238,242,247,.75)">
+          هر شب، تسک هفتگی مشتری‌های پرهزینه‌ای که بیش از ۹۰ روز فعالیت نکرده‌اند برای مدیر لیست می‌کند — تا قبل از رفتن قطعی، تماس بگیرد.
+        </div>
+      </div>
+      <div style="text-align:center;flex-shrink:0">
+        <div style="font-size:26pt;font-weight:800;line-height:1;color:var(--amber-lt)">۹۰</div>
+        <div class="xs" style="color:rgba(255,255,255,.55)">روز بی‌فعالیت</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span><span>رشد و نگهداشت</span></div>
+  <div class="pnum">۰۷</div>
+</section>
+
+<!-- ════════════════════ 08 · SOCIAL: GAMES & TEAMS ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">شبکه اجتماعی ورزش</div>
+    <h1 class="h2">تیم بساز، بازی بگذار، هزینه را تقسیم کن</h1>
+    <p class="lead" style="max-width:152mm;margin-top:2mm">
+      بزرگ‌ترین مانع فوتبال دوستانه، «چه کسی پول را می‌دهد و کی تیم کامل می‌شود» است. فوتسال این را هم حل کرده است.
+    </p>
+  </div>
+
+  <div class="grid g-2" style="gap:12px">
+    <div class="tile">
+      <div class="h3" style="margin-bottom:8px">بازی آزاد (Open Game)</div>
+      <ul class="ul">
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>ساخت بازی با رشته ورزشی، سطح مهارت، ظرفیت و سیاست عضویت (آزاد یا با تأیید)</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>لینک دعوت با توکن، بازسازی/غیرفعال‌سازی لینک و پیوستن با صفحه ورود</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>صف انتظار بازی + درخواست‌های عضویت با تأیید برگزارکننده</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span><b>تقسیم خودکار هزینه</b> بین شرکت‌کنندگان با یادآوری و ثبت پرداخت سهم</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>ثبت نتیجه بازی و تخصیص خودکار امتیاز به برندگان</span></li>
+      </ul>
+    </div>
+
+    <div class="tile">
+      <div class="h3" style="margin-bottom:8px">تیم و باشگاه</div>
+      <ul class="ul">
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>لیست بازیکنان، انتقال کاپیتانی، نقش‌ها و دعوت‌نامه</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span><b>صندوق و حق عضویت</b>: تولید خودکار بدهی، پرداخت، ابطال و مانده تیم</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>چت تیمی با شمارش پیام خوانده‌نشده</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>اتصال رزروها به تیم و جدول رتبه‌بندی بر پایه نتایج</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span>کشف تیم‌های عمومی و درخواست پیوستن + کارپوشی اقدامات</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- standings table -->
+  <div class="tile mt-6">
+    <div class="row" style="justify-content:space-between;margin-bottom:9px">
+      <div class="h3">جدول لیگ تیم‌ها</div>
+      <span class="chip ghost">بر اساس نتایج ثبت‌شده بازی‌ها</span>
+    </div>
+    <table class="tbl">
+      <thead><tr><th style="width:8%">رتبه</th><th>تیم</th><th class="r" style="width:12%">بازی</th><th class="r" style="width:12%">برده</th><th class="r" style="width:14%">گل</th><th class="r" style="width:14%">امتیاز</th></tr></thead>
+      <tbody>
+        <tr><td><b>۱</b></td><td>پرسپولیس محله</td><td class="r">۹</td><td class="r">۷</td><td class="r">۲۴–۹</td><td class="r"><b style="color:var(--amber-dk)">۲۱</b></td></tr>
+        <tr><td><b>۲</b></td><td>تیم برق</td><td class="r">۹</td><td class="r">۶</td><td class="r">۱۹–۱۱</td><td class="r"><b>۱۸</b></td></tr>
+        <tr><td><b>۳</b></td><td>ستارگان شمال</td><td class="r">۸</td><td class="r">۵</td><td class="r">۱۶–۱۲</td><td class="r"><b>۱۵</b></td></tr>
+        <tr><td><b>۴</b></td><td>آکادمی الماس</td><td class="r">۸</td><td class="r">۳</td><td class="r">۱۱–۱۵</td><td class="r"><b>۹</b></td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="grid g-21 mt-6" style="gap:10px">
+    <div class="tile" style="padding:13px 14px">
+      <div class="h3" style="font-size:10pt">داده ورزشی زنده</div>
+      <div class="sm" style="margin-top:5px">
+        با یکپارچه‌سازی <b>Varzesh3</b> از طریق پروکسی nginx، بازی‌های زنده، نتایج پایان‌یافته، جدول لیگ برتر و اخبار ورزشی
+        داخل اپ نمایش داده می‌شود — بدون درگیری مستقیم کلاینت با محدودیت CORS.
+      </div>
+    </div>
+    <div class="tile" style="padding:13px 14px">
+      <div class="h3" style="font-size:10pt">رقابت‌های داغ</div>
+      <div class="sm" style="margin-top:5px">بنر رقابت‌های در جریان در صفحه اصلی، تا کاربر قبل از بسته شدن مهلت، در مزایده سانس شرکت کند.</div>
+    </div>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span><span>قابلیت‌های اجتماعی</span></div>
+  <div class="pnum">۰۸</div>
+</section>
+
+<!-- ════════════════════ 09 · AUTOMATION ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">اتوماسیون</div>
+    <h1 class="h2">سیستمی که وقتی خوابیدی هم کار می‌کند</h1>
+    <p class="lead" style="max-width:152mm;margin-top:2mm">
+      هشت تسک زمان‌بندی‌شده با Celery Beat روی منطقه زمانی تهران، کارهای تکراری و فراموش‌شدنی مدیر سالن را خودکار کرده‌اند.
+    </p>
+  </div>
+
+  <div class="col gap-10">
+    <div class="tile" style="border-inline-start:3px solid var(--green)">
+      <div class="row gap-14" style="align-items:flex-start">
+        <div class="mono" style="font-size:8pt;font-weight:700;color:var(--green-dk);min-width:76px;flex-shrink:0">هر ۱۰ دقیقه</div>
+        <div>
+          <div class="h3">آزادسازی رزروهای بلاتکلیف</div>
+          <div class="sm" style="margin-top:3px">رزروهای تأییدنشده پس از چهار ساعت لغو و سانس آزاد می‌شود؛ کد تخفیف و امتیاز مصرفی هم خودکار برگشت می‌خورد. سانس قرارداد به جای «آزاد» به «رزرو» برمی‌گردد.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tile" style="border-inline-start:3px solid var(--amber)">
+      <div class="row gap-14" style="align-items:flex-start">
+        <div class="mono" style="font-size:8pt;font-weight:700;color:var(--amber-dk);min-width:76px;flex-shrink:0">هر ساعت</div>
+        <div>
+          <div class="h3">یادآوری سانس و بازگشت نوبت</div>
+          <div class="sm" style="margin-top:3px">دو ساعت قبل از شروع، اعلان بلادرنگ با دکمه «لغو سریع» ارسال می‌شود. اگر رزروی لغو شد، نفر اول <b>صف انتظار</b> بلافاصله مطلع و به مدت دو ساعت نگه داشته می‌شود.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tile" style="border-inline-start:3px solid var(--blue)">
+      <div class="row gap-14" style="align-items:flex-start">
+        <div class="mono" style="font-size:8pt;font-weight:700;color:var(--blue-dark);min-width:76px;flex-shrink:0">هر ۳۰ دقیقه</div>
+        <div>
+          <div class="h3">تعیین برنده رقابت قیمت</div>
+          <div class="sm" style="margin-top:3px">مزایده‌های منقضی‌شده بسته، بالاترین پیشنهاد برنده و رزرو به نام او ثبت می‌شود.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tile" style="border-inline-start:3px solid var(--purple)">
+      <div class="row gap-14" style="align-items:flex-start">
+        <div class="mono" style="font-size:8pt;font-weight:700;color:var(--purple);min-width:76px;flex-shrink:0">۰۲:۰۰ هرشب</div>
+        <div>
+          <div class="h3">چرخه عمر قراردادها</div>
+          <div class="sm" style="margin-top:3px">اتمام جلسات، تمدید یا انقضای خودکار قرارداد، تولید سری سانس جدید و ثبت همه در کارپوشی ممیزی. ساعت ۰۳:۰۰ هم اقساط گذشته علامت و به طرفین اعلان می‌شود.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tile" style="border-inline-start:3px solid var(--cyan)">
+      <div class="row gap-14" style="align-items:flex-start">
+        <div class="mono" style="font-size:8pt;font-weight:700;color:var(--cyan);min-width:76px;flex-shrink:0">۰۳:۳۰ هرشب</div>
+        <div>
+          <div class="h3">اهدای خودکار امتیاز وفاداری</div>
+          <div class="sm" style="margin-top:3px">سانس‌های گذشته به «انجام‌شده» می‌روند و امتیاز بدون امکان دوباره‌ثبت (idempotent) اضافه می‌شود.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tile" style="border-inline-start:3px solid #dc2626">
+      <div class="row gap-14" style="align-items:flex-start">
+        <div class="mono" style="font-size:8pt;font-weight:700;color:#dc2626;min-width:76px;flex-shrink:0">۰۴:۰۰ + هفتگی</div>
+        <div>
+          <div class="h3">تمدید قرارداد و هشدار مشتری خاموش</div>
+          <div class="sm" style="margin-top:3px">هفت روز قبل از پایان قرارداد به مالک و مدیر یادآوری می‌رود؛ هر هفته فهرست پنج مشتری پرهزینه بی‌فعال در سالن به مدیر داده می‌شود.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span><span> Celery Beat · ۸ تسک</span></div>
+  <div class="pnum">۰۹</div>
+</section>
+
+<!-- ════════════════════ 10 · DESIGN SYSTEM ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">هویت بصری</div>
+    <h1 class="h2">طراحی با جزئیات، برای چشم ایرانی</h1>
+    <p class="lead" style="max-width:150mm;margin-top:2mm">
+      یک سیستم طراحی واقعی — نه چیدمان پیش‌فرض. توکن‌های رنگ، فاصله، شعاع و سایه در یک فایل متمرکز شده‌اند
+      و تمام ۳۶ صفحه از همان‌ها تغذیه می‌شوند.
+    </p>
+  </div>
+
+  <!-- palette -->
+  <div class="tile">
+    <div class="sm" style="font-weight:700;font-size:9pt;color:var(--navy);margin-bottom:9px">پالت برند — «انرژی ورزشی»</div>
+    <div class="grid g-5" style="gap:9px">
+      <div><div style="height:46px;border-radius:11px;background:var(--g-energy);box-shadow:var(--sh-card)"></div><div class="v mono" style="font-size:7pt;margin-top:5px;font-weight:700">#F59E0B</div><div class="xs">کهربایی · انرژی برند</div></div>
+      <div><div style="height:46px;border-radius:11px;background:var(--blue);box-shadow:var(--sh-card)"></div><div class="v mono" style="font-size:7pt;margin-top:5px;font-weight:700">#2563EB</div><div class="xs">آبی · اعتماد و اقدام</div></div>
+      <div><div style="height:46px;border-radius:11px;background:var(--g-primary)"></div><div class="v mono" style="font-size:7pt;margin-top:5px;font-weight:700">#0F172A · #1D4ED8</div><div class="xs">سرمه · Hero و CTA</div></div>
+      <div><div style="height:46px;border-radius:11px;background:var(--g-deals)"></div><div class="v mono" style="font-size:7pt;margin-top:5px;font-weight:700">#F59E0B · #EF4444</div><div class="xs">بنر شگفت‌انگیز</div></div>
+      <div><div style="height:46px;border-radius:11px;background:var(--green);box-shadow:var(--sh-card)"></div><div class="v mono" style="font-size:7pt;margin-top:5px;font-weight:700">#10B981</div><div class="xs">موفقیت / سانس آزاد</div></div>
+    </div>
+  </div>
+
+  <div class="grid g-2 mt-6" style="gap:12px">
+    <!-- typography -->
+    <div class="tile">
+      <div class="sm" style="font-weight:700;font-size:9pt;color:var(--navy);margin-bottom:9px">تایپوگرافی — وزیرمتن</div>
+      <div class="col gap-8">
+        <div><div style="font-size:22pt;font-weight:800;line-height:1.2;letter-spacing:-.02em">رزرو سانس</div><div class="xs">H1 · 800 · ۳۵px · Negative tracking</div></div>
+        <div class="divider"></div>
+        <div><div style="font-size:15pt;font-weight:700;line-height:1.35">سالن الماس — تأییدشده</div><div class="xs">H2 · 700 · ۲۵px</div></div>
+        <div class="divider"></div>
+        <div><div style="font-size:11pt;font-weight:600">جزئیات قرارداد هفتگی</div><div class="xs">H5 · 600 · ۲۰px</div></div>
+        <div class="divider"></div>
+        <div><div style="font-size:10pt;font-weight:400;line-height:1.85;color:var(--slate)">متن بدنه با ارتفاع خط ۱٫۷ برای خوانایی فارسی و پشتیبانی کامل از نیم‌فاصله.</div><div class="xs">Body · 400 · ۱۶px / 1.7</div></div>
+      </div>
+    </div>
+
+    <!-- components -->
+    <div class="tile">
+      <div class="sm" style="font-weight:700;font-size:9pt;color:var(--navy);margin-bottom:9px">کامپوننت‌های پایه</div>
+      <div class="col gap-10">
+        <div class="row gap-8" style="flex-wrap:wrap">
+          <div style="border-radius:12px;padding:9px 18px;background:var(--g-primary);color:#fff;font-size:8.6pt;font-weight:600;box-shadow:var(--sh-cta)">رزرو سانس</div>
+          <div style="border-radius:12px;padding:9px 18px;background:var(--g-energy);color:var(--ink);font-size:8.6pt;font-weight:700">ادامه پرداخت</div>
+          <div style="border-radius:12px;padding:9px 18px;border:2px solid var(--blue);color:var(--blue-dark);font-size:8.6pt;font-weight:600">لغو رزرو</div>
+        </div>
+        <div class="chiprow">
+          <span class="chip green">آزاد</span><span class="chip red">پر</span><span class="chip amber">رقابت قیمت</span>
+          <span class="chip purple">قرارداد</span><span class="chip ghost">مسدود</span><span class="chip">تأییدشده</span>
+        </div>
+        <div class="row gap-8" style="align-items:stretch">
+          <div style="flex:1;border:1.5px solid var(--hairline);border-radius:12px;padding:9px 11px;background:var(--paper-2)">
+            <div class="xs" style="font-weight:600">جست‌وجوی سالن</div>
+            <div style="font-size:9pt;font-weight:600;color:var(--slate-lt);margin-top:2px">نام، محله یا رشته…</div>
+          </div>
+          <div style="width:44px;border-radius:12px;background:var(--g-primary);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12pt">۱</div>
+        </div>
+        <div class="sm" style="font-size:8pt">
+          تمام اجزا از <span class="mono-code">theme/index.ts</span> می‌آیند: شعاع ۱۰–۲۴px، سه مقیاس سایه، و یک منحنی حرکت واحد ۰٫۲۵s.
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- light/dark comparison -->
+  <div class="tile mt-6">
+    <div class="sm" style="font-weight:700;font-size:9pt;color:var(--navy);margin-bottom:9px">دارک‌مود واقعی — نه رنگ معکوس</div>
+    <div class="grid g-2" style="gap:11px">
+      <div style="border-radius:14px;padding:13px;background:#f6f7f9;border:1px solid var(--hairline)">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px"><b style="font-size:8.6pt">حالت روشن</b><span class="chip green" style="font-size:6.4pt">کنتراست AA</span></div>
+        <div style="background:#fff;border:1px solid rgba(15,23,42,.06);border-radius:10px;padding:9px;box-shadow:var(--sh-card)">
+          <div style="font-size:8pt;font-weight:700;color:#0f172a">سالن الماس</div>
+          <div style="font-size:7pt;color:#5b6472;margin-top:2px">فوتسال · امتیاز ۴٫۷ · ۸۵۰م</div>
+        </div>
+      </div>
+      <div style="border-radius:14px;padding:13px;background:#0b1220;border:1px solid rgba(255,255,255,.08)">
+        <div class="row" style="justify-content:space-between;margin-bottom:8px"><b style="font-size:8.6pt;color:#eef2f7">حالت تیره</b><span class="chip" style="font-size:6.4pt;background:rgba(96,165,250,.16);color:#93c5fd">تون جداگانه</span></div>
+        <div style="background:#121a2b;border:1px solid rgba(255,255,255,.08);border-radius:10px;padding:9px">
+          <div style="font-size:8pt;font-weight:700;color:#eef2f7">سالن الماس</div>
+          <div style="font-size:7pt;color:#9aa7b8;margin-top:2px">فوتسال · امتیاز ۴٫۷ · ۸۵۰م</div>
+        </div>
+      </div>
+    </div>
+    <div class="sm" style="margin-top:9px;font-size:8.2pt">
+      پالت تیره جدا طراحی شده (آبی روشن‌تر ۶۰a5fa، سایه‌های عمیق‌تر، شیشه‌ای با blur) و ترجیح سیستم کاربر با ذخیره در Zustand حفظ می‌شود.
+    </div>
+  </div>
+
+  <div class="chiprow mt-6" style="gap:7px">
+    <span class="chip">راست‌به‌چپ کامل</span><span class="chip">تقویم جلالی</span><span class="chip">ارقام فارسی</span>
+    <span class="chip">نیم‌فاصله صحیح</span><span class="chip">احساس لمس ۴۴px</span><span class="chip">حرکت ۱۵۰–۴۰۰ms</span>
+    <span class="chip">اسکلتون لودینگ</span><span class="chip">کنتراست ۴٫۵:۱</span>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span><span>سیستم طراحی</span></div>
+  <div class="pnum">۱۰</div>
+</section>
+
+<!-- ════════════════════ 11 · ARCHITECTURE ════════════════════ -->
+<section class="page dark">
+  <div class="fx"><div class="glow" style="width:380px;height:380px;background:rgba(37,99,235,.40);top:-100px;right:-110px"></div></div>
+  <div class="head-block" style="position:relative;z-index:2">
+    <div class="kicker on-dark">معماری فنی</div>
+    <h1 class="h1" style="color:#fff">ساختاری که مقیاس می‌کند</h1>
+    <p class="lead on-dark" style="max-width:148mm;margin-top:2mm">
+      بک‌اند FastAPI با الگوی Unit-of-Work، دیتابیس رابطه‌ای PostgreSQL، صف تسک Redis/Celery،
+      ذخیره‌سازی شیء MinIO و ارتباط بلادرنگ WebSocket — همه با Docker در یک فرمان بالا می‌آید.
+    </p>
+  </div>
+
+  <div class="col gap-10" style="position:relative;z-index:2">
+    <!-- layer: clients -->
+    <div class="card g2">
+      <div class="sm on-dark" style="font-weight:700;font-size:8.4pt;color:var(--amber-lt);margin-bottom:8px">لایه کلاینت</div>
+      <div class="grid g-3" style="gap:9px">
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px">
+          <div style="font-size:9pt;font-weight:700;color:#fff">وب / PWA</div>
+          <div class="xs" style="margin-top:3px">React 18 · TypeScript · Vite · MUI v9 · TanStack Query · Zustand · Framer Motion · Leaflet · react-hook-form + zod</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px">
+          <div style="font-size:9pt;font-weight:700;color:#fff">اندروید</div>
+          <div class="xs" style="margin-top:3px">پوشش Tauri v2 با پلاگین HTTP و به‌روزرسانی درون‌برنامه‌ای · به‌علاوه کلاینت موازی Flutter</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px">
+          <div style="font-size:9pt;font-weight:700;color:#fff">پنل مدیر / ادمین</div>
+          <div class="xs" style="margin-top:3px">مسیرهای گیت‌شده با نقش + allowStaff برای حساب‌های انتصابی پرسنل</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:center;color:var(--amber);font-size:9pt;font-weight:700;opacity:.85"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="vertical-align:-2px"><path d="M12 8l6 8H6l6-8Z"/></svg> &nbsp; HTTPS / JWT &nbsp;·&nbsp; WebSocket &nbsp;·&nbsp; nginx TLS</div>
+
+    <!-- layer: api -->
+    <div class="card g2">
+      <div class="sm on-dark" style="font-weight:700;font-size:8.4pt;color:var(--amber-lt);margin-bottom:8px">لایه سرویس</div>
+      <div class="grid g-4" style="gap:9px">
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px">
+          <div style="font-size:8.6pt;font-weight:700;color:#fff">FastAPI + SQLModel</div>
+          <div class="xs" style="margin-top:3px">۲۶ روتر · ۲۲۴ اندپوینت · اعتبارسنجی تایپ‌شده · مستندات خودکار</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px">
+          <div style="font-size:8.6pt;font-weight:700;color:#fff">Celery Worker + Beat</div>
+          <div class="xs" style="margin-top:3px">۸ تسک زمان‌بندی · منطقه زمانی Asia/Tehran · اعلان‌های تایپ‌شده</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px">
+          <div style="font-size:8.6pt;font-weight:700;color:#fff">WebSocket Hub</div>
+          <div class="xs" style="margin-top:3px">اتاق نقش (/ws/{role}) و کانال کاربر — اعلان و رقابت بلادرنگ</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px">
+          <div style="font-size:8.6pt;font-weight:700;color:#fff">Domain Services</div>
+          <div class="xs" style="margin-top:3px">موتور قیمت، وفاداری، مالی، ممیزی بازگشت وجه و کارپوشی امنیتی</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="row" style="justify-content:center;color:var(--amber);opacity:.85"><svg viewBox="0 0 24 24" width="13" height="13" fill="currentColor" style="vertical-align:-2px"><path d="M12 8l6 8H6l6-8Z"/></svg></div>
+
+    <!-- layer: data -->
+    <div class="card g2">
+      <div class="sm on-dark" style="font-weight:700;font-size:8.4pt;color:var(--amber-lt);margin-bottom:8px">لایه داده</div>
+      <div class="grid g-4" style="gap:9px">
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px;text-align:center">
+          <div style="font-size:15pt;font-weight:800;color:#fff">PG 15</div><div class="xs">PostgreSQL · ۳۵ جدول</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px;text-align:center">
+          <div style="font-size:15pt;font-weight:800;color:#fff">Redis 7</div><div class="xs">صف تسک · قفل · کش</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px;text-align:center">
+          <div style="font-size:15pt;font-weight:800;color:#fff">MinIO</div><div class="xs">تصاویر و فیش‌ها</div>
+        </div>
+        <div style="border:1px solid rgba(255,255,255,.10);border-radius:12px;padding:10px 11px;text-align:center">
+          <div style="font-size:15pt;font-weight:800;color:#fff">Nginx</div><div class="xs">TLS · پروکسی Varzesh3</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="grid g-4 mt-6" style="gap:9px;position:relative;z-index:2">
+    <div class="card g2" style="text-align:center;padding:11px"><div style="font-size:16pt;font-weight:800;color:var(--amber-lt)">۸۳ هزار</div><div class="xs">خط کد فعال</div></div>
+    <div class="card g2" style="text-align:center;padding:11px"><div style="font-size:16pt;font-weight:800;color:var(--amber-lt)">۲۹</div><div class="xs">سرویس فرانت‌اند</div></div>
+    <div class="card g2" style="text-align:center;padding:11px"><div style="font-size:16pt;font-weight:800;color:var(--amber-lt)">۲۰</div><div class="xs">ماژول مدل</div></div>
+    <div class="card g2" style="text-align:center;padding:11px"><div style="font-size:16pt;font-weight:800;color:var(--amber-lt)">Docker</div><div class="xs">استک کامل با یک فرمان</div></div>
+  </div>
+
+  <div class="pfoot on-dark" style="position:relative;z-index:2"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span><span>معماری · زیر ۹۰۰ms پاسخ</span></div>
+  <div class="pnum on-dark">۱۱</div>
+</section>
+
+<!-- ════════════════════ 12 · SECURITY & ROLES ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">اعتماد و امنیت</div>
+    <h1 class="h2">هر کس فقط سهم خودش را می‌بیند</h1>
+  </div>
+
+  <div class="grid g-4" style="gap:10px">
+    <div class="tile" style="border-top:3px solid var(--green)">
+      <span class="chip green">۰۱</span>
+      <div class="h3" style="margin:7px 0 5px;font-size:10pt">بازیکن</div>
+      <div class="sm" style="font-size:8.2pt">رزرو، رقابت قیمت، قرارداد، بازی و تیم، شگفت‌انگیز، چالش، امتیاز، نظر و کد ورود.</div>
+    </div>
+    <div class="tile" style="border-top:3px solid var(--blue)">
+      <span class="chip">۰۲</span>
+      <div class="h3" style="margin:7px 0 5px;font-size:10pt">مدیر سالن</div>
+      <div class="sm" style="font-size:8.2pt">سانس، قیمت، شگفت‌انگیز، قرارداد، مالی، CRM، پرسنل و ثبت ورود — مشروط به تأیید ادمین.</div>
+    </div>
+    <div class="tile" style="border-top:3px solid var(--purple)">
+      <span class="chip purple">۰۳</span>
+      <div class="h3" style="margin:7px 0 5px;font-size:10pt">مدیر باشگاه</div>
+      <div class="sm" style="font-size:8.2pt">مدیریت چند سالن زیر یک مجموعه، نظارت بر صف انتظار و ثبت ورود در همه شعب.</div>
+    </div>
+    <div class="tile" style="border-top:3px solid var(--amber)">
+      <span class="chip amber">۰۴</span>
+      <div class="h3" style="margin:7px 0 5px;font-size:10pt">سرپرست پلتفرم</div>
+      <div class="sm" style="font-size:8.2pt">آمار کاربران و سالن‌ها، تأیید سالن‌ها و بررسی/تأیید درخواست‌های مدیر.</div>
+    </div>
+  </div>
+
+  <div class="grid g-2 mt-6" style="gap:12px">
+    <div class="tile">
+      <div class="h3" style="margin-bottom:8px">دسترسی پرسنل با مجوز ظریف</div>
+      <div class="sm">
+        کارمند در نقش «user» می‌ماند اما با انتصاب روی یک سالن و مجموعه‌ای از <b>کدهای مجوز</b> مشخص،
+        به کنسول‌های مجاز دسترسی پیدا می‌کند. مسیرهای وب با <span class="mono-code">allowStaff</span> باز می‌شوند و
+        خطای ۴۰۳ بک‌اند با پنل دوستانه فارسی مدیریت می‌شود. هر تغییر دسترسی در کارپوشی امنیتی ثبت می‌گردد.
+      </div>
+      <div class="chiprow" style="margin-top:9px">
+        <span class="chip ghost">انتصاب هر سالن</span><span class="chip ghost">سمت سازمانی</span><span class="chip ghost">کارپوشی دسترسی</span>
+      </div>
+    </div>
+
+    <div class="tile">
+      <div class="h3" style="margin-bottom:8px">انتقادپذیری مالی</div>
+      <div class="sm">
+        برای هر رزرو، ریز قیمت (قیمت پایه، تخفیف، کوپن، امتیاز مصرفی) به‌صورت JSON ذخیره می‌شود.
+        در نتیجه مبلغ بازگشت وجه دقیقاً محاسبه و ممیزی‌شدنی است. سه روش پرداخت پشتیبانی می‌شود:
+      </div>
+      <div class="col gap-6" style="margin-top:9px">
+        <div class="row gap-8"><span class="chip green" style="min-width:78px;justify-content:center">فیش واریزی</span><span class="sm" style="font-size:8.2pt">بارگذاری تصویر، بررسی و تأیید/رد مدیر</span></div>
+        <div class="row gap-8"><span class="chip" style="min-width:78px;justify-content:center">پرداخت در محل</span><span class="sm" style="font-size:8.2pt">دریافت نقدی در سالن با ثبت رسمی</span></div>
+        <div class="row gap-8"><span class="chip amber" style="min-width:78px;justify-content:center">درگاه آنلاین</span><span class="sm" style="font-size:8.2pt">جریان کامل ساخته شده؛ اتصال به درگاه واقعی مرحله بعد است</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tile mt-6">
+    <div class="h3" style="margin-bottom:9px">کارپوشی و ردیابی</div>
+    <div class="grid g-4" style="gap:9px">
+      <div style="border:1px solid var(--hairline);border-radius:12px;padding:10px 11px"><b style="font-size:8.8pt">قرارداد</b><div class="xs" style="margin-top:3px">هر حذف جلسه، جابه‌جایی، ابطال قسط و تمدید</div></div>
+      <div style="border:1px solid var(--hairline);border-radius:12px;padding:10px 11px"><b style="font-size:8.8pt">تیم</b><div class="xs" style="margin-top:3px">عضویت، حق عضویت و تصمیمات کاپیتان</div></div>
+      <div style="border:1px solid var(--hairline);border-radius:12px;padding:10px 11px"><b style="font-size:8.8pt">امنیتی</b><div class="xs" style="margin-top:3px">انتصاب و تغییر مجوز پرسنل</div></div>
+      <div style="border:1px solid var(--hairline);border-radius:12px;padding:10px 11px"><b style="font-size:8.8pt">مالی</b><div class="xs" style="margin-top:3px">ثبت، ابطال تراکنش و صورت‌حساب</div></div>
+    </div>
+  </div>
+
+  <div class="chiprow mt-6" style="gap:7px">
+    <span class="chip">JWT + انقضای توکن</span><span class="chip">تأیید ایمیل</span><span class="chip">قفل دیتابیسی ضد بیش‌فروشی</span>
+    <span class="chip">اعتبارسنجی قیمت کف</span><span class="chip">رضایت بازاریابی</span><span class="chip">حذف تدریجی داده</span>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال</span><span>نقش‌ها و امنیت</span></div>
+  <div class="pnum">۱۲</div>
+</section>
+
+<!-- ════════════════════ 13 · ROADMAP + CTA ════════════════════ -->
+<section class="page">
+  <div class="head-block">
+    <div class="kicker">وضعیت و مسیر</div>
+    <h1 class="h2">امروز کجاییم، فردا کجا</h1>
+  </div>
+
+  <div class="grid g-3" style="gap:10px">
+    <div class="tile" style="border-top:3px solid var(--green)">
+      <span class="chip green">انتشاریافته</span>
+      <div class="h3" style="margin:8px 0 6px">روی سرور فعال</div>
+      <ul class="ul" style="gap:6px">
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">رزرو، سانس، رقابت قیمت</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">قیمت‌گذاری پویا و تعطیلات</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">قرارداد، اقساط، مالی و CSV</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">تیم، بازی، تقسیم هزینه</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">وفاداری، کوپن، چالش، نظر</span></li>
+        <li><span class="tick"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">CRM و پرسنل</span></li>
+      </ul>
+    </div>
+    <div class="tile" style="border-top:3px solid var(--amber)">
+      <span class="chip amber">تازه منتشرشده</span>
+      <div class="h3" style="margin:8px 0 6px">این چرخه</div>
+      <ul class="ul" style="gap:6px">
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">یادآوری ساعتی سانس + لغو سریع</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">صف انتظار سانس با اولویت‌بندی</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">ثبت ورود با کد QR + کنسول مدیر</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">به‌روزرسانی درون‌برنامه‌ای اندروید</span></li>
+        <li><span class="tick a"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M9 16.2 4.8 12l-1.4 1.4L9 19 21 7l-1.4-1.4L9 16.2Z"/></svg></span><span style="font-size:8.6pt">دارک‌مود و بازطراحی هویت بصری</span></li>
+      </ul>
+    </div>
+    <div class="tile" style="border-top:3px solid var(--slate-lt)">
+      <span class="chip ghost">در ارزیابی</span>
+      <div class="h3" style="margin:8px 0 6px">نسخه‌های بعد</div>
+      <ul class="ul" style="gap:6px">
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5.2 3.4 10 8 11 4.6-1 8-5.8 8-11V5l-8-3Z"/></svg></span><span style="font-size:8.6pt">اتصال درگاه پرداخت واقعی</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5.2 3.4 10 8 11 4.6-1 8-5.8 8-11V5l-8-3Z"/></svg></span><span style="font-size:8.6pt">اعلان پوش نوتیفیکیشن</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5.2 3.4 10 8 11 4.6-1 8-5.8 8-11V5l-8-3Z"/></svg></span><span style="font-size:8.6pt">امتیاز دوسانه بازیکنان</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5.2 3.4 10 8 11 4.6-1 8-5.8 8-11V5l-8-3Z"/></svg></span><span style="font-size:8.6pt">پیش‌بینی تقاضا با مدل سبک</span></li>
+        <li><span class="tick b"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2 4 5v6c0 5.2 3.4 10 8 11 4.6-1 8-5.8 8-11V5l-8-3Z"/></svg></span><span style="font-size:8.6pt">اپ iOS</span></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- value recap -->
+  <div class="tile mt-6" style="background:var(--g-primary);border:none;color:#fff">
+    <div class="h3" style="color:#fff;margin-bottom:10px">اگر امروز شروع کنیم</div>
+    <div class="grid g-3" style="gap:14px">
+      <div>
+        <div style="font-size:19pt;font-weight:800;color:var(--amber-lt);line-height:1">کاهش تماس</div>
+        <div class="xs" style="margin-top:5px;color:rgba(255,255,255,.62);font-size:8pt;line-height:1.7">رزرو، لغو و پرداخت بدون تماس تلفنی — صف تأیید و فیش الکترونیکی جای دفتر را می‌گیرند.</div>
+      </div>
+      <div>
+        <div style="font-size:19pt;font-weight:800;color:var(--amber-lt);line-height:1">افزایش اشغال</div>
+        <div class="xs" style="margin-top:5px;color:rgba(255,255,255,.62);font-size:8pt;line-height:1.7">رقابت قیمت، شگفت‌انگیز و صف انتظار، سانس‌های خالی را پیش از مرگ می‌فروشند.</div>
+      </div>
+      <div>
+        <div style="font-size:19pt;font-weight:800;color:var(--amber-lt);line-height:1">درآمد قابل پیش‌بینی</div>
+        <div class="xs" style="margin-top:5px;color:rgba(255,255,255,.62);font-size:8pt;line-height:1.7">قرارداد و اقساط، درآمد تکرارشونده می‌سازند و گزارش مالی رقم‌ها را شفاف می‌کند.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CTA -->
+  <div class="mt-6" style="border-radius:var(--r-sheet);padding:18px 20px;background:var(--g-energy);color:var(--ink)">
+    <div class="row" style="justify-content:space-between;align-items:center;gap:16px;flex-wrap:wrap">
+      <div>
+        <div style="font-size:16pt;font-weight:800;letter-spacing:-.01em">سالنت را به فوتسال اضافه کن</div>
+        <div style="font-size:9.2pt;font-weight:600;margin-top:4px;opacity:.82">ثبت‌نام مدیر سالن رایگان است؛ پس از تأیید، پنل مدیریت فعال می‌شود.</div>
+      </div>
+      <div style="display:flex;gap:9px">
+        <div style="border-radius:12px;padding:10px 20px;background:var(--navy);color:#fff;font-size:9pt;font-weight:700">varzesh3.ir</div>
+        <div style="border-radius:12px;padding:10px 20px;background:rgba(28,25,23,.10);border:1.5px solid rgba(28,25,23,.28);font-size:9pt;font-weight:700">دریافت اپ اندروید</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="pfoot"><span class="brandline"><span class="mark sm"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2a10 10 0 1 0 0 20 10 10 0 0 0 0-20Zm0 3 3 2.2-1.2 3.5H10.2L9 7.2l3-2.2Z"/></svg></span>فوتسال · سامانه رزرو آنلاین سالن</span><span>پایان · ۱۳</span></div>
+  <div class="pnum">۱۳</div>
+</section>
+
+</body>
+</html>
