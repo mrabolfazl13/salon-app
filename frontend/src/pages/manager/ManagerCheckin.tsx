@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { checkinService } from '@/services/checkin'
+import { formatPersianDateTime } from '@/utils/helpers'
 import toast from 'react-hot-toast'
 
 const ManagerCheckin: React.FC = () => {
@@ -23,8 +24,7 @@ const ManagerCheckin: React.FC = () => {
     success: boolean
     message: string
     booking_id?: number
-    venue_name?: string
-    user_name?: string
+    checked_in_at?: string
   } | null>(null)
 
   const handleVerify = async () => {
@@ -42,8 +42,7 @@ const ManagerCheckin: React.FC = () => {
         success: true,
         message: data.message,
         booking_id: data.booking_id,
-        venue_name: data.venue_name,
-        user_name: data.user_name,
+        checked_in_at: data.checked_in_at,
       })
       toast.success(data.message)
       setCode('')
@@ -58,7 +57,7 @@ const ManagerCheckin: React.FC = () => {
     }
   }
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       handleVerify()
     }
@@ -89,18 +88,20 @@ const ManagerCheckin: React.FC = () => {
               label="کد Check-in"
               value={code}
               onChange={(e) => setCode(e.target.value)}
-              onKeyPress={handleKeyPress}
+              onKeyDown={handleKeyDown}
               placeholder="مثال: A3F9K2L7M1X5"
               fullWidth
               disabled={loading}
               autoComplete="off"
-              inputProps={{
-                style: {
-                  fontFamily: 'monospace',
-                  letterSpacing: '0.1em',
-                  textTransform: 'uppercase',
-                  fontSize: '1.25rem',
-                  textAlign: 'center',
+              slotProps={{
+                htmlInput: {
+                  style: {
+                    fontFamily: 'monospace',
+                    letterSpacing: '0.1em',
+                    textTransform: 'uppercase',
+                    fontSize: '1.25rem',
+                    textAlign: 'center',
+                  },
                 },
               }}
             />
@@ -131,14 +132,9 @@ const ManagerCheckin: React.FC = () => {
             <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
               {result.message}
             </Typography>
-            {result.success && result.venue_name && (
+            {result.success && result.checked_in_at && (
               <Typography variant="body2">
-                سالن: {result.venue_name}
-              </Typography>
-            )}
-            {result.success && result.user_name && (
-              <Typography variant="body2">
-                کاربر: {result.user_name}
+                زمان ورود: {formatPersianDateTime(result.checked_in_at)}
               </Typography>
             )}
             {result.success && result.booking_id && (

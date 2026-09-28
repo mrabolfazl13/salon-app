@@ -115,7 +115,7 @@ const BookingDetail: React.FC = () => {
     try {
       setCheckinLoading(true)
       const data = await checkinService.getQrCode(booking.id)
-      setQrCodeData(data.qr_code)
+      setQrCodeData(data.check_in_code)
       if (data.checked_in_at) {
         setCheckedInAt(data.checked_in_at)
       }
@@ -413,9 +413,9 @@ const BookingDetail: React.FC = () => {
                     )}
                   </Box>
 
-                  {!qrCodeData ? (
+                  {checkinLoading ? (
                     <Skeleton variant="rounded" height={80} sx={{ borderRadius: 2 }} />
-                  ) : (
+                  ) : qrCodeData ? (
                     <Paper
                       onClick={() => setQrDialogOpen(true)}
                       sx={{
@@ -445,7 +445,7 @@ const BookingDetail: React.FC = () => {
                         برای نمایش کد بزرگ کلیک کنید
                       </Typography>
                     </Paper>
-                  )}
+                  ) : null}
                 </>
               )}
 
