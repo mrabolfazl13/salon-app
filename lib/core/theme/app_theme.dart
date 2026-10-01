@@ -30,7 +30,7 @@ class AppTheme {
         secondary: secondaryColor,
         tertiary: accentColor,
         surface: lightSurface,
-        background: lightBackground,
+        // background removed - deprecated in Flutter 3.18+
         error: errorColor,
       ),
       fontFamily: 'Vazirmatn',
@@ -100,7 +100,7 @@ class AppTheme {
         secondary: secondaryColor,
         tertiary: accentColor,
         surface: darkSurface,
-        background: darkBackground,
+        // background removed - deprecated in Flutter 3.18+
         error: errorColor,
       ),
       fontFamily: 'Vazirmatn',
