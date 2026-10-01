@@ -23,13 +23,13 @@ class _LoginScreenState extends State<LoginScreen> {
       return;
     }
 
+    final authProvider = Provider.of<AuthProvider>(context, listen: false);
     setState(() => _isLoading = true);
 
     try {
       // Mock login for demo - replace with actual API call
       await Future.delayed(const Duration(seconds: 1));
 
-      final authProvider = Provider.of<AuthProvider>(context, listen: false);
       await authProvider.login(
         'mock_token_123',
         {
