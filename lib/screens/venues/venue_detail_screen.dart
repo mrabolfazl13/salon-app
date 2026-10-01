@@ -26,13 +26,13 @@ class VenueDetailScreen extends StatelessWidget {
               height: 250,
               width: double.infinity,
               decoration: BoxDecoration(
-                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
               ),
               child: Center(
                 child: Icon(
                   Icons.sports_soccer,
                   size: 100,
-                  color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                  color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                 ),
               ),
             ),
@@ -86,7 +86,7 @@ class VenueDetailScreen extends StatelessWidget {
                                 'قیمت هر سانس',
                                 style: TextStyle(
                                   fontSize: 14,
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -135,7 +135,7 @@ class VenueDetailScreen extends StatelessWidget {
                           vertical: 8,
                         ),
                         decoration: BoxDecoration(
-                          color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                          color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(8),
                         ),
                         child: Row(
@@ -174,7 +174,7 @@ class VenueDetailScreen extends StatelessWidget {
                       venue.description!,
                       style: TextStyle(
                         height: 1.6,
-                        color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
+                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.7),
                       ),
                     ),
                   ],

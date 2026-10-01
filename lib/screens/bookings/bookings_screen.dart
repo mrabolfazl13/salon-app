@@ -83,7 +83,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   Icon(
                     Icons.event_busy,
                     size: 64,
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.3),
+                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.3),
                   ),
                   const SizedBox(height: 16),
                   Text(
@@ -94,7 +94,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                   Text(
                     'اولین رزرو خود را ثبت کنید',
                     style: TextStyle(
-                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                      color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
                   ),
                 ],
@@ -130,7 +130,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                                 vertical: 4,
                               ),
                               decoration: BoxDecoration(
-                                color: _getStatusColor(booking.status).withOpacity(0.1),
+                                color: _getStatusColor(booking.status).withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(12),
                               ),
                               child: Text(
@@ -171,7 +171,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                             Text(
                               'مبلغ:',
                               style: TextStyle(
-                                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                               ),
                             ),
                             Text(
@@ -190,7 +190,7 @@ class _BookingsScreenState extends State<BookingsScreen> {
                           Container(
                             padding: const EdgeInsets.all(12),
                             decoration: BoxDecoration(
-                              color: Theme.of(context).colorScheme.secondary.withOpacity(0.1),
+                              color: Theme.of(context).colorScheme.secondary.withValues(alpha: 0.1),
                               borderRadius: BorderRadius.circular(8),
                             ),
                             child: Row(

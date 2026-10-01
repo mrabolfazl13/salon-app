@@ -28,7 +28,7 @@ class _HomeScreenState extends State<HomeScreen> {
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
         selectedItemColor: Theme.of(context).colorScheme.primary,
-        unselectedItemColor: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+        unselectedItemColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.sports_soccer_outlined),

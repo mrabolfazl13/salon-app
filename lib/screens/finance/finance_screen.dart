@@ -47,7 +47,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
           // Summary cards
           Container(
             padding: const EdgeInsets.all(16),
-            color: Theme.of(context).colorScheme.primary.withOpacity(0.05),
+            color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.05),
             child: Row(
               children: [
                 Expanded(
@@ -135,7 +135,7 @@ class _FinanceScreenState extends State<FinanceScreen> {
               title,
               style: TextStyle(
                 fontSize: 12,
-                color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
               ),
             ),
             const SizedBox(height: 4),

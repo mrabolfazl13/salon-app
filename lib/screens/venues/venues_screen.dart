@@ -81,14 +81,14 @@ class _VenuesScreenState extends State<VenuesScreen> {
                   Container(
                     height: 180,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                      color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                       borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
                     ),
                     child: Center(
                       child: Icon(
                         Icons.sports_soccer,
                         size: 64,
-                        color: Theme.of(context).colorScheme.primary.withOpacity(0.5),
+                        color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.5),
                       ),
                     ),
                   ),
@@ -116,7 +116,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
                                   vertical: 4,
                                 ),
                                 decoration: BoxDecoration(
-                                  color: Colors.green.withOpacity(0.1),
+                                  color: Colors.green.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(12),
                                 ),
                                 child: Row(
@@ -149,14 +149,14 @@ class _VenuesScreenState extends State<VenuesScreen> {
                             Icon(
                               Icons.location_on_outlined,
                               size: 16,
-                              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                              color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                             ),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
                                 venue.address,
                                 style: TextStyle(
-                                  color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                  color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                 ),
                               ),
                             ),
@@ -175,7 +175,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
                                 vertical: 6,
                               ),
                               decoration: BoxDecoration(
-                                color: Theme.of(context).colorScheme.primary.withOpacity(0.1),
+                                color: Theme.of(context).colorScheme.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
                               child: Text(
@@ -201,7 +201,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
                                   'قیمت هر سانس',
                                   style: TextStyle(
                                     fontSize: 12,
-                                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                                    color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                                   ),
                                 ),
                                 Text(
