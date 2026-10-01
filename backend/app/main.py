@@ -17,7 +17,7 @@ from app.api.v1 import (
     auth_router, venues_router, slots_router,
     bookings_router, competitions_router, contracts_router, admin_router,
     upload_router, reviews_router, notifications_router, payments_router,
-    games_router, memberships_router, finance_router,
+    games_router, memberships_router, finance_router, finance_mvp_router,
     holidays_router, pricing_router, coupons_router,
     loyalty_router, favorites_router, deals_router,
     teams_router, staff_router, crm_router, quiz_router, waitlist_router, checkin_router,
@@ -189,6 +189,7 @@ app.include_router(payments_router, prefix="/api/v1")
 app.include_router(games_router, prefix="/api/v1")
 app.include_router(memberships_router, prefix="/api/v1")
 app.include_router(finance_router, prefix="/api/v1")
+app.include_router(finance_mvp_router, prefix="/api/v1")
 app.include_router(holidays_router, prefix="/api/v1")
 app.include_router(pricing_router, prefix="/api/v1")
 app.include_router(coupons_router, prefix="/api/v1")

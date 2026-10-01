@@ -22,6 +22,18 @@ import { parseList, toFullUrl } from '@/utils/venueMedia'
 import { formatPrice } from '@/lib/utils'
 import { toPersianDigits, formatJalaliDate } from '@/lib/jalali'
 import { gradients, radii, shadows } from '@/theme'
+import { HeroSection } from '@/components/home/HeroSection'
+import { WhyUsSection } from '@/components/home/WhyUsSection'
+import { TestimonialsSection } from '@/components/home/TestimonialsSection'
+import { FinalCTA } from '@/components/home/FinalCTA'
+import { GamificationSection } from '@/components/home/GamificationSection'
+import { LoyaltySection } from '@/components/home/LoyaltySection'
+import { FeaturesSection } from '@/components/home/FeaturesSection'
+import { HowItWorksSection } from '@/components/home/HowItWorksSection'
+import { StatsSection } from '@/components/home/StatsSection'
+import { FAQSection } from '@/components/home/FAQSection'
+import { AppDownloadSection } from '@/components/home/AppDownloadSection'
+import { SocialMediaSection } from '@/components/home/SocialMediaSection'
 
 // برچسب زمان باقی‌مانده برای بنر رقابت‌های داغ
 function remainingLabel(ms: number): string {
@@ -231,6 +243,9 @@ const Home: React.FC = () => {
   return (
     <Layout>
       <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
+        {/* Hero Section - بخش جذب کاربر */}
+        <HeroSection />
+
         {/* سلام + جستجو */}
         <MobileHeader />
         <Box sx={{ mb: 3 }}>
@@ -439,6 +454,27 @@ const Home: React.FC = () => {
             </Box>
           </Box>
         )}
+
+        {/* چرا ما؟ */}
+        <WhyUsSection />
+
+        {/* امکانات ویژه */}
+        <FeaturesSection />
+
+        {/* چطور کار می‌کنه؟ */}
+        <HowItWorksSection />
+
+        {/* آمار و ارقام */}
+        <StatsSection />
+
+        {/* سوالات متداول */}
+        <FAQSection />
+
+        {/* دانلود اپلیکیشن */}
+        <AppDownloadSection />
+
+        {/* شبکه‌های اجتماعی */}
+        <SocialMediaSection />
 
         {/* ورزش‌های محبوب */}
         <SectionHeader title="ورزش‌های محبوب" subtitle="زودتر برو سراغ بازی" />
@@ -678,6 +714,15 @@ const Home: React.FC = () => {
             ))}
           </Box>
         )}
+
+        {/* نظرات کاربران */}
+        <TestimonialsSection />
+
+        {/* چالش‌ها و جوایز */}
+        <GamificationSection />
+
+        {/* برنامه وفاداری */}
+        <LoyaltySection />
 
         {/* اخیراً دیده‌شده */}
         {recentVenues.length > 0 && (
@@ -957,6 +1002,9 @@ const Home: React.FC = () => {
             ))
           )}
         </Box>
+
+        {/* CTA نهایی */}
+        <FinalCTA />
       </Box>
     </Layout>
   )

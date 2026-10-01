@@ -820,6 +820,16 @@ const ManagerDashboard: React.FC = () => {
       href: '/manager/checkin',
       hint: 'ورود کاربران',
     },
+    {
+      label: 'مدیریت مالی',
+      value: 'درآمد/هزینه',
+      icon: 'mdi:finance',
+      gradient: 'linear-gradient(135deg, #059669, #10b981)',
+      lightBg: 'rgba(5,150,105,0.08)',
+      color: '#059669',
+      href: '/manager/finance',
+      hint: 'داشبورد مالی و تراکنش‌ها',
+    },
   ]
 
   const getVenueName = (venueId: number) => {

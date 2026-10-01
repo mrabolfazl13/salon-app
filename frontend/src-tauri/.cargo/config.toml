@@ -1,0 +1,5 @@
+[target.'cfg(target_os = "android")']
+rustflags = ["-C", "opt-level=0"]
+
+[build]
+jobs = 1

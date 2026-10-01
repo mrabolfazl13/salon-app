@@ -12,6 +12,7 @@ from .payments import router as payments_router
 from .games import router as games_router
 from .memberships import router as memberships_router
 from .finance import router as finance_router
+from .finance_mvp import router as finance_mvp_router
 from .holidays import router as holidays_router
 from .pricing import router as pricing_router
 from .coupons import router as coupons_router
@@ -40,6 +41,7 @@ __all__ = [
     "games_router",
     "memberships_router",
     "finance_router",
+    "finance_mvp_router",
     "holidays_router",
     "pricing_router",
     "coupons_router",
