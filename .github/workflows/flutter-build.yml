@@ -1,0 +1,105 @@
+name: Flutter Build APK
+
+on:
+  push:
+    branches: [ master, main ]
+    paths:
+      - 'pubspec.yaml'
+      - 'lib/**'
+      - 'android/**'
+      - '.github/workflows/flutter-build.yml'
+  pull_request:
+    branches: [ master, main ]
+    paths:
+      - 'pubspec.yaml'
+      - 'lib/**'
+      - 'android/**'
+  workflow_dispatch:
+    inputs:
+      build_type:
+        description: 'Build type'
+        required: true
+        default: 'release'
+        type: choice
+        options:
+          - release
+          - debug
+
+jobs:
+  build-apk:
+    name: Build Flutter Android APK
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+          
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+          cache: true
+          
+      - name: Flutter version
+        run: flutter --version
+        
+      - name: Install dependencies
+        run: flutter pub get
+        
+      - name: Analyze project
+        run: flutter analyze
+        
+      - name: Run tests
+        run: flutter test
+        
+      - name: Build APK (Release)
+        run: flutter build apk --release
+        
+      - name: Build APK (Split per ABI)
+        run: flutter build apk --split-per-abi
+        
+      - name: Upload universal APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: futsal-booking-universal.apk
+          path: build/app/outputs/flutter-apk/app-release.apk
+          retention-days: 30
+          
+      - name: Upload arm64 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: futsal-booking-arm64.apk
+          path: build/app/outputs/flutter-apk/app-arm64-v8a-release.apk
+          retention-days: 30
+          
+      - name: Upload arm APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: futsal-booking-arm.apk
+          path: build/app/outputs/flutter-apk/app-armeabi-v7a-release.apk
+          retention-days: 30
+          
+      - name: Upload x86_64 APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: futsal-booking-x86_64.apk
+          path: build/app/outputs/flutter-apk/app-x86_64-release.apk
+          retention-days: 30
+          
+      - name: Generate build summary
+        run: |
+          echo "## Build Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Flutter Version:** $(flutter --version | head -1)" >> $GITHUB_STEP_SUMMARY
+          echo "**Dart Version:** $(dart --version)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### APK Files Generated:" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          ls -lh build/app/outputs/flutter-apk/*.apk | awk '{printf "- **%s**: %s\n", $9, $5}' >> $GITHUB_STEP_SUMMARY
