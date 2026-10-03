@@ -1,6 +1,7 @@
 # Android Build Recovery State
 
-Status: RELEASE-PUBLISHED (CI builds/verifies/uploads green; `v1.0.0` live with five assets)
+Status: RELEASE-PUBLISHED (five CI-built binaries downloadable); the rewritten publish step
+still needs one green tag run
 
 ## Current stage
 
@@ -19,9 +20,12 @@ every step green, including the ones that failed in the previous 13 runs:
 | Verify artifacts | success |
 | Upload artifacts | success (`android-release-1ce87b5…`, 127,828,905 bytes) |
 
-Then the Release itself was found to be empty (Experiment #13) and fixed in `30937ce`;
-runs **37158884915** (master) and **37158902775** (tag `v1.0.0`) are in flight to prove the
-fix publishes five real assets.
+Then the Release itself was found to be empty (Experiment #13), and the publish step has
+since failed twice in two different ways (Experiments #15 and #16). Run **37160567708**
+(`master` @ `d1f160f`) is green through build → verify → upload
+(`android-release-d1f160f…`, 127,828,882 bytes); the paired tag run **37160580288** died at
+step 16 with only `Process completed with exit code 1` readable, which is why the publish
+step no longer relies on calls whose failure it cannot observe.
 
 ## Toolchain (verified on this machine)
 
@@ -40,8 +44,9 @@ fix publishes five real assets.
 
 ## Current failing stage
 
-None locally. Locally the release APK is produced and verified. CI has not been
-re-run since the AGP/Kotlin/AndroidX fixes landed.
+None locally: the release APKs, the per-ABI APKs and the AAB are all built and verified on
+this machine, and `master` runs the workflow green up to and including the artifact upload.
+The only red step in CI is `Publish GitHub Release` on a tag run.
 
 ## Root cause (final)
 
@@ -91,7 +96,7 @@ Four independent blockers, each of which alone failed the build:
   conclusions are the readable channel from this machine (log bodies 302 to a blocked host).
 - GitHub Release `v1.0.0` (id 402715649) is published with all five binaries attached:
   universal 67,305,502 B, arm64-v8a 24,787,212 B, armeabi-v7a 20,700,356 B,
-  x86_64 27,442,278 B, `app-release.aab` 60,030,083 B, all `state=uploaded` under
+  x86_64 27,442,278 B, `app-release.aab` 60,030,088 B, all `state=uploaded` under
   `https://github.com/mrabolfazl13/salon-app/releases/download/v1.0.0/…`.
   It had been built by CI but left as a **draft** by the tag deletion; see Experiment #15.
 - `flutter analyze` → `No issues found! (ran in 1202.3s)`.
@@ -121,24 +126,26 @@ Four independent blockers, each of which alone failed the build:
 | 14 | Verify each per-ABI APK and the AAB, not just the universal one | APPLIED |
 | 15 | Master CI run 37157491455 after all fixes | **SUCCESS** — all build, verify and upload steps green |
 | 16 | Tag run 37158902775 publish step | FALSE SUCCESS — five assets uploaded onto a draft release, so `/releases` stayed empty |
-| 17 | Draft-aware publish branch + `draft=false` gate | APPLIED — release `v1.0.0` now published with five downloadable assets |
+| 17 | Draft-aware publish branch + `draft=false` gate | APPLIED — release `v1.0.0` published with five downloadable assets |
+| 18 | Re-run on tag `v1.0.0` @ `d1f160f` (run 37160580288) | FAILED at step 16 — `gh release edit --draft=false` aborted the step and the reason was unreadable from this machine (Experiment #16) |
+| 19 | Publish = delete + single `gh release create`, every `gh` call wrapped so it self-reports | APPLIED — not yet executed in CI |
 
 ## Current strategy
 
-The pipeline is green end to end and the release is public. Remaining work is proof of
-reproducibility: push the publish-step fix to `master` and re-trigger the tag workflow on
-`v1.0.0` (`POST /actions/workflows/{file}/dispatches` with `ref=v1.0.0`, which keeps
-`github.ref` a tag ref and therefore still runs the publish step). That rebuilds every
-binary from a clean runner and takes the "published release already exists" branch, so the
-release must end the run published with five fresh assets. A red run files its own
-`ci-build-failure` issue carrying the log tails, and the verify/publish steps emit
-`::notice::` annotations, which is how CI evidence is read from this machine.
+The build pipeline is green and reproducible; the publish step is the only unproven link.
+Its shape is now the smallest observable one: delete any release that exists for the tag,
+create a fresh published release with all five binaries in a single `gh release create`,
+then read `gh api repos/…/releases/tags/<tag>` back and exit non-zero unless
+`draft=false` **and** at least five assets are attached. Every `gh` call goes through a
+wrapper that turns a failure into an `::error::` annotation plus a `/tmp/publish.log` tail
+in the `ci-build-failure` issue — the only channels readable from this machine, since
+Actions log bodies 302 to a host that refuses connections here.
 
 ## Remaining blockers
 
-- None for producing the artifacts. The publish step's new draft gate has not yet been
-  exercised by a real CI run (only by a stubbed-`gh` dry run covering all four release
-  states).
+- None for producing the artifacts. The delete-and-recreate publish step has been exercised
+  offline against a stubbed `gh` (draft+5, published+5, no release, draft-stuck, delete
+  refused) but has not yet run in CI.
 - No Play-store-grade upload keystore exists; release artifacts are debug-signed until
   `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` secrets are added.
 - Launcher label is still the template `futsal_booking_flutter` rather than the Persian
@@ -146,6 +153,7 @@ release must end the run published with five fresh assets. A red run files its o
 
 ## Next action
 
-Push `master`, dispatch the workflow on `v1.0.0`, then confirm from the check-run
-annotations and `GET /releases/tags/v1.0.0` that the run rebuilt, re-published and left
-five assets attached.
+Commit and push `master`, move `v1.0.0` onto that commit, and let the tag run rebuild every
+binary from a clean runner. Then confirm from the check-run annotations and
+`GET /releases/tags/v1.0.0` that the run reports `published v1.0.0 with 5 assets` and that
+the release is publicly listed with five downloadable assets.

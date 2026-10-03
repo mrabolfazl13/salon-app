@@ -172,33 +172,45 @@ jobs:
           # Deleting a tag demotes its release to a draft: `gh release view <tag>` still
           # finds it, but the Releases page and `releases/tags/<tag>` go blank, so a draft
           # has to be recreated rather than edited.
-          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            if [ "$(gh release view "$GITHUB_REF_NAME" --json draft -q .draft)" = "true" ]; then
-              echo "::notice::draft release for $GITHUB_REF_NAME found -> deleting (tag kept) and recreating"
-              gh release delete "$GITHUB_REF_NAME" --yes
-              gh release create "$GITHUB_REF_NAME" --verify-tag \
-                --title "Salon Futsal Android $GITHUB_REF_NAME" --notes "$NOTES" $FILES
+          # ghx: `set -e` would otherwise leave a failed `gh` call with its reason only in the
+          # log body, so the command and its output are also published as an annotation.
+          ghx() {
+            if out=$("$@" 2>&1); then
+              printf '%s\n' "$out" | tee -a /tmp/publish.log
             else
-              echo "Release $GITHUB_REF_NAME exists and is published -> replacing its assets"
-              gh release upload "$GITHUB_REF_NAME" $FILES --clobber
-              gh release edit "$GITHUB_REF_NAME" --draft=false \
-                --title "Salon Futsal Android $GITHUB_REF_NAME" --notes "$NOTES"
+              printf '%s\n' "$out" | tee -a /tmp/publish.log >&2
+              printf '::error::`%s` failed: %s\n' "$*" "$(printf '%s' "$out" | head -c 500)" >&2
+              return 1
             fi
-          else
-            gh release create "$GITHUB_REF_NAME" --verify-tag \
-              --title "Salon Futsal Android $GITHUB_REF_NAME" --notes "$NOTES" $FILES
+          }
+          TAG="$GITHUB_REF_NAME"
+          # Whether the previous release was published or demoted to a draft by a deleted tag,
+          # deleting it and creating a fresh one leaves exactly this run's five binaries attached
+          # and a published release, in one create call. `gh release delete` without
+          # `--cleanup-tag` keeps the tag itself.
+          if gh release view "$TAG" >/dev/null 2>&1; then
+            echo "::notice::release for $TAG already exists -> deleting it (tag kept) before recreating"
+            ghx gh release delete "$TAG" --yes
           fi
-          ASSETS=$(gh release view "$GITHUB_REF_NAME" --json assets -q '.assets | length')
-          DRAFT=$(gh release view "$GITHUB_REF_NAME" --json draft -q .draft)
-          echo "Release $GITHUB_REF_NAME: draft=$DRAFT assets=$ASSETS."
+          ghx gh release create "$TAG" --verify-tag \
+            --title "Salon Futsal Android $TAG" --notes "$NOTES" $FILES
+          # Read through raw REST so the gate checks what an anonymous visitor sees.
+          STATE=$(ghx gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+            --jq '"\(.draft) \(.assets | length)"')
+          DRAFT=${STATE% *}
+          ASSETS=${STATE#* }
+          echo "Release $TAG: draft=$DRAFT assets=$ASSETS"
+          case "$ASSETS" in ''|*[!0-9]*)
+            echo "::error::could not read the asset count of release $TAG (got '$ASSETS')"; exit 1;;
+          esac
           if [ "$DRAFT" != "false" ]; then
-            echo "::error::release $GITHUB_REF_NAME is still a draft (draft=$DRAFT) - nothing is downloadable"
+            echo "::error::release $TAG is not published (draft=$DRAFT) - nothing is downloadable"
             exit 1
           fi
           if [ "$ASSETS" -lt 5 ]; then echo "::error::expected 5 release assets, got $ASSETS"; exit 1; fi
-          gh release view "$GITHUB_REF_NAME" --json assets \
-            -q '.assets[] | "  \(.name)  \(.size) bytes  \(.state)  \(.browser_download_url)"'
-          echo "::notice::published $GITHUB_REF_NAME with $ASSETS assets ($(gh release view "$GITHUB_REF_NAME" --json html_url -q .html_url))"
+          ghx gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+            --jq '.assets[] | "\(.name)  \(.size) bytes  \(.state)  \(.browser_download_url)"'
+          echo "::notice::published $TAG with $ASSETS assets (draft=$DRAFT)"
 
       - name: Report failure to an issue
         if: failure()
@@ -207,7 +219,7 @@ jobs:
         run: |
           {
             echo "## Failing step logs (run ${{ github.run_id }}, attempt ${{ github.run_attempt }})"
-            for f in /tmp/analyze.log /tmp/test.log /tmp/apk-universal.log /tmp/apk-split.log /tmp/aab.log; do
+            for f in /tmp/analyze.log /tmp/test.log /tmp/apk-universal.log /tmp/apk-split.log /tmp/aab.log /tmp/publish.log; do
               if [ -s "$f" ]; then
                 echo ""
                 echo "### $f"

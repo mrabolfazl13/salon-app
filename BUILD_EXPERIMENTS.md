@@ -211,6 +211,29 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
   `draft false`, asset URLs now `/releases/download/v1.0.0/…`), and a fresh workflow run
   must reproduce the same state from scratch.
 
+## Experiment #16 — the publish step failed and the reason was unreadable
+
+- Hypothesis: run 37160580288 (tag `v1.0.0` @ `d1f160f`, the draft-aware version) failed at
+  `Publish GitHub Release` with exit 1 and no `::error::` annotation, so `set -e` aborted on a
+  `gh` call whose message only lives in the unreachable log body.
+- Evidence: the release on GitHub is exactly right afterwards — `draft=false`, five assets,
+  and the AAB is `60,030,088` bytes, matching *this* run's `Verify artifacts` notice (the
+  parallel master run produced `60,030,077`). So the branch check and `gh release upload
+  --clobber` succeeded and the abort came after them: `gh release edit --draft=false` or one of
+  the `gh release view --json` gate calls. The REST equivalents were then probed directly —
+  `PATCH /releases/402715649` with `{"draft":false}`, with `name`+`body`+`draft`, and with
+  `tag_name` added all returned `200` — so GitHub was not rejecting anything; the failing piece
+  was the `gh release edit` invocation itself, and its reason is not observable from here.
+- Conclusion: **do not keep a call whose failure cannot be observed.** The step no longer uses
+  `gh release edit` or `upload --clobber`: it deletes any existing release for the tag and
+  creates a fresh published one in a single `gh release create`, then reads the state back with
+  `gh api repos/…/releases/tags/<tag>` (raw REST, the same view an anonymous visitor gets).
+  Every `gh` call now runs through a wrapper that prints the failing command line and its
+  output as an `::error::` annotation *and* appends to `/tmp/publish.log`, which the
+  `ci-build-failure` issue now includes, so a repeat failure names itself.
+- Result: **APPLIED** — verified against all four release states with a stubbed `gh`
+  (draft+5, published+5, none, delete-refuses), including the two that must exit 1.
+
 ## Local-only environment fixes (not experiments)
 
 - `build-tools 36.0.0` installed from

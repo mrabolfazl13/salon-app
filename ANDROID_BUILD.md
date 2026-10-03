@@ -109,19 +109,19 @@ touching `pubspec.yaml`, `lib/**`, `android/**`, and manually. The job:
    `base/manifest/AndroidManifest.xml` and `base/dex/classes.dex`
 8. `actions/upload-artifact` → `android-release-${{ github.sha }}` with the five deterministic paths
 9. on a `v*` tag: publish the GitHub Release with **all five binaries attached**. The step
-   refuses to run if any file is missing or empty, and after publishing it re-reads the
-   release and fails unless it reports `draft=false` **and** at least five assets — an
-   earlier green run published a zero-asset release because `gh release create` takes the
-   binaries as positional arguments and they had been left off. Existing releases are
-   handled per state: a *published* release is re-uploaded with `--clobber` plus
-   `gh release edit --draft=false`; a *draft* is deleted (`gh release delete --yes`, which
-   keeps the tag) and recreated, because deleting a tag demotes its release to a draft and
-   a draft is invisible to `GET /releases`, `/releases/latest` and `/releases/tags/<tag>` —
-   its assets exist and download fine while the Releases page shows nothing
-10. on failure: a `ci-build-failure` issue containing the tail of each build log, plus the raw
-    logs as an artifact — this is the only way to read CI diagnostics from a machine that
-    cannot fetch Actions run logs (`GET /actions/runs/{id}/jobs` still gives per-step
-    conclusions, which is what localises a failure to a step)
+   refuses to run if any file is missing or empty, deletes any release that already exists
+   for the tag (`gh release delete --yes` keeps the tag itself) and creates a fresh published
+   release in one `gh release create` call, so the release always carries exactly this run's
+   five binaries. It then reads the release back through raw REST
+   (`gh api repos/…/releases/tags/<tag>`) and fails unless `draft=false` **and** there are at
+   least five assets. Two false successes this gate replaced: a green run that published a
+   zero-asset release, and a green run whose `gh release edit --draft=false` left a
+   tag-deletion *draft* in place — drafts are hidden from `GET /releases`, `/releases/latest`
+   and `/releases/tags/<tag>`, so the binaries were attached while the Releases page showed
+   nothing. Every `gh` call in the step reports its own failure as an `::error::` annotation
+10. on failure: a `ci-build-failure` issue containing the tail of each build log (including
+    `/tmp/publish.log`), plus the raw logs as an artifact — `GET /actions/runs/{id}/jobs` gives
+    per-step conclusions, which is what localises a failure to a step
 
 ## Signing
 
@@ -182,3 +182,13 @@ AGP 8 has no built-in Kotlin compiler, so `org.jetbrains.kotlin.android` is appl
   filter was dropped rather than made smarter.
 - Split-per-ABI APKs get `1000 * abi` added to `versionCode` by Flutter (documented in
   `android/app/build.gradle.kts`); the universal APK keeps `versionCode` from `pubspec.yaml`.
+- Launcher label is still the template `futsal_booking_flutter` instead of the Persian app name.
+- Do not delete a `v*` tag that has a published Release: GitHub demotes that release to a
+  **draft**, and drafts are hidden from `GET /releases` and `/releases/tags/<tag>`, so the
+  Releases page looks empty even though the assets are attached. The publish step deletes and
+  recreates the release on every tag run, which repairs that state, but the page stays empty
+  until such a run completes.
+- Actions log *bodies* are unreachable from this development machine (they 302 to an Azure blob
+  host that refuses connections), so CI evidence is limited to per-step conclusions, check-run
+  annotations, and the `ci-build-failure` issue a red run files. The verify and publish steps
+  therefore print their measurements as `::notice::` annotations.
