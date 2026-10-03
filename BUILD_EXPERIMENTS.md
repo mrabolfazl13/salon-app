@@ -184,6 +184,33 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
   and all three ABIs present as 18 `.so` entries inside the AAB.
 - Result: **APPLIED**
 
+## Experiment #15 — a "published" Release that nobody could reach
+
+- Hypothesis: run 37158902775 (tag `v1.0.0` @ `30937ce`) was fully green including
+  `Publish GitHub Release`, yet `GET /releases` returned `[]` and `releases/tags/v1.0.0`
+  404'd — either the step lied again, or the release existed in a state the REST list
+  endpoints hide.
+- Evidence: the authenticated listing showed release `402715649` with **all five assets
+  already uploaded** (`app-release.apk` 67,305,502 B, arm64 24,787,212 B, armeabi 20,700,356 B,
+  x86_64 27,442,278 B, `app-release.aab` 60,030,083 B) but `draft: true` and
+  `html_url = .../releases/tag/untagged-4ba722adaa25a95eff13`. The `DeleteEvent` at
+  22:34:18 is the tag removal that demoted the release published at 22:26:31; drafts are
+  invisible to anonymous `GET /releases`, to `releases/latest` and to `releases/tags/<tag>`.
+  The rerun then took the "release exists" branch: `gh release upload --clobber` re-attached
+  the binaries and `gh release edit --title/--notes` **left `draft` untouched**, so the
+  assets were correct while the release stayed unpublished.
+- Conclusion: **FALSE SUCCESS (green + unreachable artifacts)**. Two independent gates were
+  missing — nothing asserted `draft == false`, and nothing asserted the tag association.
+  Fix: the publish step now reads `--json draft` before deciding, deletes-and-recreates when
+  it finds a draft (`gh release delete --yes` keeps the tag), passes `--draft=false`
+  explicitly on the edit path, and fails the run unless
+  `draft=false` **and** `assets >= 5`. `Verify artifacts` additionally emits a `::notice::`
+  with the five file sizes and the signer DN, because check-run annotations are readable
+  while Actions log bodies are not.
+- Result: **APPLIED** — the existing release was republished (`tag_name v1.0.0`,
+  `draft false`, asset URLs now `/releases/download/v1.0.0/…`), and a fresh workflow run
+  must reproduce the same state from scratch.
+
 ## Local-only environment fixes (not experiments)
 
 - `build-tools 36.0.0` installed from
@@ -191,8 +218,9 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
   into `G:\SDK\build-tools\36.0.0` (Google's SDK repository is `404`-blocked here).
   The archive's root folder is historically named `android-16`; its
   `source.properties` says `Pkg.Revision=36.0.0`.
-- Gradle memory caps for this 8 GB host now live in `~/.gradle/gradle.properties`
-  (see Experiment #08). Without them the Kotlin daemon dies mid-build and Gradle falls
+- Gradle memory caps for this 8 GB host live in `$GRADLE_USER_HOME/gradle.properties`,
+  which on this machine is `G:\gradle-home\gradle.properties`. Without them the Kotlin
+  daemon dies mid-build and Gradle falls
   back to in-process compilation (`e: Daemon compilation failed: null`); the build still
   finishes, but that noise hides real errors. Never commit those caps.
 - Gradle wrapper switched to `gradle-9.3.1-all.zip`, the version Flutter 3.47.2 itself

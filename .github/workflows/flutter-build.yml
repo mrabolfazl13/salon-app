@@ -106,7 +106,7 @@ jobs:
           "$BT/aapt2" dump badging "$DIR/app-release.apk" | grep -E "^package|^native-code" | tee /tmp/badging.txt
           grep -q "name='com.salon.futsal.futsal_booking_flutter'" /tmp/badging.txt
           grep -q "arm64-v8a" /tmp/badging.txt
-          "$BT/apksigner" verify --print-certs "$DIR/app-release.apk"
+          "$BT/apksigner" verify --print-certs "$DIR/app-release.apk" | tee /tmp/signer.txt
           # Each split APK must carry exactly one ABI and its own ABI-offset versionCode,
           # otherwise the per-ABI artifacts would be mislabelled copies of the universal one.
           for abi in arm64-v8a armeabi-v7a x86_64; do
@@ -120,6 +120,10 @@ jobs:
           test -s "$AAB"
           unzip -l "$AAB" | grep -E "base/manifest/AndroidManifest.xml|base/dex/classes.dex"
           ls -l "$DIR"/ "$AAB"
+          # Actions log bodies are not reachable from every environment, but check-run
+          # annotations are, so the verification evidence is published as one.
+          SIGNER=$(grep -o 'Signer #1 certificate DN:.*' /tmp/signer.txt || echo 'signer unknown')
+          echo "::notice::verified universal $(stat -c %s "$DIR/app-release.apk")B + arm64 $(stat -c %s "$DIR/app-arm64-v8a-release.apk")B + armv7 $(stat -c %s "$DIR/app-armeabi-v7a-release.apk")B + x86_64 $(stat -c %s "$DIR/app-x86_64-release.apk")B + aab $(stat -c %s "$AAB")B, $SIGNER"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -165,18 +169,36 @@ jobs:
           Built by \`.github/workflows/flutter-build.yml\` on commit \`${{ github.sha }}\`."
           # Re-runs must not die on "release already exists", and an existing release with
           # zero assets is exactly the false success this step is meant to prevent.
+          # Deleting a tag demotes its release to a draft: `gh release view <tag>` still
+          # finds it, but the Releases page and `releases/tags/<tag>` go blank, so a draft
+          # has to be recreated rather than edited.
           if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
-            echo "Release $GITHUB_REF_NAME exists -> (re)uploading assets"
-            gh release upload "$GITHUB_REF_NAME" $FILES --clobber
-            gh release edit "$GITHUB_REF_NAME" --title "Salon Futsal Android $GITHUB_REF_NAME" --notes "$NOTES"
+            if [ "$(gh release view "$GITHUB_REF_NAME" --json draft -q .draft)" = "true" ]; then
+              echo "::notice::draft release for $GITHUB_REF_NAME found -> deleting (tag kept) and recreating"
+              gh release delete "$GITHUB_REF_NAME" --yes
+              gh release create "$GITHUB_REF_NAME" --verify-tag \
+                --title "Salon Futsal Android $GITHUB_REF_NAME" --notes "$NOTES" $FILES
+            else
+              echo "Release $GITHUB_REF_NAME exists and is published -> replacing its assets"
+              gh release upload "$GITHUB_REF_NAME" $FILES --clobber
+              gh release edit "$GITHUB_REF_NAME" --draft=false \
+                --title "Salon Futsal Android $GITHUB_REF_NAME" --notes "$NOTES"
+            fi
           else
             gh release create "$GITHUB_REF_NAME" --verify-tag \
               --title "Salon Futsal Android $GITHUB_REF_NAME" --notes "$NOTES" $FILES
           fi
           ASSETS=$(gh release view "$GITHUB_REF_NAME" --json assets -q '.assets | length')
-          echo "Release $GITHUB_REF_NAME published with $ASSETS assets."
+          DRAFT=$(gh release view "$GITHUB_REF_NAME" --json draft -q .draft)
+          echo "Release $GITHUB_REF_NAME: draft=$DRAFT assets=$ASSETS."
+          if [ "$DRAFT" != "false" ]; then
+            echo "::error::release $GITHUB_REF_NAME is still a draft (draft=$DRAFT) - nothing is downloadable"
+            exit 1
+          fi
           if [ "$ASSETS" -lt 5 ]; then echo "::error::expected 5 release assets, got $ASSETS"; exit 1; fi
-          gh release view "$GITHUB_REF_NAME" --json assets -q '.assets[] | "  \(.name)  \(.size/1048576|floor) MiB  \(.browser_download_url)"'
+          gh release view "$GITHUB_REF_NAME" --json assets \
+            -q '.assets[] | "  \(.name)  \(.size) bytes  \(.state)  \(.browser_download_url)"'
+          echo "::notice::published $GITHUB_REF_NAME with $ASSETS assets ($(gh release view "$GITHUB_REF_NAME" --json html_url -q .html_url))"
 
       - name: Report failure to an issue
         if: failure()

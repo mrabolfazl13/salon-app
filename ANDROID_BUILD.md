@@ -110,10 +110,14 @@ touching `pubspec.yaml`, `lib/**`, `android/**`, and manually. The job:
 8. `actions/upload-artifact` → `android-release-${{ github.sha }}` with the five deterministic paths
 9. on a `v*` tag: publish the GitHub Release with **all five binaries attached**. The step
    refuses to run if any file is missing or empty, and after publishing it re-reads the
-   release and fails if it carries fewer than five assets — an earlier green run published a
-   zero-asset release because `gh release create` takes the binaries as positional arguments
-   and they had been left off. If the release already exists (a re-run), the assets are
-   uploaded with `--clobber` instead of the step dying on "already exists"
+   release and fails unless it reports `draft=false` **and** at least five assets — an
+   earlier green run published a zero-asset release because `gh release create` takes the
+   binaries as positional arguments and they had been left off. Existing releases are
+   handled per state: a *published* release is re-uploaded with `--clobber` plus
+   `gh release edit --draft=false`; a *draft* is deleted (`gh release delete --yes`, which
+   keeps the tag) and recreated, because deleting a tag demotes its release to a draft and
+   a draft is invisible to `GET /releases`, `/releases/latest` and `/releases/tags/<tag>` —
+   its assets exist and download fine while the Releases page shows nothing
 10. on failure: a `ci-build-failure` issue containing the tail of each build log, plus the raw
     logs as an artifact — this is the only way to read CI diagnostics from a machine that
     cannot fetch Actions run logs (`GET /actions/runs/{id}/jobs` still gives per-step

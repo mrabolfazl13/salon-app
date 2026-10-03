@@ -1,11 +1,11 @@
 # Android Build Recovery State
 
-Status: RELEASE-PUBLICATION-VERIFYING (master CI green; tag run republishing assets)
+Status: RELEASE-PUBLISHED (CI builds/verifies/uploads green; `v1.0.0` live with five assets)
 
 ## Current stage
 
-`.github/workflows/flutter-build.yml` builds, verifies and uploads the Android release
-artifacts on `master`. Run **37157491455** on commit `1ce87b5` completed **success** —
+`.github/workflows/flutter-build.yml` builds, verifies, uploads and **publishes** the
+Android release artifacts. Run **37157491455** on commit `1ce87b5` completed **success** —
 every step green, including the ones that failed in the previous 13 runs:
 
 | Step | Outcome |
@@ -85,8 +85,15 @@ Four independent blockers, each of which alone failed the build:
 - AAB built locally: `build/app/outputs/bundle/release/app-release.aab`, 60,073,220 bytes;
   contains `base/manifest/AndroidManifest.xml`, `base/dex/classes.dex`, 18 `.so` across all
   three ABIs, and `BUNDLE-METADATA` — i.e. a real bundle, not an intermediate artifact.
-- CI: run 37157491455 green with the artifact upload above; `GET /actions/runs/{id}/jobs`
-  step conclusions are the readable channel from this machine (log bodies are not).
+- CI: run 37157491455 (master) and 37158902775 (tag `v1.0.0` @ `30937ce`) both fully green —
+  SDK install, analyze, test, three builds, verify, upload, publish. The tag run's artifact
+  `android-release-30937ce…` is 127,828,910 bytes. `GET /actions/runs/{id}/jobs` step
+  conclusions are the readable channel from this machine (log bodies 302 to a blocked host).
+- GitHub Release `v1.0.0` (id 402715649) is published with all five binaries attached:
+  universal 67,305,502 B, arm64-v8a 24,787,212 B, armeabi-v7a 20,700,356 B,
+  x86_64 27,442,278 B, `app-release.aab` 60,030,083 B, all `state=uploaded` under
+  `https://github.com/mrabolfazl13/salon-app/releases/download/v1.0.0/…`.
+  It had been built by CI but left as a **draft** by the tag deletion; see Experiment #15.
 - `flutter analyze` → `No issues found! (ran in 1202.3s)`.
 - `flutter test` → `All tests passed!` (after the SharedPreferences stub fix).
 - Mirror availability probed with HTTP status: AGP 8.12.0 plugin marker and
@@ -113,26 +120,32 @@ Four independent blockers, each of which alone failed the build:
 | 13 | Publish release with the artifact paths as positional args | APPLIED — first green run published a zero-asset release |
 | 14 | Verify each per-ABI APK and the AAB, not just the universal one | APPLIED |
 | 15 | Master CI run 37157491455 after all fixes | **SUCCESS** — all build, verify and upload steps green |
+| 16 | Tag run 37158902775 publish step | FALSE SUCCESS — five assets uploaded onto a draft release, so `/releases` stayed empty |
+| 17 | Draft-aware publish branch + `draft=false` gate | APPLIED — release `v1.0.0` now published with five downloadable assets |
 
 ## Current strategy
 
-Push `master`, tag `v1.0.0`, then read the outcome through the commit check runs. A
-red run files its own `ci-build-failure` issue carrying the log tails, which is the
-only way to see CI diagnostics from this machine. Locally the split-per-ABI APKs and
-the AAB are building right now with the committed configuration, so a CI-only failure
-can be told apart from a real configuration failure.
+The pipeline is green end to end and the release is public. Remaining work is proof of
+reproducibility: push the publish-step fix to `master` and re-trigger the tag workflow on
+`v1.0.0` (`POST /actions/workflows/{file}/dispatches` with `ref=v1.0.0`, which keeps
+`github.ref` a tag ref and therefore still runs the publish step). That rebuilds every
+binary from a clean runner and takes the "published release already exists" branch, so the
+release must end the run published with five fresh assets. A red run files its own
+`ci-build-failure` issue carrying the log tails, and the verify/publish steps emit
+`::notice::` annotations, which is how CI evidence is read from this machine.
 
 ## Remaining blockers
 
-- CI run for the new workflow not yet observed (13 previous runs all failed before
-  these fixes landed).
+- None for producing the artifacts. The publish step's new draft gate has not yet been
+  exercised by a real CI run (only by a stubbed-`gh` dry run covering all four release
+  states).
 - No Play-store-grade upload keystore exists; release artifacts are debug-signed until
   `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` secrets are added.
-- AAB has never been built (CI step is new, local build in flight).
 - Launcher label is still the template `futsal_booking_flutter` rather than the Persian
   app name — product polish, deliberately out of build scope.
 
 ## Next action
 
-Push `master` + tag `v1.0.0`, poll `GET /repos/mrabolfazl13/salon-app/commits/{sha}/check-runs`,
-and iterate on any CI-only failure until the artifact upload and verification steps are green.
+Push `master`, dispatch the workflow on `v1.0.0`, then confirm from the check-run
+annotations and `GET /releases/tags/v1.0.0` that the run rebuilt, re-published and left
+five assets attached.
