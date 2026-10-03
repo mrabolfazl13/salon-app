@@ -46,3 +46,12 @@ app.*.map.json
 
 # Widget Preview related
 .widget_preview/
+
+# Gradle build state (never commit)
+/.gradle/
+
+# Machine-specific SDK paths
+/local.properties
+
+# Kotlin incremental build state (never commit)
+/.kotlin/
