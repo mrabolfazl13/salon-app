@@ -49,19 +49,22 @@ Requires `android/local.properties` with `flutter.sdk=<path>` (created automatic
 27.0.12077973.
 
 `android/gradle.properties` keeps Flutter's own template daemon settings (`-Xmx8G`). A machine
-with less RAM must not change that file — Gradle reads `GRADLE_USER_HOME/gradle.properties` before
-the project's, so the caps belong there instead:
+with less RAM must not change that file — Gradle reads `$GRADLE_USER_HOME/gradle.properties`
+before the project's for build-environment properties, so the caps belong there instead. Check
+where that actually is first (`echo $GRADLE_USER_HOME`; on this machine it is `G:\gradle-home`,
+*not* `C:\Users\<user>\.gradle`, and writing the caps to the latter does nothing):
 
 ```properties
-# ~/.gradle/gradle.properties (this machine only)
+# $GRADLE_USER_HOME/gradle.properties  (this machine only)
 org.gradle.jvmargs=-Xmx3g -XX:MaxMetaspaceSize=768m -XX:+UseG1GC -Dfile.encoding=UTF-8
 org.gradle.workers.max=2
 kotlin.daemon.jvmargs=-Xmx1g
 ```
 
-With the template's 8 GB heap and unlimited workers, the Kotlin daemon dies mid-build and Gradle
-falls back to in-process compilation (`e: Daemon compilation failed: null`); the build still
-finishes, but the noise hides real errors.
+With the template's 8 GB heap and unlimited workers, the JVM is killed on an 8 GB host and the
+build dies with `Gradle build daemon disappeared unexpectedly` plus an `hs_err_pid*.log` in
+`android/`. The daemon's own log line prints `daemonOpts=... -Xmx8G ...` and
+`daemonRegistryDir=...` — read it instead of guessing which properties file won.
 
 ### Network-restricted machines (Iran)
 
@@ -99,13 +102,22 @@ touching `pubspec.yaml`, `lib/**`, `android/**`, and manually. The job:
 4. optional release signing from secrets (see below)
 5. `flutter analyze`, `flutter test`
 6. universal APK, split-per-ABI APKs, AAB
-7. artifact verification with `aapt2 dump badging` (package id) and `apksigner verify --print-certs`
-   (signer), and a directory listing proving every uploaded path exists
+7. artifact verification with `aapt2 dump badging` and `apksigner` — the universal APK must
+   report the expected package id and all three ABIs; each per-ABI APK must declare
+   *exactly one* `native-code:` entry matching its filename and its own ABI-offset
+   `versionCode` (2001 arm64, 1001 armeabi, 4001 x86_64); the AAB must contain
+   `base/manifest/AndroidManifest.xml` and `base/dex/classes.dex`
 8. `actions/upload-artifact` → `android-release-${{ github.sha }}` with the five deterministic paths
-9. on a `v*` tag: `gh release create` publishing all APKs + the AAB to the GitHub Release
-10. on failure: a `ci-build-failure` issue containing the tail of each build log, plus the raw logs
-    as an artifact — this is the only way to read CI diagnostics from a machine that cannot fetch
-    Actions run logs
+9. on a `v*` tag: publish the GitHub Release with **all five binaries attached**. The step
+   refuses to run if any file is missing or empty, and after publishing it re-reads the
+   release and fails if it carries fewer than five assets — an earlier green run published a
+   zero-asset release because `gh release create` takes the binaries as positional arguments
+   and they had been left off. If the release already exists (a re-run), the assets are
+   uploaded with `--clobber` instead of the step dying on "already exists"
+10. on failure: a `ci-build-failure` issue containing the tail of each build log, plus the raw
+    logs as an artifact — this is the only way to read CI diagnostics from a machine that
+    cannot fetch Actions run logs (`GET /actions/runs/{id}/jobs` still gives per-step
+    conclusions, which is what localises a failure to a step)
 
 ## Signing
 

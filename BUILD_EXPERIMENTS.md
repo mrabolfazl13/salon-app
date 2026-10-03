@@ -129,6 +129,61 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
   main manifest.
 - Result: **APPLIED** — no behavioural change today, no reliance on transitive manifests.
 
+## Experiment #12 — machine-local caps in `C:\Users\Alex\.gradle` (Experiment #08 was premature)
+
+- Context: Experiment #08 moved the 8 GB host's memory caps out of
+  `android/gradle.properties` into `~/.gradle/gradle.properties` and reported SUCCESS
+  because a *previously started* build had finished. Re-running the release build with the
+  restored template settings disproved it.
+- Symptom: `Gradle build daemon disappeared unexpectedly (it may have been killed or may
+  have crashed)`, plus `hs_err_pid13896.log` written into `android/`.
+- Evidence: the daemon log line printed its effective options —
+  `daemonOpts=..., -Xmx8G, ...` with `daemonRegistryDir=G:\gradle-home\daemon`. So
+  `GRADLE_USER_HOME` on this machine is **`G:\gradle-home`**, not `C:\Users\Alex\.gradle`,
+  and the caps had been written to a file Gradle never reads. The 8 GB heap the repo now
+  asks for does not fit this host, so the JVM crashed.
+- Change: wrote the caps to `G:\gradle-home\gradle.properties`, deleted the misplaced file,
+  `gradlew --stop` to drop the crashed daemon.
+- Result: **SUCCESS** — `assembleRelease` with `--split-per-abi` produced
+  arm64-v8a/armeabi-v7a/x86_64 APKs (exit 0) and `bundleRelease` produced
+  `app-release.aab` (60,073,220 bytes), still with the repo asking for `-Xmx8G`.
+- Lesson: read the daemon's own `daemonOpts`/`daemonRegistryDir` instead of assuming which
+  properties file won; and never mark an experiment successful on the strength of a build
+  that started before the change.
+
+## Experiment #13 — CI green but the Release had zero assets
+
+- Symptom: run 37158077671 succeeded end to end, `Publish GitHub Release` completed, and
+  `GET /releases/latest` returned `tag_name=v1.0.0, draft=false, assets=0`.
+- Root cause: `gh release create` was invoked with `--title/--notes` only — the artifact
+  paths are *positional arguments*, and omitting them publishes an empty release. Nothing
+  in the job asserted the assets existed, so this is the brief's "workflow green but
+  artifact missing" false success.
+- Change: the step now (a) requires each of the five files to exist and be non-empty before
+  publishing, (b) passes them to `gh release create`, (c) re-reads the release afterwards
+  and fails if it carries fewer than five assets, and (d) is idempotent — if the release
+  already exists it uploads with `--clobber` instead of dying on "already exists", so a
+  re-run repairs rather than blocks.
+- Local proof: `bash -n` on every `run:` block, then a dry run of the real publish script
+  against the locally built artifacts with a stubbed `gh`, which logged
+  `release create v1.0.0 ... app-release.apk app-arm64-v8a-release.apk
+  app-armeabi-v7a-release.apk app-x86_64-release.apk app-release.aab`.
+- Result: **APPLIED** — awaiting the re-tagged run to confirm five live assets.
+
+## Experiment #14 — verifying only the universal APK was not enough
+
+- Hypothesis: `Verify artifacts` inspecting just `app-release.apk` could pass while a
+  per-ABI APK was a mislabelled copy of the universal build (upload would then ship four
+  near-identical files and nobody would notice).
+- Change: the step now dumps badging for each split APK and asserts it declares exactly one
+  `native-code:` entry matching its filename, plus the ABI-offset `versionCode` Flutter
+  applies (2001 arm64, 1001 armeabi, 4001 x86_64), and verifies the AAB really contains
+  `base/manifest/AndroidManifest.xml` and `base/dex/classes.dex`.
+- Evidence from the local build: exactly those values — `native-code: 'arm64-v8a'` alone in
+  the arm64 APK, versionCodes 2001/1001/4001, `versionName 1.0.0`, `targetSdkVersion 36`,
+  and all three ABIs present as 18 `.so` entries inside the AAB.
+- Result: **APPLIED**
+
 ## Local-only environment fixes (not experiments)
 
 - `build-tools 36.0.0` installed from

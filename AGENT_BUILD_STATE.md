@@ -1,10 +1,27 @@
 # Android Build Recovery State
 
-Status: CI-VALIDATION-RUNNING (local release APK verified; CI run pending)
+Status: RELEASE-PUBLICATION-VERIFYING (master CI green; tag run republishing assets)
 
 ## Current stage
 
-GitHub Actions must build and publish the Android release artifacts.
+`.github/workflows/flutter-build.yml` builds, verifies and uploads the Android release
+artifacts on `master`. Run **37157491455** on commit `1ce87b5` completed **success** —
+every step green, including the ones that failed in the previous 13 runs:
+
+| Step | Outcome |
+| --- | --- |
+| Install Android SDK components | success |
+| Analyze project | success |
+| Run tests | success |
+| Build universal release APK | success |
+| Build per-ABI release APKs | success |
+| Build release AAB | success |
+| Verify artifacts | success |
+| Upload artifacts | success (`android-release-1ce87b5…`, 127,828,905 bytes) |
+
+Then the Release itself was found to be empty (Experiment #13) and fixed in `30937ce`;
+runs **37158884915** (master) and **37158902775** (tag `v1.0.0`) are in flight to prove the
+fix publishes five real assets.
 
 ## Toolchain (verified on this machine)
 
@@ -61,6 +78,15 @@ Four independent blockers, each of which alone failed the build:
   `compileSdkVersion='36'`, `targetSdkVersion:'36'`, `native-code: 'arm64-v8a' 'armeabi-v7a' 'x86_64'`.
 - `apksigner verify --print-certs` → exit 0, signer `CN=Android Debug`
   (release variant signed with the debug keystore — see Known limitations).
+- Per-ABI APKs built locally and verified: arm64-v8a 24,787,404 B `versionCode 2001`,
+  armeabi-v7a 20,716,932 B `versionCode 1001`, x86_64 27,458,854 B `versionCode 4001`; each
+  declares exactly one `native-code:` ABI, `versionName 1.0.0`, `targetSdk 36`, and all three
+  verify with `apksigner`.
+- AAB built locally: `build/app/outputs/bundle/release/app-release.aab`, 60,073,220 bytes;
+  contains `base/manifest/AndroidManifest.xml`, `base/dex/classes.dex`, 18 `.so` across all
+  three ABIs, and `BUNDLE-METADATA` — i.e. a real bundle, not an intermediate artifact.
+- CI: run 37157491455 green with the artifact upload above; `GET /actions/runs/{id}/jobs`
+  step conclusions are the readable channel from this machine (log bodies are not).
 - `flutter analyze` → `No issues found! (ran in 1202.3s)`.
 - `flutter test` → `All tests passed!` (after the SharedPreferences stub fix).
 - Mirror availability probed with HTTP status: AGP 8.12.0 plugin marker and
@@ -79,10 +105,14 @@ Four independent blockers, each of which alone failed the build:
 | 5 | `useAndroidX=true`, keep `flutter_local_notifications` | FAILED — plugin Java does not compile on API 35+ |
 | 6 | Drop unused `flutter_local_notifications` | SUCCESS (universal release APK verified) |
 | 7 | Untrack `.gradle`/`.dart_tool`, ignore tool state | SUCCESS |
-| 8 | Move 8 GB host's Gradle memory caps out of the repo | SUCCESS — template `org.gradle.jvmargs` committed, caps live in `~/.gradle/gradle.properties` |
-| 9 | Install platform 36 / build-tools 36.0.0 / NDK 27.0.12077973 in CI | APPLIED — makes CI match the pinned `ndkVersion`/`compileSdk` instead of hoping the runner has them |
+| 8 | Move 8 GB host's Gradle memory caps out of the repo | FAILED first (caps written to `C:\Users\Alex\.gradle`, which Gradle ignores — `GRADLE_USER_HOME` is `G:\gradle-home`), then fixed; daemon `-Xmx8G` crashed with `hs_err_pid*.log` |
+| 9 | Install platform 36 / build-tools 36.0.0 / NDK 27.0.12077973 in CI | SUCCESS — CI step green |
 | 10 | Stub SharedPreferences in the widget test | SUCCESS — `flutter test` green |
 | 11 | Declare `INTERNET` in the main manifest | APPLIED — was only inherited from a library |
+| 12 | Write caps to the real `GRADLE_USER_HOME` | SUCCESS — split APKs + AAB built locally with the committed `-Xmx8G` repo setting |
+| 13 | Publish release with the artifact paths as positional args | APPLIED — first green run published a zero-asset release |
+| 14 | Verify each per-ABI APK and the AAB, not just the universal one | APPLIED |
+| 15 | Master CI run 37157491455 after all fixes | **SUCCESS** — all build, verify and upload steps green |
 
 ## Current strategy
 
