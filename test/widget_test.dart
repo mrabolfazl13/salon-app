@@ -7,13 +7,19 @@
 
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'package:futsal_booking_flutter/main.dart';
 
 void main() {
   testWidgets('App loads successfully', (WidgetTester tester) async {
+    // The providers read the auth token and theme mode from SharedPreferences in
+    // their constructors; without a backing store that throws MissingPluginException.
+    SharedPreferences.setMockInitialValues(<String, Object>{});
+
     // Build our app and trigger a frame.
     await tester.pumpWidget(const FutsalBookingApp());
+    await tester.pump(const Duration(milliseconds: 100));
 
     // Verify that the app loads without crashing.
     expect(find.byType(MaterialApp), findsOneWidget);
