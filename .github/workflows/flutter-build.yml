@@ -102,11 +102,24 @@ jobs:
         run: |
           set -e
           BT="$ANDROID_HOME/build-tools/$(ls "$ANDROID_HOME/build-tools" | sort -V | tail -1)"
-          APK=build/app/outputs/flutter-apk/app-release.apk
-          "$BT/aapt2" dump badging "$APK" | grep -E "^package|^native-code" | tee /tmp/badging.txt
-          grep -q "com.salon.futsal.futsal_booking_flutter" /tmp/badging.txt
-          "$BT/apksigner" verify --print-certs "$APK"
-          ls -l build/app/outputs/flutter-apk/ build/app/outputs/bundle/release/
+          DIR=build/app/outputs/flutter-apk
+          "$BT/aapt2" dump badging "$DIR/app-release.apk" | grep -E "^package|^native-code" | tee /tmp/badging.txt
+          grep -q "name='com.salon.futsal.futsal_booking_flutter'" /tmp/badging.txt
+          grep -q "arm64-v8a" /tmp/badging.txt
+          "$BT/apksigner" verify --print-certs "$DIR/app-release.apk"
+          # Each split APK must carry exactly one ABI and its own ABI-offset versionCode,
+          # otherwise the per-ABI artifacts would be mislabelled copies of the universal one.
+          for abi in arm64-v8a armeabi-v7a x86_64; do
+            "$BT/aapt2" dump badging "$DIR/app-$abi-release.apk" > "/tmp/badging-$abi.txt"
+            grep -q "^native-code: '$abi'\$" "/tmp/badging-$abi.txt"
+            test "$(grep -c "^native-code:" "/tmp/badging-$abi.txt")" -eq 1
+            grep -q "versionName='1.0.0'" "/tmp/badging-$abi.txt"
+            "$BT/apksigner" verify "$DIR/app-$abi-release.apk"
+          done
+          AAB=build/app/outputs/bundle/release/app-release.aab
+          test -s "$AAB"
+          unzip -l "$AAB" | grep -E "base/manifest/AndroidManifest.xml|base/dex/classes.dex"
+          ls -l "$DIR"/ "$AAB"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -125,10 +138,19 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          gh release create "$GITHUB_REF_NAME" \
-            --verify-tag \
-            --title "Salon Futsal Android $GITHUB_REF_NAME" \
-            --notes "$(cat <<'EOF'
+          set -e
+          APK_DIR=build/app/outputs/flutter-apk
+          FILES="
+          $APK_DIR/app-release.apk
+          $APK_DIR/app-arm64-v8a-release.apk
+          $APK_DIR/app-armeabi-v7a-release.apk
+          $APK_DIR/app-x86_64-release.apk
+          build/app/outputs/bundle/release/app-release.aab"
+          # A green run with an empty Release is a false success, so fail loudly instead.
+          for f in $FILES; do
+            if [ ! -s "$f" ]; then echo "::error::missing artifact to publish: $f"; exit 1; fi
+          done
+          NOTES="$(cat <<'EOF'
           Android build of the Flutter app (release variant).
 
           - `app-release.apk` — universal (arm64-v8a, armeabi-v7a, x86_64)
@@ -136,10 +158,25 @@ jobs:
           - `app-armeabi-v7a-release.apk` — older 32-bit phones
           - `app-x86_64-release.apk` — emulators
           - `app-release.aab` — Play Store upload format
-
-          Built by `.github/workflows/flutter-build.yml` on commit `${{ github.sha }}`.
           EOF
           )"
+          NOTES="$NOTES
+
+          Built by \`.github/workflows/flutter-build.yml\` on commit \`${{ github.sha }}\`."
+          # Re-runs must not die on "release already exists", and an existing release with
+          # zero assets is exactly the false success this step is meant to prevent.
+          if gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1; then
+            echo "Release $GITHUB_REF_NAME exists -> (re)uploading assets"
+            gh release upload "$GITHUB_REF_NAME" $FILES --clobber
+            gh release edit "$GITHUB_REF_NAME" --title "Salon Futsal Android $GITHUB_REF_NAME" --notes "$NOTES"
+          else
+            gh release create "$GITHUB_REF_NAME" --verify-tag \
+              --title "Salon Futsal Android $GITHUB_REF_NAME" --notes "$NOTES" $FILES
+          fi
+          ASSETS=$(gh release view "$GITHUB_REF_NAME" --json assets -q '.assets | length')
+          echo "Release $GITHUB_REF_NAME published with $ASSETS assets."
+          if [ "$ASSETS" -lt 5 ]; then echo "::error::expected 5 release assets, got $ASSETS"; exit 1; fi
+          gh release view "$GITHUB_REF_NAME" --json assets -q '.assets[] | "  \(.name)  \(.size/1048576|floor) MiB  \(.browser_download_url)"'
 
       - name: Report failure to an issue
         if: failure()
