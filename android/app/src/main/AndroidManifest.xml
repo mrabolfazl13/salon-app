@@ -1,4 +1,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- The app talks to the booking API; the permission must be declared here because the
+         release variant has no debug/profile manifest to contribute it. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
     <application
         android:label="futsal_booking_flutter"
         android:name="${applicationName}"
