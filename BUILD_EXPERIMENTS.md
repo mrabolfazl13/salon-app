@@ -310,12 +310,34 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
   unsigned device bundle. A debug artifact published as a release binary is precisely the false
   success this pipeline was rebuilt to prevent, so the simulator step was dropped; the release
   carries the arm64 device `Runner.app` (unsigned, needs an Apple Developer certificate).
+- **Blocker 5 — the iOS verify step read a directory Flutter no longer writes.** Run
+  **37178477369** built the app fine (`✓ Built build/ios/iphoneos/Runner.app (37.2MB)`) and then
+  failed with `ls: build/ios/iphone/Runner.app: No such file or directory`. The path came from the
+  pre-3.10 Flutter layout; `flutter build ios` has written to `build/ios/iphoneos/` (and Xcode's
+  `build/ios/Release-iphoneos/`) since. The build log proved the artifact existed, so the fix was
+  the two paths in the verify and package steps, not the build.
+- **Blocker 6 — the desktop verifies grepped for a cargo line that no longer exists.** Both
+  Windows and Linux reached `Verify artifacts` after producing every bundle
+  (`Finished 2 bundles at: …/deb/Salon_1.1.0_amd64.deb, …/appimage/Salon_1.1.0_amd64.AppImage`),
+  and both died on `grep -q "Finished .*release. in"`. Current cargo prints
+  ``Finished `release` profile [optimized] target(s) in 10m 21s``: the pattern demanded the word
+  `release` be followed by exactly one character and then `" in"`, which the backticked profile
+  name and the `[optimized] target(s)` prefix never satisfy. The assertion was rewritten as
+  `grep -qE "Finished .*release.* in"`, which still rejects the debug profile line
+  (``Finished `dev` profile …``).
 - Observability gap found on the way: a failing `pnpm install` produced no annotation at all,
   because the failure-report step only tailed the Tauri log that never got written. The install step
   now tees into a log, the report step tails both, and every build job uploads its step logs as an
   artifact on failure — artifacts *are* reachable through the REST API from this machine even though
-  Actions log bodies are not.
-- Result: **PENDING** — the next run must show all four platform jobs green and a 10-asset release.
+  Actions log bodies are not. The same run made the second half of the gap visible: an assertion can
+  fail correctly and still be undiagnosable, so each verify step now prints the value it measured
+  and names the check that rejected it.
+- Result: **CONFIRMED** by run **37179422867** (`433bf92`, push to `master`) — all four platform
+  jobs green, with the verify annotations reporting measurements rather than silence: Android
+  universal 67,305,502 B + arm64 24,787,212 B + armv7 20,700,356 B + x86_64 27,442,278 B +
+  AAB 60,030,080 B signed `C=US, O=Android, CN=Android Debug`; Windows NSIS 4,962,369 B + MSI;
+  Linux deb 8,167,084 B + AppImage 83,401,208 B; iOS `com.salon.futsal.futsalBookingFlutter`
+  v1.0.0, arm64 Mach-O, 36,556 KB packaged as a 14,026,978 B zip.
 
 ## Local-only environment fixes (not experiments)
 

@@ -443,21 +443,22 @@ jobs:
         run: |
           set -e
           DIR=release-files
-          # 5 Android + 2 Windows + 2 Linux + 1 iOS: a green run that published a subset is a
-          # false success, so each platform group is asserted separately.
+          fail() { echo "::error::$1"; exit 1; }
+          # Each artifact zip keeps the uploader's directory layout (flutter-apk/, deb/, …), so
+          # every search below is recursive. All ten names are distinct, so nothing can collide
+          # when they are gathered into one list.
           for f in app-release.apk app-arm64-v8a-release.apk app-armeabi-v7a-release.apk \
                    app-x86_64-release.apk app-release.aab; do
-            if [ ! -s "$DIR/$f" ]; then echo "::error::missing android binary: $f"; exit 1; fi
+            [ -n "$(find "$DIR" -type f -name "$f" -size +1M)" ] || fail "missing android binary: $f"
           done
           for pattern in '*-setup.exe' '*.msi' '*.deb' '*.AppImage' \
                          '*ios-device-unsigned.app.zip'; do
-            if [ -z "$(find "$DIR" -maxdepth 1 -name "$pattern" -size +1M)" ]; then
-              echo "::error::no binary matching $pattern"; exit 1
-            fi
+            [ -n "$(find "$DIR" -type f -name "$pattern" -size +1M)" ] || fail "no binary matching $pattern"
           done
-          FILES=$(find "$DIR" -maxdepth 1 -type f | sort)
+          FILES=$(find "$DIR" -type f -size +1M | sort)
           COUNT=$(printf '%s\n' "$FILES" | wc -l)
           echo "Files to publish ($COUNT):"; printf '%s\n' "$FILES"
+          [ "$COUNT" -eq 10 ] || fail "expected exactly 10 binaries to publish, found $COUNT"
           NOTES="$(cat <<'EOF'
           Release build of the Salon app for every platform, produced by GitHub Actions.
 

@@ -1,9 +1,28 @@
 # Android Build Recovery State
 
-Status: COMPLETE — CI builds, verifies, uploads and publishes `v1.0.0`; all five release
-binaries are publicly downloadable from the GitHub Release
+Status: COMPLETE for Android; IN PROGRESS for the four-platform release — the Windows, Linux and
+iOS jobs are green on `433bf92` and the next action is to cut `v1.0.0` there so one run publishes
+all ten binaries.
 
 ## Current stage
+
+Run **37179422867** (`433bf92`, push to `master`) is the first fully green four-platform run:
+
+| Job | Runner | Verify annotation |
+| --- | --- | --- |
+| `build-apk` | ubuntu-24.04 | `verified universal 67305502B + arm64 24787212B + armv7 20700356B + x86_64 27442278B + aab 60030080B, C=US, O=Android, CN=Android Debug` |
+| `build-windows` | windows-latest | `verified nsis 4962369B + msi …B` |
+| `build-linux` | ubuntu-24.04 | `verified deb 8167084B + appimage 83401208B` |
+| `build-ios` | macos-latest | `verified ios device com.salon.futsal.futsalBookingFlutter v1.0.0, arm64, 36556KB` + `packaged out/Salon-master-ios-device-unsigned.app.zip 14026978B` |
+| `release` | ubuntu-24.04 | `skipped` — correct on a push; only a `v*` tag publishes |
+
+The three blockers that had kept the desktop and iOS jobs red are recorded as Experiment #19: the
+committed lockfile did not match `package.json`, every dependency tarball in it pointed at a local
+Iranian npm mirror, `flutter build ios --release --simulator` is refused by Flutter, the iOS verify
+read `build/ios/iphone/` instead of `build/ios/iphoneos/`, and the desktop verifies grepped for a
+cargo line whose wording has since changed.
+
+### Android publish history
 
 `.github/workflows/flutter-build.yml` builds, verifies, uploads and **publishes** the Android
 release artifacts. Run **37164317457** (tag `v1.0.0` @ `9f41144`) completed **success** with
@@ -134,21 +153,34 @@ Four independent blockers, each of which alone failed the build:
 | 20 | Anonymous read-back of the published release (`GET /releases`, `HEAD` on each asset URL) | SUCCESS — one release listed, 4 APKs at `application/vnd.android.package-archive` with the exact byte counts, AAB 60,030,090 |
 | 21 | `apksigner` output reached the annotation through a `tee` pipe, so its exit status was discarded and a missing certificate printed `signer unknown` | **CONFIRMED FIXED** — redirect + `grep -q "certificate DN:"`; run 37164317457 names `C=US, O=Android, CN=Android Debug` |
 
+| 22 | Four-platform release: Windows/Linux (Tauri) + iOS (Flutter) jobs | **CONFIRMED** on push run 37179422867 — all four build jobs green with measured verify annotations |
+| 23 | `release-files/` is nested (`flutter-apk/`, `nsis/`, `deb/`, …), not flat, so the publish step's `-maxdepth 1`/`-s $DIR/file` assertions could never match the desktop binaries | APPLIED — every search is now recursive and the step asserts exactly 10 binaries before calling `gh`; dry-run over the real layout passes 8 scenarios |
+
 ## Current strategy
 
-The pipeline is green end to end and the release is public and downloadable. Two properties
-keep it that way, and both are asserted inside CI rather than assumed: `Verify artifacts` fails
-unless the package id, the ABI set, the per-ABI `versionCode` offsets, the AAB layout and the
-signing certificate are all present; `Publish GitHub Release` fails unless the release reads
-back over raw REST as `draft=false` with at least five assets. Every `gh` call goes through a
-wrapper that turns a failure into an `::error::` annotation plus a `/tmp/publish.log` tail in
-the `ci-build-failure` issue — the only channels readable from this machine, since Actions log
-bodies 302 to a host that refuses connections here. Any step whose assertion travels through a
-pipe is treated as unasserted, because `tee` discards the exit status it was meant to gate on.
+One workflow, five jobs: `build-apk`, `build-windows`, `build-linux`, `build-ios` all run on every
+push and every `v*` tag, and `release` (which needs all four) publishes only on a tag. A push is
+therefore a full build validation with publish skipped, and a tag is the same four builds plus the
+release.
+
+Nothing is trusted from a bundler's exit code. Each job's `Verify artifacts` step measures the
+built files — `aapt2`/`apksigner` for Android, file size plus `dpkg-deb -f` for the desktop formats,
+`plutil` + `file` + `lipo -archs` for the iOS bundle — and re-reads cargo's release-profile line so
+a debug bundle cannot pass a filename check. Every assertion prints the value it measured, because
+a step that exits 1 silently is not diagnosable from this machine, where Actions log bodies are
+unreachable but artifacts and annotations are.
+
+`Publish GitHub Release` deletes and recreates the release in one `gh release create --verify-tag`,
+insists on exactly ten binaries across the four platform groups before uploading, then reads the
+release back through raw REST and fails unless `draft=false` with at least ten assets. Any step
+whose assertion travels through a pipe runs under `set -o pipefail`, since `cmd | tee log` exits
+with *tee's* status.
 
 ## Remaining blockers
 
-- None for producing or publishing the artifacts.
+- None for producing or publishing the artifacts on Android, Windows or Linux.
+- The iOS device bundle is unsigned: publishing it installable needs an Apple Developer
+  certificate and profile, which is a signing decision rather than a build failure.
 - No Play-store-grade upload keystore exists; release artifacts are debug-signed until
   `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` secrets are added.
 - Launcher label is still the template `futsal_booking_flutter` rather than the Persian
@@ -156,9 +188,8 @@ pipe is treated as unasserted, because `tee` discards the exit status it was mea
 
 ## Next action
 
-Nothing is pending for the build itself: `v1.0.0` is published with five CI-built,
-CI-verified binaries that download anonymously. To release a new version, change
-`version:` in `pubspec.yaml`, commit, tag `vX.Y.Z` and push the tag — the workflow rebuilds
-all five artifacts and republishes the release in one run. Adding the four keystore secrets
-switches those same artifacts from debug signing to distributable signing without touching
-the pipeline.
+`v1.0.0` is currently published with the five Android binaries only. Tag `433bf92` (the commit
+whose four build jobs are green) and push the tag: that run rebuilds every platform and publishes
+the release with all ten binaries. If it goes red, the `::error::` annotations and the
+`ci-failure-logs-<platform>-<run>-<attempt>` artifacts identify the step and its log, and the fix
+is one change at a time.

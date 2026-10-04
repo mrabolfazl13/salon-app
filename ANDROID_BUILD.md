@@ -101,8 +101,8 @@ touching `pubspec.yaml`, `lib/**`, `android/**`, and manually. It is five jobs:
 | `build-apk` | `ubuntu-24.04` | universal + 3 per-ABI APKs + AAB | `android-release-<sha>` |
 | `build-windows` | `windows-latest` | NSIS `-setup.exe` + `.msi` | `windows-release-<sha>` |
 | `build-linux` | `ubuntu-24.04` | `.deb` + `.AppImage` | `linux-release-<sha>` |
-| `build-ios` | `macos-latest` | device + simulator `Runner.app` zips | `ios-release-<sha>` |
-| `release` | `ubuntu-24.04` | the GitHub Release with all 11 binaries | — |
+| `build-ios` | `macos-latest` | unsigned device `Runner.app` zip | `ios-release-<sha>` |
+| `release` | `ubuntu-24.04` | the GitHub Release with all 10 binaries | — |
 
 `release` has `needs: [build-apk, build-windows, build-linux, build-ios]` and only runs on a
 `v*` tag, so a tag pushes exactly one release containing every platform's output.
@@ -144,32 +144,40 @@ The Linux job installs the WebKit/GTK development packages Tauri links against
 
 Verification is by the built files, not by the bundler's exit code: the NSIS/MSI/deb/AppImage
 outputs must exist and exceed 1 MB, `dpkg-deb -f` must read a `Package`/`Version` pair out of the
-`.deb`, and the build log must contain cargo's `Finished ...release... in` line — the bundler also
-runs against a debug profile, so a debug bundle would otherwise pass a filename check.
+`.deb`, and the build log must contain cargo's release-profile line, which current cargo writes as
+``Finished `release` profile [optimized] target(s) in 10m 21s`` — the bundler also runs against a
+debug profile, so a debug bundle would otherwise pass a filename check.
 
 ### iOS job (Flutter)
 
-`flutter build ios --release --no-codesign` and the same with `--simulator`. There is no Apple
-Developer certificate in this repository, so the device bundle is unsigned by design; the simulator
-bundle installs on any Mac with Xcode (`xcrun simctl install booted <path>/Runner.app`). `ios/Podfile`
-is not committed — Flutter generates it from its own template during `pod install`, which
-`flutter build ios` runs automatically.
+`flutter build ios --release --no-codesign` puts the bundle at
+`build/ios/iphoneos/Runner.app`. There is no Apple Developer certificate in this repository, so it
+is unsigned by design and has to be re-signed before it installs on a phone. `ios/Podfile` is not
+committed — Flutter generates it from its own template during `pod install`, which
+`flutter build ios` runs automatically. No simulator bundle is published: Flutter restricts
+simulator builds to debug mode (`BuildInfo.supportsSimulator` is `isEmulatorBuildMode`, true only
+for debug), so `flutter build ios --release --simulator` exits with *"Release mode is not supported
+for simulators."* and shipping the debug app instead would put a non-release binary in the release.
 
-Both `Runner.app` bundles are checked by reading their `Info.plist` with `plutil`
-(`CFBundleIdentifier` must be `com.salon.futsal.futsalBookingFlutter`, `CFBundleShortVersionString`
-must be the `pubspec.yaml` version), the device binary must be an arm64 Mach-O per `lipo -archs`
-— a simulator slice dropped in its place would match on name and size. Each bundle is zipped with
-its `Runner.app/` prefix intact and re-read with `unzip -l` before upload.
+The bundle is checked by reading its `Info.plist` with `plutil` (`CFBundleIdentifier` must be
+`com.salon.futsal.futsalBookingFlutter`, `CFBundleShortVersionString` must be the `pubspec.yaml`
+version) and the `Runner` binary must be an arm64 Mach-O per `file` and `lipo -archs`
+— a simulator slice dropped in its place would match on name and size. It is zipped with its
+`Runner.app/` prefix intact and re-read with `unzip -l` before upload.
 
 ### Publish gate
 
-The `release` job downloads every `*-release-*` artifact flat into `release-files/` and refuses to
-publish a subset: the five Android files by exact name, then one `find` per desktop/iOS pattern,
-then `gh release create` with `--verify-tag`. It deletes any release that already exists for the
-tag (`gh release delete --yes` keeps the tag itself) and creates a fresh published release in one
+The `release` job downloads every `*-release-*` artifact into `release-files/`. Each artifact keeps
+the uploader's directory layout — Android arrives as `flutter-apk/*.apk` and `bundle/release/*.aab`,
+Windows as `nsis/` + `msi/`, Linux as `deb/` + `appimage/` — so every search in the publish step is
+recursive, and all ten filenames are distinct so flattening them cannot collide. It refuses to
+publish a subset: the five Android files by name, then one `find` per desktop/iOS pattern, then an
+exact count of the binaries it is about to pass to `gh release create` (10), which runs with
+`--verify-tag`. It deletes any release that already exists for the tag (`gh release delete --yes`
+keeps the tag itself) and creates a fresh published release in one
 call, so the release always carries exactly this run's binaries. It then reads the release back
 through raw REST (`gh api repos/…/releases/tags/<tag>`) and fails unless `draft=false` **and**
-there are at least eleven assets. Two false successes this gate replaced: a green run that published
+there are at least ten assets. Two false successes this gate replaced: a green run that published
 a zero-asset release, and a green run whose `gh release edit --draft=false` left a tag-deletion
 *draft* in place — drafts are hidden from `GET /releases`, `/releases/latest` and
 `/releases/tags/<tag>`, so the binaries were attached while the Releases page showed nothing.
@@ -231,8 +239,9 @@ AGP 8 has no built-in Kotlin compiler, so `org.jetbrains.kotlin.android` is appl
 ## Known limitations
 
 - Release artifacts are debug-signed until the four keystore secrets exist.
-- The iOS device bundle is unsigned (no Apple Developer certificate in the repository); only the
-  simulator bundle runs as published.
+- The iOS device bundle is unsigned (no Apple Developer certificate in the repository), so it is a
+  build artifact for re-signing rather than something that installs on a phone as published. There
+  is no simulator artifact at all — release-mode simulator builds are refused by Flutter.
 - `frontend/` (Tauri, v1.1.0) and the Flutter app (`pubspec.yaml`, v1.0.0) carry independent
   version numbers, so a release's desktop filenames do not match its tag.
 - `flutter analyze`/`flutter test` are gate steps; a lint regression fails the build (by design).
