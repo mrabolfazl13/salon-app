@@ -217,13 +217,17 @@ jobs:
         run: |
           set -e
           BUNDLE=frontend/src-tauri/target/release/bundle
+          fail() { echo "::error::$1"; exit 1; }
           ls -l "$BUNDLE"/nsis "$BUNDLE"/msi
           EXE=$(find "$BUNDLE"/nsis -name '*-setup.exe' -size +1M | head -1)
           MSI=$(find "$BUNDLE"/msi -name '*.msi' -size +1M | head -1)
-          test -n "$EXE"
-          test -n "$MSI"
+          [ -n "$EXE" ] || fail "no >1M *-setup.exe under $BUNDLE/nsis"
+          [ -n "$MSI" ] || fail "no >1M *.msi under $BUNDLE/msi"
           # The bundler also runs on a debug profile, so prove this was the release build.
-          grep -q "Finished .*release. in" frontend/ci-logs/tauri-windows.log
+          # cargo writes "Finished \`release\` profile ... in", so the word is delimited
+          # by backticks rather than followed directly by "in".
+          grep -qE "Finished .*release.* in" frontend/ci-logs/tauri-windows.log \
+            || fail "no release-profile cargo line in tauri-windows.log"
           echo "::notice::verified nsis $(stat -c %s "$EXE")B + msi $(stat -c %s "$MSI")B"
 
       - name: Upload artifacts
@@ -291,14 +295,18 @@ jobs:
         run: |
           set -e
           BUNDLE=frontend/src-tauri/target/release/bundle
+          fail() { echo "::error::$1"; exit 1; }
           ls -l "$BUNDLE"/deb "$BUNDLE"/appimage
           DEB=$(find "$BUNDLE"/deb -name '*.deb' -size +1M | head -1)
           APP=$(find "$BUNDLE"/appimage -name '*.AppImage' -size +1M | head -1)
-          test -n "$DEB"
-          test -n "$APP"
+          [ -n "$DEB" ] || fail "no >1M *.deb under $BUNDLE/deb"
+          [ -n "$APP" ] || fail "no >1M *.AppImage under $BUNDLE/appimage"
           # A .deb with no control metadata is not installable even though the file exists.
-          dpkg-deb -f "$DEB" Package Version
-          grep -q "Finished .*release. in" /tmp/tauri-linux.log
+          dpkg-deb -f "$DEB" Package Version || fail "dpkg-deb cannot read $DEB"
+          # cargo writes "Finished \`release\` profile ... in", so the word is delimited by
+          # backticks rather than followed directly by "in".
+          grep -qE "Finished .*release.* in" /tmp/tauri-linux.log \
+            || fail "no release-profile cargo line in tauri-linux.log"
           echo "::notice::verified deb $(stat -c %s "$DEB")B + appimage $(stat -c %s "$APP")B"
 
       - name: Upload artifacts
@@ -355,7 +363,7 @@ jobs:
       - name: Verify artifacts
         run: |
           set -e
-          DEV=build/ios/iphone/Runner.app
+          DEV=build/ios/iphoneos/Runner.app
           {
             ls -l build/ios/ || true
             ls -l "$DEV" || true
@@ -384,7 +392,7 @@ jobs:
           ZIP=out/Salon-${NAME}-ios-device-unsigned.app.zip
           fail() { echo "::error::$1"; exit 1; }
           mkdir -p out
-          (cd build/ios/iphone && zip -qr "$GITHUB_WORKSPACE/$ZIP" Runner.app) || fail "zip of $ZIP failed"
+          (cd build/ios/iphoneos && zip -qr "$GITHUB_WORKSPACE/$ZIP" Runner.app) || fail "zip of $ZIP failed"
           unzip -l "$ZIP" > /tmp/ios-package.log 2>&1 || fail "$ZIP is not a readable zip"
           grep -q "Runner.app/Info.plist" /tmp/ios-package.log || fail "$ZIP has no Runner.app/Info.plist"
           grep -q "Runner.app/Runner$" /tmp/ios-package.log || fail "$ZIP has no Runner.app/Runner executable"
