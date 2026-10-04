@@ -201,16 +201,17 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend
-        # Logs live in the workspace, not /tmp: on a Windows runner upload-artifact cannot
-        # resolve a Git Bash /tmp path, so a failure log would be silently missing.
+        # Logs live in the workspace, not /tmp: upload-artifact cannot resolve a Git Bash /tmp
+        # path on a Windows runner, and it skips dot-directories unless asked not to, so a
+        # failure log would be silently missing.
         run: |
           set -o pipefail
-          mkdir -p .ci-logs
-          pnpm install --frozen-lockfile 2>&1 | tee .ci-logs/pnpm-install.log
+          mkdir -p ci-logs
+          pnpm install --frozen-lockfile 2>&1 | tee ci-logs/pnpm-install.log
 
       - name: Build installers
         working-directory: frontend
-        run: set -o pipefail; pnpm exec tauri build --bundles nsis,msi 2>&1 | tee .ci-logs/tauri-windows.log
+        run: set -o pipefail; pnpm exec tauri build --bundles nsis,msi 2>&1 | tee ci-logs/tauri-windows.log
 
       - name: Verify artifacts
         run: |
@@ -222,7 +223,7 @@ jobs:
           test -n "$EXE"
           test -n "$MSI"
           # The bundler also runs on a debug profile, so prove this was the release build.
-          grep -q "Finished .*release. in" frontend/.ci-logs/tauri-windows.log
+          grep -q "Finished .*release. in" frontend/ci-logs/tauri-windows.log
           echo "::notice::verified nsis $(stat -c %s "$EXE")B + msi $(stat -c %s "$MSI")B"
 
       - name: Upload artifacts
@@ -237,7 +238,7 @@ jobs:
       - name: Report failure reason
         if: failure()
         run: |
-          for f in frontend/.ci-logs/pnpm-install.log frontend/.ci-logs/tauri-windows.log; do
+          for f in frontend/ci-logs/pnpm-install.log frontend/ci-logs/tauri-windows.log; do
             if [ -s "$f" ]; then
               echo "::error::$(basename "$f") tail: $(tail -c 900 "$f" | tr '\r\n' '  ')"
             fi
@@ -248,7 +249,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ci-failure-logs-windows-${{ github.run_id }}-${{ github.run_attempt }}
-          path: frontend/.ci-logs/*.log
+          path: frontend/ci-logs/*.log
           retention-days: 7
 
   build-linux:
@@ -355,27 +356,40 @@ jobs:
         run: |
           set -e
           DEV=build/ios/iphone/Runner.app
-          test -s "$DEV/Info.plist"
-          plutil -extract CFBundleIdentifier raw -o - "$DEV/Info.plist" | grep -q "^com.salon.futsal.futsalBookingFlutter$"
-          plutil -extract CFBundleShortVersionString raw -o - "$DEV/Info.plist" | grep -q "^1.0.0$"
+          {
+            ls -l build/ios/ || true
+            ls -l "$DEV" || true
+            plutil -p "$DEV/Info.plist" || true
+            file "$DEV/Runner" || true
+            lipo -archs "$DEV/Runner" || true
+          } > /tmp/ios-verify.log 2>&1
+          fail() { echo "::error::$1"; exit 1; }
+          test -s "$DEV/Info.plist" || fail "no $DEV/Info.plist: $(ls build/ios 2>&1 | tr '\n' ' ')"
+          BID=$(plutil -extract CFBundleIdentifier raw -o - "$DEV/Info.plist")
+          VER=$(plutil -extract CFBundleShortVersionString raw -o - "$DEV/Info.plist")
+          KIND=$(file "$DEV/Runner")
+          ARCHS=$(lipo -archs "$DEV/Runner")
           # The bundle must be an arm64 Mach-O: a simulator slice in its place would
           # match on filename and size.
-          file "$DEV/Runner" | grep -q "Mach-O"
-          lipo -archs "$DEV/Runner" | grep -q "arm64"
-          ls -l "$DEV" | head -20
-          echo "::notice::verified ios device $(du -sk "$DEV" | cut -f1)KB"
+          [ "$BID" = "com.salon.futsal.futsalBookingFlutter" ] || fail "unexpected bundle id '$BID'"
+          [ "$VER" = "1.0.0" ] || fail "unexpected CFBundleShortVersionString '$VER'"
+          [[ "$KIND" == *Mach-O* ]] || fail "'$DEV/Runner' is not a Mach-O binary: $KIND"
+          [[ "$ARCHS" == *arm64* ]] || fail "'$DEV/Runner' has no arm64 slice: $ARCHS"
+          echo "::notice::verified ios device $BID v$VER, $ARCHS, $(du -sk "$DEV" | cut -f1)KB"
 
       - name: Package apps
         run: |
           set -e
           NAME="${GITHUB_REF_NAME#v}"
+          ZIP=out/Salon-${NAME}-ios-device-unsigned.app.zip
+          fail() { echo "::error::$1"; exit 1; }
           mkdir -p out
-          (cd build/ios/iphone && zip -qr "$GITHUB_WORKSPACE/out/Salon-${NAME}-ios-device-unsigned.app.zip" Runner.app)
+          (cd build/ios/iphone && zip -qr "$GITHUB_WORKSPACE/$ZIP" Runner.app) || fail "zip of $ZIP failed"
+          unzip -l "$ZIP" > /tmp/ios-package.log 2>&1 || fail "$ZIP is not a readable zip"
+          grep -q "Runner.app/Info.plist" /tmp/ios-package.log || fail "$ZIP has no Runner.app/Info.plist"
+          grep -q "Runner.app/Runner$" /tmp/ios-package.log || fail "$ZIP has no Runner.app/Runner executable"
           ls -l out/
-          for z in out/*.zip; do
-            unzip -l "$z" | grep -q "Runner.app/Info.plist"
-            unzip -l "$z" | grep -q "Runner.app/Runner$"
-          done
+          echo "::notice::packaged $ZIP $(stat -f %z "$ZIP" 2>/dev/null || stat -c %s "$ZIP")B"
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -387,9 +401,11 @@ jobs:
       - name: Report failure reason
         if: failure()
         run: |
-          if [ -s /tmp/ios-device.log ]; then
-            echo "::error::ios-device.log tail: $(tail -c 900 /tmp/ios-device.log | tr '\n' ' ')"
-          fi
+          for f in /tmp/ios-device.log /tmp/ios-verify.log /tmp/ios-package.log; do
+            if [ -s "$f" ]; then
+              echo "::error::$(basename "$f") tail: $(tail -c 900 "$f" | tr '\n' ' ')"
+            fi
+          done
 
       - name: Upload failure logs
         if: failure()
