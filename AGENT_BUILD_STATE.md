@@ -1,20 +1,18 @@
 # Android Build Recovery State
 
-Status: COMPLETE for Android; IN PROGRESS for the four-platform release — the Windows, Linux and
-iOS jobs are green on `433bf92` and the next action is to cut `v1.0.0` there so one run publishes
-all ten binaries.
+Status: COMPLETE. Tag run **37191904535** (`c0e75bb`) built all four platforms, verified every
+binary and published `v1.0.0` with **ten** downloadable assets (`draft=false`), each confirmed by an
+anonymous `HEAD 200`.
 
 ## Current stage
 
-Run **37179422867** (`433bf92`, push to `master`) is the first fully green four-platform run:
-
 | Job | Runner | Verify annotation |
 | --- | --- | --- |
-| `build-apk` | ubuntu-24.04 | `verified universal 67305502B + arm64 24787212B + armv7 20700356B + x86_64 27442278B + aab 60030080B, C=US, O=Android, CN=Android Debug` |
-| `build-windows` | windows-latest | `verified nsis 4962369B + msi …B` |
-| `build-linux` | ubuntu-24.04 | `verified deb 8167084B + appimage 83401208B` |
-| `build-ios` | macos-latest | `verified ios device com.salon.futsal.futsalBookingFlutter v1.0.0, arm64, 36556KB` + `packaged out/Salon-master-ios-device-unsigned.app.zip 14026978B` |
-| `release` | ubuntu-24.04 | `skipped` — correct on a push; only a `v*` tag publishes |
+| `build-apk` | ubuntu-24.04 | `verified universal 67305502B + arm64 24787212B + armv7 20700356B + x86_64 27442278B + aab 60030081B, C=US, O=Android, CN=Android Debug` |
+| `build-windows` | windows-latest | `verified nsis 4960779B + msi 6656000B` |
+| `build-linux` | ubuntu-24.04 | `verified deb 8167076B + appimage 83401208B` |
+| `build-ios` | macos-latest | `verified ios device com.salon.futsal.futsalBookingFlutter v1.0.0, arm64, 36556KB` + `packaged out/Salon-1.0.0-ios-device-unsigned.app.zip 14026982B` |
+| `release` | ubuntu-24.04 | `release for v1.0.0 exists (id=402746338) -> deleting it (tag kept) before recreating` + `published v1.0.0 with 10 assets (draft=false)` |
 
 The three blockers that had kept the desktop and iOS jobs red are recorded as Experiment #19: the
 committed lockfile did not match `package.json`, every dependency tarball in it pointed at a local
@@ -111,14 +109,18 @@ Four independent blockers, each of which alone failed the build:
   SDK install, analyze, test, three builds, verify, upload, publish. The tag run's artifact
   `android-release-30937ce…` is 127,828,910 bytes. `GET /actions/runs/{id}/jobs` step
   conclusions are the readable channel from this machine (log bodies 302 to a blocked host).
-- GitHub Release `v1.0.0` (id 402746338, built by run 37164317457) is published with all five
+- GitHub Release `v1.0.0` (id 402946063, built by tag run 37191904535) is published with all ten
   binaries attached: universal 67,305,502 B, arm64-v8a 24,787,212 B, armeabi-v7a 20,700,356 B,
-  x86_64 27,442,278 B, `app-release.aab` 60,030,085 B, all `state=uploaded` under
+  x86_64 27,442,278 B, `app-release.aab` 60,030,081 B, `Salon_1.1.0_x64-setup.exe` 4,960,779 B,
+  `Salon_1.1.0_x64_en-US.msi` 6,656,000 B, `Salon_1.1.0_amd64.deb` 8,167,076 B,
+  `Salon_1.1.0_amd64.AppImage` 83,401,208 B, `Salon-1.0.0-ios-device-unsigned.app.zip` 14,026,982 B;
+  all `state=uploaded` under
   `https://github.com/mrabolfazl13/salon-app/releases/download/v1.0.0/…`. Each of those URLs
   answers `HEAD 200` with the matching `Content-Length`, checked **without a token**, so the
   proof is what an anonymous visitor gets rather than what the API lets the owner see.
-  Earlier releases of the same tag (ids 402715649, 402738733) were superseded by each publish
-  run; the first of them had been built by CI but left as a **draft** by a tag deletion —
+  `GET /releases` anonymously lists exactly one release, `draft=false`.
+  Earlier releases of the same tag (ids 402715649, 402738733, 402746338) were superseded by each
+  publish run; the first of them had been built by CI but left as a **draft** by a tag deletion —
   see Experiment #15.
 - `flutter analyze` → `No issues found! (ran in 1202.3s)`.
 - `flutter test` → `All tests passed!` (after the SharedPreferences stub fix).
@@ -155,6 +157,7 @@ Four independent blockers, each of which alone failed the build:
 
 | 22 | Four-platform release: Windows/Linux (Tauri) + iOS (Flutter) jobs | **CONFIRMED** on push run 37179422867 — all four build jobs green with measured verify annotations |
 | 23 | `release-files/` is nested (`flutter-apk/`, `nsis/`, `deb/`, …), not flat, so the publish step's `-maxdepth 1`/`-s $DIR/file` assertions could never match the desktop binaries | APPLIED — every search is now recursive and the step asserts exactly 10 binaries before calling `gh`; dry-run over the real layout passes 8 scenarios |
+| 24 | The `release` job has no checkout, so `gh release delete/create` resolved the repository through git and died with `failed to run git: fatal: not a git repository` (tag runs 37185433089 and 37188849259 built all four platforms and published nothing) | **CONFIRMED FIXED** — `GH_REPO: ${{ github.repository }}` on the release job's `gh` steps; tag run 37191904535 published ten assets and the `gh` stub reproduces the old failure when `GH_REPO` is absent |
 
 ## Current strategy
 
@@ -178,7 +181,7 @@ with *tee's* status.
 
 ## Remaining blockers
 
-- None for producing or publishing the artifacts on Android, Windows or Linux.
+- None for producing or publishing the artifacts on Android, Windows, Linux or iOS.
 - The iOS device bundle is unsigned: publishing it installable needs an Apple Developer
   certificate and profile, which is a signing decision rather than a build failure.
 - No Play-store-grade upload keystore exists; release artifacts are debug-signed until
@@ -188,8 +191,7 @@ with *tee's* status.
 
 ## Next action
 
-`v1.0.0` is currently published with the five Android binaries only. Tag `433bf92` (the commit
-whose four build jobs are green) and push the tag: that run rebuilds every platform and publishes
-the release with all ten binaries. If it goes red, the `::error::` annotations and the
-`ci-failure-logs-<platform>-<run>-<attempt>` artifacts identify the step and its log, and the fix
-is one change at a time.
+None for the pipeline: tag `v1.0.0` at `c0e75bb` rebuilt all four platforms and published the
+release with ten assets, read back anonymously. The remaining work is outside the build — an Apple
+Developer identity for the iOS bundle and a Play-grade keystore in the repository secrets listed
+above; each is a signing decision, and the workflow already consumes them when present.

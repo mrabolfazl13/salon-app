@@ -183,6 +183,12 @@ a zero-asset release, and a green run whose `gh release edit --draft=false` left
 `/releases/tags/<tag>`, so the binaries were attached while the Releases page showed nothing.
 Every `gh` call reports its own failure as an `::error::` annotation.
 
+The job never checks out the code — its only input is the artifact set — so `gh release` has no git
+remote to resolve the repository from and fails with `failed to run git: fatal: not a git
+repository`. `GH_REPO: ${{ github.repository }}` names it explicitly. `gh api` is unaffected because
+it already passes a full `repos/<owner>/<repo>` path, which is why the existence check succeeded
+seconds before the delete that could not name the repository.
+
 Any step that pipes a build command into `tee` runs under `set -o pipefail`: `cmd | tee log` exits
 with *tee's* status, which would turn a failing build into a green step.
 
