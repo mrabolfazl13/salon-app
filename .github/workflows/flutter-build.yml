@@ -440,6 +440,11 @@ jobs:
       - name: Publish GitHub Release
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # This job never checks out the code, so `gh release` cannot resolve the target
+          # repository from a git remote and dies with "failed to run git: fatal: not a git
+          # repository". GH_REPO is how gh names the repo outside a checkout; `gh api` calls
+          # already pass an explicit repos/ path and are unaffected.
+          GH_REPO: ${{ github.repository }}
         run: |
           set -e
           DIR=release-files
@@ -546,6 +551,7 @@ jobs:
         if: failure()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_REPO: ${{ github.repository }}
         run: |
           {
             echo "## Publish failure (run ${{ github.run_id }}, attempt ${{ github.run_attempt }})"

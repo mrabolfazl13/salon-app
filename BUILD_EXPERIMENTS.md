@@ -339,6 +339,53 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
   Linux deb 8,167,084 B + AppImage 83,401,208 B; iOS `com.salon.futsal.futsalBookingFlutter`
   v1.0.0, arm64 Mach-O, 36,556 KB packaged as a 14,026,978 B zip.
 
+## Experiment #20 — the tag run built all four platforms and still published nothing
+
+- Context: tag run **37185433089** (`0e6012a`) had `build-apk`, `build-windows`, `build-linux` and
+  `build-ios` all green, `Download every platform binary` green, and then `Publish GitHub Release`
+  red. The release page still showed only the five Android assets from `9f41144` at 00:19, which
+  proved nothing had been deleted or created.
+- The one annotation that should have explained it read
+  ``::error::`gh release create v1.0.0 --verify-tag --notes Release build of the Salon app …`failed:``
+  and stopped: the wrapper echoed the *whole command line*, notes text included, and GitHub truncates
+  an annotation, so `gh`'s actual message was cut off. A second red step (`Report failure to an
+  issue`) failed for its own reason and produced nothing but `exit code 1`.
+- Diagnosis of the shape of the failure: the publish step decides whether to delete the existing
+  release with `gh release view "$TAG" >/dev/null 2>&1`. Its status alone drove the branch, so any
+  failure of that check — including a transient one — skipped the delete, and `gh release create`
+  then died on a release that already existed. The check that gates the delete was the one call
+  whose error was thrown away.
+- Fix, in three parts:
+  1. every `gh` call goes through `ghrun "<short label>" …`, which puts **gh's message first** in
+     the annotation and keeps the full output in `/tmp/publish.log`;
+  2. the existence check is a raw `gh api repos/…/releases/tags/<tag> --jq .id`, and when it fails
+     its own error text is printed as a notice, so "no release" and "could not tell" are
+     distinguishable;
+  3. the release job uploads `publish.log` as `ci-failure-logs-publish-<run>-<attempt>` (artifact
+     names avoid the word `release` so this run's own `*-release-*` download can never pick it up),
+     and the issue reporter can no longer fail the job it is reporting on.
+- Offline coverage: `build/logs/dryrun_release.py` plants the exact nested `release-files/` layout
+  and runs the real step body against a `gh` stub. It now exercises ten cases, including
+  "release exists and the delete fails" (must exit 1 before creating anything) and
+  "release exists" → the `.id` lookup, which the stub answers from its state file.
+- Third blocker, named by the new instrumentation. Tag run **37188849259** (`d6aff8b`) again built
+  all four platforms green and died in `Publish GitHub Release`, this time with a readable
+  annotation: `release delete v1.0.0 failed: failed to run git: fatal: not a git repository (or
+  any of the parent directories): .git`. The `release` job has no `actions/checkout` step — it only
+  downloads artifacts — so its working directory is not a git repository, and `gh release` resolves
+  the target repository by asking git for a remote. Every `gh api` call in the step survived because
+  it passes an explicit `repos/<owner>/<repo>` path, which is why the existence check found
+  `id=402746338` seconds before the delete that could not name the repo. `gh label create` and
+  `gh issue create` in the reporter failed the same way (`could not file the failure issue`).
+- Fix: `GH_REPO: ${{ github.repository }}` on both steps of the release job — the documented way to
+  name the repository for `gh` outside a checkout. No checkout was added; the job's only input is
+  the artifact set.
+- Offline coverage of the fix: the `gh` stub now refuses any non-`api` group when neither `GH_REPO`
+  nor a git repository is present, so the dry run reproduces the CI message verbatim in two new
+  scenarios (release already exists → delete; no release → create) and the eight earlier cases still
+  behave identically with `GH_REPO` set.
+- Result: **PENDING** — tag run for the `GH_REPO` fix must publish ten assets or name the reason.
+
 ## Local-only environment fixes (not experiments)
 
 - `build-tools 36.0.0` installed from
