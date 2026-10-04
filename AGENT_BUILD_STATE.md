@@ -1,31 +1,33 @@
 # Android Build Recovery State
 
-Status: RELEASE-PUBLISHED (five CI-built binaries downloadable); the rewritten publish step
-still needs one green tag run
+Status: COMPLETE — CI builds, verifies, uploads and publishes `v1.0.0`; all five release
+binaries are publicly downloadable from the GitHub Release
 
 ## Current stage
 
-`.github/workflows/flutter-build.yml` builds, verifies, uploads and **publishes** the
-Android release artifacts. Run **37157491455** on commit `1ce87b5` completed **success** —
-every step green, including the ones that failed in the previous 13 runs:
+`.github/workflows/flutter-build.yml` builds, verifies, uploads and **publishes** the Android
+release artifacts. Run **37162675207** (tag `v1.0.0` @ `1dbffeb`) completed **success** with
+every step green:
 
 | Step | Outcome |
 | --- | --- |
 | Install Android SDK components | success |
-| Analyze project | success |
-| Run tests | success |
+| Analyze project / Run tests | success |
 | Build universal release APK | success |
 | Build per-ABI release APKs | success |
 | Build release AAB | success |
-| Verify artifacts | success |
-| Upload artifacts | success (`android-release-1ce87b5…`, 127,828,905 bytes) |
+| Verify artifacts | success — notice: `verified universal 67305502B + arm64 24787212B + armv7 20700356B + x86_64 27442278B + aab 60030090B` |
+| Upload artifacts | success (`android-release-1dbffeb…`, 127,828,914 bytes) |
+| Publish GitHub Release | success — notices: `release for v1.0.0 already exists -> deleting it (tag kept) before recreating`, `published v1.0.0 with 5 assets (draft=false)` |
 
-Then the Release itself was found to be empty (Experiment #13), and the publish step has
-since failed twice in two different ways (Experiments #15 and #16). Run **37160567708**
-(`master` @ `d1f160f`) is green through build → verify → upload
-(`android-release-d1f160f…`, 127,828,882 bytes); the paired tag run **37160580288** died at
-step 16 with only `Process completed with exit code 1` readable, which is why the publish
-step no longer relies on calls whose failure it cannot observe.
+The parallel `master` run **37162665569** on the same commit is green with publish `skipped`,
+which is the intended shape: pushes validate the build, tags publish it. Earlier runs in this
+sequence are the record of what it took — a zero-asset release (#13), a release stranded as a
+draft (#15), and a publish step that failed without saying how (#16).
+
+The only step not yet re-proven in CI is the certificate-name fix in `Verify artifacts`
+(Experiment #18): the notice still ends with `signer unknown` because `apksigner`'s exit status
+was being consumed by a `tee` pipe.
 
 ## Toolchain (verified on this machine)
 
@@ -44,9 +46,9 @@ step no longer relies on calls whose failure it cannot observe.
 
 ## Current failing stage
 
-None locally: the release APKs, the per-ABI APKs and the AAB are all built and verified on
-this machine, and `master` runs the workflow green up to and including the artifact upload.
-The only red step in CI is `Publish GitHub Release` on a tag run.
+None. Locally the release APK, the three per-ABI APKs and the AAB are built and verified; in CI
+both a `master` push and a `v*` tag run green, and the tag run publishes five downloadable
+binaries.
 
 ## Root cause (final)
 
@@ -94,11 +96,14 @@ Four independent blockers, each of which alone failed the build:
   SDK install, analyze, test, three builds, verify, upload, publish. The tag run's artifact
   `android-release-30937ce…` is 127,828,910 bytes. `GET /actions/runs/{id}/jobs` step
   conclusions are the readable channel from this machine (log bodies 302 to a blocked host).
-- GitHub Release `v1.0.0` (id 402715649) is published with all five binaries attached:
-  universal 67,305,502 B, arm64-v8a 24,787,212 B, armeabi-v7a 20,700,356 B,
-  x86_64 27,442,278 B, `app-release.aab` 60,030,088 B, all `state=uploaded` under
-  `https://github.com/mrabolfazl13/salon-app/releases/download/v1.0.0/…`.
-  It had been built by CI but left as a **draft** by the tag deletion; see Experiment #15.
+- GitHub Release `v1.0.0` (id 402738733, built by run 37162675207) is published with all five
+  binaries attached: universal 67,305,502 B, arm64-v8a 24,787,212 B, armeabi-v7a 20,700,356 B,
+  x86_64 27,442,278 B, `app-release.aab` 60,030,090 B, all `state=uploaded` under
+  `https://github.com/mrabolfazl13/salon-app/releases/download/v1.0.0/…`. Each of those URLs
+  answers `HEAD 200` with the matching `Content-Length`, checked **without a token**, so the
+  proof is what an anonymous visitor gets rather than what the API lets the owner see.
+  The previous release (id 402715649) had been built by CI but left as a **draft** by a tag
+  deletion; see Experiment #15.
 - `flutter analyze` → `No issues found! (ran in 1202.3s)`.
 - `flutter test` → `All tests passed!` (after the SharedPreferences stub fix).
 - Mirror availability probed with HTTP status: AGP 8.12.0 plugin marker and
@@ -128,24 +133,25 @@ Four independent blockers, each of which alone failed the build:
 | 16 | Tag run 37158902775 publish step | FALSE SUCCESS — five assets uploaded onto a draft release, so `/releases` stayed empty |
 | 17 | Draft-aware publish branch + `draft=false` gate | APPLIED — release `v1.0.0` published with five downloadable assets |
 | 18 | Re-run on tag `v1.0.0` @ `d1f160f` (run 37160580288) | FAILED at step 16 — `gh release edit --draft=false` aborted the step and the reason was unreadable from this machine (Experiment #16) |
-| 19 | Publish = delete + single `gh release create`, every `gh` call wrapped so it self-reports | APPLIED — not yet executed in CI |
+| 19 | Publish = delete + single `gh release create`, every `gh` call wrapped so it self-reports | **CONFIRMED** by tag run 37162675207 — steps 1-16 green, `draft=false`, five assets |
+| 20 | Anonymous read-back of the published release (`GET /releases`, `HEAD` on each asset URL) | SUCCESS — one release listed, 4 APKs at `application/vnd.android.package-archive` with the exact byte counts, AAB 60,030,090 |
+| 21 | `apksigner` output reached the annotation through a `tee` pipe, so its exit status was discarded and a missing certificate printed `signer unknown` | APPLIED — redirect + `grep -q "certificate DN:"`, to be proven by the next tag run |
 
 ## Current strategy
 
-The build pipeline is green and reproducible; the publish step is the only unproven link.
-Its shape is now the smallest observable one: delete any release that exists for the tag,
-create a fresh published release with all five binaries in a single `gh release create`,
-then read `gh api repos/…/releases/tags/<tag>` back and exit non-zero unless
-`draft=false` **and** at least five assets are attached. Every `gh` call goes through a
-wrapper that turns a failure into an `::error::` annotation plus a `/tmp/publish.log` tail
-in the `ci-build-failure` issue — the only channels readable from this machine, since
-Actions log bodies 302 to a host that refuses connections here.
+The pipeline is green end to end and the release is public and downloadable. Two properties
+keep it that way, and both are asserted inside CI rather than assumed: `Verify artifacts` fails
+unless the package id, the ABI set, the per-ABI `versionCode` offsets, the AAB layout and the
+signing certificate are all present; `Publish GitHub Release` fails unless the release reads
+back over raw REST as `draft=false` with at least five assets. Every `gh` call goes through a
+wrapper that turns a failure into an `::error::` annotation plus a `/tmp/publish.log` tail in
+the `ci-build-failure` issue — the only channels readable from this machine, since Actions log
+bodies 302 to a host that refuses connections here. Any step whose assertion travels through a
+pipe is treated as unasserted, because `tee` discards the exit status it was meant to gate on.
 
 ## Remaining blockers
 
-- None for producing the artifacts. The delete-and-recreate publish step has been exercised
-  offline against a stubbed `gh` (draft+5, published+5, no release, draft-stuck, delete
-  refused) but has not yet run in CI.
+- None for producing or publishing the artifacts.
 - No Play-store-grade upload keystore exists; release artifacts are debug-signed until
   `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` secrets are added.
 - Launcher label is still the template `futsal_booking_flutter` rather than the Persian

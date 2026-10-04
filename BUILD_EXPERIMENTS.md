@@ -234,6 +234,40 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
 - Result: **APPLIED** — verified against all four release states with a stubbed `gh`
   (draft+5, published+5, none, delete-refuses), including the two that must exit 1.
 
+## Experiment #17 — the delete-and-recreate publish step run for real
+
+- Hypothesis: after Experiment #16's rewrite, a tag run either publishes in one `gh release
+  create` call or says which `gh` command failed.
+- Evidence: run **37162675207** (tag `v1.0.0` @ `1dbffeb`) — steps 1-16 all `success`, with the
+  annotations `release for v1.0.0 already exists -> deleting it (tag kept) before recreating`
+  and `published v1.0.0 with 5 assets (draft=false)`. The parallel master run
+  **37162665569** is green too, with publish `skipped` as intended. Anonymous
+  `GET /releases` (no token) lists exactly one release: `v1.0.0`, `draft=false`, 5 assets,
+  id 402738733 — the tag deletion had in fact demoted the old release (id 402715649) and the
+  step replaced it. Each `browser_download_url` answers `HEAD 200` with
+  `Content-Length` equal to the asset size: universal 67,305,502, arm64-v8a 24,787,212,
+  armeabi-v7a 20,700,356, x86_64 27,442,278 (`application/vnd.android.package-archive`) and
+  the AAB 60,030,090.
+- Result: **CONFIRMED** — the release is built, published and downloadable by CI alone.
+
+## Experiment #18 — `signer unknown` was a gate swallowed by a pipe
+
+- Hypothesis: the `Verify artifacts` notice ends with `signer unknown`, which could mean the
+  grep pattern does not match the runner's `apksigner` output.
+- Evidence: on this machine's build-tools 36.0.0 the command prints
+  `Signer #1 certificate DN: C=US, O=Android, CN=Android Debug`, so the pattern was fine. The
+  step ran `apksigner verify --print-certs … | tee /tmp/signer.txt`; a pipeline's exit status is
+  the *last* command's, so `tee` returned 0 whether or not the APK verified, and the missing-DN
+  case was then absorbed by `|| echo 'signer unknown'`. The universal APK's signature therefore
+  gated nothing and a verification failure would have produced a green step plus an ordinary
+  notice. The three per-ABI `apksigner verify` calls are not piped, and were real gates.
+- Conclusion: **an assertion whose exit status is consumed by a pipe is not an assertion.**
+- Fix: capture with `> /tmp/signer.txt`, `cat` it into the log, and `grep -q "certificate DN:"`
+  so an absent certificate fails the step; the annotation reads the DN back with
+  `sed -n 's/.*certificate DN: //p'`. Both paths tested against the captured output (passes,
+  extracts `C=US, O=Android, CN=Android Debug`) and against an empty file (fails).
+- Result: **APPLIED** — the next tag run must name the certificate in its notice.
+
 ## Local-only environment fixes (not experiments)
 
 - `build-tools 36.0.0` installed from

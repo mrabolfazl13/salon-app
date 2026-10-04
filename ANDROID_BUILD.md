@@ -103,7 +103,9 @@ touching `pubspec.yaml`, `lib/**`, `android/**`, and manually. The job:
 5. `flutter analyze`, `flutter test`
 6. universal APK, split-per-ABI APKs, AAB
 7. artifact verification with `aapt2 dump badging` and `apksigner` — the universal APK must
-   report the expected package id and all three ABIs; each per-ABI APK must declare
+   report the expected package id and all three ABIs, `apksigner verify --print-certs` must
+   both exit `0` and print a certificate `DN:` (the DN is repeated in the annotation, so the
+   signature is evidence rather than an unchecked pipeline), each per-ABI APK must declare
    *exactly one* `native-code:` entry matching its filename and its own ABI-offset
    `versionCode` (2001 arm64, 1001 armeabi, 4001 x86_64); the AAB must contain
    `base/manifest/AndroidManifest.xml` and `base/dex/classes.dex`
