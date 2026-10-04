@@ -273,6 +273,50 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
   lists one release (id 402746338, `draft=false`, 5 assets) and every asset URL answers
   `HEAD 200` with the matching byte count.
 
+## Experiment #19 — bringing up the Windows/Linux/iOS jobs found three independent blockers
+
+- Context: run **37174826030** (`c2c36a0`, push to `master`) was the first execution of the four
+  platform jobs. Android went green unchanged; the other three failed in their first substantive
+  step, and the two desktop jobs failed before the Tauri build even started.
+- **Blocker 1 — the committed lockfile did not match the manifest.**
+  `pnpm install --frozen-lockfile` exited with `ERR_PNPM_OUTDATED_LOCKFILE`, naming
+  `@tauri-apps/api (lockfile: ^2.11.1, manifest: ^2.12.0)` and
+  `@tauri-apps/plugin-http (lockfile: ^2.6.1, manifest: ^2.6.0)`. `git log -p` puts both range edits
+  in commit `4672a27`, which never re-resolved the lockfile, and `node_modules` still held 2.11.1 /
+  2.6.1 — so the versions in `package.json` had never been installed, let alone verified.
+- **Blocker 2 — every dependency in the lockfile pointed at an Iranian npm mirror.** All 761
+  `resolution.tarball` values were `https://repo.hmirror.ir/artifactory/api/npm/mirror-npm/…`,
+  i.e. the local development machine's registry had been committed, and CI would have downloaded
+  the entire dependency tree of a published release binary from that third party. Re-resolving
+  against `https://registry.npmjs.org/` was refused until those URLs matched, so they were rewritten
+  prefix-wise after verifying equivalence: 12 randomly sampled packages were fetched from both the
+  mirror and the official registry, and each pair was byte-identical *and* hashed to the sha512
+  already recorded in the lockfile (`MISMATCHES 0`). pnpm re-checks that integrity for every
+  package at install time, so the swap cannot smuggle different bytes. The only version change in
+  the resulting diff is the intended `@tauri-apps/api 2.11.1 -> 2.12.1`.
+- **Blocker 3 — the Tauri build could never have run.** `tauri-cli`'s
+  `check_mismatched_packages` (called from `build.rs` before any compilation) compares the Rust
+  `tauri` crate against the npm `@tauri-apps/api` and errors when major/minor differ.
+  `frontend/src-tauri/Cargo.lock` has `tauri 2.12.0` while the installed api was `2.11.1`, so the
+  desktop jobs would have failed at the bundler's own gate even with a valid lockfile. Resolving
+  `^2.12.0` to 2.12.1 satisfies the check; `tauri-plugin-http =2.6.0` (Rust) against
+  `@tauri-apps/plugin-http 2.6.1` (npm) shares major/minor and passes. `tauri-plugin-opener` has no
+  npm counterpart in `package.json`, so it is skipped by that check.
+- **Blocker 4 — `flutter build ios --release --simulator` is not a thing.** The iOS job died with
+  `Release mode is not supported for simulators.` In `flutter_tools`,
+  `BuildInfo.supportsSimulator => isEmulatorBuildMode(mode)` and `isEmulatorBuildMode` is
+  `mode == BuildMode.debug` only, so a *release* simulator bundle cannot be produced at any
+  version. The alternatives were to ship a debug iOS app in the release or to ship only the
+  unsigned device bundle. A debug artifact published as a release binary is precisely the false
+  success this pipeline was rebuilt to prevent, so the simulator step was dropped; the release
+  carries the arm64 device `Runner.app` (unsigned, needs an Apple Developer certificate).
+- Observability gap found on the way: a failing `pnpm install` produced no annotation at all,
+  because the failure-report step only tailed the Tauri log that never got written. The install step
+  now tees into a log, the report step tails both, and every build job uploads its step logs as an
+  artifact on failure — artifacts *are* reachable through the REST API from this machine even though
+  Actions log bodies are not.
+- Result: **PENDING** — the next run must show all four platform jobs green and a 10-asset release.
+
 ## Local-only environment fixes (not experiments)
 
 - `build-tools 36.0.0` installed from

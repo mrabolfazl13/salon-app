@@ -201,16 +201,18 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend
-        run: pnpm install --frozen-lockfile
+        # Logs live in the workspace, not /tmp: on a Windows runner upload-artifact cannot
+        # resolve a Git Bash /tmp path, so a failure log would be silently missing.
+        run: |
+          set -o pipefail
+          mkdir -p .ci-logs
+          pnpm install --frozen-lockfile 2>&1 | tee .ci-logs/pnpm-install.log
 
       - name: Build installers
         working-directory: frontend
-        shell: bash
-        # pipefail: `| tee` alone would report tee's exit status, not tauri's.
-        run: set -o pipefail; pnpm exec tauri build --bundles nsis,msi 2>&1 | tee /tmp/tauri-windows.log
+        run: set -o pipefail; pnpm exec tauri build --bundles nsis,msi 2>&1 | tee .ci-logs/tauri-windows.log
 
       - name: Verify artifacts
-        shell: bash
         run: |
           set -e
           BUNDLE=frontend/src-tauri/target/release/bundle
@@ -220,7 +222,7 @@ jobs:
           test -n "$EXE"
           test -n "$MSI"
           # The bundler also runs on a debug profile, so prove this was the release build.
-          grep -q "Finished .*release. in" /tmp/tauri-windows.log
+          grep -q "Finished .*release. in" frontend/.ci-logs/tauri-windows.log
           echo "::notice::verified nsis $(stat -c %s "$EXE")B + msi $(stat -c %s "$MSI")B"
 
       - name: Upload artifacts
@@ -234,11 +236,20 @@ jobs:
 
       - name: Report failure reason
         if: failure()
-        shell: bash
         run: |
-          if [ -s /tmp/tauri-windows.log ]; then
-            echo "::error::tauri-windows.log tail: $(tail -c 900 /tmp/tauri-windows.log | tr '\r\n' '  ')"
-          fi
+          for f in frontend/.ci-logs/pnpm-install.log frontend/.ci-logs/tauri-windows.log; do
+            if [ -s "$f" ]; then
+              echo "::error::$(basename "$f") tail: $(tail -c 900 "$f" | tr '\r\n' '  ')"
+            fi
+          done
+
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failure-logs-windows-${{ github.run_id }}-${{ github.run_attempt }}
+          path: frontend/.ci-logs/*.log
+          retention-days: 7
 
   build-linux:
     name: Build Linux packages (Tauri)
@@ -267,7 +278,9 @@ jobs:
 
       - name: Install dependencies
         working-directory: frontend
-        run: pnpm install --frozen-lockfile
+        run: |
+          set -o pipefail
+          pnpm install --frozen-lockfile 2>&1 | tee /tmp/pnpm-install.log
 
       - name: Build packages
         working-directory: frontend
@@ -299,9 +312,19 @@ jobs:
       - name: Report failure reason
         if: failure()
         run: |
-          if [ -s /tmp/tauri-linux.log ]; then
-            echo "::error::tauri-linux.log tail: $(tail -c 900 /tmp/tauri-linux.log | tr '\n' ' ')"
-          fi
+          for f in /tmp/pnpm-install.log /tmp/tauri-linux.log; do
+            if [ -s "$f" ]; then
+              echo "::error::$(basename "$f") tail: $(tail -c 900 "$f" | tr '\n' ' ')"
+            fi
+          done
+
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failure-logs-linux-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/*.log
+          retention-days: 7
 
   build-ios:
     name: Build iOS release app (Flutter)
@@ -324,31 +347,23 @@ jobs:
         run: flutter pub get
 
       # No Apple Developer certificate exists in this repository, so the device build is
-      # published unsigned; the simulator build is the one that runs without signing.
+      # published unsigned; it has to be re-signed before it installs on a phone.
       - name: Build device app (unsigned)
         run: set -o pipefail; flutter build ios --release --no-codesign 2>&1 | tee /tmp/ios-device.log
-
-      - name: Build simulator app
-        run: set -o pipefail; flutter build ios --release --simulator --no-codesign 2>&1 | tee /tmp/ios-simulator.log
 
       - name: Verify artifacts
         run: |
           set -e
           DEV=build/ios/iphone/Runner.app
-          SIM=build/ios/iphonesimulator/Runner.app
           test -s "$DEV/Info.plist"
-          test -s "$SIM/Info.plist"
-          for a in "$DEV" "$SIM"; do
-            plutil -extract CFBundleIdentifier raw -o - "$a/Info.plist" | grep -q "^com.salon.futsal.futsalBookingFlutter$"
-            plutil -extract CFBundleShortVersionString raw -o - "$a/Info.plist" | grep -q "^1.0.0$"
-          done
-          # The device bundle must be an arm64 Mach-O: a simulator slice in its place would
+          plutil -extract CFBundleIdentifier raw -o - "$DEV/Info.plist" | grep -q "^com.salon.futsal.futsalBookingFlutter$"
+          plutil -extract CFBundleShortVersionString raw -o - "$DEV/Info.plist" | grep -q "^1.0.0$"
+          # The bundle must be an arm64 Mach-O: a simulator slice in its place would
           # match on filename and size.
           file "$DEV/Runner" | grep -q "Mach-O"
           lipo -archs "$DEV/Runner" | grep -q "arm64"
-          file "$SIM/Runner" | grep -q "Mach-O"
           ls -l "$DEV" | head -20
-          echo "::notice::verified ios device $(du -sk "$DEV" | cut -f1)KB + simulator $(du -sk "$SIM" | cut -f1)KB"
+          echo "::notice::verified ios device $(du -sk "$DEV" | cut -f1)KB"
 
       - name: Package apps
         run: |
@@ -356,7 +371,6 @@ jobs:
           NAME="${GITHUB_REF_NAME#v}"
           mkdir -p out
           (cd build/ios/iphone && zip -qr "$GITHUB_WORKSPACE/out/Salon-${NAME}-ios-device-unsigned.app.zip" Runner.app)
-          (cd build/ios/iphonesimulator && zip -qr "$GITHUB_WORKSPACE/out/Salon-${NAME}-ios-simulator.app.zip" Runner.app)
           ls -l out/
           for z in out/*.zip; do
             unzip -l "$z" | grep -q "Runner.app/Info.plist"
@@ -373,11 +387,17 @@ jobs:
       - name: Report failure reason
         if: failure()
         run: |
-          for f in /tmp/ios-device.log /tmp/ios-simulator.log; do
-            if [ -s "$f" ]; then
-              echo "::error::$(basename "$f") tail: $(tail -c 900 "$f" | tr '\n' ' ')"
-            fi
-          done
+          if [ -s /tmp/ios-device.log ]; then
+            echo "::error::ios-device.log tail: $(tail -c 900 /tmp/ios-device.log | tr '\n' ' ')"
+          fi
+
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failure-logs-ios-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/*.log
+          retention-days: 7
 
   release:
     name: Publish GitHub Release with every platform binary
@@ -399,14 +419,14 @@ jobs:
         run: |
           set -e
           DIR=release-files
-          # 5 Android + 2 Windows + 2 Linux + 2 iOS: a green run that published a subset is a
+          # 5 Android + 2 Windows + 2 Linux + 1 iOS: a green run that published a subset is a
           # false success, so each platform group is asserted separately.
           for f in app-release.apk app-arm64-v8a-release.apk app-armeabi-v7a-release.apk \
                    app-x86_64-release.apk app-release.aab; do
             if [ ! -s "$DIR/$f" ]; then echo "::error::missing android binary: $f"; exit 1; fi
           done
           for pattern in '*-setup.exe' '*.msi' '*.deb' '*.AppImage' \
-                         '*ios-device-unsigned.app.zip' '*ios-simulator.app.zip'; do
+                         '*ios-device-unsigned.app.zip'; do
             if [ -z "$(find "$DIR" -maxdepth 1 -name "$pattern" -size +1M)" ]; then
               echo "::error::no binary matching $pattern"; exit 1
             fi
@@ -433,10 +453,9 @@ jobs:
           - `Salon_*_amd64.AppImage` — runs on any x86_64 distro without installing
 
           ## iOS (Flutter)
-          - `Salon-*-ios-simulator.app.zip` — release build for the iOS simulator; runs on a Mac
-            with Xcode via `xcrun simctl install booted <path>/Runner.app`, needs no signing
           - `Salon-*-ios-device-unsigned.app.zip` — release build for real devices, **unsigned**:
-            it has to be re-signed with an Apple Developer certificate before it installs
+            it has to be re-signed with an Apple Developer certificate before it installs.
+            Flutter cannot build a release-variant simulator app, so no simulator bundle ships.
           EOF
           )"
           NOTES="$NOTES
@@ -477,8 +496,8 @@ jobs:
             echo "::error::release $TAG is not published (draft=$DRAFT) - nothing is downloadable"
             exit 1
           fi
-          if [ "$ASSETS" -lt 11 ]; then
-            echo "::error::expected 11 release assets across android/windows/linux/ios, got $ASSETS"
+          if [ "$ASSETS" -lt 10 ]; then
+            echo "::error::expected 10 release assets across android/windows/linux/ios, got $ASSETS"
             exit 1
           fi
           ghx gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \

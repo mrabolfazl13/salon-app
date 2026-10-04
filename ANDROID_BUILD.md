@@ -1,6 +1,7 @@
 # Android Release Build
 
-Authoritative guide for building the Salon Futsal Flutter app for Android, locally and in CI.
+Authoritative guide for building the Salon Futsal app for Android release distribution, locally and
+in CI, and for the Windows/Linux (Tauri) and iOS (Flutter) artifacts published alongside it.
 
 ## Final toolchain
 
@@ -93,7 +94,20 @@ ambiguity).
 ## CI
 
 `.github/workflows/flutter-build.yml` runs on pushes and `v*` tags to `master`/`main`, on PRs
-touching `pubspec.yaml`, `lib/**`, `android/**`, and manually. The job:
+touching `pubspec.yaml`, `lib/**`, `android/**`, and manually. It is five jobs:
+
+| Job | Runner | Produces | Artifact name |
+|---|---|---|---|
+| `build-apk` | `ubuntu-24.04` | universal + 3 per-ABI APKs + AAB | `android-release-<sha>` |
+| `build-windows` | `windows-latest` | NSIS `-setup.exe` + `.msi` | `windows-release-<sha>` |
+| `build-linux` | `ubuntu-24.04` | `.deb` + `.AppImage` | `linux-release-<sha>` |
+| `build-ios` | `macos-latest` | device + simulator `Runner.app` zips | `ios-release-<sha>` |
+| `release` | `ubuntu-24.04` | the GitHub Release with all 11 binaries | — |
+
+`release` has `needs: [build-apk, build-windows, build-linux, build-ios]` and only runs on a
+`v*` tag, so a tag pushes exactly one release containing every platform's output.
+
+### Android job
 
 1. checkout → Temurin 17 → Flutter 3.47.2
 2. `sdkmanager --licenses`, then installs `platforms;android-36`, `build-tools;36.0.0`,
@@ -110,20 +124,59 @@ touching `pubspec.yaml`, `lib/**`, `android/**`, and manually. The job:
    `versionCode` (2001 arm64, 1001 armeabi, 4001 x86_64); the AAB must contain
    `base/manifest/AndroidManifest.xml` and `base/dex/classes.dex`
 8. `actions/upload-artifact` → `android-release-${{ github.sha }}` with the five deterministic paths
-9. on a `v*` tag: publish the GitHub Release with **all five binaries attached**. The step
-   refuses to run if any file is missing or empty, deletes any release that already exists
-   for the tag (`gh release delete --yes` keeps the tag itself) and creates a fresh published
-   release in one `gh release create` call, so the release always carries exactly this run's
-   five binaries. It then reads the release back through raw REST
-   (`gh api repos/…/releases/tags/<tag>`) and fails unless `draft=false` **and** there are at
-   least five assets. Two false successes this gate replaced: a green run that published a
-   zero-asset release, and a green run whose `gh release edit --draft=false` left a
-   tag-deletion *draft* in place — drafts are hidden from `GET /releases`, `/releases/latest`
-   and `/releases/tags/<tag>`, so the binaries were attached while the Releases page showed
-   nothing. Every `gh` call in the step reports its own failure as an `::error::` annotation
-10. on failure: a `ci-build-failure` issue containing the tail of each build log (including
-    `/tmp/publish.log`), plus the raw logs as an artifact — `GET /actions/runs/{id}/jobs` gives
-    per-step conclusions, which is what localises a failure to a step
+9. on failure: a `ci-build-failure` issue containing the tail of each build log, plus the raw
+   logs as an artifact — `GET /actions/runs/{id}/jobs` gives per-step conclusions, which is what
+   localises a failure to a step
+
+### Desktop jobs (Tauri, `frontend/`)
+
+`pnpm install --frozen-lockfile` then `pnpm exec tauri build --bundles …`. CI installs
+**pnpm 12**: that is the major which generated `pnpm-lock.yaml` and which understands the
+`allowBuilds` and `minimumReleaseAgeExclude` keys in `frontend/pnpm-workspace.yaml`, so an older
+major would silently ignore them and skip the build scripts those lists govern.
+
+`--bundles` is a comma-separated list restricted to the formats the host platform supports
+(`msi,nsis` on Windows; `deb,rpm,appimage,pacman` on Linux), so each job names exactly the two
+formats it wants instead of building `bundle.targets: "all"` and shipping whatever appeared.
+The Linux job installs the WebKit/GTK development packages Tauri links against
+(`libwebkit2gtk-4.1-dev`, `libxdo-dev`, `libayatana-appindicator3-dev`, `librsvg2-dev`,
+`patchelf`); without them the Rust link step fails.
+
+Verification is by the built files, not by the bundler's exit code: the NSIS/MSI/deb/AppImage
+outputs must exist and exceed 1 MB, `dpkg-deb -f` must read a `Package`/`Version` pair out of the
+`.deb`, and the build log must contain cargo's `Finished ...release... in` line — the bundler also
+runs against a debug profile, so a debug bundle would otherwise pass a filename check.
+
+### iOS job (Flutter)
+
+`flutter build ios --release --no-codesign` and the same with `--simulator`. There is no Apple
+Developer certificate in this repository, so the device bundle is unsigned by design; the simulator
+bundle installs on any Mac with Xcode (`xcrun simctl install booted <path>/Runner.app`). `ios/Podfile`
+is not committed — Flutter generates it from its own template during `pod install`, which
+`flutter build ios` runs automatically.
+
+Both `Runner.app` bundles are checked by reading their `Info.plist` with `plutil`
+(`CFBundleIdentifier` must be `com.salon.futsal.futsalBookingFlutter`, `CFBundleShortVersionString`
+must be the `pubspec.yaml` version), the device binary must be an arm64 Mach-O per `lipo -archs`
+— a simulator slice dropped in its place would match on name and size. Each bundle is zipped with
+its `Runner.app/` prefix intact and re-read with `unzip -l` before upload.
+
+### Publish gate
+
+The `release` job downloads every `*-release-*` artifact flat into `release-files/` and refuses to
+publish a subset: the five Android files by exact name, then one `find` per desktop/iOS pattern,
+then `gh release create` with `--verify-tag`. It deletes any release that already exists for the
+tag (`gh release delete --yes` keeps the tag itself) and creates a fresh published release in one
+call, so the release always carries exactly this run's binaries. It then reads the release back
+through raw REST (`gh api repos/…/releases/tags/<tag>`) and fails unless `draft=false` **and**
+there are at least eleven assets. Two false successes this gate replaced: a green run that published
+a zero-asset release, and a green run whose `gh release edit --draft=false` left a tag-deletion
+*draft* in place — drafts are hidden from `GET /releases`, `/releases/latest` and
+`/releases/tags/<tag>`, so the binaries were attached while the Releases page showed nothing.
+Every `gh` call reports its own failure as an `::error::` annotation.
+
+Any step that pipes a build command into `tee` runs under `set -o pipefail`: `cmd | tee log` exits
+with *tee's* status, which would turn a failing build into a green step.
 
 ## Signing
 
@@ -178,6 +231,10 @@ AGP 8 has no built-in Kotlin compiler, so `org.jetbrains.kotlin.android` is appl
 ## Known limitations
 
 - Release artifacts are debug-signed until the four keystore secrets exist.
+- The iOS device bundle is unsigned (no Apple Developer certificate in the repository); only the
+  simulator bundle runs as published.
+- `frontend/` (Tauri, v1.1.0) and the Flutter app (`pubspec.yaml`, v1.0.0) carry independent
+  version numbers, so a release's desktop filenames do not match its tag.
 - `flutter analyze`/`flutter test` are gate steps; a lint regression fails the build (by design).
 - The workflow has no path filter on `push`, so any push to `master`/`main` triggers a full build
   (~6-10 min, five build targets). Filtering tag pushes silently skipped the Release job, so the

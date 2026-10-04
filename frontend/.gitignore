@@ -32,3 +32,5 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+# CI step logs (written by the desktop jobs inside the workspace)
+.ci-logs/
