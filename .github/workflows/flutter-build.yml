@@ -10,6 +10,9 @@ on:
       - 'pubspec.yaml'
       - 'lib/**'
       - 'android/**'
+      - 'ios/**'
+      - 'frontend/**'
+      - '.github/workflows/**'
   workflow_dispatch:
     inputs:
       build_type:
@@ -28,7 +31,9 @@ permissions:
 jobs:
   build-apk:
     name: Build Flutter Android release artifacts
-    runs-on: ubuntu-latest
+    # ubuntu-latest migrates to Ubuntu 26 on 2026-10-19; the SDK packages and the GTK/webkit
+    # dev packages used here were validated on 24.04, so the runner is pinned to it.
+    runs-on: ubuntu-24.04
 
     steps:
       - name: Checkout code
@@ -139,41 +144,304 @@ jobs:
             build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
 
+      - name: Report failure to an issue
+        if: failure()
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          {
+            echo "## Failing step logs (run ${{ github.run_id }}, attempt ${{ github.run_attempt }})"
+            for f in /tmp/analyze.log /tmp/test.log /tmp/apk-universal.log /tmp/apk-split.log /tmp/aab.log; do
+              if [ -s "$f" ]; then
+                echo ""
+                echo "### $f"
+                echo '```'
+                tail -n 120 "$f"
+                echo '```'
+              fi
+            done
+          } > /tmp/failure-report.md
+          gh label create ci-build-failure --color ff6b6b --description "Automated CI build failure report" || true
+          gh issue create \
+            --title "CI Android build failed: ${GITHUB_REF_NAME} @ ${GITHUB_SHA::7}" \
+            --label ci-build-failure \
+            --body-file /tmp/failure-report.md
+          echo "Build log tail:"
+          tail -n 120 /tmp/apk-universal.log /tmp/apk-split.log /tmp/aab.log || true
+
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failure-logs-android-${{ github.run_id }}-${{ github.run_attempt }}
+          path: /tmp/*.log
+          retention-days: 7
+
+  build-windows:
+    name: Build Windows desktop installers (Tauri)
+    runs-on: windows-latest
+
+    defaults:
+      run:
+        shell: bash
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        # pnpm 12 is the major that generated pnpm-lock.yaml and understands the
+        # allowBuilds/minimumReleaseAgeExclude keys in frontend/pnpm-workspace.yaml.
+        run: npm install -g pnpm@12
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build installers
+        working-directory: frontend
+        shell: bash
+        # pipefail: `| tee` alone would report tee's exit status, not tauri's.
+        run: set -o pipefail; pnpm exec tauri build --bundles nsis,msi 2>&1 | tee /tmp/tauri-windows.log
+
+      - name: Verify artifacts
+        shell: bash
+        run: |
+          set -e
+          BUNDLE=frontend/src-tauri/target/release/bundle
+          ls -l "$BUNDLE"/nsis "$BUNDLE"/msi
+          EXE=$(find "$BUNDLE"/nsis -name '*-setup.exe' -size +1M | head -1)
+          MSI=$(find "$BUNDLE"/msi -name '*.msi' -size +1M | head -1)
+          test -n "$EXE"
+          test -n "$MSI"
+          # The bundler also runs on a debug profile, so prove this was the release build.
+          grep -q "Finished .*release. in" /tmp/tauri-windows.log
+          echo "::notice::verified nsis $(stat -c %s "$EXE")B + msi $(stat -c %s "$MSI")B"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-release-${{ github.sha }}
+          path: |
+            frontend/src-tauri/target/release/bundle/nsis/*-setup.exe
+            frontend/src-tauri/target/release/bundle/msi/*.msi
+          retention-days: 30
+
+      - name: Report failure reason
+        if: failure()
+        shell: bash
+        run: |
+          if [ -s /tmp/tauri-windows.log ]; then
+            echo "::error::tauri-windows.log tail: $(tail -c 900 /tmp/tauri-windows.log | tr '\r\n' '  ')"
+          fi
+
+  build-linux:
+    name: Build Linux packages (Tauri)
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Install system dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends \
+            libwebkit2gtk-4.1-dev build-essential curl wget file \
+            libxdo-dev libssl-dev libayatana-appindicator3-dev librsvg2-dev patchelf
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Install pnpm
+        # pnpm 12 is the major that generated pnpm-lock.yaml and understands the
+        # allowBuilds/minimumReleaseAgeExclude keys in frontend/pnpm-workspace.yaml.
+        run: npm install -g pnpm@12
+
+      - name: Install dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Build packages
+        working-directory: frontend
+        run: set -o pipefail; pnpm exec tauri build --bundles deb,appimage 2>&1 | tee /tmp/tauri-linux.log
+
+      - name: Verify artifacts
+        run: |
+          set -e
+          BUNDLE=frontend/src-tauri/target/release/bundle
+          ls -l "$BUNDLE"/deb "$BUNDLE"/appimage
+          DEB=$(find "$BUNDLE"/deb -name '*.deb' -size +1M | head -1)
+          APP=$(find "$BUNDLE"/appimage -name '*.AppImage' -size +1M | head -1)
+          test -n "$DEB"
+          test -n "$APP"
+          # A .deb with no control metadata is not installable even though the file exists.
+          dpkg-deb -f "$DEB" Package Version
+          grep -q "Finished .*release. in" /tmp/tauri-linux.log
+          echo "::notice::verified deb $(stat -c %s "$DEB")B + appimage $(stat -c %s "$APP")B"
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: linux-release-${{ github.sha }}
+          path: |
+            frontend/src-tauri/target/release/bundle/deb/*.deb
+            frontend/src-tauri/target/release/bundle/appimage/*.AppImage
+          retention-days: 30
+
+      - name: Report failure reason
+        if: failure()
+        run: |
+          if [ -s /tmp/tauri-linux.log ]; then
+            echo "::error::tauri-linux.log tail: $(tail -c 900 /tmp/tauri-linux.log | tr '\n' ' ')"
+          fi
+
+  build-ios:
+    name: Build iOS release app (Flutter)
+    # macos-latest so the preinstalled Xcode is at least as new as the toolchain the
+    # Flutter 3.47.x engine was built against.
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.47.2'
+          channel: 'stable'
+          cache: true
+
+      - name: Install dependencies
+        run: flutter pub get
+
+      # No Apple Developer certificate exists in this repository, so the device build is
+      # published unsigned; the simulator build is the one that runs without signing.
+      - name: Build device app (unsigned)
+        run: set -o pipefail; flutter build ios --release --no-codesign 2>&1 | tee /tmp/ios-device.log
+
+      - name: Build simulator app
+        run: set -o pipefail; flutter build ios --release --simulator --no-codesign 2>&1 | tee /tmp/ios-simulator.log
+
+      - name: Verify artifacts
+        run: |
+          set -e
+          DEV=build/ios/iphone/Runner.app
+          SIM=build/ios/iphonesimulator/Runner.app
+          test -s "$DEV/Info.plist"
+          test -s "$SIM/Info.plist"
+          for a in "$DEV" "$SIM"; do
+            plutil -extract CFBundleIdentifier raw -o - "$a/Info.plist" | grep -q "^com.salon.futsal.futsalBookingFlutter$"
+            plutil -extract CFBundleShortVersionString raw -o - "$a/Info.plist" | grep -q "^1.0.0$"
+          done
+          # The device bundle must be an arm64 Mach-O: a simulator slice in its place would
+          # match on filename and size.
+          file "$DEV/Runner" | grep -q "Mach-O"
+          lipo -archs "$DEV/Runner" | grep -q "arm64"
+          file "$SIM/Runner" | grep -q "Mach-O"
+          ls -l "$DEV" | head -20
+          echo "::notice::verified ios device $(du -sk "$DEV" | cut -f1)KB + simulator $(du -sk "$SIM" | cut -f1)KB"
+
+      - name: Package apps
+        run: |
+          set -e
+          NAME="${GITHUB_REF_NAME#v}"
+          mkdir -p out
+          (cd build/ios/iphone && zip -qr "$GITHUB_WORKSPACE/out/Salon-${NAME}-ios-device-unsigned.app.zip" Runner.app)
+          (cd build/ios/iphonesimulator && zip -qr "$GITHUB_WORKSPACE/out/Salon-${NAME}-ios-simulator.app.zip" Runner.app)
+          ls -l out/
+          for z in out/*.zip; do
+            unzip -l "$z" | grep -q "Runner.app/Info.plist"
+            unzip -l "$z" | grep -q "Runner.app/Runner$"
+          done
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: ios-release-${{ github.sha }}
+          path: out/*.zip
+          retention-days: 30
+
+      - name: Report failure reason
+        if: failure()
+        run: |
+          for f in /tmp/ios-device.log /tmp/ios-simulator.log; do
+            if [ -s "$f" ]; then
+              echo "::error::$(basename "$f") tail: $(tail -c 900 "$f" | tr '\n' ' ')"
+            fi
+          done
+
+  release:
+    name: Publish GitHub Release with every platform binary
+    needs: [build-apk, build-windows, build-linux, build-ios]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-24.04
+
+    steps:
+      - name: Download every platform binary
+        uses: actions/download-artifact@v4
+        with:
+          pattern: '*-release-*'
+          path: release-files
+          merge-multiple: true
+
       - name: Publish GitHub Release
-        if: startsWith(github.ref, 'refs/tags/v')
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
-          APK_DIR=build/app/outputs/flutter-apk
-          FILES="
-          $APK_DIR/app-release.apk
-          $APK_DIR/app-arm64-v8a-release.apk
-          $APK_DIR/app-armeabi-v7a-release.apk
-          $APK_DIR/app-x86_64-release.apk
-          build/app/outputs/bundle/release/app-release.aab"
-          # A green run with an empty Release is a false success, so fail loudly instead.
-          for f in $FILES; do
-            if [ ! -s "$f" ]; then echo "::error::missing artifact to publish: $f"; exit 1; fi
+          DIR=release-files
+          # 5 Android + 2 Windows + 2 Linux + 2 iOS: a green run that published a subset is a
+          # false success, so each platform group is asserted separately.
+          for f in app-release.apk app-arm64-v8a-release.apk app-armeabi-v7a-release.apk \
+                   app-x86_64-release.apk app-release.aab; do
+            if [ ! -s "$DIR/$f" ]; then echo "::error::missing android binary: $f"; exit 1; fi
           done
+          for pattern in '*-setup.exe' '*.msi' '*.deb' '*.AppImage' \
+                         '*ios-device-unsigned.app.zip' '*ios-simulator.app.zip'; do
+            if [ -z "$(find "$DIR" -maxdepth 1 -name "$pattern" -size +1M)" ]; then
+              echo "::error::no binary matching $pattern"; exit 1
+            fi
+          done
+          FILES=$(find "$DIR" -maxdepth 1 -type f | sort)
+          COUNT=$(printf '%s\n' "$FILES" | wc -l)
+          echo "Files to publish ($COUNT):"; printf '%s\n' "$FILES"
           NOTES="$(cat <<'EOF'
-          Android build of the Flutter app (release variant).
+          Release build of the Salon app for every platform, produced by GitHub Actions.
 
+          ## Android (Flutter, release variant)
           - `app-release.apk` — universal (arm64-v8a, armeabi-v7a, x86_64)
           - `app-arm64-v8a-release.apk` — modern phones
           - `app-armeabi-v7a-release.apk` — older 32-bit phones
           - `app-x86_64-release.apk` — emulators
           - `app-release.aab` — Play Store upload format
+
+          ## Windows (Tauri)
+          - `Salon_*_x64-setup.exe` — NSIS installer
+          - `Salon_*.msi` — MSI installer
+
+          ## Linux (Tauri)
+          - `Salon_*_amd64.deb` — Debian/Ubuntu package
+          - `Salon_*_amd64.AppImage` — runs on any x86_64 distro without installing
+
+          ## iOS (Flutter)
+          - `Salon-*-ios-simulator.app.zip` — release build for the iOS simulator; runs on a Mac
+            with Xcode via `xcrun simctl install booted <path>/Runner.app`, needs no signing
+          - `Salon-*-ios-device-unsigned.app.zip` — release build for real devices, **unsigned**:
+            it has to be re-signed with an Apple Developer certificate before it installs
           EOF
           )"
           NOTES="$NOTES
 
           Built by \`.github/workflows/flutter-build.yml\` on commit \`${{ github.sha }}\`."
-          # Re-runs must not die on "release already exists", and an existing release with
-          # zero assets is exactly the false success this step is meant to prevent.
-          # Deleting a tag demotes its release to a draft: `gh release view <tag>` still
-          # finds it, but the Releases page and `releases/tags/<tag>` go blank, so a draft
-          # has to be recreated rather than edited.
           # ghx: `set -e` would otherwise leave a failed `gh` call with its reason only in the
           # log body, so the command and its output are also published as an annotation.
           ghx() {
@@ -186,16 +454,16 @@ jobs:
             fi
           }
           TAG="$GITHUB_REF_NAME"
-          # Whether the previous release was published or demoted to a draft by a deleted tag,
-          # deleting it and creating a fresh one leaves exactly this run's five binaries attached
-          # and a published release, in one create call. `gh release delete` without
-          # `--cleanup-tag` keeps the tag itself.
+          # Deleting a tag demotes its release to a draft, and drafts are invisible to
+          # `GET /releases` and `releases/tags/<tag>`. Deleting then recreating in one
+          # `gh release create` leaves this run's binaries attached to a published release;
+          # `gh release delete` without `--cleanup-tag` keeps the tag itself.
           if gh release view "$TAG" >/dev/null 2>&1; then
             echo "::notice::release for $TAG already exists -> deleting it (tag kept) before recreating"
             ghx gh release delete "$TAG" --yes
           fi
           ghx gh release create "$TAG" --verify-tag \
-            --title "Salon Futsal Android $TAG" --notes "$NOTES" $FILES
+            --title "Salon $TAG" --notes "$NOTES" $FILES
           # Read through raw REST so the gate checks what an anonymous visitor sees.
           STATE=$(ghx gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
             --jq '"\(.draft) \(.assets | length)"')
@@ -209,7 +477,10 @@ jobs:
             echo "::error::release $TAG is not published (draft=$DRAFT) - nothing is downloadable"
             exit 1
           fi
-          if [ "$ASSETS" -lt 5 ]; then echo "::error::expected 5 release assets, got $ASSETS"; exit 1; fi
+          if [ "$ASSETS" -lt 11 ]; then
+            echo "::error::expected 11 release assets across android/windows/linux/ios, got $ASSETS"
+            exit 1
+          fi
           ghx gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
             --jq '.assets[] | "\(.name)  \(.size) bytes  \(.state)  \(.browser_download_url)"'
           echo "::notice::published $TAG with $ASSETS assets (draft=$DRAFT)"
@@ -220,29 +491,17 @@ jobs:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           {
-            echo "## Failing step logs (run ${{ github.run_id }}, attempt ${{ github.run_attempt }})"
-            for f in /tmp/analyze.log /tmp/test.log /tmp/apk-universal.log /tmp/apk-split.log /tmp/aab.log /tmp/publish.log; do
-              if [ -s "$f" ]; then
-                echo ""
-                echo "### $f"
-                echo '```'
-                tail -n 120 "$f"
-                echo '```'
-              fi
-            done
+            echo "## Publish failure (run ${{ github.run_id }}, attempt ${{ github.run_attempt }})"
+            echo ""
+            echo "Binaries downloaded for this run:"
+            find release-files -maxdepth 1 -type f -printf '  %f %s bytes\n' 2>/dev/null || echo "  none"
+            echo ""
+            echo '```'
+            tail -n 60 /tmp/publish.log 2>/dev/null || echo "no publish log written"
+            echo '```'
           } > /tmp/failure-report.md
           gh label create ci-build-failure --color ff6b6b --description "Automated CI build failure report" || true
           gh issue create \
-            --title "CI build failed: ${GITHUB_REF_NAME} @ ${GITHUB_SHA::7}" \
+            --title "CI release publish failed: ${GITHUB_REF_NAME} @ ${GITHUB_SHA::7}" \
             --label ci-build-failure \
             --body-file /tmp/failure-report.md
-          echo "Build log tail:"
-          tail -n 120 /tmp/apk-universal.log /tmp/apk-split.log /tmp/aab.log || true
-
-      - name: Upload failure logs
-        if: failure()
-        uses: actions/upload-artifact@v4
-        with:
-          name: ci-failure-logs-${{ github.run_id }}-${{ github.run_attempt }}
-          path: /tmp/*.log
-          retention-days: 7
