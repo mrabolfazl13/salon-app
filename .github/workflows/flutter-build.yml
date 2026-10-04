@@ -486,31 +486,44 @@ jobs:
           NOTES="$NOTES
 
           Built by \`.github/workflows/flutter-build.yml\` on commit \`${{ github.sha }}\`."
-          # ghx: `set -e` would otherwise leave a failed `gh` call with its reason only in the
-          # log body, so the command and its output are also published as an annotation.
-          ghx() {
+          # ghrun: `set -e` would otherwise leave a failed `gh` call with its reason only in the
+          # log body, which is unreachable from this machine. The label is short and the reason
+          # comes first, because a whole command line (with its notes text) would push gh's own
+          # message past the annotation length limit — which is exactly how one publish failure
+          # ended up unreadable.
+          ghrun() {
+            local label="$1"; shift
+            local out
             if out=$("$@" 2>&1); then
-              printf '%s\n' "$out" | tee -a /tmp/publish.log
-            else
-              printf '%s\n' "$out" | tee -a /tmp/publish.log >&2
-              printf '::error::`%s` failed: %s\n' "$*" "$(printf '%s' "$out" | head -c 500)" >&2
-              return 1
+              printf '[%s] ok\n%s\n' "$label" "$out" >> /tmp/publish.log
+              printf '%s\n' "$out"
+              return 0
             fi
+            printf '[%s] FAILED\n%s\n' "$label" "$out" >> /tmp/publish.log
+            printf '::error::%s failed: %s\n' "$label" \
+              "$(printf '%s' "$out" | tr '\n\r' '  ' | head -c 700)" >&2
+            return 1
           }
           TAG="$GITHUB_REF_NAME"
           # Deleting a tag demotes its release to a draft, and drafts are invisible to
           # `GET /releases` and `releases/tags/<tag>`. Deleting then recreating in one
           # `gh release create` leaves this run's binaries attached to a published release;
           # `gh release delete` without `--cleanup-tag` keeps the tag itself.
-          if gh release view "$TAG" >/dev/null 2>&1; then
-            echo "::notice::release for $TAG already exists -> deleting it (tag kept) before recreating"
-            ghx gh release delete "$TAG" --yes
+          # The existence check goes through raw REST, not `gh release view`: a swallowed
+          # `view` failure silently skips the delete, and `create` then dies on
+          # "Release already exists" with no trace of why the check missed the release.
+          if REL_ID=$(gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" --jq .id 2>/tmp/view-err.txt); then
+            echo "::notice::release for $TAG exists (id=$REL_ID) -> deleting it (tag kept) before recreating"
+            ghrun "release delete $TAG" gh release delete "$TAG" --yes
+          else
+            echo "::notice::no existing release for $TAG: $(tr '\n\r' '  ' < /tmp/view-err.txt | head -c 200)"
           fi
-          ghx gh release create "$TAG" --verify-tag \
+          ghrun "release create $TAG" gh release create "$TAG" --verify-tag \
             --title "Salon $TAG" --notes "$NOTES" $FILES
           # Read through raw REST so the gate checks what an anonymous visitor sees.
-          STATE=$(ghx gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
-            --jq '"\(.draft) \(.assets | length)"')
+          ghrun "release readback $TAG" gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+            --jq '"\(.draft) \(.assets | length)"' > /tmp/release-state.txt
+          STATE=$(cat /tmp/release-state.txt)
           DRAFT=${STATE% *}
           ASSETS=${STATE#* }
           echo "Release $TAG: draft=$DRAFT assets=$ASSETS"
@@ -525,7 +538,7 @@ jobs:
             echo "::error::expected 10 release assets across android/windows/linux/ios, got $ASSETS"
             exit 1
           fi
-          ghx gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
+          ghrun "release asset urls $TAG" gh api "repos/${GITHUB_REPOSITORY}/releases/tags/${TAG}" \
             --jq '.assets[] | "\(.name)  \(.size) bytes  \(.state)  \(.browser_download_url)"'
           echo "::notice::published $TAG with $ASSETS assets (draft=$DRAFT)"
 
@@ -538,14 +551,31 @@ jobs:
             echo "## Publish failure (run ${{ github.run_id }}, attempt ${{ github.run_attempt }})"
             echo ""
             echo "Binaries downloaded for this run:"
-            find release-files -maxdepth 1 -type f -printf '  %f %s bytes\n' 2>/dev/null || echo "  none"
+            find release-files -type f -printf '  %P %s bytes\n' 2>/dev/null || echo "  none"
             echo ""
             echo '```'
             tail -n 60 /tmp/publish.log 2>/dev/null || echo "no publish log written"
             echo '```'
           } > /tmp/failure-report.md
+          # The report is diagnostics, never a second failure: an annotation carries the same
+          # tail even if issue creation itself breaks.
+          echo "::error::publish failed; log tail: $(tail -c 900 /tmp/publish.log 2>/dev/null | tr '\n\r' '  ')"
           gh label create ci-build-failure --color ff6b6b --description "Automated CI build failure report" || true
           gh issue create \
             --title "CI release publish failed: ${GITHUB_REF_NAME} @ ${GITHUB_SHA::7}" \
             --label ci-build-failure \
-            --body-file /tmp/failure-report.md
+            --body-file /tmp/failure-report.md || echo "::warning::could not file the failure issue"
+
+      # Artifact zips are reachable through the REST API from this machine even when Actions log
+      # bodies are not, so the publish log has to leave the runner as an artifact. The name avoids
+      # the word `release` so this run's own download step can never pick it up.
+      - name: Upload failure logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: ci-failure-logs-publish-${{ github.run_id }}-${{ github.run_attempt }}
+          path: |
+            /tmp/publish.log
+            /tmp/view-err.txt
+            /tmp/failure-report.md
+          retention-days: 7
