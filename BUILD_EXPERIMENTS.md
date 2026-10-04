@@ -266,7 +266,12 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
   so an absent certificate fails the step; the annotation reads the DN back with
   `sed -n 's/.*certificate DN: //p'`. Both paths tested against the captured output (passes,
   extracts `C=US, O=Android, CN=Android Debug`) and against an empty file (fails).
-- Result: **APPLIED** — the next tag run must name the certificate in its notice.
+- Result: **CONFIRMED** by run **37164317457** (tag `v1.0.0` @ `9f41144`), whose verify notice
+  reads `… + aab 60030085B, C=US, O=Android, CN=Android Debug` instead of `signer unknown`, and
+  whose publish notices are `release for v1.0.0 already exists -> deleting it (tag kept) before
+  recreating` + `published v1.0.0 with 5 assets (draft=false)`. Anonymous `GET /releases` then
+  lists one release (id 402746338, `draft=false`, 5 assets) and every asset URL answers
+  `HEAD 200` with the matching byte count.
 
 ## Local-only environment fixes (not experiments)
 

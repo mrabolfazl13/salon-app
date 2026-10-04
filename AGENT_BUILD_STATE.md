@@ -6,7 +6,7 @@ binaries are publicly downloadable from the GitHub Release
 ## Current stage
 
 `.github/workflows/flutter-build.yml` builds, verifies, uploads and **publishes** the Android
-release artifacts. Run **37162675207** (tag `v1.0.0` @ `1dbffeb`) completed **success** with
+release artifacts. Run **37164317457** (tag `v1.0.0` @ `9f41144`) completed **success** with
 every step green:
 
 | Step | Outcome |
@@ -16,18 +16,14 @@ every step green:
 | Build universal release APK | success |
 | Build per-ABI release APKs | success |
 | Build release AAB | success |
-| Verify artifacts | success — notice: `verified universal 67305502B + arm64 24787212B + armv7 20700356B + x86_64 27442278B + aab 60030090B` |
-| Upload artifacts | success (`android-release-1dbffeb…`, 127,828,914 bytes) |
+| Verify artifacts | success — notice: `verified universal 67305502B + arm64 24787212B + armv7 20700356B + x86_64 27442278B + aab 60030085B, C=US, O=Android, CN=Android Debug` |
+| Upload artifacts | success (`android-release-9f41144…`, 127,828,880 bytes) |
 | Publish GitHub Release | success — notices: `release for v1.0.0 already exists -> deleting it (tag kept) before recreating`, `published v1.0.0 with 5 assets (draft=false)` |
 
-The parallel `master` run **37162665569** on the same commit is green with publish `skipped`,
+The parallel `master` run **37164312827** on the same commit is green with publish `skipped`,
 which is the intended shape: pushes validate the build, tags publish it. Earlier runs in this
 sequence are the record of what it took — a zero-asset release (#13), a release stranded as a
 draft (#15), and a publish step that failed without saying how (#16).
-
-The only step not yet re-proven in CI is the certificate-name fix in `Verify artifacts`
-(Experiment #18): the notice still ends with `signer unknown` because `apksigner`'s exit status
-was being consumed by a `tee` pipe.
 
 ## Toolchain (verified on this machine)
 
@@ -96,14 +92,15 @@ Four independent blockers, each of which alone failed the build:
   SDK install, analyze, test, three builds, verify, upload, publish. The tag run's artifact
   `android-release-30937ce…` is 127,828,910 bytes. `GET /actions/runs/{id}/jobs` step
   conclusions are the readable channel from this machine (log bodies 302 to a blocked host).
-- GitHub Release `v1.0.0` (id 402738733, built by run 37162675207) is published with all five
+- GitHub Release `v1.0.0` (id 402746338, built by run 37164317457) is published with all five
   binaries attached: universal 67,305,502 B, arm64-v8a 24,787,212 B, armeabi-v7a 20,700,356 B,
-  x86_64 27,442,278 B, `app-release.aab` 60,030,090 B, all `state=uploaded` under
+  x86_64 27,442,278 B, `app-release.aab` 60,030,085 B, all `state=uploaded` under
   `https://github.com/mrabolfazl13/salon-app/releases/download/v1.0.0/…`. Each of those URLs
   answers `HEAD 200` with the matching `Content-Length`, checked **without a token**, so the
   proof is what an anonymous visitor gets rather than what the API lets the owner see.
-  The previous release (id 402715649) had been built by CI but left as a **draft** by a tag
-  deletion; see Experiment #15.
+  Earlier releases of the same tag (ids 402715649, 402738733) were superseded by each publish
+  run; the first of them had been built by CI but left as a **draft** by a tag deletion —
+  see Experiment #15.
 - `flutter analyze` → `No issues found! (ran in 1202.3s)`.
 - `flutter test` → `All tests passed!` (after the SharedPreferences stub fix).
 - Mirror availability probed with HTTP status: AGP 8.12.0 plugin marker and
@@ -135,7 +132,7 @@ Four independent blockers, each of which alone failed the build:
 | 18 | Re-run on tag `v1.0.0` @ `d1f160f` (run 37160580288) | FAILED at step 16 — `gh release edit --draft=false` aborted the step and the reason was unreadable from this machine (Experiment #16) |
 | 19 | Publish = delete + single `gh release create`, every `gh` call wrapped so it self-reports | **CONFIRMED** by tag run 37162675207 — steps 1-16 green, `draft=false`, five assets |
 | 20 | Anonymous read-back of the published release (`GET /releases`, `HEAD` on each asset URL) | SUCCESS — one release listed, 4 APKs at `application/vnd.android.package-archive` with the exact byte counts, AAB 60,030,090 |
-| 21 | `apksigner` output reached the annotation through a `tee` pipe, so its exit status was discarded and a missing certificate printed `signer unknown` | APPLIED — redirect + `grep -q "certificate DN:"`, to be proven by the next tag run |
+| 21 | `apksigner` output reached the annotation through a `tee` pipe, so its exit status was discarded and a missing certificate printed `signer unknown` | **CONFIRMED FIXED** — redirect + `grep -q "certificate DN:"`; run 37164317457 names `C=US, O=Android, CN=Android Debug` |
 
 ## Current strategy
 
@@ -159,7 +156,9 @@ pipe is treated as unasserted, because `tee` discards the exit status it was mea
 
 ## Next action
 
-Commit and push `master`, move `v1.0.0` onto that commit, and let the tag run rebuild every
-binary from a clean runner. Then confirm from the check-run annotations and
-`GET /releases/tags/v1.0.0` that the run reports `published v1.0.0 with 5 assets` and that
-the release is publicly listed with five downloadable assets.
+Nothing is pending for the build itself: `v1.0.0` is published with five CI-built,
+CI-verified binaries that download anonymously. To release a new version, change
+`version:` in `pubspec.yaml`, commit, tag `vX.Y.Z` and push the tag — the workflow rebuilds
+all five artifacts and republishes the release in one run. Adding the four keystore secrets
+switches those same artifacts from debug signing to distributable signing without touching
+the pipeline.
