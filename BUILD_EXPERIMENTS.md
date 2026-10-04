@@ -384,7 +384,14 @@ Legend: `Category` follows the failure taxonomy in the recovery brief
   nor a git repository is present, so the dry run reproduces the CI message verbatim in two new
   scenarios (release already exists → delete; no release → create) and the eight earlier cases still
   behave identically with `GH_REPO` set.
-- Result: **PENDING** — tag run for the `GH_REPO` fix must publish ten assets or name the reason.
+- Result: **CONFIRMED** by tag run **37191904535** (`c0e75bb`) — all four build jobs green, then
+  `Publish GitHub Release` green with the notices `release for v1.0.0 exists (id=402746338) ->
+  deleting it (tag kept) before recreating` and `published v1.0.0 with 10 assets (draft=false)`.
+  Read back **anonymously**: `GET /releases` lists one release (`draft=false`, 10 assets, id
+  402946063) and every `browser_download_url` answers `HEAD 200` with its exact byte count —
+  universal 67,305,502 B, arm64 24,787,212 B, armv7 20,700,356 B, x86_64 27,442,278 B,
+  AAB 60,030,081 B, setup.exe 4,960,779 B, msi 6,656,000 B, deb 8,167,076 B, AppImage 83,401,208 B,
+  iOS zip 14,026,982 B.
 
 ## Local-only environment fixes (not experiments)
 
