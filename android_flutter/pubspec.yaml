@@ -39,11 +39,11 @@ dependencies:
   pull_to_refresh: ^2.0.0
 
   # Forms & Validation
-  flutter_form_builder: ^11.0.0
-  form_builder_validators: ^11.0.0
+  flutter_form_builder: ^9.4.1
+  form_builder_validators: ^10.0.1
 
   # Date & Time
-  intl: ^0.20.3
+  intl: ^0.19.0
   persian_datetime_picker: ^2.7.0
 
   # Animations
