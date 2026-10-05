@@ -11,7 +11,7 @@ on:
       - 'android_flutter/**'
 
 env:
-  FLUTTER_VERSION: '3.24.5'
+  FLUTTER_VERSION: '3.24.x'
   JAVA_VERSION: '17'
   WORKING_DIR: './android_flutter'
 
