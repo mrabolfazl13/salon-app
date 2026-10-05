@@ -9,7 +9,7 @@ class ApiClient {
   static BaseOptions _createOptions() {
     final baseUrl = const String.fromEnvironment(
       'API_URL',
-      defaultValue: 'http://localhost:8000/api/v1',
+      defaultValue: 'https://salon.absadeghi.ir/api/v1',
     );
     
     return BaseOptions(
