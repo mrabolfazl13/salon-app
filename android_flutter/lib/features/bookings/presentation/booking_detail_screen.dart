@@ -18,7 +18,7 @@ class BookingDetailScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     // Mock data - will be replaced with API call
-    final booking = {
+    final booking = <String, dynamic>{
       'id': bookingId,
       'venue': 'سالن فوتسال المپیک',
       'address': 'تهران، خیابان ولیعصر',

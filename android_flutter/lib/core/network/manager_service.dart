@@ -38,7 +38,7 @@ class ManagerService {
     try {
       final response = await _client.get(
         ApiEndpoints.managerContracts,
-        queryParameters: if (status != null) {'status': status},
+        queryParameters: status != null ? {'status': status} : null,
       );
       return response.data['contracts'] ?? response.data;
     } catch (e) {

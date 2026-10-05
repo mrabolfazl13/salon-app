@@ -8,6 +8,7 @@ class User {
   @JsonKey(name: 'full_name')
   final String fullName;
   final String phone;
+  final String? email;
   final String role;
   @JsonKey(name: 'is_verified')
   final bool isVerified;
@@ -20,6 +21,7 @@ class User {
     required this.id,
     required this.fullName,
     required this.phone,
+    this.email,
     required this.role,
     required this.isVerified,
     required this.isActive,

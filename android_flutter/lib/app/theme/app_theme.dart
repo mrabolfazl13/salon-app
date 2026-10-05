@@ -35,7 +35,7 @@ class AppTheme {
       fontFamily: AppTypography.fontFamily,
       
       // Card theme
-      cardTheme: CardThemeData(
+      cardTheme: CardTheme(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardBorderRadius,
@@ -139,12 +139,11 @@ class AppTheme {
       ),
       
       // Dialog theme
-      dialogTheme: DialogThemeData(
+      dialogTheme: const DialogTheme(
         shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(AppRadius.dialog),
+          borderRadius: BorderRadius.all(Radius.circular(AppRadius.dialog)),
         ),
         elevation: 8,
-        shadowColor: isDark ? Colors.black : AppColors.navy.withOpacity(0.16),
       ),
       
       // Bottom sheet theme
