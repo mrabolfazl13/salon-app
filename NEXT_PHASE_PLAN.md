@@ -132,7 +132,7 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 **دامنه** `lib/` (یا جایگزین پس از فیچر ۱) · `frontend/src/services/api.ts` برای هم‌راستاسازی قرارداد · `backend` فقط در صورت نیاز به endpoint ناقص.
 
 **معیار پذیرش**
-1. صفر رشته‌ی `mock`/`Simulate API call`/`fake` در مسیر build شده؛ `grep -rn "mock_token\|Simulate API" <lib> ` خالی باشد.
+1. صفر رشته‌ی `mock`/`Simulate API call`/`fake` در مسیر build شده؛ `grep -rn "mock_token\|Simulate API" lib/` خالی باشد.
 2. پنج جریان — ورود/ثبت‌نام، لیست سالن، جزئیات + اسلات، ساخت رزرو، لیست رزروها — با API زنده روی دستگاه (یا emulator) کار کنند و ردپای‌شان در لاگ بک‌اند دیده شود.
 3. آدرس پایه از build-time config بیاید (dev/staging/prod) و `10.0.2.2` فقط در flavor توسعه باشد، نه در باینری release.
 4. خطای ۴۰۱/۵۰۰ پیام فارسیِ بازیابی‌شونده نشان دهد، نه spinner بی‌پایان.
@@ -161,6 +161,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 **مسئله** باینری منتشرشده نام فنی خودش را دارد، نه نام محصول؛ آیکون/اسپلش پیش‌فرض فلاتر است و برچسب فارسی نیست. کاربر در لیست اپ‌ها چیزی برای شناخت نمی‌بیند.
 
 **شواهد** `android/app/build.gradle.kts:20` (`futsal_booking_flutter`) · `AndroidManifest.xml` فقط یک permission (`INTERNET`) و برچسب بدون منبع فارسی · نبود asset فونت/تصویر در `pubspec.yaml:67-80`.
+
+**دامنه** `android/app/build.gradle.kts` (applicationId و versionName) · `AndroidManifest.xml` (برچسب/آیکون) · asset‌های فلاتر (آیکون، اسپلش) · `flutter-build.yml`
 
 **معیار پذیرش** `aapt2 dump badging` روی APK منتشرشده، `application-label` فارسی، `package: com.salon.salon_app` (یا تصمیم فیچر ۱)، آیکون تطبیقی (adaptive icon)، و `versionName` هم‌خوان با تگ را نشان دهد.
 
@@ -226,6 +228,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `FinanceService.record_income/record_refund` و کلیدهای `booking-payment:`/`game-payment:`/`contract-payment:` (`finance_service.py:199`) · نبود هر تسک یا endpoint مغایرگیری.
 
+**دامنه** تسک روزانه در `backend/app/tasks/` · endpoint گزارش در `finance.py` · صفحه‌ی مغایرگیری در داشبورد مدیر · ردیف‌های `financial_transactions`
+
 **معیار پذیرش** یک تسک روزانه + صفحه‌ی گزارش: اختلاف میان «موفقِ درگاه»، «PAID در دیتابیس» و «ردیف دفتر کل» را با شماره رزروهای ناهم‌خوان نشان دهد؛ سه حالت ساختگی (ردیف missing، پرداخت double، refund بدون پرداخت) در تست تشخیص داده شوند.
 
 **اولویت** P1 · **اندازه** M · **وابستگی** ۳، ۶
@@ -235,6 +239,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 **مسئله** بک‌اند چهار endpoint کوپن و پنج endpoint پیشنهاد ویژه دارد؛ در UI رزرو هیچ ورودی استبدال کوپن نیست و `coupon_code` فقط یک فیلد در interface جزئیات رزرو است. فیچر پرداخت‌شده‌ی نصفه، در عمل کاربری ندارد.
 
 **شواهد** `backend/app/api/v1/coupons.py` (۴ endpoint) و `deals.py` (۵ endpoint) · `frontend/src/pages/bookings/BookingDetail.tsx:56` تنها ارجاع نوعی · نبود ورودی در `PaymentDialog.tsx`/جریان ساخت رزرو.
+
+**دامنه** `backend/app/api/v1/coupons.py` و `deals.py` · جریان رزرو در `frontend/src/pages/venues/VenueDetail.tsx` و مودال پرداخت · `BookingDetail.tsx` · همان جریان در فلاتر
 
 **معیار پذیرش** کاربر در تأیید رزرو کد را وارد و «اعمال» می‌کند؛ قیمت نهایی با تخفیف محاسبه، کوپن در مصرف محدود اگر تمام شد پیام فارسی دقیق بگیرد؛ رزرو در نهایت `coupon_code` و مبلغ کاهش‌یافته‌ی درست در دیتابیس و فیش داشته باشد؛ دو کاربر هم‌زمان یک کوپن تک‌مصرفی را نسوزانند (اثبات با تست رقابت).
 
@@ -266,6 +272,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `backend/.env` (همان `your-super-secret-jwt-key-change-this-in-production`) · `ADMIN_PASSWORD=admin123` در `.env` · `app/config.py:54` → `MINIO_SECRET_KEY "futsal-minio-secret"` · `docker-compose.yml:70/74/88/104` · `backend/Dockerfile:26` (uvicorn `--reload` در ایمیج).
 
+**دامنه** `backend/app/config.py` · `backend/.env` و `docker-compose.yml` · `backend/Dockerfile` · روتر `admin` (اجبار تغییر رمز اولیه)
+
 **معیار پذیرش**
 1. با `APP_ENV=production` و هر Secret پیش‌فرض/کوتاه، کانتینر **بوت نکند** و خطای مشخص بدهد (تست خودکار: دو حالت — پیش‌فرض → fail، صحیح → OK).
 2. فایل‌های env واقعی از ریپو خارج و در `deploy/secrets.example` مستند شوند؛ مقدار پیش‌فرض در `config.py` حذف شود (None) تا گارد بوتی مجبور به اجرا باشد — جایگزینیِ پیش‌فرض با یک مقدار امن کافی نیست، چون فراموش می‌شود.
@@ -280,6 +288,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `backend/app/schemas/user.py:19` (`min_length=4`) · `app/utils/auth.py:16-22` (`memory_cost=1024`, `hash_len=16`) · `app/services/verification_service.py:49,58` (`random`) · `app/utils/rate_limit.py:53` (fail-open) · `DEBUG_ALLOW_DEV_CODE` در `config.py:37`.
 
+**دامنه** `app/utils/auth.py` (پارامترهای Argon2) · `app/schemas/user.py` · `app/services/verification_service.py` · `app/utils/rate_limit.py` · فرم‌های رمز در وب و موبایل
+
 **معیار پذیرش** کف طول رمز ۸ کاراکتر و سیاست رمز به‌صورت آشکار به کاربر؛ rehash شفاف هنگام لاگین برای هش‌های قدیمی؛ OTP از `secrets` و ذخیره‌ی hash‌شده با TTL؛ `DEBUG_ALLOW_DEV_CODE` در پروداکشن الزاماً `False` با گارد بوتی؛ قطع Redis → مسیرهای احراز هویت **fail-closed** با پیام ۵۰۳ فارسی.
 
 **اولویت** P0 · **اندازه** M · **وابستگی** ۱۱
@@ -289,6 +299,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 **مسئله** سه مورد باز از فازهای پیشین هنوز روی سرور باقی است: allowlist بدون origin پروداکشن، `MINIO_PUBLIC_URL` روی `localhost:9000` (تصویری که مدیر آپلود می‌کند برای هیچ کاربر دیگری بارگذاری نمی‌شود)، و نبود لایه‌ی HTTPS مستند برای دامنه‌ی محصول.
 
 **شواهد** `app/config.py:45-49` و بازنویسی آن در `docker-compose.yml:69/75` · `backend/.env:26` · `app/services/storage_service.py:41-63`.
+
+**دامنه** `app/config.py` و بازنویسی آن در `docker-compose.yml` · کانفیگ nginx (مسیر `/futsal-venues/` و WS) · env پروداکشن روی سرور
 
 **معیار پذیرش** از اپ Tauri و از مرورگر develop روی `localhost:3001` هیچ خطای CORS نباشد؛ تصویر آپلودشده توسط مدیر از آدرس عمومی سرویس‌شونده توسط nginx بارگذاری شود؛ کل ترافیک API/WS روی دامنه‌ی رسمی فقط HTTPS/WSS باشد (پاسخ HTTP → redirect).
 
@@ -300,6 +312,10 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 - `waitlist.py:183` نقش را با `["SUPER_ADMIN","CLUB_ADMIN"]` مقایسه می‌کند در حالی که مقدار enum کوچک و با `_` است (`models/user.py:7-11`) → سوپرادمین هم ۴۰۳ می‌گیرد؛ همان endpoint در `:197` نام/شناسه‌ی بقیه‌ی کاربران را برمی‌گرداند.
 - `checkin.py:41-56` فقط نقش را می‌بیند: هر مدیر سالنی می‌تواند کد چک‌این رزروی از سالن دیگر را تأیید کند.
 - `reviews.py:80-110` هیچ «رزرو تکمیل‌شده» را بررسی نمی‌کند و در `:110` امتیاز وفاداری می‌دهد → امتیاز قابل کاشت.
+
+**شواهد** `app/api/v1/waitlist.py:175-200` (مقایسه‌ی نقش با حروف بزرگ + حلقه‌ی ساخت payload با `user_id` دیگران) · `app/models/user.py:7-11` (مقادیر `user`/`venue_manager`/`club_admin`/`super_admin`) · `app/api/v1/checkin.py:44-56` (کنترل نقش، بدون مقایسه‌ی `venue`) · `app/api/v1/reviews.py:80-110` (ثبت نظر بدون شرط رزرو + اعطای امتیاز).
+
+**دامنه** `app/api/v1/waitlist.py` · `checkin.py` · `reviews.py` · تست‌های نقش در `backend/tests/`
 
 **معیار پذیرش**
 1. تست خودکار برای هر چهار نقش روی هر سه endpoint (انتظار: دسترسی درست، نه بیشتر نه کمتر).
@@ -319,6 +335,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `app/utils/websocket.py:16` · `main.py:31-34,109-166` (دو endpoint با auth `?token=`) · `notification_service.py:64,78,92` · `Dockerfile:26`.
 
+**دامنه** `app/utils/websocket.py` · `app/main.py` · `app/services/notification_service.py` · `backend/Dockerfile` · کانفیگ nginx
+
 **معیار پذیرش** با دو پروسه‌ی uvicorn، اعلانی که در پروسه‌ی A تولید می‌شود به اتصال برقرارشده در پروسه‌ی B برسد؛ قطع و وصل مجدد کلاینت با پیام‌های از‌دست‌رفته‌ی خوانده‌نشده در پنل نوتیفیکیشن درست شوند؛ توکن WS از query string به هدر/پروتکل امن منتقل شود و در لاگ nginx ثبت نگردد.
 
 **اولویت** P1 · **اندازه** M · **وابستگی** ۱۰، ۱۱
@@ -328,6 +346,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 **مسئله** هشت تسک نوشته شده ولی فقط دو تا در `beat_schedule` هستند؛ `autodiscover_tasks(['app.tasks'])` دنبال `app.tasks.tasks` می‌گردد و ماژول‌های تسک را import نمی‌کند، پس در پروداکشن بسیاری از تسک‌ها یا ثبت نشده‌اند یا زمان‌بندی ندارند. یعنی تمیزکردن رزروهای معلق، انقضای رقابت‌ها، یادآوری قرارداد و کمپین CRM عملاً اجرا نمی‌شود.
 
 **شواهد** `app/tasks/worker.py:16-27` (فقط دو ورودی) و `:30` · `reminder_tasks.py:6` (import معیوب، همان فیچر ۶) · `docker-compose.yml:113` (worker با `--beat`).
+
+**دامنه** `app/tasks/*.py` · `app/tasks/worker.py` · `docker-compose.yml` (beat) · جدول زمان‌بندی در همین سند
 
 **معیار پذیرش** هر هشت تسک در `celery inspect registered` دیده شوند؛ جدول زمان‌بندی مستند (دوره، lock، پیام‌رسانی) در سند؛ اجرای هر تسک روی داده‌ی تستی اثر قابل مشاهده بدهد (مثلاً آزاد شدن یک اسلات معلقِ گذشته‌از‌موعد)؛ خطای داخل تسک با retry و لاگ ساختاریافته دیده شود، نه سکوت.
 
@@ -339,6 +359,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `waitlist.py:149-151` و `:197` · `competitions.py:28` · `games.py:101` (`/my`) · `bookings.py:267-272` (limit بدون offset).
 
+**دامنه** روترهای لیست‌ساز (`games.py`, `teams.py`, `competitions.py`, `admin.py`, `finance.py`, `bookings.py`) · `frontend/src/services/*.ts` و صفحه‌های مصرف‌کننده · لیست‌های فلاتر
+
 **معیار پذیرش** envelope مشترک `{items, next_cursor|total}` روی endpoint‌های لیست‌ساز؛ سقف سخت پیش‌فرض (مثلاً ۵۰) در همه‌ی آن‌ها؛ بدون query تکراری برای هر row (اثبات با `SELECT` count در لاگ کوئری برای یک صفحه‌ی نمونه)؛ رابط وب و موبایل infinite-scroll یا pagination واقعی روی همان‌ها داشته باشد.
 
 **اولویت** P1 · **اندازه** M · **وابستگی** —
@@ -349,6 +371,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** نبود هر ارجاع FCM/push در بک‌اند و هر دو پروژه‌ی فلاتر · کانال‌های فعلی: DB + WS + SMTP (`notification_service.py:19-37,64-92`) · `sms_enabled=False` و `SMS_*` خوانده‌نشده.
 
+**دامنه** ماژول FCM + مدل token در `backend` · `notification_service.py` · پلاگین push در فلاتر (هر دو پروژه) · `AndroidManifest.xml` · پنل تنظیمات اعلان در وب
+
 **معیار پذیرش** ثبت token در دستگاه و پاک‌سازی آن هنگام logout؛ دو رویداد واقعی (یادآوری ۲ ساعت قبل از رزرو، نوبت صف انتظار) روی دستگاه خاموش/پس‌زمینه دریافت شوند و با کلیک روی نوتیفیکیشن دقیقاً به صفحه‌ی مربوطه بروند (deep link)؛ نرخ شکست ارسال و انقضا token در dashboard دیده شود.
 
 **اولویت** P1 · **اندازه** L · **وابستگی** ۱۰، ۱۶، ۲۰
@@ -356,6 +380,10 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 ### فیچر ۱۹ | Observability و پشتیبان‌گیری/بازیابی
 
 **مسئله** پوشه‌ی `monitoring/` (prometheus + grafana) وجود دارد ولی اپ metrics تولید نمی‌کند و هیچ جمع‌آوری خطای سراسری نیست؛ پشتیبان‌گیری فقط یک فایل موردی (`/home/ubuntu/backups/futsal_db_pre_x10.sql.gz`) بوده و بازیابی هرگز تمرین نشده.
+
+**شواهد** جستجوی `prometheus|/metrics|Instrumentator` در `backend/app`: صفر نتیجه، در حالی که `monitoring/prometheus` و `monitoring/grafana` در ریپو وجود دارند · نبود هر Sentry/error-reporting در `frontend/src` و در هر دو پروژه‌ی فلاتر.
+
+**دامنه** `backend` (endpoint metrics) · `monitoring/prometheus` و `monitoring/grafana` · اسکریپت پشتیبان/restore روی سرور · خطایابی سراسری در وب و موبایل
 
 **معیار پذیرش** `/metrics` با latency per-route، rate-limit rejection، تسک‌های Celery و اتصال فعال WS در Grafana؛ خطای سمت کلاینت و سرور با correlation-id به یک خطایابی سراسری برسد؛ اسکریپت restore از آخرین پشتیبان در محیط غیرپروداکشن اجرا و مستند شود (زمان، حجم، نتیجه)؛ alert برای سه شرط: نرخ 5xx API، down بودن Redis/Celery، و پشتیبان ناموفق.
 
@@ -371,6 +399,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `/teams`، `/teams/discover`، `/teams/:id` (چت/quorum/ dues/balance)، `/competitions`، `/games` و وفاداری در پروفایل · تنها مسیر دسترسی: پروفایل → «مرور سریع».
 
+**دامنه** `frontend/src/components/layout/BottomNavigation.tsx` و `Home.tsx` · مسیرهای `/teams`، `/competitions`، `/games` · ناوبری مدیر
+
 **گزینه‌ها (تصمیم با کاربر، بند ۱۰-۴)** الف) افزودن «تیم» به bottom nav (≤۵ قلم)؛ ب) ردیف «امکانات» در Home؛ ج) افزودن «رقابت‌ها» به bottom nav مدیر.
 
 **معیار پذیرش** پس از انتخاب، از مسیر واقعی موبایل: هر یک از سه فیچر حداکثر دو tap از خانه؛ هر قلم ناوبری آیکون **و** برچسب فارسی و حالت active؛ دیپ‌لینک مستقیم برای هر صفحه.
@@ -383,6 +413,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `frontend/src/pages/venues/VenueDetail.tsx:947-975` (زنده) · صفر ارجاع به waitlist در `lib/` · `games.py:412-432` و `waitlist.py` (۴ endpoint) · `notify_waitlist_on_cancellation` در `reminder_tasks.py:132`.
 
+**دامنه** فلاتر (جزئیات سالن + کارت اسلات) · `app/api/v1/waitlist.py` · `app/tasks/reminder_tasks.py` · وب (نمایش موقعیت/انقضا در همان UI زنده)
+
 **معیار پذیرش** روی اسلات `BOOKED` در جزئیات سالن (موبایل) «ورود به صف انتظار» با نمایش موقعیت؛ لغو کردن یک رزرو، نفر اول را در کمتر از یک دقیقه با پوش/WS خبر کند؛ پس از ۲ ساعت بدون اقدام، نوبت به نفر بعد برسد؛ رد شدن/انقضا در UI همان‌ها نشان داده شود.
 
 **اولویت** P1 · **اندازه** M · **وابستگی** ۲، ۶، ۱۶، ۱۸
@@ -392,6 +424,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 **مسئله** چک‌این در وب فقط ورود دستی کد است (`frontend/src/pages/manager/ManagerCheckin.tsx`) و در موبایل هیچ؛ بک‌اند رشته‌ی `SALON-CHECKIN:{code}` را تولید می‌کند ولی هیچ اسکنری در هیچ کلاینتی آن را نمی‌خواند.
 
 **شواهد** `checkin.py:35` (فرمت payload) · نبود `mobile_scanner`/`qr_flutter` در `lib/` · `AndroidManifest.xml` بدون `CAMERA`.
+
+**دامنه** `app/api/v1/checkin.py` · `frontend/src/pages/manager/ManagerCheckin.tsx` · اسکنر QR در فلاتر · `AndroidManifest.xml` (permission دوربین)
 
 **معیار پذیرش** مدیر با دوربین دستگاه، QR کاربر را اسکن و چک‌این موفق/ناموفق با پیام فارسی ببیند؛ permission دوربین با توضیح درخواست شود و رد کردن آن مسیر دستی را مسدود نکند؛ تلاش اسکن کد سالن دیگر ۴۰۳ بدهد (وابسته به فیچر ۱۴).
 
@@ -403,6 +437,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `app/utils/jalali.py` (یک مصرف در `game_service.py:1169`) · `payments.py:143`, `waitlist.py:157` · `worker.py:14` در برابر `time_guard.py:21` و `reminder_tasks.py:59`.
 
+**دامنه** `app/utils/jalali.py` و مصرف‌کننده‌های آن · پاسخ‌های API (`payments.py`, `waitlist.py`, ...) · `app/utils/time_guard.py` و تسک‌ها · نمایش تاریخ در وب و موبایل
+
 **معیار پذیرش** قرارداد مستند: همه‌ی timestamps در API به ISO-8601 با offset (UTC) و همه‌ی نمایش‌ها در UI شمسی؛ هیچ مقایسه‌ی datetime در بک‌اند naive نباشد (lint/grep gate)؛ یک رزرو ۲۳:۳۰ و یک رزرو ۰۰:۳۰ در روز شمسی درست خودشان نمایش داده و فیلتر شوند.
 
 **اولویت** P1 · **اندازه** M · **وابستگی** —
@@ -413,6 +449,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `pubspec.yaml:67-80` (کامنت) · `android/pubspec.yaml:55-66` (فونت در پروژه‌ای که build نمی‌شود) · نبود هر فایل `.arb` و نبود `l10n.yaml` در هیچ‌یک از دو پروژه.
 
+**دامنه** `pubspec.yaml` (بلوک fonts/assets) · `l10n/` + `app_*.arb` و `l10n.yaml` · صفحه‌های فلاتر · `android/pubspec.yaml:55-66`
+
 **معیار پذیرش** Vazirmatn (وزن‌های موردنیاز) در باینری منتشرشده، صفر fallback به فونت پیش‌فرض system برای متن فارسی؛ تمام رشته‌های UI از `app_*.arb` (حداقل `fa` و `en`) بیایند و صفر رشته‌ی hard-coded در صفحه‌ها؛ تست widget با `SemanticsHandle`/`enableSemantics` روی پنج صفحه‌ی کلیدی label/action معنادار بدهد؛ RTL در همه‌ی صفحه‌ها با `Directionality` درست (تست با چرخش دستگاه به landscape و اسکرول افقی).
 
 **اولویت** P1 · **اندازه** M · **وابستگی** ۱، ۵
@@ -421,7 +459,11 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **مسئله** کلاینت‌ها برای حالت «سرور نیست» یا «شبکه 3G» طراحی نشده‌اند؛ صف طولانیِ loading بی‌پایان، بدون retry، و بدون دیپ‌لینک، در نتیجه نه لینک رزرو قابل اشتراک است نه اعلان‌های فاز بعدی قابل بازکردن.
 
-**معیار پذیرش** در حالت airplane mode و در حالت `offline/2G` throttling: هر صفحه‌ی اصلی یا داده‌ی cached با نشانه‌ی «آفلاین» نشان داده شود یا پیام retry دقیق؛ صفر spinner بدون timeout؛ هر entity اصلی (سالن، رزرو، تیم، رقابت، بازی) دیپ‌لینک پایدار داشته باشد که از نوتیفیکیشن و از مرورگر وب باز شود و حالت active ناوبری را درست کند.
+**شواهد** جستجوی `connectivity|offline|TimeoutException` در `lib/` و `android/lib/`: صفر نتیجه · `frontend/src/services/api.ts:18` یک `timeout: 30000` سراسری دارد ولی هیچ پیام آفلاین، retry یا cached fallback · نبود هر deep link handler در فلاتر و نبود `tauri://` path mapping برای صفحات.
+
+**دامنه** فلاتر (handler لینک + حالت آفلاین) · `AndroidManifest.xml` (intent-filter VIEW) · `frontend/src/services/api.ts` · route‌های وب برای دیپ‌لینک
+
+**معیار پذیرش** در حالت airplane mode و در حالت throttling شبکه‌ی ضعیف: هر صفحه‌ی اصلی یا داده‌ی cached با نشانه‌ی «آفلاین» نشان داده شود یا پیام retry دقیق؛ timeout موبایل کوتاه‌تر از ۳۰ ثانیه و پیام‌محور باشد، نه spinner بی‌پایان؛ هر entity اصلی (سالن، رزرو، تیم، رقابت، بازی) دیپ‌لینک پایدار داشته باشد که از نوتیفیکیشن و از مرورگر وب باز شود و حالت active ناوبری را درست کند.
 
 **اولویت** P2 · **اندازه** M · **وابستگی** ۲، ۱۰، ۱۸
 
@@ -435,6 +477,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** تنها workflow مخزن `.github/workflows/flutter-build.yml` است و `frontend/.github/workflows/` خالی است · `backend/tests/` (۴۳ فایل، SQLite در `conftest.py:20-21`).
 
+**دامنه** `.github/workflows/` (workflow بک‌اند و وب) · `backend/tests/` · `frontend/package.json` · کانفیگ PostgreSQL برای job تست
+
 **معیار پذیرش** دو workflow جدید (یا یک workflow با چند job) که در هر PR: `pytest` بک‌اند، `tsc --noEmit` و `vite build` وب، و build موبایل را اجرا کنند؛ شکست هر یک merge را بلاک کند؛ `alembic upgrade head` روی دیتابیس خالی به‌عنوان یک job جدا (اثبات اینکه مهاجرت‌ها از صفر کار می‌کنند)؛ لاگ‌ها طوری باشد که نتیجه‌ی هر job از بیرون (annotation/check-run) قابل خواندن باشد.
 
 **اولویت** P0 · **اندازه** M · **وابستگی** — · نکته: تست بک‌اند روی SQLite، `SELECT FOR UPDATE` را می‌بلعد؛ job مهاجرت/تست باید روی PostgreSQL واقعی اجرا شود وگرنه رقابت‌ها و قفل ردیف بدون پوشش می‌مانند.
@@ -445,6 +489,8 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 
 **شواهد** `frontend/package.json:8,15` · نبود `eslint.config.*`/`.eslintrc*` در `frontend/` · نبود هر فایل `*.test.*` در `src/`.
 
+**دامنه** `frontend/package.json` (scripts) · کانفیگ lint · `frontend/src/**/*.test.tsx` + setup تست · gate در workflow
+
 **معیار پذیرش** gate واقعی: یا ESLint کانفیگ باندل و در CI اجرا شود، یا script به `oxlint` تغییر کند و وابستگی‌اش نصب شود — یکی، نه هر دو به‌صورت نیمه‌کاره؛ `build` (یا یک job در CI) شامل `tsc --noEmit` شود و صفر خطای نوعی داشته باشد؛ پنج تست integration سطح کامپوننت برای جریان‌های ورود، ساخت رزرو، لغو + پیام refund، اعمال کوپن و ورود به صف انتظار نوشته و در CI سبز شوند.
 
 **اولویت** P1 · **اندازه** L · **وابستگی** ۲۵
@@ -452,6 +498,10 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 ### فیچر ۲۷ | اسموک E2E از مسیر منتشرشده
 
 **مسئله** هیچ‌یک از اثبات‌های فعلی از «بسته‌ای که کاربر نصب می‌کند» انجام نمی‌شود. بیلد سبز + تست واحد سبز می‌تواند اپی را تأیید کند که اصلاً به سرور وصل نمی‌شود — و امروز دقیقاً همین اتفاق افتاده است.
+
+**شواهد** تنها بررسی‌های `flutter-build.yml` روی خروجی، size/count فایل‌ها و `draft=false` است؛ هیچ گام اجرایی (install/launch/API) در pipeline نیست · `backend/tests/` روی SQLite و بدون سرور واقعی اجرا می‌شود · نتیجه‌ی این شکاف: `v1.0.0` با ده باینری سبز منتشر شد در حالی که اپ منتشرشده با `mock_token_123` وارد می‌شود.
+
+**دامنه** workflow انتشار (گام اسموک) · اسکریپت E2E در `scripts/` · محیط staging + حساب تست + لاگ بک‌اند
 
 **معیار پذیرش** یک چرخه‌ی کامل و خودکار: نصب APK/AAB منتشرشده روی دستگاه → ورود با حساب تست → ساخت رزرو در محیط staging → پرداخت (sandbox درگاه) → مشاهده در لیست → لغو و دیدن refund → چک‌این؛ همه گام‌ها در لاگ بک‌اند ردپا داشته باشند و نتیجه به‌صورت annotation روی همان release گزارش شود. هر گامی که در باینری واقعی ممکن نیست، به‌عنوان blocker باز ثبت شود نه اینکه skip شود.
 
@@ -476,7 +526,7 @@ CI از ریشه‌ی مخزن `flutter build` می‌گیرد؛ یعنی `lib/`
 ## ۱۱) Definition of Done (حاکم بر همه‌ی فیچرها)
 
 1. از **مسیر منتشرشده** اثبات شده: باینری/URL واقعی که کاربر می‌بیند، نه فراخوانی مستقیم تابع.
-2. عدد و لاگ، نه形容词: «۵۰۰ رفع شد» کافی نیست؛ «لغو رزرو #X → `REFUNDED` + ردیف `booking-refund:{id}` + اسلات آزاد + پیام کاربر» کافی است.
+2. عدد و لاگ، نه صفت: «۵۰۰ رفع شد» کافی نیست؛ «لغو رزرو #X → `REFUNDED` + ردیف `booking-refund:{id}` + اسلات آزاد + پیام کاربر» کافی است.
 3. دروازه‌بانی: هر endpoint جدید/تغییر‌یافته با تست نقش‌ها (۴ نقش) پوشش داده شود.
 4. داده‌ی حساس: هیچ نشت بین‌سالنی/بین‌کاربری در پاسخ‌ها؛ هویت‌ها به حداقل لازم کاهش یابند.
 5. فارسی و RTL: متن‌های جدید در هر دو کلاینت فارسی، با فونت باندل‌شده و جهت درست.
