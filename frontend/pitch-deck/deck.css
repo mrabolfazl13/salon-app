@@ -354,3 +354,125 @@ table.tbl td.r { text-align: left; font-variant-numeric: tabular-nums; }
 }
 .divider { height: 1px; background: var(--hairline); }
 .divider.on-dark { background: rgba(255, 255, 255, .10); }
+
+/* ─── Phase deck: feature rows, gap bars, wave cards ──────────────── */
+.feat {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 9px 0; border-bottom: 1px solid var(--hairline);
+}
+.feat:last-child { border-bottom: none; }
+.feat .num {
+  font-size: 12pt; font-weight: 800; color: var(--slate-lt);
+  width: 24px; flex-shrink: 0; line-height: 1.35;
+  font-variant-numeric: tabular-nums;
+}
+.feat .body { flex: 1; min-width: 0; }
+.feat .t { font-size: 10pt; font-weight: 700; color: var(--navy); line-height: 1.5; }
+.feat .d { font-size: 8.3pt; line-height: 1.75; color: var(--slate); margin-top: 2px; }
+.feat .meta {
+  display: flex; flex-direction: column; gap: 4px; align-items: flex-end;
+  flex-shrink: 0;
+}
+.feat.proof .num { color: var(--amber-dk); }
+
+.track-head { display: flex; align-items: baseline; gap: 10px; margin-bottom: 4mm; }
+.track-head .idx {
+  font-size: 30pt; font-weight: 800; line-height: .9; letter-spacing: -.03em;
+  color: rgba(15, 23, 42, .10);
+}
+.track-head.on-dark .idx { color: rgba(255, 255, 255, .16); }
+
+.gap { display: flex; flex-direction: column; gap: 9px; }
+.gap-row { display: grid; grid-template-columns: 1fr 62mm auto auto; gap: 10px; align-items: center; }
+.gap-row .k { font-size: 8.6pt; line-height: 1.6; color: #263141; }
+.gap-row .bar { position: relative; height: 9px; border-radius: 6px; background: rgba(15, 23, 42, .07); overflow: hidden; }
+.gap-row .bar i { position: absolute; top: 0; bottom: 0; right: 0; display: block; border-radius: 6px; background: var(--g-energy); }
+.gap-row .bar i.b2 { background: var(--g-primary); }
+.gap-row .bar i.bad { background: var(--g-deals); }
+.gap-row .v {
+  font-size: 8.2pt; font-weight: 700; color: var(--navy); white-space: nowrap;
+  font-variant-numeric: tabular-nums; direction: ltr; unicode-bidi: embed;
+}
+.gap-row .v em { font-style: normal; color: var(--slate-lt); font-weight: 600; }
+.gap-row .now { font-size: 8.6pt; font-weight: 600; color: var(--slate-lt); min-width: 26mm; text-align: center; }
+.gap-row .goal { font-size: 9.4pt; font-weight: 800; color: var(--navy); min-width: 30mm; text-align: center; }
+.gap-row.hdr { padding-bottom: 4px; border-bottom: 1.5px solid var(--hairline); }
+.gap-row.hdr .now, .gap-row.hdr .goal { font-size: 8pt; font-weight: 700; color: var(--slate); }
+.gap-row.hdr .bar { background: none; }
+
+.wave {
+  position: relative; border-radius: var(--r-card); padding: 14px 15px 15px;
+  border: 1px solid var(--hairline); background: var(--paper); box-shadow: var(--sh-card);
+}
+.wave .top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 7px; }
+.wave .nm { font-size: 10pt; font-weight: 800; }
+.wave .dur { font-size: 7.4pt; font-weight: 700; color: var(--amber-dk); }
+.wave .ids { display: flex; flex-wrap: wrap; gap: 4px; margin: 8px 0 9px; }
+.wave .ids span {
+  font-size: 8pt; font-weight: 800; min-width: 20px; text-align: center;
+  border-radius: 7px; padding: 2.5px 5px;
+  background: rgba(15, 23, 42, .05); color: var(--navy);
+}
+.wave .why { font-size: 8pt; line-height: 1.7; color: var(--slate); }
+.wave.now { border-color: rgba(239, 68, 68, .35); box-shadow: 0 8px 26px rgba(220, 38, 38, .10); }
+
+/* ─── Phase deck density: scaled type so A4 pages read full ───────── */
+.p27 .head-block { margin-bottom: 11mm; }
+.p27 .h2 { font-size: 17.5pt; }
+.p27 .h3 { font-size: 12.4pt; }
+.p27 .lead { font-size: 10.8pt; line-height: 2.05; }
+.p27 .sm { font-size: 9.5pt; line-height: 1.95; }
+.p27 .mono-code { font-size: 8.1pt; padding: 2.5px 7px; }
+.p27 .chip { font-size: 8.1pt; padding: 4.5px 11px; }
+.p27 .grid { gap: 14px; }
+.p27 .tile { padding: 19px 20px; }
+.p27 .tile.flat { padding: 15px 17px; }
+.p27 .ul li { font-size: 10pt; line-height: 1.85; }
+
+.p27 .track-head { margin-bottom: 6mm; }
+.p27 .track-head .idx { font-size: 38pt; }
+
+.p27 .feat { padding: 15px 0; gap: 14px; }
+.p27 .feat .num { font-size: 15pt; width: 30px; }
+.p27 .feat .t { font-size: 11.2pt; }
+.p27 .feat .d { font-size: 9.2pt; line-height: 1.95; margin-top: 4px; }
+.p27 .feat .ev { font-size: 8.3pt; line-height: 1.8; color: var(--slate-lt); margin-top: 6px; }
+.p27 .feat .ev b { color: var(--slate); font-weight: 700; }
+
+.p27 .gap { gap: 13px; }
+.p27 .gap-row { grid-template-columns: 1fr 58mm 26mm 30mm; gap: 12px; }
+.p27 .gap-row .k { font-size: 9.7pt; line-height: 1.7; }
+.p27 .gap-row .bar { height: 13px; }
+.p27 .gap-row .now { font-size: 9pt; }
+.p27 .gap-row .goal { font-size: 10pt; }
+
+.p27 table.tbl { font-size: 9.7pt; }
+.p27 table.tbl th { font-size: 8.8pt; padding: 11px 12px; }
+.p27 table.tbl td { padding: 11px 12px; line-height: 1.75; }
+
+.p27 .stat-n { font-size: 29pt; }
+.p27 .stat-l { font-size: 9.2pt; margin-top: 7px; }
+
+.p27 .step { font-size: 10pt; padding-right: 38px; }
+.p27 .step span { font-size: 9pt; line-height: 1.8; }
+.p27 .step::before { width: 27px; height: 27px; border-radius: 10px; font-size: 10pt; }
+
+.p27 .wave { padding: 18px 19px 19px; }
+.p27 .wave .nm { font-size: 11.2pt; }
+.p27 .wave .why { font-size: 8.9pt; line-height: 1.85; }
+.p27 .wave .ids span { font-size: 9.4pt; padding: 4px 7px; min-width: 24px; }
+
+/* keeps digit runs like ۲۰۲-۱۰-۰۵ in logical order inside RTL prose */
+.iso { direction: ltr; unicode-bidi: isolate; display: inline-block; }
+
+/* lighter density for the two most packed phase pages */
+.p27.tight .feat { padding: 10px 0; }.p27.tight .feat .d { font-size: 8.8pt; line-height: 1.85; }
+.p27.tight .step { font-size: 9.6pt; }
+.p27.tight .step span { font-size: 8.5pt; line-height: 1.7; }
+.p27.tight table.tbl { font-size: 9.2pt; }
+.p27.tight table.tbl td { padding: 8px 11px; line-height: 1.65; }
+.p27.tight .head-block { margin-bottom: 8mm; }
+
+/* distribute content down the page instead of stacking it at the top */
+.p27.spread { justify-content: space-between; }
+.p27.spread > .pfoot { margin-top: 0; padding-top: 0; }
