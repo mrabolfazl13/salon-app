@@ -3,12 +3,8 @@ name: Flutter Android Build
 on:
   push:
     branches: [master]
-    paths:
-      - 'android_flutter/**'
   pull_request:
     branches: [master]
-    paths:
-      - 'android_flutter/**'
 
 env:
   FLUTTER_VERSION: '3.24.x'
