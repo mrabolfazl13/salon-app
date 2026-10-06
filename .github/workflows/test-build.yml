@@ -1,0 +1,30 @@
+name: Test Flutter Build
+
+on:
+  push:
+    branches: [master]
+    paths:
+      - '.github/workflows/test-build.yml'
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: List files
+        run: |
+          echo "Root directory:"
+          ls -la
+          echo ""
+          echo "android_flutter directory:"
+          ls -la android_flutter/ || echo "Not found"
+      
+      - name: Check pubspec
+        run: |
+          if [ -f android_flutter/pubspec.yaml ]; then
+            echo "✓ pubspec.yaml exists"
+            head -20 android_flutter/pubspec.yaml
+          else
+            echo "✗ pubspec.yaml NOT found"
+          fi
