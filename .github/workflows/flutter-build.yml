@@ -39,6 +39,18 @@ jobs:
       - name: Verify Flutter installation
         run: flutter doctor -v
 
+      - name: Debug directory structure
+        run: |
+          echo "Current directory: $(pwd)"
+          echo "Files in current directory:"
+          ls -la
+          echo ""
+          echo "Looking for pubspec.yaml:"
+          find . -name "pubspec.yaml" -type f
+          echo ""
+          echo "Contents of ${{ env.WORKING_DIR }}:"
+          ls -la ${{ env.WORKING_DIR }} || echo "Directory does not exist"
+
       - name: Get dependencies
         run: flutter pub get
 
