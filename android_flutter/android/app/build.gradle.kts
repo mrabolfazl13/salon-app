@@ -35,7 +35,13 @@ android {
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
+            // Only sign if KEYSTORE_PATH is provided (e.g., in CI/CD with secrets)
+            val keystorePath = System.getenv("KEYSTORE_PATH")
+            if (!keystorePath.isNullOrEmpty()) {
+                signingConfig = signingConfigs.getByName("release")
+            } else {
+                signingConfig = null // Unsigned APK for distribution
+            }
             isMinifyEnabled = false
             isShrinkResources = false
         }
