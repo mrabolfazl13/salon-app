@@ -9,15 +9,11 @@ on:
 env:
   FLUTTER_VERSION: '3.x'
   JAVA_VERSION: '17'
-  WORKING_DIR: 'android_flutter'
 
 jobs:
   build-apk:
     name: Build Android APK
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.WORKING_DIR }}
 
     steps:
       - name: Checkout code
@@ -39,43 +35,32 @@ jobs:
       - name: Verify Flutter installation
         run: flutter doctor -v
 
-      - name: Debug directory structure
-        run: |
-          echo "Current directory: $(pwd)"
-          echo "Files in current directory:"
-          ls -la
-          echo ""
-          echo "Looking for pubspec.yaml:"
-          find . -name "pubspec.yaml" -type f
-          echo ""
-          echo "Contents of ${{ env.WORKING_DIR }}:"
-          ls -la ${{ env.WORKING_DIR }} || echo "Directory does not exist"
-
       - name: Get dependencies
+        working-directory: android_flutter
         run: flutter pub get
 
       - name: Analyze code
+        working-directory: android_flutter
         run: flutter analyze --no-fatal-infos --no-fatal-warnings
 
       - name: Run tests
+        working-directory: android_flutter
         run: flutter test || echo "No tests found, skipping..."
 
       - name: Build debug APK
+        working-directory: android_flutter
         run: flutter build apk --debug
 
       - name: Upload debug APK
         uses: actions/upload-artifact@v4
         with:
           name: salon-app-debug-apk
-          path: ${{ env.WORKING_DIR }}/build/app/outputs/flutter-apk/app-debug.apk
+          path: android_flutter/build/app/outputs/flutter-apk/app-debug.apk
           retention-days: 30
 
   build-release:
     name: Build Android Release (Unsigned)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: ${{ env.WORKING_DIR }}
 
     steps:
       - name: Checkout code
@@ -95,23 +80,29 @@ jobs:
           cache: true
 
       - name: Get dependencies
+        working-directory: android_flutter
         run: flutter pub get
 
       - name: Build release APK (unsigned)
+        working-directory: android_flutter
         run: flutter build apk --release
 
       - name: Upload release APK
         uses: actions/upload-artifact@v4
         with:
           name: salon-app-release-unsigned
-          path: ${{ env.WORKING_DIR }}/build/app/outputs/flutter-apk/app-release.apk
+          path: android_flutter/build/app/outputs/flutter-apk/app-release.apk
           retention-days: 30
 
-      - name: Upload AAB
+      - name: Build release AAB
+        working-directory: android_flutter
+        run: flutter build appbundle --release
+
+      - name: Upload AAB artifact
         uses: actions/upload-artifact@v4
         with:
           name: salon-app-release-aab
-          path: ${{ env.WORKING_DIR }}/build/app/outputs/bundle/release/app-release.aab
+          path: android_flutter/build/app/outputs/bundle/release/app-release.aab
           retention-days: 30
 
   build-summary:
@@ -121,9 +112,6 @@ jobs:
     if: always()
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
       - name: Generate build summary
         run: |
           echo "## 🎉 Flutter Android Build Complete" >> $GITHUB_STEP_SUMMARY
