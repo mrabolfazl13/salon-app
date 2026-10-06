@@ -101,7 +101,7 @@ class ManagerFinanceScreen extends ConsumerWidget {
                   ),
                 ),
                 Text(
-                  '${t['type'] == 'income' ? '+' : '-'}${_formatPrice(t['amount'] as num)}',
+                  '${t['type'] == 'income' ? '+' : '-'}${_formatPrice((t['amount'] as num).toInt())}',
                   style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w700,
                     color: t['type'] == 'income' ? AppColors.success : AppColors.error,

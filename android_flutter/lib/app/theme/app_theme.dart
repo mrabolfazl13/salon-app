@@ -35,7 +35,7 @@ class AppTheme {
       fontFamily: AppTypography.fontFamily,
       
       // Card theme
-      cardTheme: CardTheme(
+      cardTheme: CardThemeData(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: AppRadius.cardBorderRadius,
@@ -139,7 +139,7 @@ class AppTheme {
       ),
       
       // Dialog theme
-      dialogTheme: const DialogTheme(
+      dialogTheme: const DialogThemeData(
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.all(Radius.circular(AppRadius.dialog)),
         ),
