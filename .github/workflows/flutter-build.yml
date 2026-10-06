@@ -1,8 +1,10 @@
-name: Flutter Android Build
+name: Flutter Multi-Platform Build
 
 on:
   push:
     branches: [master]
+  tags:
+    - 'v*'
 
 jobs:
   build-apk-debug:
@@ -113,3 +115,41 @@ jobs:
         with:
           name: app-release.aab
           path: android_flutter/build/app/outputs/bundle/release/app-release.aab
+  
+  build-ios:
+    name: Build iOS IPA
+    runs-on: macos-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: '3.x'
+          channel: 'stable'
+      
+      - name: Clean build
+        working-directory: android_flutter
+        run: flutter clean
+      
+      - name: Get dependencies
+        working-directory: android_flutter
+        run: flutter pub get
+      
+      - name: Build iOS
+        working-directory: android_flutter
+        run: flutter build ios --release --no-codesign
+      
+      - name: Create IPA
+        working-directory: android_flutter
+        run: |
+          cd build/ios/iphoneos
+          mkdir -p Payload
+          cp -r Runner.app Payload/
+          zip -r app-release.ipa Payload
+      
+      - name: Upload iOS IPA
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release.ipa
+          path: android_flutter/build/ios/iphoneos/app-release.ipa
