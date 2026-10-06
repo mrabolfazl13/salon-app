@@ -22,6 +22,10 @@ jobs:
           flutter-version: '3.x'
           channel: 'stable'
       
+      - name: Clean build
+        working-directory: android_flutter
+        run: flutter clean
+      
       - name: Get dependencies
         working-directory: android_flutter
         run: |
@@ -29,10 +33,6 @@ jobs:
             echo "::error::flutter pub get failed"
             exit 1
           }
-      
-      - name: Clean build
-        working-directory: android_flutter
-        run: flutter clean
       
       - name: Build APK
         working-directory: android_flutter
