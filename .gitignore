@@ -65,3 +65,11 @@ backend/_tmp*.db-*
 /.dart_tool/
 /.flutter-plugins-dependencies
 /.flutter-plugins*
+
+# Android signing files (NEVER commit these!)
+android_flutter/release-keystore.jks
+android_flutter/key.properties
+android_flutter/keystore-base64.txt
+*.jks
+*.keystore
+key.properties
