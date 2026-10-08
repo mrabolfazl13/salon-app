@@ -29,6 +29,7 @@ import {
   TeamRoleBadge,
   getTeamError,
 } from '@/components/team'
+import SplitPaymentsPanel from '@/components/split-payment/SplitPaymentsPanel'
 import {
   useAcceptTeamInvitation,
   useDeclineTeamInvitation,
@@ -174,6 +175,7 @@ const TeamDetail: React.FC = () => {
     { label: 'بازی‌ها و رزروها', show: isMember },
     { label: 'حصه‌ها', show: isMember },
     { label: 'تراز', show: isMember },
+    { label: 'پرداخت اشتراکی', show: isMember },
   ]
   const visibleTabs = tabs.filter((t) => t.show)
   const tabIndex = Math.min(tab, Math.max(0, visibleTabs.length - 1))
@@ -355,6 +357,9 @@ const TeamDetail: React.FC = () => {
       {currentTab === 'بازی‌ها و رزروها' && <TeamBookingsPanel team={team} />}
       {currentTab === 'حصه‌ها' && <TeamDuesPanel team={team} members={membersQ.data ?? []} isManager={isManager} />}
       {currentTab === 'تراز' && <TeamBalancePanel team={team} isManager={isManager} />}
+      {currentTab === 'پرداخت اشتراکی' && (
+        <SplitPaymentsPanel team={team} members={membersQ.data ?? []} isManager={isManager} />
+      )}
 
       <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8', mt: 3 }}>
         {`شناسه تیم ${toPersianDigits(team.id)} — ساخته‌شده در ${formatPersianDate(team.created_at)}`}

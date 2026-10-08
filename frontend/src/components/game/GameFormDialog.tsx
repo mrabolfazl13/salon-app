@@ -2,7 +2,7 @@
 // فرم ساخت/ویرایش بازی — ساخت روی رزرو تأییدشده (booking_id از فراخوان)؛ ویرایش فیلدهای مجاز
 
 import React, { useEffect, useState } from 'react'
-import { Box, Typography, TextField, MenuItem, InputAdornment } from '@mui/material'
+import { Box, Typography, TextField, MenuItem, InputAdornment, Alert } from '@mui/material'
 
 import type { Game, GameVisibility, PaymentMode, SkillLevel } from '@/types/game'
 import {
@@ -16,6 +16,8 @@ import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { SPORTS } from '@/components/mobile/SportChip'
 import { getGameError } from './shared'
+import SplitPaymentDialog from '@/components/split-payment/SplitPaymentDialog'
+import { teamService } from '@/services/team'
 
 interface Props {
   open: boolean
@@ -45,6 +47,8 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
   const [skillLevel, setSkillLevel] = useState<SkillLevel>('intermediate')
   const [visibility, setVisibility] = useState<GameVisibility>('public')
   const [paymentMode, setPaymentMode] = useState<PaymentMode>('split_payment')
+  const [showSplitPaymentDialog, setShowSplitPaymentDialog] = useState(false)
+  const [teamMembers, setTeamMembers] = useState<any[]>([])
 
   const createGame = useCreateGame()
   const updateGame = useUpdateGame(game?.id ?? 0)
@@ -69,6 +73,19 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
       setPaymentMode('split_payment')
     }
   }, [open, game])
+
+  // Load team members when split payment is selected
+  const loadTeamMembers = async () => {
+    try {
+      const teams = await teamService.getMyTeams()
+      if (teams.length > 0) {
+        const members = await teamService.getMembers(teams[0].id)
+        setTeamMembers(members)
+      }
+    } catch (err) {
+      console.error('Failed to load team members:', err)
+    }
+  }
 
   const validate = (): string | null => {
     if (name.trim().length < 3) return 'نام بازی باید حداقل ۳ حرف باشد.'
@@ -118,13 +135,29 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
         },
         {
           onSuccess: (created) => {
-            toast.success('بازی ساخته شد')
-            onClose()
-            onCreated?.(created)
+            // If split payment mode was selected, open split payment dialog
+            if (paymentMode === 'split_payment' && teamMembers.length > 0) {
+              setShowSplitPaymentDialog(true)
+              // Store created game for later use
+              window.__lastCreatedGame = created
+            } else {
+              toast.success('بازی ساخته شد')
+              onClose()
+              onCreated?.(created)
+            }
           },
           onError: (e) => toast.error(getGameError(e)),
         },
       )
+    }
+  }
+
+  const handleSplitPaymentSuccess = (paymentId: number) => {
+    toast.success(`پرداخت اشتراکی #${paymentId} ایجاد شد`)
+    const createdGame = (window as any).__lastCreatedGame
+    if (createdGame) {
+      onCreated?.(createdGame)
+      delete (window as any).__lastCreatedGame
     }
   }
 
@@ -236,6 +269,19 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
                 <MenuItem key={m} value={m}>{PAYMENT_MODE_LABELS[m]}</MenuItem>
               ))}
             </TextField>
+            {paymentMode === 'split_payment' && teamMembers.length > 0 && (
+              <Alert severity="info" sx={{ fontSize: '0.75rem' }}>
+                می‌توانید پس از ساخت بازی، هزینه را بین اعضای تیم تقسیم کنید.
+                <Button
+                  size="small"
+                  variant="text"
+                  onClick={() => loadTeamMembers()}
+                  sx={{ mr: 1, p: 0, minWidth: 'auto', fontSize: '0.75rem' }}
+                >
+                  بارگذاری اعضا
+                </Button>
+              </Alert>
+            )}
             {game === null && bookingLabel && (
               <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8', mt: -1 }}>
                 در حالت سهمی، هزینه‌ی رزرو بین بازیکنان تقسیم می‌شود.
@@ -253,6 +299,17 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
           </Button>
         </Box>
       </Box>
+
+      {/* Split Payment Dialog */}
+      {teamMembers.length > 0 && (
+        <SplitPaymentDialog
+          open={showSplitPaymentDialog}
+          onClose={() => setShowSplitPaymentDialog(false)}
+          teamId={teamMembers[0]?.team_id || 0}
+          members={teamMembers}
+          onSuccess={handleSplitPaymentSuccess}
+        />
+      )}
     </Dialog>
   )
 }
