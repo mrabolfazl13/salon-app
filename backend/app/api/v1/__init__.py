@@ -25,6 +25,7 @@ from .crm import router as crm_router
 from .quiz import router as quiz_router
 from .waitlist import router as waitlist_router
 from .checkin import router as checkin_router
+from .split_payments import router as split_payments_router
 
 __all__ = [
     "auth_router",
@@ -54,4 +55,5 @@ __all__ = [
     "quiz_router",
     "waitlist_router",
     "checkin_router",
+    "split_payments_router",
 ]
