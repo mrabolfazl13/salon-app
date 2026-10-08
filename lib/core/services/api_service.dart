@@ -9,7 +9,14 @@ class ApiService {
   String? _baseUrl;
 
   ApiService._internal() {
-    _baseUrl = 'http://10.0.2.2:8000/api/v1'; // Android emulator localhost
+    // Use production URL - change for development
+    // Android emulator: http://10.0.2.2:8000/api/v1
+    // Physical device on same network: http://YOUR_IP:8000/api/v1
+    // Production: https://api.yourdomain.com/api/v1
+    _baseUrl = const String.fromEnvironment(
+      'API_BASE_URL',
+      defaultValue: 'https://school.absadeghi.ir/api/v1',
+    );
 
     _dio = Dio(BaseOptions(
       baseUrl: _baseUrl!,
@@ -18,6 +25,17 @@ class ApiService {
       headers: {
         'Content-Type': 'application/json',
         'Accept-Language': 'fa',
+      },
+    ));
+
+    // Add response interceptor for error handling
+    _dio.interceptors.add(InterceptorsWrapper(
+      onError: (error, handler) {
+        if (error.response?.statusCode == 401) {
+          // Token expired or invalid - could trigger logout here
+          print('Unauthorized: Token may be expired');
+        }
+        return handler.next(error);
       },
     ));
 

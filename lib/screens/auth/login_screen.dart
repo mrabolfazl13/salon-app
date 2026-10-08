@@ -11,55 +11,73 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
-  final _emailController = TextEditingController();
+  final _phoneController = TextEditingController();
   final _passwordController = TextEditingController();
-  bool _isLoading = false;
+  bool _obscurePassword = true;
 
   Future<void> _handleLogin() async {
-    if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
+    if (_phoneController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('لطفاً ایمیل و رمز عبور را وارد کنید')),
+        const SnackBar(content: Text('لطفاً شماره موبایل و رمز عبور را وارد کنید')),
+      );
+      return;
+    }
+
+    // Validate phone format (Iranian mobile)
+    final phoneRegex = RegExp(r'^09\d{9}$');
+    if (!phoneRegex.hasMatch(_phoneController.text)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('شماره موبایل معتبر نیست (مثال: 09123456789)')),
       );
       return;
     }
 
     final authProvider = Provider.of<AuthProvider>(context, listen: false);
-    setState(() => _isLoading = true);
 
     try {
-      // Mock login for demo - replace with actual API call
-      await Future.delayed(const Duration(seconds: 1));
-
-      await authProvider.login(
-        'mock_token_123',
-        {
-          'id': 1,
-          'name': 'کاربر تست',
-          'role': 'user',
-          'email': _emailController.text,
-        },
+      // Real API call to backend
+      final result = await authProvider.login(
+        _phoneController.text.trim(),
+        _passwordController.text,
       );
 
       if (mounted) {
-        Navigator.of(context).pushReplacement(
-          MaterialPageRoute(builder: (_) => const HomeScreen()),
-        );
+        if (result['success'] == true) {
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(builder: (_) => const HomeScreen()),
+          );
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('خوش آمدید ${result['user']['full_name']}'),
+              backgroundColor: Colors.green,
+            ),
+          );
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(result['error'] ?? 'خطا در ورود'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطا در ورود: ${e.toString()}')),
+          SnackBar(
+            content: Text('خطا در اتصال به سرور'),
+            backgroundColor: Colors.red,
+          ),
         );
-      }
-    } finally {
-      if (mounted) {
-        setState(() => _isLoading = false);
       }
     }
   }
 
   @override
   Widget build(BuildContext context) {
+    final isLoading = context.watch<AuthProvider>().isLoading;
+
     return Scaffold(
       body: SafeArea(
         child: Center(
@@ -80,25 +98,26 @@ class _LoginScreenState extends State<LoginScreen> {
                 Text(
                   'سیستم رزرو فوتسال',
                   style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
                 const SizedBox(height: 8),
                 Text(
                   'ورود به حساب کاربری',
                   style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
-                      ),
+                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                  ),
                 ),
                 const SizedBox(height: 48),
 
-                // Email field
+                // Phone field
                 TextField(
-                  controller: _emailController,
-                  keyboardType: TextInputType.emailAddress,
+                  controller: _phoneController,
+                  keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(
-                    labelText: 'ایمیل',
-                    prefixIcon: Icon(Icons.email_outlined),
+                    labelText: 'شماره موبایل',
+                    hintText: '09123456789',
+                    prefixIcon: Icon(Icons.phone_android_outlined),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -106,10 +125,20 @@ class _LoginScreenState extends State<LoginScreen> {
                 // Password field
                 TextField(
                   controller: _passwordController,
-                  obscureText: true,
-                  decoration: const InputDecoration(
+                  obscureText: _obscurePassword,
+                  decoration: InputDecoration(
                     labelText: 'رمز عبور',
-                    prefixIcon: Icon(Icons.lock_outline),
+                    prefixIcon: const Icon(Icons.lock_outline),
+                    suffixIcon: IconButton(
+                      icon: Icon(
+                        _obscurePassword ? Icons.visibility_off : Icons.visibility,
+                      ),
+                      onPressed: () {
+                        setState(() {
+                          _obscurePassword = !_obscurePassword;
+                        });
+                      },
+                    ),
                   ),
                 ),
                 const SizedBox(height: 32),
@@ -119,8 +148,13 @@ class _LoginScreenState extends State<LoginScreen> {
                   width: double.infinity,
                   height: 50,
                   child: ElevatedButton(
-                    onPressed: _isLoading ? null : _handleLogin,
-                    child: _isLoading
+                    onPressed: isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                    ),
+                    child: isLoading
                         ? const SizedBox(
                             height: 20,
                             width: 20,
@@ -148,7 +182,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
   @override
   void dispose() {
-    _emailController.dispose();
+    _phoneController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
