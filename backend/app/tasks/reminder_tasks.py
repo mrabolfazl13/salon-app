@@ -3,11 +3,12 @@ import asyncio
 from datetime import datetime, timedelta
 from app.tasks.worker import celery_app
 from app.config import settings
-from app.db.session import SessionLocal
+from app.database import engine, get_session
 from app.models.booking import Booking, BookingStatus
 from app.models.slot import Slot
 from app.models.waitlist import WaitlistEntry
 from app.services.notification_service import NotificationService
+from sqlmodel import Session
 import logging
 
 logger = logging.getLogger(__name__)
@@ -54,7 +55,7 @@ def send_booking_reminders(self):
     Runs every hour. Finds CONFIRMED bookings where slot starts in ~2 hours
     and sends WebSocket + DB notification to the user.
     """
-    db = SessionLocal()
+    db = Session(engine)
     try:
         now = datetime.now()
         reminder_window_start = now + timedelta(hours=1, minutes=45)
@@ -135,7 +136,7 @@ def notify_waitlist_on_cancellation(self, slot_id: int):
     
     Triggered manually when a booking is cancelled.
     """
-    db = SessionLocal()
+    db = Session(engine)
     try:
         # Get first pending/notified entry for this slot
         entry = (

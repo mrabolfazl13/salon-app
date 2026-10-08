@@ -81,13 +81,23 @@ def create_transaction(
     if current_user.role not in [UserRole.VENUE_MANAGER, UserRole.CLUB_ADMIN, UserRole.SUPER_ADMIN]:
         raise HTTPException(status_code=403, detail="فقط مدیران سالن می‌توانند تراکنش ثبت کنند")
 
+    # Get venue_id from user - must have one
+    venue_id = None
+    if hasattr(current_user, 'venue_id') and current_user.venue_id:
+        venue_id = current_user.venue_id
+    elif current_user.role == UserRole.SUPER_ADMIN:
+        # Super admin must specify venue explicitly (for now use their default or error)
+        raise HTTPException(status_code=400, detail="سوپر ادمین باید venue_id را مشخص کند")
+    else:
+        raise HTTPException(status_code=400, detail="کاربر venue_id ندارد — نمی‌توان تراکنش ثبت کرد")
+
     # Validate category exists
     cat = session.get(ExpenseCategory, data.category_id)
     if not cat:
         raise HTTPException(status_code=404, detail="دسته‌بندی یافت نشد")
 
     tx = FinancialTransaction(
-        venue_id=current_user.venue_id if hasattr(current_user, 'venue_id') and current_user.venue_id else 1,
+        venue_id=venue_id,
         type=data.type,
         category_id=data.category_id,
         amount=data.amount,
@@ -127,10 +137,27 @@ def list_transactions(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    """List transactions with filters, sorted by date descending."""
+    """List transactions with filters, sorted by date descending.
+    
+    SECURITY FIX: Only show transactions for the user's own venue.
+    Super admins can see all venues.
+    """
+    # Venue-scoped access control
+    if current_user.role == UserRole.SUPER_ADMIN:
+        # Super admin can see all, but must specify venue_id optionally
+        venue_filter = True  # no filter
+    elif hasattr(current_user, 'venue_id') and current_user.venue_id:
+        venue_filter = FinancialTransaction.venue_id == current_user.venue_id
+    else:
+        raise HTTPException(status_code=403, detail="کاربر به این سالن دسترسی ندارد")
+    
     stmt = select(FinancialTransaction, ExpenseCategory.name).join(
         ExpenseCategory, FinancialTransaction.category_id == ExpenseCategory.id
     )
+    
+    # Apply venue filter
+    if current_user.role != UserRole.SUPER_ADMIN:
+        stmt = stmt.where(venue_filter)
 
     if type:
         stmt = stmt.where(FinancialTransaction.type == type)
@@ -167,7 +194,10 @@ def get_monthly_summary(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_user),
 ):
-    """Get P&L summary for a specific month (defaults to current month)."""
+    """Get P&L summary for a specific month (defaults to current month).
+    
+    SECURITY FIX: Only show data for user's own venue.
+    """
     now = datetime.utcnow()
     y = year or now.year
     m = month or now.month
@@ -178,20 +208,36 @@ def get_monthly_summary(
     else:
         end = datetime(y, m + 1, 1)
 
+    # Venue-scoped access control
+    if current_user.role == UserRole.SUPER_ADMIN:
+        venue_filter = True
+    elif hasattr(current_user, 'venue_id') and current_user.venue_id:
+        venue_filter = FinancialTransaction.venue_id == current_user.venue_id
+    else:
+        raise HTTPException(status_code=403, detail="کاربر به این سالن دسترسی ندارد")
+
     income_stmt = select(func.coalesce(func.sum(FinancialTransaction.amount), 0)).where(
         FinancialTransaction.type == "income",
         FinancialTransaction.date >= start,
         FinancialTransaction.date < end,
     )
+    if current_user.role != UserRole.SUPER_ADMIN:
+        income_stmt = income_stmt.where(venue_filter)
+        
     expense_stmt = select(func.coalesce(func.sum(FinancialTransaction.amount), 0)).where(
         FinancialTransaction.type == "expense",
         FinancialTransaction.date >= start,
         FinancialTransaction.date < end,
     )
+    if current_user.role != UserRole.SUPER_ADMIN:
+        expense_stmt = expense_stmt.where(venue_filter)
+        
     count_stmt = select(func.count()).where(
         FinancialTransaction.date >= start,
         FinancialTransaction.date < end,
     )
+    if current_user.role != UserRole.SUPER_ADMIN:
+        count_stmt = count_stmt.where(venue_filter)
 
     total_income = session.exec(income_stmt).one()
     total_expense = session.exec(expense_stmt).one()
