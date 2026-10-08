@@ -25,6 +25,31 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Async HTTP client with timeout protection
 - Complete integration guide in documentation
 
+#### Flutter Mobile App Completion
+**Service Layer (5 comprehensive services):**
+- `VenueService`: Venue listing, search, slots retrieval
+- `BookingService`: Booking CRUD, cancellation with refunds
+- `GameService`: Game creation, joining, invitations management
+- `TeamService`: Team operations, standings, member invitations
+- `NotificationService`: WebSocket with auto-reconnect for real-time updates
+
+**New Screens (4 complete screens with real API):**
+- `GamesListScreen`: Tabbed interface (all games/my games/invitations) with join functionality
+- `TeamsListScreen`: My teams/discover/invitations with create team dialog
+- `FavoritesScreen`: Saved venues with remove/clear all functionality
+- `SearchScreen`: Real-time search with debounce, recent searches, sport categories
+
+**Updated Screens (3 screens migrated from mock to real API):**
+- `VenuesScreen`: Now fetches from real API with loading/error states
+- `BookingsScreen`: Real bookings with cancel/refund, status filtering
+- `ProfileScreen`: Added navigation to search and favorites
+
+**Enhanced Navigation:**
+- Home screen updated to 5-tab bottom navigation (Venues, Games, Bookings, Teams, Profile)
+- WebSocket auto-connect on login, disconnect on logout
+- Pull-to-refresh on all list screens
+- Consistent error handling and empty states across all screens
+
 ### 🔧 Fixed
 
 #### Critical Stability Fixes
@@ -37,12 +62,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Venue isolation**: Added proper venue-scoped filtering to all financial queries
 - **Hardcoded values**: Removed `venue_id=1` fallback, enforced explicit validation
 
+#### Mock Data Removal
+- **Login screen**: Replaced `mock_token_123` with real AuthService API calls
+- **Venues screen**: Removed hardcoded venue list, now uses VenueService
+- **Bookings screen**: Removed mock bookings, integrated with BookingService
+
 ### 🔒 Security
 
 - Multi-tenant data isolation enforced for financial endpoints
 - Venue managers can only access their own venue's data
 - Super admin bypass with proper validation
 - Audit trail for all split payment operations
+- Secure token storage with flutter_secure_storage
 
 ### 📝 Documentation
 
@@ -53,19 +84,22 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### 📊 Metrics
 
-- **Lines of code added**: ~2,029
-- **Files created**: 9
-- **Files modified**: 7
+- **Lines of code added**: ~3,800
+- **Files created**: 13 (5 services + 4 screens + 4 supporting files)
+- **Files modified**: 10
 - **Tests added**: 16
 - **Security issues fixed**: 3 (2 critical, 1 high)
 - **Bugs fixed**: 2 critical
+- **Mock data removed**: 3 screens converted to real API
 
 ### ⚠️ Known Limitations
 
 - Payment gateway requires `ZARINPAL_MERCHANT_ID` environment variable to activate
 - Webhook endpoint documented but not yet implemented in code
-- Flutter mobile app still uses mock data (real app not built in CI)
-- Celery tasks use SQLite directly instead of UnitOfWork pattern
+- Flutter CI builds root lib/ (mock) instead of android/salon_app (real app) - pending fix
+- Android release signing not configured for Play Store distribution
+- Missing Flutter screens: Competitions, Contracts, Quiz, Deals, Admin Dashboard, Manager Panel
+- WebSocket message format needs backend alignment
 
 ---
 
