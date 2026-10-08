@@ -33,7 +33,7 @@ class Settings(BaseSettings):
     # ساخت خودکار جداول هنگام استارت — فقط مسیر توسعه؛ با false کاملاً خاموش می‌شود
     AUTO_CREATE_ALL: bool = False  # Changed to False for security
     # لاگ کوئری‌های SQL (به‌جای مقدار هاردکدشده‌ی قدیمی)
-    DB_ECHO: False  # Disabled by default for performance
+    DB_ECHO: bool = False  # Disabled by default for performance
     # افشای کد توسعه‌ای (dev_code) در پاسخ API — فقط وقتی روشن باشد؛ وگرنه کد فقط در لاگ سرور
     DEBUG_ALLOW_DEV_CODE: bool = False
     

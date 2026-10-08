@@ -39,6 +39,10 @@ from .team import (
     TeamAuditEvent, TeamMessage, TeamVisibility, TeamMemberRole, TeamMemberStatus,
     TeamInvitationStatus, TeamJoinRequestStatus, TeamDuesMethod, TeamAuditAction,
 )
+from .split_payment import (
+    TeamSplitPayment, SplitPaymentShare, SplitPaymentAuditEvent,
+    SplitMethod, SplitPaymentStatus, ShareStatus,
+)
 from .quiz import QuizQuestion, QuizAttempt
 from .waitlist import WaitlistEntry
 
@@ -72,6 +76,8 @@ __all__ = [
     "Team", "TeamMember", "TeamInvitation", "TeamJoinRequest", "TeamBooking", "TeamDues",
     "TeamAuditEvent", "TeamMessage", "TeamVisibility", "TeamMemberRole", "TeamMemberStatus",
     "TeamInvitationStatus", "TeamJoinRequestStatus", "TeamDuesMethod", "TeamAuditAction",
+    "TeamSplitPayment", "SplitPaymentShare", "SplitPaymentAuditEvent",
+    "SplitMethod", "SplitPaymentStatus", "ShareStatus",
     "StaffAssignment", "SecurityAuditEvent",
     "VenueCustomer", "CrmCampaign",
     "QuizQuestion", "QuizAttempt",
