@@ -26,6 +26,7 @@ import {
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import toast from 'react-hot-toast'
+import { useAuthStore } from '@/store/authStore'
 
 interface FinanceSummary {
   total_income: number
@@ -57,6 +58,7 @@ const formatCurrency = (amount: number) => {
 
 const ManagerFinance: React.FC = () => {
   const navigate = useNavigate()
+  const user = useAuthStore((state) => state.user)
   const [loading, setLoading] = useState(false)
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
   const [categories, setCategories] = useState<ExpenseCategory[]>([])
@@ -69,6 +71,10 @@ const ManagerFinance: React.FC = () => {
   const [categoryId, setCategoryId] = useState('')
   const [description, setDescription] = useState('')
   const [txDate, setTxDate] = useState(new Date().toISOString().slice(0, 10))
+  
+  // TODO: In Phase 1, fetch manager's venues and allow selection
+  // For now, use first venue ID if available, otherwise show warning
+  const managerVenueId = user?.role === 'venue_manager' ? undefined : undefined // Will be implemented in Phase 1
 
   useEffect(() => {
     fetchSummary()
@@ -127,12 +133,19 @@ const ManagerFinance: React.FC = () => {
 
     try {
       setLoading(true)
+      
+      // Validate venue_id before submission
+      if (!managerVenueId && user?.role === 'venue_manager') {
+        toast.error('شناسه سالن یافت نشد. لطفاً با پشتیبانی تماس بگیرید.')
+        return
+      }
+      
       const payload = {
         type: txType,
         amount: parseInt(amount),
         description,
         category_id: categoryId ? parseInt(categoryId) : undefined,
-        venue_id: 1, // TODO: Get from user context
+        venue_id: managerVenueId, // Will be set from user context in Phase 1
         date: txDate,
       }
 

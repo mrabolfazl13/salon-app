@@ -75,6 +75,42 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Security Headers Middleware
+@app.middleware("http")
+async def add_security_headers(request, call_next):
+    """Add security headers to all responses."""
+    response = await call_next(request)
+    
+    # HSTS (HTTP Strict Transport Security)
+    if settings.ENABLE_HSTS:
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    
+    # Content Security Policy
+    response.headers["Content-Security-Policy"] = settings.CONTENT_SECURITY_POLICY
+    
+    # X-Frame-Options (prevent clickjacking)
+    response.headers["X-Frame-Options"] = "DENY"
+    
+    # X-Content-Type-Options (prevent MIME sniffing)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    
+    # X-XSS-Protection
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    
+    # Referrer-Policy
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    
+    # Permissions-Policy (disable unnecessary browser features)
+    response.headers["Permissions-Policy"] = (
+        "geolocation=self, microphone=(), camera=(), payment=self"
+    )
+    
+    # Remove server header
+    response.headers.pop("server", None)
+    
+    return response
+
+
 # ─────────────────────────── WebSocket ───────────────────────────
 # احراز هویت با پارامتر کوئری:  /ws/managers?token=<JWT>
 # (WebSocket در مرورگرها هدر Authorization نمی‌فرستد؛ توکن از کوئری خوانده

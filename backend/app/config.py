@@ -4,11 +4,12 @@ from typing import Optional
 class Settings(BaseSettings):
     DATABASE_URL: str = "postgresql://futsal:secret@postgres:5432/futsal_db"
     REDIS_URL: str = "redis://redis:6379/0"
-    JWT_SECRET: str = "your-super-secret-jwt-key-change-this-in-production"
+    JWT_SECRET: str = ""  # MUST be set in production environment
     JWT_ALGORITHM: str = "HS256"
     JWT_EXPIRY_HOURS: int = 24
+    JWT_REFRESH_EXPIRY_DAYS: int = 30  # Added for refresh tokens
     ADMIN_PHONE: str = "09123456789"
-    ADMIN_PASSWORD: str = "admin123"
+    ADMIN_PASSWORD: str = ""  # MUST be set in production environment
     PENDING_BOOKING_TTL_HOURS: int = 4
     # موتور قیمت — مبنای پیش‌فرض تولید سانس (null بودن venue.default_slot_price)
     DEFAULT_SLOT_PRICE: int = 200000
@@ -30,11 +31,19 @@ class Settings(BaseSettings):
     # محیط اجرا — در production فقط Alembic اسکیما را می‌سازد (create_all غیرفعال)
     APP_ENV: str = "development"
     # ساخت خودکار جداول هنگام استارت — فقط مسیر توسعه؛ با false کاملاً خاموش می‌شود
-    AUTO_CREATE_ALL: bool = True
+    AUTO_CREATE_ALL: bool = False  # Changed to False for security
     # لاگ کوئری‌های SQL (به‌جای مقدار هاردکدشده‌ی قدیمی)
-    DB_ECHO: bool = False
+    DB_ECHO: False  # Disabled by default for performance
     # افشای کد توسعه‌ای (dev_code) در پاسخ API — فقط وقتی روشن باشد؛ وگرنه کد فقط در لاگ سرور
     DEBUG_ALLOW_DEV_CODE: bool = False
+    
+    # Rate limiting configuration
+    RATE_LIMIT_PER_MINUTE: int = 60  # General rate limit
+    AUTH_RATE_LIMIT_PER_HOUR: int = 10  # Login attempts per hour
+    
+    # Security headers
+    ENABLE_HSTS: bool = True
+    CONTENT_SECURITY_POLICY: str = "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'"
 
     # SMTP برای ارسال کد تأیید ایمیل — اگر خالی باشد، کد فقط لاگ می‌شود
     SMTP_HOST: str = ""
@@ -64,5 +73,32 @@ class Settings(BaseSettings):
     @property
     def allowed_origins_list(self) -> list:
         return [o.strip() for o in self.ALLOWED_ORIGINS.split(",") if o.strip()]
+    
+    def validate_production_config(self) -> list[str]:
+        """Validate critical security settings for production environment."""
+        errors = []
+        
+        if self.APP_ENV == "production":
+            if not self.JWT_SECRET or self.JWT_SECRET == "your-super-secret-jwt-key-change-this-in-production":
+                errors.append("JWT_SECRET must be set in production environment")
+            
+            if not self.ADMIN_PASSWORD:
+                errors.append("ADMIN_PASSWORD must be set in production environment")
+            
+            if len(self.JWT_SECRET) < 32:
+                errors.append("JWT_SECRET should be at least 32 characters long")
+            
+            if self.AUTO_CREATE_ALL:
+                errors.append("AUTO_CREATE_ALL must be False in production")
+        
+        return errors
 
+# Initialize settings
 settings = Settings()
+
+# Validate production configuration
+_validation_errors = settings.validate_production_config()
+if _validation_errors:
+    import warnings
+    for error in _validation_errors:
+        warnings.warn(f"⚠️ SECURITY WARNING: {error}", stacklevel=1)

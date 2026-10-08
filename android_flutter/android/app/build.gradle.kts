@@ -24,28 +24,39 @@ android {
 
     signingConfigs {
         create("release") {
-            // For CI/CD, these will be provided via environment variables or GitHub secrets
-            // Local development uses debug signing for now
-            storeFile = file(System.getenv("KEYSTORE_PATH") ?: "debug.keystore")
-            storePassword = System.getenv("KEYSTORE_PASSWORD") ?: "android"
-            keyAlias = System.getenv("KEY_ALIAS") ?: "androiddebugkey"
-            keyPassword = System.getenv("KEY_PASSWORD") ?: "android"
+            // For CI/CD, keystore is decoded from GitHub secrets in workflow
+            // key.properties file is created by the workflow step
+            val keystorePropertiesFile = rootProject.file("key.properties")
+            if (keystorePropertiesFile.exists()) {
+                val keystoreProperties = java.util.Properties()
+                keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
+                
+                storeFile = file(keystoreProperties["storeFile"])
+                storePassword = keystoreProperties["storePassword"] as String
+                keyAlias = keystoreProperties["keyAlias"] as String
+                keyPassword = keystoreProperties["keyPassword"] as String
+            } else {
+                // Local development fallback to environment variables
+                val keystorePath = System.getenv("KEYSTORE_PATH")
+                if (!keystorePath.isNullOrEmpty()) {
+                    storeFile = file(keystorePath)
+                    storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
+                    keyAlias = System.getenv("KEY_ALIAS") ?: ""
+                    keyPassword = System.getenv("KEY_PASSWORD") ?: ""
+                }
+            }
         }
     }
 
     buildTypes {
         release {
-            // Only sign if KEYSTORE_PATH is provided (e.g., in CI/CD with secrets)
-            val keystorePath = System.getenv("KEYSTORE_PATH")
-            if (!keystorePath.isNullOrEmpty()) {
-                signingConfig = signingConfigs.getByName("release")
-            } else {
-                signingConfig = null // Unsigned APK for distribution
-            }
-            isMinifyEnabled = false
-            isShrinkResources = false
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = true  // Enable code shrinking for production
+            isShrinkResources = true  // Enable resource shrinking
+            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
         }
         debug {
+            signingConfig = signingConfigs.getByName("debug")
             isMinifyEnabled = false
             isShrinkResources = false
         }

@@ -16,6 +16,30 @@ export default defineConfig(({ mode }) => {
         '@': fileURLToPath(new URL('./src', import.meta.url)),
       },
     },
+    build: {
+      // Code splitting optimization
+      rollupOptions: {
+        output: {
+          manualChunks: {
+            // Split vendor chunks for better caching
+            'vendor-react': ['react', 'react-dom', 'react-router-dom'],
+            'vendor-mui': ['@mui/material', '@mui/icons-material'],
+            'vendor-charts': ['recharts'],
+            'vendor-maps': ['leaflet', 'react-leaflet'],
+            'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+            'vendor-utils': ['date-fns', 'jalaali-js', 'framer-motion'],
+          },
+        },
+      },
+      // Enable source maps for production debugging
+      sourcemap: true,
+      // Minify with terser
+      minify: 'terser',
+      // Chunk size warning limit (500KB)
+      chunkSizeWarningLimit: 500,
+      // Target modern browsers for smaller bundles
+      target: 'es2020',
+    },
     server: {
       host: '0.0.0.0',
       port: 3001,

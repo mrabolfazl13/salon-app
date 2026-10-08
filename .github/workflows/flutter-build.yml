@@ -47,7 +47,7 @@ jobs:
           path: android_flutter/build/app/outputs/flutter-apk/app-debug.apk
   
   build-apk-release:
-    name: Build Release APK (Unsigned)
+    name: Build Release APK (Signed)
     runs-on: ubuntu-latest
     
     steps:
@@ -71,7 +71,20 @@ jobs:
         working-directory: android_flutter
         run: flutter pub get
       
-      - name: Build Release APK
+      - name: Setup keystore
+        run: |
+          # Decode base64-encoded keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android_flutter/release-keystore.jks
+          
+          # Create key.properties file
+          cat > android_flutter/key.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=release-keystore.jks
+          EOF
+      
+      - name: Build Signed Release APK
         working-directory: android_flutter
         run: flutter build apk --release
       
@@ -82,7 +95,7 @@ jobs:
           path: android_flutter/build/app/outputs/flutter-apk/app-release.apk
   
   build-aab-release:
-    name: Build Release AAB (Unsigned)
+    name: Build Release AAB (Signed for Play Store)
     runs-on: ubuntu-latest
     
     steps:
@@ -106,7 +119,20 @@ jobs:
         working-directory: android_flutter
         run: flutter pub get
       
-      - name: Build Release AAB
+      - name: Setup keystore
+        run: |
+          # Decode base64-encoded keystore
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android_flutter/release-keystore.jks
+          
+          # Create key.properties file
+          cat > android_flutter/key.properties << EOF
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          storeFile=release-keystore.jks
+          EOF
+      
+      - name: Build Signed Release AAB
         working-directory: android_flutter
         run: flutter build appbundle --release
       

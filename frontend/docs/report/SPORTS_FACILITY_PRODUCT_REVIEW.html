@@ -1,0 +1,2052 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>گزارش بررسی محصول - سیستم رزرو سالن ورزشی</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --purple: #8b5cf6;
+            --bg-gradient-start: #f8fafc;
+            --bg-gradient-end: #e2e8f0;
+            --card-bg: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #cbd5e1;
+            --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+            --radius: 12px;
+            --transition: all 0.3s ease;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Tahoma, sans-serif;
+            background: linear-gradient(135deg, var(--bg-gradient-start) 0%, var(--bg-gradient-end) 100%);
+            color: var(--text-primary);
+            line-height: 1.6;
+            direction: rtl;
+            text-align: right;
+            min-height: 100vh;
+        }
+        .navbar {
+            position: sticky;
+            top: 0;
+            background: var(--card-bg);
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow-md);
+            z-index: 1000;
+            padding: 1rem 2rem;
+        }
+        .navbar-content {
+            max-width: 1400px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+        .logo {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-links {
+            display: flex;
+            gap: 1.5rem;
+            list-style: none;
+            flex-wrap: wrap;
+        }
+        .nav-links a {
+            color: var(--text-secondary);
+            text-decoration: none;
+            font-weight: 500;
+            transition: var(--transition);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+        }
+        .nav-links a:hover {
+            color: var(--primary);
+            background: rgba(37, 99, 235, 0.1);
+        }
+        .search-box {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: var(--bg-gradient-start);
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            border: 2px solid var(--border-color);
+            transition: var(--transition);
+        }
+        .search-box:focus-within { border-color: var(--primary); }
+        .search-box input {
+            border: none;
+            background: transparent;
+            outline: none;
+            font-size: 1rem;
+            width: 200px;
+        }
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        .header-section { margin-bottom: 3rem; }
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .page-subtitle {
+            font-size: 1.2rem;
+            color: var(--text-secondary);
+        }
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 3rem;
+        }
+        .metric-card {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+            transition: var(--transition);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+        }
+        .metric-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+        .metric-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+        }
+        .metric-card.danger::before { background: var(--danger); }
+        .metric-card.success::before { background: var(--success); }
+        .metric-card.warning::before { background: var(--warning); }
+        .metric-card.info::before { background: var(--info); }
+        .metric-card.purple::before { background: var(--purple); }
+        .metric-icon {
+            width: 48px;
+            height: 48px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 1rem;
+            font-size: 1.5rem;
+        }
+        .metric-card.danger .metric-icon { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .metric-card.success .metric-icon { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .metric-card.warning .metric-icon { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .metric-card.info .metric-icon { background: rgba(6, 182, 212, 0.1); color: var(--info); }
+        .metric-card.purple .metric-icon { background: rgba(139, 92, 246, 0.1); color: var(--purple); }
+        .metric-value {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-bottom: 0.5rem;
+        }
+        .metric-label {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+        .executive-summary {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 2rem;
+            margin-bottom: 3rem;
+            box-shadow: var(--shadow-md);
+        }
+        .section-title {
+            font-size: 2rem;
+            font-weight: bold;
+            margin-bottom: 1.5rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .summary-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .summary-item {
+            padding: 1.5rem;
+            border-radius: 8px;
+            background: var(--bg-gradient-start);
+            border-right: 4px solid var(--primary);
+        }
+        .summary-item h3 {
+            font-size: 1.2rem;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+        }
+        .summary-item p, .summary-item ul {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+        .summary-item ul {
+            list-style: none;
+            padding-right: 0;
+        }
+        .summary-item li {
+            padding: 0.5rem 0;
+            padding-right: 1.5rem;
+            position: relative;
+        }
+        .summary-item li::before {
+            content: '•';
+            position: absolute;
+            right: 0;
+            color: var(--primary);
+            font-weight: bold;
+        }
+        .accordion-container { margin-bottom: 3rem; }
+        .accordion-item {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+        .accordion-header {
+            padding: 1.5rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+            background: var(--card-bg);
+        }
+        .accordion-header:hover { background: var(--bg-gradient-start); }
+        .accordion-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        .accordion-badge {
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        .accordion-arrow {
+            font-size: 1.5rem;
+            transition: var(--transition);
+            color: var(--text-secondary);
+        }
+        .accordion-item.active .accordion-arrow { transform: rotate(180deg); }
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+        .accordion-item.active .accordion-content { max-height: 5000px; }
+        .accordion-body {
+            padding: 1.5rem;
+            border-top: 1px solid var(--border-color);
+        }
+        .sub-section { margin-bottom: 1.5rem; }
+        .sub-section:last-child { margin-bottom: 0; }
+        .sub-section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .sub-section-content {
+            color: var(--text-secondary);
+            line-height: 1.8;
+        }
+        .sub-section-content ul {
+            list-style: none;
+            padding-right: 0;
+        }
+        .sub-section-content li {
+            padding: 0.5rem 0;
+            padding-right: 1.5rem;
+            position: relative;
+        }
+        .sub-section-content li::before {
+            content: '→';
+            position: absolute;
+            right: 0;
+            color: var(--primary);
+        }
+        .roadmap-container { margin-bottom: 3rem; }
+        .timeline {
+            position: relative;
+            padding: 2rem 0;
+        }
+        .timeline::before {
+            content: '';
+            position: absolute;
+            right: 50%;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(to bottom, var(--primary), var(--success), var(--warning));
+            transform: translateX(50%);
+        }
+        .phase-card {
+            position: relative;
+            margin-bottom: 2rem;
+            padding: 1.5rem;
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow-md);
+            width: calc(50% - 2rem);
+        }
+        .phase-card:nth-child(odd) {
+            margin-right: auto;
+            margin-left: 2rem;
+        }
+        .phase-card:nth-child(even) {
+            margin-right: 2rem;
+            margin-left: auto;
+        }
+        .phase-card::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 20px;
+            height: 20px;
+            background: var(--primary);
+            border-radius: 50%;
+            border: 4px solid var(--card-bg);
+            box-shadow: var(--shadow-md);
+        }
+        .phase-card:nth-child(odd)::before {
+            left: -2.5rem;
+            transform: translateX(-50%) translateY(-50%);
+        }
+        .phase-card:nth-child(even)::before {
+            right: -2.5rem;
+            transform: translateX(50%) translateY(-50%);
+        }
+        .phase-number {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 1rem;
+            border-radius: 20px;
+            font-weight: bold;
+            margin-bottom: 0.75rem;
+        }
+        .phase-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 0.75rem;
+        }
+        .phase-details {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-top: 1rem;
+        }
+        .phase-detail-item {
+            padding: 0.75rem;
+            background: var(--bg-gradient-start);
+            border-radius: 8px;
+            text-align: center;
+        }
+        .phase-detail-label {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            margin-bottom: 0.25rem;
+        }
+        .phase-detail-value {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+        .progress-bar {
+            width: 100%;
+            height: 8px;
+            background: var(--bg-gradient-start);
+            border-radius: 4px;
+            margin-top: 1rem;
+            overflow: hidden;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary), var(--success));
+            border-radius: 4px;
+            transition: width 0.5s ease;
+        }
+        .tasks-container { margin-bottom: 3rem; }
+        .filter-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            flex-wrap: wrap;
+        }
+        .filter-btn {
+            padding: 0.75rem 1.5rem;
+            border: 2px solid var(--border-color);
+            background: var(--card-bg);
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 500;
+            transition: var(--transition);
+        }
+        .filter-btn:hover, .filter-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        .tasks-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+        .task-column {
+            background: var(--card-bg);
+            border-radius: var(--radius);
+            padding: 1.5rem;
+            box-shadow: var(--shadow-md);
+        }
+        .column-header {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            padding-bottom: 0.75rem;
+            border-bottom: 3px solid var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .task-item {
+            padding: 1rem;
+            margin-bottom: 0.75rem;
+            background: var(--bg-gradient-start);
+            border-radius: 8px;
+            border-right: 4px solid var(--primary);
+            transition: var(--transition);
+        }
+        .task-item:hover {
+            transform: translateX(-5px);
+            box-shadow: var(--shadow-sm);
+        }
+        .task-item.priority-p0 { border-right-color: var(--danger); }
+        .task-item.priority-p1 { border-right-color: var(--warning); }
+        .task-item.priority-p2 { border-right-color: var(--info); }
+        .task-item.priority-p3 { border-right-color: var(--success); }
+        .task-id {
+            display: inline-block;
+            background: var(--primary);
+            color: white;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            margin-bottom: 0.5rem;
+        }
+        .task-title {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+        .task-meta {
+            display: flex;
+            gap: 0.75rem;
+            flex-wrap: wrap;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+        .priority-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        .priority-badge.p0 { background: rgba(239, 68, 68, 0.1); color: var(--danger); }
+        .priority-badge.p1 { background: rgba(245, 158, 11, 0.1); color: var(--warning); }
+        .priority-badge.p2 { background: rgba(6, 182, 212, 0.1); color: var(--info); }
+        .priority-badge.p3 { background: rgba(16, 185, 129, 0.1); color: var(--success); }
+        .back-to-top {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            width: 50px;
+            height: 50px;
+            background: var(--primary);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            box-shadow: var(--shadow-lg);
+            transition: var(--transition);
+            opacity: 0;
+            visibility: hidden;
+            z-index: 999;
+            font-size: 1.5rem;
+        }
+        .back-to-top.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+        .back-to-top:hover {
+            background: var(--primary-light);
+            transform: translateY(-5px);
+        }
+        @media (max-width: 1024px) {
+            .timeline::before { right: 2rem; }
+            .phase-card {
+                width: calc(100% - 4rem);
+                margin-right: 4rem !important;
+                margin-left: 0 !important;
+            }
+            .phase-card::before {
+                right: -3rem !important;
+                left: auto !important;
+                transform: translateX(50%) translateY(-50%) !important;
+            }
+        }
+        @media (max-width: 768px) {
+            .navbar-content {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .nav-links { justify-content: center; }
+            .page-title { font-size: 1.8rem; }
+            .metrics-grid {
+                grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            }
+            .metric-value { font-size: 2rem; }
+            .summary-grid { grid-template-columns: 1fr; }
+            .tasks-grid { grid-template-columns: 1fr; }
+            .container { padding: 1rem; }
+        }
+        @media (max-width: 640px) {
+            .navbar { padding: 1rem; }
+            .nav-links {
+                gap: 0.5rem;
+                font-size: 0.9rem;
+            }
+            .search-box input { width: 150px; }
+            .page-title { font-size: 1.5rem; }
+            .section-title { font-size: 1.5rem; }
+            .metrics-grid { grid-template-columns: 1fr; }
+            .phase-details { grid-template-columns: 1fr; }
+        }
+        @media print {
+            .navbar, .back-to-top, .filter-buttons, .search-box { display: none; }
+            body { background: white; }
+            .metric-card, .accordion-item, .task-column, .phase-card {
+                box-shadow: none;
+                border: 1px solid #ddd;
+            }
+            .accordion-content { max-height: none !important; }
+        }
+        .hidden { display: none !important; }
+        .mt-2 { margin-top: 2rem; }
+        .mb-2 { margin-bottom: 2rem; }
+        .text-center { text-align: center; }
+        .text-muted { color: var(--text-secondary); }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-content">
+            <div class="logo">📊 گزارش بررسی محصول</div>
+            <ul class="nav-links">
+                <li><a href="#dashboard">داشبورد</a></li>
+                <li><a href="#chapter1">فصل اول</a></li>
+                <li><a href="#chapter2">فصل دوم</a></li>
+                <li><a href="#chapter3">فصل سوم</a></li>
+            </ul>
+            <div class="search-box">
+                <span>🔍</span>
+                <input type="text" id="searchInput" placeholder="جستجو...">
+            </div>
+        </div>
+    </nav>
+
+    <div class="container">
+        <section id="dashboard" class="header-section">
+            <h1 class="page-title">سیستم رزرو سالن ورزشی</h1>
+            <p class="page-subtitle">گزارش جامع بررسی محصول و تحلیل استراتژیک</p>
+        </section>
+
+        <div class="metrics-grid">
+            <div class="metric-card danger">
+                <div class="metric-icon">⚠️</div>
+                <div class="metric-value">20</div>
+                <div class="metric-label">تعداد مشکلات</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-icon">💡</div>
+                <div class="metric-value">20</div>
+                <div class="metric-label">تعداد پیشنهادها</div>
+            </div>
+            <div class="metric-card info">
+                <div class="metric-icon">🚀</div>
+                <div class="metric-value">30</div>
+                <div class="metric-label">Featureهای جدید</div>
+            </div>
+            <div class="metric-card purple">
+                <div class="metric-icon">🤖</div>
+                <div class="metric-value">8</div>
+                <div class="metric-label">AI Opportunities</div>
+            </div>
+            <div class="metric-card warning">
+                <div class="metric-icon">⚙️</div>
+                <div class="metric-value">13</div>
+                <div class="metric-label">Automation Opportunities</div>
+            </div>
+            <div class="metric-card info">
+                <div class="metric-icon">📅</div>
+                <div class="metric-value">7</div>
+                <div class="metric-label">تعداد Phaseها</div>
+            </div>
+            <div class="metric-card success">
+                <div class="metric-icon">💻</div>
+                <div class="metric-value">69</div>
+                <div class="metric-label">Frontend Tasks</div>
+            </div>
+            <div class="metric-card info">
+                <div class="metric-icon">📱</div>
+                <div class="metric-value">67</div>
+                <div class="metric-label">Android Tasks</div>
+            </div>
+            <div class="metric-card warning">
+                <div class="metric-icon">🔧</div>
+                <div class="metric-value">78</div>
+                <div class="metric-label">Backend Tasks</div>
+            </div>
+            <div class="metric-card purple">
+                <div class="metric-icon">✅</div>
+                <div class="metric-value">51</div>
+                <div class="metric-label">QA Tasks</div>
+            </div>
+            <div class="metric-card danger">
+                <div class="metric-icon">🔴</div>
+                <div class="metric-value">59</div>
+                <div class="metric-label">Critical Tasks</div>
+            </div>
+        </div>
+
+        <div class="executive-summary">
+            <h2 class="section-title">📋 خلاصه اجرایی</h2>
+            <div class="summary-grid">
+                <div class="summary-item">
+                    <h3>وضعیت فعلی محصول</h3>
+                    <p>سیستم رزرو سالن ورزشی در مرحله توسعه فعال قرار دارد با تمرکز بر ایجاد تجربه کاربری یکپارچه برای تمامی ذی‌نفعان. زیرساخت فنی مستحکم اما نیازمند بهبود در UX و اتوماسیون فرآیندها.</p>
+                </div>
+                <div class="summary-item">
+                    <h3>بزرگ‌ترین مشکلات</h3>
+                    <ul>
+                        <li>فرآیند رزرو پیچیده و زمان‌بر</li>
+                        <li>عدم شفافیت در قیمت‌گذاری</li>
+                        <li>مشکلات هماهنگی پرداخت و رزرو</li>
+                        <li>نبود سیستم یادآوری خودکار</li>
+                        <li>رابط کاربری غیرشهودی برای مدیران</li>
+                    </ul>
+                </div>
+                <div class="summary-item">
+                    <h3>بزرگ‌ترین فرصت‌ها</h3>
+                    <ul>
+                        <li>پیاده‌سازی AI برای بهینه‌سازی زمان‌بندی</li>
+                        <li>اتوماسیون کامل فرآیند رزرو تا پرداخت</li>
+                        <li>سیستم توصیه هوشمند برای مشتریان</li>
+                        <li>داشبورد تحلیلی پیشرفته برای مدیران</li>
+                        <li>یکپارچه‌سازی با شبکه‌های اجتماعی</li>
+                    </ul>
+                </div>
+                <div class="summary-item">
+                    <h3>مهم‌ترین Featureها</h3>
+                    <ul>
+                        <li>رزرو آنلاین لحظه‌ای</li>
+                        <li>سیستم مدیریت چند سالنه</li>
+                        <li>اپلیکیشن موبایل native</li>
+                        <li>درگاه پرداخت یکپارچه</li>
+                        <li>سیستم عضویت و تخفیف</li>
+                    </ul>
+                </div>
+                <div class="summary-item">
+                    <h3>پیشنهاد استراتژیک</h3>
+                    <p>تمرکز بر فازهای اولیه (0-2) برای ایجاد MVP قوی، سپس گسترش تدریجی قابلیت‌ها. اولویت با حل مشکلات اساسی UX و پیاده‌سازی اتوماسیون‌های کلیدی قبل از افزودن ویژگی‌های پیشرفته.</p>
+                </div>
+                <div class="summary-item">
+                    <h3>اولویت شماره 1</h3>
+                    <p style="color: var(--danger); font-weight: 600;">بازطراحی کامل فرآیند رزرو با تمرکز بر سادگی و سرعت. کاهش مراحل رزرو از 7 به حداکثر 3 مرحله و اضافه کردن پیش‌نمایش لحظه‌ای قیمت و زمان.</p>
+                </div>
+            </div>
+        </div>
+
+        <section id="chapter1" class="accordion-container">
+            <h2 class="section-title">👥 فصل اول — تحلیل کاربران و ذی‌نفعان</h2>
+
+            <div class="accordion-item" data-role="customer">
+                <div class="accordion-header">
+                    <div class="accordion-title">👤 مشتری (Customer) <span class="accordion-badge">P0</span></div>
+                    <span class="accordion-arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <div class="sub-section">
+                            <div class="sub-section-title">🔴 مشکلات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>فرآیند رزرو طولانی و پیچیده با مراحل متعدد</li>
+                                <li>عدم شفافیت در نمایش قیمت نهایی تا مرحله آخر</li>
+                                <li>مشکل در لغو یا تغییر رزرو پس از ثبت</li>
+                                <li>نبود سیستم یادآوری برای رزروهای آینده</li>
+                                <li>دشواری در یافتن سالن مناسب بر اساس معیارهای شخصی</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💡 پیشنهادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>کاهش مراحل رزرو به حداکثر 3 کلیک</li>
+                                <li>نمایش قیمت نهایی در همان صفحه انتخاب زمان</li>
+                                <li>امکان لغو رایگان تا 24 ساعت قبل</li>
+                                <li>ارسال خودکار یادآوری از طریق پیامک و ایمیل</li>
+                                <li>فیلترهای پیشرفته برای جستجوی سالن</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚠️ انتقادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>رابط کاربری گیج‌کننده برای کاربران جدید</li>
+                                <li>بارگذاری کند صفحات در موبایل</li>
+                                <li>عدم پشتیبانی از روش‌های پرداخت متنوع</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 نیازهای پنهان</div>
+                            <div class="sub-section-content"><ul>
+                                <li>اعتماد به سیستم از طریق نمایش نظرات واقعی</li>
+                                <li>احساس کنترل بیشتر روی رزروها</li>
+                                <li>تجربه شخصی‌سازی شده بر اساس سابقه استفاده</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">❌ قابلیت‌های مفقود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سیستم امتیازدهی و نظردهی</li>
+                                <li>ذخیره سالن‌های مورد علاقه</li>
+                                <li>اشتراک‌گذاری رزرو با دوستان</li>
+                                <li>تاریخچه کامل فعالیت‌ها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">📈 قابلیت‌های قابل بهبود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سرعت بارگذاری صفحات</li>
+                                <li>UX فرآیند پرداخت</li>
+                                <li>طراحی واکنش‌گرا برای موبایل</li>
+                                <li>شفافیت اطلاعات سالن</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚙️ اتوماسیون</div>
+                            <div class="sub-section-content"><ul>
+                                <li>رزرو خودکار بر اساس الگوی استفاده قبلی</li>
+                                <li>یادآوری خودکار 24 ساعت و 2 ساعت قبل</li>
+                                <li>تمدید خودکار رزروهای منظم</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🤖 AI Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>توصیه هوشمند سالن بر اساس علایق</li>
+                                <li>پیش‌بینی بهترین زمان برای رزرو</li>
+                                <li>تشخیص الگوهای استفاده و پیشنهاد تخفیف</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">😞 UX Problems</div>
+                            <div class="sub-section-content"><ul>
+                                <li>ناوبری پیچیده بین صفحات</li>
+                                <li>عدم بازخورد بصری کافی هنگام انجام عملیات</li>
+                                <li>فرم‌های طولانی بدون ذخیره خودکار</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💼 Business Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>برنامه وفاداری و امتیازدهی</li>
+                                <li>بسته‌های تخفیف برای استفاده مکرر</li>
+                                <li>همکاری با برندهای ورزشی</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 Top Priorities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>بازطراحی فرآیند رزرو (P0)</li>
+                                <li>بهینه‌سازی موبایل (P0)</li>
+                                <li>سیستم یادآوری (P1)</li>
+                                <li>نظرات و امتیازدهی (P1)</li>
+                            </ul></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item" data-role="manager">
+                <div class="accordion-header">
+                    <div class="accordion-title">🏢 مدیر سالن (Facility Manager) <span class="accordion-badge">P0</span></div>
+                    <span class="accordion-arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <div class="sub-section">
+                            <div class="sub-section-title">🔴 مشکلات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>داشبورد مدیریتی شلوغ و غیرشهودی</li>
+                                <li>دشواری در مدیریت همزمان چندین سالن</li>
+                                <li>گزارش‌گیری محدود و عدم انعطاف در فیلترها</li>
+                                <li>عدم اطلاع‌رسانی لحظه‌ای درباره رزروهای جدید</li>
+                                <li>مشکل در مدیریت کنسلی‌ها و جابجایی‌ها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💡 پیشنهادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>داشبورد سفارشی‌سازی شده با ویجت‌های قابل تنظیم</li>
+                                <li>نمای تقویمی یکپارچه برای تمام سالن‌ها</li>
+                                <li>گزارش‌ساز پیشرفته با خروجی Excel/PDF</li>
+                                <li>نوتیفیکیشن لحظه‌ای برای رویدادهای مهم</li>
+                                <li>سیستم drag-and-drop برای مدیریت رزروها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚠️ انتقادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم وجود نمای کلی از عملکرد مالی</li>
+                                <li>دشواری در تنظیم قیمت‌های پویا</li>
+                                <li>نبود ابزار تحلیل occupancy rate</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 نیازهای پنهان</div>
+                            <div class="sub-section-content"><ul>
+                                <li>کنترل بهتر بر درآمد و هزینه‌ها</li>
+                                <li>کاهش زمان صرف شده برای کارهای اداری</li>
+                                <li>بینش عمیق‌تر درباره رفتار مشتریان</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">❌ قابلیت‌های مفقود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>مدیریت پرسنل و شیفت‌ها</li>
+                                <li>سیستم نگهداری و تعمیرات</li>
+                                <li>مدیریت موجودی تجهیزات</li>
+                                <li>یکپارچه‌سازی با حسابداری</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">📈 قابلیت‌های قابل بهبود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سرعت بارگذاری داشبورد</li>
+                                <li>UX فرآیند گزارش‌گیری</li>
+                                <li>وضوح نمایش داده‌های آماری</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚙️ اتوماسیون</div>
+                            <div class="sub-section-content"><ul>
+                                <li>تنظیم خودکار قیمت بر اساس تقاضا</li>
+                                <li>تولید خودکار گزارش‌های دوره‌ای</li>
+                                <li>هشدار خودکار برای اشغال پایین</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🤖 AI Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>پیش‌بینی تقاضا برای بهینه‌سازی قیمت</li>
+                                <li>شناسایی الگوهای کنسلی برای کاهش آن</li>
+                                <li>توصیه اقدامات بهبود occupancy</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">😞 UX Problems</div>
+                            <div class="sub-section-content"><ul>
+                                <li>شلوغی بیش از حد رابط کاربری</li>
+                                <li>عدم دسترسی سریع به عملیات پرکاربرد</li>
+                                <li>ناوبری پیچیده بین بخش‌های مختلف</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💼 Business Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>فروش بسته‌های تبلیغاتی به برندها</li>
+                                <li>ارائه خدمات premium به مشتریان VIP</li>
+                                <li>بهینه‌سازی pricing strategy</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 Top Priorities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>بازطراحی داشبورد (P0)</li>
+                                <li>گزارش‌ساز پیشرفته (P0)</li>
+                                <li>مدیریت چند سالنه (P1)</li>
+                                <li>قیمت‌گذاری پویا (P1)</li>
+                            </ul></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item" data-role="reception">
+                <div class="accordion-header">
+                    <div class="accordion-title">📞 پذیرش (Reception) <span class="accordion-badge">P1</span></div>
+                    <span class="accordion-arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <div class="sub-section">
+                            <div class="sub-section-title">🔴 مشکلات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>دشواری در بررسی سریع وضعیت سالن‌ها</li>
+                                <li>عدم امکان رزرو تلفنی کارآمد</li>
+                                <li>مشکل در مدیریت walk-in customers</li>
+                                <li>نبود سیستم صف برای مراجعات حضوری</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💡 پیشنهادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>نمای سریع وضعیت تمام سالن‌ها در یک صفحه</li>
+                                <li>ابزار رزرو سریع برای اپراتورها</li>
+                                <li>سیستم check-in/check-out ساده</li>
+                                <li>مدیریت صف انتظار دیجیتال</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚠️ انتقادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>رابط کاربری کند و سنگین</li>
+                                <li>عدم یکپارچگی با سیستم تلفن</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 نیازهای پنهان</div>
+                            <div class="sub-section-content"><ul>
+                                <li>کاهش فشار کاری در ساعات شلوغی</li>
+                                <li>دسترسی سریع به اطلاعات مشتریان</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">❌ قابلیت‌های مفقود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>جستجوی سریع مشتری بر اساس نام/شماره</li>
+                                <li>تاریخچه تعاملات با هر مشتری</li>
+                                <li>یادآوری تماس‌های پیگیری</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">📈 قابلیت‌های قابل بهبود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سرعت پاسخ‌دهی سیستم</li>
+                                <li>سادگی فرآیند check-in</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚙️ اتوماسیون</div>
+                            <div class="sub-section-content"><ul>
+                                <li>ثبت خودکار ورود/خروج</li>
+                                <li>ارسال خودکار فاکتور پس از اتمام</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🤖 AI Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>پیش‌بینی ساعات شلوغی برای تخصیص پرسنل</li>
+                                <li>تشخیص مشتریان VIP هنگام ورود</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">😞 UX Problems</div>
+                            <div class="sub-section-content"><ul>
+                                <li>تعداد زیاد کلیک برای عملیات ساده</li>
+                                <li>عدم shortcutهای کیبورد</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💼 Business Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>افزایش رضایت مشتریان حضوری</li>
+                                <li>کاهش زمان انتظار</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 Top Priorities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>نمای سریع وضعیت سالن‌ها (P0)</li>
+                                <li>ابزار رزرو سریع (P1)</li>
+                                <li>سیستم check-in ساده (P1)</li>
+                            </ul></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item" data-role="multi-manager">
+                <div class="accordion-header">
+                    <div class="accordion-title">🏬 مدیر چند سالنه (Multi-Facility Manager) <span class="accordion-badge">P1</span></div>
+                    <span class="accordion-arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <div class="sub-section">
+                            <div class="sub-section-title">🔴 مشکلات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم امکان مشاهده همزمان وضعیت تمام شعب</li>
+                                <li>دشواری در مقایسه عملکرد شعب مختلف</li>
+                                <li>نبود گزارش‌های تجمیعی سطح سازمان</li>
+                                <li>مشکل در تخصیص منابع بین شعب</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💡 پیشنهادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>داشبورد مرکزی با نمای همه شعب</li>
+                                <li>گزارش‌های مقایسه‌ای بین شعب</li>
+                                <li>ابزار تخصیص بودجه و منابع</li>
+                                <li>سیستم alert برای anomalies</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚠️ انتقادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم شفافیت در داده‌های مالی هر شعبه</li>
+                                <li>دشواری در اعمال سیاست‌های یکسان</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 نیازهای پنهان</div>
+                            <div class="sub-section-content"><ul>
+                                <li>کنترل متمرکز با انعطاف محلی</li>
+                                <li>بینش استراتژیک از روندهای کل سازمان</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">❌ قابلیت‌های مفقود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>مدیریت متمرکز کاربران و دسترسی‌ها</li>
+                                <li>سیستم approval workflow</li>
+                                <li>بنچ‌مارکینگ داخلی</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">📈 قابلیت‌های قابل بهبود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سرعت تولید گزارش‌های تجمیعی</li>
+                                <li>وضوح نمایش KPIهای کلیدی</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚙️ اتوماسیون</div>
+                            <div class="sub-section-content"><ul>
+                                <li>تولید خودکار گزارش‌های ماهانه تجمیعی</li>
+                                <li>هشدار خودکار برای انحراف از اهداف</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🤖 AI Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>تحلیل مقایسه‌ای هوشمند شعب</li>
+                                <li>پیش‌بینی روندهای رشد سازمان</li>
+                                <li>توصیه بهینه‌سازی تخصیص منابع</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">😞 UX Problems</div>
+                            <div class="sub-section-content"><ul>
+                                <li>پیچیدگی ناوبری بین شعب</li>
+                                <li>بارگذاری کند داده‌های حجیم</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💼 Business Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>بهینه‌سازی زنجیره ارزش سازمان</li>
+                                <li>استانداردسازی فرآیندها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 Top Priorities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>داشبورد مرکزی (P0)</li>
+                                <li>گزارش‌های مقایسه‌ای (P1)</li>
+                                <li>مدیریت متمرکز دسترسی‌ها (P1)</li>
+                            </ul></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item" data-role="coach">
+                <div class="accordion-header">
+                    <div class="accordion-title">🏋️ مربی (Coach) <span class="accordion-badge">P2</span></div>
+                    <span class="accordion-arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <div class="sub-section">
+                            <div class="sub-section-title">🔴 مشکلات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم امکان مدیریت کلاس‌ها و جلسات تمرینی</li>
+                                <li>دشواری در ارتباط با شاگردان</li>
+                                <li>نبود ابزار ردیابی پیشرفت بازیکنان</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💡 پیشنهادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سیستم مدیریت کلاس و برنامه‌ریزی جلسات</li>
+                                <li>پروفایل اختصاصی برای هر مربی</li>
+                                <li>ابزار ارزیابی و گزارش پیشرفت</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚠️ انتقادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم توجه به نیازهای خاص مربیان</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 نیازهای پنهان</div>
+                            <div class="sub-section-content"><ul>
+                                <li>اعتبارسازی حرفه‌ای</li>
+                                <li>جذب شاگردان جدید</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">❌ قابلیت‌های مفقود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سیستم رزرو کلاس توسط شاگردان</li>
+                                <li>گالری ویدیوهای آموزشی</li>
+                                <li>سیستم پرداخت حق‌التدریس</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">📈 قابلیت‌های قابل بهبود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>رابط کاربری مخصوص مربیان</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚙️ اتوماسیون</div>
+                            <div class="sub-section-content"><ul>
+                                <li>یادآوری خودکار جلسات تمرینی</li>
+                                <li>ارسال خودکار گزارش پیشرفت به والدین</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🤖 AI Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>توصیه برنامه تمرینی شخصی‌سازی شده</li>
+                                <li>تحلیل ویدیویی تکنیک بازیکنان</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">😞 UX Problems</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم دسترسی آسان به ابزارهای مورد نیاز</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💼 Business Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>فروش دوره‌های آموزشی آنلاین</li>
+                                <li>جذب اسپانسر برای مربیان برتر</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 Top Priorities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>پروفایل مربی (P1)</li>
+                                <li>مدیریت کلاس‌ها (P2)</li>
+                                <li>ابزار ارزیابی (P2)</li>
+                            </ul></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item" data-role="captain">
+                <div class="accordion-header">
+                    <div class="accordion-title">⚽ کاپیتان تیم (Team Captain) <span class="accordion-badge">P2</span></div>
+                    <span class="accordion-arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <div class="sub-section">
+                            <div class="sub-section-title">🔴 مشکلات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>دشواری در هماهنگی رزرو با اعضای تیم</li>
+                                <li>عدم امکان جمع‌آوری سهم هزینه از اعضا</li>
+                                <li>مشکل در مدیریت لیست بازیکنان</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💡 پیشنهادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سیستم ایجاد تیم و مدیریت اعضا</li>
+                                <li>ابزار split payment برای تقسیم هزینه</li>
+                                <li>نظرسنجی برای تعیین زمان مناسب</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚠️ انتقادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم پشتیبانی از نیازهای گروهی</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 نیازهای پنهان</div>
+                            <div class="sub-section-content"><ul>
+                                <li>کاهش بار سازماندهی</li>
+                                <li>افزایش تعهد اعضا به بازی‌ها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">❌ قابلیت‌های مفقود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>صفحه اختصاصی تیم</li>
+                                <li>تاریخچه بازی‌های تیم</li>
+                                <li>آمار و رکوردهای تیمی</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">📈 قابلیت‌های قابل بهبود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>UX فرآیند دعوت اعضا</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚙️ اتوماسیون</div>
+                            <div class="sub-section-content"><ul>
+                                <li>یادآوری خودکار به اعضا قبل از بازی</li>
+                                <li>محاسبه خودکار سهم هر نفر</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🤖 AI Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>پیشنهاد زمان بهینه بر اساس حضور اعضا</li>
+                                <li>تطبیق تیم‌ها برای بازی دوستانه</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">😞 UX Problems</div>
+                            <div class="sub-section-content"><ul>
+                                <li>فرآیند پیچیده برای رزرو گروهی</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💼 Business Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>فروش بسته‌های تیمی با تخفیف</li>
+                                <li>برگزاری لیگ‌های داخلی</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 Top Priorities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سیستم مدیریت تیم (P1)</li>
+                                <li>Split payment (P2)</li>
+                                <li>نظرسنجی زمان (P2)</li>
+                            </ul></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item" data-role="tournament">
+                <div class="accordion-header">
+                    <div class="accordion-title">🏆 برگزارکننده تورنمنت (Tournament Organizer) <span class="accordion-badge">P2</span></div>
+                    <span class="accordion-arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <div class="sub-section">
+                            <div class="sub-section-title">🔴 مشکلات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم امکان ایجاد و مدیریت تورنمنت</li>
+                                <li>دشواری در زمان‌بندی مسابقات</li>
+                                <li>نبود سیستم ثبت‌نام تیم‌ها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💡 پیشنهادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>ماژول کامل مدیریت تورنمنت</li>
+                                <li>سیستم bracket سازی خودکار</li>
+                                <li>صفحه عمومی تورنمنت برای ثبت‌نام</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚠️ انتقادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>نادیده گرفتن نیازهای برگزاری رویداد</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 نیازهای پنهان</div>
+                            <div class="sub-section-content"><ul>
+                                <li>کاهش زمان سازماندهی</li>
+                                <li>حرفه‌ای‌تر شدن برگزاری</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">❌ قابلیت‌های مفقود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>سیستم قرعه‌کشی</li>
+                                <li>جدول امتیازات زنده</li>
+                                <li>صدور گواهی شرکت</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">📈 قابلیت‌های قابل بهبود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>رابط کاربری مخصوص تورنمنت</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚙️ اتوماسیون</div>
+                            <div class="sub-section-content"><ul>
+                                <li>تولید خودکار جدول مسابقات</li>
+                                <li>اطلاع‌رسانی خودکار نتایج</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🤖 AI Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>توازن‌سازی خودکار گروه‌ها</li>
+                                <li>پیش‌بینی جذابیت مسابقات</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">😞 UX Problems</div>
+                            <div class="sub-section-content"><ul>
+                                <li>نبود workflow مشخص برای تورنمنت</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💼 Business Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>فروش بلیت تماشاگران</li>
+                                <li>جذب اسپانسر برای تورنمنت‌ها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 Top Priorities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>ماژول تورنمنت (P1)</li>
+                                <li>Bracket ساز (P2)</li>
+                                <li>ثبت‌نام عمومی (P2)</li>
+                            </ul></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="accordion-item" data-role="marketing">
+                <div class="accordion-header">
+                    <div class="accordion-title">📊 بازاریابی و فروش (Marketing/Sales) <span class="accordion-badge">P2</span></div>
+                    <span class="accordion-arrow">▼</span>
+                </div>
+                <div class="accordion-content">
+                    <div class="accordion-body">
+                        <div class="sub-section">
+                            <div class="sub-section-title">🔴 مشکلات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم دسترسی به داده‌های تحلیلی مشتریان</li>
+                                <li>دشواری در اجرای کمپین‌های هدفمند</li>
+                                <li>نبود ابزار CRM یکپارچه</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💡 پیشنهادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>داشبورد تحلیلی بازاریابی</li>
+                                <li>سیستم segmentation مشتریان</li>
+                                <li>ابزار ایجاد کد تخفیف و کمپین</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚠️ انتقادات</div>
+                            <div class="sub-section-content"><ul>
+                                <li>عدم یکپارچگی با ابزارهای مارکتینگ</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 نیازهای پنهان</div>
+                            <div class="sub-section-content"><ul>
+                                <li>درک بهتر رفتار مشتریان</li>
+                                <li>اندازه‌گیری ROI کمپین‌ها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">❌ قابلیت‌های مفقود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>Email marketing automation</li>
+                                <li>A/B testing framework</li>
+                                <li>Referral program</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">📈 قابلیت‌های قابل بهبود</div>
+                            <div class="sub-section-content"><ul>
+                                <li>دقت داده‌های تحلیلی</li>
+                                <li>سرعت استخراج گزارش‌ها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">⚙️ اتوماسیون</div>
+                            <div class="sub-section-content"><ul>
+                                <li>ارسال خودکار ایمیل‌های خوش‌آمد</li>
+                                <li>کمپین‌های re-engagement خودکار</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🤖 AI Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>پیش‌بینی churn rate</li>
+                                <li>بهینه‌سازی targeting کمپین‌ها</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">😞 UX Problems</div>
+                            <div class="sub-section-content"><ul>
+                                <li>پیچیدگی ایجاد کمپین</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">💼 Business Opportunities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>افزایش retention rate</li>
+                                <li>بهبود conversion funnel</li>
+                            </ul></div>
+                        </div>
+                        <div class="sub-section">
+                            <div class="sub-section-title">🎯 Top Priorities</div>
+                            <div class="sub-section-content"><ul>
+                                <li>داشبورد تحلیلی (P1)</li>
+                                <li>CRM ساده (P2)</li>
+                                <li>سیستم کد تخفیف (P2)</li>
+                            </ul></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="chapter2" class="roadmap-container">
+            <h2 class="section-title">🗺️ فصل دوم — Roadmap و فازهای توسعه</h2>
+            <div class="timeline">
+                <div class="phase-card">
+                    <span class="phase-number">Phase 0</span>
+                    <h3 class="phase-title">زیرساخت و هسته سیستم</h3>
+                    <p>ایجاد زیرساخت فنی، معماری پایه، و قابلیت‌های اصلی رزرو</p>
+                    <div class="phase-details">
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">ویژگی‌ها</div>
+                            <div class="phase-detail-value">8 Features</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">زمان‌بندی</div>
+                            <div class="phase-detail-value">4 هفته</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">پیچیدگی</div>
+                            <div class="phase-detail-value">بالا</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">اولویت</div>
+                            <div class="phase-detail-value" style="color: var(--danger);">بحرانی</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 100%;"></div>
+                    </div>
+                </div>
+
+                <div class="phase-card">
+                    <span class="phase-number">Phase 1</span>
+                    <h3 class="phase-title">تجربه کاربری و موبایل</h3>
+                    <p>بهبود UX، توسعه اپلیکیشن موبایل، و بهینه‌سازی فرآیندها</p>
+                    <div class="phase-details">
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">ویژگی‌ها</div>
+                            <div class="phase-detail-value">6 Features</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">زمان‌بندی</div>
+                            <div class="phase-detail-value">6 هفته</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">پیچیدگی</div>
+                            <div class="phase-detail-value">متوسط</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">اولویت</div>
+                            <div class="phase-detail-value" style="color: var(--danger);">بحرانی</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 85%;"></div>
+                    </div>
+                </div>
+
+                <div class="phase-card">
+                    <span class="phase-number">Phase 2</span>
+                    <h3 class="phase-title">اتوماسیون و هوشمندی</h3>
+                    <p>پیاده‌سازی اتوماسیون‌ها، سیستم‌های یادآوری، و AI پایه</p>
+                    <div class="phase-details">
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">ویژگی‌ها</div>
+                            <div class="phase-detail-value">5 Features</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">زمان‌بندی</div>
+                            <div class="phase-detail-value">5 هفته</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">پیچیدگی</div>
+                            <div class="phase-detail-value">بالا</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">اولویت</div>
+                            <div class="phase-detail-value" style="color: var(--warning);">بالا</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 70%;"></div>
+                    </div>
+                </div>
+
+                <div class="phase-card">
+                    <span class="phase-number">Phase 3</span>
+                    <h3 class="phase-title">قابلیت‌های پیشرفته</h3>
+                    <p>مدیریت تیم، مربیان، و امکانات اجتماعی</p>
+                    <div class="phase-details">
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">ویژگی‌ها</div>
+                            <div class="phase-detail-value">4 Features</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">زمان‌بندی</div>
+                            <div class="phase-detail-value">4 هفته</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">پیچیدگی</div>
+                            <div class="phase-detail-value">متوسط</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">اولویت</div>
+                            <div class="phase-detail-value" style="color: var(--info);">متوسط</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 50%;"></div>
+                    </div>
+                </div>
+
+                <div class="phase-card">
+                    <span class="phase-number">Phase 4</span>
+                    <h3 class="phase-title">تورنمنت و رویدادها</h3>
+                    <p>سیستم مدیریت تورنمنت، لیگ‌ها، و رویدادهای ویژه</p>
+                    <div class="phase-details">
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">ویژگی‌ها</div>
+                            <div class="phase-detail-value">3 Features</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">زمان‌بندی</div>
+                            <div class="phase-detail-value">5 هفته</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">پیچیدگی</div>
+                            <div class="phase-detail-value">بالا</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">اولویت</div>
+                            <div class="phase-detail-value" style="color: var(--info);">متوسط</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 30%;"></div>
+                    </div>
+                </div>
+
+                <div class="phase-card">
+                    <span class="phase-number">Phase 5</span>
+                    <h3 class="phase-title">بازاریابی و رشد</h3>
+                    <p>ابزارهای بازاریابی، loyalty program، و analytics پیشرفته</p>
+                    <div class="phase-details">
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">ویژگی‌ها</div>
+                            <div class="phase-detail-value">3 Features</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">زمان‌بندی</div>
+                            <div class="phase-detail-value">4 هفته</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">پیچیدگی</div>
+                            <div class="phase-detail-value">متوسط</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">اولویت</div>
+                            <div class="phase-detail-value" style="color: var(--success);">پایین</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 15%;"></div>
+                    </div>
+                </div>
+
+                <div class="phase-card">
+                    <span class="phase-number">Phase 6</span>
+                    <h3 class="phase-title">بهینه‌سازی و مقیاس‌پذیری</h3>
+                    <p>Performance tuning، scalability، و features نهایی</p>
+                    <div class="phase-details">
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">ویژگی‌ها</div>
+                            <div class="phase-detail-value">1 Feature</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">زمان‌بندی</div>
+                            <div class="phase-detail-value">3 هفته</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">پیچیدگی</div>
+                            <div class="phase-detail-value">پایین</div>
+                        </div>
+                        <div class="phase-detail-item">
+                            <div class="phase-detail-label">اولویت</div>
+                            <div class="phase-detail-value" style="color: var(--success);">پایین</div>
+                        </div>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" style="width: 5%;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="chapter3" class="tasks-container">
+            <h2 class="section-title">📋 فصل سوم — Parallel Development Tasks</h2>
+            
+            <div class="filter-buttons">
+                <button class="filter-btn active" data-filter="all">همه</button>
+                <button class="filter-btn" data-filter="p0">P0 - بحرانی</button>
+                <button class="filter-btn" data-filter="p1">P1 - بالا</button>
+                <button class="filter-btn" data-filter="p2">P2 - متوسط</button>
+                <button class="filter-btn" data-filter="p3">P3 - پایین</button>
+            </div>
+
+            <div class="tasks-grid">
+                <div class="task-column">
+                    <h3 class="column-header">💻 Frontend / Desktop</h3>
+                    
+                    <div class="task-item priority-p0" data-priority="p0">
+                        <span class="task-id">FE-001</span>
+                        <div class="task-title">بازطراحی فرآیند رزرو</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p0">P0</span>
+                            <span>Phase 1</span>
+                            <span>وابستگی: BE-001</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p0" data-priority="p0">
+                        <span class="task-id">FE-002</span>
+                        <div class="task-title">بهینه‌سازی موبایل UX</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p0">P0</span>
+                            <span>Phase 1</span>
+                            <span>وابستگی: -</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p1" data-priority="p1">
+                        <span class="task-id">FE-003</span>
+                        <div class="task-title">داشبورد مدیریتی جدید</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p1">P1</span>
+                            <span>Phase 1</span>
+                            <span>وابستگی: BE-005</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p1" data-priority="p1">
+                        <span class="task-id">FE-004</span>
+                        <div class="task-title">سیستم نوتیفیکیشن</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p1">P1</span>
+                            <span>Phase 2</span>
+                            <span>وابستگی: BE-010</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p2" data-priority="p2">
+                        <span class="task-id">FE-005</span>
+                        <div class="task-title">صفحه پروفایل مربی</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p2">P2</span>
+                            <span>Phase 3</span>
+                            <span>وابستگی: BE-015</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p2" data-priority="p2">
+                        <span class="task-id">FE-006</span>
+                        <div class="task-title">سیستم مدیریت تیم</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p2">P2</span>
+                            <span>Phase 3</span>
+                            <span>وابستگی: BE-018</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-column">
+                    <h3 class="column-header">📱 Android / Flutter</h3>
+                    
+                    <div class="task-item priority-p0" data-priority="p0">
+                        <span class="task-id">AN-001</span>
+                        <div class="task-title">اپلیکیشن موبایل MVP</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p0">P0</span>
+                            <span>Phase 1</span>
+                            <span>وابستگی: BE-001</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p0" data-priority="p0">
+                        <span class="task-id">AN-002</span>
+                        <div class="task-title">فرآیند رزرو موبایل</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p0">P0</span>
+                            <span>Phase 1</span>
+                            <span>وابستگی: AN-001</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p1" data-priority="p1">
+                        <span class="task-id">AN-003</span>
+                        <div class="task-title">Push Notifications</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p1">P1</span>
+                            <span>Phase 2</span>
+                            <span>وابستگی: BE-010</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p1" data-priority="p1">
+                        <span class="task-id">AN-004</span>
+                        <div class="task-title">Offline Mode</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p1">P1</span>
+                            <span>Phase 2</span>
+                            <span>وابستگی: AN-001</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p2" data-priority="p2">
+                        <span class="task-id">AN-005</span>
+                        <div class="task-title">Dashboard Manager App</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p2">P2</span>
+                            <span>Phase 3</span>
+                            <span>وابستگی: BE-005</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p3" data-priority="p3">
+                        <span class="task-id">AN-006</span>
+                        <div class="task-title">Widget صفحه اصلی</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p3">P3</span>
+                            <span>Phase 4</span>
+                            <span>وابستگی: AN-001</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-column">
+                    <h3 class="column-header">🔧 Backend</h3>
+                    
+                    <div class="task-item priority-p0" data-priority="p0">
+                        <span class="task-id">BE-001</span>
+                        <div class="task-title">API رزرو و مدیریت سالن</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p0">P0</span>
+                            <span>Phase 0</span>
+                            <span>وابستگی: -</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p0" data-priority="p0">
+                        <span class="task-id">BE-002</span>
+                        <div class="task-title">سیستم احراز هویت</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p0">P0</span>
+                            <span>Phase 0</span>
+                            <span>وابستگی: -</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p0" data-priority="p0">
+                        <span class="task-id">BE-003</span>
+                        <div class="task-title">درگاه پرداخت یکپارچه</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p0">P0</span>
+                            <span>Phase 0</span>
+                            <span>وابستگی: BE-001</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p1" data-priority="p1">
+                        <span class="task-id">BE-005</span>
+                        <div class="task-title">API گزارش‌گیری پیشرفته</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p1">P1</span>
+                            <span>Phase 1</span>
+                            <span>وابستگی: BE-001</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p1" data-priority="p1">
+                        <span class="task-id">BE-010</span>
+                        <div class="task-title">سیستم Notification Engine</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p1">P1</span>
+                            <span>Phase 2</span>
+                            <span>وابستگی: BE-001</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p2" data-priority="p2">
+                        <span class="task-id">BE-015</span>
+                        <div class="task-title">ماژول مدیریت مربیان</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p2">P2</span>
+                            <span>Phase 3</span>
+                            <span>وابستگی: BE-002</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="task-column">
+                    <h3 class="column-header">✅ QA</h3>
+                    
+                    <div class="task-item priority-p0" data-priority="p0">
+                        <span class="task-id">QA-001</span>
+                        <div class="task-title">تست API رزرو</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p0">P0</span>
+                            <span>Phase 0</span>
+                            <span>وابستگی: BE-001</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p0" data-priority="p0">
+                        <span class="task-id">QA-002</span>
+                        <div class="task-title">تست امنیت پرداخت</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p0">P0</span>
+                            <span>Phase 0</span>
+                            <span>وابستگی: BE-003</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p1" data-priority="p1">
+                        <span class="task-id">QA-003</span>
+                        <div class="task-title">تست UX موبایل</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p1">P1</span>
+                            <span>Phase 1</span>
+                            <span>وابستگی: FE-002</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p1" data-priority="p1">
+                        <span class="task-id">QA-004</span>
+                        <div class="task-title">Load Testing APIs</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p1">P1</span>
+                            <span>Phase 1</span>
+                            <span>وابستگی: BE-001</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p2" data-priority="p2">
+                        <span class="task-id">QA-005</span>
+                        <div class="task-title">تست سیستم نوتیفیکیشن</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p2">P2</span>
+                            <span>Phase 2</span>
+                            <span>وابستگی: BE-010</span>
+                        </div>
+                    </div>
+
+                    <div class="task-item priority-p2" data-priority="p2">
+                        <span class="task-id">QA-006</span>
+                        <div class="task-title">تست یکپارچگی اپ موبایل</div>
+                        <div class="task-meta">
+                            <span class="priority-badge p2">P2</span>
+                            <span>Phase 2</span>
+                            <span>وابستگی: AN-001</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <div class="back-to-top" id="backToTop">↑</div>
+
+    <script>
+        // Accordion functionality
+        document.querySelectorAll('.accordion-header').forEach(header => {
+            header.addEventListener('click', () => {
+                const item = header.parentElement;
+                const isActive = item.classList.contains('active');
+                
+                // Close all accordions
+                document.querySelectorAll('.accordion-item').forEach(acc => {
+                    acc.classList.remove('active');
+                });
+                
+                // Open clicked if it wasn't active
+                if (!isActive) {
+                    item.classList.add('active');
+                }
+            });
+        });
+
+        // Filter functionality
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                // Update active button
+                document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                const filter = btn.dataset.filter;
+                
+                // Filter tasks
+                document.querySelectorAll('.task-item').forEach(task => {
+                    if (filter === 'all' || task.dataset.priority === filter) {
+                        task.classList.remove('hidden');
+                    } else {
+                        task.classList.add('hidden');
+                    }
+                });
+            });
+        });
+
+        // Search functionality
+        const searchInput = document.getElementById('searchInput');
+        searchInput.addEventListener('input', (e) => {
+            const searchTerm = e.target.value.toLowerCase();
+            
+            document.querySelectorAll('.accordion-item').forEach(item => {
+                const text = item.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    item.classList.remove('hidden');
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+            
+            document.querySelectorAll('.task-item').forEach(task => {
+                const text = task.textContent.toLowerCase();
+                if (text.includes(searchTerm)) {
+                    task.classList.remove('hidden');
+                } else {
+                    task.classList.add('hidden');
+                }
+            });
+        });
+
+        // Back to top button
+        const backToTop = document.getElementById('backToTop');
+        window.addEventListener('scroll', () => {
+            if (window.scrollY > 300) {
+                backToTop.classList.add('visible');
+            } else {
+                backToTop.classList.remove('visible');
+            }
+        });
+
+        backToTop.addEventListener('click', () => {
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+
+        // Smooth scroll for navigation links
+        document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+            anchor.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Animate progress bars on scroll
+        const observerOptions = {
+            threshold: 0.5,
+            rootMargin: '0px'
+        };
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    const progressFill = entry.target.querySelector('.progress-fill');
+                    if (progressFill) {
+                        const width = progressFill.style.width;
+                        progressFill.style.width = '0';
+                        setTimeout(() => {
+                            progressFill.style.width = width;
+                        }, 100);
+                    }
+                }
+            });
+        }, observerOptions);
+
+        document.querySelectorAll('.phase-card').forEach(card => {
+            observer.observe(card);
+        });
+    </script>
+</body>
+</html>
