@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../dashboard/dashboard_screen.dart';
 import '../venues/venues_screen.dart';
 import '../bookings/bookings_screen.dart';
 import '../games/games_list_screen.dart';
@@ -16,6 +17,7 @@ class _HomeScreenState extends State<HomeScreen> {
   int _currentIndex = 0;
 
   final List<Widget> _screens = [
+    const DashboardScreen(),
     const VenuesScreen(),
     const GamesListScreen(),
     const BookingsScreen(),
@@ -34,6 +36,11 @@ class _HomeScreenState extends State<HomeScreen> {
         selectedItemColor: Theme.of(context).colorScheme.primary,
         unselectedItemColor: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.5),
         items: const [
+          BottomNavigationBarItem(
+            icon: Icon(Icons.dashboard_outlined),
+            activeIcon: Icon(Icons.dashboard),
+            label: 'داشبورد',
+          ),
           BottomNavigationBarItem(
             icon: Icon(Icons.sports_soccer_outlined),
             activeIcon: Icon(Icons.sports_soccer),
