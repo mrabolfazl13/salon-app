@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../venues/venues_screen.dart';
 import '../bookings/bookings_screen.dart';
+import '../games/games_list_screen.dart';
+import '../teams/teams_list_screen.dart';
 import '../profile/profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -15,7 +17,9 @@ class _HomeScreenState extends State<HomeScreen> {
 
   final List<Widget> _screens = [
     const VenuesScreen(),
+    const GamesListScreen(),
     const BookingsScreen(),
+    const TeamsListScreen(),
     const ProfileScreen(),
   ];
 
@@ -36,9 +40,19 @@ class _HomeScreenState extends State<HomeScreen> {
             label: 'سالن‌ها',
           ),
           BottomNavigationBarItem(
+            icon: Icon(Icons.sports_esports_outlined),
+            activeIcon: Icon(Icons.sports_esports),
+            label: 'بازی‌ها',
+          ),
+          BottomNavigationBarItem(
             icon: Icon(Icons.calendar_today_outlined),
             activeIcon: Icon(Icons.calendar_today),
             label: 'رزروها',
+          ),
+          BottomNavigationBarItem(
+            icon: Icon(Icons.groups_outlined),
+            activeIcon: Icon(Icons.groups),
+            label: 'تیم‌ها',
           ),
           BottomNavigationBarItem(
             icon: Icon(Icons.person_outline),

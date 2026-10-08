@@ -4,6 +4,8 @@ import '../../core/providers/auth_provider.dart';
 import '../../core/providers/theme_provider.dart';
 import '../auth/login_screen.dart';
 import '../finance/finance_screen.dart';
+import '../favorites/favorites_screen.dart';
+import '../search/search_screen.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
@@ -43,14 +45,14 @@ class ProfileScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    authProvider.user?['name'] ?? 'کاربر',
+                    authProvider.user?['name'] ?? authProvider.user?['full_name'] ?? 'کاربر',
                     style: Theme.of(context).textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                         ),
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    authProvider.user?['email'] ?? '',
+                    authProvider.user?['email'] ?? authProvider.user?['phone'] ?? '',
                     style: TextStyle(
                       color: Theme.of(context).colorScheme.onSurface.withValues(alpha: 0.6),
                     ),
@@ -61,7 +63,35 @@ class ProfileScreen extends StatelessWidget {
           ),
           const SizedBox(height: 16),
 
-          // Menu items
+          // Search
+          ListTile(
+            leading: const Icon(Icons.search),
+            title: const Text('جستجوی سالن'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SearchScreen()),
+              );
+            },
+          ),
+          const Divider(),
+
+          // Favorites
+          ListTile(
+            leading: const Icon(Icons.favorite_border),
+            title: const Text('علاقه‌مندی‌ها'),
+            trailing: const Icon(Icons.chevron_right),
+            onTap: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const FavoritesScreen()),
+              );
+            },
+          ),
+          const Divider(),
+
+          // Finance
           ListTile(
             leading: const Icon(Icons.account_balance_wallet),
             title: const Text('مدیریت مالی'),
@@ -75,16 +105,19 @@ class ProfileScreen extends StatelessWidget {
           ),
           const Divider(),
 
+          // Booking history
           ListTile(
             leading: const Icon(Icons.history),
             title: const Text('تاریخچه رزروها'),
             trailing: const Icon(Icons.chevron_right),
             onTap: () {
-              // TODO: Navigate to booking history
+              // Navigate to bookings screen
+              Navigator.pop(context);
             },
           ),
           const Divider(),
 
+          // Settings
           ListTile(
             leading: const Icon(Icons.settings),
             title: const Text('تنظیمات'),
@@ -95,6 +128,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           const Divider(),
 
+          // Help
           ListTile(
             leading: const Icon(Icons.help_outline),
             title: const Text('راهنما و پشتیبانی'),
@@ -105,6 +139,7 @@ class ProfileScreen extends StatelessWidget {
           ),
           const Divider(),
 
+          // Logout
           ListTile(
             leading: Icon(Icons.logout, color: Theme.of(context).colorScheme.error),
             title: Text(

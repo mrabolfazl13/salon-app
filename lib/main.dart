@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'core/theme/app_theme.dart';
 import 'core/providers/auth_provider.dart';
 import 'core/providers/theme_provider.dart';
+import 'core/services/notification_service.dart';
 import 'screens/home/home_screen.dart';
 import 'screens/auth/login_screen.dart';
 
@@ -16,8 +17,21 @@ void main() async {
   runApp(const FutsalBookingApp());
 }
 
-class FutsalBookingApp extends StatelessWidget {
+class FutsalBookingApp extends StatefulWidget {
   const FutsalBookingApp({super.key});
+
+  @override
+  State<FutsalBookingApp> createState() => _FutsalBookingAppState();
+}
+
+class _FutsalBookingAppState extends State<FutsalBookingApp> {
+  late NotificationService _notificationService;
+
+  @override
+  void initState() {
+    super.initState();
+    _notificationService = NotificationService();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -25,9 +39,19 @@ class FutsalBookingApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (_) => ThemeProvider()),
         ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => _notificationService),
       ],
       child: Consumer2<ThemeProvider, AuthProvider>(
         builder: (context, themeProvider, authProvider, _) {
+          // Connect/disconnect WebSocket based on auth status
+          if (authProvider.isAuthenticated) {
+            Future.delayed(Duration.zero, () {
+              _notificationService.connect();
+            });
+          } else {
+            _notificationService.disconnect();
+          }
+
           return MaterialApp(
             title: 'سیستم رزرو فوتسال',
             debugShowCheckedModeBanner: false,
