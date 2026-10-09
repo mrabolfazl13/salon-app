@@ -1,7 +1,7 @@
 """slots: add RESERVED status + protect sold contract slots
 
 Revision ID: e5k005slotreserved
-Revises: d4j004baseline
+Revises: c3i003membership
 Create Date: 2026-09-15
 
 ستون status در postgres یک enum native با نام slotstatus است (SQLAlchemy
@@ -18,7 +18,7 @@ import sqlalchemy as sa
 from alembic import op
 
 revision: str = "e5k005slotreserved"
-down_revision: Union[str, None] = "d4j004baseline"
+down_revision: Union[str, None] = "c3i003membership"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

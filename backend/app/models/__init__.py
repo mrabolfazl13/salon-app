@@ -23,10 +23,6 @@ from .transaction import (
     TransactionType, TransactionDirection, TransactionMethod, TransactionStatus,
     CounterpartyType, TransactionSourceType,
 )
-from .finance import (
-    FinancialTransaction as FinanceFinancialTransaction,
-    ExpenseCategory as FinanceExpenseCategory,
-)
 from .holiday import Holiday
 from .pricing_rule import PricingRule, ModifierType
 from .coupon import Coupon, CouponRedemption, CouponType

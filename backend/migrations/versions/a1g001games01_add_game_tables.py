@@ -1,8 +1,10 @@
 """add game tables (Group Booking / Open Game)
 
 Revision ID: a1g001games01
-Revises:
+Revises: d4j004baseline
 Create Date: 2026-09-04
+
+باید بعد از baseline اجرا شود: FK به bookings دارد که baseline می‌سازد.
 
 ایمن در برابر create_all: هر جدول فقط در صورت نبود ساخته می‌شود (idempotent).
 rollback کامل: downgrade تمام هفت جدول را به ترتیب معکوس FK حذف می‌کند.
@@ -15,7 +17,7 @@ import sqlmodel
 
 # revision identifiers, used by Alembic.
 revision: str = "a1g001games01"
-down_revision: Union[str, None] = None
+down_revision: Union[str, None] = "d4j004baseline"
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

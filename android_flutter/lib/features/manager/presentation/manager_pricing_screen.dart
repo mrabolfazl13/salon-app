@@ -5,7 +5,6 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
-import '../../../core/widgets/app_button.dart';
 
 class ManagerPricingScreen extends ConsumerStatefulWidget {
   const ManagerPricingScreen({super.key});

@@ -88,7 +88,7 @@ def test_expired_link_rejected(client, seed, db):
     link = client.post(f"{BASE}/{gid}/invite-links", json={"expires_in_days": 1},
                        headers=auth(owner.phone)).json()
     row = db.get(GameInviteLink, link["id"])
-    row.expires_at = datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(days=1)
+    row.expires_at = datetime.now(timezone.utc) - timedelta(days=1)
     db.add(row)
     db.commit()
     prev = client.get(f"{BASE}/join/{link['token']}")

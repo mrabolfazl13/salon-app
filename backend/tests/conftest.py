@@ -56,9 +56,21 @@ from app.models.team import (
 from app.models.staff import StaffAssignment, SecurityAuditEvent
 from app.models.customer import VenueCustomer, CrmCampaign
 from app.models.quiz import QuizQuestion, QuizAttempt
+from app.models.split_payment import TeamSplitPayment, SplitPaymentShare, SplitPaymentAuditEvent
 from app.utils.auth import get_current_user
 from app.api.v1.games import get_optional_user
 from app.database import get_session
+
+# سلری بدون ردیس: تسک‌ها همین‌جا (eager) اجرا می‌شوند و به بروکر/بک‌اند ردیس دست نمی‌زنند
+from app.tasks.worker import celery_app as _celery_app
+
+_celery_app.conf.update(
+    broker_url="memory://",
+    result_backend="cache+memory://",
+    task_always_eager=True,
+    task_eager_propagates=False,
+    task_store_eager_result=False,
+)
 
 test_engine = create_engine(
     os.environ["DATABASE_URL"],
@@ -119,6 +131,7 @@ SQLModel.metadata.create_all(test_engine)
 _TABLES_CLEAN_ORDER = [
     QuizAttempt, QuizQuestion,
     TeamMessage,
+    SplitPaymentAuditEvent, SplitPaymentShare, TeamSplitPayment,
     TeamAuditEvent, TeamDues, TeamBooking, TeamJoinRequest, TeamInvitation,
     TeamMember, Team,
     CouponRedemption, Coupon, LoyaltyPoint, FavoriteVenue,

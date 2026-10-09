@@ -155,6 +155,24 @@ def _rec_calls(dependant):
         yield from _rec_calls(sub)
 
 
+def _iter_get_api_routes(fastapi_app):
+    """GET APIRouteها در هر دو شکل Starlette (تخت یا _IncludedRouter با prefix)."""
+    for route in fastapi_app.routes:
+        methods = getattr(route, "methods", None)
+        if methods and "GET" in methods:
+            path = getattr(route, "path", "")
+            if path.startswith("/api/v1"):
+                yield route, path
+                continue
+        inner = getattr(route, "original_router", None)
+        if inner is not None:
+            prefix = getattr(getattr(route, "include_context", None), "prefix", "") or ""
+            for sub in getattr(inner, "routes", None) or []:
+                sub_methods = getattr(sub, "methods", None)
+                if sub_methods and "GET" in sub_methods:
+                    yield sub, prefix + getattr(sub, "path", "")
+
+
 def test_get_browsing_endpoints_have_no_rate_limiter():
     """Task-5 guard: a read-only GET must never carry the fixed-window limiter,
     and the deal browsing market must be reachable."""
@@ -164,13 +182,7 @@ def test_get_browsing_endpoints_have_no_rate_limiter():
     limiters = {auth_rate_limit, verification_rate_limit,
                 booking_rate_limit, payment_rate_limit}
     paths = set()
-    for route in fastapi_app.routes:
-        methods = getattr(route, "methods", None)
-        if not methods or "GET" not in methods:
-            continue
-        path = getattr(route, "path", "")
-        if not path.startswith("/api/v1"):
-            continue
+    for route, path in _iter_get_api_routes(fastapi_app):
         paths.add(path)
         for call in _rec_calls(getattr(route, "dependant", None)):
             assert call not in limiters, f"GET {path} is rate limited"
@@ -200,8 +212,11 @@ def test_alembic_chain_fresh_sqlite_upgrade_and_downgrade(tmp_path):
         "select name from sqlite_master where type='table'")}
     assert {"bookings", "slots", "financial_transactions", "teams",
             "staff_assignments", "game_payments"} <= tables
+    heads = _run(["-m", "alembic", "-c", "alembic.ini", "heads"], url)
+    head_id = heads.stdout.strip().split()[0] if heads.stdout.strip() else ""
+    assert head_id, heads.stderr[-500:]
     check = _run(["-m", "alembic", "-c", "alembic.ini", "current"], url)
-    assert "m0s015teamofficialchat" in check.stdout or check.stderr == ""
+    assert head_id in check.stdout or check.stderr == ""
     down = _run(["-m", "alembic", "-c", "alembic.ini", "downgrade", "base"], url)
     assert down.returncode == 0, down.stderr[-1500:]
     leftover = [r[0] for r in sqlite3.connect(str(db)).execute(

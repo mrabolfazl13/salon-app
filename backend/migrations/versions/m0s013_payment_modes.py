@@ -46,14 +46,23 @@ def _add(table: str, column: str, kind: sa.types.TypeEngine, **kw) -> None:
     op.add_column(table, sa.Column(column, kind, **kw))
 
 
+def _rows_missing(table: str, where: str) -> int:
+    return op.get_bind().execute(
+        sa.text(f"SELECT COUNT(*) FROM {table} WHERE {where}")
+    ).scalar()
+
+
 def upgrade() -> None:
     # ── venues: روش پرداخت سالن (پیش‌فرض فیش واریزی) ──
     _add("venues", "payment_mode", sqlmodel.VARCHAR(length=20),
          nullable=False, server_default="bank_receipt")
-    op.execute(
-        "UPDATE venues SET payment_mode = 'bank_receipt' "
-        "WHERE payment_mode IS NULL"
-    )
+    # backfill فقط برای ردیف‌های legacy (دیتابیس تازه خالی است و ستونِ آن native
+    # enum است — literal مقداری مثل bank_receipt روی آن even با ۰ ردیف هم خطا می‌دهد)
+    if _rows_missing("venues", "payment_mode IS NULL"):
+        op.execute(
+            "UPDATE venues SET payment_mode = 'bank_receipt' "
+            "WHERE payment_mode IS NULL"
+        )
 
     # ── bookings: اسنپ‌شوت روش پرداخت + گردش رسید واریزی ──
     _add("bookings", "payment_mode", sqlmodel.VARCHAR(length=20), nullable=True)
@@ -81,13 +90,15 @@ def upgrade() -> None:
             )
 
     # backfill ایمن — ردیف‌های قدیمی (ستون‌های NOT NULL بالا server_default دارند)
-    op.execute(
-        "UPDATE bookings SET receipt_status = 'none' "
-        "WHERE receipt_status IS NULL"
-    )
-    op.execute(
-        "UPDATE bookings SET needs_receipt = false WHERE needs_receipt IS NULL"
-    )
+    if _rows_missing("bookings", "receipt_status IS NULL"):
+        op.execute(
+            "UPDATE bookings SET receipt_status = 'none' "
+            "WHERE receipt_status IS NULL"
+        )
+    if _rows_missing("bookings", "needs_receipt IS NULL"):
+        op.execute(
+            "UPDATE bookings SET needs_receipt = false WHERE needs_receipt IS NULL"
+        )
 
 
 def downgrade() -> None:

@@ -1,16 +1,19 @@
 # backend/app/api/v1/split_payments.py
-"""API endpoints for team split payment management."""
+"""Team split payment API — team-based contract (see src/services/splitPayment.ts)."""
 
-from fastapi import APIRouter, Depends, HTTPException, status
-from sqlmodel import Session, select
-from typing import List, Optional
+import json
 from datetime import datetime, timezone
+from typing import List, Optional
+
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from sqlmodel import Session, select, func
 
 from app.database import get_session
 from app.models.split_payment import (
     TeamSplitPayment, SplitPaymentShare, SplitPaymentAuditEvent,
     SplitMethod, SplitPaymentStatus, ShareStatus,
 )
+from app.models.team import Team, TeamMember, TeamMemberStatus
 from app.models.game import Game
 from app.models.user import User
 from app.utils.auth import get_current_user
@@ -22,398 +25,318 @@ router = APIRouter(prefix="/split-payments", tags=["split-payments"])
 
 # ─────────────────────────── Schemas ───────────────────────────
 
-class SplitPaymentCreate(BaseModel):
-    """Request body for creating a split payment."""
-    game_id: int
-    total_amount: int = Field(gt=0, description="Total amount in rials")
-    split_method: SplitMethod = SplitMethod.EQUAL
-    deadline: datetime
-    notes: Optional[str] = Field(None, max_length=1000)
-    
-    # For CUSTOM or PERCENTAGE methods
-    shares: Optional[List[dict]] = Field(
-        None, 
-        description="List of {user_id, amount} or {user_id, percentage}"
-    )
-
-
-class SplitPaymentShareResponse(BaseModel):
-    """Individual share information."""
-    id: int
+class CustomShareIn(BaseModel):
     user_id: int
-    user_name: Optional[str] = None
-    amount: int
-    status: ShareStatus
-    is_paid: bool
-    paid_at: Optional[datetime] = None
+    amount: int = Field(gt=0)
 
 
-class SplitPaymentResponse(BaseModel):
-    """Split payment details with shares."""
-    id: int
-    game_id: int
-    organizer_id: int
-    team_id: Optional[int] = None
-    total_amount: int
-    split_method: SplitMethod
-    status: SplitPaymentStatus
-    paid_amount: int
-    remaining_amount: int
-    progress_percentage: float
-    deadline: datetime
-    notes: Optional[str] = None
-    created_at: datetime
-    shares: List[SplitPaymentShareResponse] = []
+class PercentageShareIn(BaseModel):
+    user_id: int
+    percentage: float = Field(gt=0, le=100)
+
+
+class SplitPaymentCreate(BaseModel):
+    team_id: int
+    game_id: Optional[int] = None
+    booking_id: Optional[int] = None
+    amount: int = Field(gt=0)
+    currency: str = Field(default="IRR", max_length=10)
+    method: SplitMethod = SplitMethod.EQUAL
+    deadline: Optional[datetime] = None
+    note: Optional[str] = Field(default=None, max_length=1000)
+    custom_shares: Optional[List[CustomShareIn]] = None
+    percentage_shares: Optional[List[PercentageShareIn]] = None
+
+
+class PayShareIn(BaseModel):
+    payment_method: Optional[str] = None
+    transaction_ref: Optional[str] = None
+    note: Optional[str] = Field(default=None, max_length=500)
 
 
 # ─────────────────────────── Helpers ───────────────────────────
 
-def _calculate_shares(
-    split_method: SplitMethod,
-    total_amount: int,
-    participants: List[dict],
-    custom_shares: Optional[List[dict]] = None,
-) -> List[dict]:
-    """Calculate individual shares based on split method."""
-    
-    if split_method == SplitMethod.EQUAL:
-        # Divide equally among all participants
-        count = len(participants)
-        base_amount = total_amount // count
-        remainder = total_amount % count
-        
-        shares = []
-        for i, participant in enumerate(participants):
-            # Add remainder to first share(s) if not evenly divisible
-            amount = base_amount + (1 if i < remainder else 0)
-            shares.append({
-                "user_id": participant["user_id"],
-                "amount": amount,
-            })
-        
-        return shares
-    
-    elif split_method == SplitMethod.CUSTOM:
-        if not custom_shares:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Custom shares must be provided for CUSTOM split method"
-            )
-        
-        # Validate total matches
-        custom_total = sum(s["amount"] for s in custom_shares)
-        if custom_total != total_amount:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Custom shares total ({custom_total}) does not match total amount ({total_amount})"
-            )
-        
-        return custom_shares
-    
-    elif split_method == SplitMethod.PERCENTAGE:
-        if not custom_shares:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Percentage shares must be provided for PERCENTAGE split method"
-            )
-        
-        # Convert percentages to amounts
-        shares = []
-        for share in custom_shares:
-            percentage = share.get("percentage", 0)
-            amount = int(total_amount * percentage / 100)
-            shares.append({
-                "user_id": share["user_id"],
-                "amount": amount,
-            })
-        
-        return shares
-    
-    else:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Invalid split method: {split_method}"
-        )
+def _require_member(session: Session, team_id: Optional[int], user_id: int) -> TeamMember:
+    if team_id is None:
+        raise HTTPException(status_code=403, detail="این پرداخت اشتراکی به تیمی متصل نیست")
+    member = session.exec(select(TeamMember).where(
+        TeamMember.team_id == team_id,
+        TeamMember.user_id == user_id,
+        TeamMember.status == TeamMemberStatus.ACTIVE,
+    )).first()
+    if not member:
+        raise HTTPException(status_code=403, detail="فقط اعضای تیم به پرداخت اشتراکی دسترسی دارند")
+    return member
+
+
+def _active_member_ids(session: Session, team_id: int) -> List[int]:
+    rows = session.exec(select(TeamMember).where(
+        TeamMember.team_id == team_id,
+        TeamMember.status == TeamMemberStatus.ACTIVE,
+    )).all()
+    return [r.user_id for r in rows]
+
+
+def _user_names(session: Session, payment_id: int) -> dict:
+    rows = session.exec(
+        select(SplitPaymentShare.user_id, User.full_name)
+        .join(User, SplitPaymentShare.user_id == User.id)
+        .where(SplitPaymentShare.split_payment_id == payment_id)
+    ).all()
+    return {uid: name for uid, name in rows}
+
+
+def _serialize_share(share: SplitPaymentShare, user_name: Optional[str] = None) -> dict:
+    return {
+        "id": share.id,
+        "split_payment_id": share.split_payment_id,
+        "user_id": share.user_id,
+        "amount": share.amount,
+        "percentage": share.percentage,
+        "status": share.status,
+        "paid_at": share.paid_at,
+        "created_at": share.created_at,
+        "user_name": user_name,
+    }
+
+
+def _serialize_payment(sp: TeamSplitPayment, shares: Optional[List[dict]] = None) -> dict:
+    data = {
+        "id": sp.id,
+        "team_id": sp.team_id,
+        "game_id": sp.game_id,
+        "booking_id": sp.booking_id,
+        "amount": sp.amount,
+        "currency": sp.currency,
+        "method": sp.method,
+        "status": sp.status,
+        "deadline": sp.deadline,
+        "created_by": sp.created_by,
+        "created_at": sp.created_at,
+        "updated_at": sp.updated_at,
+        "note": sp.note,
+    }
+    if shares is not None:
+        data["shares"] = shares
+        data["total_paid"] = sp.paid_amount
+        data["remaining"] = sp.remaining_amount
+    return data
 
 
 # ─────────────────────────── Endpoints ───────────────────────────
 
-@router.post("/", response_model=dict, status_code=status.HTTP_201_CREATED)
+@router.post("/", status_code=status.HTTP_201_CREATED)
 async def create_split_payment(
     data: SplitPaymentCreate,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
+    """Create a split payment among ACTIVE team members.
+
+    EQUAL divides the amount equally; CUSTOM/PERCENTAGE require explicit
+    share lists whose sums must match the total (422 otherwise).
     """
-    Create a new split payment for a game.
-    
-    The organizer can split costs among game participants using:
-    - EQUAL: Divide equally among all participants
-    - CUSTOM: Specify exact amount per person
-    - PERCENTAGE: Specify percentage per person
-    """
-    
-    # Verify game exists and user is organizer
-    game = session.get(Game, data.game_id)
-    if not game:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Game not found"
-        )
-    
-    if game.organizer_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only game organizer can create split payments"
-        )
-    
-    # Check deadline is in the future
-    if data.deadline <= datetime.now(timezone.utc):
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Deadline must be in the future"
-        )
-    
-    # Get game participants
-    from app.models.game import GameParticipant, ParticipantStatus
-    participants_stmt = select(GameParticipant).where(
-        GameParticipant.game_id == data.game_id,
-        GameParticipant.status == ParticipantStatus.CONFIRMED
-    )
-    participants = session.exec(participants_stmt).all()
-    
-    if not participants:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="No confirmed participants in this game"
-        )
-    
-    participant_list = [{"user_id": p.user_id} for p in participants]
-    
-    # Calculate shares
-    try:
-        shares = _calculate_shares(
-            data.split_method,
-            data.total_amount,
-            participant_list,
-            data.shares,
-        )
-    except HTTPException:
-        raise
-    
-    # Create split payment
-    split_payment = TeamSplitPayment(
+    team = session.get(Team, data.team_id)
+    if not team:
+        raise HTTPException(status_code=404, detail="تیم یافت نشد")
+    _require_member(session, data.team_id, current_user.id)
+
+    if data.game_id is not None and not session.get(Game, data.game_id):
+        raise HTTPException(status_code=404, detail="بازی یافت نشد")
+
+    member_ids = _active_member_ids(session, data.team_id)
+    if not member_ids:
+        raise HTTPException(status_code=400, detail="تیم عضو فعالی ندارد")
+
+    if data.deadline is not None and data.deadline <= datetime.now(timezone.utc):
+        raise HTTPException(status_code=400, detail="مهلت باید در آینده باشد")
+
+    share_rows: List[dict] = []
+    if data.method == SplitMethod.EQUAL:
+        base = data.amount // len(member_ids)
+        remainder = data.amount % len(member_ids)
+        for i, uid in enumerate(member_ids):
+            share_rows.append({
+                "user_id": uid,
+                "amount": base + (1 if i < remainder else 0),
+                "percentage": None,
+            })
+    elif data.method == SplitMethod.CUSTOM:
+        if not data.custom_shares:
+            raise HTTPException(status_code=422, detail="برای تقسیم سفارشی، سهم‌ها لازم است")
+        custom_total = sum(s.amount for s in data.custom_shares)
+        if custom_total != data.amount:
+            raise HTTPException(
+                status_code=422,
+                detail=f"مجموع سهم‌ها ({custom_total}) با مبلغ کل ({data.amount}) برابر نیست",
+            )
+        for s in data.custom_shares:
+            if s.user_id not in member_ids:
+                raise HTTPException(status_code=422, detail="سهم باید متعلق به عضو تیم باشد")
+            share_rows.append({"user_id": s.user_id, "amount": s.amount, "percentage": None})
+    else:  # PERCENTAGE
+        if not data.percentage_shares:
+            raise HTTPException(status_code=422, detail="برای تقسیم درصدی، درصد سهم‌ها لازم است")
+        pct_total = sum(s.percentage for s in data.percentage_shares)
+        if round(pct_total) != 100:
+            raise HTTPException(
+                status_code=422,
+                detail=f"مجموع درصدها باید ۱۰۰ باشد (الان {pct_total:g})",
+            )
+        for s in data.percentage_shares:
+            if s.user_id not in member_ids:
+                raise HTTPException(status_code=422, detail="سهم باید متعلق به عضو تیم باشد")
+            share_rows.append({
+                "user_id": s.user_id,
+                "amount": int(data.amount * s.percentage / 100),
+                "percentage": s.percentage,
+            })
+
+    if len({r["user_id"] for r in share_rows}) != len(share_rows):
+        raise HTTPException(status_code=422, detail="هر عضو فقط یک سهم می‌تواند داشته باشد")
+
+    sp = TeamSplitPayment(
+        team_id=data.team_id,
         game_id=data.game_id,
-        organizer_id=current_user.id,
-        team_id=game.team_id,  # Link to team if game is for a team
-        total_amount=data.total_amount,
-        split_method=data.split_method,
+        booking_id=data.booking_id,
+        created_by=current_user.id,
+        amount=data.amount,
+        currency=data.currency,
+        method=data.method,
         deadline=data.deadline,
-        notes=data.notes,
+        note=data.note,
     )
-    session.add(split_payment)
-    session.flush()  # Get ID
-    
-    # Create shares
-    for share_data in shares:
-        share = SplitPaymentShare(
-            split_payment_id=split_payment.id,
-            user_id=share_data["user_id"],
-            amount=share_data["amount"],
+    session.add(sp)
+    session.flush()
+
+    for r in share_rows:
+        session.add(SplitPaymentShare(
+            split_payment_id=sp.id,
+            user_id=r["user_id"],
+            amount=r["amount"],
+            percentage=r["percentage"],
             status=ShareStatus.PENDING,
-        )
-        session.add(share)
-    
-    # Audit log
-    audit = SplitPaymentAuditEvent(
-        split_payment_id=split_payment.id,
+        ))
+    session.add(SplitPaymentAuditEvent(
+        split_payment_id=sp.id,
         user_id=current_user.id,
-        action="created",
-        data=f'{{"method": "{data.split_method}", "total": {data.total_amount}}}',
-    )
-    session.add(audit)
-    
+        performed_by=current_user.phone,
+        action="CREATED",
+        data=json.dumps(
+            {"method": data.method.value, "amount": data.amount, "members": len(share_rows)},
+            ensure_ascii=False,
+        ),
+    ))
     session.commit()
-    session.refresh(split_payment)
-    
-    return {
-        "id": split_payment.id,
-        "message": "Split payment created successfully",
-        "shares_count": len(shares),
-    }
+    session.refresh(sp)
+
+    names = _user_names(session, sp.id)
+    shares = session.exec(
+        select(SplitPaymentShare)
+        .where(SplitPaymentShare.split_payment_id == sp.id)
+        .order_by(SplitPaymentShare.id)
+    ).all()
+    return _serialize_payment(sp, [_serialize_share(s, names.get(s.user_id)) for s in shares])
 
 
-@router.get("/{payment_id}", response_model=SplitPaymentResponse)
+@router.get("/team/{team_id}")
+async def list_team_split_payments(
+    team_id: int,
+    limit: int = Query(50, ge=1, le=100),
+    offset: int = Query(0, ge=0),
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """List a team's split payments, newest first."""
+    _require_member(session, team_id, current_user.id)
+
+    total = session.exec(
+        select(func.count()).select_from(TeamSplitPayment).where(TeamSplitPayment.team_id == team_id)
+    ).one()
+    payments = session.exec(
+        select(TeamSplitPayment)
+        .where(TeamSplitPayment.team_id == team_id)
+        .order_by(TeamSplitPayment.created_at.desc(), TeamSplitPayment.id.desc())
+        .offset(offset)
+        .limit(limit)
+    ).all()
+    return {"items": [_serialize_payment(p) for p in payments], "total": total}
+
+
+@router.get("/{payment_id}")
 async def get_split_payment(
     payment_id: int,
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Get split payment details with all shares."""
-    
-    split_payment = session.get(TeamSplitPayment, payment_id)
-    if not split_payment:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Split payment not found"
-        )
-    
-    # Get shares with user info
-    from app.models.user import User as UserModel
-    shares_stmt = (
-        select(SplitPaymentShare, UserModel.full_name)
-        .join(UserModel, SplitPaymentShare.user_id == UserModel.id)
-        .where(SplitPaymentShare.split_payment_id == payment_id)
-    )
-    share_rows = session.exec(shares_stmt).all()
-    
-    shares_response = []
-    for share, user_name in share_rows:
-        shares_response.append(SplitPaymentShareResponse(
-            id=share.id,
-            user_id=share.user_id,
-            user_name=user_name,
-            amount=share.amount,
-            status=share.status,
-            is_paid=share.is_paid,
-            paid_at=share.paid_at,
-        ))
-    
-    return SplitPaymentResponse(
-        id=split_payment.id,
-        game_id=split_payment.game_id,
-        organizer_id=split_payment.organizer_id,
-        team_id=split_payment.team_id,
-        total_amount=split_payment.total_amount,
-        split_method=split_payment.split_method,
-        status=split_payment.status,
-        paid_amount=split_payment.paid_amount,
-        remaining_amount=split_payment.remaining_amount,
-        progress_percentage=split_payment.progress_percentage,
-        deadline=split_payment.deadline,
-        notes=split_payment.notes,
-        created_at=split_payment.created_at,
-        shares=shares_response,
-    )
+    """Get split payment details with all shares (team members only)."""
+    sp = session.get(TeamSplitPayment, payment_id)
+    if not sp:
+        raise HTTPException(status_code=404, detail="پرداخت اشتراکی یافت نشد")
+
+    if sp.team_id is not None:
+        _require_member(session, sp.team_id, current_user.id)
+    elif sp.created_by != current_user.id:
+        raise HTTPException(status_code=403, detail="فقط اعضای تیم به پرداخت اشتراکی دسترسی دارند")
+
+    names = _user_names(session, sp.id)
+    shares = session.exec(
+        select(SplitPaymentShare)
+        .where(SplitPaymentShare.split_payment_id == sp.id)
+        .order_by(SplitPaymentShare.id)
+    ).all()
+    return _serialize_payment(sp, [_serialize_share(s, names.get(s.user_id)) for s in shares])
 
 
 @router.post("/{payment_id}/shares/{share_id}/pay")
 async def pay_share(
     payment_id: int,
     share_id: int,
+    payload: Optional[PayShareIn] = Body(default=None),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """
-    Mark a share as paid.
-    
-    In production, this would integrate with payment gateway.
-    For now, it marks the share as paid directly.
-    """
-    
+    """Mark the current user's share as paid."""
+    sp = session.get(TeamSplitPayment, payment_id)
+    if not sp:
+        raise HTTPException(status_code=404, detail="پرداخت اشتراکی یافت نشد")
+
     share = session.get(SplitPaymentShare, share_id)
-    if not share:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Share not found"
-        )
-    
-    if share.split_payment_id != payment_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Share does not belong to this split payment"
-        )
-    
+    if not share or share.split_payment_id != payment_id:
+        raise HTTPException(status_code=404, detail="سهم یافت نشد")
+
     if share.user_id != current_user.id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only pay your own shares"
-        )
-    
-    if share.is_paid:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Share already paid"
-        )
-    
-    # Mark as paid
+        raise HTTPException(status_code=403, detail="فقط سهم خودتان را می‌توانید بپردازید")
+
+    if share.status == ShareStatus.PAID:
+        raise HTTPException(status_code=400, detail="این سهم قبلاً پرداخت شده است")
+
     share.status = ShareStatus.PAID
     share.paid_at = datetime.now(timezone.utc)
-    
-    # Update parent split payment
-    split_payment = session.get(TeamSplitPayment, payment_id)
-    split_payment.paid_amount += share.amount
-    split_payment.updated_at = datetime.now(timezone.utc)
-    
-    # Check if all shares are paid
-    all_shares_stmt = select(SplitPaymentShare).where(
-        SplitPaymentShare.split_payment_id == payment_id
-    )
-    all_shares = session.exec(all_shares_stmt).all()
-    
-    if all(s.is_paid for s in all_shares):
-        split_payment.status = SplitPaymentStatus.COMPLETED
-    
-    # Audit log
-    audit = SplitPaymentAuditEvent(
+    if payload and payload.note:
+        share.note = payload.note
+
+    sp.paid_amount += share.amount
+    sp.updated_at = datetime.now(timezone.utc)
+
+    all_shares = session.exec(
+        select(SplitPaymentShare).where(SplitPaymentShare.split_payment_id == payment_id)
+    ).all()
+    if all(s.status == ShareStatus.PAID for s in all_shares):
+        sp.status = SplitPaymentStatus.COMPLETED
+    elif any(s.status == ShareStatus.PAID for s in all_shares):
+        sp.status = SplitPaymentStatus.PARTIAL
+
+    session.add(SplitPaymentAuditEvent(
         split_payment_id=payment_id,
         user_id=current_user.id,
-        action="share_paid",
-        data=f'{{"share_id": {share_id}, "amount": {share.amount}}}',
-    )
-    session.add(audit)
-    
+        performed_by=current_user.phone,
+        action="SHARE_PAID",
+        data=json.dumps({"share_id": share.id, "amount": share.amount}, ensure_ascii=False),
+    ))
     session.commit()
-    
-    return {
-        "message": "Share paid successfully",
-        "remaining": split_payment.remaining_amount,
-        "progress": split_payment.progress_percentage,
-    }
+    session.refresh(share)
+    session.refresh(sp)
 
-
-@router.get("/team/{team_id}")
-async def list_team_split_payments(
-    team_id: int,
-    current_user: User = Depends(get_current_user),
-    session: Session = Depends(get_session),
-):
-    """List all split payments for a team."""
-    
-    # Verify user is team member
-    from app.models.team import TeamMember
-    membership = session.exec(
-        select(TeamMember).where(
-            TeamMember.team_id == team_id,
-            TeamMember.user_id == current_user.id,
-        )
-    ).first()
-    
-    if not membership:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail="You must be a team member to view split payments"
-        )
-    
-    # Get split payments
-    stmt = (
-        select(TeamSplitPayment)
-        .where(TeamSplitPayment.team_id == team_id)
-        .order_by(TeamSplitPayment.created_at.desc())
-    )
-    payments = session.exec(stmt).all()
-    
-    return [
-        {
-            "id": p.id,
-            "game_id": p.game_id,
-            "total_amount": p.total_amount,
-            "paid_amount": p.paid_amount,
-            "remaining_amount": p.remaining_amount,
-            "status": p.status,
-            "progress_percentage": p.progress_percentage,
-            "deadline": p.deadline,
-            "created_at": p.created_at,
-        }
-        for p in payments
-    ]
+    names = _user_names(session, sp.id)
+    return _serialize_share(share, names.get(share.user_id))

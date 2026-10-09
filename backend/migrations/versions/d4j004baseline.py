@@ -1,7 +1,7 @@
 """baseline — sync schema with current models (idempotent)
 
 Revision ID: d4j004baseline
-Revises: c3i003membership
+Revises: None (root — باید اول اجرا شود تا جداول هسته مثل bookings ساخته شوند)
 Create Date: 2026-09-15
 
 این baseline جداول هسته‌ی اپ (users/venues/slots/bookings/contracts/...) را که
@@ -22,7 +22,7 @@ from sqlmodel import SQLModel
 import app.models  # noqa: F401,E402 — ثبت همه جدول‌ها در metadata
 
 revision: str = "d4j004baseline"
-down_revision: Union[str, None] = "c3i003membership"
+down_revision: Union[str, None] = None
 branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 

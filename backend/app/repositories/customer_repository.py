@@ -1,6 +1,6 @@
 # backend/app/repositories/customer_repository.py
 """ریپازیتوری CRM — رکورد مشتریِ سالن و تاریخچه کمپین."""
-from datetime import date, timedelta
+from datetime import date, datetime, timedelta, timezone
 from typing import List, Optional
 
 from sqlmodel import Session, col, select
@@ -41,14 +41,14 @@ class CrmCampaignRepository(BaseRepository[CrmCampaign]):
         super().__init__(CrmCampaign, session)
 
     def count_for_venue_on(self, venue_id: int, day: date) -> int:
-        start = day
-        end = day + timedelta(days=1)
+        start = datetime(day.year, day.month, day.day, tzinfo=timezone.utc)
+        end = start + timedelta(days=1)
         stmt = select(CrmCampaign).where(
             CrmCampaign.venue_id == venue_id,
-            col(CrmCampaign.created_at) >= start.isoformat(),
+            col(CrmCampaign.created_at) >= start,
+            col(CrmCampaign.created_at) < end,
         )
-        rows = list(self.session.exec(stmt).all())
-        return sum(1 for r in rows if r.created_at.date() < end)
+        return len(list(self.session.exec(stmt).all()))
 
     def list_by_venue(self, venue_id: int, limit: int = 50, offset: int = 0
                       ) -> List[CrmCampaign]:
