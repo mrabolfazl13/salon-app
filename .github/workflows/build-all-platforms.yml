@@ -7,6 +7,7 @@ on:
       - 'v*'
   pull_request:
     branches: [master]
+  workflow_dispatch:
 
 env:
   FLUTTER_VERSION: '3.x'
@@ -15,7 +16,7 @@ env:
 
 jobs:
   # ============================================
-  # FLUTTER BUILDS
+  # FLUTTER BUILDS (Mobile: Android + iOS)
   # ============================================
 
   flutter-android-debug:
@@ -49,9 +50,8 @@ jobs:
           path: android_flutter/build/app/outputs/flutter-apk/app-debug.apk
 
   flutter-android-release:
-    name: Flutter Android Release APK/AAB
+    name: Flutter Android Release APK/AAB (Signed)
     runs-on: ubuntu-latest
-    needs: [flutter-android-debug]
     if: startsWith(github.ref, 'refs/tags/')
     steps:
       - uses: actions/checkout@v4
@@ -71,15 +71,21 @@ jobs:
         run: flutter pub get
 
       - name: Setup keystore
-        if: secrets.KEYSTORE_BASE64 != ''
+        working-directory: android_flutter
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android_flutter/release-keystore.jks
-          cat > android_flutter/key.properties << EOF
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 --decode > release-keystore.jks
+            cat > key.properties << EOF
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           storeFile=release-keystore.jks
           EOF
+          else
+            echo "::warning::KEYSTORE_BASE64 secret missing - building UNSIGNED release"
+          fi
 
       - name: Build Release APK
         working-directory: android_flutter
@@ -121,12 +127,11 @@ jobs:
         run: flutter build ios --release --no-codesign
 
       - name: Create IPA
-        working-directory: android_flutter
+        working-directory: android_flutter/build/ios/iphoneos
         run: |
-          cd build/ios/iphoneos
           mkdir -p Payload
           cp -r Runner.app Payload/
-          zip -r app-release.ipa Payload
+          zip -qr app-release.ipa Payload
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -135,11 +140,163 @@ jobs:
           path: android_flutter/build/ios/iphoneos/app-release.ipa
 
   # ============================================
-  # TAURI BUILDS
+  # TAURI BUILDS (Desktop + Mobile)
+  # NOTE: Tauri project lives in frontend/ (package.json + src-tauri)
   # ============================================
 
+  tauri-android:
+    name: Tauri Android APK/AAB (Signed)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: ${{ env.JAVA_VERSION }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        run: npm install -g pnpm@latest
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            frontend/src-tauri/target/
+          key: ${{ runner.os }}-tauri-android-cargo-${{ hashFiles('frontend/src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-tauri-android-cargo-
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Set NDK_HOME
+        run: echo "NDK_HOME=$(ls -d ${ANDROID_HOME}/ndk/* | head -n 1)" >> $GITHUB_ENV
+
+      - name: Init Android project
+        working-directory: frontend
+        run: pnpm tauri android init
+
+      - name: Setup signing (keystore.properties)
+        working-directory: frontend/src-tauri/gen/android
+        env:
+          KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
+        run: |
+          if [ -n "$KEYSTORE_B64" ]; then
+            echo "$KEYSTORE_B64" | base64 --decode > release-keystore.jks
+            cat > keystore.properties << EOF
+          storeFile=release-keystore.jks
+          storePassword=${{ secrets.KEYSTORE_PASSWORD }}
+          keyAlias=${{ secrets.KEY_ALIAS }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          EOF
+          else
+            echo "::warning::KEYSTORE_BASE64 secret missing - building UNSIGNED APK/AAB"
+          fi
+
+      - name: Build APK + AAB
+        working-directory: frontend
+        run: pnpm tauri android build --apk --aab
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-android.apk
+          path: frontend/src-tauri/gen/android/app/build/outputs/apk/**/*.apk
+
+      - name: Upload AAB
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-android.aab
+          path: frontend/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
+
+  tauri-ios:
+    name: Tauri iOS IPA (Unsigned)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+
+      - name: Install pnpm
+        run: npm install -g pnpm@latest
+
+      - name: Install Tauri CLI (global latest for --no-sign support)
+        run: npm install -g @tauri-apps/cli@latest
+
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-apple-ios
+
+      - name: Install XcodeGen + CocoaPods
+        run: brew install xcodegen cocoapods
+
+      - name: Cache Rust build
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry/index/
+            ~/.cargo/registry/cache/
+            ~/.cargo/git/db/
+            frontend/src-tauri/target/
+          key: ${{ runner.os }}-tauri-ios-cargo-${{ hashFiles('frontend/src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-tauri-ios-cargo-
+
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+
+      - name: Init iOS project
+        working-directory: frontend
+        run: tauri ios init
+
+      - name: Build iOS unsigned
+        working-directory: frontend
+        run: |
+          if tauri ios build --help 2>&1 | grep -q -- "--no-sign"; then
+            tauri ios build --target aarch64-apple-ios --no-sign --ignore-version-mismatches
+          else
+            echo "::error::Installed Tauri CLI does not support --no-sign; upgrade @tauri-apps/cli"
+            exit 1
+          fi
+
+      - name: Package IPA
+        working-directory: frontend
+        run: |
+          APP_PATH=$(find src-tauri/gen/apple/build -name "*.app" -type d | head -n 1)
+          if [ -z "$APP_PATH" ]; then
+            echo "::error::No .app produced under src-tauri/gen/apple/build"
+            find src-tauri/gen/apple/build -maxdepth 3 -type d | head -20
+            exit 1
+          fi
+          mkdir -p Payload
+          cp -R "$APP_PATH" Payload/
+          zip -qr tauri-ios-unsigned.ipa Payload
+          echo "Packaged: $APP_PATH -> tauri-ios-unsigned.ipa"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tauri-ios.ipa
+          path: frontend/tauri-ios-unsigned.ipa
+
   tauri-windows:
-    name: Tauri Windows EXE/MSI
+    name: Tauri Windows MSI/NSIS
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
@@ -154,35 +311,35 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache dependencies
+      - name: Cache Rust build
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            src-tauri/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            frontend/src-tauri/target/
+          key: ${{ runner.os }}-tauri-cargo-${{ hashFiles('frontend/src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-tauri-cargo-
 
       - name: Install frontend dependencies
-        run: pnpm install
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
+        working-directory: frontend
         run: pnpm tauri build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tauri-windows
           path: |
-            src-tauri/target/release/bundle/msi/*.msi
-            src-tauri/target/release/bundle/nsis/*.exe
+            frontend/src-tauri/target/release/bundle/msi/*.msi
+            frontend/src-tauri/target/release/bundle/nsis/*.exe
 
   tauri-linux:
-    name: Tauri Linux AppImage/deb
+    name: Tauri Linux deb/AppImage
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -201,41 +358,36 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y libwebkit2gtk-4.1-dev \
-            build-essential \
-            curl \
-            wget \
-            file \
-            libxdo-dev \
-            libssl-dev \
-            libayatana-appindicator3-dev \
-            librsvg2-dev
+            build-essential curl wget file \
+            libxdo-dev libssl-dev \
+            libayatana-appindicator3-dev librsvg2-dev
 
-      - name: Cache dependencies
+      - name: Cache Rust build
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            src-tauri/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            frontend/src-tauri/target/
+          key: ${{ runner.os }}-tauri-cargo-${{ hashFiles('frontend/src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-tauri-cargo-
 
       - name: Install frontend dependencies
-        run: pnpm install
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
+        working-directory: frontend
         run: pnpm tauri build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: tauri-linux
           path: |
-            src-tauri/target/release/bundle/deb/*.deb
-            src-tauri/target/release/bundle/appimage/*.AppImage
+            frontend/src-tauri/target/release/bundle/deb/*.deb
+            frontend/src-tauri/target/release/bundle/appimage/*.AppImage
 
   tauri-macos:
     name: Tauri macOS DMG
@@ -253,30 +405,30 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Cache dependencies
+      - name: Cache Rust build
         uses: actions/cache@v4
         with:
           path: |
-            ~/.cargo/bin/
             ~/.cargo/registry/index/
             ~/.cargo/registry/cache/
             ~/.cargo/git/db/
-            src-tauri/target/
-          key: ${{ runner.os }}-cargo-${{ hashFiles('**/Cargo.lock') }}
+            frontend/src-tauri/target/
+          key: ${{ runner.os }}-tauri-cargo-${{ hashFiles('frontend/src-tauri/Cargo.lock') }}
+          restore-keys: ${{ runner.os }}-tauri-cargo-
 
       - name: Install frontend dependencies
-        run: pnpm install
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
 
       - name: Build Tauri app
+        working-directory: frontend
         run: pnpm tauri build
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: tauri-macos
-          path: src-tauri/target/release/bundle/dmg/*.dmg
+          path: frontend/src-tauri/target/release/bundle/dmg/*.dmg
 
   # ============================================
   # REACT WEB BUILD
@@ -296,12 +448,15 @@ jobs:
         run: npm install -g pnpm@latest
 
       - name: Install dependencies
-        run: pnpm install
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
 
       - name: Type check
-        run: pnpm tsc --noEmit
+        working-directory: frontend
+        run: pnpm exec tsc --noEmit -p tsconfig.app.json
 
       - name: Build production bundle
+        working-directory: frontend
         run: pnpm build
         env:
           VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://school.absadeghi.ir/api/v1' }}
@@ -310,7 +465,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: react-web-dist
-          path: dist/
+          path: frontend/dist/
 
   # ============================================
   # RELEASE CREATION (Tags only)
@@ -322,6 +477,8 @@ jobs:
     needs:
       - flutter-android-release
       - flutter-ios
+      - tauri-android
+      - tauri-ios
       - tauri-windows
       - tauri-linux
       - tauri-macos
@@ -342,41 +499,48 @@ jobs:
         run: |
           VERSION=${GITHUB_REF#refs/tags/}
           echo "version=$VERSION" >> $GITHUB_OUTPUT
-          
-          # Extract changelog for this version
-          CHANGELOG=$(awk "/^## \\[$VERSION\\]/,/^## \\[/" CHANGELOG.md | head -n -1)
+
+          CHANGELOG=$(awk "/^## \\[$VERSION\\]/,/^## \\[/" CHANGELOG.md | head -n -1 || true)
           echo "changelog<<EOF" >> $GITHUB_OUTPUT
           echo "$CHANGELOG" >> $GITHUB_OUTPUT
           echo "EOF" >> $GITHUB_OUTPUT
 
       - name: Create Release
-        uses: softprops/action-gh-release@v1
+        uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ github.ref_name }}
           name: Release ${{ steps.release_notes.outputs.version }}
           body: |
             ## What's Changed
-            
+
             ${{ steps.release_notes.outputs.changelog }}
-            
+
             ## Downloads
-            
+
             ### 📱 Mobile (Flutter)
-            - **Android APK**: `flutter-android-release.apk`
-            - **Android AAB**: `flutter-android-release.aab` (for Play Store)
-            - **iOS IPA**: `flutter-ios.ipa`
-            
+            - **Android APK**: `flutter-android-release.apk/`
+            - **Android AAB**: `flutter-android-release.aab/` (for Play Store)
+            - **iOS IPA**: `flutter-ios.ipa/`
+
+            ### 📱 Mobile (Tauri)
+            - **Android APK**: `tauri-android.apk/`
+            - **Android AAB**: `tauri-android.aab/`
+            - **iOS IPA** (unsigned): `tauri-ios.ipa/`
+
             ### 💻 Desktop (Tauri)
-            - **Windows MSI**: See `tauri-windows/` folder
-            - **Linux DEB/AppImage**: See `tauri-linux/` folder
-            - **macOS DMG**: See `tauri-macos/` folder
-            
+            - **Windows MSI/EXE**: `tauri-windows/`
+            - **Linux DEB/AppImage**: `tauri-linux/`
+            - **macOS DMG**: `tauri-macos/`
+
             ### 🌐 Web (React)
             - Production build: `react-web-dist/`
           files: |
-            artifacts/flutter-android-release.apk
-            artifacts/flutter-android-release.aab
-            artifacts/flutter-ios.ipa
+            artifacts/flutter-android-release.apk/**
+            artifacts/flutter-android-release.aab/**
+            artifacts/flutter-ios.ipa/**
+            artifacts/tauri-android.apk/**
+            artifacts/tauri-android.aab/**
+            artifacts/tauri-ios.ipa/**
             artifacts/tauri-windows/**
             artifacts/tauri-linux/**
             artifacts/tauri-macos/**

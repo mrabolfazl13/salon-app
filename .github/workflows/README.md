@@ -92,9 +92,11 @@ act -j create-release --env GITHUB_REF=refs/tags/v1.2.0
 | Android Debug | Flutter | ubuntu-latest | Push | APK |
 | Android Release | Flutter | ubuntu-latest | Tag | APK + AAB (signed) |
 | iOS | Flutter | macos-latest | Tag | IPA |
-| Windows | Tauri | windows-latest | Tag | MSI + EXE |
-| Linux | Tauri | ubuntu-latest | Tag | DEB + AppImage |
-| macOS | Tauri | macos-latest | Tag | DMG |
+| Android | Tauri | ubuntu-latest | Push + Tag | APK + AAB (signed) |
+| iOS | Tauri | macos-latest | Push + Tag | IPA (unsigned) |
+| Windows | Tauri | windows-latest | Push | MSI + EXE |
+| Linux | Tauri | ubuntu-latest | Push | DEB + AppImage |
+| macOS | Tauri | macos-latest | Push | DMG |
 | Web | React | ubuntu-latest | Push | Static files |
 
 ## Optimization Features
