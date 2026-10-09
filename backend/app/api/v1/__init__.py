@@ -26,6 +26,7 @@ from .waitlist import router as waitlist_router
 from .checkin import router as checkin_router
 from .split_payments import router as split_payments_router
 from .reconciliation import router as reconciliation_router
+from .health import router as health_router
 
 __all__ = [
     "auth_router",

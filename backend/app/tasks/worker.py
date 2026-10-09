@@ -22,6 +22,7 @@ celery_app.conf.update(
         'app.tasks.contract_tasks',
         'app.tasks.crm_tasks',
         'app.tasks.reconciliation_tasks',
+        'app.tasks.backup_tasks',
     ],
     beat_schedule={
         # هر ۱۰ دقیقه رزروهای معلق منقضی‌شده را آزاد کن
@@ -63,6 +64,11 @@ celery_app.conf.update(
         "daily-ledger-reconciliation": {
             "task": "app.tasks.reconcile_ledger_with_gateway",
             "schedule": 86400.0,  # daily at midnight
+        },
+        # هر روز ساعت ۲ صبح بکاپ خودکار دیتابیس
+        "daily-database-backup": {
+            "task": "app.tasks.perform_database_backup",
+            "schedule": 86400.0,  # daily at 2 AM (configured in task)
         },
     },
 )
