@@ -95,7 +95,9 @@ jobs:
       
       - name: Install pnpm
         uses: pnpm/action-setup@v6
-        
+        with:
+          version: 10
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
@@ -194,7 +196,19 @@ jobs:
     
     steps:
       - uses: actions/checkout@v4
-      
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
       - name: Verify frontend build
         working-directory: ./frontend
         run: |
