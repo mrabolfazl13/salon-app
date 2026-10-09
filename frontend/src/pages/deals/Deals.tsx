@@ -132,6 +132,8 @@ const Deals: React.FC = () => {
               sx={{
                 bgcolor: 'rgba(255,255,255,0.9)',
                 borderRadius: '12px',
+                flexWrap: 'wrap',
+                rowGap: 1,
                 '& .MuiToggleButton-root': { px: 1.75, border: 'none', borderRadius: '12px !important', textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', gap: 0.5 },
                 '& .Mui-selected': { bgcolor: 'linear-gradient(135deg, #f59e0b, #ef4444) !important', color: 'white !important' },
               }}

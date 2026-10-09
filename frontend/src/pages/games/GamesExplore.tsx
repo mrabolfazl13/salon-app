@@ -126,6 +126,10 @@ const GamesExplore: React.FC = () => {
               onChange={(_, v) => { if (v !== null) { setSport(v); setLimit(PAGE_SIZE) } }}
               sx={{
                 borderRadius: '999px',
+                /* موبایل: گزینه‌ها زیادند و ردیف nowrap سند را تا ۷۲۰px باز می‌کرد؛
+                   wrap باعث می‌شود عرض سند هرگز از viewport نگذرد */
+                flexWrap: 'wrap',
+                rowGap: 1,
                 '& .MuiToggleButton-root': {
                   border: '1px solid rgba(15,23,42,0.08)',
                   borderRadius: '999px !important',

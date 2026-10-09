@@ -126,6 +126,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
           value={segment}
           onChange={(_, v) => { setSegment(v ?? null); setPage(1) }}
           sx={{
+            flexWrap: 'wrap',
+            rowGap: 1,
             '& .MuiToggleButton-root': {
               textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', px: 1.5, borderRadius: '9px !important', mx: 0.25, border: 'none',
             },
