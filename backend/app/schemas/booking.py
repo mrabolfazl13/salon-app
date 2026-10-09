@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, field_serializer
 from datetime import datetime, date, time
 from enum import Enum
 from typing import Optional, List
@@ -6,6 +6,7 @@ from typing import Optional, List
 from app.schemas.payment import PaymentResponse
 from app.models.venue import VenuePaymentMode
 from app.models.booking import ReceiptStatus
+from app.utils.date_helpers import format_persian_date, format_persian_datetime
 
 class BookingStatus(str, Enum):
     PENDING = "pending"
@@ -45,8 +46,22 @@ class BookingResponse(BaseModel):
     needs_receipt: bool = False
     receipt_status: ReceiptStatus = ReceiptStatus.NONE
 
+    # فیلدهای محاسبه‌شده شمسی
+    slot_date_persian: Optional[str] = None
+    booked_at_persian: Optional[str] = None
+
     class Config:
         from_attributes = True
+
+    @field_serializer('slot_date')
+    def serialize_slot_date(self, slot_date: Optional[date]) -> Optional[str]:
+        if slot_date is None:
+            return None
+        return format_persian_date(slot_date)
+
+    @field_serializer('booked_at')
+    def serialize_booked_at(self, booked_at: datetime) -> str:
+        return format_persian_datetime(booked_at) or booked_at.isoformat()
 
 
 class BookingDetailResponse(BookingResponse):
