@@ -33,12 +33,36 @@
     @apply antialiased;
     background-color: var(--app-bg);
     color: var(--app-text);
-    font-family: 'Vazirmatn', system-ui, sans-serif;
+    font-family: 'Vazirmatn', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
     /* Safe-area برای آیفون‌های نوچ‌دار */
     padding-bottom: env(safe-area-inset-bottom);
     overscroll-behavior-y: none;
     -webkit-tap-highlight-color: transparent;
     transition: background-color 0.3s ease, color 0.3s ease;
+    /* بهبود تایپوگرافی فارسی */
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    font-feature-settings: 'kern' 1, 'liga' 1;
+    line-height: 1.7; /* خط بلندتر برای خوانایی فارسی */
+  }
+
+  /* بهینه‌سازی فونت برای عناوین فارسی */
+  h1, h2, h3, h4, h5, h6 {
+    font-weight: 700;
+    letter-spacing: -0.02em; /* کاهش فاصله حروف در فارسی */
+    line-height: 1.4;
+  }
+
+  /* جلوگیری از شکستن کلمات فارسی */
+  .persian-text {
+    word-break: keep-all;
+    hyphens: none;
+  }
+
+  /* اعداد فارسی با فونت مناسب */
+  .persian-numerals {
+    font-variant-numeric: tabular-nums;
   }
   img {
     max-width: 100%;
