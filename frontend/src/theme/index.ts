@@ -230,24 +230,27 @@ function buildTheme(mode: ThemeMode): Theme {
         contrastText: brand.amberInk,
       },
       success: {
-        main: dark ? '#34d399' : '#10b981',
-        light: dark ? '#6ee7b7' : '#34d399',
-        dark: dark ? '#10b981' : '#059669',
+        // متن/آلاینده روی سفید باید ۴.۵:1 را پاس کند (ممیزی UI: چیپ «فعال» ۲.۵:1 بود)
+        main: dark ? '#34d399' : '#047857',
+        light: dark ? '#6ee7b7' : '#10b981',
+        dark: dark ? '#10b981' : '#065f46',
       },
       error: {
-        main: dark ? '#f87171' : '#ef4444',
-        light: dark ? '#fca5a5' : '#f87171',
-        dark: dark ? '#ef4444' : '#dc2626',
+        main: dark ? '#f87171' : '#dc2626',
+        light: dark ? '#fca5a5' : '#ef4444',
+        dark: dark ? '#ef4444' : '#b91c1c',
       },
       warning: {
-        main: dark ? '#fbbf24' : '#f59e0b',
-        light: dark ? '#fcd34d' : '#fbbf24',
-        dark: dark ? '#f59e0b' : '#d97706',
+        // amber برند برای پس‌زمینه پر با جوهر تیره مناسب است، اما به‌عنوان
+        // متن/بوردر روی سفید کنتراش ۲.۱ داشت → نسخه تیره‌تر amber
+        main: dark ? '#fbbf24' : '#b45309',
+        light: dark ? '#fcd34d' : '#d97706',
+        dark: dark ? '#f59e0b' : '#92400e',
       },
       info: {
-        main: dark ? '#60a5fa' : '#3b82f6',
-        light: dark ? '#93c5fd' : '#60a5fa',
-        dark: dark ? '#3b82f6' : '#2563eb',
+        main: dark ? '#60a5fa' : '#2563eb',
+        light: dark ? '#93c5fd' : '#3b82f6',
+        dark: dark ? '#3b82f6' : '#1d4ed8',
       },
       background: {
         default: dark ? '#0b1220' : '#f6f7f9',
@@ -276,7 +279,7 @@ function buildTheme(mode: ThemeMode): Theme {
             100: '#f1f5f9',
             200: '#e2e8f0',
             300: '#cbd5e1',
-            400: '#94a3b8',
+            400: '#64748b',
             500: '#64748b',
             600: '#475569',
             700: '#334155',

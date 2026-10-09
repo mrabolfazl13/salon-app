@@ -310,7 +310,7 @@ const GamesExplore: React.FC = () => {
                   >
                     {inv.game_name || `بازی #${inv.game_id.toLocaleString('fa-IR')}`}
                   </Typography>
-                  <Typography sx={{ fontSize: '0.7rem', color: '#64748b', mt: 0.25 }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
                     {`دعوت در: ${formatPersianDateTime(inv.created_at)}${inv.expires_at ? ` - اعتبار تا: ${formatPersianDateTime(inv.expires_at)}` : ''}`}
                   </Typography>
                 </Box>

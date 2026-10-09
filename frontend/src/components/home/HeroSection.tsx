@@ -319,7 +319,7 @@ export const HeroSection: React.FC = () => {
                   </Typography>
                   <Typography
                     sx={{
-                      fontSize: '0.7rem',
+                      fontSize: '0.75rem',
                       color: 'rgba(255,255,255,0.75)',
                     }}
                   >

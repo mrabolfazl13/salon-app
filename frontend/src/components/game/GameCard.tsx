@@ -123,7 +123,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                   sx={{
                     height: 22,
                     borderRadius: '999px',
-                    fontSize: '0.66rem',
+                    fontSize: '0.75rem',
                     fontWeight: 700,
                     bgcolor: 'rgba(124,58,237,0.08)',
                     color: '#7c3aed',
@@ -145,7 +145,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
               sx={{
                 height: 24,
                 borderRadius: '999px',
-                fontSize: '0.68rem',
+                fontSize: '0.75rem',
                 fontWeight: 600,
                 bgcolor: 'rgba(15,23,42,0.05)',
                 color: '#64748b',
@@ -178,7 +178,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                   >
                     {game.price_per_player.toLocaleString('fa-IR')}
                   </Typography>
-                  <Typography component="span" sx={{ fontSize: '0.68rem', color: 'text.secondary' }}>
+                  <Typography component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
                     ریال / نفر
                   </Typography>
                 </Box>
@@ -192,7 +192,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                   borderRadius: '999px',
                   bgcolor: myBadge.bg,
                   color: myBadge.fg,
-                  fontSize: '0.72rem',
+                  fontSize: '0.75rem',
                   fontWeight: 800,
                   whiteSpace: 'nowrap',
                 }}
@@ -207,7 +207,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                   borderRadius: '999px',
                   bgcolor: 'rgba(245,158,11,0.14)',
                   color: '#b45309',
-                  fontSize: '0.72rem',
+                  fontSize: '0.75rem',
                   fontWeight: 800,
                   whiteSpace: 'nowrap',
                 }}
@@ -215,7 +215,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                 {`رتبه انتظار ${game.my_waitlist_position.toLocaleString('fa-IR')}`}
               </Box>
             ) : (
-              <Typography sx={{ fontSize: '0.72rem', fontWeight: 700, color: remaining > 0 ? '#059669' : '#b45309', whiteSpace: 'nowrap' }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: remaining > 0 ? '#059669' : '#b45309', whiteSpace: 'nowrap' }}>
                 {remaining > 0 ? `${remaining.toLocaleString('fa-IR')} جای خالی` : 'تکمیل — لیست انتظار'}
               </Typography>
             )}

@@ -243,7 +243,7 @@ export const StatusChip: React.FC<{ label: string; color?: string }> = ({ label,
     sx={{
       borderRadius: '8px',
       fontWeight: 600,
-      fontSize: '0.68rem',
+      fontSize: '0.75rem',
       height: 22,
       bgcolor: `${color}18`,
       color,
@@ -344,10 +344,10 @@ export const FinTooltip: React.FC<{
       {payload.map((entry, i) => (
         <Box key={i} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, py: 0.25 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: entry.color ?? '#94a3b8' }} />
-            <Typography sx={{ fontSize: '0.72rem', color: 'rgba(255,255,255,0.8)' }}>{String(entry.name ?? entry.dataKey ?? '')}</Typography>
+            <Box sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: entry.color ?? '#64748b' }} />
+            <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>{String(entry.name ?? entry.dataKey ?? '')}</Typography>
           </Box>
-          <Typography sx={{ fontSize: '0.74rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'white' }}>
+          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, fontVariantNumeric: 'tabular-nums', color: 'white' }}>
             {unit === 'rial'
               ? formatRial(Number(entry.value ?? 0))
               : unit === 'pct'

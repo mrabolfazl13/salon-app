@@ -58,7 +58,7 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
           borderBottomRightRadius: '14px',
           background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
           color: 'white',
-          fontSize: '0.72rem',
+          fontSize: '0.75rem',
           fontWeight: 800,
           display: 'flex',
           alignItems: 'center',
@@ -79,7 +79,7 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
               size="small"
               icon={<Icon icon="mdi:crosshairs-gps" style={{ width: 14, height: 14 }} />}
               label={`${toPersianDigits(Math.round(deal.distance_km * 10) / 10)} کیلومتر`}
-              sx={{ borderRadius: '8px', fontSize: '0.68rem', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb', fontWeight: 700 }}
+              sx={{ borderRadius: '8px', fontSize: '0.75rem', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb', fontWeight: 700 }}
             />
           )}
         </Box>
@@ -105,14 +105,14 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
             <Typography variant="h5" sx={{ fontWeight: 900, color: '#059669' }}>
               {formatRial(deal.deal_price)}
             </Typography>
-            <Typography variant="body2" sx={{ color: '#94a3b8', textDecoration: 'line-through' }}>
+            <Typography variant="body2" sx={{ color: '#64748b', textDecoration: 'line-through' }}>
               {formatRial(deal.original_price)}
             </Typography>
           </Box>
           <Chip
             size="small"
             label={`${toPersianDigits(deal.savings)} ریال سود شما`}
-            sx={{ borderRadius: '8px', fontSize: '0.68rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.12)', color: '#059669' }}
+            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.12)', color: '#059669' }}
           />
         </Box>
 

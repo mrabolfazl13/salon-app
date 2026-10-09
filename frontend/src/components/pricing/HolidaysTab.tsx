@@ -225,9 +225,9 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
                       <TableCell>{h.name}</TableCell>
                       <TableCell>
                         {h.venue_id == null ? (
-                          <Chip size="small" color="error" label="سراسری" sx={{ borderRadius: '8px', fontSize: '0.7rem', fontWeight: 700 }} />
+                          <Chip size="small" color="error" label="سراسری" sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700 }} />
                         ) : (
-                          <Chip size="small" label={venueNameById(h.venue_id) ?? '—'} sx={{ borderRadius: '8px', fontSize: '0.7rem', fontWeight: 600 }} />
+                          <Chip size="small" label={venueNameById(h.venue_id) ?? '—'} sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }} />
                         )}
                       </TableCell>
                       <TableCell align="center">

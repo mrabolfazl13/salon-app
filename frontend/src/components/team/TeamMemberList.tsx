@@ -221,12 +221,12 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
                 <MemberStatusChip status={m.status} />
                 {m.status === 'active' && (
-                  <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                     {`عضویت: ${formatPersianDateTime(m.joined_at)}`}
                   </Typography>
                 )}
                 {m.phone && (
-                  <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }} dir="ltr">
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }} dir="ltr">
                     {m.phone}
                   </Typography>
                 )}

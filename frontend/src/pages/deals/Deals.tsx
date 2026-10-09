@@ -182,7 +182,7 @@ const Deals: React.FC = () => {
                   setCoords(null)
                   if (sort === 'distance') setSort('time')
                 }}
-                sx={{ borderRadius: '999px', bgcolor: 'rgba(5,150,105,0.1)', color: '#059669', fontWeight: 700, fontSize: '0.72rem' }}
+                sx={{ borderRadius: '999px', bgcolor: 'rgba(5,150,105,0.1)', color: '#059669', fontWeight: 700, fontSize: '0.75rem' }}
               />
             )}
           </Box>

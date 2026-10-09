@@ -38,7 +38,7 @@ const PrimaryButton: React.FC<Props> = ({ icon, children, fullWidth = true, sx, 
         '&:active': { transform: 'scale(0.985)' },
         '&.Mui-disabled': {
           background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.12)',
-          color: dark ? '#5b6879' : '#94a3b8',
+          color: dark ? '#5b6879' : '#64748b',
           boxShadow: 'none',
         },
         ...sx,

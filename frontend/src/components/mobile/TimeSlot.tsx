@@ -123,7 +123,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
                 : bidable
                   ? dark ? '#fbbf24' : '#d97706'
                   : disabled
-                    ? dark ? '#5b6879' : '#94a3b8'
+                    ? dark ? '#5b6879' : '#64748b'
                     : dark ? '#60a5fa' : '#2563eb',
             }}
           />
@@ -136,7 +136,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
               color: selected
                 ? '#1c1917'
                 : disabled
-                  ? dark ? '#5b6879' : '#94a3b8'
+                  ? dark ? '#5b6879' : '#64748b'
                   : dark ? '#eef2f7' : '#0f172a',
               whiteSpace: 'nowrap',
               fontVariantNumeric: 'tabular-nums',
@@ -147,7 +147,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
           </Typography>
           <Typography
             sx={{
-              fontSize: '0.7rem',
+              fontSize: '0.75rem',
               color: selected
                 ? 'rgba(28,25,23,0.75)'
                 : bidable
@@ -183,7 +183,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
                 ? 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(249,115,22,0.2))'
                 : 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(249,115,22,0.16))',
               color: dark ? '#fcd34d' : '#b45309',
-              fontSize: '0.68rem',
+              fontSize: '0.75rem',
               fontWeight: 700,
             }}
           >
@@ -199,7 +199,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
               borderRadius: '999px',
               bgcolor: dark ? 'rgba(167,139,250,0.16)' : 'rgba(139,92,246,0.12)',
               color: dark ? '#c4b5fd' : '#7c3aed',
-              fontSize: '0.68rem',
+              fontSize: '0.75rem',
               fontWeight: 700,
             }}
           >

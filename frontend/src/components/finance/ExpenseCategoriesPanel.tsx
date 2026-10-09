@@ -89,7 +89,7 @@ const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }
           size="small"
           label={includeInactive ? 'نمایش: همه' : 'نمایش: فعال‌ها'}
           onClick={() => setIncludeInactive((v) => !v)}
-          sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.7rem' }}
+          sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem' }}
           icon={<Icon icon={includeInactive ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} className="h-3.5 w-3.5" />}
         />
       }
@@ -198,7 +198,7 @@ const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }
                   variant="text"
                   onClick={() => setDeactivating(cat)}
                   disabled={deleteCategory.isPending}
-                  sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.72rem' }}
+                  sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem' }}
                 >
                   غیرفعال‌سازی
                 </Button>

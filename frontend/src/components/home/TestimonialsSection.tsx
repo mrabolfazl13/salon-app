@@ -73,7 +73,7 @@ const TestimonialCard: React.FC<TestimonialProps> = ({ name, avatar, rating, tex
           {venue && (
             <Typography
               sx={{
-                fontSize: '0.72rem',
+                fontSize: '0.75rem',
                 color: 'text.secondary',
               }}
             >

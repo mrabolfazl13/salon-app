@@ -996,7 +996,7 @@ const ManagerDashboard: React.FC = () => {
                                   borderRadius: '999px',
                                   bgcolor: '#dc2626',
                                   color: '#fff',
-                                  fontSize: '0.7rem',
+                                  fontSize: '0.75rem',
                                   fontWeight: 800,
                                   display: 'flex',
                                   alignItems: 'center',
@@ -1030,7 +1030,7 @@ const ManagerDashboard: React.FC = () => {
                             </Typography>
                             {stat.hint && (
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, mt: 0.25 }}>
-                                <Typography sx={{ color: '#d97706', fontWeight: 700, fontSize: '0.72rem' }}>
+                                <Typography sx={{ color: '#d97706', fontWeight: 700, fontSize: '0.75rem' }}>
                                   {stat.hint}
                                 </Typography>
                                 <Icon icon="mdi:arrow-left" style={{ width: 13, height: 13, color: '#d97706' }} />
@@ -1322,7 +1322,7 @@ const ManagerDashboard: React.FC = () => {
                                       sx={{
                                         borderRadius: '8px',
                                         fontWeight: 600,
-                                        fontSize: '0.7rem',
+                                        fontSize: '0.75rem',
                                         height: 26,
                                         flexShrink: 0,
                                         bgcolor: venue.is_verified ? 'rgba(5,150,105,0.1)' : 'rgba(217,119,6,0.1)',
@@ -1345,7 +1345,7 @@ const ManagerDashboard: React.FC = () => {
                                           variant="outlined"
                                           sx={{
                                             borderRadius: '6px',
-                                            fontSize: '0.65rem',
+                                            fontSize: '0.75rem',
                                             height: 24,
                                             borderColor: 'rgba(37,99,235,0.15)',
                                             color: 'primary.main',
@@ -1359,7 +1359,7 @@ const ManagerDashboard: React.FC = () => {
                                           size="small"
                                           sx={{
                                             borderRadius: '6px',
-                                            fontSize: '0.65rem',
+                                            fontSize: '0.75rem',
                                             height: 24,
                                             bgcolor: 'primary.main',
                                             color: 'white',
@@ -1393,7 +1393,7 @@ const ManagerDashboard: React.FC = () => {
                                         size="small"
                                         sx={{
                                           borderRadius: '6px',
-                                          fontSize: '0.65rem',
+                                          fontSize: '0.75rem',
                                           height: 24,
                                           fontWeight: 600,
                                           bgcolor: PAYMENT_MODE_CHIP_STYLE[venue.payment_mode ?? '']?.bg ?? 'rgba(100,116,139,0.1)',
@@ -1727,7 +1727,7 @@ const ManagerDashboard: React.FC = () => {
                                 sx={{
                                   borderRadius: '8px',
                                   fontWeight: 600,
-                                  fontSize: '0.7rem',
+                                  fontSize: '0.75rem',
                                   height: 24,
                                   bgcolor: `${statusColors[slot.status] || '#6b7280'}18`,
                                   color: statusColors[slot.status] || '#6b7280',
@@ -1743,7 +1743,7 @@ const ManagerDashboard: React.FC = () => {
                                     sx={{
                                       borderRadius: '8px',
                                       fontWeight: 800,
-                                      fontSize: '0.68rem',
+                                      fontSize: '0.75rem',
                                       height: 24,
                                       bgcolor: 'rgba(245,158,11,0.15)',
                                       color: '#d97706',
@@ -1757,7 +1757,7 @@ const ManagerDashboard: React.FC = () => {
                                     color="error"
                                     onClick={() => handleUnpublish(slot.id)}
                                     disabled={unpublishBusy === slot.id}
-                                    sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.7rem' }}
+                                    sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem' }}
                                   >
                                     {unpublishBusy === slot.id ? '…' : 'لغو تخفیف'}
                                   </Button>
@@ -1780,7 +1780,7 @@ const ManagerDashboard: React.FC = () => {
                                   variant="outlined"
                                   disabled={slotActionBusy === slot.id}
                                   onClick={() => setBlockConfirmSlot(slot)}
-                                  sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.7rem', borderRadius: '8px' }}
+                                  sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', borderRadius: '8px' }}
                                   startIcon={slotActionBusy === slot.id ? undefined : <Icon icon="mdi:lock-outline" className="h-3.5 w-3.5" />}
                                 >
                                   {slotActionBusy === slot.id ? '...' : 'مسدود'}
@@ -1792,7 +1792,7 @@ const ManagerDashboard: React.FC = () => {
                                   variant="outlined"
                                   disabled={slotActionBusy === slot.id}
                                   onClick={() => handleUnblockSlot(slot)}
-                                  sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.7rem', borderRadius: '8px' }}
+                                  sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', borderRadius: '8px' }}
                                   startIcon={slotActionBusy === slot.id ? undefined : <Icon icon="mdi:lock-open-variant-outline" className="h-3.5 w-3.5" />}
                                 >
                                   {slotActionBusy === slot.id ? '...' : 'آزاد'}
@@ -2105,7 +2105,7 @@ const ManagerDashboard: React.FC = () => {
                                 sx={{
                                   borderRadius: '8px',
                                   fontWeight: 600,
-                                  fontSize: '0.7rem',
+                                  fontSize: '0.75rem',
                                   height: 24,
                                   bgcolor: getBookingStatusStyle(booking.status).bg,
                                   color: getBookingStatusStyle(booking.status).color,
@@ -2121,7 +2121,7 @@ const ManagerDashboard: React.FC = () => {
                                   sx={{
                                     borderRadius: '8px',
                                     fontWeight: 600,
-                                    fontSize: '0.68rem',
+                                    fontSize: '0.75rem',
                                     height: 22,
                                     bgcolor: PAYMENT_MODE_CHIP_STYLE[booking.payment_mode ?? '']?.bg ?? 'rgba(100,116,139,0.1)',
                                     color: PAYMENT_MODE_CHIP_STYLE[booking.payment_mode ?? '']?.color ?? '#64748b',
@@ -2133,7 +2133,7 @@ const ManagerDashboard: React.FC = () => {
                                     label={getReceiptStatusLabel(booking.receipt_status)}
                                     color={getReceiptStatusMuiColor(booking.receipt_status)}
                                     size="small"
-                                    sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.68rem', height: 22 }}
+                                    sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem', height: 22 }}
                                   />
                                 )}
                                 {booking.payment_mode === 'bank_receipt' && booking.receipt_status === 'submitted' && (
@@ -2279,7 +2279,7 @@ const ManagerDashboard: React.FC = () => {
                                     sx={{
                                       borderRadius: '8px',
                                       fontWeight: 600,
-                                      fontSize: '0.7rem',
+                                      fontSize: '0.75rem',
                                       height: 24,
                                       flexShrink: 0,
                                       bgcolor: plan.is_active ? 'rgba(5,150,105,0.1)' : 'rgba(0,0,0,0.06)',
@@ -2376,7 +2376,7 @@ const ManagerDashboard: React.FC = () => {
                                       sx={{
                                         borderRadius: '8px',
                                         fontWeight: 600,
-                                        fontSize: '0.7rem',
+                                        fontSize: '0.75rem',
                                         height: 24,
                                         bgcolor:
                                           p.status === 'paid'

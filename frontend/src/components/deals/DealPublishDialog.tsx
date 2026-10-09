@@ -131,7 +131,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
         {grouped.length > 1 && (
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
             {grouped.map(([vid, ss]) => (
-              <Chip key={vid} size="small" label={`${venueNameOf(vid)} — ${toPersianDigits(ss.length)} سانس`} sx={{ borderRadius: '8px', fontSize: '0.7rem' }} />
+              <Chip key={vid} size="small" label={`${venueNameOf(vid)} — ${toPersianDigits(ss.length)} سانس`} sx={{ borderRadius: '8px', fontSize: '0.75rem' }} />
             ))}
           </Box>
         )}

@@ -104,7 +104,7 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
                     <Typography variant="caption" color="text.secondary">
                       پرداخت {formatJalaliDateTime(p.paid_at)}
                       {p.transaction_id && (
-                        <> — کد تراکنش <span dir="ltr" style={{ fontSize: '0.7rem' }}>{p.transaction_id.slice(0, 8)}</span></>
+                        <> — کد تراکنش <span dir="ltr" style={{ fontSize: '0.75rem' }}>{p.transaction_id.slice(0, 8)}</span></>
                       )}
                     </Typography>
                   ) : p.is_voided ? (

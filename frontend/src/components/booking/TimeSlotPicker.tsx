@@ -63,7 +63,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
             mt: 0.75,
             borderRadius: '6px',
             height: 20,
-            fontSize: '0.65rem',
+            fontSize: '0.75rem',
             fontWeight: 600,
             bgcolor: 'rgba(76,175,80,0.1)',
             color: 'success.main',
@@ -76,7 +76,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
           label="پر"
           size="small"
           color="error"
-          sx={{ mt: 0.75, borderRadius: '6px', height: 20, fontSize: '0.65rem', fontWeight: 600 }}
+          sx={{ mt: 0.75, borderRadius: '6px', height: 20, fontSize: '0.75rem', fontWeight: 600 }}
         />
       )
     case 'blocked':
@@ -88,7 +88,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
             mt: 0.75,
             borderRadius: '6px',
             height: 20,
-            fontSize: '0.65rem',
+            fontSize: '0.75rem',
             fontWeight: 600,
             bgcolor: 'rgba(15,23,42,0.06)',
             color: 'text.disabled',
@@ -104,7 +104,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
             mt: 0.75,
             borderRadius: '6px',
             height: 20,
-            fontSize: '0.65rem',
+            fontSize: '0.75rem',
             fontWeight: 700,
             bgcolor: 'rgba(139,92,246,0.12)',
             color: '#7c3aed',
@@ -121,7 +121,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
             mt: 0.75,
             borderRadius: '6px',
             height: 20,
-            fontSize: '0.65rem',
+            fontSize: '0.75rem',
             fontWeight: 700,
             background: 'linear-gradient(135deg, #f59e0b, #7c3aed)',
             color: 'white',
@@ -138,7 +138,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
             mt: 0.75,
             borderRadius: '6px',
             height: 20,
-            fontSize: '0.65rem',
+            fontSize: '0.75rem',
             fontWeight: 600,
             bgcolor: 'rgba(15,23,42,0.06)',
             color: 'text.disabled',
@@ -256,7 +256,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
               sx={{
                 borderRadius: '6px',
                 height: 22,
-                fontSize: '0.7rem',
+                fontSize: '0.75rem',
                 fontWeight: 600,
                 bgcolor: 'rgba(37,99,235,0.08)',
                 color: 'primary.main',
@@ -317,7 +317,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
                   <Typography variant="body2" sx={{ fontWeight: 700, mb: 0.25, fontSize: '0.85rem' }}>
                     {slot.startTime}
                   </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 1, fontSize: '0.65rem' }}>
+                  <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 1, fontSize: '0.75rem' }}>
                     {slot.endTime}
                   </Typography>
 

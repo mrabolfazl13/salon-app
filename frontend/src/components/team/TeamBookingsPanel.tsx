@@ -70,7 +70,7 @@ const BookingsLinkDialog: React.FC<{ team: Team; linkedIds: Set<number>; open: b
   return (
     <Dialog open={open} onClose={onClose} title="اتصال رزرو به تیم" maxWidth="xs">
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
           فقط رزروهای پیش‌روی خودتان قابل اتصال است؛ رزرو تغییر نمی‌کند و صرفاً به تاریخچه تیم منتسب می‌شود.
         </Typography>
         {bookingsQ.isPending ? (
@@ -98,13 +98,13 @@ const BookingsLinkDialog: React.FC<{ team: Team; linkedIds: Set<number>; open: b
               >
                 <Icon
                   icon={selected === b.id ? 'mdi:radiobox-marked' : 'mdi:radiobox-blank'}
-                  style={{ width: 18, height: 18, color: selected === b.id ? '#2563eb' : '#94a3b8', flexShrink: 0 }}
+                  style={{ width: 18, height: 18, color: selected === b.id ? '#2563eb' : '#64748b', flexShrink: 0 }}
                 />
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography sx={{ fontSize: '0.82rem', fontWeight: 700 }} noWrap>
                     {b.venue_name ?? `رزرو #${b.id}`}
                   </Typography>
-                  <Typography sx={{ fontSize: '0.68rem', color: '#64748b' }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                     {`${formatJalaliDate(b.slot_date, { format: 'numeric' })}${b.start_time ? ` - ${formatTimeFa(b.start_time)}` : ''}${b.payment_amount ? ` — ${formatRial(b.payment_amount)}` : ''}`}
                   </Typography>
                 </Box>
@@ -174,7 +174,7 @@ const TeamBookingsPanel: React.FC<{ team: Team }> = ({ team }) => {
                 <Typography sx={{ fontSize: '0.83rem', fontWeight: 700 }} noWrap>
                   {b.venue_name ?? '—'}
                 </Typography>
-                <Typography sx={{ fontSize: '0.68rem', color: '#64748b' }}>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                   {`${formatJalaliDate(b.slot_date, { format: 'numeric' })}${b.start_time ? ` - ${formatTimeFa(b.start_time ?? '')}` : ''}`}
                   {b.booking_user_name ? ` — ثبت‌کننده: ${b.booking_user_name}` : ''}
                 </Typography>

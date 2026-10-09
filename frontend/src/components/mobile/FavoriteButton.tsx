@@ -57,7 +57,7 @@ const FavoriteButton: React.FC<Props> = ({ venue, size = 'md', onImage = true })
       >
         <Icon
           icon={isFav ? 'mdi:heart' : 'mdi:heart-outline'}
-          style={{ width: 22, height: 22, color: isFav ? '#ef4444' : onImage ? '#475569' : '#94a3b8' }}
+          style={{ width: 22, height: 22, color: isFav ? '#ef4444' : onImage ? '#475569' : '#64748b' }}
         />
       </motion.span>
     </IconButton>

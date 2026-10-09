@@ -154,7 +154,7 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
                     <Chip
                       size="small"
                       label={`${MODIFIER_LABELS[r.modifier_type] ?? r.modifier_type} ${toPersianDigits(Math.abs(r.modifier_type === 'percent' ? r.value / 100 : r.value))}${r.modifier_type === 'percent' ? '٪' : ' ریال'}`}
-                      sx={{ height: 20, fontSize: '0.65rem', borderRadius: '6px', flexShrink: 0 }}
+                      sx={{ height: 20, fontSize: '0.75rem', borderRadius: '6px', flexShrink: 0 }}
                     />
                   </Box>
                   <Typography

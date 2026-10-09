@@ -81,7 +81,7 @@ const SectionCard: React.FC<{ title: string; icon: string; badge?: number; child
           component="span"
           sx={{
             px: 0.9, py: 0.1, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.14)',
-            color: '#b45309', fontSize: '0.7rem', fontWeight: 800,
+            color: '#b45309', fontSize: '0.75rem', fontWeight: 800,
           }}
         >
           {badge.toLocaleString('fa-IR')}
@@ -288,7 +288,7 @@ const GameDetail: React.FC = () => {
     )
   } else {
     primaryAction = (
-      <Typography sx={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+      <Typography sx={{ fontSize: '0.82rem', color: '#64748b' }}>
         {game.status === 'draft' ? 'این بازی هنوز منتشر نشده است.' : game.status === 'started' ? 'بازی شروع شده است.' : game.status === 'completed' ? 'بازی به پایان رسیده است.' : 'بازی لغو شده است.'}
       </Typography>
     )
@@ -495,12 +495,12 @@ const GameDetail: React.FC = () => {
             {game.result_set ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.2, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.10)', color: '#059669', fontSize: '0.68rem', fontWeight: 800 }}>
+                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.2, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.10)', color: '#059669', fontSize: '0.75rem', fontWeight: 800 }}>
                     <Icon icon="mdi:check-decagram" style={{ width: 14, height: 14 }} />
                     نتیجه ثبت شده
                   </Box>
                   {game.result_set_at && (
-                    <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                       {formatPersianDateTime(game.result_set_at)}
                     </Typography>
                   )}
@@ -577,7 +577,7 @@ const GameDetail: React.FC = () => {
           </Box>
         )}
 
-        <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+        <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
           {`شناسه بازی ${game.id.toLocaleString('fa-IR')} - ساخته‌شده در ${formatPersianDate(game.created_at)}`}
         </Typography>
       </Box>

@@ -118,7 +118,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                 <TableCell>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-start' }}>
                     <SessionStatusChip status={cs.status} />
-                    {future && !mutable && cs.status !== 'completed' && <StatusChip label="گذشته" color="#94a3b8" />}
+                    {future && !mutable && cs.status !== 'completed' && <StatusChip label="گذشته" color="#64748b" />}
                   </Box>
                 </TableCell>
                 <TableCell sx={{ ...cellBody, maxWidth: 220 }}>
@@ -142,7 +142,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                             variant="outlined"
                             disabled={busySessionId === cs.id}
                             onClick={() => onReschedule?.(cs)}
-                            sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.72rem' }}
+                            sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem' }}
                           >
                             جابه‌جایی
                           </Button>
@@ -152,7 +152,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                             variant="text"
                             disabled={busySessionId === cs.id}
                             onClick={() => onExclude?.(cs)}
-                            sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.72rem', mr: 0.5 }}
+                            sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem', mr: 0.5 }}
                           >
                             استثنا/لغو
                           </Button>
@@ -170,7 +170,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                           color="warning"
                           disabled={busySessionId === cs.id}
                           onClick={() => onRequestCancel?.(cs)}
-                          sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.72rem' }}
+                          sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem' }}
                         >
                           درخواست حذف سانس
                         </Button>

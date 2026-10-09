@@ -143,7 +143,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
               sx={{
                 borderRadius: '8px',
                 fontWeight: 700,
-                fontSize: '0.72rem',
+                fontSize: '0.75rem',
                 bgcolor: direction === chip.value ? chip.color : 'rgba(0,0,0,0.04)',
                 color: direction === chip.value ? 'white' : 'text.primary',
               }}
@@ -230,7 +230,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                 setTo('')
                 setPage(1)
               }}
-              sx={{ textTransform: 'none', fontSize: '0.72rem' }}
+              sx={{ textTransform: 'none', fontSize: '0.75rem' }}
               startIcon={<Icon icon="mdi:filter-remove-outline" className="h-4 w-4" />}
             >
               پاک‌سازی فیلترها
@@ -244,7 +244,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
           <ErrorBox message={extractError(error, 'خطا در دریافت تراکنش‌ها')} onRetry={() => refetch()} />
         ) : items.length === 0 ? (
           <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Icon icon="mdi:book-open-page-variant-outline" className="h-9 w-9" style={{ color: '#94a3b8' }} />
+            <Icon icon="mdi:book-open-page-variant-outline" className="h-9 w-9" style={{ color: '#64748b' }} />
             <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
               ردیفی با این فیلترها یافت نشد
             </Typography>
@@ -336,7 +336,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                             color="error"
                             variant="text"
                             onClick={() => setVoidTx(tx)}
-                            sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.72rem', borderRadius: '8px' }}
+                            sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', borderRadius: '8px' }}
                           >
                             ابطال
                           </Button>

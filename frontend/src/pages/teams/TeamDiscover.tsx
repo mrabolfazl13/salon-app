@@ -81,7 +81,7 @@ const DiscoverCard: React.FC<{ team: Team; mine: boolean; invited: boolean; onRe
             <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }} noWrap>
               {team.name}
             </Typography>
-            <Typography sx={{ fontSize: '0.7rem', color: '#64748b', mt: 0.25 }} noWrap>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }} noWrap>
               {`کاپیتان: ${team.captain_name ?? '—'}`}
             </Typography>
           </Box>
@@ -109,10 +109,10 @@ const DiscoverCard: React.FC<{ team: Team; mine: boolean; invited: boolean; onRe
             </Button>
           )}
           {invited && !mine && (
-            <Chip label="دعوت باز دارید" size="small" sx={{ height: 22, fontSize: '0.65rem', fontWeight: 700, bgcolor: 'rgba(124,58,237,0.10)', color: '#7c3aed' }} />
+            <Chip label="دعوت باز دارید" size="small" sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(124,58,237,0.10)', color: '#7c3aed' }} />
           )}
           {mine && (
-            <Chip label="عضو هستید" size="small" sx={{ height: 22, fontSize: '0.65rem', fontWeight: 700, bgcolor: 'rgba(16,185,129,0.10)', color: '#059669' }} />
+            <Chip label="عضو هستید" size="small" sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(16,185,129,0.10)', color: '#059669' }} />
           )}
         </Box>
       </Box>
@@ -166,7 +166,7 @@ const TeamDiscover: React.FC = () => {
           fullWidth
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          slotProps={{ input: { startAdornment: <Icon icon="mdi:magnify" style={{ width: 18, height: 18, color: '#94a3b8', marginLeft: 8 }} /> } }}
+          slotProps={{ input: { startAdornment: <Icon icon="mdi:magnify" style={{ width: 18, height: 18, color: '#64748b', marginLeft: 8 }} /> } }}
           sx={{ maxWidth: 420, '& .MuiOutlinedInput-root': { borderRadius: '999px' } }}
         />
         <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>

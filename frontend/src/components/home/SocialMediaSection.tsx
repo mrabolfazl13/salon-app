@@ -74,7 +74,7 @@ const SocialPlatform: React.FC<SocialPlatformProps> = ({
         </Typography>
         <Typography
           sx={{
-            fontSize: '0.72rem',
+            fontSize: '0.75rem',
             color: color,
             fontWeight: 700,
             mt: 0.25,

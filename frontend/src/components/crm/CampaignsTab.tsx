@@ -248,11 +248,11 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
                 </Typography>
                 <Box sx={{ display: 'flex', gap: 0.75, mt: 1, flexWrap: 'wrap' }}>
                   {c.segment && (
-                    <Chip label={SEGMENT_LABELS[c.segment] ?? c.segment} size="small" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700, bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
+                    <Chip label={SEGMENT_LABELS[c.segment] ?? c.segment} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
                   )}
-                  <Chip icon={<Icon icon="mdi:email-check" />} label={`${toPersianDigits(c.sent_count)} ارسال`} size="small" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.1)', color: '#059669' }} />
+                  <Chip icon={<Icon icon="mdi:email-check" />} label={`${toPersianDigits(c.sent_count)} ارسال`} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.1)', color: '#059669' }} />
                   {c.skipped_no_consent > 0 && (
-                    <Chip icon={<Icon icon="mdi:email-off" />} label={`${toPersianDigits(c.skipped_no_consent)} بدون رضایت`} size="small" sx={{ height: 20, fontSize: '0.65rem', fontWeight: 700, bgcolor: 'rgba(239,68,68,0.1)', color: '#ef4444' }} />
+                    <Chip icon={<Icon icon="mdi:email-off" />} label={`${toPersianDigits(c.skipped_no_consent)} بدون رضایت`} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(239,68,68,0.1)', color: '#ef4444' }} />
                   )}
                 </Box>
               </Box>

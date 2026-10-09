@@ -133,7 +133,7 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                   >
                     {fullUrl(link)}
                   </Typography>
-                  <Typography sx={{ fontSize: '0.68rem', color: '#64748b', mt: 0.25 }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
                     {`انقضا: ${link.expires_at ? formatPersianDateTime(link.expires_at) : 'بدون انقضا'} - استفاده: ${link.uses_count.toLocaleString('fa-IR')}${link.max_uses ? `/${link.max_uses.toLocaleString('fa-IR')}` : ''}`}
                   </Typography>
                 </Box>

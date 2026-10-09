@@ -241,7 +241,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
                 <Typography variant="caption" sx={{ color: 'text.secondary', pr: 1 }}>ریال</Typography>
               ),
               startAdornment: (
-                <Icon icon="mdi:currency-usd" style={{ width: 18, height: 18, marginLeft: 8, color: '#94a3b8' }} />
+                <Icon icon="mdi:currency-usd" style={{ width: 18, height: 18, marginLeft: 8, color: '#64748b' }} />
               ),
             },
           }}

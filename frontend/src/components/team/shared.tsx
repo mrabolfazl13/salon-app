@@ -88,7 +88,7 @@ export const TeamVisibilityChip: React.FC<{ visibility: TeamVisibility }> = ({ v
         height: 24,
         borderRadius: '999px',
         fontWeight: 600,
-        fontSize: '0.68rem',
+        fontSize: '0.75rem',
         bgcolor: c.bg,
         color: c.fg,
         '& .MuiChip-icon': { color: c.fg },
@@ -118,7 +118,7 @@ export const TeamRoleBadge: React.FC<{ role: TeamRole }> = ({ role }) => {
         borderRadius: '999px',
         bgcolor: c.bg,
         color: c.fg,
-        fontSize: '0.66rem',
+        fontSize: '0.75rem',
         fontWeight: 700,
         whiteSpace: 'nowrap',
       }}
@@ -132,14 +132,14 @@ export const TeamRoleBadge: React.FC<{ role: TeamRole }> = ({ role }) => {
 const MEMBER_STATUS_META: Record<TeamMemberStatus, { fg: string; icon: string }> = {
   active: { fg: '#059669', icon: 'mdi:check-circle-outline' },
   pending: { fg: '#b45309', icon: 'mdi:clock-outline' },
-  removed: { fg: '#94a3b8', icon: 'mdi:account-remove-outline' },
-  declined: { fg: '#94a3b8', icon: 'mdi:close-circle-outline' },
+  removed: { fg: '#64748b', icon: 'mdi:account-remove-outline' },
+  declined: { fg: '#64748b', icon: 'mdi:close-circle-outline' },
 }
 
 export const MemberStatusChip: React.FC<{ status: TeamMemberStatus }> = ({ status }) => {
   const m = MEMBER_STATUS_META[status] ?? MEMBER_STATUS_META.active
   return (
-    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, fontSize: '0.7rem', fontWeight: 700, color: m.fg }}>
+    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, fontSize: '0.75rem', fontWeight: 700, color: m.fg }}>
       <Icon icon={m.icon} style={{ width: 13, height: 13 }} />
       {TEAM_MEMBER_STATUS_LABELS[status] ?? status}
     </Box>
@@ -153,7 +153,7 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
   overdue,
 }) => {
   const meta = isVoided
-    ? { label: 'باطل', fg: '#94a3b8', bg: 'rgba(100,116,139,0.10)' }
+    ? { label: 'باطل', fg: '#64748b', bg: 'rgba(100,116,139,0.10)' }
     : isPaid
       ? { label: 'پرداخت‌شده', fg: '#059669', bg: 'rgba(16,185,129,0.10)' }
       : overdue
@@ -167,7 +167,7 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
         height: 24,
         borderRadius: '999px',
         fontWeight: 700,
-        fontSize: '0.68rem',
+        fontSize: '0.75rem',
         bgcolor: meta.bg,
         color: meta.fg,
         '& .MuiChip-label': { px: 1 },
@@ -191,7 +191,7 @@ export const TeamOfficialBadge: React.FC<{ size?: 'small' | 'medium' }> = ({ siz
       borderRadius: '999px',
       bgcolor: 'rgba(124,58,237,0.10)',
       color: '#7c3aed',
-      fontSize: size === 'small' ? '0.66rem' : '0.72rem',
+      fontSize: size === 'small' ? '0.75rem' : '0.75rem',
       fontWeight: 800,
       whiteSpace: 'nowrap',
     }}
@@ -216,7 +216,7 @@ export const TeamQuotaProgress: React.FC<{
   return (
     <Box sx={{ minWidth: compact ? 108 : 150 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.75, mb: 0.5 }}>
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, color: '#334155', fontSize: '0.72rem', fontWeight: 700 }}>
+        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, color: '#334155', fontSize: '0.75rem', fontWeight: 700 }}>
           <Icon icon="mdi:account-group-outline" style={{ width: 14, height: 14 }} />
           {total > 0
             ? `${toPersianDigits(memberCount)} از ${toPersianDigits(total)} عضو`
@@ -237,7 +237,7 @@ export const TeamQuotaProgress: React.FC<{
         />
       )}
       {showHint && !isOfficial && total > 0 && (
-        <Typography sx={{ fontSize: '0.66rem', color: '#b45309', mt: 0.5, fontWeight: 600 }}>
+        <Typography sx={{ fontSize: '0.75rem', color: '#b45309', mt: 0.5, fontWeight: 600 }}>
           {`برای رسمی‌شدن تیم به حداقل ${toPersianDigits(total)} عضو نیاز دارید`}
         </Typography>
       )}

@@ -205,7 +205,7 @@ const ManagerContracts: React.FC = () => {
                         {(c.days?.length ?? 0) > 1 && (
                           <Box sx={{ display: 'flex', gap: 0.4, mt: 0.5, flexWrap: 'wrap' }}>
                             {c.days!.map((d) => (
-                              <Chip key={d} label={pyDayNames[d] ?? d} size="small" sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700, borderRadius: '6px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }} />
+                              <Chip key={d} label={pyDayNames[d] ?? d} size="small" sx={{ height: 18, fontSize: '0.75rem', fontWeight: 700, borderRadius: '6px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }} />
                             ))}
                           </Box>
                         )}
@@ -393,7 +393,7 @@ const ManagerContracts: React.FC = () => {
                             <TableCell><StatusChip label={pm.label} color={pm.color} /></TableCell>
                             <TableCell><StatusChip label={sm.label} color={sm.color} /></TableCell>
                             <TableCell align="left">
-                              <Icon icon="mdi:chevron-left" className="h-4 w-4" style={{ color: '#94a3b8' }} />
+                              <Icon icon="mdi:chevron-left" className="h-4 w-4" style={{ color: '#64748b' }} />
                             </TableCell>
                           </TableRow>
                         )

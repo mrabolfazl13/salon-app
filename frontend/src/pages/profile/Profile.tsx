@@ -864,7 +864,7 @@ const Profile: React.FC = () => {
                                 >
                                   <Icon
                                     icon={b.icon}
-                                    style={{ width: 26, height: 26, color: unlocked ? '#1c1917' : (b.progress > 0 ? '#d97706' : '#94a3b8') }}
+                                    style={{ width: 26, height: 26, color: unlocked ? '#1c1917' : (b.progress > 0 ? '#d97706' : '#64748b') }}
                                   />
                                 </Box>
                                 <Typography variant="body2" sx={{ fontWeight: 800, color: unlocked ? 'text.primary' : 'text.secondary' }}>

@@ -82,7 +82,7 @@ export function sessionStatusMeta(status: string | null | undefined): StatusMeta
 // ─────────────── وضعیت هر قسط (مشتق‌شده از ردیف) ───────────────
 
 export function installmentState(p: ContractPaymentData): StatusMeta {
-  if (p.is_voided) return { label: 'باطل', color: '#94a3b8' }
+  if (p.is_voided) return { label: 'باطل', color: '#64748b' }
   if (p.is_paid) return { label: 'پرداخت شده', color: '#059669' }
   if (p.is_overdue || (p.due_date && p.due_date < getTodayISO())) return { label: 'سررسید گذشته', color: '#ef4444' }
   return { label: 'پرداخت نشده', color: '#d97706' }

@@ -18,7 +18,7 @@ interface LeaderboardPlayerProps {
 const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avatar, points, gamesPlayed, delay = 0 }) => {
   const getRankStyle = (r: number) => {
     if (r === 1) return { bg: '#fbbf24', color: '#1c1917', icon: 'mdi:crown' }
-    if (r === 2) return { bg: '#94a3b8', color: '#1c1917', icon: 'mdi:medal' }
+    if (r === 2) return { bg: '#64748b', color: '#1c1917', icon: 'mdi:medal' }
     if (r === 3) return { bg: '#cd7f32', color: '#fff', icon: 'mdi:award-star' }
     return { bg: 'rgba(255,255,255,0.1)', color: '#fff', icon: null }
   }
@@ -110,7 +110,7 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
           </Box>
           <Typography
             sx={{
-              fontSize: '0.72rem',
+              fontSize: '0.75rem',
               color: 'rgba(255,255,255,0.6)',
               mt: 0.25,
             }}
@@ -197,7 +197,7 @@ const Badge: React.FC<BadgeProps> = ({ icon, name, description, color, unlocked,
       </Typography>
       <Typography
         sx={{
-          fontSize: '0.72rem',
+          fontSize: '0.75rem',
           color: 'text.secondary',
           lineHeight: 1.6,
         }}
@@ -212,7 +212,7 @@ const Badge: React.FC<BadgeProps> = ({ icon, name, description, color, unlocked,
             py: 0.3,
             borderRadius: '6px',
             bgcolor: 'rgba(0,0,0,0.05)',
-            fontSize: '0.65rem',
+            fontSize: '0.75rem',
             color: 'text.secondary',
           }}
         >

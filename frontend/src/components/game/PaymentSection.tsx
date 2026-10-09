@@ -59,7 +59,7 @@ const PaymentRow: React.FC<{ payment: GamePayment; participants: Participant[] }
       size="small"
       sx={{
         height: 22,
-        fontSize: '0.68rem',
+        fontSize: '0.75rem',
         fontWeight: 700,
         bgcolor: payment.status === 'paid' ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.12)',
         color: payment.status === 'paid' ? '#15803d' : '#b45309',
@@ -150,7 +150,7 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
               <Chip
                 label={`سهم هر نفر: ${formatPrice(summary.price_per_player ?? game.price_per_player ?? 0)}`}
                 size="small"
-                sx={{ height: 24, fontSize: '0.72rem', fontWeight: 800, bgcolor: 'rgba(37,99,235,0.08)', color: '#1d4ed8' }}
+                sx={{ height: 24, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(37,99,235,0.08)', color: '#1d4ed8' }}
               />
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                 {`${paidCount.toLocaleString('fa-IR')} پرداخت‌شده از ${total.toLocaleString('fa-IR')}`}
@@ -181,7 +181,7 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
               <Chip
                 label="سهم شما پرداخت شده ✓"
                 size="small"
-                sx={{ height: 24, fontSize: '0.72rem', fontWeight: 800, bgcolor: 'rgba(22,163,74,0.1)', color: '#15803d' }}
+                sx={{ height: 24, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(22,163,74,0.1)', color: '#15803d' }}
               />
             )}
           </Box>
@@ -200,7 +200,7 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
               </Box>
             </>
           ) : (
-            <Typography sx={{ fontSize: '0.78rem', color: '#94a3b8' }}>
+            <Typography sx={{ fontSize: '0.78rem', color: '#64748b' }}>
               هنوز سهمی ثبت نشده است — با پیوستن بازیکنان، سهم‌ها ساخته می‌شوند.
             </Typography>
           )}

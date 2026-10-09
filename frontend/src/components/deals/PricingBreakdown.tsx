@@ -80,7 +80,7 @@ const AmountRow: React.FC<{ label: React.ReactNode; amount: number; strong?: boo
           fontWeight: strong ? 900 : 700,
           fontVariantNumeric: 'tabular-nums',
           whiteSpace: 'nowrap',
-          color: zero ? '#94a3b8' : amount > 0 ? '#dc2626' : '#059669',
+          color: zero ? '#64748b' : amount > 0 ? '#dc2626' : '#059669',
         }}
       >
         {amount > 0 ? `+${formatRial(amount)}` : amount < 0 ? `−${formatRial(Math.abs(amount))}` : formatRial(0)}

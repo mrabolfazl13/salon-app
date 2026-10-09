@@ -63,15 +63,15 @@ const AuditTimeline: React.FC<{ teamId: number }> = ({ teamId }) => {
                     <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>
                       {TEAM_AUDIT_ACTION_LABELS[ev.action] ?? ev.action}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                       {formatJalaliDateTime(ev.created_at, { format: 'numeric' })}
                     </Typography>
                     {ev.actor_name && (
-                      <Typography sx={{ fontSize: '0.68rem', color: '#64748b' }}>{`— ${ev.actor_name}`}</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>{`— ${ev.actor_name}`}</Typography>
                     )}
                   </Box>
                   {typeof ev.data?.amount === 'number' && (
-                    <Typography sx={{ fontSize: '0.7rem', color: '#475569', mt: 0.25 }} dir="rtl">
+                    <Typography sx={{ fontSize: '0.75rem', color: '#475569', mt: 0.25 }} dir="rtl">
                       مبلغ: {formatRial(Number(ev.data.amount))}
                     </Typography>
                   )}
@@ -136,7 +136,7 @@ const TeamBalancePanel: React.FC<{ team: Team; isManager: boolean }> = ({ team, 
           />
         </Grid>
       </Grid>
-      <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+      <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
         پرداخت حصه‌ها به‌صورت ردیف درآمدی در دفتر کلِ تیم ثبت می‌شود؛ تراز خالص، مانده حساب منهای تعهدات باز اعضا است.
       </Typography>
       {isManager && <AuditTimeline teamId={team.id} />}

@@ -49,7 +49,7 @@ const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
         <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>
           دعوت به تیم «{inv.team_name ?? `#${inv.team_id}`}»
         </Typography>
-        <Typography sx={{ fontSize: '0.68rem', color: '#64748b' }} noWrap>
+        <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }} noWrap>
           {inv.team_name ? 'پس از پذیرش، عضو فعال تیم می‌شوید.' : ''}
         </Typography>
       </Box>
@@ -83,11 +83,11 @@ const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
           </Button>
         </Box>
       ) : (
-        <Chip label="بدون شناسه عضویت" size="small" sx={{ height: 22, fontSize: '0.65rem' }} />
+        <Chip label="بدون شناسه عضویت" size="small" sx={{ height: 22, fontSize: '0.75rem' }} />
       )}
       {!busy && inv.member_id && (
         <Link to={`/teams/${inv.team_id}`} style={{ textDecoration: 'none' }}>
-          <Typography sx={{ fontSize: '0.7rem', color: '#2563eb', fontWeight: 700 }}>مشاهده تیم</Typography>
+          <Typography sx={{ fontSize: '0.75rem', color: '#2563eb', fontWeight: 700 }}>مشاهده تیم</Typography>
         </Link>
       )}
     </Box>
@@ -111,7 +111,7 @@ const JoinRequestsBadge: React.FC<{ team: Team }> = ({ team }) => {
         borderRadius: '999px',
         bgcolor: 'rgba(245,158,11,0.14)',
         color: '#b45309',
-        fontSize: '0.66rem',
+        fontSize: '0.75rem',
         fontWeight: 800,
       }}
     >
@@ -147,12 +147,12 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
                 <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }} noWrap>
                   {team.name}
                 </Typography>
-                <Typography sx={{ fontSize: '0.7rem', color: '#64748b', mt: 0.25 }} noWrap>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }} noWrap>
                   {`کاپیتان: ${team.captain_name ?? '—'}`}
                 </Typography>
               </Box>
               {!team.is_active && (
-                <Chip label="غیرفعال" size="small" sx={{ height: 22, fontSize: '0.65rem', fontWeight: 700, bgcolor: 'rgba(100,116,139,0.10)', color: '#64748b' }} />
+                <Chip label="غیرفعال" size="small" sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(100,116,139,0.10)', color: '#64748b' }} />
               )}
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
@@ -164,13 +164,13 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
                   height: 24,
                   borderRadius: '999px',
                   fontWeight: 700,
-                  fontSize: '0.68rem',
+                  fontSize: '0.75rem',
                   bgcolor: 'rgba(37,99,235,0.08)',
                   color: '#2563eb',
                 }}
               />
               {team.my_status === 'pending' && (
-                <Typography sx={{ fontSize: '0.66rem', color: '#b45309', fontWeight: 700 }}>
+                <Typography sx={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 700 }}>
                   {TEAM_MEMBER_STATUS_LABELS.pending}
                 </Typography>
               )}
@@ -192,7 +192,7 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
   )
 }
 
-const RANK_MEDAL: Record<number, string> = { 1: '#f59e0b', 2: '#94a3b8', 3: '#b45309' }
+const RANK_MEDAL: Record<number, string> = { 1: '#f59e0b', 2: '#64748b', 3: '#b45309' }
 
 const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   const q = useQuery({
@@ -215,12 +215,12 @@ const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
             <Chip
               label={`رتبه شما: ${toPersianDigits(q.data.my_rank)}`}
               size="small"
-              sx={{ height: 22, fontSize: '0.66rem', fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', mr: 'auto' }}
+              sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', mr: 'auto' }}
             />
           )}
         </Box>
         {/* هدر ستون‌ها */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: '34px 1fr 46px 46px 46px 52px', gap: 0.5, px: 0.5, fontSize: '0.62rem', fontWeight: 800, color: '#64748b' }}>
+        <Box sx={{ display: 'grid', gridTemplateColumns: '34px 1fr 46px 46px 46px 52px', gap: 0.5, px: 0.5, fontSize: '0.75rem', fontWeight: 800, color: '#64748b' }}>
           <Box>#</Box><Box>تیم</Box><Box sx={{ textAlign: 'center' }}>بازی</Box>
           <Box sx={{ textAlign: 'center' }}>برد</Box><Box sx={{ textAlign: 'center' }}>باخت</Box>
           <Box sx={{ textAlign: 'center' }}>امتیاز</Box>
@@ -253,13 +253,13 @@ const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
                     <Icon icon="mdi:shield-check" style={{ width: 12, height: 12, color: '#059669', marginInlineStart: 4, verticalAlign: -2 }} />
                   )}
                 </Typography>
-                <Typography sx={{ fontSize: '0.62rem', color: '#64748b' }}>
+                <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                   {`${toPersianDigits(row.win_rate)}٪ برد · ${toPersianDigits(row.member_count)} عضو`}
                 </Typography>
               </Box>
-              <Box sx={{ textAlign: 'center', fontSize: '0.74rem', color: '#334155', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.played)}</Box>
-              <Box sx={{ textAlign: 'center', fontSize: '0.74rem', fontWeight: 800, color: '#059669', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.won)}</Box>
-              <Box sx={{ textAlign: 'center', fontSize: '0.74rem', color: '#dc2626', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.lost)}</Box>
+              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', color: '#334155', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.played)}</Box>
+              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, color: '#059669', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.won)}</Box>
+              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', color: '#dc2626', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.lost)}</Box>
               <Box sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 900, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.points)}</Box>
             </Box>
           </motion.div>

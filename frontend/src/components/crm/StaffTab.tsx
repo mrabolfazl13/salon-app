@@ -230,7 +230,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                         label={row.is_active ? 'فعال' : 'حذف‌شده'}
                         size="small"
                         sx={{
-                          borderRadius: '8px', fontWeight: 700, fontSize: '0.66rem', height: 20,
+                          borderRadius: '8px', fontWeight: 700, fontSize: '0.75rem', height: 20,
                           bgcolor: row.is_active ? 'rgba(5,150,105,0.12)' : 'rgba(107,114,128,0.12)',
                           color: row.is_active ? '#059669' : '#6b7280',
                         }}
@@ -304,7 +304,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
               color={auditAction === a ? 'primary' : 'default'}
               variant={auditAction === a ? 'filled' : 'outlined'}
               onClick={() => { setAuditAction(a); setAuditPage(1) }}
-              sx={{ borderRadius: '9px', fontWeight: 700, fontSize: '0.68rem', height: 26 }}
+              sx={{ borderRadius: '9px', fontWeight: 700, fontSize: '0.75rem', height: 26 }}
             />
           ))}
         </Box>

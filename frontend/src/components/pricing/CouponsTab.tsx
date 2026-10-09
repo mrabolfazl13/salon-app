@@ -140,7 +140,7 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                         size="small"
                         label={c.venue_id == null ? 'سراسری' : venueName(c.venue_id)}
                         color={c.venue_id == null ? 'info' : 'default'}
-                        sx={{ borderRadius: '8px', fontSize: '0.7rem', fontWeight: 600, maxWidth: 140 }}
+                        sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600, maxWidth: 140 }}
                       />
                       {c.min_booking_amount ? (
                         <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.25 }}>
@@ -171,7 +171,7 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                           {c.valid_until ? formatJalaliDate(c.valid_until.slice(0, 10)) : 'بدون انقضا'}
                         </Typography>
                       ) : (
-                        <Chip size="small" label="بدون محدودیت زمانی" sx={{ borderRadius: '8px', fontSize: '0.7rem' }} />
+                        <Chip size="small" label="بدون محدودیت زمانی" sx={{ borderRadius: '8px', fontSize: '0.75rem' }} />
                       )}
                     </TableCell>
                     <TableCell>
@@ -196,7 +196,7 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                         <Button size="small" color="error" onClick={() => setDisableTarget(c)} sx={{ textTransform: 'none' }} startIcon={<Icon icon="mdi:cancel-variant" className="h-4 w-4" />}>غیرفعال‌سازی</Button>
                       )}
                       {exhausted && (
-                        <Chip size="small" color="warning" label="سقف مصرف پر شده" sx={{ borderRadius: '8px', fontSize: '0.65rem', fontWeight: 700 }} />
+                        <Chip size="small" color="warning" label="سقف مصرف پر شده" sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700 }} />
                       )}
                     </TableCell>
                   </TableRow>

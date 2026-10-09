@@ -266,7 +266,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                           <Chip
                             label="شما"
                             size="small"
-                            sx={{ ml: 1, height: 18, fontSize: '0.62rem', bgcolor: 'rgba(37,99,235,0.1)', color: 'primary.main', fontWeight: 700 }}
+                            sx={{ ml: 1, height: 18, fontSize: '0.75rem', bgcolor: 'rgba(37,99,235,0.1)', color: 'primary.main', fontWeight: 700 }}
                           />
                         )}
                       </Typography>

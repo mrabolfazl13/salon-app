@@ -69,7 +69,7 @@ const BookingRow: React.FC<{ booking: ApiBooking; onSelect: () => void }> = ({ b
         <Chip
           label={formatPrice(booking.payment_amount)}
           size="small"
-          sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700, bgcolor: '#ecfdf5', color: '#047857' }}
+          sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: '#ecfdf5', color: '#047857' }}
         />
       </Box>
     </Box>

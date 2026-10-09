@@ -160,9 +160,23 @@ const Navbar: React.FC<NavbarProps> = () => {
           {/* زنگ اعلان — در همه اندازه‌ها (موبایل + دسکتاپ) دیده می‌شود */}
           {isAuthenticated && <NotificationPanel />}
 
-          {/* دکمه‌های ناوبری — فقط دسکتاپ؛ موبایل با نوار پایین + منوی آواتار */}
+          {/* دکمه‌های ناوبری — فقط دسکتاپ؛ موبایل با نوار پایین + منوی آواتار.
+              جعبه ناو فقط خودش اسکرول افقی می‌شود (minWidth:0 + overflow) تا
+              هرگز عرض سند را از viewport عبور ندهد — ریشه H_OVERFLOW ممیزی UI */}
           {isAuthenticated && (
-            <Box sx={{ display: { xs: 'none', md: 'flex' }, gap: 1, alignItems: 'center' }}>
+            <Box
+              sx={{
+                display: { xs: 'none', md: 'flex' },
+                gap: 0.25,
+                alignItems: 'center',
+                minWidth: 0,
+                flex: '0 1 auto',
+                overflowX: 'auto',
+                scrollbarWidth: 'none',
+                overscrollBehaviorX: 'contain',
+                '&::-webkit-scrollbar': { display: 'none' },
+              }}
+            >
               {navItems.map((item) => (
                 <Button
                   key={item.href}
@@ -173,6 +187,9 @@ const Navbar: React.FC<NavbarProps> = () => {
                     borderRadius: '10px',
                     textTransform: 'none',
                     fontWeight: 500,
+                    px: 1,
+                    flexShrink: 0,
+                    whiteSpace: 'nowrap',
                     '&:hover': {
                       background: (t) =>
                         t.palette.mode === 'dark'

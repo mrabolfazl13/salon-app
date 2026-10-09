@@ -252,7 +252,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
             <MenuItem key={v} value={v}>{GAME_VISIBILITY_LABELS[v]}</MenuItem>
           ))}
         </TextField>
-        <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8', mt: -1 }}>
+        <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: -1 }}>
           خصوصی: فقط با لینک دعوت یا دعوت مستقیم - عمومی با تأیید: نیازمند تأیید مدیر - عمومی: پیوستن آزاد
         </Typography>
 
@@ -282,7 +282,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
               </Alert>
             )}
             {game === null && bookingLabel && (
-              <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8', mt: -1 }}>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: -1 }}>
                 در حالت سهمی، هزینه‌ی رزرو بین بازیکنان تقسیم می‌شود.
               </Typography>
             )}

@@ -27,8 +27,8 @@ const STATUS_COLORS: Record<string, string> = {
   pending: '#b45309',
   invited: '#2563eb',
   rejected: '#dc2626',
-  left: '#94a3b8',
-  removed: '#94a3b8',
+  left: '#64748b',
+  removed: '#64748b',
 }
 
 const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, canManage }) => {
@@ -100,17 +100,17 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
                 <RoleBadge role={p.role} />
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
-                <Typography sx={{ fontSize: '0.7rem', color: STATUS_COLORS[p.status] ?? '#64748b', fontWeight: 600 }}>
+                <Typography sx={{ fontSize: '0.75rem', color: STATUS_COLORS[p.status] ?? '#64748b', fontWeight: 600 }}>
                   {PARTICIPANT_STATUS_LABELS[p.status as keyof typeof PARTICIPANT_STATUS_LABELS] ?? p.status}
                 </Typography>
                 {p.payment_status === 'paid' && (
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color: '#059669', fontSize: '0.7rem', fontWeight: 700 }}>
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color: '#059669', fontSize: '0.75rem', fontWeight: 700 }}>
                     <Icon icon="mdi:check-circle" style={{ width: 13, height: 13 }} />
                     پرداخت‌شده
                   </Box>
                 )}
                 {p.payment_status === 'pending' && (
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color: '#b45309', fontSize: '0.7rem', fontWeight: 700 }}>
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color: '#b45309', fontSize: '0.75rem', fontWeight: 700 }}>
                     <Icon icon="mdi:clock-outline" style={{ width: 13, height: 13 }} />
                     سهم پرداخت‌نشده
                   </Box>

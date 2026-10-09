@@ -80,7 +80,7 @@ export const SegmentChip: React.FC<{ segment: string; small?: boolean }> = ({ se
     sx={{
       borderRadius: '8px',
       fontWeight: 700,
-      fontSize: '0.68rem',
+      fontSize: '0.75rem',
       height: 22,
       bgcolor: `${SEGMENT_COLORS[segment] ?? '#6b7280'}18`,
       color: SEGMENT_COLORS[segment] ?? '#6b7280',
@@ -140,7 +140,7 @@ export const PermissionMatrixRow: React.FC<{
       <Box component="span" sx={{ fontSize: '0.78rem', fontWeight: 700 }}>
         {PERMISSION_LABELS[code] ?? code}
       </Box>
-      <Box component="span" sx={{ fontSize: '0.66rem', color: 'text.secondary', mr: 1 }} dir="ltr">
+      <Box component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary', mr: 1 }} dir="ltr">
         {code}
       </Box>
     </Box>
@@ -178,7 +178,7 @@ export const BookingStatusChip: React.FC<{ status: string }> = ({ status }) => (
     sx={{
       borderRadius: '8px',
       fontWeight: 700,
-      fontSize: '0.66rem',
+      fontSize: '0.75rem',
       height: 20,
       bgcolor: `${BOOKING_STATUS_COLORS[status] ?? '#6b7280'}18`,
       color: BOOKING_STATUS_COLORS[status] ?? '#6b7280',

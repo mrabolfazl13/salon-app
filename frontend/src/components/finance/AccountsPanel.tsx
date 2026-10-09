@@ -86,7 +86,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                   sx={{
                     borderRadius: '8px',
                     fontWeight: 700,
-                    fontSize: '0.72rem',
+                    fontSize: '0.75rem',
                     bgcolor: kind === f.value ? 'primary.main' : 'rgba(0,0,0,0.04)',
                     color: kind === f.value ? 'white' : 'text.primary',
                   }}
@@ -214,7 +214,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                             borderRadius: '8px',
                             textTransform: 'none',
                             fontWeight: 600,
-                            fontSize: '0.72rem',
+                            fontSize: '0.75rem',
                             borderColor: 'rgba(37,99,235,0.25)',
                             color: 'primary.main',
                           }}

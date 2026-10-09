@@ -105,7 +105,7 @@ const Quiz: React.FC = () => {
         )}
         {weekQuery.isSuccess && questions.length === 0 && (
           <Box sx={{ textAlign: 'center', py: 6, border: '1px dashed', borderColor: 'divider', borderRadius: '16px' }}>
-            <Icon icon="mdi:help-box-outline" style={{ width: 44, height: 44, color: '#94a3b8' }} />
+            <Icon icon="mdi:help-box-outline" style={{ width: 44, height: 44, color: '#64748b' }} />
             <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
               هنوز سؤالی برای این هفته ثبت نشده — هفتهٔ بعد سر بزن!
             </Typography>

@@ -111,7 +111,7 @@ const BottomNavigation: React.FC = () => {
               <Box
                 component="span"
                 sx={{
-                  fontSize: '0.65rem',
+                  fontSize: '0.75rem',
                   fontWeight: active ? 700 : 500,
                   color: active ? (dark ? '#fbbf24' : '#b45309') : (dark ? '#8b98ab' : '#64748b'),
                   transition: 'color 0.2s ease',
@@ -148,7 +148,7 @@ const NavIcon: React.FC<{ active: boolean; icon: string; dark: boolean }> = ({ a
   >
     <Icon
       icon={`mdi:${icon.endsWith('-outline') || !active ? icon : icon + '-outline'}`}
-      style={{ width: 22, height: 22, color: active ? (dark ? '#fbbf24' : '#d97706') : (dark ? '#5b6879' : '#94a3b8') }}
+      style={{ width: 22, height: 22, color: active ? (dark ? '#fbbf24' : '#d97706') : (dark ? '#5b6879' : '#64748b') }}
     />
   </motion.span>
 )

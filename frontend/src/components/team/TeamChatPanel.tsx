@@ -96,9 +96,9 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
           </Box>
         ) : messages.length === 0 ? (
           <Box sx={{ m: 'auto', textAlign: 'center', maxWidth: 320 }}>
-            <Icon icon="mdi:message-text-outline" style={{ width: 32, height: 32, color: '#94a3b8' }} />
+            <Icon icon="mdi:message-text-outline" style={{ width: 32, height: 32, color: '#64748b' }} />
             <Typography sx={{ fontSize: '0.85rem', color: '#64748b', mt: 0.75, fontWeight: 700 }}>هنوز پیامی در چت تیم نیست</Typography>
-            <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8', mt: 0.25 }}>اولین پیام را بنویسید و هم‌تیمی‌ها را هماهنگ کنید.</Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>اولین پیام را بنویسید و هم‌تیمی‌ها را هماهنگ کنید.</Typography>
           </Box>
         ) : (
           <>
@@ -123,13 +123,13 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
                       borderColor: mine ? 'rgba(37,99,235,0.2)' : 'rgba(15,23,42,0.06)',
                     }}
                   >
-                    <Typography sx={{ fontSize: '0.66rem', fontWeight: 800, color: mine ? '#2563eb' : '#7c3aed', mb: 0.25 }}>
+                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: mine ? '#2563eb' : '#7c3aed', mb: 0.25 }}>
                       {mine ? 'شما' : (m.full_name ?? `کاربر ${toPersianDigits(m.user_id)}`)}
                     </Typography>
                     <Typography sx={{ fontSize: '0.85rem', color: '#0f172a', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.85 }}>
                       {m.content}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.6rem', color: '#94a3b8', mt: 0.4, textAlign: mine ? 'left' : 'right' }}>
+                    <Typography sx={{ fontSize: '0.6rem', color: '#64748b', mt: 0.4, textAlign: mine ? 'left' : 'right' }}>
                       {formatJalaliDateTime(m.created_at, { format: 'numeric' })}
                     </Typography>
                   </Box>

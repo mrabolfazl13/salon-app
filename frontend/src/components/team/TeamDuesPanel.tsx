@@ -82,7 +82,7 @@ const DuePayDialog: React.FC<{
             </Typography>
           </Box>
         )}
-        <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+        <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
           ØªÙˆØ¬Ù‡: Ø±ÙˆØ´ Â«Ø¯Ø±Ú¯Ø§Ù‡Â» Ø¯Ø± Ø§ÛŒÙ† Ù†Ø³Ø®Ù‡ Ù‡Ù…Ø§Ù†Ù†Ø¯ Ø¨Ú©â€ŒØ§Ù†Ø¯ Ø¨Ù‡â€ŒØµÙˆØ±Øª Ù‚Ø·Ø¹ÛŒ Ø«Ø¨Øª Ù…ÛŒâ€ŒØ´ÙˆØ¯ (Ù¾Ø±Ø¯Ø§Ø®Øª Ø¨Ø§Ù†Ú©ÛŒ ÙˆØ§Ù‚Ø¹ÛŒ Ø§Ù†Ø¬Ø§Ù… Ù†Ù…ÛŒâ€ŒØ´ÙˆØ¯) â€” Ø¨Ø±Ø§ÛŒ Ø¯Ø±ÛŒØ§ÙØª Ù„ÛŒÙ†Ú© Ù¾Ø±Ø¯Ø§Ø®Øª Ø§Ø² flow Ø±Ø²Ø±ÙˆÙ‡Ø§ Ø§Ø³ØªÙØ§Ø¯Ù‡ Ú©Ù†ÛŒØ¯.
         </Typography>
         <TextField
@@ -184,7 +184,7 @@ const DuesGenerateDialog: React.FC<{
   return (
     <Dialog open={open} onClose={onClose} title="Ø§ÛŒØ¬Ø§Ø¯ Ø­ØµÙ‡ Ø¨Ø±Ø§ÛŒ Ø§Ø¹Ø¶Ø§" maxWidth="xs">
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary' }}>
+        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
           Ù…Ø¨Ù„Øº Ø³Ø±Ø§Ù†Ù‡â€ŒÛŒ Ù‡Ø± Ø¹Ø¶Ùˆ Ø§Ø³Øª Ùˆ Ø¨Ø±Ø§ÛŒ Ù‡Ù…Ù‡â€ŒÛŒ Ø§Ø¹Ø¶Ø§ÛŒ Ø§Ù†ØªØ®Ø§Ø¨ÛŒ (Ù¾ÛŒØ´â€ŒÙØ±Ø¶: Ù‡Ù…Ù‡) Ø¨Ù‡ ÛŒÚ©ÛŒ Ø§Ø² Ù‡Ù…ÛŒÙ† Ù…Ø¨Ù„Øº Ø³Ø§Ø®ØªÙ‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯Ø› Ú©Ø§Ù¾ÛŒØªØ§Ù† Ù‡Ù… Ø´Ø§Ù…Ù„ Ù…ÛŒâ€ŒØ´ÙˆØ¯.
         </Typography>
         <TextField
@@ -238,7 +238,7 @@ const DuesGenerateDialog: React.FC<{
             })}
           </Box>
         </Box>
-        {fieldError && <Typography sx={{ fontSize: '0.72rem', color: '#dc2626', fontWeight: 600 }}>{fieldError}</Typography>}
+        {fieldError && <Typography sx={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600 }}>{fieldError}</Typography>}
         <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
           <Button variant="outline" onClick={onClose} disabled={generate.isPending}>Ø§Ù†ØµØ±Ø§Ù</Button>
           <Button variant="gradient" loading={generate.isPending} onClick={handleSubmit} icon="mdi:plus-circle-outline">
@@ -312,7 +312,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
                 borderRadius: '999px',
                 textTransform: 'none',
                 fontWeight: 700,
-                fontSize: '0.72rem',
+                fontSize: '0.75rem',
                 px: 1.5,
                 py: 0.25,
                 ...(status === s.value ? { background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: '#fff', border: 'none' } : {}),
@@ -357,28 +357,28 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
                     {due.title}
-                    {mine && <span style={{ color: '#2563eb', fontSize: '0.72rem' }}> (Ø´Ù…Ø§)</span>}
+                    {mine && <span style={{ color: '#2563eb', fontSize: '0.75rem' }}> (Ø´Ù…Ø§)</span>}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
                     <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }} dir="rtl">
                       {formatRial(due.amount)}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }}>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                       {`Ø³Ø±Ø±Ø³ÛŒØ¯: ${formatJalaliDate(due.due_date, { format: 'numeric' })}`}
                     </Typography>
                     {isManager && !mine && (
-                      <Typography sx={{ fontSize: '0.68rem', color: '#64748b', fontWeight: 600 }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
                         {due.full_name ?? `Ú©Ø§Ø±Ø¨Ø± ${due.user_id}`}
                       </Typography>
                     )}
                     {due.payment_method && (
-                      <Typography sx={{ fontSize: '0.66rem', color: '#94a3b8' }}>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                         {DUE_METHOD_LABELS[due.payment_method] ?? due.payment_method}
                       </Typography>
                     )}
                   </Box>
                   {due.void_reason && (
-                    <Typography sx={{ fontSize: '0.66rem', color: '#94a3b8', mt: 0.25 }}>{`Ø¯Ù„ÛŒÙ„ Ø§Ø¨Ø·Ø§Ù„: ${due.void_reason}`}</Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>{`Ø¯Ù„ÛŒÙ„ Ø§Ø¨Ø·Ø§Ù„: ${due.void_reason}`}</Typography>
                   )}
                 </Box>
                 <DueStatusChip isPaid={due.is_paid} isVoided={due.is_voided} overdue={due.overdue} />
@@ -391,7 +391,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
                   <MuiButton
                     size="small"
                     onClick={() => setVoidTarget(due)}
-                    sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.72rem', color: '#dc2626' }}
+                    sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', color: '#dc2626' }}
                   >
                     Ø§Ø¨Ø·Ø§Ù„
                   </MuiButton>

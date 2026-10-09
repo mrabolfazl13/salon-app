@@ -199,7 +199,7 @@ const Login: React.FC = () => {
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Icon icon="mdi:cellphone" style={{ width: 22, height: 22, color: '#94a3b8' }} />
+                        <Icon icon="mdi:cellphone" style={{ width: 22, height: 22, color: '#64748b' }} />
                       </InputAdornment>
                     ),
                   },
@@ -218,7 +218,7 @@ const Login: React.FC = () => {
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
-                        <Icon icon="mdi:lock-outline" style={{ width: 22, height: 22, color: '#94a3b8' }} />
+                        <Icon icon="mdi:lock-outline" style={{ width: 22, height: 22, color: '#64748b' }} />
                       </InputAdornment>
                     ),
                     endAdornment: (
@@ -226,7 +226,7 @@ const Login: React.FC = () => {
                         <IconButton
                           onClick={() => setShowPassword((v) => !v)}
                           edge="end"
-                          sx={{ color: '#94a3b8' }}
+                          sx={{ color: '#64748b' }}
                           aria-label={showPassword ? 'پنهان کردن رمز' : 'نمایش رمز'}
                         >
                           <Icon

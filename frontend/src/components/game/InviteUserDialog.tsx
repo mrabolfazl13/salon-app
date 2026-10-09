@@ -88,7 +88,7 @@ const InviteUserDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                   {inv.invited_user_name || `کاربر #${inv.invited_user_id}`}
                 </Typography>
                 {inv.expires_at && (
-                  <Typography sx={{ fontSize: '0.7rem', color: '#94a3b8' }}>
+                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
                     {formatGameDateTime(inv.expires_at.slice(0, 10), inv.expires_at.slice(11, 16))}
                   </Typography>
                 )}

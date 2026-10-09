@@ -72,7 +72,7 @@ const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, 
             borderRadius: `${radii.chip}px`,
             bgcolor: 'rgba(255,255,255,0.92)',
             backdropFilter: 'blur(6px)',
-            fontSize: '0.68rem',
+            fontSize: '0.75rem',
             fontWeight: 700,
             color: verified ? '#059669' : '#b45309',
           }}

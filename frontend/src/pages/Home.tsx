@@ -312,7 +312,7 @@ const Home: React.FC = () => {
                   <Icon icon={t.icon} style={{ width: 22, height: 22 }} />
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Box sx={{ fontSize: '0.74rem', fontWeight: 800, color: 'text.primary' }}>{t.label}</Box>
+                  <Box sx={{ fontSize: '0.75rem', fontWeight: 800, color: 'text.primary' }}>{t.label}</Box>
                   <Box sx={{ fontSize: '0.6rem', color: 'text.secondary', mt: 0.25 }}>{t.sub}</Box>
                 </Box>
               </Box>
@@ -390,7 +390,7 @@ const Home: React.FC = () => {
                             borderRadius: '999px',
                             bgcolor: msLeft < 3 * 3600_000 ? 'rgba(220,38,38,0.12)' : 'rgba(245,158,11,0.14)',
                             color: msLeft < 3 * 3600_000 ? '#dc2626' : '#b45309',
-                            fontSize: '0.68rem',
+                            fontSize: '0.75rem',
                             fontWeight: 800,
                             whiteSpace: 'nowrap',
                             fontVariantNumeric: 'tabular-nums',
@@ -401,7 +401,7 @@ const Home: React.FC = () => {
                         </Box>
                       </Box>
 
-                      <Box sx={{ fontSize: '0.72rem', color: 'text.secondary', mb: 1 }}>
+                      <Box sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 1 }}>
                         {formatJalaliDate(c.date)} — {toPersianDigits(c.start_time)}
                         {' · '}
                         {toPersianDigits(c.bid_count)} پیشنهاد
@@ -437,7 +437,7 @@ const Home: React.FC = () => {
                               px: 0.75,
                               py: 0.15,
                               borderRadius: '999px',
-                              fontSize: '0.65rem',
+                              fontSize: '0.75rem',
                               fontWeight: 800,
                               color: '#1c1917',
                               bgcolor: '#fbbf24',
@@ -769,7 +769,7 @@ const Home: React.FC = () => {
                     <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'text.primary' }} noWrap>
                       {v.name}
                     </Typography>
-                    <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', mt: 0.25 }} noWrap>
+                    <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', mt: 0.25 }} noWrap>
                       {v.address}
                     </Typography>
                   </Box>
@@ -793,7 +793,7 @@ const Home: React.FC = () => {
                 <Icon icon="mdi:soccer" style={{ width: 22, height: 22 }} />
                 <Typography sx={{ fontWeight: 800, color: '#fff' }}>نتایج</Typography>
               </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'rgba(255,255,255,0.85)', fontSize: '0.72rem' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'rgba(255,255,255,0.85)', fontSize: '0.75rem' }}>
                 <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#f87171', animation: 'pulse 1.5s infinite' }} />
                 زنده
               </Box>
@@ -842,7 +842,7 @@ const Home: React.FC = () => {
               </Box>
             ) : getActiveMatches().length === 0 ? (
               <Box sx={{ textAlign: 'center', py: 4 }}>
-                <Icon icon="mdi:soccer-field" style={{ width: 44, height: 44, color: '#94a3b8' }} />
+                <Icon icon="mdi:soccer-field" style={{ width: 44, height: 44, color: '#64748b' }} />
                 <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 1 }}>
                   مسابقه‌ای یافت نشد
                 </Typography>
@@ -858,16 +858,16 @@ const Home: React.FC = () => {
                   >
                     <Box sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.03)'), borderRadius: '16px', p: 1.5 }}>
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography sx={{ fontSize: '0.68rem', color: 'text.secondary', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.06)'), px: 1, py: 0.25, borderRadius: '8px' }}>
+                        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.06)'), px: 1, py: 0.25, borderRadius: '8px' }}>
                           {match.league}
                         </Typography>
                         {match.status === 'live' ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '0.7rem', color: '#dc2626', fontWeight: 700 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '0.75rem', color: '#dc2626', fontWeight: 700 }}>
                             <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#dc2626', animation: 'pulse 1.5s infinite' }} />
                             {match.minute}'
                           </Box>
                         ) : (
-                          <Typography sx={{ fontSize: '0.7rem', color: 'text.secondary' }}>
+                          <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
                             {formatTime(match.time, match.date)}
                           </Typography>
                         )}
@@ -936,7 +936,7 @@ const Home: React.FC = () => {
             </>
           ) : news.length === 0 ? (
             <Box sx={{ textAlign: 'center', py: 4, width: '100%' }}>
-              <Icon icon="mdi:newspaper-minus" style={{ width: 40, height: 40, color: '#94a3b8' }} />
+              <Icon icon="mdi:newspaper-minus" style={{ width: 40, height: 40, color: '#64748b' }} />
               <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 1 }}>اخباری یافت نشد</Typography>
             </Box>
           ) : (
@@ -972,7 +972,7 @@ const Home: React.FC = () => {
                           borderRadius: '8px',
                           bgcolor: '#dc2626',
                           color: '#fff',
-                          fontSize: '0.65rem',
+                          fontSize: '0.75rem',
                           fontWeight: 700,
                           display: 'flex',
                           alignItems: 'center',
@@ -989,7 +989,7 @@ const Home: React.FC = () => {
                     <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: 'text.primary', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '2.4em' }}>
                       {item.title}
                     </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1, fontSize: '0.68rem', color: 'text.secondary' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
                       <span>{item.date}</span>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
                         <Icon icon="mdi:eye-outline" style={{ width: 13, height: 13 }} />

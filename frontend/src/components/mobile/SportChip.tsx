@@ -77,7 +77,7 @@ const SportChip: React.FC<Props> = ({ sport, active = false, onClick }) => {
       <Typography
         component="span"
         sx={{
-          fontSize: '0.72rem',
+          fontSize: '0.75rem',
           fontWeight: active ? 800 : 600,
           color: active ? '#1c1917' : dark ? '#bcc7d4' : '#334155',
           whiteSpace: 'nowrap',

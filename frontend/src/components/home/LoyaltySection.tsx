@@ -59,7 +59,7 @@ const LevelCard: React.FC<LevelCardProps> = ({
             borderRadius: '6px',
             bgcolor: color,
             color: '#fff',
-            fontSize: '0.65rem',
+            fontSize: '0.75rem',
             fontWeight: 700,
           }}
         >
@@ -106,7 +106,7 @@ const LevelCard: React.FC<LevelCardProps> = ({
 
       <Typography
         sx={{
-          fontSize: '0.72rem',
+          fontSize: '0.75rem',
           color: color,
           fontWeight: 700,
         }}
@@ -217,7 +217,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography
             sx={{
-              fontSize: '0.72rem',
+              fontSize: '0.75rem',
               color: 'text.secondary',
             }}
           >
@@ -232,7 +232,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
                 borderRadius: '8px',
                 bgcolor: color,
                 color: '#fff',
-                fontSize: '0.72rem',
+                fontSize: '0.75rem',
                 fontWeight: 700,
                 textTransform: 'none',
                 '&:hover': {
@@ -265,7 +265,7 @@ const LEVELS = [
     description: 'بازیکن فعال با تخفیف‌های ویژه',
     minPoints: 1000,
     maxPoints: 5000,
-    color: '#94a3b8',
+    color: '#64748b',
   },
   {
     icon: 'mdi:crown',

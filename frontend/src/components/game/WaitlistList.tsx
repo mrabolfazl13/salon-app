@@ -60,12 +60,12 @@ const WaitlistList: React.FC<Props> = ({ entries }) => {
             <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f172a' }} noWrap>
               {`کاربر ${entry.user_id.toLocaleString('fa-IR')}`}
             </Typography>
-            <Typography sx={{ fontSize: '0.66rem', color: '#94a3b8', mt: 0.1 }} noWrap>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.1 }} noWrap>
               {`در صف از: ${formatPersianDateTime(entry.created_at)}`}
             </Typography>
           </Box>
           {entry.position === 1 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, color: '#b45309', fontSize: '0.68rem', fontWeight: 700 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, color: '#b45309', fontSize: '0.75rem', fontWeight: 700 }}>
               <Icon icon="mdi:star-four-points" style={{ width: 13, height: 13 }} />
               نوبت بعدی
             </Box>

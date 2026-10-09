@@ -63,7 +63,7 @@ const GameResultDialog: React.FC<Props> = ({ open, onClose, gameId, participants
         </Typography>
 
         {accepted.length === 0 ? (
-          <Box sx={{ py: 3, textAlign: 'center', color: '#94a3b8', fontSize: '0.85rem' }}>
+          <Box sx={{ py: 3, textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
             شرکت‌کننده‌ی پذیرفته‌شده‌ای برای انتخاب وجود ندارد.
           </Box>
         ) : (

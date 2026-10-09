@@ -10,8 +10,8 @@ interface Props {
 }
 
 const sizes = {
-  sm: { main: '0.85rem', label: '0.68rem' },
-  md: { main: '1.05rem', label: '0.72rem' },
+  sm: { main: '0.85rem', label: '0.75rem' },
+  md: { main: '1.05rem', label: '0.75rem' },
   lg: { main: '1.35rem', label: '0.78rem' },
 } as const
 

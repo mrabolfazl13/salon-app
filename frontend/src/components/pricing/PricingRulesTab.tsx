@@ -173,7 +173,7 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
                         size="small"
                         label={ruleDaysLabel(rule)}
                         color={rule.holiday_applies ? 'warning' : 'default'}
-                        sx={{ borderRadius: '8px', fontSize: '0.7rem', fontWeight: 600 }}
+                        sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }}
                       />
                     </TableCell>
                     <TableCell sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }} dir="rtl">

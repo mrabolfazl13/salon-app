@@ -244,7 +244,7 @@ const MembershipPurchaseDialog: React.FC<Props> = ({ plan, venueName, open, onCl
               slotProps={{
                 input: {
                   startAdornment: (
-                    <Icon icon="mdi:credit-card-outline" style={{ width: 20, height: 20, marginLeft: 8, color: '#94a3b8' }} />
+                    <Icon icon="mdi:credit-card-outline" style={{ width: 20, height: 20, marginLeft: 8, color: '#64748b' }} />
                   ),
                 },
               }}

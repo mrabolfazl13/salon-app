@@ -132,7 +132,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
               />
             ))}
           </RadioGroup>
-          <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8', mt: 0.5, lineHeight: 1.8 }}>
+          <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.5, lineHeight: 1.8 }}>
             {VISIBILITY_HINTS[visibility]}
           </Typography>
         </Box>
@@ -172,7 +172,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
           </Button>
         </Box>
         {editing && (
-          <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography sx={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
             <Icon icon="mdi:information-outline" style={{ width: 14, height: 14 }} />
             تغییر نام فقط توسط کاپیتان یا مدیر تیم ذخیره می‌شود.
           </Typography>

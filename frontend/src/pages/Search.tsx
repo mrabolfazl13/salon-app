@@ -137,7 +137,7 @@ const Search: React.FC = () => {
                       }}
                       onClick={() => pickQuery(q)}
                     >
-                      <Icon icon="mdi:history" style={{ width: 20, height: 20, color: '#94a3b8', flexShrink: 0 }} />
+                      <Icon icon="mdi:history" style={{ width: 20, height: 20, color: '#64748b', flexShrink: 0 }} />
                       <Typography sx={{ flex: 1, fontSize: '0.88rem', fontWeight: 500, color: 'text.primary' }} noWrap>
                         {q}
                       </Typography>
@@ -190,7 +190,7 @@ const Search: React.FC = () => {
                       },
                     }}
                   >
-                    <Icon icon="mdi:magnify" style={{ width: 16, height: 16, color: '#94a3b8' }} />
+                    <Icon icon="mdi:magnify" style={{ width: 16, height: 16, color: '#64748b' }} />
                     {q}
                   </Box>
                 ))}

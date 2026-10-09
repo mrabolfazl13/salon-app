@@ -265,7 +265,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
                     boxShadow: '0 2px 6px rgba(34,197,94,0.4)',
                   }}
                 />
-                <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
                   تأیید شده
                 </Typography>
               </Box>
@@ -280,7 +280,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
                     boxShadow: '0 2px 6px rgba(245,158,11,0.4)',
                   }}
                 />
-                <Typography variant="caption" sx={{ fontSize: '0.7rem' }}>
+                <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
                   در انتظار تایید
                 </Typography>
               </Box>

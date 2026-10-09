@@ -124,7 +124,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
             border: '1px dashed #cbd5e1',
           }}
         >
-          <Icon icon="mdi:wallet-outline" style={{ width: 48, height: 48, color: '#94a3b8' }} />
+          <Icon icon="mdi:wallet-outline" style={{ width: 48, height: 48, color: '#64748b' }} />
           <Typography sx={{ mt: 1, fontSize: '0.9rem', color: '#64748b' }}>
             هنوز پرداخت اشتراکی ایجاد نشده است.
           </Typography>
@@ -163,7 +163,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                       size="small"
                       sx={{
                         height: 22,
-                        fontSize: '0.7rem',
+                        fontSize: '0.75rem',
                         fontWeight: 700,
                         bgcolor: `${STATUS_COLORS[payment.status as keyof typeof STATUS_COLORS]}15`,
                         color: STATUS_COLORS[payment.status as keyof typeof STATUS_COLORS],
@@ -173,7 +173,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                       label={METHOD_LABELS[payment.method as keyof typeof METHOD_LABELS]}
                       size="small"
                       variant="outlined"
-                      sx={{ height: 22, fontSize: '0.7rem' }}
+                      sx={{ height: 22, fontSize: '0.75rem' }}
                     />
                   </Box>
                   <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', fontSize: '0.8rem', color: '#475569' }}>
@@ -235,7 +235,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                   size="small"
                   sx={{
                     height: 22,
-                    fontSize: '0.7rem',
+                    fontSize: '0.75rem',
                     fontWeight: 700,
                     bgcolor: `${STATUS_COLORS[selectedPayment.status as keyof typeof STATUS_COLORS]}15`,
                     color: STATUS_COLORS[selectedPayment.status as keyof typeof STATUS_COLORS],
@@ -274,7 +274,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                     size="small"
                     sx={{
                       height: 24,
-                      fontSize: '0.72rem',
+                      fontSize: '0.75rem',
                       fontWeight: 700,
                       bgcolor: share.status === 'PAID' ? '#10b981' : '#f59e0b',
                       color: '#fff',

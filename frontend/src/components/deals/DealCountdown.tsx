@@ -44,7 +44,7 @@ const DealCountdown: React.FC<{ expiresAt: string | null; compact?: boolean }> =
   const diff = deadline - now
   if (diff <= 0) {
     return (
-      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.25, borderRadius: '8px', bgcolor: 'rgba(239,68,68,0.1)', color: '#dc2626', fontSize: '0.72rem', fontWeight: 700 }}>
+      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.25, borderRadius: '8px', bgcolor: 'rgba(239,68,68,0.1)', color: '#dc2626', fontSize: '0.75rem', fontWeight: 700 }}>
         <Icon icon="mdi:timer-off-outline" style={{ width: 14, height: 14 }} />
         تخفیف منقضی شده
       </Box>
@@ -62,7 +62,7 @@ const DealCountdown: React.FC<{ expiresAt: string | null; compact?: boolean }> =
         borderRadius: '999px',
         bgcolor: diff < 15 * 60 * 1000 ? 'rgba(220,38,38,0.1)' : 'rgba(245,158,11,0.12)',
         color: diff < 15 * 60 * 1000 ? '#dc2626' : '#d97706',
-        fontSize: '0.72rem',
+        fontSize: '0.75rem',
         fontWeight: 800,
       }}
     >

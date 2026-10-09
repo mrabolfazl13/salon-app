@@ -225,7 +225,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                   setFrom(isoDaysAgo(preset.days))
                   setTo(getTodayISO())
                 }}
-                sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.7rem' }}
+                sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem' }}
                 variant={from === isoDaysAgo(preset.days) ? 'filled' : 'outlined'}
                 color="primary"
               />
@@ -287,7 +287,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
                         <XAxis dataKey="label" reversed tick={{ fontSize: 10.5, fill: '#64748b' }} interval="preserveStartEnd" minTickGap={18} axisLine={false} tickLine={false} />
                         <YAxis orientation="right" width={64} tickFormatter={shortRialAxis} tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                        <Tooltip content={<FinTooltip />} cursor={{ stroke: '#94a3b8', strokeDasharray: '4 4' }} />
+                        <Tooltip content={<FinTooltip />} cursor={{ stroke: '#64748b', strokeDasharray: '4 4' }} />
                         <Area type="monotone" dataKey="income" name="درآمد" stroke="#059669" strokeWidth={2} fill="url(#finIncome)" />
                         <Area type="monotone" dataKey="expense" name="هزینه" stroke="#ef4444" strokeWidth={2} fill="url(#finExpense)" />
                       </AreaChart>
@@ -530,7 +530,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                     <Button
                       size="small"
                       onClick={() => setStatementUser({ id: acc.user_id, name: acc.full_name })}
-                      sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.7rem', color: 'primary.main' }}
+                      sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', color: 'primary.main' }}
                     >
                       حساب
                     </Button>

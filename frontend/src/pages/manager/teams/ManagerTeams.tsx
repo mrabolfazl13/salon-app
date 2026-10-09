@@ -163,7 +163,7 @@ const ManagerTeams: React.FC = () => {
                   <TableCell>
                     <Typography sx={{ fontWeight: 700, fontSize: '0.8rem' }} noWrap>{p.captain_name ?? '—'}</Typography>
                     {p.captain_phone && (
-                      <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8' }} dir="ltr" noWrap>{p.captain_phone}</Typography>
+                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }} dir="ltr" noWrap>{p.captain_phone}</Typography>
                     )}
                   </TableCell>
                   <TableCell align="left" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
@@ -173,7 +173,7 @@ const ManagerTeams: React.FC = () => {
                     <Typography sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(p.total_bookings_at_my_venues)}</Typography>
                   </TableCell>
                   <TableCell align="left">
-                    <Typography sx={{ fontWeight: 700, color: p.upcoming_bookings_at_my_venues ? '#059669' : '#94a3b8', fontVariantNumeric: 'tabular-nums' }}>
+                    <Typography sx={{ fontWeight: 700, color: p.upcoming_bookings_at_my_venues ? '#059669' : '#64748b', fontVariantNumeric: 'tabular-nums' }}>
                       {toPersianDigits(p.upcoming_bookings_at_my_venues)}
                     </Typography>
                   </TableCell>

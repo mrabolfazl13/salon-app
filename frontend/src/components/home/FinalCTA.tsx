@@ -160,7 +160,7 @@ export const FinalCTA: React.FC = () => {
                   </Typography>
                   <Typography
                     sx={{
-                      fontSize: '0.72rem',
+                      fontSize: '0.75rem',
                       color: 'rgba(255,255,255,0.7)',
                     }}
                   >

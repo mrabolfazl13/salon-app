@@ -61,7 +61,7 @@ const PlanCards: React.FC<Props> = ({ plans, onBuy, compact = false }) => {
                   top: -10,
                   left: 12,
                   height: 20,
-                  fontSize: '0.65rem',
+                  fontSize: '0.75rem',
                   fontWeight: 800,
                   bgcolor: 'linear-gradient(135deg, #2563eb, #7c3aed)',
                   color: 'white',

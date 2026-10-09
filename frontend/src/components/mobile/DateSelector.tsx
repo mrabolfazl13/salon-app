@@ -80,11 +80,11 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
               }}
               aria-pressed={active}
             >
-              <Typography sx={{ fontSize: '0.68rem', fontWeight: 600, opacity: active ? 0.9 : 0.6 }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, opacity: active ? 0.9 : 0.6 }}>
                 {d.isToday ? 'امروز' : d.weekday}
               </Typography>
               <Typography sx={{ fontSize: '1.15rem', fontWeight: 800, lineHeight: 1.3 }}>{d.day}</Typography>
-              <Typography sx={{ fontSize: '0.65rem', fontWeight: 500, opacity: active ? 0.9 : 0.55 }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 500, opacity: active ? 0.9 : 0.55 }}>
                 {d.month}
               </Typography>
             </motion.button>

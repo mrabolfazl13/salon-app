@@ -83,7 +83,17 @@ const Footer: React.FC = () => {
                   onClick={() => navigate(link.href)}
                   color="text.secondary"
                   underline="hover"
-                  sx={{ fontSize: '0.875rem', background: 'none', border: 'none', cursor: 'pointer', p: 0 }}
+                  sx={{
+                    fontSize: '0.875rem',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    /* هدف لمسی ≥۴۴px در ارتفاع — قبلاً با p:0 حدود ۲۴px بود (ممیزی UI) */
+                    px: 1,
+                    py: 1.25,
+                    borderRadius: '10px',
+                    '&:hover': { bgcolor: 'action.hover' },
+                  }}
                 >
                   {link.label}
                 </Link>

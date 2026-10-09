@@ -228,9 +228,9 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
           <Table size="small" sx={{ minWidth: 760, '& td, & th': { p: 0.5, border: '1px solid rgba(0,0,0,0.06)' } }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(248,250,252,0.9)' }}>
-                <TableCell sx={{ fontWeight: 800, fontSize: '0.72rem', whiteSpace: 'nowrap' }}>ساعت</TableCell>
+                <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>ساعت</TableCell>
                 {days.map((day, i) => (
-                  <TableCell key={day} align="center" sx={{ fontWeight: 800, fontSize: '0.72rem', whiteSpace: 'nowrap' }}>
+                  <TableCell key={day} align="center" sx={{ fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                     {jalaliWeekdayNames[i]}
                     <Typography component="div" variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       {toPersianDigits(formatJalaliDate(day, { format: 'numeric' }).slice(5))}
@@ -242,13 +242,13 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
             <TableBody>
               {times.map((time) => (
                 <TableRow key={time}>
-                  <TableCell sx={{ fontWeight: 800, fontSize: '0.74rem', fontFamily: 'monospace', whiteSpace: 'nowrap' }} dir="ltr">
+                  <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', fontFamily: 'monospace', whiteSpace: 'nowrap' }} dir="ltr">
                     {toPersianDigits(time)}
                   </TableCell>
                   {days.map((day) => {
                     const slot = slotAt(day, time)
                     if (!slot) {
-                      return <TableCell key={day} align="center" sx={{ color: 'text.disabled', fontSize: '0.7rem' }}>—</TableCell>
+                      return <TableCell key={day} align="center" sx={{ color: 'text.disabled', fontSize: '0.75rem' }}>—</TableCell>
                     }
                     const color = STATUS_COLORS[slot.status] || '#6b7280'
                     return (
@@ -274,7 +274,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                             }}
                           >
                             <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: color }} />
-                            <Typography sx={{ fontSize: '0.62rem', fontWeight: 800, color, lineHeight: 1.2 }}>
+                            <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color, lineHeight: 1.2 }}>
                               {faNum(slot.current_price)}
                             </Typography>
                           </Box>

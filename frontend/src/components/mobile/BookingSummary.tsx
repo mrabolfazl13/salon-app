@@ -54,7 +54,7 @@ const BookingSummary: React.FC<Props> = ({
             </Typography>
           )}
           {subtitle && (
-            <Typography sx={{ fontSize: '0.72rem', color: 'text.secondary', mt: 0.25 }} noWrap>
+            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', mt: 0.25 }} noWrap>
               {subtitle}
             </Typography>
           )}

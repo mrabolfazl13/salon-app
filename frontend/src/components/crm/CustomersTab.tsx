@@ -97,7 +97,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
     if (row.inactive_days === null) return <Typography variant="caption" color="text.secondary">بدون بازدید</Typography>
     const color = row.segment === 'dormant' ? '#64748b' : row.segment === 'at_risk' ? '#ef4444' : '#059669'
     return (
-      <Box component="span" sx={{ fontSize: '0.66rem', fontWeight: 700, color, mr: 0.75 }}>
+      <Box component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, color, mr: 0.75 }}>
         {toPersianDigits(row.inactive_days)} روز
       </Box>
     )
@@ -127,7 +127,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
           onChange={(_, v) => { setSegment(v ?? null); setPage(1) }}
           sx={{
             '& .MuiToggleButton-root': {
-              textTransform: 'none', fontWeight: 700, fontSize: '0.72rem', px: 1.5, borderRadius: '9px !important', mx: 0.25, border: 'none',
+              textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', px: 1.5, borderRadius: '9px !important', mx: 0.25, border: 'none',
             },
           }}
         >
@@ -141,7 +141,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
           color={vipOnly ? 'warning' : 'default'}
           variant={vipOnly ? 'filled' : 'outlined'}
           onClick={() => { setVipOnly((v) => !v); setPage(1) }}
-          sx={{ borderRadius: '9px', fontWeight: 700, fontSize: '0.72rem', height: 32 }}
+          sx={{ borderRadius: '9px', fontWeight: 700, fontSize: '0.75rem', height: 32 }}
         />
         <FormControl size="small" sx={{ minWidth: 150, mr: 'auto' }}>
           <Select value={sort} onChange={(e) => { setSort(e.target.value as CrmSort); setPage(1) }} sx={{ borderRadius: '10px' }}>
@@ -206,7 +206,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                           icon={<Icon icon="mdi:star-four-points" />}
                           label={toPersianDigits(row.loyalty_balance ?? 0)}
                           size="small"
-                          sx={{ height: 22, fontSize: '0.68rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: '#b45309', '& .MuiChip-icon': { color: '#d97706' } }}
+                          sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: '#b45309', '& .MuiChip-icon': { color: '#d97706' } }}
                         />
                       </Tooltip>
                     </TableCell>
@@ -273,16 +273,16 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                     icon={<Icon icon="mdi:calendar-check-outline" />}
                     label={`${toPersianDigits(row.bookings_count)} رزرو`}
                     size="small"
-                    sx={{ height: 22, fontSize: '0.68rem', fontWeight: 700, borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }}
+                    sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }}
                   />
                   <Chip
                     icon={<Icon icon="mdi:star-four-points" />}
                     label={toPersianDigits(row.loyalty_balance ?? 0)}
                     size="small"
-                    sx={{ height: 22, fontSize: '0.68rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: '#b45309', '& .MuiChip-icon': { color: '#d97706' } }}
+                    sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: '#b45309', '& .MuiChip-icon': { color: '#d97706' } }}
                   />
                   {row.tags.slice(0, 2).map((t) => (
-                    <Chip key={t} label={t} size="small" sx={{ height: 22, fontSize: '0.62rem', borderRadius: '8px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
+                    <Chip key={t} label={t} size="small" sx={{ height: 22, fontSize: '0.75rem', borderRadius: '8px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
                   ))}
                 </Box>
 

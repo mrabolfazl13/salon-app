@@ -324,7 +324,7 @@ const TeamDetail: React.FC = () => {
               <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
                 {t.label}
                 {!!t.badge && (
-                  <Box component="span" sx={{ px: 0.8, py: 0.1, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', fontSize: '0.68rem', fontWeight: 800 }}>
+                  <Box component="span" sx={{ px: 0.8, py: 0.1, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', fontSize: '0.75rem', fontWeight: 800 }}>
                     {toPersianDigits(t.badge)}
                   </Box>
                 )}
@@ -361,7 +361,7 @@ const TeamDetail: React.FC = () => {
         <SplitPaymentsPanel team={team} members={membersQ.data ?? []} isManager={isManager} />
       )}
 
-      <Typography sx={{ fontSize: '0.68rem', color: '#94a3b8', mt: 3 }}>
+      <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 3 }}>
         {`شناسه تیم ${toPersianDigits(team.id)} — ساخته‌شده در ${formatPersianDate(team.created_at)}`}
       </Typography>
 

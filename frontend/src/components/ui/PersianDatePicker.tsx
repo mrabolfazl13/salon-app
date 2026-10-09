@@ -195,7 +195,7 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
             {jalaliWeekdayNamesShort.map((d) => (
               <Grid size={{ xs: 1 }} key={d}>
                 <Typography
-                  sx={{ textAlign: 'center', fontSize: '0.72rem', fontWeight: 700, color: 'text.secondary', lineHeight: '28px' }}
+                  sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary', lineHeight: '28px' }}
                 >
                   {d}
                 </Typography>

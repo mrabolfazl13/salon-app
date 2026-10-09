@@ -103,7 +103,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
                   sx={{
                     height: 24,
                     borderRadius: `${radii.chip}px`,
-                    fontSize: '0.68rem',
+                    fontSize: '0.75rem',
                     fontWeight: 600,
                     bgcolor: dark ? 'rgba(251,191,36,0.12)' : 'rgba(245,158,11,0.1)',
                     color: dark ? '#fcd34d' : '#b45309',
@@ -118,7 +118,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
                   sx={{
                     height: 24,
                     borderRadius: `${radii.chip}px`,
-                    fontSize: '0.68rem',
+                    fontSize: '0.75rem',
                     fontWeight: 700,
                     bgcolor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)',
                     color: 'text.secondary',

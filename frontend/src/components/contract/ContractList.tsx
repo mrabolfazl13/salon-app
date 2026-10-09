@@ -96,7 +96,7 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, venueNames, onVi
                               key={d}
                               label={pyDayNames[d] ?? `روز ${d}`}
                               size="small"
-                              sx={{ height: 18, fontSize: '0.62rem', fontWeight: 700, borderRadius: '6px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }}
+                              sx={{ height: 18, fontSize: '0.75rem', fontWeight: 700, borderRadius: '6px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }}
                             />
                           ))}
                         </Box>
@@ -166,7 +166,7 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, venueNames, onVi
                         size="small"
                         sx={{
                           height: 22,
-                          fontSize: '0.68rem',
+                          fontSize: '0.75rem',
                           fontWeight: 600,
                           borderRadius: '8px',
                           bgcolor: `${payMeta.color}18`,

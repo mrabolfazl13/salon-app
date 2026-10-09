@@ -61,7 +61,7 @@ const JoinRequestList: React.FC<Props> = ({ gameId, requests }) => {
             <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }} noWrap>
               {req.full_name || `کاربر ${req.user_id}`}
             </Typography>
-            <Typography sx={{ fontSize: '0.68rem', color: '#64748b', mt: 0.25 }} noWrap>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }} noWrap>
               {`ثبت: ${formatPersianDateTime(req.created_at)}${req.message ? ` - ${req.message}` : ''}`}
             </Typography>
           </Box>

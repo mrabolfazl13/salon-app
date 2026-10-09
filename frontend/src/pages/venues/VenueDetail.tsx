@@ -529,7 +529,7 @@ const VenueDetail: React.FC = () => {
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 0.75, flexWrap: 'wrap' }}>
               <MobileRating value={venue.average_rating || 0} count={venue.total_reviews || 0} size="md" />
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
-                <Icon icon="mdi:map-marker-outline" style={{ width: 18, height: 18, color: '#94a3b8' }} />
+                <Icon icon="mdi:map-marker-outline" style={{ width: 18, height: 18, color: '#64748b' }} />
                 <Typography variant="body2" sx={{ color: 'text.secondary', minWidth: 0 }}>
                   {venue.address}
                 </Typography>
@@ -761,7 +761,7 @@ const VenueDetail: React.FC = () => {
                         <Typography variant="body2" sx={{ color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>
                           {venue.average_rating.toFixed(1)}
                         </Typography>
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.7rem' }}>
+                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem' }}>
                           ({venue.total_reviews})
                         </Typography>
                       </Box>
@@ -1243,7 +1243,7 @@ const VenueDetail: React.FC = () => {
                       <Typography variant="body2" sx={{ fontWeight: 600 }}>
                         استفاده از امتیازها (تا ۵۰٪)
                         {loyalty ? (
-                          <Box component="span" sx={{ display: 'block', color: 'text.secondary', fontSize: '0.72rem' }}>
+                          <Box component="span" sx={{ display: 'block', color: 'text.secondary', fontSize: '0.75rem' }}>
                             موجودی: {toPersianDigits(loyalty.balance)} امتیاز ≈ {formatRial(loyalty.balance * loyalty.point_value_rial)}
                           </Box>
                         ) : null}
