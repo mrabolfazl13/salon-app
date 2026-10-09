@@ -139,6 +139,59 @@ class ZarinPalGateway:
         except Exception as e:
             logger.error(f"Unexpected error verifying ZarinPal payment: {e}")
             raise PaymentGatewayError(f"Payment verification failed: {e}")
+    
+    async def refund_payment(
+        self,
+        authority: str,
+        amount: int,
+        description: str = "بازگشت وجه",
+    ) -> Dict[str, Any]:
+        """Refund a completed payment via ZarinPal API.
+        
+        Args:
+            authority: The authority code from original payment
+            amount: Amount to refund (in Rials)
+            description: Reason for refund
+            
+        Returns:
+            {
+                "Status": 100,
+                "RefID": 1234567890
+            }
+        """
+        payload = {
+            "MerchantID": self.merchant_id,
+            "Authority": authority,
+            "Amount": amount,
+        }
+        
+        try:
+            async with httpx.AsyncClient(timeout=10.0) as client:
+                response = await client.post(
+                    f"{self.base_url}/PaymentRefund.json",
+                    json=payload,
+                    headers={"Content-Type": "application/json"}
+                )
+                response.raise_for_status()
+                result = response.json()
+                
+                if result.get("Status") != 100:
+                    raise PaymentGatewayError(
+                        f"ZarinPal refund failed: {result.get('Status')} - {result.get('Message', 'Unknown')}"
+                    )
+                
+                return {
+                    "ref_id": result.get("RefID"),
+                    "status": "success",
+                    "refunded_at": datetime.now(timezone.utc).isoformat(),
+                }
+        
+        except httpx.HTTPError as e:
+            logger.error(f"HTTP error refunding ZarinPal payment: {e}")
+            raise PaymentGatewayError(f"Failed to refund payment: {e}")
+        except Exception as e:
+            logger.error(f"Unexpected error refunding ZarinPal payment: {e}")
+            raise PaymentGatewayError(f"Refund failed: {e}")
 
 
 class NextPayGateway:

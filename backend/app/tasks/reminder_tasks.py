@@ -1,9 +1,9 @@
 """Celery tasks for booking reminders and waitlist notifications."""
 import asyncio
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from app.tasks.worker import celery_app
 from app.config import settings
-from app.database import engine, get_session
+from app.database import engine
 from app.models.booking import Booking, BookingStatus
 from app.models.slot import Slot
 from app.models.waitlist import WaitlistEntry
