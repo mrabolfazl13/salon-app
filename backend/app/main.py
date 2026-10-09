@@ -41,6 +41,11 @@ WS_FORBIDDEN = 4403       # احراز هویت موفق ولی دسترسی ن�
 async def lifespan(app: FastAPI):
     print("Starting up...")
     init_db()
+    
+    # Initialize WebSocket Redis pub/sub listener
+    from app.utils.websocket import manager as ws_manager
+    await ws_manager.connect_redis()
+    await ws_manager.start_listening()
 
     # ایجاد داده‌های اولیه
     # from app.seed_data import seed_database
@@ -48,6 +53,9 @@ async def lifespan(app: FastAPI):
 
     yield
     print("Shutting down...")
+    
+    # Cleanup WebSocket Redis connection
+    await ws_manager.disconnect_redis()
 
 app = FastAPI(
     title="Futsal Booking System API",
