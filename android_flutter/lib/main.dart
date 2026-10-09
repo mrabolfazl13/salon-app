@@ -5,9 +5,13 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 
 import 'app/theme/app_theme.dart';
 import 'app/router/app_router.dart';
+import 'core/network/api_client.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  
+  // Initialize API client (auth interceptor + logger)
+  ApiClient.initialize();
   
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([

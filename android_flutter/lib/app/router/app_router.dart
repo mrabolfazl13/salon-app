@@ -30,6 +30,7 @@ import '../../features/teams/presentation/teams_screen.dart';
 import '../../features/teams/presentation/team_discover_screen.dart';
 import '../../features/teams/presentation/team_detail_screen.dart';
 import '../../features/quiz/presentation/quiz_screen.dart';
+import '../../features/waitlist/presentation/waitlist_screen.dart';
 
 // Manager screens
 import '../../features/manager/presentation/manager_dashboard_screen.dart';
@@ -251,6 +252,10 @@ final appRouterProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/admin/venues',
         builder: (context, state) => const AdminVenuesScreen(),
+      ),
+      GoRoute(
+        path: '/waitlist',
+        builder: (context, state) => const WaitlistScreen(),
       ),
     ],
   );

@@ -9,7 +9,7 @@ class ApiClient {
   static BaseOptions _createOptions() {
     final baseUrl = const String.fromEnvironment(
       'API_URL',
-      defaultValue: 'https://salon.absadeghi.ir/api/v1',
+      defaultValue: 'http://2.189.255.225/api/v1',
     );
     
     return BaseOptions(
@@ -26,7 +26,7 @@ class ApiClient {
   
   /// Initialize interceptors
   static void initialize() {
-    // Auth interceptor
+    // Auth interceptor + error unwrapping
     instance.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final token = await TokenStorage.getToken();
@@ -37,9 +37,15 @@ class ApiClient {
       },
       onError: (error, handler) async {
         if (error.response?.statusCode == 401) {
-          // Handle unauthorized - clear token and redirect to login
           await TokenStorage.clearToken();
-          // Note: Navigation should be handled by the router based on auth state
+        }
+        // Unwrap FastAPI error envelope {detail: "..."}
+        final detail = error.response?.data?['detail'];
+        if (detail is String && detail.isNotEmpty) {
+          error.message = detail;
+        } else if (detail is List && detail.isNotEmpty) {
+          // Validation errors
+          error.message = detail.map((e) => e['msg'] ?? '').where((s) => s.isNotEmpty).join('\n');
         }
         return handler.next(error);
       },

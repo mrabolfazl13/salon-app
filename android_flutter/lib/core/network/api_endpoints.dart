@@ -53,6 +53,17 @@ abstract final class ApiEndpoints {
   // Finance
   static const finance = '/finance';
   
+  // Waitlist
+  static String waitlistJoin(String slotId) => '/waitlist/join/$slotId';
+  static String waitlistLeave(String slotId) => '/waitlist/leave/$slotId';
+  static const waitlistMy = '/waitlist/my';
+  static String waitlistSlot(String slotId) => '/waitlist/slot/$slotId';
+  
+  // Check-in
+  static String checkinQrCode(String bookingId) => '/checkin/booking/$bookingId/qr-code';
+  static String checkinVerify(String code) => '/checkin/verify?check_in_code=$code';
+  static String checkinStatus(String bookingId) => '/checkin/booking/$bookingId/status';
+  
   // Admin
   static const admin = '/admin';
   static const adminUsers = '/admin/users';
