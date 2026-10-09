@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.4.2] - 2026-10-09
+
+### 🔧 Fixed
+- CI: Tauri Android release APK now actually signed — `gen/android` is gitignored, so CI's regenerated gradle template had no signing wiring; a gradle init script (`tauri-signing.gradle`) now creates the release `signingConfig` from `app/key.properties` for any template version (v1.4.1 Flutter APK was signed correctly; Tauri still emitted `app-universal-release-unsigned.apk`)
+
 ## [v1.4.1] - 2026-10-09
 
 ### 🔧 Fixed

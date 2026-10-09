@@ -208,10 +208,12 @@ jobs:
         working-directory: frontend
         run: pnpm tauri android init
 
-      - name: Setup signing (key.properties)
-        # The tauri gradle template reads app/key.properties (module dir), not
-        # keystore.properties at project root — the old path left every CI APK
-        # unsigned, which phones report as "corrupted file".
+      - name: Setup signing (key.properties + gradle init script)
+        # gen/android is gitignored: `tauri android init` regenerates a template
+        # WITHOUT any signing wiring on CI, so key.properties alone produced
+        # app-universal-release-unsigned.apk (phones: "corrupted file").
+        # A gradle init script wires the release signingConfig from
+        # app/key.properties for any template version.
         working-directory: frontend/src-tauri/gen/android/app
         env:
           KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
@@ -224,6 +226,25 @@ jobs:
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
+            mkdir -p "$HOME/.gradle/init.d"
+            cat > "$HOME/.gradle/init.d/tauri-signing.gradle" << 'GRADLE'
+          gradle.allprojects { project ->
+              def f = new File(project.projectDir, "key.properties")
+              if (!f.exists()) return
+              project.plugins.withId("com.android.application") {
+                  def props = new Properties()
+                  f.withInputStream { props.load(it) }
+                  def sc = project.android.signingConfigs.findByName("release")
+                  if (sc == null) sc = project.android.signingConfigs.create("release")
+                  sc.storeFile = project.file(props.getProperty("storeFile"))
+                  sc.storePassword = props.getProperty("storePassword")
+                  sc.keyAlias = props.getProperty("keyAlias")
+                  sc.keyPassword = props.getProperty("keyPassword")
+                  def bt = project.android.buildTypes.findByName("release")
+                  if (bt != null) bt.signingConfig = sc
+              }
+          }
+          GRADLE
             echo "::notice::Tauri Android signing configured"
           else
             echo "::warning::KEYSTORE_BASE64 secret missing - building UNSIGNED APK/AAB"
