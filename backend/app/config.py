@@ -64,6 +64,10 @@ class Settings(BaseSettings):
     MINIO_BUCKET: str = "futsal-venues"
     MINIO_SECURE: bool = False
     MINIO_PUBLIC_URL: str = ""  # اگر خالی باشد از MINIO_ENDPOINT ساخته می‌شود
+    
+    # Payment gateway configuration
+    ZARINPAL_MERCHANT_ID: Optional[str] = None
+    ZARINPAL_SANDBOX: bool = True
 
     class Config:
         env_file = ".env"
@@ -79,26 +83,60 @@ class Settings(BaseSettings):
         errors = []
         
         if self.APP_ENV == "production":
+            # JWT Secret checks
             if not self.JWT_SECRET or self.JWT_SECRET == "your-super-secret-jwt-key-change-this-in-production":
-                errors.append("JWT_SECRET must be set in production environment")
-            
-            if not self.ADMIN_PASSWORD:
-                errors.append("ADMIN_PASSWORD must be set in production environment")
+                errors.append("JWT_SECRET must be set to a strong value in production (not the default placeholder)")
             
             if len(self.JWT_SECRET) < 32:
-                errors.append("JWT_SECRET should be at least 32 characters long")
+                errors.append("JWT_SECRET should be at least 32 characters long for security")
             
+            # Admin password check
+            if not self.ADMIN_PASSWORD or self.ADMIN_PASSWORD == "admin123":
+                errors.append("ADMIN_PASSWORD must be set to a strong password in production (not 'admin123')")
+            
+            # Database credentials
+            if "secret" in self.DATABASE_URL.lower() and "postgresql" in self.DATABASE_URL:
+                errors.append("DATABASE_URL should not contain default credentials ('secret') in production")
+            
+            # MinIO secrets
+            if self.MINIO_SECRET_KEY == "futsal-minio-secret":
+                errors.append("MINIO_SECRET_KEY must be changed from default value in production")
+            
+            if self.MINIO_ACCESS_KEY == "minioadmin":
+                errors.append("MINIO_ACCESS_KEY must be changed from default value in production")
+            
+            # Auto-create tables must be disabled
             if self.AUTO_CREATE_ALL:
-                errors.append("AUTO_CREATE_ALL must be False in production")
+                errors.append("AUTO_CREATE_ALL must be False in production (use Alembic migrations)")
+            
+            # Debug mode must be off
+            if self.DEBUG_ALLOW_DEV_CODE:
+                errors.append("DEBUG_ALLOW_DEV_CODE must be False in production")
         
         return errors
 
 # Initialize settings
 settings = Settings()
 
-# Validate production configuration
+# Validate production configuration - FAIL HARD in production
 _validation_errors = settings.validate_production_config()
 if _validation_errors:
-    import warnings
-    for error in _validation_errors:
-        warnings.warn(f"⚠️ SECURITY WARNING: {error}", stacklevel=1)
+    if settings.APP_ENV == "production":
+        import sys
+        print("\n" + "="*80, file=sys.stderr)
+        print("❌ PRODUCTION BOOT FAILED - SECURITY VALIDATION ERRORS:", file=sys.stderr)
+        print("="*80, file=sys.stderr)
+        for i, error in enumerate(_validation_errors, 1):
+            print(f"  {i}. {error}", file=sys.stderr)
+        print("="*80, file=sys.stderr)
+        print("\n🔒 To fix these issues:", file=sys.stderr)
+        print("  1. Set all required environment variables with strong values", file=sys.stderr)
+        print("  2. Never use default passwords or secrets in production", file=sys.stderr)
+        print("  3. See deploy/secrets.example for configuration template", file=sys.stderr)
+        print("="*80 + "\n", file=sys.stderr)
+        sys.exit(1)
+    else:
+        # In development, just warn
+        import warnings
+        for error in _validation_errors:
+            warnings.warn(f"⚠️ SECURITY WARNING: {error}", stacklevel=1)
