@@ -6,20 +6,16 @@ import {
   Box,
   Typography,
   TextField,
-  MenuItem,
   FormControlLabel,
   Radio,
   RadioGroup,
-  Chip,
-  IconButton,
   Alert,
 } from '@mui/material'
-import { Icon } from '@iconify/react'
 
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import { useToast } from '@/hooks/useToast'
-import { splitPaymentService, CreateSplitPaymentPayload } from '@/services/splitPayment'
+import { splitPaymentService, type CreateSplitPaymentPayload } from '@/services/splitPayment'
 import type { TeamMember } from '@/types/team'
 
 interface Props {
@@ -201,7 +197,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
           onChange={(e) => setAmount(Number(e.target.value) || '')}
           fullWidth
           required
-          inputProps={{ min: 0 }}
+          slotProps={{ htmlInput: { min: 0 } }}
         />
 
         {/* Custom Shares Editor */}
@@ -214,7 +210,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
               const member = members.find((m) => m.user_id === share.user_id)
               return (
                 <Box key={share.user_id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Typography sx={{ flex: 1 }}>{member?.user_name || `کاربر ${share.user_id}`}</Typography>
+                  <Typography sx={{ flex: 1 }}>{member?.full_name || `کاربر ${share.user_id}`}</Typography>
                   <TextField
                     type="number"
                     value={share.amount}
@@ -245,14 +241,14 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
               const member = members.find((m) => m.user_id === share.user_id)
               return (
                 <Box key={share.user_id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Typography sx={{ flex: 1 }}>{member?.user_name || `کاربر ${share.user_id}`}</Typography>
+                  <Typography sx={{ flex: 1 }}>{member?.full_name || `کاربر ${share.user_id}`}</Typography>
                   <TextField
                     type="number"
                     value={share.percentage}
                     onChange={(e) => handleUpdatePercentageShare(share.user_id, Number(e.target.value) || 0)}
                     size="small"
                     sx={{ width: 100 }}
-                    inputProps={{ min: 0, max: 100 }}
+                    slotProps={{ htmlInput: { min: 0, max: 100 } }}
                   />
                   <Typography variant="caption" color="text.secondary">٪</Typography>
                 </Box>
@@ -282,7 +278,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
           value={deadline}
           onChange={(e) => setDeadline(e.target.value)}
           fullWidth
-          InputLabelProps={{ shrink: true }}
+          slotProps={{ inputLabel: { shrink: true } }}
         />
 
         {/* Error Display */}
@@ -292,11 +288,11 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
 
         {/* Actions */}
         <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
-          <Button variant="outlined" onClick={handleClose}>
+          <Button variant="outline" onClick={handleClose}>
             انصراف
           </Button>
           <Button
-            variant="contained"
+            variant="default"
             onClick={handleSubmit}
             disabled={loading || !amount || amount <= 0}
           >

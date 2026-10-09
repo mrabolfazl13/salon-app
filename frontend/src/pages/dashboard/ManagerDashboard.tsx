@@ -48,7 +48,7 @@ import { ReceiptReviewDialog, InPersonCollectDialog } from '@/components/booking
 import SlotWeekGrid from '@/components/manager/SlotWeekGrid'
 import { uploadService } from '@/services/upload'
 import { membershipService } from '@/services/membership'
-import { MembershipPlan, MembershipPurchase, PlanType, PLAN_TYPE_LABEL } from '@/types/membership'
+import { PLAN_TYPE_LABEL, type MembershipPlan, type MembershipPurchase, type PlanType } from '@/types/membership'
 import {
   formatPrice,
   getPaymentModeLabel,

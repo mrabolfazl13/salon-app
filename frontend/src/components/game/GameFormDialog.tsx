@@ -139,7 +139,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
             if (paymentMode === 'split_payment' && teamMembers.length > 0) {
               setShowSplitPaymentDialog(true)
               // Store created game for later use
-              window.__lastCreatedGame = created
+              ;(window as any).__lastCreatedGame = created
             } else {
               toast.success('بازی ساخته شد')
               onClose()
@@ -273,10 +273,9 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
               <Alert severity="info" sx={{ fontSize: '0.75rem' }}>
                 می‌توانید پس از ساخت بازی، هزینه را بین اعضای تیم تقسیم کنید.
                 <Button
-                  size="small"
-                  variant="text"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => loadTeamMembers()}
-                  sx={{ mr: 1, p: 0, minWidth: 'auto', fontSize: '0.75rem' }}
                 >
                   بارگذاری اعضا
                 </Button>

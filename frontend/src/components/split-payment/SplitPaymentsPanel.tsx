@@ -80,7 +80,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
 
   const getUserName = (userId: number) => {
     const member = members.find((m) => m.user_id === userId)
-    return member?.user_name || `کاربر ${userId}`
+    return member?.full_name || `کاربر ${userId}`
   }
 
   return (
@@ -132,7 +132,6 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
             <Button
               size="sm"
               variant="default"
-              sx={{ mt: 1.5 }}
               onClick={() => setShowCreateDialog(true)}
             >
               اولین پرداخت را ایجاد کنید

@@ -13,7 +13,7 @@ import {
   Alert,
 } from '@mui/material'
 import { motion, AnimatePresence } from 'framer-motion'
-import { paymentService, PaymentItem } from '@/services/payment'
+import { paymentService, type PaymentItem } from '@/services/payment'
 import { formatPrice } from '@/lib/utils'
 import toast from 'react-hot-toast'
 

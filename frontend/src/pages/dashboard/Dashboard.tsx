@@ -18,7 +18,7 @@ import Layout from '@/components/layout/Layout'
 import { useAuthStore } from '@/store/authStore'
 import { bookingService } from '@/services/booking'
 import { membershipService } from '@/services/membership'
-import { MembershipPurchase, PLAN_TYPE_LABEL } from '@/types/membership'
+import { PLAN_TYPE_LABEL, type MembershipPurchase } from '@/types/membership'
 import { formatPrice, formatDateTime, getStatusLabel, getMuiStatusColor } from '@/lib/utils'
 
 interface ApiBooking {

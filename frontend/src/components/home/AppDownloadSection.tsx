@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { Box, Typography, Button } from '@mui/material'
 import SectionHeader from '@/components/mobile/SectionHeader'
-import { gradients, radii, shadows } from '@/theme'
+import { gradients, radii } from '@/theme'
 
 interface AppFeatureProps {
   icon: string

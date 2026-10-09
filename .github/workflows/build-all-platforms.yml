@@ -41,7 +41,13 @@ jobs:
 
       - name: Build Debug APK
         working-directory: android_flutter
-        run: flutter build apk --debug
+        run: flutter build apk --debug 2>&1 | tee build-debug.log; exit ${PIPESTATUS[0]}
+
+      - name: Surface error details
+        if: failure()
+        working-directory: android_flutter
+        run: |
+          grep -nE "FAILURE: Build failed|What went wrong|error:|e: |Exception|Gradle task assembleDebug failed" build-debug.log | tail -15 | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done; true
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -89,11 +95,17 @@ jobs:
 
       - name: Build Release APK
         working-directory: android_flutter
-        run: flutter build apk --release
+        run: flutter build apk --release 2>&1 | tee build-release.log; exit ${PIPESTATUS[0]}
 
       - name: Build Release AAB
         working-directory: android_flutter
-        run: flutter build appbundle --release
+        run: flutter build appbundle --release 2>&1 | tee -a build-release.log; exit ${PIPESTATUS[0]}
+
+      - name: Surface error details
+        if: failure()
+        working-directory: android_flutter
+        run: |
+          grep -nE "FAILURE: Build failed|What went wrong|error:|e: |Exception|Gradle task .* failed" build-release.log | tail -15 | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done; true
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -235,9 +247,6 @@ jobs:
       - name: Install pnpm
         run: npm install -g pnpm@latest
 
-      - name: Install Tauri CLI (global latest for --no-sign support)
-        run: npm install -g @tauri-apps/cli@latest
-
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
         with:
@@ -263,17 +272,19 @@ jobs:
 
       - name: Init iOS project
         working-directory: frontend
-        run: tauri ios init
+        run: pnpm exec tauri ios init
 
       - name: Build iOS unsigned
         working-directory: frontend
         run: |
-          if tauri ios build --help 2>&1 | grep -q -- "--no-sign"; then
-            tauri ios build --target aarch64-apple-ios --no-sign --ignore-version-mismatches
-          else
-            echo "::error::Installed Tauri CLI does not support --no-sign; upgrade @tauri-apps/cli"
-            exit 1
-          fi
+          set -o pipefail
+          pnpm exec tauri ios build --target aarch64-apple-ios --no-sign --ignore-version-mismatches --verbose 2>&1 | tee ios-build.log; exit ${PIPESTATUS[0]}
+
+      - name: Surface error details
+        if: failure()
+        working-directory: frontend
+        run: |
+          grep -niE "error|failed|unrecognized|panic" ios-build.log | tail -20 | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done; true
 
       - name: Package IPA
         working-directory: frontend

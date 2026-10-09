@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react'
-import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import {
   Box,
@@ -57,7 +56,6 @@ const formatCurrency = (amount: number) => {
 }
 
 const ManagerFinance: React.FC = () => {
-  const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
   const [loading, setLoading] = useState(false)
   const [summary, setSummary] = useState<FinanceSummary | null>(null)
@@ -203,7 +201,7 @@ const ManagerFinance: React.FC = () => {
           </Box>
         ) : summary ? (
           <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: 'success.light', color: 'success.contrastText' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -212,14 +210,14 @@ const ManagerFinance: React.FC = () => {
                       کل درآمد
                     </Typography>
                   </Box>
-                  <Typography variant="h5" fontWeight="bold">
+                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                     {formatCurrency(summary.total_income)}
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: 'error.light', color: 'error.contrastText' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -228,14 +226,14 @@ const ManagerFinance: React.FC = () => {
                       کل هزینه
                     </Typography>
                   </Box>
-                  <Typography variant="h5" fontWeight="bold">
+                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                     {formatCurrency(summary.total_expense)}
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card
                 sx={{
                   bgcolor: summary.net_profit >= 0 ? 'primary.light' : 'warning.light',
@@ -249,14 +247,14 @@ const ManagerFinance: React.FC = () => {
                       سود خالص
                     </Typography>
                   </Box>
-                  <Typography variant="h5" fontWeight="bold">
+                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                     {formatCurrency(summary.net_profit)}
                   </Typography>
                 </CardContent>
               </Card>
             </Grid>
 
-            <Grid item xs={12} sm={6} md={3}>
+            <Grid size={{ xs: 12, sm: 6, md: 3 }}>
               <Card sx={{ bgcolor: 'grey.100' }}>
                 <CardContent>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
@@ -265,7 +263,7 @@ const ManagerFinance: React.FC = () => {
                       تعداد تراکنش
                     </Typography>
                   </Box>
-                  <Typography variant="h5" fontWeight="bold">
+                  <Typography variant="h5" sx={{ fontWeight: 'bold' }}>
                     {summary.transaction_count}
                   </Typography>
                 </CardContent>
@@ -281,7 +279,7 @@ const ManagerFinance: React.FC = () => {
           </Typography>
           <form onSubmit={handleSubmit}>
             <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <FormControl fullWidth size="small">
                   <InputLabel>نوع تراکنش</InputLabel>
                   <Select
@@ -295,7 +293,7 @@ const ManagerFinance: React.FC = () => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="مبلغ (ریال)"
@@ -308,7 +306,7 @@ const ManagerFinance: React.FC = () => {
               </Grid>
 
               {txType === 'expense' && (
-                <Grid item xs={12} sm={6}>
+                <Grid size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth size="small">
                     <InputLabel>دسته‌بندی</InputLabel>
                     <Select
@@ -327,7 +325,7 @@ const ManagerFinance: React.FC = () => {
                 </Grid>
               )}
 
-              <Grid item xs={12} sm={6}>
+              <Grid size={{ xs: 12, sm: 6 }}>
                 <TextField
                   fullWidth
                   label="تاریخ"
@@ -339,7 +337,7 @@ const ManagerFinance: React.FC = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <TextField
                   fullWidth
                   label="توضیحات"
@@ -352,7 +350,7 @@ const ManagerFinance: React.FC = () => {
                 />
               </Grid>
 
-              <Grid item xs={12}>
+              <Grid size={{ xs: 12 }}>
                 <Button
                   type="submit"
                   variant="contained"

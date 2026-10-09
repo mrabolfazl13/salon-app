@@ -1,5 +1,5 @@
 import React from 'react'
-import { Button, ButtonProps, CircularProgress, useTheme } from '@mui/material'
+import { Button, CircularProgress, useTheme, type ButtonProps } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { gradients } from '@/theme'
 

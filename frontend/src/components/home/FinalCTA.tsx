@@ -3,7 +3,7 @@ import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { Box, Typography, Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import { gradients, radii, shadows } from '@/theme'
+import { radii } from '@/theme'
 import { toPersianDigits } from '@/lib/jalali'
 
 export const FinalCTA: React.FC = () => {
@@ -131,7 +131,7 @@ export const FinalCTA: React.FC = () => {
                 { value: formatTime(hours), label: 'ساعت' },
                 { value: formatTime(minutes), label: 'دقیقه' },
                 { value: formatTime(seconds), label: 'ثانیه' },
-              ].map((item, index) => (
+              ].map((item) => (
                 <Box
                   key={item.label}
                   sx={{

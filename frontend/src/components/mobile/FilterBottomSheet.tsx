@@ -13,7 +13,7 @@ import { Icon } from '@iconify/react'
 import { formatPrice } from '@/lib/utils'
 import { radii } from '@/theme'
 import PrimaryButton from './PrimaryButton'
-import { SPORTS, Sport } from './SportChip'
+import { SPORTS, type Sport } from './SportChip'
 
 export interface VenueFilters {
   category?: 'futsal' | 'gym'

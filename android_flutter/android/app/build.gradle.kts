@@ -24,36 +24,29 @@ android {
 
     signingConfigs {
         create("release") {
-            // For CI/CD, keystore is decoded from GitHub secrets in workflow
-            // key.properties file is created by the workflow step
+            // CI/CD: key.properties is created by the workflow from GitHub secrets.
+            // If absent, the release build stays unsigned (signingConfig = null below).
             val keystorePropertiesFile = rootProject.file("key.properties")
             if (keystorePropertiesFile.exists()) {
                 val keystoreProperties = java.util.Properties()
                 keystoreProperties.load(java.io.FileInputStream(keystorePropertiesFile))
-                
+
                 storeFile = file(keystoreProperties["storeFile"])
                 storePassword = keystoreProperties["storePassword"] as String
                 keyAlias = keystoreProperties["keyAlias"] as String
                 keyPassword = keystoreProperties["keyPassword"] as String
-            } else {
-                // Local development fallback to environment variables
-                val keystorePath = System.getenv("KEYSTORE_PATH")
-                if (!keystorePath.isNullOrEmpty()) {
-                    storeFile = file(keystorePath)
-                    storePassword = System.getenv("KEYSTORE_PASSWORD") ?: ""
-                    keyAlias = System.getenv("KEY_ALIAS") ?: ""
-                    keyPassword = System.getenv("KEY_PASSWORD") ?: ""
-                }
             }
         }
     }
 
     buildTypes {
         release {
-            signingConfig = signingConfigs.getByName("release")
-            isMinifyEnabled = true  // Enable code shrinking for production
-            isShrinkResources = true  // Enable resource shrinking
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"), "proguard-rules.pro")
+            val hasKeystore = rootProject.file("key.properties").exists() ||
+                !System.getenv("KEYSTORE_PATH").isNullOrEmpty()
+            signingConfig = if (hasKeystore) signingConfigs.getByName("release") else null
+            // Resource shrinking caused Gradle build errors in this project; keep disabled
+            isMinifyEnabled = false
+            isShrinkResources = false
         }
         debug {
             signingConfig = signingConfigs.getByName("debug")

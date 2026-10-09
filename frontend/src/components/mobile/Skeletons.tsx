@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Skeleton, SkeletonProps } from '@mui/material'
+import { Box, Skeleton, type SkeletonProps } from '@mui/material'
 
 /** اسکلتون‌های استاندارد — جایگزین spinner */
 

@@ -13,7 +13,7 @@ interface StepProps {
   delay?: number
 }
 
-const Step: React.FC<StepProps> = ({ number, icon, title, description, color, delay = 0 }) => (
+const Step: React.FC<StepProps> = ({ icon, title, description, color, delay = 0 }) => (
   <motion.div
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}

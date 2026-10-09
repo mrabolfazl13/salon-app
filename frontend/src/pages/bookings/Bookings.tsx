@@ -22,7 +22,7 @@ import PaymentDialog from '@/components/bookings/PaymentDialog'
 import VenueThumb from '@/components/venue/VenueThumb'
 import { EmptyState } from '@/components/mobile'
 import { bookingService } from '@/services/booking'
-import { paymentService, PaymentItem } from '@/services/payment'
+import { paymentService, type PaymentItem } from '@/services/payment'
 import {
   formatPrice,
   formatDateTime,
