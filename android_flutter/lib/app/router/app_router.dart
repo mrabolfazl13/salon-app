@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 // Auth screens
 import '../../features/auth/presentation/login_screen.dart';
@@ -46,8 +45,7 @@ import '../../features/admin/presentation/admin_dashboard_screen.dart';
 import '../../features/admin/presentation/admin_users_screen.dart';
 import '../../features/admin/presentation/admin_venues_screen.dart';
 
-// Auth provider for route guards
-import '../../core/state/auth_provider.dart';
+// Storage for route guards
 import '../../core/storage/token_storage.dart';
 
 final appRouterProvider = Provider<GoRouter>((ref) {
