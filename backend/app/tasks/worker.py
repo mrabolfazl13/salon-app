@@ -21,6 +21,7 @@ celery_app.conf.update(
         'app.tasks.competition_tasks',
         'app.tasks.contract_tasks',
         'app.tasks.crm_tasks',
+        'app.tasks.reconciliation_tasks',
     ],
     beat_schedule={
         # هر ۱۰ دقیقه رزروهای معلق منقضی‌شده را آزاد کن
@@ -57,6 +58,11 @@ celery_app.conf.update(
         "notify-dormant-high-value-customers": {
             "task": "app.tasks.notify_dormant_high_value_customers",
             "schedule": 604800.0,  # weekly
+        },
+        # هر روز نیمه‌شب مغایرگیری دفتر کل با درگاه
+        "daily-ledger-reconciliation": {
+            "task": "app.tasks.reconcile_ledger_with_gateway",
+            "schedule": 86400.0,  # daily at midnight
         },
     },
 )
