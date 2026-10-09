@@ -278,7 +278,7 @@ jobs:
         working-directory: frontend
         run: |
           set -o pipefail
-          pnpm exec tauri ios build --target aarch64-apple-ios --no-sign --ignore-version-mismatches --verbose 2>&1 | tee ios-build.log; exit ${PIPESTATUS[0]}
+          pnpm exec tauri ios build --target aarch64 --no-sign --ignore-version-mismatches --verbose 2>&1 | tee ios-build.log; exit ${PIPESTATUS[0]}
 
       - name: Surface error details
         if: failure()
