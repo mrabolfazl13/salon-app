@@ -63,7 +63,13 @@ jobs:
         env:
           DATABASE_URL: postgresql://futsal:secret@localhost:5432/futsal_test
           REDIS_URL: redis://localhost:6379/0
-        run: alembic upgrade head
+        run: alembic upgrade head 2>&1 | tee migrations.log; exit ${PIPESTATUS[0]}
+
+      - name: Surface migration errors
+        if: failure()
+        working-directory: ./backend
+        run: |
+          grep -iE "error|exception|failed|Traceback|assert" migrations.log | tail -15 | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done; true
         
       - name: Run tests with coverage
         working-directory: ./backend
@@ -133,7 +139,13 @@ jobs:
         
       - name: Analyze code
         working-directory: ./android_flutter
-        run: flutter analyze --no-fatal-warnings
+        run: flutter analyze --no-fatal-warnings 2>&1 | tee analyze.log; exit ${PIPESTATUS[0]}
+
+      - name: Surface analyzer issues
+        if: failure()
+        working-directory: ./android_flutter
+        run: |
+          grep -E "(error|warning) - " analyze.log | tail -15 | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done; true
 
   # Security Scan
   security-scan:
