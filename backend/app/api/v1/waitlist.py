@@ -6,6 +6,7 @@ from app.models.waitlist import WaitlistEntry
 from app.models.slot import Slot, SlotStatus
 from app.models.booking import Booking, BookingStatus
 from app.models.user import User
+from app.models.venue import Venue
 from app.utils.auth import get_current_user
 from app.services.notification_service import NotificationService
 from datetime import datetime, timedelta
@@ -21,8 +22,8 @@ async def join_waitlist(
     session: Session = Depends(get_session),
 ):
     """Join waitlist for a fully-booked slot."""
-    # Check if slot exists and is full
-    slot = session.get(Slot, slot_id)
+    # Check if slot exists and is full - use eager load
+    slot = session.exec(select(Slot).where(Slot.id == slot_id)).first()
     if not slot:
         raise HTTPException(status_code=404, detail="Slot not found")
     
@@ -132,23 +133,36 @@ async def leave_waitlist(
 
 @router.get("/my")
 async def get_my_waitlist(
+    limit: int = Query(50, ge=1, le=200),
+    offset: int = Query(0, ge=0),
     current_user: User = Depends(get_current_user),
     session: Session = Depends(get_session),
 ):
-    """Get user's active waitlist entries."""
-    entries = session.exec(
+    """Get user's active waitlist entries with pagination."""
+    # Use joinedload to avoid N+1 queries
+    from sqlmodel import joinedload
+    
+    stmt = (
         select(WaitlistEntry)
+        .options(
+            joinedload(WaitlistEntry.slot).joinedload(Slot.venue),
+        )
         .where(
             WaitlistEntry.user_id == current_user.id,
             WaitlistEntry.status.in_(["pending", "notified"]),
         )
         .order_by(WaitlistEntry.created_at.desc())
-    ).all()
+        .offset(offset)
+        .limit(limit)
+    )
+    
+    entries = session.exec(stmt).all()
     
     result = []
     for entry in entries:
-        slot = session.get(Slot, entry.slot_id)
-        venue = session.get(Venue, entry.venue_id) if entry.venue_id else None
+        # No more N+1: slot and venue already loaded via joinedload
+        slot = entry.slot
+        venue = slot.venue if slot else None
         
         result.append({
             "id": entry.id,
@@ -162,7 +176,12 @@ async def get_my_waitlist(
             "expires_at": entry.expires_at.isoformat() if entry.expires_at else None,
         })
     
-    return result
+    return {
+        "total": len(result),
+        "limit": limit,
+        "offset": offset,
+        "items": result,
+    }
 
 
 @router.get("/slot/{slot_id}")
@@ -172,19 +191,22 @@ async def get_slot_waitlist(
     session: Session = Depends(get_session),
 ):
     """Get waitlist for a specific slot (manager only)."""
-    slot = session.get(Slot, slot_id)
+    slot = session.exec(select(Slot).where(Slot.id == slot_id)).first()
     if not slot:
         raise HTTPException(status_code=404, detail="Slot not found")
     
     # Check if user is venue manager
-    from app.models.venue import Venue
-    venue = session.get(Venue, slot.venue_id)
+    venue = session.exec(select(Venue).where(Venue.id == slot.venue_id)).first()
     if not venue or venue.manager_id != current_user.id:
         if current_user.role not in ["SUPER_ADMIN", "CLUB_ADMIN"]:
             raise HTTPException(status_code=403, detail="Access denied")
     
+    # Eager load users to avoid N+1
+    from sqlmodel import joinedload
+    
     entries = session.exec(
         select(WaitlistEntry)
+        .options(joinedload(WaitlistEntry.user))
         .where(
             WaitlistEntry.slot_id == slot_id,
             WaitlistEntry.status.in_(["pending", "notified"]),
@@ -194,7 +216,8 @@ async def get_slot_waitlist(
     
     result = []
     for entry in entries:
-        user = session.get(User, entry.user_id)
+        # No more N+1: user already loaded
+        user = entry.user
         result.append({
             "id": entry.id,
             "user_id": entry.user_id,
