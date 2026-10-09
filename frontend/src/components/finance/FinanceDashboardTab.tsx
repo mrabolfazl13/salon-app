@@ -225,7 +225,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                   setFrom(isoDaysAgo(preset.days))
                   setTo(getTodayISO())
                 }}
-                sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem' }}
+                sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem', minHeight: 44 }}
                 variant={from === isoDaysAgo(preset.days) ? 'filled' : 'outlined'}
                 color="primary"
               />

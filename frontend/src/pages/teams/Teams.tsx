@@ -283,7 +283,7 @@ const Teams: React.FC = () => {
     <Layout>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap', mb: 2.5 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>تیم‌ها</Typography>
+          <Typography component="h1" variant="h4" sx={{ fontWeight: 800 }}>تیم‌ها</Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
             تیم‌های ماندگار شما — اعضا، حصه‌ها، تاریخچه رزروها و تراز مالی تیم.
           </Typography>

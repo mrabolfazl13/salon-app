@@ -115,7 +115,7 @@ const ManagerContracts: React.FC = () => {
     <Layout>
       <Box sx={{ py: 3 }}>
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1 }}>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>مدیریت قراردادها</Typography>
+          <Typography component="h1" variant="h4" sx={{ fontWeight: 800 }}>مدیریت قراردادها</Typography>
           <Typography variant="body2" color="text.secondary">
             صف تأیید و پرونده قراردادهای سالن‌های شما
           </Typography>

@@ -108,7 +108,7 @@ const Deals: React.FC = () => {
             }}
           >
             <Box sx={{ position: 'absolute', top: -60, left: -60, width: 220, height: 220, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)' }} />
-            <Typography variant="h4" sx={{ fontWeight: 900, mb: 0.5, fontSize: { xs: '1.4rem', md: '1.8rem' } }}>
+            <Typography component="h1" variant="h4" sx={{ fontWeight: 900, mb: 0.5, fontSize: { xs: '1.4rem', md: '1.8rem' } }}>
               🔥 شگفت‌انگیزهای لحظه آخری
             </Typography>
             <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)', maxWidth: 560 }}>

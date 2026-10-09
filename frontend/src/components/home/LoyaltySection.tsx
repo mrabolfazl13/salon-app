@@ -228,7 +228,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
               size="small"
               sx={{
                 px: 1.5,
-                py: 0.4,
+                minHeight: 44,
                 borderRadius: '8px',
                 bgcolor: color,
                 color: '#fff',

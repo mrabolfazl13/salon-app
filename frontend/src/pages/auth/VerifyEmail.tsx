@@ -99,7 +99,7 @@ const VerifyEmail: React.FC = () => {
                 >
                   <Icon icon="mdi:email-check-outline" style={{ fontSize: 32, color: '#1c1917' }} />
                 </Box>
-                <Typography variant="h5" sx={{ fontWeight: 700 }}>تایید شماره و ایمیل</Typography>
+                <Typography component="h1" variant="h5" sx={{ fontWeight: 700 }}>تایید شماره و ایمیل</Typography>
                 <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
                   برای انجام رزرو، باید ایمیل یا شماره موبایل خود را تایید کنید
                 </Typography>

@@ -262,7 +262,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>روش</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>وضعیت</TableCell>
                   <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>مبلغ</TableCell>
-                  <TableCell align="left" sx={{ fontWeight: 700, fontSize: '0.78rem' }}></TableCell>
+                  <TableCell align="left" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>عملیات</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

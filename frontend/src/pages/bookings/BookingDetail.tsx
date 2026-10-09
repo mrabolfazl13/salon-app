@@ -280,7 +280,7 @@ const BookingDetail: React.FC = () => {
                 radius={8}
               />
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography component="h1" variant="h6" sx={{ fontWeight: 700 }}>
                   {booking.venue_name || `سالن #${booking.slot_id}`}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">

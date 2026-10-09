@@ -71,7 +71,7 @@ const ManagerCheckin: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Icon icon="mdi:qrcode-scan" width={40} height={40} />
             <Box>
-              <Typography variant="h5" sx={{ fontWeight: 700 }}>
+              <Typography component="h1" variant="h5" sx={{ fontWeight: 700 }}>
                 ثبت ورود با کد QR
               </Typography>
               <Typography variant="body2" color="text.secondary">

@@ -34,7 +34,7 @@ const JoinByToken: React.FC = () => {
   return (
     <Layout>
       <Box sx={{ py: 4, maxWidth: 560, mx: 'auto' }}>
-        <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', mb: 0.5, textAlign: 'center' }}>
+        <Typography component="h1" sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', mb: 0.5, textAlign: 'center' }}>
           دعوت به بازی
         </Typography>
         <Typography sx={{ fontSize: '0.82rem', color: '#64748b', mb: 3, textAlign: 'center' }}>

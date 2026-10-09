@@ -72,7 +72,7 @@ const ManagerTeams: React.FC = () => {
     <Layout>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
         <Box>
-          <Typography variant="h4" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Typography component="h1" variant="h4" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
             <Icon icon="mdi:handshake-outline" style={{ width: 30, height: 30, color: '#2563eb' }} />
             تیم‌های همکار
           </Typography>

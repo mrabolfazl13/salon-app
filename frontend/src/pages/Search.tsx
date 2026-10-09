@@ -78,6 +78,8 @@ const Search: React.FC = () => {
   return (
     <Layout>
       <Box sx={{ maxWidth: 720, mx: 'auto' }}>
+        {/* سرتیتر صفحه برای فناوری کمکی — ظاهر صفحه تغییری نمی‌کند */}
+        <h1 className="sr-only">جستجوی سالن</h1>
         {/* نوار جستجوی چسبان */}
         <Box
           sx={{

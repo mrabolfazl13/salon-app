@@ -248,7 +248,7 @@ const Venues: React.FC = () => {
               >
                 <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} style={{ width: 22, height: 22 }} />
               </Box>
-              <Typography sx={{ fontWeight: 800, fontSize: '1.35rem', color: 'text.primary', lineHeight: 1.4 }}>
+              <Typography component="h1" sx={{ fontWeight: 800, fontSize: '1.35rem', color: 'text.primary', lineHeight: 1.4 }}>
                 {category === 'futsal' ? 'سالن‌های فوتسال' : 'باشگاه‌های بدنسازی'}
               </Typography>
             </Box>

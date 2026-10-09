@@ -140,7 +140,7 @@ const Dashboard: React.FC = () => {
         {/* Header */}
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
           <Box>
-            <Typography variant="h5" sx={{ fontWeight: 700 }}>
+            <Typography component="h1" variant="h5" sx={{ fontWeight: 700 }}>
               سلام{user?.fullName ? `، ${user.fullName.split(' ')[0]}` : ''} 👋
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>

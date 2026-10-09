@@ -201,7 +201,7 @@ const Competitions: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+          <Typography component="h1" variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
             رقابت قیمت
           </Typography>
           <Typography color="text.secondary" sx={{ mb: 3 }}>

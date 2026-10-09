@@ -64,6 +64,7 @@ const Favorites: React.FC = () => {
     <Layout>
       <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
         <SectionHeader
+          heading="h1"
           title="علاقه‌مندی‌ها"
           subtitle={
             favorites.length > 0

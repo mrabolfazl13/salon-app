@@ -154,7 +154,7 @@ const Login: React.FC = () => {
           >
             <Icon icon="mdi:soccer" style={{ width: 40, height: 40, color: '#1c1917' }} />
           </motion.div>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.5rem', color: 'text.primary' }}>
+          <Typography component="h1" sx={{ fontWeight: 800, fontSize: '1.5rem', color: 'text.primary' }}>
             خوش آمدید
           </Typography>
           <Typography sx={{ color: 'text.secondary', fontSize: '0.9rem', mt: 0.5 }}>

@@ -65,7 +65,7 @@ const AdminVenues: React.FC = () => {
   return (
     <Layout>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+        <Typography component="h1" variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
           <Icon icon="mdi:stadium" className="h-7 w-7 ml-2" style={{ verticalAlign: 'middle', color: theme.palette.primary.main }} />
           مدیریت سالن‌ها
         </Typography>

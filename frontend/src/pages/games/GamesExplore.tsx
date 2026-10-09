@@ -91,7 +91,7 @@ const GamesExplore: React.FC = () => {
     <Layout>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
         <Box>
-          <Typography sx={{ fontWeight: 900, fontSize: { xs: '1.35rem', md: '1.6rem' }, color: '#0f172a' }}>
+          <Typography component="h1" sx={{ fontWeight: 900, fontSize: { xs: '1.35rem', md: '1.6rem' }, color: '#0f172a' }}>
             🎮 بازی‌های گروهی
           </Typography>
           <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 0.5 }}>

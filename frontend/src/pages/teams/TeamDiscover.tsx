@@ -157,7 +157,7 @@ const TeamDiscover: React.FC = () => {
           بازگشت به تیم‌های من
         </MuiButton>
       </Box>
-      <Typography variant="h4" sx={{ fontWeight: 800, mb: 2 }}>کاوش تیم‌ها</Typography>
+      <Typography component="h1" variant="h4" sx={{ fontWeight: 800, mb: 2 }}>کاوش تیم‌ها</Typography>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
         <TextField

@@ -65,7 +65,7 @@ const Users: React.FC = () => {
   return (
     <Layout>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
+        <Typography component="h1" variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
           <Icon icon="mdi:account-group" className="h-7 w-7 ml-2" style={{ verticalAlign: 'middle', color: theme.palette.primary.main }} />
           مدیریت کاربران
         </Typography>
@@ -115,7 +115,7 @@ const Users: React.FC = () => {
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
           <Box sx={{
             display: 'flex', alignItems: 'center', gap: 1,
-            px: 1.5, py: 0.75, flex: 1, minWidth: 220,
+            px: 1.5, py: 0.75, flex: 1, minWidth: 220, minHeight: 44,
             bgcolor: 'grey.50',
             border: `1px solid ${theme.palette.divider}`,
             borderRadius: 1,

@@ -79,7 +79,7 @@ const Contracts: React.FC = () => {
       <Box sx={{ py: 3 }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Typography sx={{ fontWeight: 700 }} variant="h4">قراردادهای من</Typography>
+            <Typography sx={{ fontWeight: 700 }} component="h1" variant="h4">قراردادهای من</Typography>
             <Button
               variant="contained"
               onClick={openCreate}

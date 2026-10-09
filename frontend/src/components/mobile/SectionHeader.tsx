@@ -7,10 +7,12 @@ interface Props {
   subtitle?: string
   actionLabel?: string
   onAction?: () => void
+  /** سطح سرتیتر; صفحاتی که SectionHeader عنوان اصلی خودشان است «h1» می‌دهند */
+  heading?: 'h1' | 'h2'
 }
 
 /** عنوان بخش با لینک «همه» — خط تأکید کهربایی برای هویت اسپرت */
-const SectionHeader: React.FC<Props> = ({ title, subtitle, actionLabel, onAction }) => {
+const SectionHeader: React.FC<Props> = ({ title, subtitle, actionLabel, onAction, heading = 'h2' }) => {
   const dark = useTheme().palette.mode === 'dark'
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, gap: 1 }}>
@@ -25,7 +27,7 @@ const SectionHeader: React.FC<Props> = ({ title, subtitle, actionLabel, onAction
               background: 'linear-gradient(180deg, #fbbf24, #f97316)',
             }}
           />
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary' }}>
+          <Typography component={heading} variant="subtitle1" sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary' }}>
             {title}
           </Typography>
         </Box>

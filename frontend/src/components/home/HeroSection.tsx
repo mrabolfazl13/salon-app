@@ -113,7 +113,7 @@ export const HeroSection: React.FC = () => {
           transition={{ duration: 0.6 }}
         >
           <Typography
-            variant="h3"
+            component="h1" variant="h3"
             sx={{
               fontWeight: 900,
               fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.8rem' },

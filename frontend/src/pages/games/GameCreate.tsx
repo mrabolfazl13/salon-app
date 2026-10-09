@@ -111,7 +111,7 @@ const GameCreate: React.FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
           <IconButtonBack onClick={() => navigate(-1)} />
           <Box sx={{ minWidth: 0 }}>
-            <Typography sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a' }}>ساخت بازی</Typography>
+            <Typography component="h1" sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a' }}>ساخت بازی</Typography>
             <Typography sx={{ fontSize: '0.8rem', color: '#64748b', mt: 0.25 }}>
               ابتدا یکی از رزروهای تأییدشده‌ی خود را انتخاب کنید؛ بازی روی همان رزرو ساخته می‌شود.
             </Typography>
@@ -168,10 +168,12 @@ const GameCreate: React.FC = () => {
 const IconButtonBack: React.FC<{ onClick: () => void }> = ({ onClick }) => (
   <Box
     component="button"
+    type="button"
+    aria-label="بازگشت"
     onClick={onClick}
     sx={{
-      width: 38,
-      height: 38,
+      width: 44,
+      height: 44,
       borderRadius: '50%',
       border: '1px solid #e2e8f0',
       bgcolor: '#fff',

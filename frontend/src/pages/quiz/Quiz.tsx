@@ -51,7 +51,7 @@ const Quiz: React.FC = () => {
     <Layout>
       <Box sx={{ py: 3, maxWidth: 720, mx: 'auto' }}>
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <Typography variant="h4" sx={{ fontWeight: 800 }}>
+          <Typography component="h1" variant="h4" sx={{ fontWeight: 800 }}>
             چالش ورزشی هفته
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>

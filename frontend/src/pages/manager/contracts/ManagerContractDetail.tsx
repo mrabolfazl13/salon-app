@@ -181,7 +181,7 @@ const ManagerContractDetail: React.FC = () => {
                 <Icon icon="mdi:file-document-check-outline" className="h-5 w-5" style={{ color: theme.palette.primary.main }} />
               </Box>
               <Box>
-                <Typography variant="h6" sx={{ fontWeight: 700 }}>
+                <Typography component="h1" variant="h6" sx={{ fontWeight: 700 }}>
                   {contract.venue_name || `سالن #${faNum(contract.venue_id)}`}
                 </Typography>
                 <Typography variant="body2" color="text.secondary">

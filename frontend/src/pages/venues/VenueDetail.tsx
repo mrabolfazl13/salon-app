@@ -747,7 +747,7 @@ const VenueDetail: React.FC = () => {
                     <Icon icon="mdi:arrow-right" className="h-5 w-5 ml-1" />
                     بازگشت به لیست سالن‌ها
                   </Button>
-                  <Typography variant="h3" sx={{ fontWeight: 800, color: 'white', mb: 1, textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+                  <Typography component="h1" variant="h3" sx={{ fontWeight: 800, color: 'white', mb: 1, textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
                     {venue.name}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>

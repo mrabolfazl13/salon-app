@@ -236,7 +236,7 @@ const Profile: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-          <Typography variant="h4" sx={{ fontWeight: 700 }}>
+          <Typography component="h1" variant="h4" sx={{ fontWeight: 700 }}>
             پروفایل کاربری
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
