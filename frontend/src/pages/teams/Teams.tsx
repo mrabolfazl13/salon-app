@@ -16,7 +16,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useAcceptTeamInvitation, useDeclineTeamInvitation, useMyTeamInvitations, useMyTeams, useTeamJoinRequests } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
 import { TeamFormDialog } from '@/components/team'
-import { SPORT_EMOJI, TeamQuotaProgress, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
+import { SPORT_EMOJI, SPORT_NAME_FA, TeamQuotaProgress, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
 import { teamService } from '@/services/team'
 import type { StandingsItem } from '@/services/team'
 import type { Team, TeamInvitation } from '@/types/team'
@@ -142,7 +142,7 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
         >
           <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.25, height: '100%' }}>
             <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
-              <Box sx={{ fontSize: '1.7rem', lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
+              <Box role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} sx={{ fontSize: '1.7rem', lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
               <Box sx={{ minWidth: 0, flex: 1 }}>
                 <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }} noWrap>
                   {team.name}

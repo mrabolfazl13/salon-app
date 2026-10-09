@@ -71,6 +71,12 @@ export const SPORT_EMOJI: Record<string, string> = {
   tennis: '🎾', badminton: '🏸', gym: '🏋️', pool: '🎱',
 }
 
+/** برچسب فارسی ورزش — برای aria-label آیکن‌های ایموجی (دسترسی‌پذیری) */
+export const SPORT_NAME_FA: Record<string, string> = {
+  football: 'فوتبال', futsal: 'فوتسال', basketball: 'بسکتبال', volleyball: 'والیبال',
+  tennis: 'تنیس', badminton: 'بدمینتون', gym: 'بدنسازی', pool: 'بیلیارد',
+}
+
 const VISIBILITY_META: Record<TeamVisibility, { icon: string; fg: string; bg: string }> = {
   public: { icon: 'mdi:web', fg: '#059669', bg: 'rgba(16,185,129,0.08)' },
   invite_only: { icon: 'mdi:email-lock-outline', fg: '#b45309', bg: 'rgba(245,158,11,0.10)' },

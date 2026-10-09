@@ -10,6 +10,7 @@ import { Link } from 'react-router-dom'
 import type { Game } from '@/types/game'
 import { PAYMENT_MODE_LABELS } from '@/types/game'
 import { radii, shadows } from '@/theme'
+import { SPORT_NAME_FA } from '@/components/team/shared'
 import { CapacityBar, GameStatusChip, SkillChip, VisibilityChip, formatGameDateTime } from './shared'
 
 interface Props {
@@ -72,6 +73,8 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
           {/* هدر: ایموجی ورزش + نام + وضعیت */}
           <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, minWidth: 0 }}>
             <Box
+              role="img"
+              aria-label={SPORT_NAME_FA[game.sport] ?? game.sport}
               sx={{
                 width: 44,
                 height: 44,

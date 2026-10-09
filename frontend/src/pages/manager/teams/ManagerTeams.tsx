@@ -23,7 +23,7 @@ import { useMyVenues } from '@/hooks/useFinance'
 import { useManagerTeamPartners } from '@/hooks/useTeams'
 import type { TeamPartner } from '@/types/team'
 import { ErrorBox, formatRial } from '@/components/finance/shared'
-import { SPORT_EMOJI, TeamOfficialBadge } from '@/components/team/shared'
+import { SPORT_EMOJI, SPORT_NAME_FA, TeamOfficialBadge } from '@/components/team/shared'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
 import { radii, shadows } from '@/theme'
 
@@ -144,7 +144,7 @@ const ManagerTeams: React.FC = () => {
                 <TableRow key={p.team_id} hover>
                   <TableCell sx={{ display: { xs: 'table-cell' } }}>
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box sx={{ fontSize: '1.1rem', lineHeight: 1 }}>{SPORT_EMOJI[p.sport] ?? '🏅'}</Box>
+                      <Box role="img" aria-label={SPORT_NAME_FA[p.sport] ?? p.sport} sx={{ fontSize: '1.1rem', lineHeight: 1 }}>{SPORT_EMOJI[p.sport] ?? '🏅'}</Box>
                       <Box sx={{ minWidth: 0 }}>
                         <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }} noWrap>{p.name}</Typography>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25, flexWrap: 'wrap' }}>

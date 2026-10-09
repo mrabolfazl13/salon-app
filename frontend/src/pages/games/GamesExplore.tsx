@@ -152,7 +152,7 @@ const GamesExplore: React.FC = () => {
               <ToggleButton value="">همه</ToggleButton>
               {SPORTS.map((s) => (
                 <ToggleButton key={s.key} value={s.key}>
-                  <Box component="span" sx={{ ml: 0.5 }}>{s.emoji}</Box>
+                  <Box component="span" sx={{ ml: 0.5 }} aria-hidden="true">{s.emoji}</Box>
                   {s.label}
                 </ToggleButton>
               ))}

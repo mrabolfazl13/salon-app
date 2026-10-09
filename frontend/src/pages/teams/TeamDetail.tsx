@@ -16,6 +16,7 @@ import Dialog from '@/components/ui/Dialog'
 import { TextField } from '@mui/material'
 import {
   SPORT_EMOJI,
+  SPORT_NAME_FA,
   TeamBalancePanel,
   TeamBookingsPanel,
   TeamChatPanel,
@@ -240,7 +241,7 @@ const TeamDetail: React.FC = () => {
 
       <Paper sx={{ p: { xs: 2.25, md: 3 }, borderRadius: `${radii.card}px`, boxShadow: shadows.card, border: '1px solid rgba(15,23,42,0.05)', mb: 2.5 }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, flexWrap: 'wrap' }}>
-          <Box sx={{ fontSize: { xs: '2rem', md: '2.4rem' }, lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
+          <Box role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} sx={{ fontSize: { xs: '2rem', md: '2.4rem' }, lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography component="h1" sx={{ fontWeight: 900, fontSize: { xs: '1.15rem', md: '1.4rem' }, color: '#0f172a' }}>
               {team.name}

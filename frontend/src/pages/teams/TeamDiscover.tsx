@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
 import { useMyTeamInvitations, useMyTeams, useRequestJoinTeam, useTeamsDiscover } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
-import { SPORT_EMOJI, TeamQuotaProgress, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
+import { SPORT_EMOJI, SPORT_NAME_FA, TeamQuotaProgress, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
 import type { Team } from '@/types/team'
 import { toPersianDigits } from '@/lib/jalali'
 import { radii, shadows } from '@/theme'
@@ -76,7 +76,7 @@ const DiscoverCard: React.FC<{ team: Team; mine: boolean; invited: boolean; onRe
     <Card sx={{ borderRadius: `${radii.card}px`, boxShadow: shadows.card, border: '1px solid rgba(15,23,42,0.06)', height: '100%' }}>
       <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1, height: '100%' }}>
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
-          <Box sx={{ fontSize: '1.7rem', lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
+          <Box role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} sx={{ fontSize: '1.7rem', lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }} noWrap>
               {team.name}

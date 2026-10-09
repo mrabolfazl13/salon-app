@@ -6,6 +6,7 @@ import { useNavigate, useParams, useLocation, Link } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { Box, Typography, Paper, Divider, Alert } from '@mui/material'
 
+import { SPORT_NAME_FA } from '@/components/team/shared'
 import Layout from '@/components/layout/Layout'
 import { EmptyState, ErrorState, Shimmer } from '@/components/mobile'
 import { Button } from '@/components/ui/Button'
@@ -366,7 +367,7 @@ const GameDetail: React.FC = () => {
         }}
       >
         <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, flexWrap: 'wrap' }}>
-          <Box sx={{ fontSize: { xs: '2rem', md: '2.4rem' }, lineHeight: 1 }}>{SPORT_EMOJI[game.sport] ?? '🎮'}</Box>
+          <Box role="img" aria-label={SPORT_NAME_FA[game.sport] ?? game.sport} sx={{ fontSize: { xs: '2rem', md: '2.4rem' }, lineHeight: 1 }}>{SPORT_EMOJI[game.sport] ?? '🎮'}</Box>
           <Box sx={{ minWidth: 0, flex: 1 }}>
             <Typography component="h1" sx={{ fontWeight: 900, fontSize: { xs: '1.15rem', md: '1.4rem' }, color: '#0f172a' }}>
               {game.name}
