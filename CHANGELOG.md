@@ -5,6 +5,13 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.4.1] - 2026-10-09
+
+### 🔧 Fixed
+- CI: Android release signing actually wired — Flutter `key.properties` written to the gradle rootProject dir (`android_flutter/android`) with absolute `storeFile`, Tauri signing written to `gen/android/app/key.properties` (old paths produced UNSIGNED APKs that phones reject as "corrupted file")
+- GitHub Secrets added: `KEYSTORE_BASE64`, `KEYSTORE_PASSWORD`, `KEY_ALIAS`, `KEY_PASSWORD` (release keystore `android_flutter/release-keystore.jks`, alias `salon-app-key`)
+- Frontend UI/UX audit waves 1–4: Navbar RTL overflow, WCAG contrast palette, sub-12px text raised, 44px touch targets, page `h1` headings, wrapped ToggleButtonGroups, sport emoji icons labeled in Persian
+
 ## [v1.4.0] - 2026-10-09
 
 ### 🚀 Added

@@ -77,18 +77,25 @@ jobs:
         run: flutter pub get
 
       - name: Setup keystore
-        working-directory: android_flutter
+        # app/build.gradle.kts reads rootProject.file("key.properties") and
+        # rootProject dir is android_flutter/android — writing one level higher
+        # produced UNSIGNED release APKs even when the secrets existed.
+        working-directory: android_flutter/android
         env:
           KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           if [ -n "$KEYSTORE_B64" ]; then
             echo "$KEYSTORE_B64" | base64 --decode > release-keystore.jks
+            # storeFile must be absolute here: gradle resolves it against the
+            # app module dir while key.properties itself is read from the root
+            # project dir (android_flutter/android).
             cat > key.properties << EOF
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
-          storeFile=release-keystore.jks
+          storeFile=$GITHUB_WORKSPACE/android_flutter/android/release-keystore.jks
           EOF
+            echo "::notice::Android release signing configured"
           else
             echo "::warning::KEYSTORE_BASE64 secret missing - building UNSIGNED release"
           fi
@@ -201,19 +208,23 @@ jobs:
         working-directory: frontend
         run: pnpm tauri android init
 
-      - name: Setup signing (keystore.properties)
-        working-directory: frontend/src-tauri/gen/android
+      - name: Setup signing (key.properties)
+        # The tauri gradle template reads app/key.properties (module dir), not
+        # keystore.properties at project root — the old path left every CI APK
+        # unsigned, which phones report as "corrupted file".
+        working-directory: frontend/src-tauri/gen/android/app
         env:
           KEYSTORE_B64: ${{ secrets.KEYSTORE_BASE64 }}
         run: |
           if [ -n "$KEYSTORE_B64" ]; then
             echo "$KEYSTORE_B64" | base64 --decode > release-keystore.jks
-            cat > keystore.properties << EOF
+            cat > key.properties << EOF
           storeFile=release-keystore.jks
           storePassword=${{ secrets.KEYSTORE_PASSWORD }}
           keyAlias=${{ secrets.KEY_ALIAS }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           EOF
+            echo "::notice::Tauri Android signing configured"
           else
             echo "::warning::KEYSTORE_BASE64 secret missing - building UNSIGNED APK/AAB"
           fi
