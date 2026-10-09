@@ -84,6 +84,13 @@ def create_review(
     current_user: User = Depends(get_current_user)
 ):
     """ثبت نظر جدید برای یک سالن (فقط کاربران عادی)"""
+    # فقط کاربران عادی می‌توانند نظر ثبت کنند، نه مدیران سالن
+    if current_user.role != UserRole.USER:
+        raise HTTPException(
+            status_code=403,
+            detail="فقط کاربران عادی می‌توانند نظر ثبت کنند"
+        )
+    
     # بررسی وجود سالن
     venue = uow.venues.get_by_id(review_data.venue_id)
     if not venue:

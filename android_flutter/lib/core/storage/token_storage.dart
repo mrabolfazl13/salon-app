@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 /// Token storage for authentication
 class TokenStorage {
   static const String _tokenKey = 'auth-token';
+  static const String _refreshTokenKey = 'auth-refresh-token';
   
   /// Save token
   static Future<void> saveToken(String token) async {
@@ -16,10 +17,23 @@ class TokenStorage {
     return prefs.getString(_tokenKey);
   }
   
+  /// Save refresh token
+  static Future<void> saveRefreshToken(String refreshToken) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString(_refreshTokenKey, refreshToken);
+  }
+  
+  /// Get refresh token
+  static Future<String?> getRefreshToken() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getString(_refreshTokenKey);
+  }
+  
   /// Clear token
   static Future<void> clearToken() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_tokenKey);
+    await prefs.remove(_refreshTokenKey);
   }
   
   /// Check if user is authenticated

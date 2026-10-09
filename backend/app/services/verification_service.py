@@ -113,3 +113,28 @@ def _send_email(email: str, code: str) -> bool:
     except Exception as e:  # noqa: BLE001
         logger.error("email send failed: %s", e)
         return False
+
+
+# ─────────────────────────── ورود با OTP پیامکی ───────────────────────────
+
+def request_sms_otp(phone: str) -> str:
+    """درخواست کد OTP برای ورود بدون رمز عبور.
+    
+    کد به شماره موبایل ارسال می‌شود (SMS). در نبود سرویس SMS، کد فقط لاگ می‌شود.
+    """
+    code = f"{random.randint(0, 999999):06d}"
+    _get_redis().set(_code_key(phone), _hash_code(code), ex=OTP_TTL_SECONDS)
+    
+    sent = _send_sms(phone, code)
+    if not sent:
+        logger.warning("SMS OTP requested for phone %s — SMS service not configured, code logged only", phone)
+    
+    return code if settings.DEBUG_ALLOW_DEV_CODE else ""
+
+
+def _send_sms(phone: str, code: str) -> bool:
+    """ارسال کد OTP از طریق سرویس SMS."""
+    # TODO: Implement actual SMS provider integration (Kavehnegar, Melipayamak, etc.)
+    # For now, just log the code (development mode)
+    logger.info(f"SMS OTP for {phone}: {code}")
+    return False

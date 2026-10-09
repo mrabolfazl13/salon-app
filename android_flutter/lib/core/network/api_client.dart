@@ -26,7 +26,7 @@ class ApiClient {
   
   /// Initialize interceptors
   static void initialize() {
-    // Auth interceptor + error unwrapping
+    // Auth interceptor + refresh token + error unwrapping
     instance.interceptors.add(InterceptorsWrapper(
       onRequest: (options, handler) async {
         final token = await TokenStorage.getToken();
@@ -37,8 +37,35 @@ class ApiClient {
       },
       onError: (error, handler) async {
         if (error.response?.statusCode == 401) {
-          await TokenStorage.clearToken();
+          // Try to refresh token
+          final refreshToken = await TokenStorage.getRefreshToken();
+          if (refreshToken != null && refreshToken.isNotEmpty) {
+            try {
+              final response = await Dio().post(
+                '${instance.options.baseUrl}/auth/refresh',
+                data: {'refresh_token': refreshToken},
+                options: Options(contentType: 'application/json'),
+              );
+              
+              if (response.statusCode == 200) {
+                final newToken = response.data['access_token'];
+                await TokenStorage.saveToken(newToken);
+                
+                // Retry original request with new token
+                final opts = error.requestOptions;
+                opts.headers['Authorization'] = 'Bearer $newToken';
+                final retryResponse = await instance.fetch(opts);
+                return handler.resolve(retryResponse);
+              }
+            } catch (_) {
+              // Refresh failed, clear tokens
+              await TokenStorage.clearToken();
+            }
+          } else {
+            await TokenStorage.clearToken();
+          }
         }
+        
         // Unwrap FastAPI error envelope {detail: "..."}
         final detail = error.response?.data?['detail'];
         if (detail is String && detail.isNotEmpty) {

@@ -1,6 +1,7 @@
 import 'api_client.dart';
 import 'api_endpoints.dart';
 import 'models.dart';
+import '../storage/token_storage.dart';
 
 class AuthService {
   static final _client = ApiClient.instance;
@@ -12,7 +13,17 @@ class AuthService {
         ApiEndpoints.login,
         data: LoginRequest(phone: phone, password: password).toJson(),
       );
-      return AuthResponse.fromJson(response.data);
+      final authResponse = AuthResponse.fromJson(response.data);
+      
+      // Save tokens
+      if (authResponse.accessToken != null) {
+        await TokenStorage.saveToken(authResponse.accessToken!);
+      }
+      if (authResponse.refreshToken != null) {
+        await TokenStorage.saveRefreshToken(authResponse.refreshToken!);
+      }
+      
+      return authResponse;
     } catch (e) {
       throw Exception('خطا در ورود: ${e.toString()}');
     }

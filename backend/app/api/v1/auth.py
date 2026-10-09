@@ -7,7 +7,7 @@ from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.schemas.user import UserCreate, UserLogin, UserResponse, Token
 from app.services.auth_service import AuthService
 from app.services import verification_service
-from app.utils.auth import create_access_token, get_current_user, get_password_hash
+from app.utils.auth import create_access_token, create_refresh_token, decode_access_token, get_current_user, get_password_hash
 from app.utils.rate_limit import auth_rate_limit, verification_rate_limit
 from app.config import settings
 from app.models.user import User, UserRole
@@ -46,6 +46,15 @@ class ResetPasswordRequest(BaseModel):
 
 class AuthMessageResponse(BaseModel):
     message: str
+
+
+class RefreshTokenRequest(BaseModel):
+    refresh_token: str
+
+
+class RefreshTokenResponse(BaseModel):
+    access_token: str
+    token_type: str = "bearer"
 
 
 class DevCodeMessageResponse(AuthMessageResponse):
@@ -98,7 +107,35 @@ def login(
 
     uow.users.update_last_login(user.id)
     access_token = create_access_token(data={"sub": user.phone})
-    return {"access_token": access_token, "token_type": "bearer", "user": user}
+    refresh_token = create_refresh_token(data={"sub": user.phone})
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "user": user
+    }
+
+
+@router.post("/refresh", response_model=RefreshTokenResponse)
+def refresh_access_token(
+    data: RefreshTokenRequest,
+    uow: UnitOfWork = Depends(get_unit_of_work),
+):
+    """تولید access token جدید با استفاده از refresh token."""
+    payload = decode_access_token(data.refresh_token)
+    if not payload or payload.get("type") != "refresh":
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    
+    phone = payload.get("sub")
+    if not phone:
+        raise HTTPException(status_code=401, detail="Invalid refresh token")
+    
+    user = uow.users.get_by_phone(phone)
+    if not user or not user.is_active:
+        raise HTTPException(status_code=401, detail="User not found or inactive")
+    
+    new_access_token = create_access_token(data={"sub": user.phone})
+    return {"access_token": new_access_token}
 
 
 @router.get("/me", response_model=UserResponse)
@@ -222,3 +259,70 @@ def reset_password(
     uow.users.update(user.id, {"hashed_password": get_password_hash(data.new_password)})
     uow.commit()
     return {"message": "رمز عبور شما با موفقیت بازنشانی شد. اکنون وارد شوید."}
+
+
+# ─────────────────────────── ورود با OTP پیامکی ───────────────────────────
+
+class SmsOtpRequest(BaseModel):
+    phone: str = Field(..., pattern=r"^09[0-9]{9}$")
+
+
+class SmsOtpConfirm(BaseModel):
+    phone: str = Field(..., pattern=r"^09[0-9]{9}$")
+    code: str = Field(..., min_length=6, max_length=6)
+
+
+@router.post("/login/sms/request", response_model=DevCodeMessageResponse, response_model_exclude_none=True)
+def request_sms_otp_login(
+    data: SmsOtpRequest,
+    _rate_limit: None = Depends(auth_rate_limit),
+):
+    """درخواست کد OTP برای ورود بدون رمز عبور (پیامک).
+    
+    اگر کاربر وجود نداشته باشد، به‌طور خودکار ثبت‌نام می‌شود.
+    """
+    dev_code = verification_service.request_sms_otp(data.phone)
+    resp = {"message": "کد ورود به شماره شما ارسال شد"}
+    if settings.DEBUG_ALLOW_DEV_CODE and dev_code:
+        resp["dev_code"] = dev_code
+    return resp
+
+
+@router.post("/login/sms/confirm", response_model=Token)
+def confirm_sms_otp_login(
+    data: SmsOtpConfirm,
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    _rate_limit: None = Depends(auth_rate_limit),
+):
+    """تأیید کد OTP و ورود به سیستم."""
+    if not verification_service.confirm_code(data.phone, data.code):
+        raise HTTPException(status_code=400, detail="کد نامعتبر یا منقضی شده است")
+    
+    # اگر کاربر وجود ندارد، ایجاد کن
+    user = uow.users.get_by_phone(data.phone)
+    if not user:
+        from app.utils.auth import get_password_hash
+        import secrets
+        # رمز تصادفی قوی برای کاربرانی که با OTP وارد می‌شوند
+        random_password = secrets.token_urlsafe(32)
+        user = AuthService.create_user(
+            uow=uow,
+            phone=data.phone,
+            full_name=f"کاربر {data.phone[-4:]}",
+            password=random_password,
+            role="user"
+        )
+        uow.commit()
+    
+    if not user.is_active:
+        raise HTTPException(status_code=400, detail="حساب کاربری غیرفعال است")
+    
+    uow.users.update_last_login(user.id)
+    access_token = create_access_token(data={"sub": user.phone})
+    refresh_token = create_refresh_token(data={"sub": user.phone})
+    return {
+        "access_token": access_token,
+        "refresh_token": refresh_token,
+        "token_type": "bearer",
+        "user": user
+    }
