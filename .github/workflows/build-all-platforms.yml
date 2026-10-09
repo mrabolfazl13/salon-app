@@ -470,7 +470,12 @@ jobs:
         working-directory: frontend
         run: pnpm build
         env:
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'https://school.absadeghi.ir/api/v1' }}
+          # .env گیط‌ایگنور است؛ این‌ها تنها منبع env در بیلد CI‌اند.
+          # fallbackها باید همین مقادیر پروداکشن سالن باشند (نه پروژه‌های دیگر).
+          VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://2.189.255.225/api/v1' }}
+          VITE_DOMAIN: ${{ secrets.VITE_DOMAIN || 'http://2.189.255.225' }}
+          VITE_APP_NAME: ${{ secrets.VITE_APP_NAME || 'سالن من' }}
+          VITE_APP_VERSION: ${{ secrets.VITE_APP_VERSION || '1.4.0' }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

@@ -15,7 +15,9 @@ export const parseList = (v: unknown): string[] => {
 }
 
 // تبدیل filename به آدرس کامل: {DOMAIN}/static/venues/{filename}
-const STATIC_URL = `${import.meta.env.VITE_DOMAIN.replace(/\/+$/, '')}/static/venues`
+// VITE_DOMAIN در بیلد نبود خالی در نظر می‌آید تا مسیر نسبی (/static/venues) کار کند؛
+// هرگز نباید روی undefined صدایی شود وگرنه ماژول در زمان load کرش می‌کند (صفحه سفید).
+const STATIC_URL = `${(import.meta.env.VITE_DOMAIN || '').replace(/\/+$/, '')}/static/venues`
 
 export const toFullUrl = (f: string): string => {
   if (!f) return ''
