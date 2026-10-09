@@ -2,16 +2,28 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:firebase_core/firebase_core.dart';
 
 import 'app/theme/app_theme.dart';
 import 'app/router/app_router.dart';
 import 'core/network/api_client.dart';
+import 'services/push_notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Initialize Firebase
+  await Firebase.initializeApp();
+  
   // Initialize API client (auth interceptor + logger)
   ApiClient.initialize();
+  
+  // Initialize FCM push notifications
+  try {
+    await pushNotificationService.initialize();
+  } catch (e) {
+    debugPrint('⚠️ [Main] FCM initialization failed: $e');
+  }
   
   // Set preferred orientations
   await SystemChrome.setPreferredOrientations([

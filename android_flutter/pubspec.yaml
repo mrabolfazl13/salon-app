@@ -61,6 +61,11 @@ dependencies:
   qr_flutter: ^4.1.0
   mobile_scanner: ^5.2.3
 
+  # Firebase & Push Notifications
+  firebase_core: ^2.24.2
+  firebase_messaging: ^14.7.10
+  firebase_analytics: ^10.8.0
+
   # Icons
   cupertino_icons: ^1.0.8
   phosphor_flutter: ^2.1.0

@@ -24,6 +24,7 @@ class User(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     last_login: Optional[datetime] = None
     notify_deals: bool = Field(default=False)  # اشتراک اعلان سانس‌های تخفیفی
+    fcm_token: Optional[str] = Field(default=None, max_length=500, index=True)  # Firebase Cloud Messaging token
     
     managed_venues: List["Venue"] = Relationship(back_populates="manager")
     bookings: List["Booking"] = Relationship(back_populates="user", sa_relationship_kwargs={"foreign_keys": lambda: [importlib.import_module("app.models.booking").Booking.__table__.c.user_id]})
