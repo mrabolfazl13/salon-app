@@ -5,6 +5,24 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.4.0] - 2026-10-09
+
+### 🚀 Added
+- Unified CI/CD: `Build All Platforms` now builds Flutter Android/iOS, Tauri Android/iOS/Windows/Linux/macOS and React web in parallel, with tag-triggered signed releases (keystore via GitHub Secrets)
+- Annotation diagnostics in CI: analyzer/alembic/build errors surface as `::error::` annotations for fast diagnosis
+
+### 🔧 Fixed
+- Backend: single finance ledger source — removed shadowed `finance_mvp` router and duplicate finance models that caused LookupError/IntegrityError in tests
+- Backend: team-based split payments contract (model + migration `m0s017_split_payment_tables` + API) matching frontend and tests
+- Backend: CRM daily campaign count now uses timezone-aware datetime bounds (real bind bug)
+- Booking reminder tests: naive-datetime rejection fixed; Celery runs eagerly with in-memory broker in tests (Redis-free)
+- Mobile: unused imports removed; `flutter analyze` infos/warnings kept non-fatal in quality gates
+- Android build: nullable keystore properties handled per official Flutter Kotlin DSL template
+
+### ✅ Quality
+- Backend test suite: 333 passed / 0 failed, 82% coverage; alembic fresh-chain upgrade/downgrade/re-upgrade verified on real PostgreSQL
+- Quality Gates: all 7 jobs green; Build All Platforms green on master
+
 ## [1.2.0] - 2026-10-09
 
 ### 🚀 Added
