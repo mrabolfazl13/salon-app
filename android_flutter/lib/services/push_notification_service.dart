@@ -8,9 +8,9 @@
 library;
 
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
-import '../config/app_config.dart';
-import '../services/api_service.dart';
+import '../core/network/api_client.dart';
 
 /// Background message handler (must be top-level function)
 @pragma('vm:entry-point')
@@ -23,7 +23,7 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class PushNotificationService {
   final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  final ApiService _apiService = ApiService();
+  final Dio _apiService = ApiClient.instance;
 
   String? _fcmToken;
   bool _isInitialized = false;

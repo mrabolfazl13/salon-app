@@ -6,6 +6,7 @@ import '../../../core/network/api_endpoints.dart';
 import '../../../core/network/waitlist_service.dart';
 import '../../../core/utils/jalali.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../app/theme/app_typography.dart';
 
 class VenueDetailScreen extends ConsumerStatefulWidget {
   final String venueId;
@@ -94,7 +95,7 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
           // Venue info
           Text(
             _venue?['name'] ?? '',
-            style: AppTypography.headlineMedium.copyWith(fontWeight: FontWeight.bold),
+            style: AppTypography.h4.copyWith(fontWeight: FontWeight.bold),
           ),
           if (_venue?['address'] != null) ...[
             const SizedBox(height: 8),
@@ -103,7 +104,7 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
           const Divider(height: 32),
 
           // Slots section
-          Text('اسلات‌های موجود', style: AppTypography.titleLarge),
+          Text('اسلات‌های موجود', style: AppTypography.h5),
           const SizedBox(height: 12),
           if (_slots.isEmpty)
             const Center(child: Padding(padding: EdgeInsets.all(32), child: Text('اسلاتی یافت نشد')))
@@ -119,7 +120,7 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
                 final dateStr = slot['slot_date'] ?? '';
                 final timeStr = slot['start_time'] ?? '';
                 final jalaliDate = JalaliDate.formatIsoDate(dateStr);
-                final persianTime = JalaliDate._timeToPersian(timeStr);
+                final persianTime = JalaliDate.timeToPersian(timeStr);
 
                 return Card(
                   child: ListTile(
@@ -143,22 +144,3 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
   }
 }
 
-// Extension to access private method for time conversion
-extension on JalaliDate {
-  static String _timeToPersian(String time) {
-    const persianDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
-    String toPersianDigits(String input) {
-      return input.split('').map((c) {
-        if (c.codeUnitAt(0) >= 48 && c.codeUnitAt(0) <= 57) {
-          return persianDigits[c.codeUnitAt(0) - 48];
-        }
-        return c;
-      }).join('');
-    }
-    final parts = time.split(':');
-    if (parts.length >= 2) {
-      return '${toPersianDigits(parts[0].padLeft(2, '0'))}:${toPersianDigits(parts[1].padLeft(2, '0'))}';
-    }
-    return time;
-  }
-}

@@ -19,8 +19,9 @@ class AuthService {
       if (authResponse.accessToken != null) {
         await TokenStorage.saveToken(authResponse.accessToken!);
       }
-      if (authResponse.refreshToken != null) {
-        await TokenStorage.saveRefreshToken(authResponse.refreshToken!);
+      final refreshToken = response.data['refresh_token'];
+      if (refreshToken is String && refreshToken.isNotEmpty) {
+        await TokenStorage.saveRefreshToken(refreshToken);
       }
       
       return authResponse;

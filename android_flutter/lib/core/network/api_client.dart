@@ -66,13 +66,25 @@ class ApiClient {
           }
         }
         
-        // Unwrap FastAPI error envelope {detail: "..."}
+        // Unwrap FastAPI error envelope {detail: "..."}.
+        // DioException.message is final, so build a replacement exception
+        // instead of assigning to it.
         final detail = error.response?.data?['detail'];
+        String? unwrapped;
         if (detail is String && detail.isNotEmpty) {
-          error.message = detail;
+          unwrapped = detail;
         } else if (detail is List && detail.isNotEmpty) {
           // Validation errors
-          error.message = detail.map((e) => e['msg'] ?? '').where((s) => s.isNotEmpty).join('\n');
+          unwrapped = detail.map((e) => e['msg'] ?? '').where((s) => s.isNotEmpty).join('\n');
+        }
+        if (unwrapped != null && unwrapped.isNotEmpty) {
+          return handler.reject(DioException(
+            requestOptions: error.requestOptions,
+            response: error.response,
+            type: error.type,
+            error: error.error,
+            message: unwrapped,
+          ));
         }
         return handler.next(error);
       },

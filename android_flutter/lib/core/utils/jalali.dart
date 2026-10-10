@@ -48,7 +48,7 @@ class JalaliDate {
 
   /// Format as Persian string with Persian digits: ۱۴۰۳/۰۸/۱۵
   String toPersianString() {
-    return '${_toPersianDigits(year)}/${_toPersianDigits(month.toString().padLeft(2, '0'))}/${_toPersianDigits(day.toString().padLeft(2, '0'))}';
+    return '${_toPersianDigits(year.toString())}/${_toPersianDigits(month.toString().padLeft(2, '0'))}/${_toPersianDigits(day.toString().padLeft(2, '0'))}';
   }
 
   /// Format with relative time: "امروز ۱۸:۰۰" or "فردا ۲۰:۰۰"
@@ -67,6 +67,9 @@ class JalaliDate {
     final jalali = fromGregorian(dateTime);
     return '${jalali.toPersianString()} - ساعت $persianTime';
   }
+
+  /// Public wrapper — private helpers are not visible outside this library.
+  static String timeToPersian(String time) => _timeToPersian(time);
 
   static String _timeToPersian(String time) {
     // Handle "HH:MM" or "HH:MM:SS"

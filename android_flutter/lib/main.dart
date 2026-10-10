@@ -12,8 +12,13 @@ import 'services/push_notification_service.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
-  // Initialize Firebase
-  await Firebase.initializeApp();
+  // Initialize Firebase — optional: the app must launch even when
+  // google-services.json / plugin wiring is absent or mismatched.
+  try {
+    await Firebase.initializeApp();
+  } catch (e) {
+    debugPrint('⚠️ [Main] Firebase init failed, push disabled: $e');
+  }
   
   // Initialize API client (auth interceptor + logger)
   ApiClient.initialize();
