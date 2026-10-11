@@ -38,7 +38,10 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
     try {
       final client = ApiClient.instance;
       final resp = await client.get(ApiEndpoints.venue(widget.venueId));
-      final slotsResp = await client.get(ApiEndpoints.venueSlots(widget.venueId));
+      final slotsResp = await client.get(
+        ApiEndpoints.venueSlots(widget.venueId),
+        queryParameters: {'slot_date': DateTime.now().toIso8601String().substring(0, 10)},
+      );
       setState(() {
         _venue = resp.data;
         _slots = slotsResp.data is List ? slotsResp.data : [];
@@ -116,7 +119,7 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
               separatorBuilder: (_, __) => const SizedBox(height: 8),
               itemBuilder: (context, i) {
                 final slot = _slots[i];
-                final isBooked = slot['status'] == 'BOOKED';
+                final isBooked = slot['status'] == 'booked';
                 final dateStr = slot['slot_date'] ?? '';
                 final timeStr = slot['start_time'] ?? '';
                 final jalaliDate = JalaliDate.formatIsoDate(dateStr);

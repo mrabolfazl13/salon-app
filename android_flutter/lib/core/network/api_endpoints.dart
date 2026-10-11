@@ -10,7 +10,7 @@ abstract final class ApiEndpoints {
   // Venues
   static const venues = '/venues';
   static String venue(String id) => '/venues/$id';
-  static String venueSlots(String id) => '/venues/$id/slots';
+  static String venueSlots(String id) => '/slots/venue/$id';
   
   // Bookings
   static const bookings = '/bookings';

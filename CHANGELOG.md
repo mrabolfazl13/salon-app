@@ -5,6 +5,11 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.3] - 2026-10-11
+
+### 🔧 Fixed
+- Android: venue detail screen crashed the request with DioException — the app called the invented route `GET /venues/{id}/slots` which the backend has never had; the real route is `GET /slots/venue/{id}?slot_date=YYYY-MM-DD` (same one the web app uses). Slots are now fetched for today's date, and the booked-status check matches the backend's lowercase `booked` value.
+
 ## [v1.5.2] - 2026-10-11
 
 ### 🔧 Fixed
