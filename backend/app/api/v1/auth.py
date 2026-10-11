@@ -316,7 +316,12 @@ def confirm_sms_otp_login(
     
     if not user.is_active:
         raise HTTPException(status_code=400, detail="حساب کاربری غیرفعال است")
-    
+
+    if not user.is_verified:
+        # ورود موفق با OTP یعنی مالکیت شماره اثبات شده است
+        uow.users.update(user.id, {"is_verified": True})
+        user.is_verified = True
+
     uow.users.update_last_login(user.id)
     access_token = create_access_token(data={"sub": user.phone})
     refresh_token = create_refresh_token(data={"sub": user.phone})

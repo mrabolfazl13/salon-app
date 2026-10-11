@@ -36,6 +36,9 @@ class Settings(BaseSettings):
     DB_ECHO: bool = False  # Disabled by default for performance
     # افشای کد توسعه‌ای (dev_code) در پاسخ API — فقط وقتی روشن باشد؛ وگرنه کد فقط در لاگ سرور
     DEBUG_ALLOW_DEV_CODE: bool = False
+    # تأیید خودکار کاربران عادی هنگام ثبت‌نام — تا وقتی کانال ارسال (SMS/SMTP) فعال نیست
+    # تا مانع رزرو نشود؛ با راه‌اندازی پیامک باید false شود
+    AUTO_VERIFY_USERS: bool = False
     
     # Rate limiting configuration
     RATE_LIMIT_PER_MINUTE: int = 60  # General rate limit

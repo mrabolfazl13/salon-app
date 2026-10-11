@@ -16,12 +16,17 @@ class AuthService:
     @staticmethod
     def create_user(uow: UnitOfWork, phone: str, full_name: str, password: str, role: str = "user") -> User:
         hashed_password = get_password_hash(password)
-        user = uow.users.create({
+        from app.config import settings
+        data = {
             "phone": phone,
             "full_name": full_name,
             "hashed_password": hashed_password,
             "role": role
-        })
+        }
+        # تا وقتی کانال تأیید (SMS/SMTP) فعال نیست، کاربر عادی بدون مانع رزرو کند
+        if settings.AUTO_VERIFY_USERS and role == "user":
+            data["is_verified"] = True
+        user = uow.users.create(data)
         return user
     
     @staticmethod

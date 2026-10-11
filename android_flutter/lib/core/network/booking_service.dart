@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'api_client.dart';
 import 'api_endpoints.dart';
 
@@ -21,6 +22,13 @@ class BookingService {
         },
       );
       return response.data as Map<String, dynamic>;
+    } on DioException catch (e) {
+      throw ApiException(
+        statusCode: e.response?.statusCode,
+        message: (e.message != null && e.message!.isNotEmpty)
+            ? 'خطا در ثبت رزرو: ${e.message}'
+            : 'خطا در ثبت رزرو',
+      );
     } catch (e) {
       throw Exception('خطا در ثبت رزرو: ${e.toString()}');
     }

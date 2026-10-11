@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.6.1] - 2026-10-12
+
+### 🐛 Fixed
+- Backend: new `AUTO_VERIFY_USERS` setting — regular users are auto-verified at registration while no SMS/SMTP delivery channel is configured, unblocking booking (403 «تایید کنید» removed). OTP login now also marks the phone verified.
+- Mobile: booking submit errors now surface the real backend detail — a 403 shows the friendly Persian message «برای رزرو، ابتدا شماره موبایل خود را تأیید کنید» instead of a raw DioException dump.
+
+### ✨ Added
+- CI: `android-emulator-test.yml` — workflow_dispatch job that runs the full register→login→book flow as an integration test on an Android emulator against the production API.
+
 ## [v1.6.0] - 2026-10-12
 
 ### ✨ Added

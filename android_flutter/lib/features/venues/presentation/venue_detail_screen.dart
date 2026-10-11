@@ -1207,6 +1207,17 @@ class _BookingSheetState extends State<_BookingSheet> {
         _result = result;
         _submitting = false;
       });
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      final friendly = e.statusCode == 403
+          ? 'برای رزرو، ابتدا شماره موبایل خود را تأیید کنید'
+          : (e.message.isNotEmpty ? e.message : 'ثبت رزرو انجام نشد');
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text(friendly),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ));
     } catch (e) {
       if (!mounted) return;
       setState(() => _submitting = false);

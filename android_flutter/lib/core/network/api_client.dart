@@ -2,6 +2,16 @@ import 'package:dio/dio.dart';
 import 'package:flutter/foundation.dart';
 import '../storage/token_storage.dart';
 
+/// خطای API با کد وضعیت و پیام خوانا (detail باز‌شده از پاکت FastAPI)
+class ApiException implements Exception {
+  final int? statusCode;
+  final String message;
+  const ApiException({this.statusCode, required this.message});
+
+  @override
+  String toString() => message;
+}
+
 /// API Client configuration matching Tauri application
 class ApiClient {
   static final Dio instance = Dio(_createOptions());
