@@ -5,6 +5,19 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.5.2] - 2026-10-11
+
+### 🔧 Fixed
+- Android: app crashed instantly on launch (`ClassNotFoundException: ir.absadeghi.salon.MainActivity`) — MainActivity still lived in the Flutter-template package `com.example.android_flutter_temp` while `namespace`/`applicationId` are `ir.absadeghi.salon`; moved the class to match (this is the real cause of "APK installs but never opens" on phones)
+- Flutter Android/iOS builds had been failing on CI since 2b5acc7 (11 Dart compile errors — DioException rebuild, AuthResponse refresh_token, Jalali helpers, AppTypography imports, FCM service imports); all fixed in 803c253
+- Release job no longer blocked by the failing iOS job (0ac7f6f)
+
+## [v1.5.1] - 2026-10-10
+
+### 🚀 Added
+- FCM push notifications (booking reminders, announcements) with graceful fallback when Firebase config is absent
+- OTP login, refresh-token auth, HTTPS, permissions matrix, Celery beat tasks (Phase 27 features 10–16)
+
 ## [v1.4.2] - 2026-10-09
 
 ### 🔧 Fixed
