@@ -1,5 +1,5 @@
 """Waitlist API endpoints."""
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlmodel import Session, select
 from app.database import get_session
 from app.models.waitlist import WaitlistEntry
