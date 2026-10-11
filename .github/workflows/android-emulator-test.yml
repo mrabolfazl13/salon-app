@@ -39,7 +39,19 @@ jobs:
           target: google_apis
           arch: x86_64
           profile: pixel_5
-          script: cd android_flutter && flutter test integration_test/booking_flow_test.dart --no-pub
+          script: |
+            cd android_flutter && flutter test integration_test/booking_flow_test.dart --no-pub
+            EXIT=$?
+            adb logcat -d -t 4000 > "$GITHUB_WORKSPACE/logcat.txt" 2>&1 || true
+            exit $EXIT
+
+      - name: Upload emulator logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: emulator-logcat
+          path: logcat.txt
+          if-no-files-found: ignore
 
       - name: Surface result
         if: always()
