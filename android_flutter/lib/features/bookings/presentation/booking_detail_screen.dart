@@ -1,13 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:qr_flutter/qr_flutter.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
+import '../../../core/network/booking_service.dart';
+import '../../../core/network/checkin_service.dart';
+import '../../../core/utils/fa_format.dart';
+import '../../../core/utils/jalali.dart';
 import '../../../core/widgets/app_button.dart';
 
-class BookingDetailScreen extends ConsumerWidget {
+class BookingDetailScreen extends ConsumerStatefulWidget {
   final String bookingId;
 
   const BookingDetailScreen({
@@ -16,26 +21,200 @@ class BookingDetailScreen extends ConsumerWidget {
   });
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    // Mock data - will be replaced with API call
-    final booking = <String, dynamic>{
-      'id': bookingId,
-      'venue': 'سالن فوتسال المپیک',
-      'address': 'تهران، خیابان ولیعصر',
-      'date': '۱۴۰۳/۰۸/۱۵',
-      'time': '۱۸:۰۰ - ۱۹:۰۰',
-      'status': 'confirmed',
-      'price': 350000,
-      'court': 'زمین شماره ۱',
-      'players': 10,
-      'paymentMethod': 'آنلاین',
-      'createdAt': '۱۴۰۳/۰۸/۱۰',
-    };
+  ConsumerState<BookingDetailScreen> createState() => _BookingDetailScreenState();
+}
+
+class _BookingDetailScreenState extends ConsumerState<BookingDetailScreen> {
+  Map<String, dynamic>? _booking;
+  bool _loading = true;
+  String? _error;
+  bool _cancelling = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final booking = await BookingService.getBooking(widget.bookingId);
+      if (!mounted) return;
+      setState(() {
+        _booking = booking;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  Color _getStatusColor(String status) {
+    switch (status) {
+      case 'confirmed':
+        return AppColors.success;
+      case 'pending':
+        return AppColors.warning;
+      case 'completed':
+        return AppColors.info;
+      case 'cancelled':
+        return AppColors.error;
+      default:
+        return AppColors.blue;
+    }
+  }
+
+  String _getStatusText(String status) {
+    switch (status) {
+      case 'confirmed':
+        return 'تأیید شده';
+      case 'pending':
+        return 'در انتظار تأیید';
+      case 'completed':
+        return 'تکمیل شده';
+      case 'cancelled':
+        return 'لغو شده';
+      default:
+        return status;
+    }
+  }
+
+  Future<void> _cancel() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('لغو رزرو'),
+        content: const Text('آیا از لغو این رزرو مطمئن هستید؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('انصراف'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('لغو رزرو'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    setState(() => _cancelling = true);
+    try {
+      await BookingService.cancelBooking(widget.bookingId);
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('رزرو لغو شد'),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ));
+      _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('خطا: $e'),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ));
+    } finally {
+      if (mounted) setState(() => _cancelling = false);
+    }
+  }
+
+  Future<void> _showTicket() async {
+    try {
+      final qr = await CheckinService.getQrCode(widget.bookingId);
+      final code = (qr['check_in_code'] ?? '').toString();
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('بلیط ورود'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (code.isNotEmpty)
+                QrImageView(data: code, size: 200)
+              else
+                const Text('کد ورود یافت نشد'),
+              const SizedBox(height: AppSpacing.md),
+              Text(
+                FaFormat.digits(code),
+                style: AppTypography.bodyLarge.copyWith(fontWeight: FontWeight.w700),
+              ),
+            ],
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('بستن'),
+            ),
+          ],
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('خطا: $e'),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_loading) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('جزئیات رزرو')),
+        body: const Center(child: CircularProgressIndicator()),
+      );
+    }
+    if (_error != null || _booking == null) {
+      return Scaffold(
+        appBar: AppBar(title: const Text('جزئیات رزرو')),
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Padding(
+                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                child: Text(_error ?? 'یافت نشد', textAlign: TextAlign.center),
+              ),
+              const SizedBox(height: AppSpacing.md),
+              ElevatedButton(onPressed: _load, child: const Text('تلاش مجدد')),
+            ],
+          ),
+        ),
+      );
+    }
+
+    final booking = _booking!;
+    final status = (booking['status'] ?? '').toString();
+    final venueName = (booking['venue_name'] ?? 'سالن').toString();
+    final slotDate = (booking['slot_date'] ?? '').toString();
+    final startTime = (booking['start_time'] ?? '').toString();
+    final duration = (booking['duration'] as num?)?.toInt() ?? 0;
+    final paymentAmount = (booking['payment_amount'] as num?) ?? 0;
+    final discountAmount = (booking['discount_amount'] as num?) ?? 0;
+    final couponCode = (booking['coupon_code'] ?? '').toString();
+    final loyaltyUsed = (booking['loyalty_points_used'] as num?) ?? 0;
+    final bookedAt = (booking['booked_at'] ?? '').toString();
 
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // App Bar
           SliverAppBar(
             expandedHeight: 200,
             pinned: true,
@@ -59,7 +238,7 @@ class BookingDetailScreen extends ConsumerWidget {
                       ),
                       const SizedBox(height: AppSpacing.sm),
                       Text(
-                        booking['venue'],
+                        venueName,
                         style: AppTypography.h6.copyWith(
                           color: Colors.white,
                           fontWeight: FontWeight.w700,
@@ -72,46 +251,64 @@ class BookingDetailScreen extends ConsumerWidget {
             ),
           ),
 
-          // Content
           SliverToBoxAdapter(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.lg),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  // Status badge
-                  _buildStatusBadge(context, (booking['status'] ?? '').toString()),
+                  _buildStatusBadge(status),
                   const SizedBox(height: AppSpacing.xl),
 
-                  // Booking details card
-                  _buildDetailCard(context, booking),
+                  _buildDetailCard(
+                    context,
+                    'جزئیات رزرو',
+                    [
+                      _row('کد رزرو', '#${FaFormat.digits(widget.bookingId)}'),
+                      if (slotDate.isNotEmpty)
+                        _row('تاریخ', JalaliDate.formatIsoDate(slotDate)),
+                      if (startTime.isNotEmpty)
+                        _row('ساعت',
+                            '${FaFormat.time(startTime)} — ${FaFormat.slotEndTime(startTime, duration)}'),
+                      if (duration > 0)
+                        _row('مدت', '${FaFormat.faNum(duration)} دقیقه'),
+                    ],
+                  ),
                   const SizedBox(height: AppSpacing.md),
 
-                  // Venue info card
-                  _buildVenueInfoCard(context, booking),
-                  const SizedBox(height: AppSpacing.md),
-
-                  // Payment info card
-                  _buildPaymentCard(context, booking),
+                  _buildDetailCard(
+                    context,
+                    'اطلاعات پرداخت',
+                    [
+                      _row('مبلغ نهایی', FaFormat.price(paymentAmount)),
+                      if (discountAmount > 0)
+                        _row('تخفیف', FaFormat.price(discountAmount)),
+                      if (couponCode.isNotEmpty) _row('کد تخفیف', couponCode),
+                      if (loyaltyUsed > 0)
+                        _row('امتیاز استفاده‌شده', FaFormat.faNum(loyaltyUsed)),
+                      if (bookedAt.isNotEmpty)
+                        _row('تاریخ ثبت', JalaliDate.formatIsoDateTime(bookedAt)),
+                    ],
+                  ),
                   const SizedBox(height: AppSpacing.xl),
 
-                  // Action buttons
-                  if (booking['status'] == 'confirmed' || booking['status'] == 'pending')
+                  if (status == 'confirmed' || status == 'pending')
                     Column(
                       children: [
                         AppButton(
-                          text: 'لغو رزرو',
-                          onPressed: () => _showCancelDialog(context, booking),
+                          text: _cancelling ? 'در حال لغو...' : 'لغو رزرو',
+                          onPressed: _cancelling ? null : _cancel,
                           outlined: true,
                         ),
                         const SizedBox(height: AppSpacing.sm),
                         AppButton(
                           text: 'دریافت بلیط',
-                          onPressed: () {},
+                          onPressed: _showTicket,
                           gradient: true,
                         ),
                       ],
                     ),
+                  const SizedBox(height: AppSpacing.lg),
                 ],
               ),
             ),
@@ -121,32 +318,8 @@ class BookingDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildStatusBadge(BuildContext context, String status) {
-    Color color;
-    String text;
-
-    switch (status) {
-      case 'confirmed':
-        color = AppColors.success;
-        text = 'تأیید شده';
-        break;
-      case 'pending':
-        color = AppColors.warning;
-        text = 'در انتظار تأیید';
-        break;
-      case 'completed':
-        color = AppColors.info;
-        text = 'تکمیل شده';
-        break;
-      case 'cancelled':
-        color = AppColors.error;
-        text = 'لغو شده';
-        break;
-      default:
-        color = AppColors.blue;
-        text = status;
-    }
-
+  Widget _buildStatusBadge(String status) {
+    final color = _getStatusColor(status);
     return Container(
       padding: const EdgeInsets.symmetric(
         horizontal: AppSpacing.md,
@@ -163,7 +336,7 @@ class BookingDetailScreen extends ConsumerWidget {
           Icon(Icons.check_circle, size: 18, color: color),
           const SizedBox(width: AppSpacing.xs),
           Text(
-            text,
+            _getStatusText(status),
             style: AppTypography.bodyMedium.copyWith(
               color: color,
               fontWeight: FontWeight.w600,
@@ -174,8 +347,10 @@ class BookingDetailScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildDetailCard(BuildContext context, Map<String, dynamic> booking) {
+  Widget _buildDetailCard(
+      BuildContext context, String title, List<Widget> rows) {
     return Container(
+      width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
         color: Theme.of(context).brightness == Brightness.dark
@@ -188,102 +363,19 @@ class BookingDetailScreen extends ConsumerWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'جزئیات رزرو',
+            title,
             style: AppTypography.h6.copyWith(
               fontWeight: FontWeight.w700,
             ),
           ),
           const Divider(height: AppSpacing.xl),
-          _buildDetailRow(context, 'کد رزرو', '#${booking['id']}'),
-          _buildDetailRow(context, 'تاریخ', booking['date']),
-          _buildDetailRow(context, 'ساعت', booking['time']),
-          _buildDetailRow(context, 'زمین', booking['court']),
-          _buildDetailRow(context, 'تعداد بازیکنان', '${booking['players']} نفر'),
+          ...rows,
         ],
       ),
     );
   }
 
-  Widget _buildVenueInfoCard(BuildContext context, Map<String, dynamic> booking) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkSurface
-            : Colors.white,
-        borderRadius: AppRadius.cardBorderRadius,
-        border: Border.all(color: Theme.of(context).dividerColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'اطلاعات سالن',
-            style: AppTypography.h6.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const Divider(height: AppSpacing.xl),
-          Row(
-            children: [
-              const Icon(Icons.location_on, size: 18, color: AppColors.amber),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
-                  booking['address'],
-                  style: AppTypography.bodyMedium,
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          ElevatedButton.icon(
-            onPressed: () {},
-            icon: const Icon(Icons.map, size: 18),
-            label: const Text('مشاهده روی نقشه'),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.blue.withOpacity(0.1),
-              foregroundColor: AppColors.blue,
-              elevation: 0,
-              shape: RoundedRectangleBorder(
-                borderRadius: AppRadius.buttonBorderRadius,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPaymentCard(BuildContext context, Map<String, dynamic> booking) {
-    return Container(
-      padding: const EdgeInsets.all(AppSpacing.md),
-      decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark
-            ? AppColors.darkSurface
-            : Colors.white,
-        borderRadius: AppRadius.cardBorderRadius,
-        border: Border.all(color: Theme.of(context).dividerColor),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(
-            'اطلاعات پرداخت',
-            style: AppTypography.h6.copyWith(
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const Divider(height: AppSpacing.xl),
-          _buildDetailRow(context, 'مبلغ', '${_formatPrice(booking['price'])}'),
-          _buildDetailRow(context, 'روش پرداخت', booking['paymentMethod']),
-          _buildDetailRow(context, 'تاریخ ثبت', booking['createdAt']),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(BuildContext context, String label, String value) {
+  Widget _row(String label, String value) {
     return Padding(
       padding: const EdgeInsets.only(bottom: AppSpacing.sm),
       child: Row(
@@ -295,51 +387,16 @@ class BookingDetailScreen extends ConsumerWidget {
               color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
             ),
           ),
-          Text(
-            value,
-            style: AppTypography.bodyMedium.copyWith(
-              fontWeight: FontWeight.w600,
+          Flexible(
+            child: Text(
+              value,
+              style: AppTypography.bodyMedium.copyWith(
+                fontWeight: FontWeight.w600,
+              ),
             ),
           ),
         ],
       ),
     );
-  }
-
-  void _showCancelDialog(BuildContext context, Map<String, dynamic> booking) {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('لغو رزرو'),
-        content: Text('آیا از لغو رزرو ${booking['venue']} مطمئن هستید؟'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('انصراف'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Cancel booking logic
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('رزرو با موفقیت لغو شد'),
-                  backgroundColor: AppColors.success,
-                ),
-              );
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.error,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('لغو رزرو'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  String _formatPrice(int price) {
-    return '${(price / 1000).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} تومان';
   }
 }

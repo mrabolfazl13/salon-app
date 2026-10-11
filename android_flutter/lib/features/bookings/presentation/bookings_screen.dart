@@ -6,6 +6,9 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
+import '../../../core/network/booking_service.dart';
+import '../../../core/utils/fa_format.dart';
+import '../../../core/utils/jalali.dart';
 
 class BookingsScreen extends ConsumerStatefulWidget {
   const BookingsScreen({super.key});
@@ -16,50 +19,42 @@ class BookingsScreen extends ConsumerStatefulWidget {
 
 class _BookingsScreenState extends ConsumerState<BookingsScreen> {
   String _selectedFilter = 'all';
+  bool _loading = true;
+  String? _error;
+  List<dynamic> _bookings = [];
 
-  // Mock data
-  final List<Map<String, dynamic>> _bookings = [
-    {
-      'id': '1',
-      'venue': 'سالن فوتسال المپیک',
-      'date': '۱۴۰۳/۰۸/۱۵',
-      'time': '۱۸:۰۰ - ۱۹:۰۰',
-      'status': 'confirmed',
-      'price': 350000,
-      'court': 'زمین شماره ۱',
-    },
-    {
-      'id': '2',
-      'venue': 'مجموعه ورزشی آزادی',
-      'date': '۱۴۰۳/۰۸/۲۰',
-      'time': '۲۰:۰۰ - ۲۱:۰۰',
-      'status': 'pending',
-      'price': 450000,
-      'court': 'زمین شماره ۳',
-    },
-    {
-      'id': '3',
-      'venue': 'سالن چندمنظوره انقلاب',
-      'date': '۱۴۰۳/۰۸/۱۰',
-      'time': '۱۶:۰۰ - ۱۷:۰۰',
-      'status': 'completed',
-      'price': 280000,
-      'court': 'زمین شماره ۲',
-    },
-    {
-      'id': '4',
-      'venue': 'باشگاه ورزشی قهرمان',
-      'date': '۱۴۰۳/۰۸/۰۵',
-      'time': '۱۹:۰۰ - ۲۰:۰۰',
-      'status': 'cancelled',
-      'price': 300000,
-      'court': 'زمین شماره ۱',
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
 
-  List<Map<String, dynamic>> get _filteredBookings {
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final bookings = await BookingService.getBookings();
+      if (!mounted) return;
+      setState(() {
+        _bookings = bookings;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  List<dynamic> get _filteredBookings {
     if (_selectedFilter == 'all') return _bookings;
-    return _bookings.where((b) => b['status'] == _selectedFilter).toList();
+    return _bookings
+        .where((b) => (b['status'] ?? '').toString() == _selectedFilter)
+        .toList();
   }
 
   Color _getStatusColor(String status) {
@@ -82,7 +77,7 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
       case 'confirmed':
         return 'تأیید شده';
       case 'pending':
-        return 'در انتظار';
+        return 'در انتظار تأیید';
       case 'completed':
         return 'تکمیل شده';
       case 'cancelled':
@@ -92,12 +87,54 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
     }
   }
 
+  Future<void> _cancelBooking(Map<String, dynamic> booking) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('لغو رزرو'),
+        content: Text(
+            'آیا از لغو رزرو ${booking['venue_name'] ?? ''} مطمئن هستید؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('انصراف'),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: AppColors.error,
+              foregroundColor: Colors.white,
+            ),
+            child: const Text('لغو رزرو'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+    try {
+      await BookingService.cancelBooking(booking['id'].toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('رزرو لغو شد'),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ));
+      _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('خطا: $e'),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ));
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // App Bar
           SliverAppBar(
             floating: true,
             pinned: true,
@@ -107,12 +144,6 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            actions: [
-              IconButton(
-                icon: const Icon(Icons.filter_list),
-                onPressed: () {},
-              ),
-            ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(60),
               child: SingleChildScrollView(
@@ -121,8 +152,8 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
                 child: Row(
                   children: [
                     _buildFilterChip('همه', 'all'),
-                    _buildFilterChip('فعال', 'confirmed'),
                     _buildFilterChip('در انتظار', 'pending'),
+                    _buildFilterChip('تأیید شده', 'confirmed'),
                     _buildFilterChip('تکمیل شده', 'completed'),
                     _buildFilterChip('لغو شده', 'cancelled'),
                   ],
@@ -131,58 +162,73 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
             ),
           ),
 
-          // Bookings list
           SliverPadding(
             padding: const EdgeInsets.all(AppSpacing.lg),
-            sliver: _filteredBookings.isEmpty
-                ? SliverFillRemaining(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.calendar_today_outlined,
-                            size: 64,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withOpacity(0.3),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            'رزروی یافت نشد',
-                            style: AppTypography.h6.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withOpacity(0.6),
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.sm),
-                          ElevatedButton(
-                            onPressed: () => context.push('/venues'),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.blue,
-                              foregroundColor: Colors.white,
-                              shape: RoundedRectangleBorder(
-                                borderRadius: AppRadius.buttonBorderRadius,
+            sliver: _loading
+                ? const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()))
+                : _error != null
+                    ? SliverFillRemaining(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(_error!, textAlign: TextAlign.center),
+                            const SizedBox(height: AppSpacing.md),
+                            ElevatedButton(
+                                onPressed: _load, child: const Text('تلاش مجدد')),
+                          ],
+                        ),
+                      )
+                    : _filteredBookings.isEmpty
+                        ? SliverFillRemaining(
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.calendar_today_outlined,
+                                    size: 64,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withOpacity(0.3),
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  Text(
+                                    'رزروی یافت نشد',
+                                    style: AppTypography.h6.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.6),
+                                    ),
+                                  ),
+                                  const SizedBox(height: AppSpacing.sm),
+                                  ElevatedButton(
+                                    onPressed: () => context.push('/venues'),
+                                    style: ElevatedButton.styleFrom(
+                                      backgroundColor: AppColors.blue,
+                                      foregroundColor: Colors.white,
+                                      shape: RoundedRectangleBorder(
+                                        borderRadius: AppRadius.buttonBorderRadius,
+                                      ),
+                                    ),
+                                    child: const Text('رزرو جدید'),
+                                  ),
+                                ],
                               ),
                             ),
-                            child: const Text('رزرو جدید'),
+                          )
+                        : SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final booking =
+                                    _filteredBookings[index] as Map<String, dynamic>;
+                                return _buildBookingCard(context, booking);
+                              },
+                              childCount: _filteredBookings.length,
+                            ),
                           ),
-                        ],
-                      ),
-                    ),
-                  )
-                : SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final booking = _filteredBookings[index];
-                        return _buildBookingCard(context, booking);
-                      },
-                      childCount: _filteredBookings.length,
-                    ),
-                  ),
           ),
         ],
       ),
@@ -229,7 +275,20 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
   }
 
   Widget _buildBookingCard(BuildContext context, Map<String, dynamic> booking) {
-    final statusColor = _getStatusColor(booking['status']);
+    final status = (booking['status'] ?? '').toString();
+    final statusColor = _getStatusColor(status);
+    final venueName = (booking['venue_name'] ?? 'سالن').toString();
+    final persianDate = (booking['slot_date_persian'] ?? '').toString();
+    final slotDate = (booking['slot_date'] ?? '').toString();
+    final dateLabel = persianDate.isNotEmpty
+        ? JalaliDate.formatIsoDate(slotDate)
+        : slotDate;
+    final startTime = (booking['start_time'] ?? '').toString();
+    final duration = (booking['duration'] as num?)?.toInt() ?? 0;
+    final timeLabel = startTime.isEmpty
+        ? ''
+        : '${FaFormat.time(startTime)} — ${FaFormat.slotEndTime(startTime, duration)}';
+    final price = (booking['payment_amount'] as num?) ?? 0;
 
     return InkWell(
       onTap: () => context.push('/bookings/${booking['id']}'),
@@ -247,13 +306,12 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            // Header with venue name and status
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Expanded(
                   child: Text(
-                    booking['venue'],
+                    venueName,
                     style: AppTypography.h6.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
@@ -271,7 +329,7 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
                     borderRadius: AppRadius.chipBorderRadius,
                   ),
                   child: Text(
-                    _getStatusText(booking['status']),
+                    _getStatusText(status),
                     style: AppTypography.caption.copyWith(
                       color: statusColor,
                       fontWeight: FontWeight.w600,
@@ -282,34 +340,36 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
             ),
             const SizedBox(height: AppSpacing.sm),
 
-            // Court info
+            if (dateLabel.isNotEmpty) ...[
+              Row(
+                children: [
+                  const Icon(
+                    Icons.calendar_today,
+                    size: 16,
+                    color: AppColors.amber,
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Text(
+                    dateLabel,
+                    style: AppTypography.bodyMedium.copyWith(
+                      color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.xs),
+            ],
+
             Row(
               children: [
                 const Icon(
-                  Icons.sports_soccer,
+                  Icons.schedule,
                   size: 16,
                   color: AppColors.blue,
                 ),
                 const SizedBox(width: AppSpacing.xs),
                 Text(
-                  booking['court'],
-                  style: AppTypography.bodyMedium,
-                ),
-              ],
-            ),
-            const SizedBox(height: AppSpacing.xs),
-
-            // Date and time
-            Row(
-              children: [
-                const Icon(
-                  Icons.calendar_today,
-                  size: 16,
-                  color: AppColors.amber,
-                ),
-                const SizedBox(width: AppSpacing.xs),
-                Text(
-                  '${booking['date']} • ${booking['time']}',
+                  timeLabel,
                   style: AppTypography.bodyMedium.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                   ),
@@ -318,22 +378,19 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
             ),
             const SizedBox(height: AppSpacing.md),
 
-            // Price and action button
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
                 Text(
-                  '${_formatPrice(booking['price'])}',
+                  FaFormat.price(price),
                   style: AppTypography.h6.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.success,
                   ),
                 ),
-                if (booking['status'] == 'confirmed' || booking['status'] == 'pending')
+                if (status == 'pending' || status == 'confirmed')
                   TextButton(
-                    onPressed: () {
-                      // Cancel booking logic
-                    },
+                    onPressed: () => _cancelBooking(booking),
                     style: TextButton.styleFrom(
                       foregroundColor: AppColors.error,
                     ),
@@ -345,9 +402,5 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
         ),
       ),
     );
-  }
-
-  String _formatPrice(int price) {
-    return '${(price / 1000).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} تومان';
   }
 }

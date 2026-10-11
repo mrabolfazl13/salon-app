@@ -278,7 +278,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     context,
                     icon: Icons.info_outline,
                     title: 'درباره برنامه',
-                    subtitle: 'نسخه ۱.۰.۰',
+                    subtitle: 'نسخه ۱.۶.۰',
                     onTap: () {},
                   ),
 

@@ -4,10 +4,27 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_radius.dart';
+import '../../../core/network/venue_service.dart';
+import '../../../core/utils/fa_format.dart';
 import '../../../core/widgets/bottom_nav_bar.dart';
 
-class HomeScreen extends StatelessWidget {
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> {
+  List<dynamic> _topVenues = [];
+
+  @override
+  void initState() {
+    super.initState();
+    VenueService.getVenues(limit: 6).then((venues) {
+      if (mounted) setState(() => _topVenues = venues);
+    }).catchError((_) {});
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -141,6 +158,111 @@ class HomeScreen extends StatelessWidget {
                   ),
 
                   const SizedBox(height: AppSpacing.xl),
+
+                  // Top venues (real API)
+                  if (_topVenues.isNotEmpty) ...[
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          'سالن‌های برتر',
+                          style: AppTypography.h5.copyWith(
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                        TextButton(
+                          onPressed: () => context.push('/venues'),
+                          child: const Text('مشاهده همه'),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                    SizedBox(
+                      height: 210,
+                      child: ListView.separated(
+                        scrollDirection: Axis.horizontal,
+                        itemCount: _topVenues.length,
+                        separatorBuilder: (_, __) => const SizedBox(width: AppSpacing.md),
+                        itemBuilder: (context, index) {
+                          final venue = _topVenues[index] as Map<String, dynamic>;
+                          final rating = (venue['average_rating'] as num?) ?? 0.0;
+                          final price = (venue['price'] as num?) ?? 0;
+                          return SizedBox(
+                            width: 200,
+                            child: Card(
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: AppRadius.cardBorderRadius,
+                                side: BorderSide(color: Theme.of(context).dividerColor),
+                              ),
+                              child: InkWell(
+                                onTap: () => context.push('/venues/${venue['id']}'),
+                                borderRadius: AppRadius.cardBorderRadius,
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Container(
+                                      height: 100,
+                                      width: double.infinity,
+                                      decoration: BoxDecoration(
+                                        gradient: const LinearGradient(
+                                          colors: [AppColors.navy, AppColors.blue],
+                                        ),
+                                        borderRadius: const BorderRadius.vertical(
+                                          top: Radius.circular(AppRadius.card),
+                                        ),
+                                      ),
+                                      child: const Icon(
+                                        Icons.sports_soccer,
+                                        size: 40,
+                                        color: Colors.white24,
+                                      ),
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.all(AppSpacing.sm),
+                                      child: Column(
+                                        crossAxisAlignment: CrossAxisAlignment.start,
+                                        children: [
+                                          Text(
+                                            (venue['name'] ?? '').toString(),
+                                            style: AppTypography.bodyMedium
+                                                .copyWith(fontWeight: FontWeight.w600),
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                          ),
+                                          const SizedBox(height: 4),
+                                          Row(
+                                            children: [
+                                              const Icon(Icons.star,
+                                                  size: 14, color: AppColors.amber),
+                                              const SizedBox(width: 2),
+                                              Text(
+                                                rating.toStringAsFixed(1),
+                                                style: AppTypography.caption,
+                                              ),
+                                              const Spacer(),
+                                              Text(
+                                                FaFormat.toman(price),
+                                                style: AppTypography.caption.copyWith(
+                                                  color: AppColors.success,
+                                                  fontWeight: FontWeight.w600,
+                                                ),
+                                              ),
+                                            ],
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.xl),
+                  ],
 
                   // Features
                   Text(

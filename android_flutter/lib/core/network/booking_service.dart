@@ -4,78 +4,54 @@ import 'api_endpoints.dart';
 class BookingService {
   static final _client = ApiClient.instance;
 
-  /// Create new booking
+  /// POST /bookings — بدنه snake_case مثل وب: {slot_id, discount_code?, use_loyalty_points}
   static Future<Map<String, dynamic>> createBooking({
-    required String venueId,
     required String slotId,
-    required String date,
-    String? couponCode,
+    String? discountCode,
+    bool useLoyaltyPoints = false,
   }) async {
     try {
       final response = await _client.post(
         ApiEndpoints.bookings,
         data: {
-          'venue_id': venueId,
           'slot_id': slotId,
-          'date': date,
-          if (couponCode != null) 'coupon_code': couponCode,
+          'use_loyalty_points': useLoyaltyPoints,
+          if (discountCode != null && discountCode.isNotEmpty)
+            'discount_code': discountCode,
         },
       );
-      return response.data;
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw Exception('خطا در ثبت رزرو: ${e.toString()}');
     }
   }
 
-  /// Get user bookings
-  static Future<List<dynamic>> getBookings({
-    String? status,
-    int? page,
-    int? limit,
-  }) async {
+  /// GET /bookings
+  static Future<List<dynamic>> getBookings() async {
     try {
-      final queryParams = <String, dynamic>{
-        if (status != null) 'status': status,
-        if (page != null) 'page': page,
-        if (limit != null) 'limit': limit,
-      };
-
-      final response = await _client.get(
-        ApiEndpoints.bookings,
-        queryParameters: queryParams.isNotEmpty ? queryParams : null,
-      );
-      return response.data['bookings'] ?? response.data;
+      final response = await _client.get(ApiEndpoints.bookings);
+      return response.data is List ? response.data : const [];
     } catch (e) {
       throw Exception('خطا در دریافت رزروها: ${e.toString()}');
     }
   }
 
-  /// Get booking by ID
+  /// GET /bookings/{id}
   static Future<Map<String, dynamic>> getBooking(String id) async {
     try {
       final response = await _client.get(ApiEndpoints.booking(id));
-      return response.data;
+      return response.data as Map<String, dynamic>;
     } catch (e) {
       throw Exception('خطا در دریافت اطلاعات رزرو: ${e.toString()}');
     }
   }
 
-  /// Cancel booking
+  /// DELETE /bookings/{id} — لغو رزرو
   static Future<void> cancelBooking(String id) async {
     try {
-      await _client.post(ApiEndpoints.booking('$id/cancel'));
+      await _client.delete(ApiEndpoints.booking(id));
     } catch (e) {
       throw Exception('خطا در لغو رزرو: ${e.toString()}');
-    }
-  }
-
-  /// Pay for booking
-  static Future<Map<String, dynamic>> payBooking(String id) async {
-    try {
-      final response = await _client.post(ApiEndpoints.booking('$id/pay'));
-      return response.data;
-    } catch (e) {
-      throw Exception('خطا در پرداخت رزرو: ${e.toString()}');
     }
   }
 }

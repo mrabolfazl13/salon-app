@@ -11,14 +11,26 @@ abstract final class ApiEndpoints {
   static const venues = '/venues';
   static String venue(String id) => '/venues/$id';
   static String venueSlots(String id) => '/slots/venue/$id';
-  
+  static String venueSlotsRange(String id) => '/slots/venue/$id/range';
+
   // Bookings
   static const bookings = '/bookings';
   static String booking(String id) => '/bookings/$id';
-  
+
   // User
   static const profile = '/profile';
   static const favorites = '/favorites';
+  static String favoriteVenue(String venueId) => '/favorites/$venueId';
+
+  // Reviews
+  static String venueReviews(String venueId) => '/reviews/venue/$venueId';
+  static String venueReviewsSummary(String venueId) => '/reviews/venue/$venueId/summary';
+
+  // Loyalty
+  static const loyaltyMe = '/loyalty/me';
+
+  // Memberships (gym venues)
+  static const membershipPlans = '/memberships/plans';
   
   // Competitions
   static const competitions = '/competitions';

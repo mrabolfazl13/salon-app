@@ -6,6 +6,8 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
+import '../../../core/network/venue_service.dart';
+import '../../../core/utils/fa_format.dart';
 
 class FavoritesScreen extends ConsumerStatefulWidget {
   const FavoritesScreen({super.key});
@@ -15,36 +17,55 @@ class FavoritesScreen extends ConsumerStatefulWidget {
 }
 
 class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
-  // Mock data
-  final List<Map<String, dynamic>> _favorites = [
-    {
-      'id': '1',
-      'name': 'سالن فوتسال المپیک',
-      'location': 'تهران، خیابان ولیعصر',
-      'price': 250000,
-      'rating': 4.8,
-      'category': 'فوتسال',
-    },
-    {
-      'id': '3',
-      'name': 'سالن چندمنظوره ستاره',
-      'location': 'تهران، سعادت‌آباد',
-      'price': 200000,
-      'rating': 4.9,
-      'category': 'فوتسال',
-    },
-  ];
+  bool _loading = true;
+  String? _error;
+  List<dynamic> _favorites = [];
 
-  void _removeFavorite(String id) {
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
     setState(() {
-      _favorites.removeWhere((f) => f['id'] == id);
+      _loading = true;
+      _error = null;
     });
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('از علاقه‌مندی‌ها حذف شد'),
-        behavior: SnackBarBehavior.floating,
-      ),
-    );
+    try {
+      final favorites = await VenueService.getFavorites();
+      if (!mounted) return;
+      setState(() {
+        _favorites = favorites;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _removeFavorite(Map<String, dynamic> venue) async {
+    final venueId = venue['id'].toString();
+    try {
+      await VenueService.removeFromFavorites(venueId);
+      if (!mounted) return;
+      setState(() => _favorites.removeWhere((v) => v['id'].toString() == venueId));
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('از علاقه‌مندی‌ها حذف شد'),
+          behavior: SnackBarBehavior.floating,
+        ),
+      );
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('خطا: $e'), behavior: SnackBarBehavior.floating),
+      );
+    }
   }
 
   @override
@@ -52,7 +73,6 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // App Bar
           SliverAppBar(
             floating: true,
             pinned: true,
@@ -64,8 +84,21 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
             ),
           ),
 
-          // Content
-          if (_favorites.isEmpty)
+          if (_loading)
+            const SliverFillRemaining(
+                child: Center(child: CircularProgressIndicator()))
+          else if (_error != null)
+            SliverFillRemaining(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(_error!, textAlign: TextAlign.center),
+                  const SizedBox(height: AppSpacing.md),
+                  ElevatedButton(onPressed: _load, child: const Text('تلاش مجدد')),
+                ],
+              ),
+            )
+          else if (_favorites.isEmpty)
             SliverFillRemaining(
               child: Center(
                 child: Column(
@@ -111,7 +144,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
                   (context, index) {
-                    final venue = _favorites[index];
+                    final venue = _favorites[index] as Map<String, dynamic>;
                     return _buildFavoriteCard(context, venue);
                   },
                   childCount: _favorites.length,
@@ -124,8 +157,14 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   }
 
   Widget _buildFavoriteCard(BuildContext context, Map<String, dynamic> venue) {
+    final name = (venue['name'] ?? '').toString();
+    final address = (venue['address'] ?? '').toString();
+    final price = (venue['price'] as num?) ?? (venue['default_slot_price'] as num?) ?? 0;
+    final rating = (venue['average_rating'] as num?) ?? 0.0;
+    final category = (venue['category'] ?? '').toString() == 'gym' ? 'باشگاه' : 'فوتسال';
+
     return Dismissible(
-      key: Key(venue['id']),
+      key: Key(venue['id'].toString()),
       direction: DismissDirection.endToStart,
       background: Container(
         alignment: Alignment.centerRight,
@@ -140,7 +179,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
           size: 28,
         ),
       ),
-      onDismissed: (_) => _removeFavorite(venue['id']),
+      onDismissed: (_) => _removeFavorite(venue),
       child: InkWell(
         onTap: () => context.push('/venues/${venue['id']}'),
         borderRadius: AppRadius.cardBorderRadius,
@@ -177,7 +216,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      venue['name'],
+                      name,
                       style: AppTypography.bodyMedium.copyWith(
                         fontWeight: FontWeight.w700,
                       ),
@@ -189,7 +228,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                         const SizedBox(width: AppSpacing.xs),
                         Expanded(
                           child: Text(
-                            venue['location'],
+                            address,
                             style: AppTypography.caption.copyWith(
                               color: Theme.of(context)
                                   .colorScheme
@@ -215,7 +254,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                             borderRadius: AppRadius.chipBorderRadius,
                           ),
                           child: Text(
-                            venue['category'],
+                            category,
                             style: AppTypography.caption.copyWith(
                               color: AppColors.blue,
                               fontWeight: FontWeight.w600,
@@ -226,7 +265,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                         const Icon(Icons.star, size: 14, color: AppColors.amber),
                         const SizedBox(width: AppSpacing.xs),
                         Text(
-                          venue['rating'].toString(),
+                          rating.toStringAsFixed(1),
                           style: AppTypography.caption,
                         ),
                       ],
@@ -238,7 +277,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                 crossAxisAlignment: CrossAxisAlignment.end,
                 children: [
                   Text(
-                    '${_formatPrice(venue['price'])}',
+                    FaFormat.toman(price),
                     style: AppTypography.bodyMedium.copyWith(
                       fontWeight: FontWeight.w700,
                       color: AppColors.blue,
@@ -247,7 +286,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
                   const SizedBox(height: AppSpacing.xs),
                   IconButton(
                     icon: const Icon(Icons.favorite, color: AppColors.error, size: 20),
-                    onPressed: () => _removeFavorite(venue['id']),
+                    onPressed: () => _removeFavorite(venue),
                     padding: EdgeInsets.zero,
                     constraints: const BoxConstraints(),
                   ),
@@ -258,9 +297,5 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
         ),
       ),
     );
-  }
-
-  String _formatPrice(int price) {
-    return '${(price / 1000).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} ت';
   }
 }

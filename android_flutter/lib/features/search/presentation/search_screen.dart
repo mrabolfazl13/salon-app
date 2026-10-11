@@ -6,6 +6,8 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
+import '../../../core/network/venue_service.dart';
+import '../../../core/utils/fa_format.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -16,53 +18,43 @@ class SearchScreen extends ConsumerStatefulWidget {
 
 class _SearchScreenState extends ConsumerState<SearchScreen> {
   final _searchController = TextEditingController();
-  String _selectedCategory = 'all';
-  double _minPrice = 0;
-  double _maxPrice = 1000000;
-  bool _showFilters = false;
+  String? _selectedCategory; // null = همه
+  bool _loading = false;
+  bool _touched = false;
+  String? _error;
+  List<dynamic> _venues = [];
 
-  // Mock data
-  final List<Map<String, dynamic>> _venues = [
-    {
-      'id': '1',
-      'name': 'سالن فوتسال المپیک',
-      'location': 'تهران، خیابان ولیعصر',
-      'price': 250000,
-      'rating': 4.8,
-      'category': 'futsal',
-    },
-    {
-      'id': '2',
-      'name': 'باشگاه ورزشی قهرمان',
-      'location': 'تهران، میدان ونک',
-      'price': 300000,
-      'rating': 4.6,
-      'category': 'gym',
-    },
-    {
-      'id': '3',
-      'name': 'سالن چندمنظوره ستاره',
-      'location': 'تهران، سعادت‌آباد',
-      'price': 200000,
-      'rating': 4.9,
-      'category': 'futsal',
-    },
-  ];
+  static const _categories = <String?, String>{null: 'همه', 'futsal': 'فوتسال', 'gym': 'باشگاه'};
 
-  List<Map<String, dynamic>> get _filteredVenues {
-    return _venues.where((venue) {
-      if (_selectedCategory != 'all' && venue['category'] != _selectedCategory) {
-        return false;
-      }
-      if (venue['price'] < _minPrice || venue['price'] > _maxPrice) {
-        return false;
-      }
-      if (_searchController.text.isNotEmpty &&
-          !venue['name'].toString().contains(_searchController.text)) {
-        return false;
-      }
-      return true;
-    }).toList();
+  @override
+  void initState() {
+    super.initState();
+    _search();
+  }
+
+  Future<void> _search() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+      _touched = true;
+    });
+    try {
+      final venues = await VenueService.getVenues(
+        search: _searchController.text,
+        category: _selectedCategory,
+      );
+      if (!mounted) return;
+      setState(() {
+        _venues = venues;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
   }
 
   @override
@@ -70,7 +62,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     return Scaffold(
       body: CustomScrollView(
         slivers: [
-          // App Bar with Search
           SliverAppBar(
             floating: true,
             pinned: true,
@@ -80,16 +71,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 fontWeight: FontWeight.w700,
               ),
             ),
-            actions: [
-              IconButton(
-                icon: Icon(
-                  _showFilters ? Icons.filter_list : Icons.filter_list_outlined,
-                ),
-                onPressed: () {
-                  setState(() => _showFilters = !_showFilters);
-                },
-              ),
-            ],
             bottom: PreferredSize(
               preferredSize: const Size.fromHeight(70),
               child: Padding(
@@ -97,6 +78,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 child: TextField(
                   controller: _searchController,
                   autofocus: true,
+                  textInputAction: TextInputAction.search,
+                  onSubmitted: (_) => _search(),
                   decoration: InputDecoration(
                     hintText: 'جستجوی سالن، بازیکن، تیم...',
                     prefixIcon: const Icon(Icons.search),
@@ -104,7 +87,8 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                         ? IconButton(
                             icon: const Icon(Icons.clear),
                             onPressed: () {
-                              setState(() => _searchController.clear());
+                              _searchController.clear();
+                              _search();
                             },
                           )
                         : null,
@@ -117,149 +101,94 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       borderSide: BorderSide.none,
                     ),
                   ),
-                  onChanged: (_) => setState(() {}),
                 ),
               ),
             ),
           ),
 
-          // Filters panel
-          if (_showFilters)
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.all(AppSpacing.lg),
-                padding: const EdgeInsets.all(AppSpacing.md),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).brightness == Brightness.dark
-                      ? AppColors.darkSurface
-                      : Colors.white,
-                  borderRadius: AppRadius.cardBorderRadius,
-                  border: Border.all(color: Theme.of(context).dividerColor),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'فیلترها',
-                          style: AppTypography.h6.copyWith(
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _selectedCategory = 'all';
-                              _minPrice = 0;
-                              _maxPrice = 1000000;
-                            });
-                          },
-                          child: const Text('پاک کردن'),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-
-                    // Category filter
-                    Text(
-                      'دسته‌بندی',
-                      style: AppTypography.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    Wrap(
-                      spacing: AppSpacing.sm,
-                      runSpacing: AppSpacing.sm,
-                      children: [
-                        _buildFilterChip('همه', 'all'),
-                        _buildFilterChip('فوتسال', 'futsal'),
-                        _buildFilterChip('باشگاه', 'gym'),
-                      ],
-                    ),
-                    const SizedBox(height: AppSpacing.md),
-
-                    // Price range
-                    Text(
-                      'محدوده قیمت',
-                      style: AppTypography.bodyMedium.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: AppSpacing.sm),
-                    RangeSlider(
-                      values: RangeValues(_minPrice, _maxPrice),
-                      min: 0,
-                      max: 1000000,
-                      divisions: 20,
-                      labels: RangeLabels(
-                        '${_formatPrice(_minPrice.toInt())}',
-                        '${_formatPrice(_maxPrice.toInt())}',
-                      ),
-                      onChanged: (values) {
-                        setState(() {
-                          _minPrice = values.start;
-                          _maxPrice = values.end;
-                        });
-                      },
-                    ),
-                  ],
-                ),
+          // Category filter
+          SliverToBoxAdapter(
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+              child: Wrap(
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.sm,
+                children: _categories.entries
+                    .map((entry) => _buildFilterChip(entry.value, entry.key))
+                    .toList(),
               ),
             ),
+          ),
 
           // Results
           SliverPadding(
             padding: const EdgeInsets.all(AppSpacing.lg),
-            sliver: _filteredVenues.isEmpty
-                ? SliverFillRemaining(
-                    child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.search_off,
-                            size: 64,
-                            color: Theme.of(context)
-                                .colorScheme
-                                .onSurface
-                                .withOpacity(0.3),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            'نتیجه‌ای یافت نشد',
-                            style: AppTypography.h6.copyWith(
-                              color: Theme.of(context)
-                                  .colorScheme
-                                  .onSurface
-                                  .withOpacity(0.6),
+            sliver: _loading
+                ? const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()))
+                : _error != null
+                    ? SliverFillRemaining(
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(_error!, textAlign: TextAlign.center),
+                            const SizedBox(height: AppSpacing.md),
+                            ElevatedButton(
+                                onPressed: _search, child: const Text('تلاش مجدد')),
+                          ],
+                        ),
+                      )
+                    : _venues.isEmpty
+                        ? SliverFillRemaining(
+                            child: Center(
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.search_off,
+                                    size: 64,
+                                    color: Theme.of(context)
+                                        .colorScheme
+                                        .onSurface
+                                        .withOpacity(0.3),
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  Text(
+                                    _touched ? 'نتیجه‌ای یافت نشد' : 'جستجو کنید...',
+                                    style: AppTypography.h6.copyWith(
+                                      color: Theme.of(context)
+                                          .colorScheme
+                                          .onSurface
+                                          .withOpacity(0.6),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          )
+                        : SliverList(
+                            delegate: SliverChildBuilderDelegate(
+                              (context, index) {
+                                final venue =
+                                    _venues[index] as Map<String, dynamic>;
+                                return _buildVenueCard(context, venue);
+                              },
+                              childCount: _venues.length,
                             ),
                           ),
-                        ],
-                      ),
-                    ),
-                  )
-                : SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final venue = _filteredVenues[index];
-                        return _buildVenueCard(context, venue);
-                      },
-                      childCount: _filteredVenues.length,
-                    ),
-                  ),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildFilterChip(String label, String value) {
+  Widget _buildFilterChip(String label, String? value) {
     final isSelected = _selectedCategory == value;
     return InkWell(
-      onTap: () => setState(() => _selectedCategory = value),
+      onTap: () {
+        setState(() => _selectedCategory = value);
+        _search();
+      },
       borderRadius: AppRadius.chipBorderRadius,
       child: Container(
         padding: const EdgeInsets.symmetric(
@@ -291,6 +220,11 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   }
 
   Widget _buildVenueCard(BuildContext context, Map<String, dynamic> venue) {
+    final name = (venue['name'] ?? '').toString();
+    final address = (venue['address'] ?? '').toString();
+    final price = (venue['price'] as num?) ?? (venue['default_slot_price'] as num?) ?? 0;
+    final rating = (venue['average_rating'] as num?) ?? 0.0;
+
     return InkWell(
       onTap: () => context.push('/venues/${venue['id']}'),
       borderRadius: AppRadius.cardBorderRadius,
@@ -326,7 +260,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    venue['name'],
+                    name,
                     style: AppTypography.bodyMedium.copyWith(
                       fontWeight: FontWeight.w600,
                     ),
@@ -338,7 +272,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                       const SizedBox(width: AppSpacing.xs),
                       Expanded(
                         child: Text(
-                          venue['location'],
+                          address,
                           style: AppTypography.caption.copyWith(
                             color: Theme.of(context)
                                 .colorScheme
@@ -358,7 +292,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
               crossAxisAlignment: CrossAxisAlignment.end,
               children: [
                 Text(
-                  '${_formatPrice(venue['price'])}',
+                  FaFormat.toman(price),
                   style: AppTypography.bodyMedium.copyWith(
                     fontWeight: FontWeight.w700,
                     color: AppColors.blue,
@@ -369,7 +303,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
                     const Icon(Icons.star, size: 14, color: AppColors.amber),
                     const SizedBox(width: AppSpacing.xs),
                     Text(
-                      venue['rating'].toString(),
+                      rating.toStringAsFixed(1),
                       style: AppTypography.caption,
                     ),
                   ],
@@ -380,10 +314,6 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
         ),
       ),
     );
-  }
-
-  String _formatPrice(int price) {
-    return '${(price / 1000).toString().replaceAllMapped(RegExp(r'(\d{1,3})(?=(\d{3})+(?!\d))'), (Match m) => '${m[1]},')} ت';
   }
 
   @override
