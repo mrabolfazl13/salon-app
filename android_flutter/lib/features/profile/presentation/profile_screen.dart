@@ -6,8 +6,10 @@ import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
+import '../../../core/network/auth_service.dart';
 import '../../../core/state/auth_provider.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/bottom_nav_bar.dart';
 
 class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
@@ -18,30 +20,144 @@ class ProfileScreen extends ConsumerStatefulWidget {
 
 class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   bool _isEditing = false;
+  bool _saving = false;
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _nameController;
-  late TextEditingController _emailController;
   late TextEditingController _phoneController;
 
   @override
   void initState() {
     super.initState();
-    // Initialize with mock data - will be replaced with actual user data
-    _nameController = TextEditingController(text: 'علی احمدی');
-    _emailController = TextEditingController(text: 'ali@example.com');
-    _phoneController = TextEditingController(text: '۰۹۱۲۳۴۵۶۷۸۹');
+    final user = ref.read(authProvider).value;
+    _nameController = TextEditingController(text: user?.fullName ?? '');
+    _phoneController = TextEditingController(text: user?.phone ?? '');
   }
 
   Future<void> _handleSave() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // Save profile logic here
-    setState(() => _isEditing = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('پروفایل با موفقیت به‌روزرسانی شد'),
-        backgroundColor: AppColors.success,
-        behavior: SnackBarBehavior.floating,
+    setState(() => _saving = true);
+    try {
+      await AuthService.updateProfile(_nameController.text);
+      await ref.read(authProvider.notifier).fetchUser();
+      if (mounted) {
+        setState(() => _isEditing = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('پروفایل با موفقیت به‌روزرسانی شد'),
+            backgroundColor: AppColors.success,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(e.toString()),
+            backgroundColor: AppColors.error,
+            behavior: SnackBarBehavior.floating,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _showChangePasswordDialog() async {
+    final oldController = TextEditingController();
+    final newController = TextEditingController();
+    final confirmController = TextEditingController();
+    final formKey = GlobalKey<FormState>();
+    var saving = false;
+    String? errorText;
+
+    await showDialog<void>(
+      context: context,
+      builder: (dialogContext) => StatefulBuilder(
+        builder: (dialogContext, setDialogState) => AlertDialog(
+          title: const Text('تغییر رمز عبور'),
+          content: Form(
+            key: formKey,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextFormField(
+                  controller: oldController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'رمز عبور فعلی'),
+                  validator: (value) =>
+                      (value == null || value.isEmpty) ? 'رمز عبور فعلی را وارد کنید' : null,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextFormField(
+                  controller: newController,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'رمز عبور جدید'),
+                  validator: (value) =>
+                      (value == null || value.length < 4) ? 'رمز جدید باید حداقل ۴ حرف باشد' : null,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                TextFormField(
+                  controller: confirmController,
+                  obscureText: true,
+                  decoration: InputDecoration(
+                    labelText: 'تکرار رمز عبور جدید',
+                    errorText: errorText,
+                  ),
+                  validator: (value) =>
+                      (value != newController.text) ? 'تکرار رمز مطابقت ندارد' : null,
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: saving ? null : () => Navigator.pop(dialogContext),
+              child: const Text('انصراف'),
+            ),
+            ElevatedButton(
+              onPressed: saving
+                  ? null
+                  : () async {
+                      if (!formKey.currentState!.validate()) return;
+                      setDialogState(() {
+                        saving = true;
+                        errorText = null;
+                      });
+                      try {
+                        await AuthService.changePassword(
+                          oldController.text,
+                          newController.text,
+                        );
+                        if (dialogContext.mounted) Navigator.pop(dialogContext);
+                        if (mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                              content: Text('رمز عبور با موفقیت تغییر کرد'),
+                              backgroundColor: AppColors.success,
+                              behavior: SnackBarBehavior.floating,
+                            ),
+                          );
+                        }
+                      } catch (e) {
+                        setDialogState(() {
+                          saving = false;
+                          errorText = e.toString();
+                        });
+                      }
+                    },
+              child: saving
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Text('ذخیره'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -83,6 +199,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     final user = authState is AsyncData ? authState.value : null;
 
     return Scaffold(
+      bottomNavigationBar: const AppBottomNavBar(),
       body: CustomScrollView(
         slivers: [
           // App Bar
@@ -98,8 +215,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
             actions: [
               if (_isEditing)
                 IconButton(
-                  icon: const Icon(Icons.check),
-                  onPressed: _handleSave,
+                  icon: _saving
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : const Icon(Icons.check),
+                  onPressed: _saving ? null : _handleSave,
                 )
               else
                 IconButton(
@@ -175,7 +298,12 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             borderRadius: AppRadius.chipBorderRadius,
                           ),
                           child: Text(
-                            user?.role == 'venue_manager' ? 'مدیر سالن' : 'کاربر عادی',
+                            switch (user?.role) {
+                              'venue_manager' => 'مدیر سالن',
+                              'club_admin' => 'مدیر باشگاه',
+                              'super_admin' => 'مدیر سیستم',
+                              _ => 'کاربر عادی',
+                            },
                             style: AppTypography.caption.copyWith(
                               color: AppColors.blue,
                               fontWeight: FontWeight.w600,
@@ -198,13 +326,13 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                             label: 'نام و نام خانوادگی',
                             controller: _nameController,
                             icon: Icons.person_outline,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                          _buildEditableField(
-                            label: 'ایمیل',
-                            controller: _emailController,
-                            icon: Icons.email_outlined,
-                            keyboardType: TextInputType.emailAddress,
+                            validator: (value) {
+                              final name = value?.trim() ?? '';
+                              if (name.isEmpty) return 'نام و نام خانوادگی را وارد کنید';
+                              if (name.length < 3) return 'نام باید حداقل ۳ حرف باشد';
+                              if (name.length > 100) return 'نام حداکثر ۱۰۰ حرف است';
+                              return null;
+                            },
                           ),
                           const SizedBox(height: AppSpacing.md),
                           _buildEditableField(
@@ -221,8 +349,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     Column(
                       children: [
                         _buildInfoCard('نام و نام خانوادگی', user?.fullName ?? _nameController.text, Icons.person_outline),
-                        const SizedBox(height: AppSpacing.md),
-                        _buildInfoCard('ایمیل', user?.email ?? _emailController.text, Icons.email_outlined),
                         const SizedBox(height: AppSpacing.md),
                         _buildInfoCard('شماره موبایل', user?.phone ?? _phoneController.text, Icons.phone_outlined),
                       ],
@@ -265,7 +391,7 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
                     icon: Icons.security_outlined,
                     title: 'امنیت',
                     subtitle: 'تغییر رمز عبور',
-                    onTap: () {},
+                    onTap: _showChangePasswordDialog,
                   ),
                   _buildSettingItem(
                     context,
@@ -307,11 +433,14 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
     required IconData icon,
     TextInputType? keyboardType,
     bool enabled = true,
+    String? Function(String?)? validator,
   }) {
     return TextFormField(
       controller: controller,
       keyboardType: keyboardType,
       enabled: enabled,
+      validator: validator ??
+          (value) => (value == null || value.trim().isEmpty) ? 'لطفاً $label را وارد کنید' : null,
       decoration: InputDecoration(
         labelText: label,
         prefixIcon: Icon(icon, size: 20),
@@ -332,12 +461,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
           borderSide: const BorderSide(color: AppColors.blue, width: 2),
         ),
       ),
-      validator: (value) {
-        if (value == null || value.isEmpty) {
-          return 'لطفاً $label را وارد کنید';
-        }
-        return null;
-      },
     );
   }
 
@@ -441,7 +564,6 @@ class _ProfileScreenState extends ConsumerState<ProfileScreen> {
   @override
   void dispose() {
     _nameController.dispose();
-    _emailController.dispose();
     _phoneController.dispose();
     super.dispose();
   }

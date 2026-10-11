@@ -4,95 +4,86 @@ import 'api_endpoints.dart';
 class AdminService {
   static final _client = ApiClient.instance;
 
-  /// Get admin dashboard stats
-  static Future<Map<String, dynamic>> getDashboard() async {
+  /// آمار کاربران — GET /admin/stats/users
+  static Future<Map<String, dynamic>> getUserStats() async {
     try {
-      final response = await _client.get(ApiEndpoints.admin);
+      final response = await _client.get('/admin/stats/users');
       return response.data;
     } catch (e) {
-      throw Exception('خطا در دریافت داشبورد ادمین: ${e.toString()}');
+      throw Exception('خطا در دریافت آمار کاربران: ${e.toString()}');
     }
   }
 
-  /// Get all users
-  static Future<List<dynamic>> getUsers({
-    String? search,
-    String? role,
-    int? page,
-    int? limit,
-  }) async {
+  /// آمار سالن‌ها — GET /admin/stats/venues
+  static Future<Map<String, dynamic>> getVenueStats() async {
     try {
-      final response = await _client.get(
-        ApiEndpoints.adminUsers,
-        queryParameters: {
-          if (search != null) 'search': search,
-          if (role != null) 'role': role,
-          if (page != null) 'page': page,
-          if (limit != null) 'limit': limit,
-        },
-      );
-      return response.data['users'] ?? response.data;
+      final response = await _client.get('/admin/stats/venues');
+      return response.data;
+    } catch (e) {
+      throw Exception('خطا در دریافت آمار سالن‌ها: ${e.toString()}');
+    }
+  }
+
+  /// همه کاربران — GET /admin/users (لیست ساده)
+  static Future<List<dynamic>> getUsers() async {
+    try {
+      final response = await _client.get(ApiEndpoints.adminUsers);
+      final data = response.data;
+      if (data is Map) return (data['users'] ?? data['items'] ?? []) as List;
+      return (data ?? []) as List;
     } catch (e) {
       throw Exception('خطا در دریافت کاربران: ${e.toString()}');
     }
   }
 
-  /// Update user role
-  static Future<void> updateUserRole(int userId, String role) async {
+  /// تأیید ثبت‌نام مدیر سالن — POST /admin/users/{id}/approve
+  static Future<void> approveUser(String userId) async {
     try {
-      await _client.patch(
-        '${ApiEndpoints.adminUsers}/$userId',
-        data: {'role': role},
-      );
+      await _client.post('${ApiEndpoints.adminUsers}/$userId/approve');
     } catch (e) {
-      throw Exception('خطا در به‌روزرسانی نقش: ${e.toString()}');
+      throw Exception('خطا در تأیید کاربر: ${e.toString()}');
     }
   }
 
-  /// Block/unblock user
-  static Future<void> toggleUserStatus(int userId, bool isActive) async {
+  /// رد ثبت‌نام مدیر سالن — POST /admin/users/{id}/reject
+  static Future<void> rejectUser(String userId) async {
     try {
-      await _client.patch(
-        '${ApiEndpoints.adminUsers}/$userId/status',
-        data: {'is_active': isActive},
-      );
+      await _client.post('${ApiEndpoints.adminUsers}/$userId/reject');
     } catch (e) {
-      throw Exception('خطا در تغییر وضعیت: ${e.toString()}');
+      throw Exception('خطا در رد کاربر: ${e.toString()}');
     }
   }
 
-  /// Get all venues
-  static Future<List<dynamic>> getVenues({
-    String? search,
-    String? status,
-    int? page,
-    int? limit,
-  }) async {
+  /// مدیران در انتظار تأیید — GET /admin/pending-managers
+  static Future<List<dynamic>> getPendingManagers() async {
     try {
-      final response = await _client.get(
-        ApiEndpoints.adminVenues,
-        queryParameters: {
-          if (search != null) 'search': search,
-          if (status != null) 'status': status,
-          if (page != null) 'page': page,
-          if (limit != null) 'limit': limit,
-        },
-      );
-      return response.data['venues'] ?? response.data;
+      final response = await _client.get('/admin/pending-managers');
+      final data = response.data;
+      if (data is Map) return (data['items'] ?? []) as List;
+      return (data ?? []) as List;
     } catch (e) {
-      throw Exception('خطا در دریافت سالن‌ها: ${e.toString()}');
+      throw Exception('خطا در دریافت مدیران در انتظار: ${e.toString()}');
     }
   }
 
-  /// Approve/reject venue
-  static Future<void> updateVenueStatus(String venueId, String status) async {
+  /// سالن‌های در انتظار تأیید — GET /admin/pending-venues
+  static Future<List<dynamic>> getPendingVenues() async {
     try {
-      await _client.patch(
-        '${ApiEndpoints.adminVenues}/$venueId',
-        data: {'status': status},
-      );
+      final response = await _client.get('/admin/pending-venues');
+      final data = response.data;
+      if (data is Map) return (data['items'] ?? []) as List;
+      return (data ?? []) as List;
     } catch (e) {
-      throw Exception('خطا در به‌روزرسانی وضعیت: ${e.toString()}');
+      throw Exception('خطا در دریافت سالن‌های در انتظار: ${e.toString()}');
+    }
+  }
+
+  /// تأیید سالن — POST /admin/verify-venue/{id}
+  static Future<void> verifyVenue(String venueId) async {
+    try {
+      await _client.post('/admin/verify-venue/$venueId');
+    } catch (e) {
+      throw Exception('خطا در تأیید سالن: ${e.toString()}');
     }
   }
 }

@@ -9,6 +9,7 @@ import '../../../app/theme/app_radius.dart';
 import '../../../core/network/booking_service.dart';
 import '../../../core/utils/fa_format.dart';
 import '../../../core/utils/jalali.dart';
+import '../../../core/widgets/bottom_nav_bar.dart';
 
 class BookingsScreen extends ConsumerStatefulWidget {
   const BookingsScreen({super.key});
@@ -133,6 +134,7 @@ class _BookingsScreenState extends ConsumerState<BookingsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const AppBottomNavBar(),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(

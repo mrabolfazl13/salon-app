@@ -5,6 +5,15 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.6.0] - 2026-10-12
+
+### ✨ Added
+- Mobile: bottom navigation bar is now role-aware — guests see search/favorites, venue managers get the manager console + finance tabs, super admins get admin + users tabs, regular users get teams/bookings; active tab is highlighted in amber and the bar is present on all 12 main screens.
+
+### 🔧 Fixed
+- Mobile: games (explore/detail/create on confirmed bookings), contracts (list/detail/installments/cancel), manager console (finance dashboard, pricing rules, CRM customers, partner teams, contract approve/reject, check-in) and admin panel (user/venue stats, pending managers and venues) were showing hard-coded mock data — every screen now reads from and writes to the real API.
+- Mobile: profile screen showed placeholder name/email and faked the save button; editing now persists the display name via `PUT /auth/profile`, and «امنیت» opens a real change-password dialog backed by `POST /auth/change-password`.
+
 ## [v1.5.3] - 2026-10-11
 
 ### 🔧 Fixed

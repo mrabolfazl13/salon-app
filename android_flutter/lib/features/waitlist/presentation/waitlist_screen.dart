@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../../core/network/waitlist_service.dart';
 import '../../../core/utils/jalali.dart';
 import '../../../app/theme/app_theme.dart';
+import '../../../core/widgets/bottom_nav_bar.dart';
 
 class WaitlistScreen extends StatefulWidget {
   const WaitlistScreen({super.key});
@@ -62,6 +63,7 @@ class _WaitlistScreenState extends State<WaitlistScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('صف انتظارهای من')),
+      bottomNavigationBar: const AppBottomNavBar(),
       body: _loading
           ? const Center(child: CircularProgressIndicator())
           : _error != null

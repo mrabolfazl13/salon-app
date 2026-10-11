@@ -1,39 +1,156 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
 import '../../../app/theme/app_spacing.dart';
 import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
+import '../../../core/network/admin_service.dart';
+import '../../../core/utils/fa_format.dart';
 
-class AdminVenuesScreen extends ConsumerWidget {
+class AdminVenuesScreen extends ConsumerStatefulWidget {
   const AdminVenuesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final venues = [
-      {'id': '1', 'name': 'سالن فوتسال المپیک', 'location': 'تهران', 'status': 'فعال', 'bookings': 45},
-      {'id': '2', 'name': 'باشگاه ورزشی قهرمان', 'location': 'اصفهان', 'status': 'در انتظار تأیید', 'bookings': 0},
-    ];
+  ConsumerState<AdminVenuesScreen> createState() => _AdminVenuesScreenState();
+}
 
-    return Scaffold(
-      appBar: AppBar(title: Text('مدیریت سالن‌ها')),
-      body: ListView.builder(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        itemCount: venues.length,
-        itemBuilder: (context, index) => _buildVenueCard(context, venues[index]),
+class _AdminVenuesScreenState extends ConsumerState<AdminVenuesScreen> {
+  List<dynamic> _pending = [];
+  bool _loading = true;
+  bool _acting = false;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _load();
+  }
+
+  Future<void> _load() async {
+    setState(() {
+      _loading = true;
+      _error = null;
+    });
+    try {
+      final venues = await AdminService.getPendingVenues();
+      if (!mounted) return;
+      setState(() {
+        _pending = venues;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString();
+        _loading = false;
+      });
+    }
+  }
+
+  Future<void> _verify(Map<String, dynamic> venue) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تأیید سالن'),
+        content:
+            Text('«${venue['name'] ?? 'سالن'}» تأیید شود و در فهرست عمومی منتشر گردد؟'),
+        actions: [
+          TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('انصراف')),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.success, foregroundColor: Colors.white),
+            child: const Text('تأیید'),
+          ),
+        ],
       ),
+    );
+    if (confirmed != true) return;
+    setState(() => _acting = true);
+    try {
+      await AdminService.verifyVenue(venue['id'].toString());
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('سالن تأیید شد'),
+        backgroundColor: AppColors.success,
+        behavior: SnackBarBehavior.floating,
+      ));
+      await _load();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+        content: Text('خطا: $e'),
+        backgroundColor: AppColors.error,
+        behavior: SnackBarBehavior.floating,
+      ));
+    } finally {
+      if (mounted) setState(() => _acting = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('سالن‌های در انتظار تأیید')),
+      body: _loading
+          ? const Center(child: CircularProgressIndicator())
+          : _error != null
+              ? Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppSpacing.xl),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(_error!, textAlign: TextAlign.center),
+                        const SizedBox(height: AppSpacing.md),
+                        ElevatedButton(
+                            onPressed: _load, child: const Text('تلاش دوباره')),
+                      ],
+                    ),
+                  ),
+                )
+              : _pending.isEmpty
+                  ? const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.verified_outlined,
+                              size: 56, color: AppColors.success),
+                          SizedBox(height: AppSpacing.md),
+                          Text('همه سالن‌ها تأیید شده‌اند'),
+                        ],
+                      ),
+                    )
+                  : RefreshIndicator(
+                      onRefresh: _load,
+                      child: ListView.builder(
+                        padding: const EdgeInsets.all(AppSpacing.lg),
+                        itemCount: _pending.length,
+                        itemBuilder: (context, index) =>
+                            _buildVenueCard(context, _pending[index]),
+                      ),
+                    ),
     );
   }
 
   Widget _buildVenueCard(BuildContext context, Map<String, dynamic> venue) {
+    final name = venue['name']?.toString() ?? 'سالن';
+    final address = venue['address']?.toString() ?? '';
+    final phone = venue['phone']?.toString() ?? '';
+
     return Container(
       margin: const EdgeInsets.only(bottom: AppSpacing.md),
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: Theme.of(context).brightness == Brightness.dark ? AppColors.darkSurface : Colors.white,
+        color: Theme.of(context).brightness == Brightness.dark
+            ? AppColors.darkSurface
+            : Colors.white,
         borderRadius: AppRadius.cardBorderRadius,
-        border: Border.all(color: Theme.of(context).dividerColor),
+        border: Border.all(color: AppColors.warning.withOpacity(0.4)),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -44,39 +161,49 @@ class AdminVenuesScreen extends ConsumerWidget {
                 width: 50,
                 height: 50,
                 decoration: BoxDecoration(
-                  gradient: const LinearGradient(colors: [AppColors.navy, AppColors.blue]),
+                  gradient: const LinearGradient(
+                      colors: [AppColors.navy, AppColors.blue]),
                   borderRadius: AppRadius.imageBorderRadius,
                 ),
-                child: const Icon(Icons.store, color: Colors.white),
+                child:
+                    const Icon(Icons.store, color: Colors.white),
               ),
               const SizedBox(width: AppSpacing.md),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(venue['name'], style: AppTypography.bodyMedium.copyWith(fontWeight: FontWeight.w700)),
-                    Text(venue['location'], style: AppTypography.caption),
+                    Text(name,
+                        style: AppTypography.bodyMedium
+                            .copyWith(fontWeight: FontWeight.w700)),
+                    if (address.isNotEmpty) Text(address, style: AppTypography.caption),
+                    if (phone.isNotEmpty) Text(phone, style: AppTypography.caption),
                   ],
                 ),
               ),
             ],
           ),
-          const SizedBox(height: AppSpacing.sm),
+          const SizedBox(height: AppSpacing.md),
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xs),
-                decoration: BoxDecoration(
-                  color: (venue['status'] == 'فعال' ? AppColors.success : AppColors.warning).withOpacity(0.1),
-                  borderRadius: AppRadius.chipBorderRadius,
+              Expanded(
+                child: OutlinedButton(
+                  onPressed:
+                      _acting ? null : () => context.push('/venues/${venue['id']}'),
+                  child: const Text('مشاهده'),
                 ),
-                child: Text(venue['status'], style: AppTypography.caption.copyWith(
-                  color: venue['status'] == 'فعال' ? AppColors.success : AppColors.warning,
-                  fontWeight: FontWeight.w600,
-                )),
               ),
-              Text('${venue['bookings']} رزرو', style: AppTypography.caption.copyWith(color: AppColors.blue)),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: _acting ? null : () => _verify(venue),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.success,
+                    foregroundColor: Colors.white,
+                  ),
+                  child: const Text('تأیید سالن'),
+                ),
+              ),
             ],
           ),
         ],

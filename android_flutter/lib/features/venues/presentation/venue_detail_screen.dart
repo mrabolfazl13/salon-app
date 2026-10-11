@@ -920,8 +920,17 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
   // ---------- Competition bid ----------
 
   void _showBidDialog(Map<String, dynamic> slot) {
-    final minPrice = (slot['current_price'] as num?) ?? (slot['base_price'] as num?) ?? 0;
-    final controller = TextEditingController();
+    final user = ref.read(authProvider).value;
+    if (user?.role != 'venue_manager' && user?.role != 'super_admin') {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+        content: Text('رقابت قیمت فقط برای مدیران سالن فعال است'),
+        behavior: SnackBarBehavior.floating,
+      ));
+      return;
+    }
+    final currentPrice = (slot['current_price'] as num?) ?? (slot['base_price'] as num?) ?? 0;
+    final suggested = ((currentPrice * 0.9) ~/ 1000) * 1000;
+    final controller = TextEditingController(text: suggested.toString());
     bool submitting = false;
 
     showDialog(
@@ -934,7 +943,7 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
-                'حداقل مبلغ: ${FaFormat.price(minPrice)}',
+                'قیمت فعلی: ${FaFormat.price(currentPrice)} — پیشنهاد باید کمتر باشد',
                 style: AppTypography.bodyMedium
                     .copyWith(color: AppColors.darkTextSecondary),
               ),
@@ -943,7 +952,7 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
                 controller: controller,
                 keyboardType: TextInputType.number,
                 decoration: InputDecoration(
-                  labelText: 'مبلغ پیشنهادی (ریال)',
+                  labelText: 'قیمت پیشنهادی (ریال)',
                   border: OutlineInputBorder(
                       borderRadius: AppRadius.mediumBorderRadius),
                 ),
@@ -961,9 +970,10 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
                   : () async {
                       final amount = int.tryParse(controller.text
                           .replaceAll(RegExp(r'[^0-9]'), ''));
-                      if (amount == null || amount < minPrice) {
+                      if (amount == null || amount <= 0 || amount >= currentPrice) {
                         ScaffoldMessenger.of(context).showSnackBar(SnackBar(
-                          content: Text('مبلغ باید حداقل ${FaFormat.price(minPrice)} باشد'),
+                          content:
+                              Text('مبلغ باید کمتر از ${FaFormat.price(currentPrice)} باشد'),
                           backgroundColor: AppColors.error,
                           behavior: SnackBarBehavior.floating,
                         ));
@@ -973,7 +983,7 @@ class _VenueDetailScreenState extends ConsumerState<VenueDetailScreen> {
                       try {
                         await ApiClient.instance.post(
                           '/competitions/${slot['id']}/bid',
-                          data: {'amount': amount},
+                          data: {'offered_price': amount},
                         );
                         if (!mounted) return;
                         Navigator.pop(dialogContext);

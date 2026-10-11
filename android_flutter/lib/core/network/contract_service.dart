@@ -4,28 +4,19 @@ import 'api_endpoints.dart';
 class ContractService {
   static final _client = ApiClient.instance;
 
-  /// Get user contracts
-  static Future<List<dynamic>> getContracts({
-    String? status,
-    int? page,
-    int? limit,
-  }) async {
+  /// قراردادهای من — GET /contracts (لیست ساده؛ فاقد venue_name)
+  static Future<List<dynamic>> getContracts() async {
     try {
-      final response = await _client.get(
-        ApiEndpoints.contracts,
-        queryParameters: {
-          if (status != null) 'status': status,
-          if (page != null) 'page': page,
-          if (limit != null) 'limit': limit,
-        },
-      );
-      return response.data['contracts'] ?? response.data;
+      final response = await _client.get(ApiEndpoints.contracts);
+      final data = response.data;
+      if (data is Map) return (data['items'] ?? data['contracts'] ?? []) as List;
+      return (data ?? []) as List;
     } catch (e) {
       throw Exception('خطا در دریافت قراردادها: ${e.toString()}');
     }
   }
 
-  /// Get contract by ID
+  /// جزئیات قرارداد — GET /contracts/{id}
   static Future<Map<String, dynamic>> getContract(String id) async {
     try {
       final response = await _client.get(ApiEndpoints.contract(id));
@@ -35,15 +26,30 @@ class ContractService {
     }
   }
 
-  /// Pay contract installment
-  static Future<void> payInstallment(String contractId, int installmentNumber) async {
+  /// لغو قرارداد — POST /contracts/{id}/cancel
+  static Future<Map<String, dynamic>> cancelContract(
+      String id, String reason) async {
     try {
-      await _client.post(
-        '${ApiEndpoints.contract(contractId)}/pay',
-        data: {'installment_number': installmentNumber},
+      final response = await _client.post(
+        '${ApiEndpoints.contract(id)}/cancel',
+        data: {'reason': reason},
       );
+      return response.data;
     } catch (e) {
-      throw Exception('خطا در پرداخت قسط: ${e.toString()}');
+      throw Exception('خطا در لغو قرارداد: ${e.toString()}');
+    }
+  }
+
+  /// اقساط/پرداخت‌های قرارداد — GET /contracts/{id}/payments
+  static Future<List<dynamic>> getPayments(String id) async {
+    try {
+      final response =
+          await _client.get('${ApiEndpoints.contract(id)}/payments');
+      final data = response.data;
+      if (data is Map) return (data['items'] ?? []) as List;
+      return (data ?? []) as List;
+    } catch (e) {
+      throw Exception('خطا در دریافت اقساط: ${e.toString()}');
     }
   }
 }

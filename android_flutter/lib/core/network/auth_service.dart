@@ -60,6 +60,31 @@ class AuthService {
     }
   }
 
+  /// Update current user profile (display name)
+  static Future<User> updateProfile(String fullName) async {
+    try {
+      final response = await _client.put(
+        ApiEndpoints.updateProfile,
+        data: {'full_name': fullName.trim()},
+      );
+      return User.fromJson(response.data);
+    } catch (e) {
+      throw Exception('خطا در به‌روزرسانی پروفایل: ${e.toString()}');
+    }
+  }
+
+  /// Change password with current password
+  static Future<void> changePassword(String oldPassword, String newPassword) async {
+    try {
+      await _client.post(
+        ApiEndpoints.changePassword,
+        data: {'old_password': oldPassword, 'new_password': newPassword},
+      );
+    } catch (e) {
+      throw Exception('خطا در تغییر رمز عبور: ${e.toString()}');
+    }
+  }
+
   /// Forgot password
   static Future<void> forgotPassword(String phone) async {
     try {

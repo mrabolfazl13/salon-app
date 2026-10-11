@@ -8,6 +8,7 @@ import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../core/network/venue_service.dart';
 import '../../../core/utils/fa_format.dart';
+import '../../../core/widgets/bottom_nav_bar.dart';
 
 class FavoritesScreen extends ConsumerStatefulWidget {
   const FavoritesScreen({super.key});
@@ -71,6 +72,7 @@ class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const AppBottomNavBar(),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(

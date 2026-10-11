@@ -190,7 +190,7 @@ class _VenuesScreenState extends State<VenuesScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: const AppBottomNavBar(currentIndex: 1),
+      bottomNavigationBar: const AppBottomNavBar(),
     );
   }
 

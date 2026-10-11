@@ -6,6 +6,8 @@ abstract final class ApiEndpoints {
   static const getMe = '/auth/me';
   static const forgotPassword = '/auth/forgot-password';
   static const verifyEmail = '/auth/verify';
+  static const updateProfile = '/auth/profile';
+  static const changePassword = '/auth/change-password';
   
   // Venues
   static const venues = '/venues';

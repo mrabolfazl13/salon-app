@@ -4,32 +4,36 @@ import 'api_endpoints.dart';
 class TeamService {
   static final _client = ApiClient.instance;
 
-  /// Get user's teams
+  /// GET /teams/ — تیم‌های من (لیست ساده)
   static Future<List<dynamic>> getMyTeams() async {
     try {
       final response = await _client.get(ApiEndpoints.teams);
-      return response.data['teams'] ?? response.data;
+      return response.data is List ? response.data : const [];
     } catch (e) {
       throw Exception('خطا در دریافت تیم‌ها: ${e.toString()}');
     }
   }
 
-  /// Get all teams for discovery
+  /// GET /teams/discover — تیم‌های عمومی با جستجو
   static Future<List<dynamic>> discoverTeams({
     String? search,
-    int? page,
-    int? limit,
+    String? sport,
+    int limit = 20,
+    int offset = 0,
   }) async {
     try {
       final response = await _client.get(
         '${ApiEndpoints.teams}/discover',
         queryParameters: {
-          if (search != null) 'search': search,
-          if (page != null) 'page': page,
-          if (limit != null) 'limit': limit,
+          if (search != null && search.isNotEmpty) 'search': search,
+          if (sport != null && sport.isNotEmpty) 'sport': sport,
+          'limit': limit,
+          'offset': offset,
         },
       );
-      return response.data['teams'] ?? response.data;
+      final data = response.data;
+      if (data is Map) return (data['items'] ?? data['teams'] ?? []) as List;
+      return data is List ? data : const [];
     } catch (e) {
       throw Exception('خطا در جستجوی تیم: ${e.toString()}');
     }
@@ -75,11 +79,11 @@ class TeamService {
     }
   }
 
-  /// Get team members
+  /// GET /teams/{id}/members
   static Future<List<dynamic>> getMembers(String teamId) async {
     try {
       final response = await _client.get('${ApiEndpoints.team(teamId)}/members');
-      return response.data['members'] ?? response.data;
+      return response.data is List ? response.data : const [];
     } catch (e) {
       throw Exception('خطا در دریافت اعضا: ${e.toString()}');
     }

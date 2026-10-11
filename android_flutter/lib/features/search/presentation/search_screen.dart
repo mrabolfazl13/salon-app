@@ -8,6 +8,7 @@ import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../core/network/venue_service.dart';
 import '../../../core/utils/fa_format.dart';
+import '../../../core/widgets/bottom_nav_bar.dart';
 
 class SearchScreen extends ConsumerStatefulWidget {
   const SearchScreen({super.key});
@@ -60,6 +61,7 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      bottomNavigationBar: const AppBottomNavBar(),
       body: CustomScrollView(
         slivers: [
           SliverAppBar(
