@@ -25,7 +25,7 @@ class ApiClient {
     return BaseOptions(
       baseUrl: baseUrl,
       connectTimeout: const Duration(seconds: 30),
-      receiveTimeout: const Duration(seconds: 60),
+      receiveTimeout: const Duration(seconds: 120), // Increased for slow prod API from CI runners
       sendTimeout: const Duration(seconds: 30),
       headers: {
         'Content-Type': 'application/json',
