@@ -5,9 +5,9 @@ on:
 
 jobs:
   emulator-booking-test:
-    name: Booking flow on emulator (prod API)
+    name: Booking flow + screens tour on emulator (prod API)
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
 
@@ -32,7 +32,7 @@ jobs:
         working-directory: android_flutter
         run: flutter pub get
 
-      - name: Run booking flow test on emulator
+      - name: Run booking flow + screens tour on emulator
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 30
@@ -40,10 +40,18 @@ jobs:
           arch: x86_64
           profile: pixel_5
           script: |
-            cd android_flutter && flutter test integration_test/booking_flow_test.dart --no-pub
-            EXIT=$?
+            cd android_flutter
+            flutter test integration_test/booking_flow_test.dart --no-pub
+            BOOKING_EXIT=$?
+            echo "booking test exit: $BOOKING_EXIT"
+            TOUR_SHOTS_DIR="$GITHUB_WORKSPACE/tour-shots" flutter drive \
+              --driver=test_driver/integration_test.dart \
+              --target=integration_test/screens_tour_test.dart \
+              --no-pub
+            TOUR_EXIT=$?
+            echo "tour exit: $TOUR_EXIT"
             adb logcat -d -t 4000 > "$GITHUB_WORKSPACE/logcat.txt" 2>&1 || true
-            exit $EXIT
+            if [ "$BOOKING_EXIT" != "0" ] || [ "$TOUR_EXIT" != "0" ]; then exit 1; fi
 
       - name: Upload emulator logs
         if: always()
@@ -53,6 +61,14 @@ jobs:
           path: logcat.txt
           if-no-files-found: ignore
 
+      - name: Upload tour screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: tour-screenshots
+          path: tour-shots/
+          if-no-files-found: ignore
+
       - name: Surface result
         if: always()
-        run: echo "::notice::emulator booking test finished"
+        run: echo "::notice::emulator booking+tour finished"

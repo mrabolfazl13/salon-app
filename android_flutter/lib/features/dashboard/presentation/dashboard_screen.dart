@@ -153,7 +153,13 @@ class _DashboardScreenState extends ConsumerState<DashboardScreen> {
                         ),
                         const SizedBox(width: AppSpacing.xs),
                         Text(
-                          user?.role == 'venue_manager' ? 'مدیر سالن' : 'کاربر',
+                          user?.role == 'venue_manager'
+                              ? 'مدیر سالن'
+                              : user?.role == 'club_admin'
+                                  ? 'مدیر باشگاه'
+                                  : user?.role == 'super_admin'
+                                      ? 'مدیر سیستم'
+                                      : 'کاربر',
                           style: AppTypography.caption.copyWith(
                             color: AppColors.blue,
                             fontWeight: FontWeight.w600,

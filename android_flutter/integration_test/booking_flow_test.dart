@@ -73,23 +73,35 @@ void main() {
     FocusManager.instance.primaryFocus?.unfocus();
     await tester.pump(const Duration(milliseconds: 500));
 
-    var loginOk = false;
-    for (var attempt = 0; attempt < 3 && !loginOk; attempt++) {
+    Future<void> tapLoginButton() async {
       final btn = find.text('ورود');
+      if (btn.evaluate().isEmpty) return;
       await tester.ensureVisible(btn);
-      await tester.pump(const Duration(milliseconds: 500));
+      await tester.pump(const Duration(milliseconds: 400));
+      // بین ensureVisible و tap ممکن است ناوبری به داشبورد کامل شود
+      if (btn.evaluate().isEmpty) return;
       await tester.tap(btn, warnIfMissed: false);
-      final end = DateTime.now().add(const Duration(seconds: 75));
-      while (DateTime.now().isBefore(end)) {
-        await tester.pump(const Duration(milliseconds: 500));
-        if (find.text('رزرو جدید').evaluate().isNotEmpty) {
-          loginOk = true;
-          break;
-        }
-        // دکمه بدون اسپینر برگشته = درخواست شکست خورده → تاپ مجدد
-        final btnBack = btn.evaluate().isNotEmpty;
+      await tester.pump(const Duration(milliseconds: 300));
+    }
+
+    var loginOk = false;
+    await tapLoginButton();
+    // بعد از هر تاپ ۱۰ ثانیه فرصت رفت‌وبرگشت شبکه بده؛ فقط بعد از آن retry کن
+    var graceUntil = DateTime.now().add(const Duration(seconds: 10));
+    final loginEnd = DateTime.now().add(const Duration(seconds: 90));
+    while (DateTime.now().isBefore(loginEnd) && !loginOk) {
+      await tester.pump(const Duration(milliseconds: 500));
+      if (find.text('رزرو جدید').evaluate().isNotEmpty) {
+        loginOk = true;
+        break;
+      }
+      if (DateTime.now().isAfter(graceUntil)) {
+        final btnBack = find.text('ورود').evaluate().isNotEmpty;
         final loading = find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
-        if (btnBack && !loading) break;
+        if (btnBack && !loading) {
+          await tapLoginButton();
+          graceUntil = DateTime.now().add(const Duration(seconds: 10));
+        }
       }
     }
     if (!loginOk) fail('login did not reach dashboard');
