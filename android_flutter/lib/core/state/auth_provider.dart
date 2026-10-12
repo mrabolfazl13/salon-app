@@ -13,6 +13,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     if (isAuthenticated) {
       try {
         final user = await AuthService.getMe();
+        await TokenStorage.saveRole(user.role);
         state = AsyncValue.data(user);
       } catch (e) {
         await TokenStorage.clearToken();
@@ -28,6 +29,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
     try {
       final response = await AuthService.login(phone, password);
       await TokenStorage.saveToken(response.accessToken);
+      await TokenStorage.saveRole(response.user.role);
       state = AsyncValue.data(response.user);
     } catch (e) {
       state = AsyncValue.error(e, StackTrace.current);
@@ -63,6 +65,7 @@ class AuthNotifier extends StateNotifier<AsyncValue<User?>> {
   Future<void> fetchUser() async {
     try {
       final user = await AuthService.getMe();
+      await TokenStorage.saveRole(user.role);
       state = AsyncValue.data(user);
     } catch (e) {
       await TokenStorage.clearToken();

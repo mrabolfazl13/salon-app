@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../app/theme/app_colors.dart';
@@ -8,54 +8,98 @@ import '../../../app/theme/app_typography.dart';
 import '../../../app/theme/app_radius.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_text_field.dart';
-import '../../../core/state/auth_provider.dart';
+import '../../../core/network/auth_service.dart';
 
-class ForgotPasswordScreen extends ConsumerStatefulWidget {
+class ForgotPasswordScreen extends StatefulWidget {
   const ForgotPasswordScreen({super.key});
 
   @override
-  ConsumerState<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
+  State<ForgotPasswordScreen> createState() => _ForgotPasswordScreenState();
 }
 
-class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
+class _ForgotPasswordScreenState extends State<ForgotPasswordScreen> {
   final _formKey = GlobalKey<FormState>();
   final _phoneController = TextEditingController();
-  bool _requestSent = false;
+  final _codeController = TextEditingController();
+  final _passwordController = TextEditingController();
+  final _confirmController = TextEditingController();
+  bool _step2 = false;
+  bool _success = false;
+  bool _loading = false;
+  String? _error;
 
-  Future<void> _handleResetPassword() async {
+  String _latinDigits(String value) {
+    const fa = '۰۱۲۳۴۵۶۷۸۹';
+    const ar = '٠١٢٣٤٥٦٧٨٩';
+    return value
+        .split('')
+        .map((ch) {
+          final fi = fa.indexOf(ch);
+          if (fi >= 0) return '$fi';
+          final ai = ar.indexOf(ch);
+          if (ai >= 0) return '$ai';
+          return ch;
+        })
+        .join();
+  }
+
+  Future<void> _sendCode() async {
     if (!_formKey.currentState!.validate()) return;
-
-    // TODO: Implement forgot password API
-    setState(() => _requestSent = true);
-    
-    /*
+    setState(() {
+      _error = null;
+      _loading = true;
+    });
     try {
-      await ref.read(authProvider.notifier).forgotPassword(
-            _phoneController.text.trim(),
-          );
-
-      if (mounted) {
-        setState(() => _requestSent = true);
-      }
+      await AuthService.forgotPassword(_latinDigits(_phoneController.text).trim());
+      if (!mounted) return;
+      setState(() {
+        _step2 = true;
+        _loading = false;
+      });
     } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(e.toString().replaceAll('Exception: ', '')),
-            backgroundColor: AppColors.error,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceAll('Exception: ', '');
+        _loading = false;
+      });
     }
-    */
+  }
+
+  Future<void> _resetPassword() async {
+    if (!_formKey.currentState!.validate()) return;
+    setState(() {
+      _error = null;
+      _loading = true;
+    });
+    try {
+      await AuthService.resetPassword(
+        phone: _latinDigits(_phoneController.text).trim(),
+        code: _latinDigits(_codeController.text).trim(),
+        newPassword: _passwordController.text,
+      );
+      if (!mounted) return;
+      setState(() {
+        _success = true;
+        _loading = false;
+      });
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _error = e.toString().replaceAll('Exception: ', '');
+        _loading = false;
+      });
+    }
+  }
+
+  String? _phoneValidator(String? value) {
+    final phone = _latinDigits(value ?? '').trim();
+    if (phone.isEmpty) return 'لطفاً شماره موبایل را وارد کنید';
+    if (!RegExp(r'^09[0-9]{9}$').hasMatch(phone)) return 'شماره موبایل معتبر وارد کنید';
+    return null;
   }
 
   @override
   Widget build(BuildContext context) {
-    final authState = ref.watch(authProvider);
-    final isLoading = authState is AsyncLoading;
-
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
@@ -66,7 +110,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const SizedBox(height: AppSpacing.xxl),
-                
+
                 // Back button
                 IconButton(
                   icon: const Icon(Icons.arrow_back),
@@ -77,9 +121,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         : Colors.grey[100],
                   ),
                 ),
-                
+
                 const SizedBox(height: AppSpacing.xl),
-                
+
                 // Icon
                 Center(
                   child: Container(
@@ -100,33 +144,54 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                     ),
                   ),
                 ),
-                
+
                 const SizedBox(height: AppSpacing.xl),
-                
+
                 Text(
-                  _requestSent ? 'درخواست ارسال شد' : 'بازیابی رمز عبور',
+                  _success
+                      ? 'رمز عبور تغییر کرد'
+                      : _step2
+                          ? 'کد بازیابی را وارد کنید'
+                          : 'بازیابی رمز عبور',
                   style: AppTypography.h4.copyWith(
                     fontWeight: FontWeight.w700,
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: AppSpacing.sm),
-                
+
                 Text(
-                  _requestSent
-                      ? 'رمز عبور جدید به شماره موبایل شما ارسال شد'
-                      : 'شماره موبایل خود را وارد کنید تا رمز عبور جدید برایتان ارسال شود',
+                  _success
+                      ? 'رمز عبور شما با موفقیت بازنشانی شد'
+                      : _step2
+                          ? 'کد ۶ رقمی پیامک‌شده و رمز عبور جدید را وارد کنید'
+                          : 'شماره موبایل خود را وارد کنید تا کد بازیابی ارسال شود',
                   style: AppTypography.bodyMedium.copyWith(
                     color: Theme.of(context).colorScheme.onSurface.withOpacity(0.6),
                   ),
                   textAlign: TextAlign.center,
                 ),
-                
+
                 const SizedBox(height: AppSpacing.xxl),
-                
-                if (_requestSent) ...[
-                  // Success message
+
+                if (_error != null) ...[
+                  Container(
+                    padding: const EdgeInsets.all(AppSpacing.md),
+                    decoration: BoxDecoration(
+                      color: AppColors.error.withOpacity(0.1),
+                      borderRadius: AppRadius.cardBorderRadius,
+                      border: Border.all(color: AppColors.error.withOpacity(0.3)),
+                    ),
+                    child: Text(
+                      _error!,
+                      style: AppTypography.bodyMedium.copyWith(color: AppColors.error),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.lg),
+                ],
+
+                if (_success) ...[
                   Container(
                     padding: const EdgeInsets.all(AppSpacing.lg),
                     decoration: BoxDecoration(
@@ -140,7 +205,7 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                         const SizedBox(width: AppSpacing.md),
                         Expanded(
                           child: Text(
-                            'رمز عبور جدید با موفقیت ارسال شد. لطفاً پیامک خود را بررسی کنید.',
+                            'اکنون می‌توانید با رمز عبور جدید وارد شوید.',
                             style: AppTypography.bodyMedium.copyWith(
                               color: AppColors.success,
                             ),
@@ -149,61 +214,120 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
                       ],
                     ),
                   ),
-                  
+
                   const SizedBox(height: AppSpacing.xl),
-                  
+
                   AppButton(
-                    text: 'ورود به حساب',
+                    text: 'بازگشت به صفحه ورود',
                     onPressed: () => context.go('/login'),
                     gradient: true,
                   ),
                 ] else ...[
-                  // Phone field
-                  AppTextField(
-                    controller: _phoneController,
-                    label: 'شماره موبایل',
-                    hintText: '۰۹۱۲۳۴۵۶۷۸۹',
-                    keyboardType: TextInputType.phone,
-                    prefixIcon: Icons.phone_outlined,
-                    validator: (value) {
-                      if (value == null || value.isEmpty) {
-                        return 'لطفاً شماره موبایل را وارد کنید';
-                      }
-                      if (!RegExp(r'^09[0-9]{9}$').hasMatch(value)) {
-                        return 'شماره موبایل معتبر وارد کنید';
-                      }
-                      return null;
-                    },
-                  ),
-                  
-                  const SizedBox(height: AppSpacing.xl),
-                  
-                  // Submit button
-                  AppButton(
-                    text: 'ارسال رمز عبور جدید',
-                    onPressed: _handleResetPassword,
-                    isLoading: isLoading,
-                    gradient: true,
-                  ),
+                  if (!_step2) ...[
+                    AppTextField(
+                      controller: _phoneController,
+                      label: 'شماره موبایل',
+                      hintText: '۰۹۱۲۳۴۵۶۷۸۹',
+                      keyboardType: TextInputType.phone,
+                      prefixIcon: Icons.phone_outlined,
+                      validator: _phoneValidator,
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+
+                    AppButton(
+                      text: 'ارسال کد بازیابی',
+                      onPressed: _sendCode,
+                      isLoading: _loading,
+                      gradient: true,
+                    ),
+                  ] else ...[
+                    AppTextField(
+                      controller: _codeController,
+                      label: 'کد بازیابی ۶ رقمی',
+                      hintText: '۰۰۰۰۰۰',
+                      keyboardType: TextInputType.number,
+                      inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+                      maxLength: 6,
+                      prefixIcon: Icons.pin_outlined,
+                      validator: (value) {
+                        final code = _latinDigits(value ?? '').trim();
+                        if (code.length != 6) return 'کد ۶ رقمی را وارد کنید';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: AppSpacing.md),
+
+                    AppTextField(
+                      controller: _passwordController,
+                      label: 'رمز عبور جدید',
+                      hintText: 'حداقل ۴ کاراکتر',
+                      obscureText: true,
+                      prefixIcon: Icons.lock_outline,
+                      validator: (value) {
+                        if ((value ?? '').length < 4) return 'رمز عبور جدید باید حداقل ۴ کاراکتر باشد';
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: AppSpacing.md),
+
+                    AppTextField(
+                      controller: _confirmController,
+                      label: 'تکرار رمز عبور جدید',
+                      obscureText: true,
+                      prefixIcon: Icons.lock_outline,
+                      validator: (value) {
+                        if (value != _passwordController.text) {
+                          return 'رمز عبور جدید و تکرار آن یکسان نیستند';
+                        }
+                        return null;
+                      },
+                    ),
+
+                    const SizedBox(height: AppSpacing.xl),
+
+                    AppButton(
+                      text: 'بازنشانی رمز عبور',
+                      onPressed: _resetPassword,
+                      isLoading: _loading,
+                      gradient: true,
+                    ),
+
+                    const SizedBox(height: AppSpacing.lg),
+
+                    Center(
+                      child: TextButton(
+                        onPressed: _loading
+                            ? null
+                            : () => setState(() {
+                                  _step2 = false;
+                                  _codeController.clear();
+                                  _error = null;
+                                }),
+                        child: const Text('تغییر شماره موبایل'),
+                      ),
+                    ),
+                  ],
+
+                  const SizedBox(height: AppSpacing.lg),
+
+                  if (!_step2)
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          'رمز عبور خود را به یاد دارید؟ ',
+                          style: AppTypography.bodyMedium,
+                        ),
+                        TextButton(
+                          onPressed: () => context.pop(),
+                          child: const Text('وارد شوید'),
+                        ),
+                      ],
+                    ),
                 ],
-                
-                const SizedBox(height: AppSpacing.lg),
-                
-                // Back to login link
-                if (!_requestSent)
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        'رمز عبور خود را به یاد دارید؟ ',
-                        style: AppTypography.bodyMedium,
-                      ),
-                      TextButton(
-                        onPressed: () => context.pop(),
-                        child: const Text('وارد شوید'),
-                      ),
-                    ],
-                  ),
               ],
             ),
           ),
@@ -215,6 +339,9 @@ class _ForgotPasswordScreenState extends ConsumerState<ForgotPasswordScreen> {
   @override
   void dispose() {
     _phoneController.dispose();
+    _codeController.dispose();
+    _passwordController.dispose();
+    _confirmController.dispose();
     super.dispose();
   }
 }

@@ -14,11 +14,9 @@ class AuthService {
         data: LoginRequest(phone: phone, password: password).toJson(),
       );
       final authResponse = AuthResponse.fromJson(response.data);
-      
+
       // Save tokens
-      if (authResponse.accessToken != null) {
-        await TokenStorage.saveToken(authResponse.accessToken!);
-      }
+      await TokenStorage.saveToken(authResponse.accessToken);
       final refreshToken = response.data['refresh_token'];
       if (refreshToken is String && refreshToken.isNotEmpty) {
         await TokenStorage.saveRefreshToken(refreshToken);
@@ -85,7 +83,7 @@ class AuthService {
     }
   }
 
-  /// Forgot password
+  /// Forgot password — sends a 6-digit recovery code via SMS
   static Future<void> forgotPassword(String phone) async {
     try {
       await _client.post(
@@ -93,7 +91,23 @@ class AuthService {
         data: {'phone': phone},
       );
     } catch (e) {
-      throw Exception('خطا در بازیابی رمز عبور: ${e.toString()}');
+      throw Exception('خطا در ارسال کد بازیابی: ${e.toString()}');
+    }
+  }
+
+  /// Reset password with the 6-digit recovery code
+  static Future<void> resetPassword({
+    required String phone,
+    required String code,
+    required String newPassword,
+  }) async {
+    try {
+      await _client.post(
+        ApiEndpoints.resetPassword,
+        data: {'phone': phone, 'code': code, 'new_password': newPassword},
+      );
+    } catch (e) {
+      throw Exception('خطا در بازنشانی رمز عبور: ${e.toString()}');
     }
   }
 

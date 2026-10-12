@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import '../../app/theme/app_colors.dart';
 import '../../app/theme/app_typography.dart';
 import '../../app/theme/app_radius.dart';
@@ -15,9 +16,11 @@ class AppTextField extends StatelessWidget {
   final String? Function(String?)? validator;
   final void Function(String)? onChanged;
   final int? maxLines;
+  final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
   final bool enabled;
   final FocusNode? focusNode;
-  
+
   const AppTextField({
     super.key,
     this.controller,
@@ -31,6 +34,8 @@ class AppTextField extends StatelessWidget {
     this.validator,
     this.onChanged,
     this.maxLines = 1,
+    this.maxLength,
+    this.inputFormatters,
     this.enabled = true,
     this.focusNode,
   });
@@ -60,6 +65,8 @@ class AppTextField extends StatelessWidget {
           validator: validator,
           onChanged: onChanged,
           maxLines: maxLines,
+          maxLength: maxLength,
+          inputFormatters: inputFormatters,
           enabled: enabled,
           focusNode: focusNode,
           style: AppTypography.bodyMedium.copyWith(

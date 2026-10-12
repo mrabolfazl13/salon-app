@@ -70,6 +70,23 @@ final appRouterProvider = Provider<GoRouter>((ref) {
         return '/dashboard';
       }
 
+      // Role guards — /manager/* is manager-only, /admin/* is super-admin-only.
+      // role == null means /users/me hasn't resolved yet (cold start); allow and
+      // let the backend 403 show the screen's own error state.
+      if (isAuthenticated) {
+        final role = await TokenStorage.getRole();
+        final loc = state.matchedLocation;
+        const managerRoles = {'venue_manager', 'club_admin', 'super_admin'};
+        if (loc.startsWith('/manager') &&
+            role != null &&
+            !managerRoles.contains(role)) {
+          return '/dashboard';
+        }
+        if (loc.startsWith('/admin') && role != null && role != 'super_admin') {
+          return '/dashboard';
+        }
+      }
+
       return null;
     },
     routes: [
