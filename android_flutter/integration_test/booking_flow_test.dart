@@ -109,9 +109,28 @@ void main() {
     // ---------- لیست سالن‌ها → اولین سالن ----------
     await tester.tap(find.text('رزرو جدید'), warnIfMissed: false);
     
-    // Wait for venues list to load
+    // Wait for venues list to load with retry (prod API can be very slow from CI)
     final listViewFinder = find.byType(ListView);
-    await waitFor(listViewFinder, timeout: const Duration(seconds: 90));
+    var venuesLoaded = false;
+    for (var attempt = 1; attempt <= 3 && !venuesLoaded; attempt++) {
+      try {
+        await waitFor(listViewFinder, timeout: const Duration(seconds: 120));
+        venuesLoaded = true;
+      } catch (_) {
+        if (attempt < 3) {
+          print('Attempt $attempt: venues not loaded, retrying...');
+          await tester.pump(const Duration(seconds: 5));
+          // Pull to refresh
+          await tester.drag(
+            find.byType(SingleChildScrollView).first,
+            const Offset(0, 200),
+          );
+          await tester.pump(const Duration(seconds: 10));
+        } else {
+          rethrow;
+        }
+      }
+    }
     
     // Tap first venue (any name)
     final listView = listViewFinder.first;
