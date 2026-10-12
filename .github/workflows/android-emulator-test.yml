@@ -1,6 +1,11 @@
 name: Android Emulator Booking Test
 
 on:
+  push:
+    branches: [master]
+    paths:
+      - 'android_flutter/**'
+      - '.github/workflows/android-emulator-test.yml'
   workflow_dispatch:
 
 jobs:
