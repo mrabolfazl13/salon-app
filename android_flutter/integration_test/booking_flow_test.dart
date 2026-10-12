@@ -108,9 +108,9 @@ void main() {
 
     // ---------- لیست سالن‌ها → سالن فوتسال فاتحی قم ----------
     await tester.tap(find.text('رزرو جدید'), warnIfMissed: false);
-    final venue = find.text('سالن فوتسال فاتحی قم').first;
+    final venue = find.text('سالن فوتسال فاتحی قم');
     await waitFor(venue, timeout: const Duration(seconds: 60));
-    await tester.tap(venue, warnIfMissed: false);
+    await tester.tap(venue.first, warnIfMissed: false);
     await tester.pump(const Duration(seconds: 3));
 
     // ---------- انتخاب تاریخ فردا ----------
