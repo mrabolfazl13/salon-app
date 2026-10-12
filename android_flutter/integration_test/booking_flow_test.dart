@@ -57,16 +57,42 @@ void main() {
     await tester.pump(const Duration(milliseconds: 500));
 
     await tester.ensureVisible(find.text('ثبت‌نام'));
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump(const Duration(milliseconds: 500));
     await tester.tap(find.text('ثبت‌نام'), warnIfMissed: false);
     await waitFor(find.text('ورود به حساب'), timeout: const Duration(seconds: 60));
 
     // ---------- ورود ----------
+    // کیبورد نرم ممکن است دکمه را بپوشاند؛ قبل از هر تاپ فوکوس را ببند و اسکرول کن
     final loginFields = find.byType(TextField);
+    await tester.ensureVisible(loginFields.at(0));
     await tester.enterText(loginFields.at(0), phone);
+    await tester.ensureVisible(loginFields.at(1));
     await tester.enterText(loginFields.at(1), 'test1234');
     await tester.pump(const Duration(seconds: 1));
-    await tester.tap(find.text('ورود'), warnIfMissed: false);
-    await waitFor(find.text('رزرو جدید'), timeout: const Duration(seconds: 60));
+    FocusManager.instance.primaryFocus?.unfocus();
+    await tester.pump(const Duration(milliseconds: 500));
+
+    var loginOk = false;
+    for (var attempt = 0; attempt < 3 && !loginOk; attempt++) {
+      final btn = find.text('ورود');
+      await tester.ensureVisible(btn);
+      await tester.pump(const Duration(milliseconds: 500));
+      await tester.tap(btn, warnIfMissed: false);
+      final end = DateTime.now().add(const Duration(seconds: 75));
+      while (DateTime.now().isBefore(end)) {
+        await tester.pump(const Duration(milliseconds: 500));
+        if (find.text('رزرو جدید').evaluate().isNotEmpty) {
+          loginOk = true;
+          break;
+        }
+        // دکمه بدون اسپینر برگشته = درخواست شکست خورده → تاپ مجدد
+        final btnBack = btn.evaluate().isNotEmpty;
+        final loading = find.byType(CircularProgressIndicator).evaluate().isNotEmpty;
+        if (btnBack && !loading) break;
+      }
+    }
+    if (!loginOk) fail('login did not reach dashboard');
 
     // ---------- لیست سالن‌ها → سالن فوتسال فاتحی قم ----------
     await tester.tap(find.text('رزرو جدید'), warnIfMissed: false);
