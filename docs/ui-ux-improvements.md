@@ -22,6 +22,8 @@
 
 ### CI — `.github/workflows/android-emulator-test.yml`
 - KVM (udev rule)، لاگ‌فکت آرتیفکت، تور صفحه‌ها + آرتیفکت `tour-screenshots`، جمع نتیجه دو تست.
+- **رن ۶**: شکست به دلیل `--no-pub` در محیط ایزوله emulator runner (خطای missing flutter_test).
+- **رن ۷** (در جریان): فیکس = حذف `--no-pub` + افزودن `flutter pub get` داخل اسکریپت emulator (commit bd87fe8).
 
 ## نقشه راه پیشنهادی (اولویت‌دار)
 
