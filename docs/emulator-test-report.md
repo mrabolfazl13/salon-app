@@ -13,7 +13,8 @@ SDK Manager محلی به دلیل تحریم/mirrorها دانلود system-ima
 | 3 | efdfb13 | شکست واقعی تست | متن دکمه اشتباه در تست (`مشاهده سالن‌ها` → دکمه واقعی `رزرو جدید`)؛ register+login هر دو ۲۰۰ |
 | 4 | efdfb13 | شکست | دکمه «ورود» زیر کیبورد نرم — tap با warnIfMissed:false بی‌صدا خورد؛ فیکس: unfocus + ensureVisible |
 | 5 | 1bb493e | شکست | پیشرفت: register ۲۰۰ → **login ۲۰۰** → GET /bookings ✓؛ سپس race در حلقه retry خودم: tap روی دکمه‌ای که در transition ناوبری از درخت خارج شده بود |
-| 6 | eb616a6 | در جریان | فیکس grace ۱۰ ثانیه + re-check finder قبل از هر tap + تور کامل صفحه‌ها |
+| 6 | eb616a6 | شکست | `flutter test --no-pub` داخل emulator runner نتوانست flutter_test را پیدا کند (محیط ایزوله) — خطا: "Error: cannot run without a dependency on either package:flutter_test or package:test" |
+| 7 | bd87fe8 | در جریان | فیکس: حذف `--no-pub` و افزودن `flutter pub get` داخل اسکریپت emulator runner قبل از هر دو تست |
 
 ## الگوهای پایدار برای تست فلاتر روی امولاتور (درس‌های این جلسه)
 1. `warnIfMissed: false` شکست‌های خاموش می‌سازد — همیشه قبل از tap: `FocusManager.instance.primaryFocus?.unfocus()` + `ensureVisible` + re-check finder.
