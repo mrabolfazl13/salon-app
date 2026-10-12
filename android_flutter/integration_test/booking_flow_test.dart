@@ -110,10 +110,11 @@ void main() {
     await tester.tap(find.text('رزرو جدید'), warnIfMissed: false);
     
     // Wait for venues list to load
-    final listView = find.byType(ListView).first;
-    await waitFor(listView, timeout: const Duration(seconds: 90));
+    final listViewFinder = find.byType(ListView);
+    await waitFor(listViewFinder, timeout: const Duration(seconds: 90));
     
     // Tap first venue (any name)
+    final listView = listViewFinder.first;
     final firstVenueText = find.descendant(of: listView, matching: find.byType(Text)).first;
     await tester.tap(firstVenueText, warnIfMissed: false);
     await tester.pump(const Duration(seconds: 3));
