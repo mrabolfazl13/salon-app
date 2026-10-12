@@ -66,10 +66,10 @@ void main() {
     await tester.enterText(loginFields.at(1), 'test1234');
     await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text('ورود'), warnIfMissed: false);
-    await waitFor(find.text('مشاهده سالن‌ها'), timeout: const Duration(seconds: 60));
+    await waitFor(find.text('رزرو جدید'), timeout: const Duration(seconds: 60));
 
     // ---------- لیست سالن‌ها → سالن فوتسال فاتحی قم ----------
-    await tester.tap(find.text('مشاهده سالن‌ها'), warnIfMissed: false);
+    await tester.tap(find.text('رزرو جدید'), warnIfMissed: false);
     final venue = find.text('سالن فوتسال فاتحی قم').first;
     await waitFor(venue, timeout: const Duration(seconds: 60));
     await tester.tap(venue, warnIfMissed: false);
