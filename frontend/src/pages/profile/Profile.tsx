@@ -281,22 +281,27 @@ const Profile: React.FC = () => {
                   <Chip
                     label={user.isVerified ? 'تایید شده' : 'در انتظار تایید'}
                     color={user.isVerified ? 'success' : 'default'}
-                    size="small"
-                    sx={{ borderRadius: '8px' }}
+                    size="medium"
+                    sx={{ borderRadius: '10px', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 1.5 } }}
                   />
                   {/* چیپ امتیاز — نمایش فوری موجودی وفاداری؛ با کلیک می‌رود به تب «وفاداری و اعلان» */}
                   {loyaltyQuery.isSuccess && (
                     <Chip
-                      icon={<Icon icon="mdi:star" style={{ fontSize: 16 }} />}
+                      icon={<Icon icon="mdi:star" style={{ fontSize: 18 }} />}
                       label={`${toPersianDigits(loyaltyQuery.data.balance ?? 0)} امتیاز`}
-                      size="small"
+                      size="medium"
                       onClick={() => setTab(2)}
                       sx={{
-                        borderRadius: '8px',
+                        borderRadius: '10px',
                         fontWeight: 700,
                         cursor: 'pointer',
+                        minHeight: 44,
+                        px: 0.5,
                         bgcolor: 'rgba(245,158,11,0.14)',
                         color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#b45309'),
+                        '& .MuiChip-label': { px: 1.5 },
+                      }}
+                    />
                         '&:hover': { bgcolor: 'rgba(245,158,11,0.22)' },
                       }}
                     />
@@ -353,10 +358,10 @@ const Profile: React.FC = () => {
                   </Box>
                   <Button
                     variant="outlined"
-                    size="small"
+                    size="medium"
                     onClick={() => void useUpdateStore.getState().check(true)}
                     disabled={!isTauri()}
-                    sx={{ minHeight: 40, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
+                    sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 700, px: 2 }}
                   >
                     {isTauri() ? 'بررسی بروزرسانی' : 'فقط در اپ موبایل'}
                   </Button>
@@ -454,10 +459,10 @@ const Profile: React.FC = () => {
                     },
                   }}
                 >
-                  <Tab label="اطلاعات شخصی" />
-                  <Tab label="تغییر رمز عبور" />
-                  <Tab label="وفاداری و اعلان" />
-                  <Tab label="دستاوردها" />
+                  <Tab label="اطلاعات شخصی" sx={{ minHeight: 48, py: 1.5 }} />
+                  <Tab label="تغییر رمز عبور" sx={{ minHeight: 48, py: 1.5 }} />
+                  <Tab label="وفاداری و اعلان" sx={{ minHeight: 48, py: 1.5 }} />
+                  <Tab label="دستاوردها" sx={{ minHeight: 48, py: 1.5 }} />
                 </Tabs>
 
                 {tab === 0 && (
@@ -478,7 +483,7 @@ const Profile: React.FC = () => {
                         value={fullName}
                         onChange={(e) => setFullName(e.target.value)}
                         fullWidth
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
                       />
                       <TextField
                         label="شماره موبایل"
@@ -486,7 +491,7 @@ const Profile: React.FC = () => {
                         disabled
                         fullWidth
                         helperText="شماره موبایل قابل تغییر نیست"
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
                       />
                       <Button
                         type="button"
@@ -497,7 +502,8 @@ const Profile: React.FC = () => {
                           borderRadius: '12px',
                           textTransform: 'none',
                           fontWeight: 700,
-                          minHeight: { xs: 48, sm: 40 },
+                          minHeight: 48,
+                          px: 3,
                           mt: 1,
                           maxWidth: 220,
                           background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #1d4ed8 100%)',
@@ -533,7 +539,7 @@ const Profile: React.FC = () => {
                         value={oldPassword}
                         onChange={(e) => setOldPassword(e.target.value)}
                         fullWidth
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
                       />
                       <TextField
                         label="رمز عبور جدید"
@@ -541,7 +547,7 @@ const Profile: React.FC = () => {
                         value={newPassword}
                         onChange={(e) => setNewPassword(e.target.value)}
                         fullWidth
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
                       />
                       <TextField
                         label="تکرار رمز عبور جدید"
@@ -555,7 +561,7 @@ const Profile: React.FC = () => {
                             ? 'رمز عبور و تکرار آن مطابقت ندارند'
                             : undefined
                         }
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
                       />
                       <Button
                         type="button"
@@ -566,7 +572,8 @@ const Profile: React.FC = () => {
                           borderRadius: '12px',
                           textTransform: 'none',
                           fontWeight: 700,
-                          minHeight: { xs: 48, sm: 40 },
+                          minHeight: 48,
+                          px: 3,
                           mt: 1,
                           maxWidth: 220,
                           background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #1d4ed8 100%)',
