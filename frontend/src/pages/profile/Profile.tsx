@@ -300,8 +300,6 @@ const Profile: React.FC = () => {
                         bgcolor: 'rgba(245,158,11,0.14)',
                         color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#b45309'),
                         '& .MuiChip-label': { px: 1.5 },
-                      }}
-                    />
                         '&:hover': { bgcolor: 'rgba(245,158,11,0.22)' },
                       }}
                     />
