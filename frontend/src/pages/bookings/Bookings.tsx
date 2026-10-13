@@ -158,24 +158,28 @@ const Bookings: React.FC = () => {
           allowScrollButtonsMobile
           sx={{
             mb: 3,
+            minHeight: 48,
             '& .MuiTab-root': {
-              borderRadius: '8px',
+              borderRadius: '10px',
               textTransform: 'none',
               fontWeight: 600,
+              minHeight: 48,
+              py: 1.5,
+              fontSize: '0.85rem',
             },
             '& .Mui-selected': {
               background: gradients.brandEnergy,
               color: '#1c1917 !important',
               fontWeight: 800,
-              borderRadius: '8px',
+              borderRadius: '10px',
             },
           }}
         >
-          <Tab value="all" label="همه" />
-          <Tab value="confirmed" label="تایید شده" />
-          <Tab value="pending" label="در انتظار" />
-          <Tab value="cancelled" label="لغو شده" />
-          <Tab value="completed" label="انجام شده" />
+          <Tab value="all" label="همه" aria-label="تب همه رزروها" />
+          <Tab value="confirmed" label="تایید شده" aria-label="تب رزروهای تایید شده" />
+          <Tab value="pending" label="در انتظار" aria-label="تب رزروهای در انتظار" />
+          <Tab value="cancelled" label="لغو شده" aria-label="تب رزروهای لغو شده" />
+          <Tab value="completed" label="انجام شده" aria-label="تب رزروهای انجام شده" />
         </Tabs>
 
         {error ? (
@@ -183,7 +187,12 @@ const Bookings: React.FC = () => {
             severity="error"
             sx={{ borderRadius: '16px' }}
             action={
-              <Button color="inherit" size="small" onClick={fetchBookings}>
+              <Button
+                color="inherit"
+                size="medium"
+                onClick={fetchBookings}
+                sx={{ minHeight: 44, px: 2.5 }}
+              >
                 تلاش دوباره
               </Button>
             }
@@ -276,17 +285,17 @@ const Bookings: React.FC = () => {
                           <Chip
                             label={getStatusLabel(booking.status)}
                             color={getMuiStatusColor(booking.status) as any}
-                            size="small"
-                            sx={{ borderRadius: '8px' }}
+                            size="medium"
+                            sx={{ borderRadius: '10px', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 1.5 } }}
                           />
                           {booking.status === 'cancelled' &&
                             refundedBookingIds.has(Number(booking.id)) && (
                               <Chip
                                 label="بازگشت وجه"
-                                size="small"
+                                size="medium"
                                 color="info"
                                 icon={<Icon icon="mdi:restore" className="h-4 w-4" />}
-                                sx={{ borderRadius: '8px', fontWeight: 600 }}
+                                sx={{ borderRadius: '10px', fontWeight: 600, minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 1.5 } }}
                               />
                             )}
                           {booking.status === 'confirmed' &&
@@ -295,21 +304,22 @@ const Bookings: React.FC = () => {
                             (paidBookingIds.has(Number(booking.id)) ? (
                               <Chip
                                 label="پرداخت شده"
-                                size="small"
+                                size="medium"
                                 color="success"
                                 icon={<Icon icon="mdi:check-circle-outline" className="h-4 w-4" />}
-                                sx={{ borderRadius: '8px', fontWeight: 600 }}
+                                sx={{ borderRadius: '10px', fontWeight: 600, minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 1.5 } }}
                               />
                             ) : (
                               <Button
                                 variant="contained"
-                                size="small"
+                                size="medium"
                                 onClick={() => setPayTarget(booking)}
                                 sx={{
-                                  borderRadius: '10px',
+                                  borderRadius: '12px',
                                   textTransform: 'none',
-                                  minHeight: { xs: 44, sm: 34 },
-                                  px: { xs: 2, sm: 1.5 },
+                                  minHeight: 44,
+                                  px: 2.5,
+                                  fontSize: '0.85rem',
                                   background: 'linear-gradient(135deg, #16a34a, #15803d)',
                                   '&:hover': { background: 'linear-gradient(135deg, #15803d, #166534)' },
                                 }}
@@ -321,13 +331,14 @@ const Bookings: React.FC = () => {
                           {!booking.isPendingRedis && (
                             <Button
                               variant="outlined"
-                              size="small"
+                              size="medium"
                               onClick={() => navigate(`/bookings/${booking.id}`)}
                               sx={{
-                                borderRadius: '10px',
+                                borderRadius: '12px',
                                 textTransform: 'none',
-                                minHeight: { xs: 44, sm: 34 },
-                                px: { xs: 2, sm: 1.5 },
+                                minHeight: 44,
+                                px: 2.5,
+                                fontSize: '0.85rem',
                               }}
                             >
                               جزئیات
@@ -337,13 +348,14 @@ const Bookings: React.FC = () => {
                             <Button
                               variant="contained"
                               color="error"
-                              size="small"
+                              size="medium"
                               onClick={() => setCancelTarget(booking)}
                               sx={{
-                                borderRadius: '10px',
+                                borderRadius: '12px',
                                 textTransform: 'none',
-                                minHeight: { xs: 44, sm: 34 },
-                                px: { xs: 2, sm: 1.5 },
+                                minHeight: 44,
+                                px: 2.5,
+                                fontSize: '0.85rem',
                               }}
                             >
                               لغو

@@ -633,19 +633,21 @@ const Home: React.FC = () => {
                 : 'برای پیشنهاد بر اساس نزدیک‌ترین سالن، موقعیت مکانی را فعال کنید.'}
             </Typography>
             <Button
-              size="small"
+              size="medium"
               disabled={locBusy}
               onClick={() => {
                 setLocFailed(false)
                 requestLocation()
               }}
-              startIcon={<Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} />}
+              startIcon={<Icon icon="mdi:crosshairs-gps" style={{ width: 18, height: 18 }} />}
               sx={{
                 textTransform: 'none',
                 fontWeight: 700,
-                borderRadius: '10px',
+                borderRadius: '12px',
                 flexShrink: 0,
                 color: 'primary.main',
+                minHeight: 44,
+                px: 2,
               }}
             >
               {locBusy ? 'در حال دریافت…' : 'فعال‌سازی'}
@@ -686,9 +688,9 @@ const Home: React.FC = () => {
               دریافت سالن‌ها ممکن نشد
             </Typography>
             <Button
-              size="small"
+              size="medium"
               variant="outlined"
-              startIcon={<Icon icon="mdi:refresh" />}
+              startIcon={<Icon icon="mdi:refresh" style={{ width: 18, height: 18 }} />}
               onClick={() => {
                 setVenuesLoading(true)
                 setVenuesError(false)
@@ -698,7 +700,7 @@ const Home: React.FC = () => {
                   .catch(() => setVenuesError(true))
                   .finally(() => setVenuesLoading(false))
               }}
-              sx={{ mt: 1.5, textTransform: 'none', borderRadius: '999px' }}
+              sx={{ mt: 1.5, textTransform: 'none', borderRadius: '999px', minHeight: 44, px: 2.5 }}
             >
               تلاش مجدد
             </Button>
@@ -808,25 +810,27 @@ const Home: React.FC = () => {
                   key={tab.id}
                   component="button"
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
+                  aria-label={`تب ${tab.label}`}
                   sx={{
                     flex: 1,
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     gap: 0.5,
-                    py: 1,
+                    py: 1.25,
+                    minHeight: 48,
                     borderRadius: '9px',
                     border: 'none',
                     cursor: 'pointer',
                     fontFamily: 'inherit',
-                    fontSize: '0.75rem',
+                    fontSize: '0.8rem',
                     fontWeight: 700,
                     transition: 'all 0.2s ease',
                     bgcolor: activeTab === tab.id ? '#fff' : 'transparent',
                     color: activeTab === tab.id ? '#2563eb' : 'rgba(255,255,255,0.9)',
                   }}
                 >
-                  <Icon icon={tab.icon} style={{ width: 15, height: 15 }} />
+                  <Icon icon={tab.icon} style={{ width: 16, height: 16 }} />
                   {tab.label}
                 </Box>
               ))}

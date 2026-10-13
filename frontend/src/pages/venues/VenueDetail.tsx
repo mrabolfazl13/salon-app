@@ -807,7 +807,10 @@ const VenueDetail: React.FC = () => {
                           },
                         }}
                       >
-                        <Tab label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:information" className="h-4 w-4" />اطلاعات</Box>} />
+                        <Tab
+                          label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:information" className="h-4 w-4" />اطلاعات</Box>}
+                          sx={{ minHeight: 48, py: 1.5 }}
+                        />
                         <Tab
                           label={
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -815,8 +818,12 @@ const VenueDetail: React.FC = () => {
                               {isGym ? 'اشتراک‌ها' : 'سانس‌ها'}
                             </Box>
                           }
+                          sx={{ minHeight: 48, py: 1.5 }}
                         />
-                        <Tab label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:star" className="h-4 w-4" />نظرات</Box>} />
+                        <Tab
+                          label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:star" className="h-4 w-4" />نظرات</Box>}
+                          sx={{ minHeight: 48, py: 1.5 }}
+                        />
                       </Tabs>
 
                       {tab === 0 && (
@@ -836,13 +843,17 @@ const VenueDetail: React.FC = () => {
                               <Chip
                                 key={amenity}
                                 label={amenity}
+                                size="medium"
                                 icon={<Icon icon="mdi:check-circle" className="h-4 w-4" />}
                                 sx={{
                                   borderRadius: '10px',
                                   bgcolor: 'rgba(37,99,235,0.08)',
                                   color: 'primary.main',
                                   fontWeight: 500,
+                                  minHeight: 44,
+                                  px: 0.5,
                                   '& .MuiChip-icon': { color: 'primary.main' },
+                                  '& .MuiChip-label': { px: 1.5 },
                                 }}
                               />
                             ))}

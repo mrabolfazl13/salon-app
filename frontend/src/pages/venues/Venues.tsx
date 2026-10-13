@@ -65,6 +65,10 @@ const Segmented: React.FC<{
         <Box
           key={o.value}
           onClick={() => onChange(o.value)}
+          role="button"
+          aria-label={o.label}
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onChange(o.value) }}
           sx={{
             flex: fullWidth ? 1 : 'none',
             display: 'flex',
@@ -72,7 +76,9 @@ const Segmented: React.FC<{
             justifyContent: 'center',
             gap: 0.75,
             px: 2,
-            minHeight: 40,
+            py: 1,
+            minHeight: 48,
+            minWidth: 48,
             borderRadius: `${Math.max(radii.button - 6, 8)}px`,
             cursor: 'pointer',
             userSelect: 'none',
@@ -285,7 +291,10 @@ const Venues: React.FC = () => {
           </Box>
           <Box
             onClick={() => setFilterOpen(true)}
-            aria-label="فیلترها"
+            role="button"
+            tabIndex={0}
+            aria-label={`فیلترها${activeFilterCount > 0 ? ` (${activeFilterCount} فعال)` : ''}`}
+            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setFilterOpen(true) }}
             sx={{
               width: 52,
               height: 52,
@@ -308,9 +317,9 @@ const Venues: React.FC = () => {
             <Badge
               badgeContent={activeFilterCount}
               color="secondary"
-              sx={{ '& .MuiBadge-badge': { minWidth: 16, height: 16, fontSize: '0.6rem' } }}
+              sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, fontSize: '0.65rem' } }}
             >
-              <Icon icon="mdi:tune-variant" style={{ width: 22, height: 22 }} />
+              <Icon icon="mdi:tune-variant" style={{ width: 24, height: 24 }} />
             </Badge>
           </Box>
         </Box>
@@ -322,36 +331,44 @@ const Venues: React.FC = () => {
               <Chip
                 key={c.key}
                 label={c.label}
-                size="small"
+                size="medium"
                 onDelete={c.onRemove}
                 sx={{
                   bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
                   color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#92400e'),
                   fontWeight: 700,
-                  fontSize: '0.75rem',
-                  height: 30,
+                  fontSize: '0.8rem',
+                  minHeight: 44,
+                  px: 0.5,
                   borderRadius: '10px',
                   '& .MuiChip-deleteIcon': {
                     color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#d97706'),
-                    fontSize: 16,
+                    fontSize: 18,
                   },
+                  '& .MuiChip-label': { px: 1.5 },
                 }}
               />
             ))}
             <Box
               onClick={() => setFilters({})}
+              role="button"
+              tabIndex={0}
+              aria-label="پاک کردن همه فیلترها"
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setFilters({}) }}
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 0.5,
                 cursor: 'pointer',
                 color: 'text.secondary',
-                fontSize: '0.78rem',
+                fontSize: '0.8rem',
                 fontWeight: 600,
+                minHeight: 44,
+                px: 1,
                 '&:hover': { color: '#ef4444' },
               }}
             >
-              <Icon icon="mdi:filter-remove-outline" style={{ width: 16, height: 16 }} />
+              <Icon icon="mdi:filter-remove-outline" style={{ width: 18, height: 18 }} />
               پاک کردن همه
             </Box>
           </Box>
@@ -365,7 +382,8 @@ const Venues: React.FC = () => {
               alignItems: 'center',
               gap: 0.75,
               px: 1.5,
-              py: 0.75,
+              py: 1,
+              minHeight: 44,
               borderRadius: '10px',
               bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
               color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#92400e'),
@@ -374,7 +392,7 @@ const Venues: React.FC = () => {
               minWidth: 0,
             }}
           >
-            <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} style={{ width: 16, height: 16, flexShrink: 0 }} />
+            <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} style={{ width: 18, height: 18, flexShrink: 0 }} />
             <Box component="span" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
               {filteredVenues.length.toLocaleString('fa-IR')} {category === 'futsal' ? 'سالن' : 'باشگاه'}
             </Box>

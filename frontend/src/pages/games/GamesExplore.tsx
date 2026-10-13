@@ -99,7 +99,12 @@ const GamesExplore: React.FC = () => {
           </Typography>
         </Box>
         {isAuthenticated && (
-          <Button variant="gradient" icon="mdi:plus" onClick={() => navigate('/games/new')}>
+          <Button
+            variant="gradient"
+            icon="mdi:plus"
+            onClick={() => navigate('/games/new')}
+            sx={{ minHeight: 44, px: 2.5 }}
+          >
             ساخت بازی
           </Button>
         )}
@@ -108,11 +113,21 @@ const GamesExplore: React.FC = () => {
       <Tabs
         value={tab}
         onChange={(_, v) => setTab(v)}
-        sx={{ mb: 2.5, '& .MuiTab-root': { fontWeight: 700, textTransform: 'none' } }}
+        sx={{
+          mb: 2.5,
+          minHeight: 48,
+          '& .MuiTab-root': {
+            fontWeight: 700,
+            textTransform: 'none',
+            minHeight: 48,
+            py: 1.5,
+            fontSize: '0.9rem',
+          },
+        }}
       >
-        <Tab label="کشف بازی‌ها" />
-        <Tab label="بازی‌های من" />
-        <Tab label={`دعوت‌نامه‌ها${myInvitations.data?.length ? ` (${myInvitations.data.length})` : ''}`} />
+        <Tab label="کشف بازی‌ها" aria-label="تب کشف بازی‌ها" />
+        <Tab label="بازی‌های من" aria-label="تب بازی‌های من" />
+        <Tab label={`دعوت‌نامه‌ها${myInvitations.data?.length ? ` (${myInvitations.data.length})` : ''}`} aria-label="تب دعوت‌نامه‌ها" />
       </Tabs>
 
       {/* ─────────── تب کشف ─────────── */}
@@ -120,7 +135,7 @@ const GamesExplore: React.FC = () => {
         <>
           <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 2.5 }}>
             <ToggleButtonGroup
-              size="small"
+              size="medium"
               exclusive
               value={sport}
               onChange={(_, v) => { if (v !== null) { setSport(v); setLimit(PAGE_SIZE) } }}
@@ -133,9 +148,11 @@ const GamesExplore: React.FC = () => {
                 '& .MuiToggleButton-root': {
                   border: '1px solid rgba(15,23,42,0.08)',
                   borderRadius: '999px !important',
-                  px: 1.5,
-                  py: 0.6,
-                  fontSize: '0.75rem',
+                  px: 2,
+                  py: 1,
+                  minHeight: 44, // Minimum touch target size
+                  minWidth: 44, // Minimum touch target width
+                  fontSize: '0.85rem',
                   fontWeight: 600,
                   color: '#475569',
                   textTransform: 'none',
@@ -149,9 +166,9 @@ const GamesExplore: React.FC = () => {
                 },
               }}
             >
-              <ToggleButton value="">همه</ToggleButton>
+              <ToggleButton value="" aria-label="نمایش همه ورزش‌ها">همه</ToggleButton>
               {SPORTS.map((s) => (
-                <ToggleButton key={s.key} value={s.key}>
+                <ToggleButton key={s.key} value={s.key} aria-label={`فیلتر ${s.label}`}>
                   <Box component="span" sx={{ ml: 0.5 }} aria-hidden="true">{s.emoji}</Box>
                   {s.label}
                 </ToggleButton>
@@ -162,37 +179,59 @@ const GamesExplore: React.FC = () => {
           <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', mb: 3 }}>
             <TextField
               select
-              size="small"
+              size="medium"
               label="مرتب‌سازی"
               value={sort}
               onChange={(e) => handleSortChange(e.target.value as GameSort)}
-              sx={{ minWidth: 160 }}
+              sx={{
+                minWidth: 180,
+                '& .MuiInputBase-root': { minHeight: 44 },
+              }}
             >
               {(Object.keys(GAME_SORT_LABELS) as GameSort[]).map((s) => (
-                <MenuItem key={s} value={s}>{GAME_SORT_LABELS[s]}</MenuItem>
+                <MenuItem key={s} value={s} sx={{ minHeight: 44 }}>{GAME_SORT_LABELS[s]}</MenuItem>
               ))}
             </TextField>
             <TextField
               select
-              size="small"
+              size="medium"
               label="سطح بازی"
               value={skill}
               onChange={(e) => { setSkill(e.target.value as SkillLevel | ''); setLimit(PAGE_SIZE) }}
-              sx={{ minWidth: 140 }}
+              sx={{
+                minWidth: 160,
+                '& .MuiInputBase-root': { minHeight: 44 },
+              }}
             >
-              <MenuItem value="">همه</MenuItem>
+              <MenuItem value="" sx={{ minHeight: 44 }}>همه</MenuItem>
               {(Object.keys(SKILL_LEVEL_LABELS) as SkillLevel[]).map((s) => (
-                <MenuItem key={s} value={s}>{SKILL_LEVEL_LABELS[s]}</MenuItem>
+                <MenuItem key={s} value={s} sx={{ minHeight: 44 }}>{SKILL_LEVEL_LABELS[s]}</MenuItem>
               ))}
             </TextField>
-            <Chip
-              icon={<Icon icon={availabilityOnly ? 'mdi:check-circle' : 'mdi:circle-outline'} style={{ width: 16, height: 16 }} />}
-              label="فقط جای خالی دارد"
-              onClick={() => { setAvailabilityOnly((v) => !v); setLimit(PAGE_SIZE) }}
-              color={availabilityOnly ? 'primary' : 'default'}
-              variant={availabilityOnly ? 'filled' : 'outlined'}
-              sx={{ borderRadius: '999px', fontWeight: 600, fontSize: '0.75rem' }}
-            />
+            <Box
+              component="span"
+              role="button"
+              tabIndex={0}
+              aria-label={availabilityOnly ? 'نمایش همه بازی‌ها' : 'فیلتر بازی‌های دارای ظرفیت'}
+              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setAvailabilityOnly((v) => !v); setLimit(PAGE_SIZE) } }}
+              sx={{ cursor: 'pointer', outline: 'none' }}
+            >
+              <Chip
+                icon={<Icon icon={availabilityOnly ? 'mdi:check-circle' : 'mdi:circle-outline'} style={{ width: 18, height: 18 }} />}
+                label="فقط جای خالی دارد"
+                onClick={() => { setAvailabilityOnly((v) => !v); setLimit(PAGE_SIZE) }}
+                color={availabilityOnly ? 'primary' : 'default'}
+                variant={availabilityOnly ? 'filled' : 'outlined'}
+                sx={{
+                  borderRadius: '999px',
+                  fontWeight: 600,
+                  fontSize: '0.8rem',
+                  px: 0.5,
+                  minHeight: 44,
+                  '& .MuiChip-label': { px: 1.5 },
+                }}
+              />
+            </Box>
           </Box>
 
           {isLoading ? (
@@ -222,7 +261,11 @@ const GamesExplore: React.FC = () => {
               </Grid>
               {items.length < total && (
                 <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
-                  <Button variant="outline" onClick={() => setLimit((l) => l + PAGE_SIZE)}>
+                  <Button
+                    variant="outline"
+                    onClick={() => setLimit((l) => l + PAGE_SIZE)}
+                    sx={{ minHeight: 44, px: 3, py: 1.25, fontSize: '0.9rem' }}
+                  >
                     نمایش بیشتر
                   </Button>
                 </Box>
@@ -329,6 +372,7 @@ const GamesExplore: React.FC = () => {
                         onError: (err) => toast.error(getGameError(err)),
                       })
                     }
+                    sx={{ minHeight: 44, px: 2.5 }}
                   >
                     پذیرفتن
                   </Button>
@@ -342,6 +386,7 @@ const GamesExplore: React.FC = () => {
                         onError: (err) => toast.error(getGameError(err)),
                       })
                     }
+                    sx={{ minHeight: 44, px: 2.5 }}
                   >
                     رد
                   </Button>
