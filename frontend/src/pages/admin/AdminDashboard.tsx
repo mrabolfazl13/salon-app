@@ -37,17 +37,26 @@ const AdminDashboard: React.FC = () => {
     setLoading(true)
     setError(null)
     try {
-      const [uStats, vStats, allUsers, pendingMgrs] = await Promise.all([
+      const [uStats, vStats, allUsers] = await Promise.all([
         adminService.getUserStats(),
         adminService.getVenueStats(),
         adminService.getUsers(),
-        adminService.getPendingManagers().catch(() => [] as AdminUser[]),
       ])
       setUserStats(uStats)
       setVenueStats(vStats)
       setUsers(allUsers || [])
-      setPendingManagers(pendingMgrs || [])
-    } catch {
+      
+      // Fetch pending managers separately with better error handling
+      try {
+        const pendingMgrs = await adminService.getPendingManagers()
+        setPendingManagers(pendingMgrs || [])
+      } catch (err) {
+        console.warn('Failed to fetch pending managers:', err)
+        // Endpoint may not exist or user lacks permission - silently ignore
+        setPendingManagers([])
+      }
+    } catch (mainErr) {
+      console.error('Failed to fetch admin dashboard data:', mainErr)
       setError('خطا در دریافت اطلاعات از سرور')
     } finally {
       setLoading(false)

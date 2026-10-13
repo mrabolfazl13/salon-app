@@ -125,7 +125,7 @@ const Deals: React.FC = () => {
               <TextFieldCompact label="حداکثر قیمت (ریال)" value={maxPrice} onChange={setMaxPrice} />
             </Box>
             <ToggleButtonGroup
-              size="small"
+              size="medium"
               exclusive
               value={timeFilter}
               onChange={(_, v) => v && setTimeFilter(v as DealTimeOfDay | 'all')}
@@ -134,7 +134,7 @@ const Deals: React.FC = () => {
                 borderRadius: '12px',
                 flexWrap: 'wrap',
                 rowGap: 1,
-                '& .MuiToggleButton-root': { px: 1.75, border: 'none', borderRadius: '12px !important', textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', gap: 0.5 },
+                '& .MuiToggleButton-root': { px: 2, py: 1, minHeight: 44, minWidth: 44, border: 'none', borderRadius: '12px !important', textTransform: 'none', fontWeight: 700, fontSize: '0.85rem', gap: 0.5 },
                 '& .Mui-selected': { bgcolor: 'linear-gradient(135deg, #f59e0b, #ef4444) !important', color: 'white !important' },
               }}
             >
@@ -150,12 +150,12 @@ const Deals: React.FC = () => {
                 return (
                   <Button
                     key={s.value}
-                    size="small"
+                    size="medium"
                     variant="outlined"
                     onClick={requestLocation}
                     disabled={locating}
-                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', borderColor: 'rgba(37,99,235,0.3)', color: '#2563eb' }}
-                    startIcon={<Icon icon="mdi:crosshairs-gps" style={{ width: 14, height: 14 }} />}
+                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', minHeight: 44, px: 2, borderColor: 'rgba(37,99,235,0.3)', color: '#2563eb' }}
+                    startIcon={<Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} />}
                   >
                     {locating ? '...' : s.label}
                   </Button>
@@ -166,25 +166,25 @@ const Deals: React.FC = () => {
                 <Chip
                   key={s.value}
                   label={s.label}
-                  size="small"
+                  size="medium"
                   onClick={() => setSort(s.value)}
                   color={isActive ? 'primary' : 'default'}
                   variant={isActive ? 'filled' : 'outlined'}
-                  icon={s.needsCoords ? <Icon icon="mdi:crosshairs-gps" style={{ width: 14, height: 14 }} /> : undefined}
-                  sx={{ borderRadius: '999px', fontWeight: isActive ? 700 : 500, fontSize: '0.75rem', cursor: 'pointer' }}
+                  icon={s.needsCoords ? <Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} /> : undefined}
+                  sx={{ borderRadius: '999px', fontWeight: isActive ? 700 : 500, fontSize: '0.8rem', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 2 }, cursor: 'pointer' }}
                 />
               )
             })}
             {coords && query.isSuccess && (
               <Chip
-                size="small"
-                icon={<Icon icon="mdi:map-marker" style={{ width: 14, height: 14 }} />}
+                size="medium"
+                icon={<Icon icon="mdi:map-marker" style={{ width: 16, height: 16 }} />}
                 label={`${toPersianDigits(deals.length)} دیل نزدیک (۱۰۰ کیلومتر)`}
                 onClick={() => {
                   setCoords(null)
                   if (sort === 'distance') setSort('time')
                 }}
-                sx={{ borderRadius: '999px', bgcolor: 'rgba(5,150,105,0.1)', color: '#059669', fontWeight: 700, fontSize: '0.75rem' }}
+                sx={{ borderRadius: '999px', bgcolor: 'rgba(5,150,105,0.1)', color: '#059669', fontWeight: 700, fontSize: '0.8rem', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 2 } }}
               />
             )}
           </Box>
@@ -231,11 +231,12 @@ const TextFieldCompact: React.FC<{ label: string; value: string; onChange: (v: s
     inputMode="numeric"
     sx={{
       width: '100%',
-      height: 46,
+      height: 52,
+      minHeight: 52,
       border: '1px solid rgba(15,23,42,0.12)',
       borderRadius: '14px',
-      px: 2,
-      fontSize: '0.85rem',
+      px: 2.5,
+      fontSize: '0.9rem',
       fontFamily: 'inherit',
       background: 'rgba(255,255,255,0.9)',
       outline: 'none',

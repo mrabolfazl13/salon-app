@@ -912,6 +912,7 @@ const ManagerDashboard: React.FC = () => {
                     textTransform: 'none',
                     px: 3,
                     py: 1.5,
+                    minHeight: 48,
                     fontWeight: 700,
                     fontSize: '0.9rem',
                     background: 'rgba(255,255,255,0.15)',
@@ -1061,7 +1062,7 @@ const ManagerDashboard: React.FC = () => {
                     <Button
                       size="small"
                       onClick={() => navigate('/finance')}
-                      sx={{ mr: 'auto', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem' }}
+                      sx={{ mr: 'auto', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem', minHeight: 44, px: 2 }}
                       endIcon={<Icon icon="mdi:arrow-left" style={{ width: 14, height: 14 }} />}
                     >
                       جزئیات مالی
@@ -1110,7 +1111,7 @@ const ManagerDashboard: React.FC = () => {
                   textTransform: 'none',
                   fontWeight: 600,
                   minHeight: 48,
-                  py: 1,
+                  py: 1.5,
                   px: 3,
                   color: 'text.secondary',
                   fontSize: '0.9rem',
@@ -1226,6 +1227,7 @@ const ManagerDashboard: React.FC = () => {
                           textTransform: 'none',
                           px: 4,
                           py: 1.5,
+                          minHeight: 48,
                           fontWeight: 700,
                           fontSize: '1rem',
                           background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
@@ -1312,18 +1314,18 @@ const ManagerDashboard: React.FC = () => {
                                     </Box>
                                     <Chip
                                       label={venue.is_verified ? 'تایید شده' : 'در انتظار تایید'}
-                                      size="small"
+                                      size="medium"
                                       icon={
                                         <Icon
                                           icon={venue.is_verified ? 'mdi:check-circle' : 'mdi:clock-outline'}
-                                          className="h-3.5 w-3.5"
+                                          className="h-4 w-4"
                                         />
                                       }
                                       sx={{
                                         borderRadius: '8px',
                                         fontWeight: 600,
                                         fontSize: '0.75rem',
-                                        height: 26,
+                                        minHeight: 44,
                                         flexShrink: 0,
                                         bgcolor: venue.is_verified ? 'rgba(5,150,105,0.1)' : 'rgba(217,119,6,0.1)',
                                         color: venue.is_verified ? '#059669' : '#d97706',
@@ -1341,12 +1343,12 @@ const ManagerDashboard: React.FC = () => {
                                         <Chip
                                           key={i}
                                           label={a}
-                                          size="small"
+                                          size="medium"
                                           variant="outlined"
                                           sx={{
                                             borderRadius: '6px',
                                             fontSize: '0.75rem',
-                                            height: 24,
+                                            minHeight: 44,
                                             borderColor: 'rgba(37,99,235,0.15)',
                                             color: 'primary.main',
                                             fontWeight: 500,
@@ -1356,11 +1358,11 @@ const ManagerDashboard: React.FC = () => {
                                       {amenities.length > 4 && (
                                         <Chip
                                           label={`+${amenities.length - 4}`}
-                                          size="small"
+                                          size="medium"
                                           sx={{
                                             borderRadius: '6px',
                                             fontSize: '0.75rem',
-                                            height: 24,
+                                            minHeight: 44,
                                             bgcolor: 'primary.main',
                                             color: 'white',
                                             fontWeight: 600,
@@ -1388,13 +1390,13 @@ const ManagerDashboard: React.FC = () => {
                                         </Typography>
                                       </Box>
                                       <Chip
-                                        icon={<Icon icon={getPaymentModeIcon(venue.payment_mode)} className="h-3.5 w-3.5" />}
+                                        icon={<Icon icon={getPaymentModeIcon(venue.payment_mode)} className="h-4 w-4" />}
                                         label={getPaymentModeLabel(venue.payment_mode)}
-                                        size="small"
+                                        size="medium"
                                         sx={{
                                           borderRadius: '6px',
                                           fontSize: '0.75rem',
-                                          height: 24,
+                                          minHeight: 44,
                                           fontWeight: 600,
                                           bgcolor: PAYMENT_MODE_CHIP_STYLE[venue.payment_mode ?? '']?.bg ?? 'rgba(100,116,139,0.1)',
                                           color: PAYMENT_MODE_CHIP_STYLE[venue.payment_mode ?? '']?.color ?? '#64748b',
@@ -1408,7 +1410,7 @@ const ManagerDashboard: React.FC = () => {
                                   <Box sx={{ display: 'flex', gap: 1 }}>
                                     <Button
                                       variant="contained"
-                                      size="small"
+                                      size="medium"
                                       onClick={() => {
                                         setSelectedVenue(venue)
                                         setOpenGenerateSlots(true)
@@ -1416,10 +1418,11 @@ const ManagerDashboard: React.FC = () => {
                                       sx={{
                                         borderRadius: '10px',
                                         textTransform: 'none',
-                                        px: 2,
-                                        py: 0.75,
+                                        px: 2.5,
+                                        py: 1,
+                                        minHeight: 48,
                                         fontWeight: 600,
-                                        fontSize: '0.8rem',
+                                        fontSize: '0.85rem',
                                         flex: 1,
                                         background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
                                         boxShadow: '0 4px 10px rgba(37,99,235,0.2)',
@@ -1433,15 +1436,16 @@ const ManagerDashboard: React.FC = () => {
                                     </Button>
 <Button
   variant="outlined"
-  size="small"
+  size="medium"
   onClick={() => handleViewVenue(venue)}
   sx={{
     borderRadius: '10px',
     textTransform: 'none',
-    px: 2,
-    py: 0.75,
+    px: 2.5,
+    py: 1,
+    minHeight: 48,
     fontWeight: 600,
-    fontSize: '0.8rem',
+    fontSize: '0.85rem',
     flex: 1,
     borderColor: 'rgba(37,99,235,0.2)',
     color: 'primary.main',
@@ -1456,15 +1460,16 @@ const ManagerDashboard: React.FC = () => {
 </Button>
                                     <Button
                                       variant="outlined"
-                                      size="small"
+                                      size="medium"
                                       onClick={() => openEditVenueDialog(venue)}
                                       sx={{
                                         borderRadius: '10px',
                                         textTransform: 'none',
-                                        px: 2,
-                                        py: 0.75,
+                                        px: 2.5,
+                                        py: 1,
+                                        minHeight: 48,
                                         fontWeight: 600,
-                                        fontSize: '0.8rem',
+                                        fontSize: '0.85rem',
                                         flex: 1,
                                         borderColor: 'rgba(217,119,6,0.3)',
                                         color: '#d97706',

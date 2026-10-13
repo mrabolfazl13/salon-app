@@ -96,7 +96,7 @@ const Search: React.FC = () => {
             <IconButton
               onClick={() => (value ? setValue('') : navigate(-1))}
               aria-label="بازگشت"
-              sx={{ width: 44, height: 44, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0, color: 'text.primary' }}
+              sx={{ width: 48, height: 48, minWidth: 48, minHeight: 48, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0, color: 'text.primary' }}
             >
               <Icon icon="mdi:arrow-right" style={{ width: 22, height: 22 }} />
             </IconButton>
@@ -131,8 +131,10 @@ const Search: React.FC = () => {
                         display: 'flex',
                         alignItems: 'center',
                         gap: 1,
-                        px: 1,
+                        px: 1.5,
+                        py: 1.25,
                         minHeight: 48,
+                        minWidth: 48,
                         borderRadius: `${radii.button}px`,
                         cursor: 'pointer',
                         '&:hover': { bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.04)') },
@@ -144,15 +146,15 @@ const Search: React.FC = () => {
                         {q}
                       </Typography>
                       <IconButton
-                        size="small"
+                        size="medium"
                         aria-label={`حذف ${q}`}
                         onClick={(e) => {
                           e.stopPropagation()
                           remove(q)
                         }}
-                        sx={{ color: '#cbd5e1', '&:hover': { color: '#ef4444' } }}
+                        sx={{ width: 44, height: 44, minHeight: 44, minWidth: 44, color: '#cbd5e1', '&:hover': { color: '#ef4444' } }}
                       >
-                        <Icon icon="mdi:close" style={{ width: 18, height: 18 }} />
+                        <Icon icon="mdi:close" style={{ width: 20, height: 20 }} />
                       </IconButton>
                     </Box>
                   ))}

@@ -30,12 +30,21 @@ const Favorites: React.FC = () => {
     setLoading(true)
     setFetchError(false)
     venueService
-      .getAll({ limit: 100 })
-      .then((data: Venue[]) => {
-        if (!cancelled) setVenues(Array.isArray(data) ? data : [])
-      })
-      .catch(() => {
+      .getAll({ limit: Math.max(100, favorites.length * 2) })
+      .then((response: any) => {
         if (!cancelled) {
+          // Handle both array response and paginated response { data: [], total: number }
+          const venues = Array.isArray(response) 
+            ? response 
+            : Array.isArray(response?.data) 
+              ? response.data 
+              : []
+          setVenues(venues)
+        }
+      })
+      .catch((error) => {
+        if (!cancelled) {
+          console.error('Failed to fetch venues for favorites:', error)
           setFetchError(true)
           setVenues([])
         }
