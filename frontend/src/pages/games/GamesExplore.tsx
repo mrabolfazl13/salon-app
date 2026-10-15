@@ -103,7 +103,6 @@ const GamesExplore: React.FC = () => {
             variant="gradient"
             icon="mdi:plus"
             onClick={() => navigate('/games/new')}
-            sx={{ minHeight: 44, px: 2.5 }}
           >
             ساخت بازی
           </Button>
@@ -264,7 +263,6 @@ const GamesExplore: React.FC = () => {
                   <Button
                     variant="outline"
                     onClick={() => setLimit((l) => l + PAGE_SIZE)}
-                    sx={{ minHeight: 44, px: 3, py: 1.25, fontSize: '0.9rem' }}
                   >
                     نمایش بیشتر
                   </Button>
@@ -372,7 +370,7 @@ const GamesExplore: React.FC = () => {
                         onError: (err) => toast.error(getGameError(err)),
                       })
                     }
-                    sx={{ minHeight: 44, px: 2.5 }}
+                    className="min-h-[44px] px-4"
                   >
                     پذیرفتن
                   </Button>
@@ -386,7 +384,7 @@ const GamesExplore: React.FC = () => {
                         onError: (err) => toast.error(getGameError(err)),
                       })
                     }
-                    sx={{ minHeight: 44, px: 2.5 }}
+                    className="min-h-[44px] px-4"
                   >
                     رد
                   </Button>
