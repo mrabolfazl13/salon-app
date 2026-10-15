@@ -38,6 +38,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
       <Card
         component={Link}
         to={href}
+        data-testid="venue-card"
         sx={{
           display: 'flex',
           flexDirection: 'column',
