@@ -177,17 +177,17 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                     />
                   </Box>
                   <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', fontSize: '0.8rem', color: '#475569' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon="mdi:currency-irr" style={{ width: 16, height: 16 }} />
                       <Typography>{Number(payment.amount).toLocaleString()} ریال</Typography>
                     </Box>
                     {payment.deadline && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon icon="mdi:clock-outline" style={{ width: 16, height: 16 }} />
                         <Typography>مهلت: {new Date(payment.deadline).toLocaleDateString('fa-IR')}</Typography>
                       </Box>
                     )}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon="mdi:calendar-outline" style={{ width: 16, height: 16 }} />
                       <Typography>{new Date(payment.created_at).toLocaleDateString('fa-IR')}</Typography>
                     </Box>

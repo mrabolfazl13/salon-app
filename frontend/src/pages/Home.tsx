@@ -388,7 +388,7 @@ const Home: React.FC = () => {
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            gap: 0.5,
+                            gap: 1,
                             px: 1,
                             py: 0.4,
                             borderRadius: '999px',
@@ -557,7 +557,7 @@ const Home: React.FC = () => {
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 0.5,
+                gap: 1,
                 mt: 1.5,
                 px: 1.75,
                 py: 0.75,
@@ -594,7 +594,7 @@ const Home: React.FC = () => {
             <Box sx={{ position: 'absolute', bottom: -50, left: -30, width: 150, height: 150, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)' }} />
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
               <Box sx={{ minWidth: 0 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Icon icon="mdi:fire" style={{ width: 20, height: 20, flexShrink: 0 }} />
                   <Typography sx={{ fontWeight: 800, fontSize: '1.02rem' }}>شگفت‌انگیزهای لحظه آخری</Typography>
                 </Box>
@@ -606,7 +606,7 @@ const Home: React.FC = () => {
                 sx={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: 0.5,
+                  gap: 1,
                   px: 1.5,
                   py: 0.75,
                   borderRadius: `${radii.button}px`,
@@ -820,7 +820,7 @@ const Home: React.FC = () => {
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    gap: 0.5,
+                    gap: 1,
                     py: 1.25,
                     minHeight: 48,
                     borderRadius: '9px',
@@ -999,7 +999,7 @@ const Home: React.FC = () => {
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
                       <span>{item.date}</span>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon icon="mdi:eye-outline" style={{ width: 13, height: 13 }} />
                         {(item.views / 1000).toFixed(0)}k
                       </Box>

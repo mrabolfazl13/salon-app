@@ -81,7 +81,7 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
             return (
               <TableRow key={p.id} sx={{ opacity: p.is_voided ? 0.55 : 1 }}>
                 <TableCell sx={cellBody}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Icon
                       icon={p.record_type === 'down_payment' ? 'mdi:bank-outline' : 'mdi:calendar-text-outline'}
                       className="h-4 w-4"

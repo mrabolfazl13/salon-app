@@ -528,7 +528,7 @@ const VenueDetail: React.FC = () => {
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 0.75, flexWrap: 'wrap' }}>
               <MobileRating value={venue.average_rating || 0} count={venue.total_reviews || 0} size="md" />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, minWidth: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                 <Icon icon="mdi:map-marker-outline" style={{ width: 18, height: 18, color: '#64748b' }} />
                 <Typography variant="body2" sx={{ color: 'text.secondary', minWidth: 0 }}>
                   {venue.address}
@@ -751,7 +751,7 @@ const VenueDetail: React.FC = () => {
                     {venue.name}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon="mdi:map-marker" className="h-5 w-5" style={{ color: 'rgba(255,255,255,0.7)' }} />
                       <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>{venue.address}</Typography>
                     </Box>

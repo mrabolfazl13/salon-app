@@ -142,7 +142,7 @@ export const RoleBadge: React.FC<{ role: ParticipantRole }> = ({ role }) => {
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 0.5,
+        gap: 1,
         px: 0.9,
         py: 0.25,
         borderRadius: '999px',
@@ -165,7 +165,7 @@ export const CapacityBar: React.FC<{ current: number; max: number }> = ({ curren
   const color = ratio >= 1 ? '#f59e0b' : '#10b981'
   return (
     <Box sx={{ minWidth: 90 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mb: 0.5 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
         <Icon icon="mdi:account-group-outline" style={{ width: 15, height: 15, color }} />
         <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155' }}>
           {`${current.toLocaleString('fa-IR')}/${max.toLocaleString('fa-IR')}`}

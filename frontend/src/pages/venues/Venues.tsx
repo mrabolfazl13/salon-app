@@ -74,7 +74,7 @@ const Segmented: React.FC<{
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            gap: 0.75,
+            gap: 1,
             px: 2,
             py: 1,
             minHeight: 48,
@@ -358,7 +358,7 @@ const Venues: React.FC = () => {
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 0.5,
+                gap: 1,
                 cursor: 'pointer',
                 color: 'text.secondary',
                 fontSize: '0.8rem',
@@ -380,7 +380,7 @@ const Venues: React.FC = () => {
             sx={{
               display: 'inline-flex',
               alignItems: 'center',
-              gap: 0.75,
+              gap: 1,
               px: 1.5,
               py: 1,
               minHeight: 44,

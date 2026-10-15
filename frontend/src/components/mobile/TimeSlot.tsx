@@ -175,7 +175,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
             sx={{
               display: 'flex',
               alignItems: 'center',
-              gap: 0.5,
+              gap: 1,
               px: 1.25,
               py: 0.5,
               borderRadius: '999px',

@@ -57,7 +57,7 @@ const GameResultDialog: React.FC<Props> = ({ open, onClose, gameId, participants
   return (
     <Dialog open={open} onClose={handleClose} title="ثبت نتیجه بازی" maxWidth="sm">
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.75 }}>
+        <Typography sx={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon="mdi:information-outline" style={{ width: 16, height: 16, flexShrink: 0 }} />
           برندگان بازی را انتخاب کنید. به هر برنده امتیاز وفاداری اضافه می‌شود و وضعیت بازی «به پایان رسیده» ثبت خواهد شد.
         </Typography>

@@ -260,7 +260,7 @@ const GameDetail: React.FC = () => {
     )
   } else if (game.visibility === 'private') {
     primaryAction = (
-      <Typography sx={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.75 }}>
+      <Typography sx={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 1 }}>
         <Icon icon="mdi:lock-outline" style={{ width: 18, height: 18 }} />
         بازی خصوصی است — برای پیوستن به لینک دعوت نیاز دارید
       </Typography>
@@ -299,7 +299,7 @@ const GameDetail: React.FC = () => {
     <Layout>
       <Box sx={{ mb: 2 }}>
         <Link to="/games" style={{ textDecoration: 'none' }}>
-          <Typography sx={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography sx={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 1 }}>
             <Icon icon="mdi:arrow-right" style={{ width: 16, height: 16 }} />
             بازگشت به بازی‌ها
           </Typography>
@@ -496,7 +496,7 @@ const GameDetail: React.FC = () => {
             {game.result_set ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1, py: 0.2, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.10)', color: '#059669', fontSize: '0.75rem', fontWeight: 800 }}>
+                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1, py: 0.2, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.10)', color: '#059669', fontSize: '0.75rem', fontWeight: 800 }}>
                     <Icon icon="mdi:check-decagram" style={{ width: 14, height: 14 }} />
                     نتیجه ثبت شده
                   </Box>
@@ -511,7 +511,7 @@ const GameDetail: React.FC = () => {
                 ) : (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                     {winnerList.map((w) => (
-                      <Box key={w.userId} component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 1.1, py: 0.4, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309', fontSize: '0.78rem', fontWeight: 700 }}>
+                      <Box key={w.userId} component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1.1, py: 0.4, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309', fontSize: '0.78rem', fontWeight: 700 }}>
                         <Icon icon="mdi:trophy" style={{ width: 14, height: 14 }} />
                         {w.name}
                       </Box>

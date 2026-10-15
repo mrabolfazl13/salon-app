@@ -89,7 +89,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                       {moved && <Typography component="span" variant="caption" color="text.disabled"> (اصلی)</Typography>}
                     </Typography>
                     {moved && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon icon="mdi:arrow-conditional-right" className="h-3.5 w-3.5" style={{ color: '#d97706' }} />
                         <Typography variant="caption" sx={{ fontWeight: 700, color: '#d97706' }}>
                           جدید: {formatJalaliDate(eff.date)}

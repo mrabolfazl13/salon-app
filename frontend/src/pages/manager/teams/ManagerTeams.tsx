@@ -131,7 +131,7 @@ const ManagerTeams: React.FC = () => {
                       display: h.hideOnMobile ? { xs: 'none', md: 'table-cell' } : undefined,
                     }}
                   >
-                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
                       {h.label}
                       {sortKey === h.key && <Icon icon={sortDir === -1 ? 'mdi:sort-descending' : 'mdi:sort-ascending'} style={{ width: 14, height: 14 }} />}
                     </Box>

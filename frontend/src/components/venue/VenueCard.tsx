@@ -83,7 +83,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
           </Box>
 
           {/* آدرس */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
             <Icon icon="mdi:map-marker-outline" style={{ width: 16, height: 16, color: dark ? '#fbbf24' : '#d97706', flexShrink: 0 }} />
             <Typography
               variant="body2"
@@ -152,7 +152,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
               sx={{
                 display: 'inline-flex',
                 alignItems: 'center',
-                gap: 0.75,
+                gap: 1,
                 flexShrink: 0,
                 minHeight: 44,
                 minWidth: 44,

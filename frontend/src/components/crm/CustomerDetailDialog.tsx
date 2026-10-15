@@ -151,7 +151,7 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
               <FormControlLabel
                 control={<Switch checked={isVip} onChange={(e) => setIsVip(e.target.checked)} />}
                 label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                     <Icon icon="mdi:star" className="h-4 w-4" style={{ color: '#d97706' }} />
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>مشتری ویژه (VIP)</Typography>
                   </Box>

@@ -104,13 +104,13 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
                   {PARTICIPANT_STATUS_LABELS[p.status as keyof typeof PARTICIPANT_STATUS_LABELS] ?? p.status}
                 </Typography>
                 {p.payment_status === 'paid' && (
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color: '#059669', fontSize: '0.75rem', fontWeight: 700 }}>
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: '#059669', fontSize: '0.75rem', fontWeight: 700 }}>
                     <Icon icon="mdi:check-circle" style={{ width: 13, height: 13 }} />
                     پرداخت‌شده
                   </Box>
                 )}
                 {p.payment_status === 'pending' && (
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.25, color: '#b45309', fontSize: '0.75rem', fontWeight: 700 }}>
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: '#b45309', fontSize: '0.75rem', fontWeight: 700 }}>
                     <Icon icon="mdi:clock-outline" style={{ width: 13, height: 13 }} />
                     سهم پرداخت‌نشده
                   </Box>

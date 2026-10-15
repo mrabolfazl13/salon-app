@@ -172,7 +172,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
           </Button>
         </Box>
         {editing && (
-          <Typography sx={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Typography sx={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 1 }}>
             <Icon icon="mdi:information-outline" style={{ width: 14, height: 14 }} />
             تغییر نام فقط توسط کاپیتان یا مدیر تیم ذخیره می‌شود.
           </Typography>

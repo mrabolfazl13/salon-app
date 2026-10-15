@@ -140,7 +140,7 @@ const PricingBreakdown: React.FC<{ steps: BreakdownStep[]; payable: number | nul
                         key={`${r.rule_id}-${ri}`}
                         subRow
                         label={
-                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
                             <Icon icon="mdi:tag-outline" style={{ width: 12, height: 12, opacity: 0.6 }} />
                             {r.label || `قانون #${toPersianDigits(r.rule_id)}`}
                             <Box component="span" sx={{ color: 'text.secondary' }}>

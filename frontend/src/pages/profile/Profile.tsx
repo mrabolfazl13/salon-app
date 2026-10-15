@@ -343,7 +343,7 @@ const Profile: React.FC = () => {
               <Card sx={{ borderRadius: '16px', mt: 3 }}>
                 <CardContent sx={{ p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
                   <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                    <Typography variant="subtitle2" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
                       <Icon icon="mdi:cellphone-arrow-down" className="h-5 w-5" />
                       بروزرسانی برنامه
                       {updateAvailable && (

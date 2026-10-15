@@ -208,7 +208,7 @@ const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   return (
     <Card sx={{ borderRadius: `${radii.card}px`, boxShadow: shadows.card, border: '1px solid rgba(15,23,42,0.06)', mb: 3 }}>
       <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon="mdi:trophy-outline" style={{ width: 18, height: 18, color: '#f59e0b' }} />
           <Typography sx={{ fontSize: '0.85rem', fontWeight: 900, color: '#0f172a' }}>جدول لیگ</Typography>
           {q.data?.my_rank && (
@@ -302,7 +302,7 @@ const Teams: React.FC = () => {
 
       {invites.length > 0 && (
         <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#7c3aed', display: 'flex', alignItems: 'center', gap: 0.75 }}>
+          <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#7c3aed', display: 'flex', alignItems: 'center', gap: 1 }}>
             <Icon icon="mdi:email-fast-outline" style={{ width: 16, height: 16 }} />
             {`دعوت‌نامه‌های شما (${toPersianDigits(invites.length)})`}
           </Typography>

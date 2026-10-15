@@ -1030,7 +1030,7 @@ const ManagerDashboard: React.FC = () => {
                               {stat.label}
                             </Typography>
                             {stat.hint && (
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25, mt: 0.25 }}>
+                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
                                 <Typography sx={{ color: '#d97706', fontWeight: 700, fontSize: '0.75rem' }}>
                                   {stat.hint}
                                 </Typography>
@@ -1304,7 +1304,7 @@ const ManagerDashboard: React.FC = () => {
                                         <Typography variant="subtitle1" sx={{ fontWeight: 700, fontSize: '1rem', mb: 0.25 }}>
                                           {venue.name}
                                         </Typography>
-                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                           <Icon icon="mdi:map-marker" className="h-3.5 w-3.5" style={{ color: '#9ca3af' }} />
                                           <Typography variant="caption" sx={{ color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                                             {venue.address}
@@ -1377,13 +1377,13 @@ const ManagerDashboard: React.FC = () => {
                                   {/* Info Row */}
                                   <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2, flexWrap: 'wrap', gap: 1 }}>
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <Icon icon="mdi:phone" className="h-4 w-4" style={{ color: '#9ca3af' }} />
                                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>
                                           {venue.phone}
                                         </Typography>
                                       </Box>
-                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <Icon icon="mdi:currency-usd" className="h-4 w-4" style={{ color: '#9ca3af' }} />
                                         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                                           {formatPrice(venue.price)}

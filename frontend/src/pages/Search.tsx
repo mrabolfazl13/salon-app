@@ -174,7 +174,7 @@ const Search: React.FC = () => {
                     sx={{
                       display: 'inline-flex',
                       alignItems: 'center',
-                      gap: 0.75,
+                      gap: 1,
                       px: 1.75,
                       py: 1,
                       minHeight: 44,

@@ -191,7 +191,7 @@ export const FinalCTA: React.FC = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    gap: 0.5,
+                    gap: 1,
                     fontSize: '0.82rem',
                     color: 'rgba(255,255,255,0.85)',
                   }}

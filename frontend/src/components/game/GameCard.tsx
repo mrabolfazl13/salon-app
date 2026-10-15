@@ -97,7 +97,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
               >
                 {game.name}
               </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
                 <Icon icon="mdi:map-marker-outline" style={{ width: 15, height: 15, color: '#2563eb', flexShrink: 0 }} />
                 <Typography
                   variant="body2"

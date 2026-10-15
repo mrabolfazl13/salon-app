@@ -62,7 +62,7 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
           fontWeight: 800,
           display: 'flex',
           alignItems: 'center',
-          gap: 0.5,
+          gap: 1,
         }}
       >
         <Icon icon="mdi:fire" style={{ width: 13, height: 13 }} />
@@ -85,14 +85,14 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Icon icon="mdi:calendar-blank-outline" style={{ width: 15, height: 15, color: '#64748b' }} />
             <Typography variant="body2" sx={{ color: '#334155', fontWeight: 600 }}>
               {formatJalaliDate(deal.slot_date, { format: 'long' })}
               {hint ? ` (${hint})` : ''}
             </Typography>
           </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
             <Icon icon="mdi:clock-outline" style={{ width: 15, height: 15, color: '#64748b' }} />
             <Typography variant="body2" dir="rtl" sx={{ color: '#334155', fontWeight: 600 }}>
               {formatTimeFa(deal.start_time)} – {end}

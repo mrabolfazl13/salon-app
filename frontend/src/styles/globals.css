@@ -157,6 +157,54 @@
   scrollbar-width: none;
 }
 
+/* ─────────────────────────────────────────────────────────────
+   فاصلهٔ آیکون و متن در چیدمان راست‌به‌چپ
+   موتور zero-styled در MUI v9 حاشیه‌های فیزیکی (margin-left/right) را
+   برای جهت RTL برعکس نمی‌کند؛ در نتیجه حاشیهٔ منفیِ «سمت بیرونی»ٔ آیکون
+   بین آیکون و متن می‌افتد و آن دو را به هم می‌چسباند.
+   این قوانین با حاشیهٔ منطقیِ جهت‌آگاه، جای دو طرف را درست می‌کنند.
+   ───────────────────────────────────────────────────────────── */
+/* آیکون یا هر آیتم دیگری که مستقیم کنار متن دکمه می‌نشیند:
+   فاصلهٔ داخلی را gap انجام می‌دهد، پس حاشیهٔ آیکون فقط لبهٔ بیرونی را تراز می‌کند. */
+[dir="rtl"] .MuiButton-root {
+  column-gap: 8px;
+}
+[dir="rtl"] .MuiButton-icon.MuiButton-startIcon {
+  margin-inline-start: -4px;
+  margin-inline-end: 0;
+}
+[dir="rtl"] .MuiButton-icon.MuiButton-endIcon {
+  margin-inline-start: 0;
+  margin-inline-end: -4px;
+}
+[dir="rtl"] .MuiInputAdornment-root.MuiInputAdornment-positionStart {
+  margin-inline-start: 0;
+  margin-inline-end: 8px;
+}
+[dir="rtl"] .MuiInputAdornment-root.MuiInputAdornment-positionEnd {
+  margin-inline-start: 8px;
+  margin-inline-end: 0;
+}
+[dir="rtl"] .MuiFormControlLabel-root {
+  margin-inline-start: -11px;
+  margin-inline-end: 16px;
+}
+[dir="rtl"] .MuiFormControlLabel-labelPlacementStart {
+  margin-inline-end: -11px;
+}
+[dir="rtl"] .MuiAlert-root .MuiAlert-icon {
+  margin-inline-start: 0;
+  margin-inline-end: 12px;
+}
+[dir="rtl"] .MuiTab-root > .MuiTab-icon:first-child {
+  margin-inline-start: 0;
+  margin-inline-end: 8px;
+}
+[dir="rtl"] .MuiTab-root > .MuiTab-icon:last-child {
+  margin-inline-end: 0;
+  margin-inline-start: 8px;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after {
     animation-duration: 0.01ms !important;

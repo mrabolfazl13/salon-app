@@ -118,7 +118,7 @@ export const TeamRoleBadge: React.FC<{ role: TeamRole }> = ({ role }) => {
       sx={{
         display: 'inline-flex',
         alignItems: 'center',
-        gap: 0.5,
+        gap: 1,
         px: 0.9,
         py: 0.25,
         borderRadius: '999px',
