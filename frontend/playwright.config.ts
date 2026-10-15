@@ -7,8 +7,19 @@ import { defineConfig, devices } from '@playwright/test'
 // import dotenv from 'dotenv';
 // dotenv.config({ path: path.resolve(__dirname, '.env') });
 
+// پورت dev همان 3001 است (vite.config.ts)؛ E2E_PORT فقط برای اجرا کنار یک dev server
+// در حال اجرا روی پورت دیگر است
+const PORT = Number(process.env.E2E_PORT || 3001)
+
 export default defineConfig({
   testDir: './e2e',
+  /* --strictPort: به‌جای جابه‌جا شدن بی‌صدا به پورت دیگر، باند را می‌گیرد و صادقانه شکست می‌خورد */
+  webServer: {
+    command: `pnpm exec vite --port ${PORT} --strictPort`,
+    port: PORT,
+    reuseExistingServer: !process.env.CI,
+    timeout: 180_000,
+  },
   /* Run tests in files in parallel */
   fullyParallel: true,
   /* Fail the build on CI if you accidentally left test.only in the source code. */
@@ -22,7 +33,7 @@ export default defineConfig({
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
-    baseURL: process.env.BASE_URL || 'http://localhost:5173',
+    baseURL: process.env.BASE_URL || `http://localhost:${PORT}`,
 
     /* Collect trace when retrying the failed test. See https://playwright.dev/docs/trace-viewer */
     trace: 'on-first-retry',
@@ -68,13 +79,4 @@ export default defineConfig({
     //   use: { ...devices['Desktop Chrome'], channel: 'chrome' },
     // },
   ],
-
-  /* Run your local dev server before starting the tests */
-  webServer: process.env.CI
-    ? undefined
-    : {
-        command: 'npm run dev',
-        port: 5173,
-        reuseExistingServer: !process.env.CI,
-      },
 })
