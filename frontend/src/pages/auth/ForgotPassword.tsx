@@ -193,7 +193,7 @@ const ForgotPassword: React.FC = () => {
                 <div className="text-center pt-2">
                   <Link
                     to="/login"
-                    className="inline-flex items-center min-h-[44px] px-2 text-sm text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors gap-1"
+                    className="inline-flex items-center min-h-[44px] px-2 text-sm text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors gap-2"
                   >
                     <Icon icon="mdi:arrow-right" className="h-4 w-4" />
                     بازگشت به صفحه ورود
@@ -274,7 +274,7 @@ const ForgotPassword: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => { setStep(1); setCode(''); setError(null) }}
-                    className="inline-flex items-center min-h-[44px] px-2 text-sm text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors gap-1"
+                    className="inline-flex items-center min-h-[44px] px-2 text-sm text-gray-600 dark:text-gray-300 hover:text-amber-600 dark:hover:text-amber-400 transition-colors gap-2"
                   >
                     <Icon icon="mdi:arrow-right" className="h-4 w-4" />
                     تغییر شماره موبایل
