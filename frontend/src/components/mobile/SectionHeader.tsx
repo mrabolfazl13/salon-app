@@ -47,6 +47,8 @@ const SectionHeader: React.FC<Props> = ({ title, subtitle, actionLabel, onAction
             fontSize: '0.8rem',
             color: dark ? '#fbbf24' : '#b45309',
             flexShrink: 0,
+            minHeight: 44,
+            minWidth: 44,
             px: 1,
             '&:hover': { color: dark ? '#fcd34d' : '#92400e', bgcolor: dark ? 'rgba(251,191,36,0.08)' : 'rgba(245,158,11,0.07)' },
           }}

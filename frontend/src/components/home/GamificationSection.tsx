@@ -303,12 +303,14 @@ export const GamificationSection: React.FC = () => {
                 <Typography sx={{ fontWeight: 800, fontSize: '1.1rem' }}>جدول برترین‌ها</Typography>
               </Box>
               <Button
-                size="small"
+                size="medium"
                 onClick={() => navigate('/quiz')}
                 sx={{
                   color: '#fbbf24',
                   fontSize: '0.78rem',
                   fontWeight: 700,
+                  minHeight: 44,
+                  minWidth: 44,
                   textTransform: 'none',
                   '&:hover': {
                     bgcolor: 'rgba(251,191,36,0.1)',
@@ -369,6 +371,7 @@ export const GamificationSection: React.FC = () => {
               sx={{
                 mt: 2.5,
                 py: 1.2,
+                minHeight: 44,
                 borderRadius: '12px',
                 background: gradients.primary,
                 color: '#fff',

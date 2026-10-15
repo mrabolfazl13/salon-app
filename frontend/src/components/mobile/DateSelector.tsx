@@ -37,7 +37,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
         onClick={() => scrollBy(-1)}
         disabled={currentIndex <= 0}
         aria-label="تاریخ قبل"
-        sx={{ width: 40, height: 40, flexShrink: 0, color: 'primary.main', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
+        sx={{ width: 44, height: 44, flexShrink: 0, color: 'primary.main', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
       >
         <Icon icon="mdi:chevron-right" style={{ width: 22, height: 22 }} />
       </IconButton>
@@ -96,7 +96,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
         onClick={() => scrollBy(1)}
         disabled={currentIndex >= dates.length - 1}
         aria-label="تاریخ بعد"
-        sx={{ width: 40, height: 40, flexShrink: 0, color: 'primary.main', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
+        sx={{ width: 44, height: 44, flexShrink: 0, color: 'primary.main', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
       >
         <Icon icon="mdi:chevron-left" style={{ width: 22, height: 22 }} />
       </IconButton>

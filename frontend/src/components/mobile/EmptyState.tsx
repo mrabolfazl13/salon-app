@@ -59,6 +59,7 @@ const EmptyState: React.FC<Props> = ({ icon, title, description, actionLabel, on
             textTransform: 'none',
             fontWeight: 700,
             px: 4,
+            minHeight: 48,
             py: 1.25,
             borderRadius: '14px',
             background: gradients.primary,

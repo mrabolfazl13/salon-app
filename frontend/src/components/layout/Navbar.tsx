@@ -119,10 +119,16 @@ const Navbar: React.FC<NavbarProps> = () => {
           borderBottom: '1px solid',
           borderColor: 'divider',
           color: 'text.primary',
+          pt: 'env(safe-area-inset-top)',
         }}
       >
         <Toolbar>
-          <Link to="/" className="flex items-center gap-2 no-underline">
+          <Link
+            to="/"
+            className="flex items-center gap-2 no-underline"
+            style={{ minHeight: 44, minWidth: 44 }}
+            aria-label="صفحه اصلی فوتسال"
+          >
             <Box
               sx={{
                 width: 40,
@@ -297,7 +303,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                   component={Link}
                   to="/login"
                   color="inherit"
-                  sx={{ borderRadius: '10px', textTransform: 'none', px: { xs: 1, md: 2 } }}
+                  sx={{ borderRadius: '10px', textTransform: 'none', minHeight: 44, px: { xs: 1, md: 2 } }}
                 >
                   ورود
                 </Button>
@@ -309,6 +315,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                     borderRadius: '10px',
                     textTransform: 'none',
                     fontWeight: 700,
+                    minHeight: 44,
                     px: { xs: 1.5, md: 2 },
                     background: gradients.brandEnergy,
                     color: '#1c1917',

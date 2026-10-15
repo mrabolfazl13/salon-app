@@ -161,7 +161,7 @@ export const AppDownloadSection: React.FC = () => {
                       fontWeight: 700,
                       fontSize: '0.88rem',
                       px: 2.5,
-                      py: 1.2,
+                      minHeight: 48,
                       borderRadius: '12px',
                       textTransform: 'none',
                       '&:hover': {
@@ -179,7 +179,7 @@ export const AppDownloadSection: React.FC = () => {
                       fontWeight: 700,
                       fontSize: '0.88rem',
                       px: 2.5,
-                      py: 1.2,
+                      minHeight: 48,
                       borderRadius: '12px',
                       textTransform: 'none',
                       '&:hover': {

@@ -47,7 +47,7 @@ const Footer: React.FC = () => {
             <ButtonBase
               component="div"
               onClick={() => navigate('/')}
-              sx={{ display: 'flex', alignItems: 'center', gap: 1.5, '&:hover': { opacity: 0.85 } }}
+              sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minHeight: 44, py: 0.5, '&:hover': { opacity: 0.85 } }}
             >
               <Box
                 sx={{
@@ -89,6 +89,7 @@ const Footer: React.FC = () => {
                     border: 'none',
                     cursor: 'pointer',
                     /* هدف لمسی ≥۴۴px در ارتفاع — قبلاً با p:0 حدود ۲۴px بود (ممیزی UI) */
+                    minHeight: 44,
                     px: 1,
                     py: 1.25,
                     borderRadius: '10px',

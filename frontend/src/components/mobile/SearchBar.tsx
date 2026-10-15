@@ -63,8 +63,10 @@ const SearchBar: React.FC<Props> = ({
         fullWidth
         inputProps={{ 'aria-label': 'جستجو' }}
         sx={{
+          height: '100%',
           fontSize: '0.95rem',
           color: 'text.primary',
+          '& input': { height: '100%', py: 0 },
           '& ::placeholder': { color: 'text.secondary', opacity: 0.8 },
         }}
       />

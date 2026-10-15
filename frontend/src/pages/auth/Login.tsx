@@ -226,7 +226,7 @@ const Login: React.FC = () => {
                         <IconButton
                           onClick={() => setShowPassword((v) => !v)}
                           edge="end"
-                          sx={{ color: '#64748b' }}
+                          sx={{ color: '#64748b', width: 44, height: 44, minWidth: 44, minHeight: 44 }}
                           aria-label={showPassword ? 'پنهان کردن رمز' : 'نمایش رمز'}
                         >
                           <Icon
@@ -247,9 +247,12 @@ const Login: React.FC = () => {
                   sx={{
                     fontSize: '0.82rem',
                     fontWeight: 700,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    minHeight: 44,
                     color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
                     textDecoration: 'none',
-                    padding: '6px 4px',
+                    padding: '6px 8px',
                     '&:hover': { textDecoration: 'underline' },
                   }}
                 >
@@ -277,6 +280,10 @@ const Login: React.FC = () => {
             component={RouterLink}
             to="/register"
             sx={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              minHeight: 44,
+              px: 1,
               color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
               fontWeight: 800,
               textDecoration: 'none',

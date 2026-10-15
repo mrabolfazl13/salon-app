@@ -634,7 +634,7 @@ const VenueDetail: React.FC = () => {
                     <Button
                       href={`tel:${venue.phone}`}
                       size="small"
-                      sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.main' }}
+                      sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.main', minHeight: 44, px: 1.5 }}
                     >
                       تماس
                     </Button>
@@ -1294,7 +1294,7 @@ const VenueDetail: React.FC = () => {
                 }}
                 variant="contained"
                 sx={{
-                  borderRadius: '10px', textTransform: 'none', px: 3,
+                  borderRadius: '10px', textTransform: 'none', px: 3, minHeight: 44,
                   background: 'linear-gradient(135deg, #059669, #10b981)',
                   '&:hover': { background: 'linear-gradient(135deg, #047857, #059669)' },
                 }}
@@ -1308,7 +1308,7 @@ const VenueDetail: React.FC = () => {
               disabled={bookingLoading}
               variant="contained"
               sx={{
-                borderRadius: '10px', textTransform: 'none', px: 3,
+                borderRadius: '10px', textTransform: 'none', px: 3, minHeight: 44,
                 fontWeight: 800,
                 background: gradients.brandEnergy,
                 color: '#1c1917',

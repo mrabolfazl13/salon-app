@@ -132,6 +132,7 @@ const NotFound: React.FC = () => {
                 borderRadius: '12px',
                 textTransform: 'none',
                 fontWeight: 600,
+                minHeight: 44,
                 px: 3,
                 py: 1.2,
                 background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
@@ -144,7 +145,7 @@ const NotFound: React.FC = () => {
               component={Link}
               to="/venues"
               variant="outlined"
-              sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, px: 3, py: 1.2 }}
+              sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, minHeight: 44, px: 3, py: 1.2 }}
               startIcon={<Icon icon="mdi:store" />}
             >
               مشاهده سالن‌ها

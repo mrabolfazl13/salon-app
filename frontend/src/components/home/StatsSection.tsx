@@ -43,6 +43,7 @@ const StatItem: React.FC<StatItemProps> = ({ icon, value, label, suffix = '', co
   return (
     <motion.div
       ref={ref}
+      style={{ minWidth: 0 }}
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay }}
@@ -50,7 +51,8 @@ const StatItem: React.FC<StatItemProps> = ({ icon, value, label, suffix = '', co
       <Box
         sx={{
           textAlign: 'center',
-          p: 3,
+          p: { xs: 2, sm: 3 },
+          minWidth: 0,
           borderRadius: '20px',
           bgcolor: 'background.paper',
           border: '1px solid',
@@ -83,7 +85,7 @@ const StatItem: React.FC<StatItemProps> = ({ icon, value, label, suffix = '', co
         {/* شمارنده */}
         <Typography
           sx={{
-            fontSize: '2.2rem',
+            fontSize: { xs: '1.65rem', sm: '1.9rem', md: '2.2rem' },
             fontWeight: 900,
             color: 'text.primary',
             fontVariantNumeric: 'tabular-nums',
@@ -165,9 +167,9 @@ export const StatsSection: React.FC = () => {
         sx={{
           display: 'grid',
           gridTemplateColumns: {
-            xs: 'repeat(2, 1fr)',
-            sm: 'repeat(3, 1fr)',
-            md: 'repeat(6, 1fr)',
+            xs: 'repeat(2, minmax(0, 1fr))',
+            sm: 'repeat(3, minmax(0, 1fr))',
+            md: 'repeat(6, minmax(0, 1fr))',
           },
           gap: 2,
         }}

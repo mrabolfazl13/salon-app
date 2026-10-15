@@ -16,7 +16,7 @@ interface Props {
 const FavoriteButton: React.FC<Props> = ({ venue, size = 'md', onImage = true }) => {
   const isFav = useFavoritesStore((s) => s.favorites.some((f) => f.id === venue.id))
   const toggle = useFavoritesStore((s) => s.toggle)
-  const dim = size === 'md' ? 44 : 36
+  const iconDim = size === 'md' ? 22 : 18
 
   const handleClick = (e: React.MouseEvent) => {
     e.preventDefault()
@@ -33,8 +33,10 @@ const FavoriteButton: React.FC<Props> = ({ venue, size = 'md', onImage = true })
       onClick={handleClick}
       aria-label={isFav ? 'حذف از علاقه‌مندی' : 'افزودن به علاقه‌مندی'}
       sx={{
-        width: dim,
-        height: dim,
+        width: 44,
+        height: 44,
+        minWidth: 44,
+        minHeight: 44,
         borderRadius: '50%',
         bgcolor: onImage
           ? (t) => (t.palette.mode === 'dark' ? 'rgba(11,18,32,0.72)' : 'rgba(255,255,255,0.92)')
@@ -57,7 +59,7 @@ const FavoriteButton: React.FC<Props> = ({ venue, size = 'md', onImage = true })
       >
         <Icon
           icon={isFav ? 'mdi:heart' : 'mdi:heart-outline'}
-          style={{ width: 22, height: 22, color: isFav ? '#ef4444' : onImage ? '#475569' : '#64748b' }}
+          style={{ width: iconDim, height: iconDim, color: isFav ? '#ef4444' : onImage ? '#475569' : '#64748b' }}
         />
       </motion.span>
     </IconButton>

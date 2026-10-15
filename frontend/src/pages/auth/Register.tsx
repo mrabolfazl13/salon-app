@@ -444,7 +444,7 @@ const Register: React.FC = () => {
                 قبلاً ثبت‌نام کردید؟{' '}
                 <Link
                   to="/login"
-                  className="text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-semibold hover:underline"
+                  className="inline-flex items-center min-h-[44px] px-2 text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-semibold hover:underline"
                 >
                   وارد شوید
                 </Link>

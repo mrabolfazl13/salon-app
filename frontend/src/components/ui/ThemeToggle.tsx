@@ -20,8 +20,10 @@ const ThemeToggle: React.FC<Props> = ({ size = 20, sx }) => {
       onClick={toggle}
       aria-label={dark ? 'فعال‌سازی حالت روشن' : 'فعال‌سازی حالت تاریک'}
       sx={{
-        width: size + 20,
-        height: size + 20,
+        width: 44,
+        height: 44,
+        minWidth: 44,
+        minHeight: 44,
         color: 'inherit',
         borderRadius: '12px',
         transition: 'background-color 0.2s ease',

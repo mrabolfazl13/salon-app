@@ -232,6 +232,7 @@ export const SocialMediaSection: React.FC = () => {
             rel="noopener noreferrer"
             sx={{
               mt: 2.5,
+              minHeight: 48,
               py: 1.2,
               borderRadius: '12px',
               bgcolor: '#E4405F',

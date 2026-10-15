@@ -228,7 +228,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
             variant="contained"
             size="small"
             onClick={() => navigate('/login')}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, minHeight: 44, px: 2, background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
           >
             ورود / ثبت‌نام
           </Button>
