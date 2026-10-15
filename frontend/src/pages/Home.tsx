@@ -257,12 +257,16 @@ const Home: React.FC = () => {
           />
         </Box>
 
-        {/* دسترسی سریع — تیم‌ها / بازی‌ها / رقابت / وفاداری */}
+        {/* دسترسی سریع — تیم‌ها / بازی‌ها / رقابت / وفاداری
+            روی موبایل ۳ ستون (دو ردیف) تا کاشی‌ها زیر ~۶۰px له نشوند */}
         <Box
           sx={{
             display: 'grid',
-            gridTemplateColumns: 'repeat(5, minmax(0, 1fr))',
-            gap: 1.25,
+            gridTemplateColumns: {
+              xs: 'repeat(3, minmax(0, 1fr))',
+              sm: 'repeat(5, minmax(0, 1fr))',
+            },
+            gap: { xs: 1.5, sm: 1.25 },
             mb: 4,
           }}
         >
@@ -282,9 +286,9 @@ const Home: React.FC = () => {
                   flexDirection: 'column',
                   alignItems: 'center',
                   gap: 0.75,
-                  py: 1.75,
-                  px: 0.5,
-                  minHeight: 88,
+                  py: 2,
+                  px: 1,
+                  minHeight: 96,
                   borderRadius: '16px',
                   textDecoration: 'none',
                   bgcolor: 'background.paper',
@@ -312,8 +316,8 @@ const Home: React.FC = () => {
                   <Icon icon={t.icon} style={{ width: 22, height: 22 }} />
                 </Box>
                 <Box sx={{ textAlign: 'center' }}>
-                  <Box sx={{ fontSize: '0.75rem', fontWeight: 800, color: 'text.primary' }}>{t.label}</Box>
-                  <Box sx={{ fontSize: '0.6rem', color: 'text.secondary', mt: 0.25 }}>{t.sub}</Box>
+                  <Box sx={{ fontSize: '0.82rem', fontWeight: 800, color: 'text.primary', lineHeight: 1.5 }}>{t.label}</Box>
+                  <Box sx={{ fontSize: '0.68rem', color: 'text.secondary', mt: 0.25, lineHeight: 1.6 }}>{t.sub}</Box>
                 </Box>
               </Box>
             </motion.div>
