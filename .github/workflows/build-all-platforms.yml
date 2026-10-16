@@ -143,22 +143,25 @@ jobs:
 
       - name: Build iOS (no codesign for CI)
         working-directory: android_flutter
-        run: flutter build ios --release --no-codesign 2>&1 | tee ios-build.log; exit ${PIPESTATUS[0]}
+        # `--verbose` عمداً است: شکست‌های این job فقط با «exit code 1» دیده می‌شدند، چون
+        # ۲۰ خط آخرِ لاگ فقط اخطار Swift Package Manager بود و علت واقعی (دستور build
+        # شکست‌خورده) در میانهٔ لاگ گم می‌شد؛ بدنهٔ لاگ هم از بیرون ۴۰۳ می‌دهد.
+        run: flutter build ios --release --no-codesign --verbose 2>&1 | tee ios-build.log; exit ${PIPESTATUS[0]}
 
       - name: Surface iOS build errors
         if: failure()
         working-directory: android_flutter
         # همان دلیلی که برای بک‌اند: بدنهٔ لاگ از بیرون ۴۰۱ می‌دهد، پس علت شکست
         # باید annotation شود، وگرنه تنها چیزی که می‌بینیم «exit code 1» است.
+        # سقف annotation یک check run پنجاه تاست ⇒ هر بخش کرشیده می‌شود (۱+۱+۱۲+۱۲+۱۲).
         run: |
           if [ ! -f ios-build.log ]; then echo "::error::لاگی از build ios نوشته نشد (کرش زودتر از tee)"; exit 0; fi
-          hits=$(grep -inE "^Error|error:|Error \(Xcode|Exception|fatal:|No such file|not found" ios-build.log | cut -c1-220)
-          if [ -n "$hits" ]; then
-            echo "$hits" | head -10 | while IFS= read -r l; do echo "::error::$l"; done
-          else
-            echo "::error::خطای شناخته‌شده‌ای در لاگ نیست — ۲۰ خط آخر:"
-            tail -20 ios-build.log | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done
-          fi
+          echo "::error::IOS-LOG lines=$(wc -l < ios-build.log) bytes=$(wc -c < ios-build.log)"
+          grep -inA6 -E "The following build commands failed|Failed to build|BUILD FAILED|Error running application" ios-build.log |
+            cut -c1-220 | tail -12 | while IFS= read -r l; do echo "::error::IOS-FAIL $l"; done
+          grep -inE "error|failed|exception|fatal|abort|killed|no such|not found|not installed|podfile|cannot|unable|undefined|traceback|pod |xcodebuild|xcrun|sdk|certificate|incompatible" ios-build.log |
+            cut -c1-220 | tail -12 | while IFS= read -r l; do echo "::error::IOS-HIT $l"; done
+          tail -12 ios-build.log | cut -c1-220 | while IFS= read -r l; do echo "::error::IOS-TAIL $l"; done
           true
 
       - name: Create IPA
