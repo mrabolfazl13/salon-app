@@ -23,6 +23,10 @@ const typeIcons: Record<string, { icon: string; color: string }> = {
   competition: { icon: 'mdi:trophy', color: '#d97706' },
   contract: { icon: 'mdi:file-document', color: '#7c3aed' },
   payment: { icon: 'mdi:credit-card-check-outline', color: '#0891b2' },
+  // ---- تأیید مدیر نرم‌افزار (حساب/سالن) ----
+  account_approved: { icon: 'mdi:account-check-outline', color: '#16a34a' },
+  account_rejected: { icon: 'mdi:account-off-outline', color: '#dc2626' },
+  venue_verified: { icon: 'mdi:shield-check-outline', color: '#16a34a' },
   info: { icon: 'mdi:information', color: '#6b7280' },
   // ---- Game notifications ----
   game_created: { icon: 'mdi:plus-circle', color: '#7c3aed' },

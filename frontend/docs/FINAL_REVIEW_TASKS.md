@@ -857,6 +857,72 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 - **نکتۀ صداقت:** ترتیبِ دیسپچ روی SQLite اثبات شد، ولی «اعلان واقعاً روی دستگاه کاربر می‌نشیند»
   همچنان به X1/X2 (FCM) و deployِ prod (X6) نیاز دارد.
 
+### C9 چرخۀ قرارداد و تأیید مدیر نرم‌افزار (بازبینی #5) — راند ۱۳ ✅ سه نقص رفع شد
+
+**الف) سانسِ جابه‌جا‌شده هرگز COMPLETED نمی‌شد**
+
+- [x] C9.1 `ContractRepository.get_past_scheduled()` روی `rescheduled_date` **کوچ‌می‌زد**؛
+  یعنی (۱) سانسِ جابه‌جا‌شده‌ای که تاریخ *جدیدش* گذشته است هیچ‌وقت تکمیل نمی‌شد و (۲) فیلتر
+  فقط `SCHEDULED` را می‌دید پس ردیف `RESCHEDULED` اصلاً وارد حلقه نمی‌شد
+  (`backend/app/repositories/contract_repository.py`).
+- رفع: `effective = coalesce(rescheduled_date, session_date)` + `status IN (SCHEDULED, RESCHEDULED)`.
+  سانسِ جابه‌جا‌شده به *آینده* (session_date قدیمی، rescheduled_date جدید) باید دست‌نخورده بماند —
+  تستِ نگهبان برای همین نوشته شد.
+- **شاهدِ قبل‑و‑بعد:** فیلتر قدیمی موقتاً برگردانده شد ⇒ `1 failed, 17 passed`
+  (`assert 0 >= 1` در `completed_sessions`؛ تسک صفر سانس تکمیل می‌کرد). بعد از بازگرداندن رفع:
+  **۱۹ passed** در `tests/test_contracts_lifecycle.py`.
+
+**ب) ممیزی انقضا خود را «تأیید» جا می‌زد**
+
+- [x] C9.2 `check_expired_contracts` رویداد انقضا را با این عبارت ثبت می‌کرد:
+  `CANCELLED if False else RENEWED if False else APPROVED` — همواره **approved**.
+  تاریخچۀ ممیزی که مدیر/کاربر می‌بیند بعد از انقضا قراردادِ تأییدشده **دو«تأیید»** نشان می‌داد
+  و ردپای واقعیِ انقضا وجود نداشت (`backend/app/tasks/contract_tasks.py:71`).
+- رفع: عضو جدید `ContractAuditAction.EXPIRED = "expired"` + ثبت همان مقدار.
+  ستون `contract_audit_events.action` ساده `VARCHAR` است (مدل ۲۶ / مهاجرت ۴۰) ⇒ **بدون مهاجرت**.
+  برچسب و آیکون فارسی هم اضافه شد: `AUDIT_ACTION_LABELS.expired = «انقضای دوره‌ی قرارداد»`،
+  `AUDIT_ACTION_ICONS.expired = mdi:calendar-end` (`frontend/src/components/contract/shared.tsx:148,166`).
+- **شاهدِ قبل‑و‑بعد:** پیش از رفع، آserterِ جدید این تاریخچه را دید
+  `[created, approved, approved]` ⇒ `AssertionError: EXPIRED in [...]`. پس از رفع:
+  `[created, approved, expired]` و تست سبز.
+
+**پ) صف تأیید مدیر نرم‌افزار بی‌بازخورد بود (Critical path ۲)**
+
+- [x] C9.3 `POST /admin/users/{id}/approve|reject` و `POST /admin/verify-venue/{id}` فقط یک
+  message در بدنهٔ پاسخ HTTP برمی‌گرداندند که در UI نمایش داده نمی‌شد؛ کاربر هرگز خبردار
+  نمی‌شد حسابش تأیید/رد شده یا سالنش فعال شده. تأیید/رد حساب در `security_audit_events`
+  ثبت هم نمی‌شد (برعکس `set_user_role`).
+- رفع: سه اعلان دامنهٔ جدید (`account_approved`, `account_rejected`, `venue_verified`) در
+  `notification_service` + فراخوانی آن‌ها **بعد از `uow.commit()`** (همان قاعدۀ راند ۱۲) +
+  ممیزی امنیتی `admin.user_approved` / `admin.user_rejected` با `actor_id` مدیر + سه آیکون
+  هم‌نام در `typeIcons` پنل اعلان (`frontend/src/components/layout/NotificationPanel.tsx:27-29`).
+- [x] C9.4 دست‌انداز تستی که در این دور کشف شد: هر helperِ نوشتنی روی fixture `db` باید
+  `db.close()` کند، وگرنه `BEGIN IMMEDIATE` (`tests/conftest.py:104`) قفل را نگه می‌دارد و
+  اولین درخواست API با `database is locked` می‌ترکد (نخستین اجرای `test_admin_approval_flow.py`
+  دقیقاً همین را داد، نه یک نقص تولیدی).
+- [x] C9.5 ⚠️ ثبت شد، رفع نشد: `set_user_role` کاربرِ تازه‌تنزل‌یافته را باخبر نمی‌کند و
+  `GET /admin/users` هنوز بدون صفحه‌بندی است (`get_all()` سراسری).
+- **تست‌ها (`backend/tests/test_admin_approval_flow.py` — ۶ تست، پوشش قبلی این مسیر صفر بود):**
+  صف مدیران در انتظار → تأیید + اعلان + ممیزی؛ رد ⇒ `is_active=False` + اعلان؛ کاربر معمولی ⇒ ۴۰۳
+  و **بدون** اعلان و بدون تغییر؛ کاربر ناموجود ⇒ ۴۰۴؛ تأیید سالن ⇒ `is_verified=True`،
+  آمار `verified/pending` و اعلان با `venue_name`.
+  شاهد: سه خط اعلان/ممیزی حذف شد ⇒ **۳ failed، ۳ passed** (تست‌های ۴۰۳/۴۰۴ که نباید چیزی
+  بفرستند سبز ماندند).
+- **معیار (شاهد، ۲۰۲۶-۱۰-۱۷ — سطح unit/SQLite):**
+  | گیت | نتیجه |
+  |---|---|
+  | `pytest tests/test_contracts_lifecycle.py` (پس از رفع) | **۱۹ passed** |
+  | همان فایل با rollback عمدیِ الف) | **۱ failed، ۱۷ passed** |
+  | `pytest tests/test_admin_approval_flow.py` (پس از رفع) | **۶ passed** |
+  | همان فایل با حذف اعلان/ممیزی | **۳ failed، ۳ passed** |
+  | رگرسیون قرارددها (۶ فایل) | **۵۸ passed** پیش از افزودن تست‌های این دور |
+  | `pytest` (رگرسیون کامل بک‌اند) | **۶۴۴ passed** (۶۳۵ راند ۱۲ + ۹) |
+  | `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` |
+  | `app.openapi()['paths']` | **۲۳۸** (بدون تغییر — endpoint جدید اضافه نشد) |
+  | `tsc --noEmit` + `eslint` روی `shared.tsx` و `NotificationPanel.tsx` | خطا **۰** (۲۰ warning از پیش موجودِ `react-refresh` در shared.tsx) |
+- **نکتۀ صداقت:** این اعلان‌ها مسیر *درون‌برنامگی* (ذخیره در DB + WebSocket) را می‌سازند؛ رسیدن
+  پوش/FCM به دستگاه کاربر همچنان به X1/X2 و deploy prod (X6) وابسته است.
+
 ---
 
 ## Track D — UI/دسترس‌پذیری/موبایل (P015، P016)
