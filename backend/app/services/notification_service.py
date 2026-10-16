@@ -189,5 +189,23 @@ class NotificationService:
             payment_details.get("message", "پرداخت قسط قرارداد ثبت شد."),
             payment_details, notif_type="contract_payment")
 
+    # ─────────── تأیید حساب/سالن توسط مدیر نرم‌افزار ───────────
+    # بدون این اعلان‌ها، صف تأیید برای کاربر بی‌بازخورد می‌ماند.
+
+    async def notify_account_approved(self, user_id: int, details: dict):
+        await self.send_to_user(user_id, "✅ حساب شما تأیید شد",
+            details.get("message", "حساب شما توسط مدیر نرم‌افزار تأیید و فعال شد."),
+            details, notif_type="account_approved")
+
+    async def notify_account_rejected(self, user_id: int, details: dict):
+        await self.send_to_user(user_id, "❌ حساب شما تأیید نشد",
+            details.get("message", "حساب شما توسط مدیر نرم‌افزار رد و غیرفعال شد."),
+            details, notif_type="account_rejected")
+
+    async def notify_venue_verified(self, user_id: int, details: dict):
+        await self.send_to_user(user_id, "🏐 سالن شما تأیید شد",
+            f"سالن «{details.get('venue_name')}» تأیید شد و به مشتریان نمایش داده می‌شود.",
+            details, notif_type="venue_verified")
+
 
 notification_service = NotificationService()

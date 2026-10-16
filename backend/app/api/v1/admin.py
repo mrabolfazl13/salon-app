@@ -2,6 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException
 from pydantic import BaseModel
 from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.utils.auth import get_current_admin
+from app.services.notification_service import notification_service
 from app.models.user import User, UserRole
 
 router = APIRouter(prefix="/admin", tags=["Admin"])
@@ -53,7 +54,7 @@ def get_pending_venues(
     return uow.venues.get_pending_venues()
 
 @router.post("/verify-venue/{venue_id}")
-def verify_venue(
+async def verify_venue(
     venue_id: int,
     uow: UnitOfWork = Depends(get_unit_of_work),
     current_user: User = Depends(get_current_admin)
@@ -61,6 +62,11 @@ def verify_venue(
     venue = uow.venues.verify_venue(venue_id)
     if not venue:
         raise HTTPException(status_code=404, detail="Venue not found")
+    uow.commit()
+
+    if venue.manager_id:
+        await notification_service.notify_venue_verified(venue.manager_id, {
+            "venue_id": venue.id, "venue_name": venue.name})
     return {"message": f"Venue {venue.name} verified"}
 
 
@@ -80,7 +86,7 @@ def get_pending_managers(
 
 
 @router.post("/users/{user_id}/approve")
-def approve_user(
+async def approve_user(
     user_id: int,
     uow: UnitOfWork = Depends(get_unit_of_work),
     current_user: User = Depends(get_current_admin)
@@ -90,12 +96,19 @@ def approve_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     uow.users.update(user_id, {"is_verified": True, "is_active": True})
+    uow.security_audits.log(
+        "admin.user_approved", current_user.id,
+        target_type="user", target_id=user_id,
+        data={"role": user.role.value if hasattr(user.role, "value") else str(user.role)})
     uow.commit()
+
+    await notification_service.notify_account_approved(user_id, {
+        "user_id": user_id, "role": user.role.value if hasattr(user.role, "value") else str(user.role)})
     return {"message": f"حساب {user.full_name} تایید شد"}
 
 
 @router.post("/users/{user_id}/reject")
-def reject_user(
+async def reject_user(
     user_id: int,
     uow: UnitOfWork = Depends(get_unit_of_work),
     current_user: User = Depends(get_current_admin)
@@ -105,7 +118,12 @@ def reject_user(
     if not user:
         raise HTTPException(status_code=404, detail="User not found")
     uow.users.update(user_id, {"is_verified": False, "is_active": False})
+    uow.security_audits.log(
+        "admin.user_rejected", current_user.id,
+        target_type="user", target_id=user_id, data={})
     uow.commit()
+
+    await notification_service.notify_account_rejected(user_id, {"user_id": user_id})
     return {"message": f"حساب {user.full_name} رد شد"}
 
 
@@ -126,7 +144,7 @@ def set_user_role(
     مربی/مدیر/ادمین فقط با SQL دستی ساخته می‌شد (و ثبت‌نام عمومی هم نقش دلخواه
     می‌گرفت). این مسیر نقش را عوض می‌کند و در ممیزی امنیتی ثبت می‌کند.
 
-    تن‌خودِ ادمین را نمی‌توان از this path پایین آورد: آخرین SUPER_ADMIN فعال
+    تن‌خودِ ادمین را نمی‌توان از همین مسیر پایین آورد: آخرین SUPER_ADMIN فعال
     باید بماند، وگرنه سیستم بی‌ادمین می‌شود (تأیید بعدی دستی/دیتابیس).
     """
     user = uow.users.get_by_id(user_id)
