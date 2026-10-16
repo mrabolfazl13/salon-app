@@ -112,16 +112,16 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
         />
       ) : (
         <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '12px', overflow: 'hidden' }}>
-          <Table size="small">
+          <Table aria-label="کدهای تخفیف" size="small">
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                <TableCell sx={{ fontWeight: 700 }}>کد</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>تخفیف</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>دامنه</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>مصرف</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>اعتبار</TableCell>
-                <TableCell sx={{ fontWeight: 700 }}>فعال</TableCell>
-                <TableCell align="center" sx={{ fontWeight: 700 }}>عملیات</TableCell>
+                <TableCell scope="col" sx={{ fontWeight: 700 }}>کد</TableCell>
+                <TableCell scope="col" sx={{ fontWeight: 700 }}>تخفیف</TableCell>
+                <TableCell scope="col" sx={{ fontWeight: 700 }}>دامنه</TableCell>
+                <TableCell scope="col" sx={{ fontWeight: 700 }}>مصرف</TableCell>
+                <TableCell scope="col" sx={{ fontWeight: 700 }}>اعتبار</TableCell>
+                <TableCell scope="col" sx={{ fontWeight: 700 }}>فعال</TableCell>
+                <TableCell scope="col" align="center" sx={{ fontWeight: 700 }}>عملیات</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
@@ -150,7 +150,7 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                     </TableCell>
                     <TableCell dir="rtl">
                       <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'baseline' }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: exhausted ? '#dc2626' : '#059669' }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700, color: (th) => (exhausted ? th.palette.error.main : th.palette.success.main) }}>
                           {toPersianDigits(c.uses_count)}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>

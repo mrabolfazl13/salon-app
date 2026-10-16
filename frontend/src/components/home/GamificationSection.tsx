@@ -1,10 +1,13 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Button } from '@mui/material'
+import { Box, Typography, Button, Skeleton } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
+import { useQuery } from '@tanstack/react-query'
 import SectionHeader from '@/components/mobile/SectionHeader'
 import { gradients, radii, shadows } from '@/theme'
+import { teamService } from '@/services/team'
+import { useAuthStore } from '@/store/authStore'
 
 interface LeaderboardPlayerProps {
   rank: number
@@ -18,8 +21,8 @@ interface LeaderboardPlayerProps {
 const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avatar, points, gamesPlayed, delay = 0 }) => {
   const getRankStyle = (r: number) => {
     if (r === 1) return { bg: '#fbbf24', color: '#1c1917', icon: 'mdi:crown' }
-    if (r === 2) return { bg: '#64748b', color: '#1c1917', icon: 'mdi:medal' }
-    if (r === 3) return { bg: '#cd7f32', color: '#fff', icon: 'mdi:award-star' }
+    if (r === 2) return { bg: '#64748b', color: '#fff', icon: 'mdi:medal' }
+    if (r === 3) return { bg: '#a16207', color: '#fff', icon: 'mdi:award-star' }
     return { bg: 'rgba(255,255,255,0.1)', color: '#fff', icon: null }
   }
 
@@ -71,7 +74,7 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
                 height: rank === 1 ? 20 : 18,
                 position: 'absolute',
                 top: -8,
-                right: -8,
+                insetInlineStart: -8,
               }}
             />
           )}
@@ -223,14 +226,6 @@ const Badge: React.FC<BadgeProps> = ({ icon, name, description, color, unlocked,
   </motion.div>
 )
 
-const LEADERBOARD = [
-  { rank: 1, name: 'محمد رضایی', avatar: 'م', points: 12450, gamesPlayed: 48 },
-  { rank: 2, name: 'علی احمدی', avatar: 'ع', points: 11200, gamesPlayed: 42 },
-  { rank: 3, name: 'حسن کریمی', avatar: 'ح', points: 10800, gamesPlayed: 45 },
-  { rank: 4, name: 'رضا نوری', avatar: 'ر', points: 9500, gamesPlayed: 38 },
-  { rank: 5, name: 'سعید موسوی', avatar: 'س', points: 8900, gamesPlayed: 35 },
-]
-
 const BADGES = [
   {
     icon: 'mdi:star-shooting',
@@ -264,6 +259,16 @@ const BADGES = [
 
 export const GamificationSection: React.FC = () => {
   const navigate = useNavigate()
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  // جدول واقعی لیگ (/teams/standings) — احراز هویت لازم دارد؛ مهمان CTA ورود می‌بیند
+  const q = useQuery({
+    queryKey: ['teams', 'standings', 5],
+    queryFn: () => teamService.getStandings(5),
+    enabled: isAuthenticated,
+    staleTime: 60_000,
+    retry: 0,
+  })
+  const items = q.data?.items ?? []
 
   return (
     <Box sx={{ mb: 6 }}>
@@ -304,7 +309,7 @@ export const GamificationSection: React.FC = () => {
               </Box>
               <Button
                 size="medium"
-                onClick={() => navigate('/quiz')}
+                onClick={() => navigate(isAuthenticated ? '/teams' : '/login')}
                 sx={{
                   color: '#fbbf24',
                   fontSize: '0.78rem',
@@ -321,9 +326,27 @@ export const GamificationSection: React.FC = () => {
               </Button>
             </Box>
 
-            {LEADERBOARD.map((player, index) => (
-              <LeaderboardPlayer key={player.rank} {...player} delay={index * 0.1} />
-            ))}
+            {q.isPending && isAuthenticated ? (
+              [1, 2, 3].map((i) => (
+                <Skeleton aria-hidden="true" key={i} variant="rounded" height={62} sx={{ mb: 1 }} />
+              ))
+            ) : items.length === 0 ? (
+              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.72)', py: 1.5 }}>
+                هنوز جدولی منتشر نشده — بعد از اولین مسابقات رسمی همین‌جا پر می‌شود.
+              </Typography>
+            ) : (
+              items.map((player, index) => (
+                <LeaderboardPlayer
+                  key={player.team_id}
+                  rank={player.rank}
+                  name={player.team_name}
+                  avatar={player.team_name.trim().charAt(0)}
+                  points={player.points}
+                  gamesPlayed={player.played}
+                  delay={index * 0.1}
+                />
+              ))
+            )}
           </Box>
         </motion.div>
 

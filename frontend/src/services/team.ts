@@ -18,6 +18,8 @@ import type {
   TeamDuesGeneratePayload,
   TeamDuesGenerateResult,
   TeamDuesPayPayload,
+  TeamDuesPlan,
+  TeamDuesPlanPayload,
   TeamInvitation,
   TeamInvitePayload,
   TeamJoinRequest,
@@ -229,6 +231,11 @@ export const teamService = {
     const response = await apiClient.delete(`/teams/${teamId}/dues/${dueId}`, {
       params: reason ? { reason } : undefined,
     })
+    return response.data
+  },
+
+  setDuesPlan: async (teamId: number, data: TeamDuesPlanPayload): Promise<TeamDuesPlan> => {
+    const response = await apiClient.put(`/teams/${teamId}/dues/plan`, data)
     return response.data
   },
 

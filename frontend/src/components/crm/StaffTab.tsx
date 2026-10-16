@@ -157,7 +157,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
             <FormControlLabel
               control={<Switch size="small" checked={includeInactive} onChange={(e) => setIncludeInactive(e.target.checked)} />}
               label={<Typography variant="caption" sx={{ fontWeight: 600 }}>نمایش حذف‌شده‌ها</Typography>}
-              sx={{ mr: 0 }}
+              sx={{ ms: 0 }}
             />
             <Button size="small" variant="contained" onClick={() => setAddOpen(true)} startIcon={<Icon icon="mdi:plus" />} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}>
               افزودن کارمند
@@ -173,11 +173,11 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
           <EmptyBox icon="mdi:badge-account-outline" title="هنوز کارمندی انتصاب نشده" text="با دکمه «افزودن کارمند» کاربرِ ثبت‌نام‌شده را با شماره موبایل انتصاب دهید." />
         ) : (
           <Box sx={{ overflowX: 'auto' }}>
-            <Table size="small" sx={{ minWidth: 720 }}>
+            <Table aria-label="لیست کارکنان سالن" size="small" sx={{ minWidth: 720 }}>
               <TableHead>
                 <TableRow>
                   {['کارمند', 'موبایل', 'موقعیت', 'دسترسی‌ها', 'وضعیت', 'عملیات'].map((h, i) => (
-                    <TableCell key={i} sx={{ fontWeight: 800, whiteSpace: 'nowrap', bgcolor: 'rgba(248,250,252,0.8)' }}>{h}</TableCell>
+                    <TableCell scope="col" key={i} sx={{ fontWeight: 800, whiteSpace: 'nowrap', bgcolor: 'rgba(248,250,252,0.8)' }}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -193,6 +193,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                             value={POSITION_ORDER.includes(row.position as StaffPosition) ? row.position : 'reception'}
                             onChange={(e) => changePosition(row, e.target.value as StaffPosition)}
                             disabled={updateStaff.isPending}
+                            aria-label="سمت"
                             sx={{ borderRadius: '10px', fontWeight: 700, fontSize: '0.8rem' }}
                           >
                             {POSITION_ORDER.map((pos) => (
@@ -215,7 +216,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                               <Chip label={'+' + toPersianDigits(row.permissions.length - 4)} size="small" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700 }} />
                             )}
                             {row.is_active && (
-                              <IconButton size="small" onClick={() => resetCustomPermissions(row)} disabled={updateStaff.isPending}>
+                              <IconButton size="small" onClick={() => resetCustomPermissions(row)} disabled={updateStaff.isPending} aria-label="بازگرداندن دسترسی به پیش‌فرض">
                                 <Icon icon="mdi:restore" className="h-4 w-4" style={{ color: '#2563eb' }} />
                               </IconButton>
                             )}
@@ -240,7 +241,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                       {row.is_active && (
                         <Tooltip title="حذف انتصاب">
                           <span>
-                            <IconButton size="small" onClick={() => setRemoveTarget(row)}>
+                            <IconButton size="small" onClick={() => setRemoveTarget(row)} aria-label="حذف انتصاب">
                               <Icon icon="mdi:account-remove-outline" className="h-5 w-5" style={{ color: '#ef4444' }} />
                             </IconButton>
                           </span>
@@ -436,7 +437,7 @@ const AddStaffDialog: React.FC<{
         />
         <Box>
           <FormControl fullWidth size="small">
-            <Select value={position} onChange={(e) => setPosition(e.target.value as StaffPosition)} sx={{ borderRadius: '10px' }}>
+            <Select value={position} aria-label="سمت" onChange={(e) => setPosition(e.target.value as StaffPosition)} sx={{ borderRadius: '10px' }}>
               {POSITION_ORDER.map((pos) => (
                 <MenuItem key={pos} value={pos}>{POSITION_LABELS[pos]}</MenuItem>
               ))}
@@ -451,7 +452,7 @@ const AddStaffDialog: React.FC<{
         <FormControlLabel
           control={<Switch checked={custom} onChange={(e) => setCustom(e.target.checked)} />}
           label={<Typography variant="body2" sx={{ fontWeight: 800 }}>دسترسی سفارشی (به‌جای پیش‌فرض موقعیت)</Typography>}
-          sx={{ mr: 0 }}
+          sx={{ ms: 0 }}
         />
         {custom ? (
           <Box sx={{ maxHeight: 230, overflow: 'auto', border: '1px solid rgba(15,23,42,0.08)', borderRadius: '12px', p: 1 }}>
@@ -471,7 +472,7 @@ const AddStaffDialog: React.FC<{
                     <Box component="span" color="text.secondary">— {PERMISSION_LABELS[code] ?? code}</Box>
                   </Box>
                 }
-                sx={{ display: 'flex', mr: 0, py: 0.1 }}
+                sx={{ display: 'flex', ms: 0, py: 0.1 }}
               />
             ))}
           </Box>
@@ -479,7 +480,7 @@ const AddStaffDialog: React.FC<{
           <Box sx={{ display: 'flex', gap: 0.4, flexWrap: 'wrap', alignItems: 'center' }}>
             <Typography variant="caption" color="text.secondary">پیش‌فرض «{POSITION_LABELS[position]}»:</Typography>
             {matrixSets[position].size === ALL_PERMISSION_CODES.length ? (
-              <Chip label="دسترسی کامل" size="small" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700, bgcolor: 'rgba(217,119,6,0.1)', color: '#d97706' }} />
+              <Chip label="دسترسی کامل" size="small" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700, bgcolor: 'rgba(217,119,6,0.1)', color: 'warning.main' }} />
             ) : (
               Array.from(matrixSets[position]).map((code) => (
                 <Chip key={code} label={code} size="small" sx={{ height: 18, fontSize: '0.58rem', borderRadius: '6px', bgcolor: 'rgba(37,99,235,0.07)', color: '#2563eb', fontWeight: 600 }} />

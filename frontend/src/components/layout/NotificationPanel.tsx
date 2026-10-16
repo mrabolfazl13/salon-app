@@ -98,7 +98,7 @@ const NotificationPanel: React.FC = () => {
         <IconButton
           onClick={handleOpen}
           color="inherit"
-          aria-label="اعلان‌ها"
+          aria-label={unreadCount > 0 ? `اعلان‌ها، ${unreadCount} خوانده‌نشده` : 'اعلان‌ها'}
           sx={{
             width: 44,
             height: 44,
@@ -144,9 +144,9 @@ const NotificationPanel: React.FC = () => {
           )}
         </Box>
 
-        <Box sx={{ maxHeight: 420, overflowY: 'auto' }}>
+        <Box sx={{ maxHeight: 420, overflowY: 'auto' }} role="log" aria-busy={loading} aria-live="polite">
           {loading && notifications.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4 }}>
+            <Box sx={{ textAlign: 'center', py: 4 }} role="status">
               <Typography variant="body2" color="text.secondary">
                 در حال بارگذاری...
               </Typography>
@@ -192,8 +192,11 @@ const NotificationPanel: React.FC = () => {
                     exit={{ opacity: 0 }}
                   >
                     <Paper
+                      component="button"
+                      type="button"
                       elevation={0}
                       onClick={() => handleClickItem(n)}
+                      aria-label={`${n.title}${n.is_read ? '' : ' — خوانده نشده'}`}
                       sx={{
                         p: 1.5,
                         px: 2,
@@ -202,9 +205,16 @@ const NotificationPanel: React.FC = () => {
                         cursor: 'pointer',
                         bgcolor: n.is_read ? 'transparent' : 'rgba(37,99,235,0.05)',
                         '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' },
+                        '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: -3 },
                         display: 'flex',
                         gap: 1.5,
                         alignItems: 'flex-start',
+                        // Paper به‌عنوان <button>: عرض کامل + بازتنظیم پیش‌فرض‌های مرورگر
+                        width: '100%',
+                        textAlign: 'inherit',
+                        fontFamily: 'inherit',
+                        appearance: 'none',
+                        WebkitTapHighlightColor: 'transparent',
                       }}
                     >
                       <Box
@@ -238,6 +248,7 @@ const NotificationPanel: React.FC = () => {
                       </Box>
                       {!n.is_read && (
                         <Box
+                          aria-hidden="true"
                           sx={{
                             width: 8,
                             height: 8,

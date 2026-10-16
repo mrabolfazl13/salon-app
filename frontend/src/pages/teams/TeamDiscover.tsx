@@ -1,7 +1,8 @@
 // frontend/src/pages/teams/TeamDiscover.tsx
 // کاوش تیم‌ها — جستجوی تیم‌های عمومی (public) با فیلتر ورزش و صفحه‌بندی؛
-// درخواست عضویت با پیام (تأیید توسط کاپیتان/مدیر). وضعیت عضویت از «تیم‌های من» +
-// دعوت‌های بازِ من مکاتبه می‌شود ( آیتم‌های discover پرچم viewer ندارند — شکاف بک‌اند).
+// درخواست عضویت با پیام (تأیید توسط کاپیتان/مدیر).
+// وضعیت «نسبت به من» (عضویت/دعوت باز/درخواست باز) مستقیم از آیتم discover خوانده
+// می‌شود؛ سرور این پرچم‌ها را برای کاربر جاری می‌دهد.
 
 import React, { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
@@ -12,7 +13,7 @@ import Layout from '@/components/layout/Layout'
 import { EmptyState, ErrorState, Shimmer, SPORTS } from '@/components/mobile'
 import { Button } from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
-import { useMyTeamInvitations, useMyTeams, useRequestJoinTeam, useTeamsDiscover } from '@/hooks/useTeams'
+import { useRequestJoinTeam, useTeamsDiscover } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
 import { SPORT_EMOJI, SPORT_NAME_FA, TeamQuotaProgress, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
 import type { Team } from '@/types/team'
@@ -66,59 +67,65 @@ const JoinRequestDialog: React.FC<{ team: Team | null; onClose: () => void }> = 
   )
 }
 
-const DiscoverCard: React.FC<{ team: Team; mine: boolean; invited: boolean; onRequest: (t: Team) => void }> = ({
+const DiscoverCard: React.FC<{ team: Team; onRequest: (t: Team) => void }> = ({
   team,
-  mine,
-  invited,
   onRequest,
-}) => (
-  <Link to={`/teams/${team.id}`} style={{ textDecoration: "none", display: "block" }}>
-    <Card sx={{ borderRadius: `${radii.card}px`, boxShadow: shadows.card, border: '1px solid rgba(15,23,42,0.06)', height: '100%' }}>
-      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1, height: '100%' }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
-          <Box role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} sx={{ fontSize: '1.7rem', lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }} noWrap>
-              {team.name}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }} noWrap>
-              {`کاپیتان: ${team.captain_name ?? '—'}`}
-            </Typography>
+}) => {
+  const mine = team.my_status === 'active'
+  const invited = team.has_pending_invitation && !mine
+  const requested = team.has_open_join_request
+  return (
+    <Link to={`/teams/${team.id}`} style={{ textDecoration: "none", display: "block" }}>
+      <Card sx={{ borderRadius: `${radii.card}px`, boxShadow: shadows.card, border: '1px solid rgba(15,23,42,0.06)', height: '100%' }}>
+        <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1, height: '100%' }}>
+          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
+            <Box role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} sx={{ fontSize: '1.7rem', lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
+            <Box sx={{ minWidth: 0, flex: 1 }}>
+              <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }} noWrap>
+                {team.name}
+              </Typography>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }} noWrap>
+                {`کاپیتان: ${team.captain_name ?? '—'}`}
+              </Typography>
+            </Box>
+            <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, color: '#334155', fontSize: '0.75rem', fontWeight: 700 }}>
+              <Icon icon="mdi:account-group-outline" style={{ width: 15, height: 15 }} />
+              {toPersianDigits(team.member_count)}
+            </Box>
           </Box>
-          <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, color: '#334155', fontSize: '0.75rem', fontWeight: 700 }}>
-            <Icon icon="mdi:account-group-outline" style={{ width: 15, height: 15 }} />
-            {toPersianDigits(team.member_count)}
+          {team.description && (
+            <Typography sx={{ fontSize: '0.75rem', color: '#475569', lineHeight: 1.8 }} noWrap>
+              {team.description}
+            </Typography>
+          )}
+          <TeamQuotaProgress
+            memberCount={team.member_count}
+            quota={team.quota}
+            isOfficial={team.is_official}
+            compact
+          />
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mt: 'auto' }}>
+            <TeamVisibilityChip visibility={team.visibility} />
+            {team.visibility === 'public' && !mine && !invited && !requested && (
+              <Button size="sm" variant="gradient" icon="mdi:hand-back-right" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRequest(team) }}>
+                درخواست عضویت
+              </Button>
+            )}
+            {requested && !mine && (
+              <Chip label="درخواستتان در بررسی است" size="small" icon={<Icon icon="mdi:clock-outline" />} sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(245,158,11,0.12)', color: 'warning.main' }} />
+            )}
+            {invited && (
+              <Chip label="دعوت باز دارید" size="small" sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(124,58,237,0.10)', color: '#7c3aed' }} />
+            )}
+            {mine && (
+              <Chip label="عضو هستید" size="small" sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(16,185,129,0.10)', color: 'success.main' }} />
+            )}
           </Box>
         </Box>
-        {team.description && (
-          <Typography sx={{ fontSize: '0.75rem', color: '#475569', lineHeight: 1.8 }} noWrap>
-            {team.description}
-          </Typography>
-        )}
-        <TeamQuotaProgress
-          memberCount={team.member_count}
-          quota={team.quota}
-          isOfficial={team.is_official}
-          compact
-        />
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap', mt: 'auto' }}>
-          <TeamVisibilityChip visibility={team.visibility} />
-          {team.visibility === 'public' && !mine && !invited && (
-            <Button size="sm" variant="gradient" icon="mdi:hand-back-right" onClick={(e) => { e.preventDefault(); e.stopPropagation(); onRequest(team) }}>
-              درخواست عضویت
-            </Button>
-          )}
-          {invited && !mine && (
-            <Chip label="دعوت باز دارید" size="small" sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(124,58,237,0.10)', color: '#7c3aed' }} />
-          )}
-          {mine && (
-            <Chip label="عضو هستید" size="small" sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(16,185,129,0.10)', color: '#059669' }} />
-          )}
-        </Box>
-      </Box>
-    </Card>
-  </Link>
-)
+      </Card>
+    </Link>
+  )
+}
 
 const TeamDiscover: React.FC = () => {
   const navigate = useNavigate()
@@ -132,18 +139,10 @@ const TeamDiscover: React.FC = () => {
     [search, sport, page],
   )
   const discoverQ = useTeamsDiscover(params)
-  const myTeamsQ = useMyTeams()
-  const myInvitesQ = useMyTeamInvitations()
 
   const items = discoverQ.data?.items ?? []
   const total = discoverQ.data?.total ?? 0
   const pageCount = Math.max(1, Math.ceil(total / PAGE_SIZE))
-
-  const myTeamIds = useMemo(() => new Set((myTeamsQ.data ?? []).map((t) => t.id)), [myTeamsQ.data])
-  const invitedIds = useMemo(
-    () => new Set((myInvitesQ.data ?? []).filter((i) => i.status === 'pending').map((i) => i.team_id)),
-    [myInvitesQ.data],
-  )
 
   return (
     <Layout>
@@ -151,7 +150,7 @@ const TeamDiscover: React.FC = () => {
         <MuiButton
           size="small"
           onClick={() => navigate('/teams')}
-          sx={{ textTransform: 'none', fontWeight: 700, color: '#2563eb', pr: 0 }}
+          sx={{ textTransform: 'none', fontWeight: 700, color: '#2563eb', ps: 0 }}
           startIcon={<Icon icon="mdi:arrow-right" style={{ width: 16, height: 16 }} />}
         >
           بازگشت به تیم‌های من
@@ -162,6 +161,7 @@ const TeamDiscover: React.FC = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
         <TextField
           placeholder="جستجوی نام تیم..."
+          aria-label="جستجوی نام تیم"
           size="small"
           fullWidth
           value={search}
@@ -205,7 +205,7 @@ const TeamDiscover: React.FC = () => {
           <Grid container spacing={2}>
             {items.map((t) => (
               <Grid size={{ xs: 12, sm: 6, md: 4 }} key={t.id}>
-                <DiscoverCard team={t} mine={myTeamIds.has(t.id)} invited={invitedIds.has(t.id)} onRequest={setJoinTarget} />
+                <DiscoverCard team={t} onRequest={setJoinTarget} />
               </Grid>
             ))}
           </Grid>

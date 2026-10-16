@@ -31,8 +31,8 @@ export default defineConfig(({ mode }) => {
           },
         },
       },
-      // Enable source maps for production debugging
-      sourcemap: true,
+      // نقشهٔ منبع فقط در dev؛ در prod منتشر نمی‌شود (نشت کد منبع + حجم dist)
+      sourcemap: mode !== 'production',
       // Minify with terser
       minify: 'terser',
       // Chunk size warning limit (500KB)

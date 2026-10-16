@@ -70,7 +70,7 @@ export const HeroSection: React.FC = () => {
         sx={{
           position: 'absolute',
           top: -80,
-          right: -80,
+          insetInlineStart: -80,
           width: 250,
           height: 250,
           borderRadius: '50%',
@@ -82,7 +82,7 @@ export const HeroSection: React.FC = () => {
         sx={{
           position: 'absolute',
           bottom: -60,
-          left: -60,
+          insetInlineEnd: -60,
           width: 200,
           height: 200,
           borderRadius: '50%',
@@ -320,7 +320,7 @@ export const HeroSection: React.FC = () => {
                   <Typography
                     sx={{
                       fontSize: '0.75rem',
-                      color: 'rgba(255,255,255,0.75)',
+                      color: 'rgba(255,255,255,0.85)',
                     }}
                   >
                     {stat.label}

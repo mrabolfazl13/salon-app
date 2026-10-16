@@ -1,6 +1,6 @@
 // frontend/src/components/team/TeamDuesPanel.tsx
-// Ø­ØµÙ‡â€ŒÙ‡Ø§ (Ø³Ù‡Ù…/Ø­Ù‚â€ŒØ¹Ø¶ÙˆÛŒØª) â€” Ù„ÛŒØ³Øª ØµÙØ­Ù‡â€ŒØ¨Ù†Ø¯ÛŒâ€ŒØ´Ø¯Ù‡ + ÙÛŒÙ„ØªØ± ÙˆØ¶Ø¹ÛŒØªØŒ Ù¾Ø±Ø¯Ø§Ø®Øª Ø®ÙˆØ¯ÛŒ/ÙˆØµÙˆÙ„ Ù…Ø¯ÛŒØ±ØŒ
-// Ø§ÛŒØ¬Ø§Ø¯ Ø­ØµÙ‡ Ø³Ø±Ø§Ù†Ù‡ (Ú©Ø§Ù¾ÛŒØªØ§Ù†/Ù…Ø¯ÛŒØ±) Ùˆ Ø§Ø¨Ø·Ø§Ù„ Ø¨Ø§ Ø¯Ù„ÛŒÙ„ â€” Ù‡Ù…Ù‡ Ù…Ø¨Ø§Ù„Øº Ø±ÛŒØ§Ù„Ù Ø¹Ø¯Ø¯ØµØ­ÛŒØ­
+// حصه‌ها (سهم/حق‌عضویت) — لیست صفحه‌بندی‌شده + فیلتر وضعیت، پرداخت خودی/وصول مدیر،
+// ایجاد حصه سرانه (کاپیتان/مدیر)، برنامه «خودکار/دستی» و ابطال با دلیل — همه مبالغ ریالِ عددصحیح
 
 import React, { useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
@@ -8,7 +8,9 @@ import {
   Box,
   Button as MuiButton,
   Chip,
+  FormControlLabel,
   MenuItem,
+  Switch,
   TextField,
   Typography,
 } from '@mui/material'
@@ -18,6 +20,7 @@ import { DUE_METHOD_LABELS } from '@/types/team'
 import {
   useGenerateTeamDues,
   usePayTeamDue,
+  useSetTeamDuesPlan,
   useTeamDues,
   useVoidTeamDue,
 } from '@/hooks/useTeams'
@@ -35,14 +38,14 @@ const ALL = 'all' as const
 type StatusFilter = typeof ALL | 'pending' | 'paid' | 'voided' | 'overdue'
 
 const STATUS_CHIPS: { value: StatusFilter; label: string }[] = [
-  { value: ALL, label: 'Ù‡Ù…Ù‡' },
-  { value: 'pending', label: 'Ù¾Ø±Ø¯Ø§Ø®Øªâ€ŒÙ†Ø´Ø¯Ù‡' },
-  { value: 'overdue', label: 'Ù…Ø¹ÙˆÙ‚' },
-  { value: 'paid', label: 'Ù¾Ø±Ø¯Ø§Ø®Øªâ€ŒØ´Ø¯Ù‡' },
-  { value: 'voided', label: 'Ø¨Ø§Ø·Ù„' },
+  { value: ALL, label: 'همه' },
+  { value: 'pending', label: 'پرداخت‌نشده' },
+  { value: 'overdue', label: 'معوق' },
+  { value: 'paid', label: 'پرداخت‌شده' },
+  { value: 'voided', label: 'باطل' },
 ]
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ø¯ÛŒØ§Ù„ÙˆÚ¯ Ù¾Ø±Ø¯Ø§Ø®Øª/ÙˆØµÙˆÙ„ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────── دیالوگ پرداخت/وصول ───────────────
 
 const DuePayDialog: React.FC<{
   team: Team
@@ -62,7 +65,7 @@ const DuePayDialog: React.FC<{
       { dueId: due.id, data: { method, reference: reference.trim() || undefined } },
       {
         onSuccess: () => {
-          toast.success(isCollecting ? 'Ø³Ù‡Ù… ÙˆØµÙˆÙ„ Ø´Ø¯' : 'Ø³Ù‡Ù… Ù¾Ø±Ø¯Ø§Ø®Øª Ø´Ø¯')
+          toast.success(isCollecting ? 'سهم وصول شد' : 'سهم پرداخت شد')
           setReference('')
           onClose()
         },
@@ -72,22 +75,22 @@ const DuePayDialog: React.FC<{
   }
 
   return (
-    <Dialog open={open} onClose={onClose} title={isCollecting ? 'ÙˆØµÙˆÙ„ Ø­ØµÙ‡' : 'Ù¾Ø±Ø¯Ø§Ø®Øª Ø­ØµÙ‡'} maxWidth="xs">
+    <Dialog open={open} onClose={onClose} title={isCollecting ? 'وصول حصه' : 'پرداخت حصه'} maxWidth="xs">
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
         {due && (
           <Box sx={{ px: 2, py: 1.5, borderRadius: '14px', bgcolor: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.12)' }}>
             <Typography sx={{ fontWeight: 800, fontSize: '0.9rem' }}>{due.title}</Typography>
             <Typography sx={{ fontSize: '0.78rem', color: '#64748b', mt: 0.25 }} dir="rtl">
-              {`${formatRial(due.amount)} â€” Ø³Ø±Ø±Ø³ÛŒØ¯ ${formatJalaliDate(due.due_date, { format: 'numeric' })}`}
+              {`${formatRial(due.amount)} — سررسید ${formatJalaliDate(due.due_date, { format: 'numeric' })}`}
             </Typography>
           </Box>
         )}
         <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
-          ØªÙˆØ¬Ù‡: Ø±ÙˆØ´ Â«Ø¯Ø±Ú¯Ø§Ù‡Â» Ø¯Ø± Ø§ÛŒÙ† Ù†Ø³Ø®Ù‡ Ù‡Ù…Ø§Ù†Ù†Ø¯ Ø¨Ú©â€ŒØ§Ù†Ø¯ Ø¨Ù‡â€ŒØµÙˆØ±Øª Ù‚Ø·Ø¹ÛŒ Ø«Ø¨Øª Ù…ÛŒâ€ŒØ´ÙˆØ¯ (Ù¾Ø±Ø¯Ø§Ø®Øª Ø¨Ø§Ù†Ú©ÛŒ ÙˆØ§Ù‚Ø¹ÛŒ Ø§Ù†Ø¬Ø§Ù… Ù†Ù…ÛŒâ€ŒØ´ÙˆØ¯) â€” Ø¨Ø±Ø§ÛŒ Ø¯Ø±ÛŒØ§ÙØª Ù„ÛŒÙ†Ú© Ù¾Ø±Ø¯Ø§Ø®Øª Ø§Ø² flow Ø±Ø²Ø±ÙˆÙ‡Ø§ Ø§Ø³ØªÙØ§Ø¯Ù‡ Ú©Ù†ÛŒØ¯.
+          توجه: روش «درگاه» در این نسخه همانند بک‌اند به‌صورت قطعی ثبت می‌شود (پرداخت بانکی واقعی انجام نمی‌شود) — برای دریافت لینک پرداخت از flow رزروها استفاده کنید.
         </Typography>
         <TextField
           select
-          label="Ø±ÙˆØ´"
+          label="روش"
           size="small"
           value={method}
           onChange={(e) => setMethod(e.target.value as DuesPayMethod)}
@@ -97,7 +100,7 @@ const DuePayDialog: React.FC<{
           ))}
         </TextField>
         <TextField
-          label="Ø´Ù†Ø§Ø³Ù‡/Ú©Ø¯ Ù¾ÛŒÚ¯ÛŒØ±ÛŒ (Ø§Ø®ØªÛŒØ§Ø±ÛŒ)"
+          label="شناسه/کد پیگیری (اختیاری)"
           size="small"
           fullWidth
           value={reference}
@@ -105,9 +108,9 @@ const DuePayDialog: React.FC<{
           onChange={(e) => setReference(e.target.value)}
         />
         <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
-          <Button variant="outline" onClick={onClose} disabled={pay.isPending}>Ø§Ù†ØµØ±Ø§Ù</Button>
+          <Button variant="outline" onClick={onClose} disabled={pay.isPending}>انصراف</Button>
           <Button variant="gradient" loading={pay.isPending} onClick={handlePay} icon="mdi:cash-check">
-            {isCollecting ? 'Ø«Ø¨Øª ÙˆØµÙˆÙ„' : 'Ù¾Ø±Ø¯Ø§Ø®Øª'}
+            {isCollecting ? 'ثبت وصول' : 'پرداخت'}
           </Button>
         </Box>
       </Box>
@@ -115,7 +118,7 @@ const DuePayDialog: React.FC<{
   )
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ø¯ÛŒØ§Ù„ÙˆÚ¯ Ø§ÛŒØ¬Ø§Ø¯ Ø­ØµÙ‡ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────── دیالوگ ایجاد حصه ───────────────
 
 const DuesGenerateDialog: React.FC<{
   team: Team
@@ -129,7 +132,7 @@ const DuesGenerateDialog: React.FC<{
   const [amountStr, setAmountStr] = useState('')
   const [title, setTitle] = useState('')
   const [dueDate, setDueDate] = useState('')
-  const [selected, setSelected] = useState<number[] | null>(null) // null = Ù‡Ù…Ù‡ Ø§Ø¹Ø¶Ø§ÛŒ ÙØ¹Ø§Ù„
+  const [selected, setSelected] = useState<number[] | null>(null) // null = همه اعضای فعال
   const [fieldError, setFieldError] = useState('')
 
   const targets = selected ?? active.map((m) => m.user_id)
@@ -144,19 +147,19 @@ const DuesGenerateDialog: React.FC<{
   const handleSubmit = () => {
     const amount = parseAmountInput(amountStr)
     if (!Number.isInteger(amount) || amount <= 0) {
-      setFieldError('Ù…Ø¨Ù„Øº Ø±Ø§ Ø¨Ù‡ Ø±ÛŒØ§Ù„ Ùˆ Ø¨Ø²Ø±Ú¯â€ŒØªØ± Ø§Ø² ØµÙØ± ÙˆØ§Ø±Ø¯ Ú©Ù†ÛŒØ¯.')
+      setFieldError('مبلغ را به ریال و بزرگ‌تر از صفر وارد کنید.')
       return
     }
     if (title.trim().length < 2) {
-      setFieldError('Ø¹Ù†ÙˆØ§Ù† Ø­ØµÙ‡ Ø­Ø¯Ø§Ù‚Ù„ Û² Ú©Ø§Ø±Ø§Ú©ØªØ± Ø¨Ø§Ø´Ø¯.')
+      setFieldError('عنوان حصه حداقل ۲ کاراکتر باشد.')
       return
     }
     if (!dueDate) {
-      setFieldError('ØªØ§Ø±ÛŒØ® Ø³Ø±Ø±Ø³ÛŒØ¯ Ø±Ø§ Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ù†ÛŒØ¯.')
+      setFieldError('تاریخ سررسید را انتخاب کنید.')
       return
     }
     if (targets.length === 0) {
-      setFieldError('Ø­Ø¯Ø§Ù‚Ù„ ÛŒÚ© Ø¹Ø¶Ùˆ Ø±Ø§ Ø§Ù†ØªØ®Ø§Ø¨ Ú©Ù†ÛŒØ¯.')
+      setFieldError('حداقل یک عضو را انتخاب کنید.')
       return
     }
     generate.mutate(
@@ -168,7 +171,7 @@ const DuesGenerateDialog: React.FC<{
       },
       {
         onSuccess: (res) => {
-          toast.success(`${toPersianDigits(res.created)} Ø­ØµÙ‡ Ø³Ø§Ø®ØªÙ‡ Ø´Ø¯${res.skipped ? ` Ùˆ ${toPersianDigits(res.skipped)} Ù…ÙˆØ±Ø¯ ØªÚ©Ø±Ø§Ø±ÛŒ Ø±Ø¯ Ø´Ø¯` : ''}.`)
+          toast.success(`${toPersianDigits(res.created)} حصه ساخته شد${res.skipped ? ` و ${toPersianDigits(res.skipped)} مورد تکراری رد شد` : ''}.`)
           setAmountStr('')
           setTitle('')
           setDueDate('')
@@ -182,32 +185,32 @@ const DuesGenerateDialog: React.FC<{
   }
 
   return (
-    <Dialog open={open} onClose={onClose} title="Ø§ÛŒØ¬Ø§Ø¯ Ø­ØµÙ‡ Ø¨Ø±Ø§ÛŒ Ø§Ø¹Ø¶Ø§" maxWidth="xs">
+    <Dialog open={open} onClose={onClose} title="ایجاد حصه برای اعضا" maxWidth="xs">
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
         <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-          Ù…Ø¨Ù„Øº Ø³Ø±Ø§Ù†Ù‡â€ŒÛŒ Ù‡Ø± Ø¹Ø¶Ùˆ Ø§Ø³Øª Ùˆ Ø¨Ø±Ø§ÛŒ Ù‡Ù…Ù‡â€ŒÛŒ Ø§Ø¹Ø¶Ø§ÛŒ Ø§Ù†ØªØ®Ø§Ø¨ÛŒ (Ù¾ÛŒØ´â€ŒÙØ±Ø¶: Ù‡Ù…Ù‡) Ø¨Ù‡ ÛŒÚ©ÛŒ Ø§Ø² Ù‡Ù…ÛŒÙ† Ù…Ø¨Ù„Øº Ø³Ø§Ø®ØªÙ‡ Ù…ÛŒâ€ŒØ´ÙˆØ¯Ø› Ú©Ø§Ù¾ÛŒØªØ§Ù† Ù‡Ù… Ø´Ø§Ù…Ù„ Ù…ÛŒâ€ŒØ´ÙˆØ¯.
+          مبلغ سرانه‌ی هر عضو است و برای همه‌ی اعضای انتخابی (پیش‌فرض: همه) به یکی از همین مبلغ ساخته می‌شود؛ کاپیتان هم شامل می‌شود.
         </Typography>
         <TextField
-          label="Ø¹Ù†ÙˆØ§Ù† Ø­ØµÙ‡"
+          label="عنوان حصه"
           size="small"
           required
           fullWidth
           value={title}
           slotProps={{ htmlInput: { maxLength: 100 } }}
           onChange={(e) => setTitle(e.target.value)}
-          placeholder="Ù…Ø«Ù„Ø§Ù‹: Ø³Ù‡Ù… Ù‡ÙØªÙ‡ â€” Ø³Ø§Ù„Ù† Ø§Ù†Ù‚Ù„Ø§Ø¨"
+          placeholder="مثلاً: سهم هفته — سالن انقلاب"
         />
         <TextField
-          label="Ù…Ø¨Ù„Øº Ø³Ø±Ø§Ù†Ù‡ (Ø±ÛŒØ§Ù„)"
+          label="مبلغ سرانه (ریال)"
           size="small"
           required
           fullWidth
           value={amountStr}
           onChange={(e) => { setAmountStr(e.target.value); setFieldError('') }}
-          placeholder="ÛµÛ°Û°Ù¬Û°Û°Û°"
+          placeholder="۵۰۰٬۰۰۰"
         />
         <PersianDatePicker
-          label="Ø³Ø±Ø±Ø³ÛŒØ¯"
+          label="سررسید"
           size="small"
           value={dueDate}
           onChange={setDueDate}
@@ -216,7 +219,7 @@ const DuesGenerateDialog: React.FC<{
         />
         <Box>
           <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', mb: 0.5 }}>
-            Ø§Ø¹Ø¶Ø§ ({toPersianDigits(targets.length)} Ù†ÙØ±)
+            اعضا ({toPersianDigits(targets.length)} نفر)
           </Typography>
           <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, maxHeight: 160, overflowY: 'auto' }}>
             {active.map((m) => {
@@ -225,7 +228,7 @@ const DuesGenerateDialog: React.FC<{
                 <Chip
                   key={m.id}
                   size="small"
-                  label={m.full_name ?? `Ú©Ø§Ø±Ø¨Ø± ${m.user_id}`}
+                  label={m.full_name ?? `کاربر ${m.user_id}`}
                   onClick={() => toggle(m.user_id)}
                   icon={<Icon icon={on ? 'mdi:check-circle' : 'mdi:circle-outline'} style={{ width: 14, height: 14 }} />}
                   sx={{
@@ -238,11 +241,11 @@ const DuesGenerateDialog: React.FC<{
             })}
           </Box>
         </Box>
-        {fieldError && <Typography sx={{ fontSize: '0.75rem', color: '#dc2626', fontWeight: 600 }}>{fieldError}</Typography>}
+        {fieldError && <Typography role="alert" sx={{ fontSize: '0.75rem', color: 'error.main', fontWeight: 600 }}>{fieldError}</Typography>}
         <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
-          <Button variant="outline" onClick={onClose} disabled={generate.isPending}>Ø§Ù†ØµØ±Ø§Ù</Button>
+          <Button variant="outline" onClick={onClose} disabled={generate.isPending}>انصراف</Button>
           <Button variant="gradient" loading={generate.isPending} onClick={handleSubmit} icon="mdi:plus-circle-outline">
-            Ø³Ø§Ø®Øª Ø­ØµÙ‡â€ŒÙ‡Ø§
+            ساخت حصه‌ها
           </Button>
         </Box>
       </Box>
@@ -250,7 +253,129 @@ const DuesGenerateDialog: React.FC<{
   )
 }
 
-// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ Ù¾Ù†Ù„ Ø§ØµÙ„ÛŒ â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// ─────────────── دیالوگ برنامه حق‌عضویت ───────────────
+
+// روز ۲۹–۳۱ در بعضی ماه‌ها وجود ندارد؛ بک‌اند هم le=28 می‌گیرد، پس لیست همین‌جا محدود است
+const DUE_DAYS = Array.from({ length: 28 }, (_, i) => i + 1)
+
+const DuesPlanDialog: React.FC<{
+  team: Team
+  onClose: () => void
+}> = ({ team, onClose }) => {
+  const toast = useToast()
+  const setPlan = useSetTeamDuesPlan(team.id)
+  const plan = team.dues_plan
+  const [auto, setAuto] = useState(plan?.dues_auto ?? false)
+  const [amountStr, setAmountStr] = useState(plan?.amount ? String(plan.amount) : '')
+  const [title, setTitle] = useState(plan?.title ?? 'حق عضویت ماهانه')
+  const [dueDay, setDueDay] = useState(plan?.due_day ?? 1)
+  const [pctStr, setPctStr] = useState(String(plan?.late_fee_pct ?? 0))
+  const [fieldError, setFieldError] = useState('')
+
+  const graceDays = plan?.grace_days ?? 3
+
+  const handleSubmit = () => {
+    const amount = parseAmountInput(amountStr)
+    if (auto && (!Number.isInteger(amount) || amount <= 0)) {
+      setFieldError('برای سهم خودکار، مبلغ ماهانه را به ریال وارد کنید.')
+      return
+    }
+    if (title.trim().length < 2) {
+      setFieldError('عنوان حصه حداقل ۲ کاراکتر باشد.')
+      return
+    }
+    const pct = Number(pctStr)
+    if (!Number.isInteger(pct) || pct < 0 || pct > 100) {
+      setFieldError('درصد جریمه عددی بین ۰ تا ۱۰۰ است.')
+      return
+    }
+    setPlan.mutate(
+      {
+        dues_auto: auto,
+        amount: amount > 0 ? amount : null,
+        title: title.trim(),
+        due_day: dueDay,
+        late_fee_pct: pct,
+      },
+      {
+        onSuccess: () => {
+          toast.success(auto ? 'حق‌عضویت خودکار فعال شد' : 'برنامه حق‌عضویت ذخیره شد')
+          onClose()
+        },
+        onError: (err) => toast.error(getTeamError(err)),
+      },
+    )
+  }
+
+  return (
+    <Dialog open onClose={onClose} title="برنامه حق‌عضویت" maxWidth="xs">
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
+        <FormControlLabel
+          control={<Switch checked={auto} onChange={(e) => { setAuto(e.target.checked); setFieldError('') }} />}
+          label={
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+              <Icon icon={auto ? 'mdi:repeat' : 'mdi:hand-coin-outline'} style={{ width: 16, height: 16 }} />
+              <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>سهم خودکار هر ماه</Typography>
+            </Box>
+          }
+          sx={{ mx: 0 }}
+        />
+        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+          با روشن بودن این گزینه، سرور هر ماه به‌صورت خودکار برای همه اعضای فعال سهم می‌سازد و
+          نیازی به دکمه «ایجاد حصه» نیست؛ با خاموشی، سهم‌ها دستی ساخته می‌شوند.
+        </Typography>
+        <TextField
+          label="عنوان حصه"
+          size="small"
+          fullWidth
+          value={title}
+          slotProps={{ htmlInput: { maxLength: 80 } }}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+        <TextField
+          label="مبلغ ماهانه سرانه (ریال)"
+          size="small"
+          fullWidth
+          required={auto}
+          value={amountStr}
+          inputMode="numeric"
+          onChange={(e) => { setAmountStr(e.target.value); setFieldError('') }}
+          placeholder="۵۰۰٬۰۰۰"
+        />
+        <TextField
+          select
+          label="روز سررسید هر ماه"
+          size="small"
+          value={dueDay}
+          onChange={(e) => setDueDay(Number(e.target.value))}
+        >
+          {DUE_DAYS.map((d) => (
+            <MenuItem key={d} value={d}>{toPersianDigits(d)}</MenuItem>
+          ))}
+        </TextField>
+        <TextField
+          label="جریمه دیرکرد (٪)"
+          size="small"
+          value={pctStr}
+          inputMode="numeric"
+          onChange={(e) => { setPctStr(e.target.value); setFieldError('') }}
+          helperText={`۰ یعنی بدون جریمه — بعد از ${toPersianDigits(graceDays)} روز مهلت، یک‌بار به همان حصه اضافه می‌شود.`}
+        />
+        {fieldError && (
+          <Typography role="alert" sx={{ fontSize: '0.75rem', color: 'error.main', fontWeight: 600 }}>{fieldError}</Typography>
+        )}
+        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+          <Button variant="outline" onClick={onClose} disabled={setPlan.isPending}>انصراف</Button>
+          <Button variant="gradient" loading={setPlan.isPending} onClick={handleSubmit} icon="mdi:content-save-outline">
+            ذخیره برنامه
+          </Button>
+        </Box>
+      </Box>
+    </Dialog>
+  )
+}
+
+// ─────────────── پنل اصلی ───────────────
 
 const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: boolean }> = ({
   team,
@@ -263,6 +388,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
   const [page, setPage] = useState(1)
   const [payTarget, setPayTarget] = useState<TeamDue | null>(null)
   const [generateOpen, setGenerateOpen] = useState(false)
+  const [planOpen, setPlanOpen] = useState(false)
   const [voidTarget, setVoidTarget] = useState<TeamDue | null>(null)
   const [voidReason, setVoidReason] = useState('')
   const voidDue = useVoidTeamDue(team.id)
@@ -282,6 +408,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
 
   const canPay = (due: TeamDue) => !due.is_paid && !due.is_voided && (due.user_id === me?.id || isManager)
   const isCollecting = (due: TeamDue) => due.user_id !== me?.id
+  const plan = team.dues_plan
 
   const handleVoid = () => {
     if (!voidTarget) return
@@ -289,7 +416,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
       { dueId: voidTarget.id, reason: voidReason.trim() || undefined },
       {
         onSuccess: () => {
-          toast.success('Ø­ØµÙ‡ Ø¨Ø§Ø·Ù„ Ø´Ø¯.')
+          toast.success('حصه باطل شد.')
           setVoidTarget(null)
           setVoidReason('')
         },
@@ -300,6 +427,45 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
 
   return (
     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+      {plan && (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1.25,
+            flexWrap: 'wrap',
+            px: 1.5,
+            py: 1.25,
+            borderRadius: '16px',
+            border: `1px solid ${plan.dues_auto ? 'rgba(16,185,129,0.25)' : 'rgba(15,23,42,0.08)'}`,
+            bgcolor: plan.dues_auto ? 'rgba(16,185,129,0.06)' : 'rgba(15,23,42,0.03)',
+          }}
+        >
+          <Icon
+            icon={plan.dues_auto ? 'mdi:repeat' : 'mdi:hand-coin-outline'}
+            style={{ width: 20, height: 20, color: plan.dues_auto ? '#059669' : '#64748b' }}
+          />
+          <Box sx={{ minWidth: 0, flex: 1 }}>
+            <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>
+              {plan.dues_auto ? 'حق‌عضویت خودکار' : 'حق‌عضویت دستی'}
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }} dir="rtl">
+              {plan.dues_auto && plan.amount
+                ? `هر ماه ${formatRial(plan.amount)} — سررسید روز ${toPersianDigits(plan.due_day)} هر ماه${
+                    plan.late_fee_pct > 0
+                      ? ` | جریمه دیرکرد ${toPersianDigits(plan.late_fee_pct)}٪ بعد از ${toPersianDigits(plan.grace_days)} روز`
+                      : ''
+                  }`
+                : 'سهم‌ها را کاپیتان/مدیر با دکمه «ایجاد حصه» می‌سازد.'}
+            </Typography>
+          </Box>
+          {isManager && (
+            <Button size="sm" variant="outline" icon="mdi:cog-outline" onClick={() => setPlanOpen(true)}>
+              ویرایش برنامه
+            </Button>
+          )}
+        </Box>
+      )}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
         <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
           {STATUS_CHIPS.map((s) => (
@@ -324,17 +490,17 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
         </Box>
         {isManager && (
           <Button size="sm" variant="gradient" icon="mdi:plus-circle-outline" onClick={() => setGenerateOpen(true)}>
-            Ø§ÛŒØ¬Ø§Ø¯ Ø­ØµÙ‡
+            ایجاد حصه
           </Button>
         )}
       </Box>
 
       {duesQ.isPending ? (
-        <LoadingBox text="Ø¯Ø± Ø­Ø§Ù„ Ø¯Ø±ÛŒØ§ÙØª Ø­ØµÙ‡â€ŒÙ‡Ø§..." />
+        <LoadingBox text="در حال دریافت حصه‌ها..." />
       ) : duesQ.isError ? (
-        <ErrorBox message="Ø¯Ø±ÛŒØ§ÙØª Ø­ØµÙ‡â€ŒÙ‡Ø§ Ù…Ù…Ú©Ù† Ù†Ø´Ø¯." onRetry={() => duesQ.refetch()} />
+        <ErrorBox message="دریافت حصه‌ها ممکن نشد." onRetry={() => duesQ.refetch()} />
       ) : items.length === 0 ? (
-        <EmptyBox icon="mdi:cash-clock-outline" title="Ø­ØµÙ‡â€ŒØ§ÛŒ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡" text={isManager ? 'Ø¨Ø§ Ø¯Ú©Ù…Ù‡â€ŒÛŒ Â«Ø§ÛŒØ¬Ø§Ø¯ Ø­ØµÙ‡Â» Ø¨Ø±Ø§ÛŒ Ø§Ø¹Ø¶Ø§ Ø³Ù‡Ù… Ø³Ø±Ø§Ù†Ù‡ Ø¨Ø³Ø§Ø²ÛŒØ¯.' : 'Ù‡Ù†ÙˆØ² Ø³Ù‡Ù…ÛŒ Ø¨Ø±Ø§ÛŒ Ø´Ù…Ø§ Ø«Ø¨Øª Ù†Ø´Ø¯Ù‡ Ø§Ø³Øª.'} />
+        <EmptyBox icon="mdi:cash-clock-outline" title="حصه‌ای ثبت نشده" text={isManager ? 'با دکمه‌ی «ایجاد حصه» برای اعضا سهم سرانه بسازید.' : 'هنوز سهمی برای شما ثبت نشده است.'} />
       ) : (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
           {items.map((due) => {
@@ -357,18 +523,21 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
                     {due.title}
-                    {mine && <span style={{ color: '#2563eb', fontSize: '0.75rem' }}> (Ø´Ù…Ø§)</span>}
+                    {mine && <span style={{ color: '#2563eb', fontSize: '0.75rem' }}> (شما)</span>}
+                    {due.penalty_for_id && (
+                      <span style={{ color: '#b45309', fontSize: '0.72rem', fontWeight: 700 }}> — جریمه دیرکرد</span>
+                    )}
                   </Typography>
                   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
                     <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }} dir="rtl">
                       {formatRial(due.amount)}
                     </Typography>
                     <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
-                      {`Ø³Ø±Ø±Ø³ÛŒØ¯: ${formatJalaliDate(due.due_date, { format: 'numeric' })}`}
+                      {`سررسید: ${formatJalaliDate(due.due_date, { format: 'numeric' })}`}
                     </Typography>
                     {isManager && !mine && (
                       <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
-                        {due.full_name ?? `Ú©Ø§Ø±Ø¨Ø± ${due.user_id}`}
+                        {due.full_name ?? `کاربر ${due.user_id}`}
                       </Typography>
                     )}
                     {due.payment_method && (
@@ -378,22 +547,22 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
                     )}
                   </Box>
                   {due.void_reason && (
-                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>{`Ø¯Ù„ÛŒÙ„ Ø§Ø¨Ø·Ø§Ù„: ${due.void_reason}`}</Typography>
+                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>{`دلیل ابطال: ${due.void_reason}`}</Typography>
                   )}
                 </Box>
                 <DueStatusChip isPaid={due.is_paid} isVoided={due.is_voided} overdue={due.overdue} />
                 {canPay(due) && (
                   <Button size="sm" variant="gradient" icon="mdi:cash-check" onClick={() => setPayTarget(due)}>
-                    {isCollecting(due) ? 'ÙˆØµÙˆÙ„' : 'Ù¾Ø±Ø¯Ø§Ø®Øª'}
+                    {isCollecting(due) ? 'وصول' : 'پرداخت'}
                   </Button>
                 )}
                 {isManager && !due.is_paid && !due.is_voided && (
                   <MuiButton
                     size="small"
                     onClick={() => setVoidTarget(due)}
-                    sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', color: '#dc2626' }}
+                    sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', color: 'error.main' }}
                   >
-                    Ø§Ø¨Ø·Ø§Ù„
+                    ابطال
                   </MuiButton>
                 )}
               </Box>
@@ -402,13 +571,13 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
           {pageCount > 1 && (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1.5, pt: 1 }}>
               <MuiButton size="small" disabled={page <= 1 || duesQ.isFetching} onClick={() => setPage((p) => p - 1)} sx={{ textTransform: 'none', fontWeight: 700 }}>
-                Ù‚Ø¨Ù„ÛŒ
+                قبلی
               </MuiButton>
               <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>
                 {`${toPersianDigits(page)} / ${toPersianDigits(pageCount)}`}
               </Typography>
               <MuiButton size="small" disabled={page >= pageCount || duesQ.isFetching} onClick={() => setPage((p) => p + 1)} sx={{ textTransform: 'none', fontWeight: 700 }}>
-                Ø¨Ø¹Ø¯ÛŒ
+                بعدی
               </MuiButton>
             </Box>
           )}
@@ -417,13 +586,14 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
 
       <DuePayDialog team={team} due={payTarget} onClose={() => setPayTarget(null)} isCollecting={!!payTarget && isCollecting(payTarget)} />
       <DuesGenerateDialog team={team} members={members} open={generateOpen} onClose={() => setGenerateOpen(false)} />
-      <Dialog open={!!voidTarget} onClose={() => setVoidTarget(null)} title="Ø§Ø¨Ø·Ø§Ù„ Ø­ØµÙ‡" maxWidth="xs">
+      {planOpen && <DuesPlanDialog team={team} onClose={() => setPlanOpen(false)} />}
+      <Dialog open={!!voidTarget} onClose={() => setVoidTarget(null)} title="ابطال حصه" maxWidth="xs">
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
           <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
-            {voidTarget ? `Ø­ØµÙ‡â€ŒÂ«${voidTarget.title}Â» (${formatRial(voidTarget.amount)}) Ø¨Ø§Ø·Ù„ Ø´ÙˆØ¯ØŸ Ø­ØµÙ‡â€ŒÙ‡Ø§ÛŒ Ù¾Ø±Ø¯Ø§Ø®Øªâ€ŒØ´Ø¯Ù‡ Ù‚Ø§Ø¨Ù„ Ø§Ø¨Ø·Ø§Ù„ Ù†ÛŒØ³ØªÙ†Ø¯.` : ''}
+            {voidTarget ? `حصه‌«${voidTarget.title}» (${formatRial(voidTarget.amount)}) باطل شود؟ حصه‌های پرداخت‌شده قابل ابطال نیستند.` : ''}
           </Typography>
           <TextField
-            label="Ø¯Ù„ÛŒÙ„ (Ø§Ø®ØªÛŒØ§Ø±ÛŒ)"
+            label="دلیل (اختیاری)"
             size="small"
             fullWidth
             multiline
@@ -433,9 +603,9 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
             onChange={(e) => setVoidReason(e.target.value)}
           />
           <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
-            <Button variant="outline" onClick={() => setVoidTarget(null)} disabled={voidDue.isPending}>Ø§Ù†ØµØ±Ø§Ù</Button>
+            <Button variant="outline" onClick={() => setVoidTarget(null)} disabled={voidDue.isPending}>انصراف</Button>
             <Button variant="destructive" loading={voidDue.isPending} onClick={handleVoid} icon="mdi:delete-cancel-outline">
-              Ø§Ø¨Ø·Ø§Ù„
+              ابطال
             </Button>
           </Box>
         </Box>

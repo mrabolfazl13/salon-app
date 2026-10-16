@@ -133,14 +133,14 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
           </Box>
         ) : (
           <TableContainer sx={{ maxHeight: 520 }}>
-            <Table size="small" stickyHeader>
+            <Table aria-label="حساب‌های کاربران" size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>شخص</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>نوع</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>موجودی</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.8rem' }}>آخرین فعالیت</TableCell>
-                  <TableCell align="left" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>عملیات</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>شخص</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>نوع</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>موجودی</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>آخرین فعالیت</TableCell>
+                  <TableCell scope="col" align="left" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>عملیات</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -150,8 +150,19 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                     <TableRow
                       key={acc.user_id}
                       hover
-                      sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(37,99,235,0.03)' } }}
+                      tabIndex={0}
                       onClick={() => setStatementUser({ id: acc.user_id, name: acc.full_name })}
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' || e.key === ' ') {
+                          e.preventDefault()
+                          setStatementUser({ id: acc.user_id, name: acc.full_name })
+                        }
+                      }}
+                      sx={{
+                        cursor: 'pointer',
+                        '&:hover': { bgcolor: 'rgba(37,99,235,0.03)' },
+                        '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
+                      }}
                     >
                       <TableCell>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
@@ -192,7 +203,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                         <Typography
                           variant="body2"
                           dir="rtl"
-                          sx={{ fontWeight: 800, color: debtor ? '#dc2626' : '#059669', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
+                          sx={{ fontWeight: 800, color: (th) => (debtor ? th.palette.error.main : th.palette.success.main), fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
                         >
                           {formatRial(acc.balance)}
                         </Typography>

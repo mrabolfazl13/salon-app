@@ -199,7 +199,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                   )}
                 </Box>
                 <Tooltip title="مشاهده جزئیات">
-                  <IconButton onClick={() => handleViewDetails(payment.id)} size="small">
+                  <IconButton onClick={() => handleViewDetails(payment.id)} size="small" aria-label={`مشاهده جزئیات پرداخت #${payment.id}`}>
                     <Icon icon="mdi:eye-outline" style={{ width: 20, height: 20, color: '#3b82f6' }} />
                   </IconButton>
                 </Tooltip>

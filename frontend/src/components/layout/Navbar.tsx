@@ -40,7 +40,7 @@ interface NavbarProps {
   onMenuClick?: () => void
 }
 
-const muiIconSx = { ml: 1, fontSize: 20 }
+const muiIconSx = { me: 1, fontSize: 20 }
 const iconifyStyle = { marginLeft: 8, fontSize: 18 }
 
 const Navbar: React.FC<NavbarProps> = () => {
@@ -146,9 +146,12 @@ const Navbar: React.FC<NavbarProps> = () => {
             </Box>
             <Typography
               variant="h6"
+              // واژه‌نشان داخل nav نباید سرفصل باشد: هم outline را شلوغ می‌کند و هم
+              // «heading-order» را می‌شکند (H6 پیش از H1 صفحه)
+              component="span"
               sx={{
                 fontWeight: 800,
-                background: 'linear-gradient(135deg, #d97706, #ea580c)',
+                background: 'linear-gradient(135deg, #b45309, #c2410c)',
                 WebkitBackgroundClip: 'text',
                 WebkitTextFillColor: 'transparent',
                 display: { xs: 'none', sm: 'block' },
@@ -217,7 +220,7 @@ const Navbar: React.FC<NavbarProps> = () => {
               display: 'flex',
               alignItems: 'center',
               gap: 0.5,
-              mr: { xs: 0.5, md: 1 },
+              ms: { xs: 0.5, md: 1 },
               flexShrink: 0,
             }}
           >

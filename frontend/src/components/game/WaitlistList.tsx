@@ -65,7 +65,7 @@ const WaitlistList: React.FC<Props> = ({ entries }) => {
             </Typography>
           </Box>
           {entry.position === 1 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, color: '#b45309', fontSize: '0.75rem', fontWeight: 700 }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, color: 'warning.main', fontSize: '0.75rem', fontWeight: 700 }}>
               <Icon icon="mdi:star-four-points" style={{ width: 13, height: 13 }} />
               نوبت بعدی
             </Box>

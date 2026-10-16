@@ -13,8 +13,10 @@ import {
   Skeleton,
   Typography,
   useMediaQuery,
+  useTheme,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
+import type { Theme } from '@mui/material/styles'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
 
 // ─────────────── فرمت اعداد ریال ───────────────
@@ -188,68 +190,122 @@ export const KpiCard: React.FC<{
   loading?: boolean
   /** نود اختیاری کنار مقدار — چیپ دلتای مقایسه‌ای و... */
   end?: React.ReactNode
-}> = ({ label, value, sub, icon, color = '#2563eb', loading = false, end }) => (
-  <Card
-    sx={{
-      borderRadius: '16px',
-      border: '1px solid rgba(0,0,0,0.05)',
-      boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
-      height: '100%',
-    }}
-  >
-    <Box sx={{ p: 2, display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-      <Box
-        sx={{
-          width: 40,
-          height: 40,
-          flexShrink: 0,
-          borderRadius: '12px',
-          bgcolor: `${color}14`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Icon icon={icon} className="h-5 w-5" style={{ color }} />
-      </Box>
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
-          {label}
-        </Typography>
-        {loading ? (
-          <Skeleton variant="rounded" width="80%" height={26} sx={{ mt: 0.5 }} />
-        ) : (
-          <Typography
-            variant="body1"
-            dir="rtl"
-            sx={{ fontWeight: 800, color, fontSize: '1.05rem', lineHeight: 1.5, fontVariantNumeric: 'tabular-nums' }}
-          >
-            {value}
+}> = ({ label, value, sub, icon, color = '#2563eb', loading = false, end }) => {
+  const { main: accent } = useStatusColor(color)
+  return (
+    <Card
+      sx={{
+        borderRadius: '16px',
+        border: '1px solid rgba(0,0,0,0.05)',
+        boxShadow: '0 2px 12px rgba(0,0,0,0.04)',
+        height: '100%',
+      }}
+    >
+      <Box sx={{ p: 2, display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+        <Box
+          sx={{
+            width: 40,
+            height: 40,
+            flexShrink: 0,
+            borderRadius: '12px',
+            bgcolor: `${accent}14`,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Icon icon={icon} className="h-5 w-5" style={{ color: accent }} />
+        </Box>
+        <Box sx={{ minWidth: 0, flex: 1 }}>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+            {label}
           </Typography>
-        )}
-        {sub && !loading && (
-          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{sub}</Typography>
-        )}
+          {loading ? (
+            <Skeleton aria-hidden="true" variant="rounded" width="80%" height={26} sx={{ mt: 0.5 }} />
+          ) : (
+            <Typography
+              variant="body1"
+              dir="rtl"
+              sx={{ fontWeight: 800, color: accent, fontSize: '1.05rem', lineHeight: 1.5, fontVariantNumeric: 'tabular-nums' }}
+            >
+              {value}
+            </Typography>
+          )}
+          {sub && !loading && (
+            <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{sub}</Typography>
+          )}
+        </Box>
+        {end && !loading && <Box sx={{ alignSelf: 'center', flexShrink: 0 }}>{end}</Box>}
       </Box>
-      {end && !loading && <Box sx={{ alignSelf: 'center', flexShrink: 0 }}>{end}</Box>}
-    </Box>
-  </Card>
-)
+    </Card>
+  )
+}
 
-export const StatusChip: React.FC<{ label: string; color?: string }> = ({ label, color = '#6b7280' }) => (
-  <Chip
-    label={label}
-    size="small"
-    sx={{
-      borderRadius: '8px',
-      fontWeight: 600,
-      fontSize: '0.75rem',
-      height: 22,
-      bgcolor: `${color}18`,
-      color,
-    }}
-  />
-)
+// نقشه‌ی هگزهای تزئینیِ وضعیت → توکن تم. متن چیپ با این هگزها روی سفید زیر ۴.۵:۱ بود
+// (#059669≈3.8، #d97706≈3.2، #ef4444≈3.8)؛ توکن‌ها در هر دو مود کنتراست‌سنجی شده‌اند.
+const STATUS_COLOR_TOKEN: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+  '#059669': 'success',
+  '#16a34a': 'success',
+  '#10b981': 'success',
+  '#047857': 'success',
+  '#d97706': 'warning',
+  '#f59e0b': 'warning',
+  '#b45309': 'warning',
+  '#ef4444': 'error',
+  '#dc2626': 'error',
+  '#b91c1c': 'error',
+  '#be123c': 'error',
+  '#2563eb': 'info',
+  '#3b82f6': 'info',
+}
+
+/** نگاشت خالص (بدون hook) تا بتوان در حلقهٔ رندر هم صدا زد — vgl. SlotWeekGrid */
+export const statusColorToken = (hex: string): 'success' | 'warning' | 'error' | 'info' | undefined =>
+  STATUS_COLOR_TOKEN[hex.toLowerCase()]
+
+/**
+ * هگزهای تزئینی (که از کنفیگ‌های وضعیت می‌آیند) را به توکن سمانتیک نگاشت می‌کند.
+ * دلیل: متن با #059669 ≈ ۳٫۸:۱ و #d97706 ≈ ۳٫۲:۱ روی سفید رد می‌شود؛
+ * نسخهٔ دسترس‌پذیر در پالت است (success.main/warning.main ≥ ۴٫۵:۱).
+ */
+export const useStatusColor = (hex: string) => {
+  const theme = useTheme()
+  const token = statusColorToken(hex)
+  return { main: token ? theme.palette[token].main : hex, mapped: Boolean(token) }
+}
+
+/**
+ * جفت «پس‌زمینه + متن رویش» برای کنترل‌های selected (چیپ‌های یک‌دکمه‌ای).
+ * نسخهٔ بدون hook؛ تم را یک‌بار بالای کامپوننت بگیرید و داخل .map() پاس دهید.
+ * دلیل: «سفید روی #059669» ≈ ۳٫۷:۱ و «سفید روی #d97706» ≈ ۳٫۲:۱ برای متن ۱۲px رد می‌شود.
+ */
+export const statusPairOf = (
+  theme: Theme,
+  hex: string,
+): { main: string; on: string } => {
+  const token = statusColorToken(hex)
+  if (!token) return { main: hex, on: '#ffffff' }
+  return { main: theme.palette[token].main, on: theme.palette[token].contrastText }
+}
+
+export const StatusChip: React.FC<{ label: string; color?: string }> = ({ label, color = '#6b7280' }) => {
+  const { main: text, mapped } = useStatusColor(color)
+  // رنگ‌های بدون معادل (بنفش مسابقه، خاکستری‌ها) همان‌طور می‌مانند
+  return (
+    <Chip
+      label={label}
+      size="small"
+      sx={{
+        borderRadius: '8px',
+        fontWeight: 600,
+        fontSize: '0.75rem',
+        height: 22,
+        bgcolor: `${text}${mapped ? '1f' : '18'}`,
+        color: text,
+      }}
+    />
+  )
+}
 
 export const EmptyBox: React.FC<{ icon: string; title: string; text?: string }> = ({ icon, title, text }) => (
   <Box sx={{ textAlign: 'center', py: 4, px: 2 }}>

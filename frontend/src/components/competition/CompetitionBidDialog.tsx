@@ -126,6 +126,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
 
   return (
     <Dialog
+      aria-label="ثبت پیشنهاد قیمت سانس"
       open={open}
       onClose={() => !submitting && onClose()}
       fullWidth
@@ -238,7 +239,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
             htmlInput: { min: 1, step: 1 },
             input: {
               endAdornment: (
-                <Typography variant="caption" sx={{ color: 'text.secondary', pr: 1 }}>ریال</Typography>
+                <Typography variant="caption" sx={{ color: 'text.secondary', ps: 1 }}>ریال</Typography>
               ),
               startAdornment: (
                 <Icon icon="mdi:currency-usd" style={{ width: 18, height: 18, marginLeft: 8, color: '#64748b' }} />

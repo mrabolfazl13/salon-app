@@ -216,10 +216,12 @@ export function getReceiptStatusMuiColor(status?: string | null): 'default' | 'w
 }
 
 /** رنگ چیپ روش پرداخت در جدول مدیر */
+// این مقدارها «متن رویش» چیپ‌اند، نه پس‌زمینه: #d97706 ≈ ۳٫۲:۱ و #059669 ≈ ۳٫۸:۱
+// روی سفید و روی تتینگ ۱۰٪ رد می‌شوند؛ نسخهٔ دسترس‌پذیر پالت جای آن‌ها نشسته است.
 export const PAYMENT_MODE_CHIP_STYLE: Record<string, { bg: string; color: string }> = {
   gateway: { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' },
-  bank_receipt: { bg: 'rgba(217,119,6,0.1)', color: '#d97706' },
-  pay_in_place: { bg: 'rgba(5,150,105,0.1)', color: '#059669' },
+  bank_receipt: { bg: 'rgba(180,83,9,0.1)', color: '#b45309' },
+  pay_in_place: { bg: 'rgba(4,120,87,0.1)', color: '#047857' },
 }
 
 /** برچسب فارسی وضعیت رزرو + استایل چیپ مشترک */
@@ -238,14 +240,14 @@ export function getBookingStatusLabel(status?: string | null): string {
 export function getBookingStatusStyle(status?: string | null): { bg: string; color: string } {
   switch (status) {
     case 'confirmed':
-      return { bg: 'rgba(5,150,105,0.1)', color: '#059669' }
+      return { bg: 'rgba(4,120,87,0.1)', color: '#047857' }
     case 'completed':
       return { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' }
     case 'cancelled':
-      return { bg: 'rgba(239,68,68,0.1)', color: '#ef4444' }
+      return { bg: 'rgba(220,38,38,0.1)', color: '#dc2626' }
     case 'pending':
     default:
-      return { bg: 'rgba(217,119,6,0.1)', color: '#d97706' }
+      return { bg: 'rgba(180,83,9,0.1)', color: '#b45309' }
   }
 }
 

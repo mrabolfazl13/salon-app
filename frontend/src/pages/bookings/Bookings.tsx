@@ -33,6 +33,7 @@ import {
   getMuiStatusColor,
 } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import { downloadIcsEvent } from '@/utils/calendar'
 import { gradients } from '@/theme'
 
 // شکل رزرو از سمت بک‌اند (snake_case)
@@ -59,6 +60,23 @@ interface ApiBooking {
 }
 
 export type TabFilter = 'all' | 'confirmed' | 'pending' | 'cancelled' | 'completed'
+
+/** دانلود فایل .ics برای یک رزرو از فهرست — همان رویداد صفحهٔ جزئیات */
+const addToCalendar = (booking: ApiBooking) => {
+  if (!booking.slot_date || !booking.start_time) {
+    toast.error('اطلاعات زمانی این رزرو کامل نیست')
+    return
+  }
+  downloadIcsEvent({
+    bookingId: Number(booking.id),
+    venueName: booking.venue_name || `سالن #${booking.slot_id}`,
+    date: booking.slot_date,
+    time: String(booking.start_time).slice(0, 5),
+    durationMinutes: booking.duration || 90,
+    price: Number(booking.payment_amount) || undefined,
+  })
+  toast.success('فایل تقویم دانلود شد')
+}
 
 const Bookings: React.FC = () => {
   const [tab, setTab] = useState<TabFilter>('all')
@@ -203,7 +221,7 @@ const Bookings: React.FC = () => {
           <Grid container spacing={3}>
             {[1, 2, 3].map((i) => (
               <Grid size={{ xs: 12 }} key={i}>
-                <Skeleton variant="rounded" height={110} sx={{ borderRadius: '16px' }} />
+                <Skeleton aria-hidden="true" variant="rounded" height={110} sx={{ borderRadius: '16px' }} />
               </Grid>
             ))}
           </Grid>
@@ -342,6 +360,24 @@ const Bookings: React.FC = () => {
                               }}
                             >
                               جزئیات
+                            </Button>
+                          )}
+                          {!booking.isPendingRedis && (
+                            <Button
+                              variant="text"
+                              size="medium"
+                              onClick={() => addToCalendar(booking)}
+                              disabled={!booking.slot_date || !booking.start_time}
+                              aria-label={`افزودن رزرو ${booking.venue_name || ''} به تقویم`}
+                              sx={{
+                                borderRadius: '12px',
+                                textTransform: 'none',
+                                minHeight: 44,
+                                px: 1.5,
+                                fontSize: '0.85rem',
+                              }}
+                            >
+                              <Icon icon="mdi:calendar-plus" className="h-5 w-5" />
                             </Button>
                           )}
                           {(booking.status === 'confirmed' || booking.status === 'pending') && (

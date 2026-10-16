@@ -1,6 +1,6 @@
 // frontend/src/pages/dashboard/ManagerDashboard.tsx
 import React, { useState, useEffect, useMemo } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
@@ -872,7 +872,7 @@ const ManagerDashboard: React.FC = () => {
             content: '""',
             position: 'absolute',
             top: '-50%',
-            right: '-20%',
+            insetInlineStart: '-20%',
             width: '600px',
             height: '600px',
             borderRadius: '50%',
@@ -882,7 +882,7 @@ const ManagerDashboard: React.FC = () => {
             content: '""',
             position: 'absolute',
             bottom: '-30%',
-            left: '-10%',
+            insetInlineEnd: '-10%',
             width: '400px',
             height: '400px',
             borderRadius: '50%',
@@ -944,7 +944,8 @@ const ManagerDashboard: React.FC = () => {
                 <Grid size={{ xs: 12, sm: 6, md: 3 }} key={index}>
                   <motion.div custom={index} variants={statCardVariants}>
                     <Card
-                      onClick={stat.href ? () => navigate(stat.href as string) : undefined}
+                      component={stat.href ? Link : 'div'}
+                      {...(stat.href ? { to: stat.href as string } : {})}
                       sx={{
                         borderRadius: '20px',
                         overflow: 'hidden',
@@ -952,6 +953,11 @@ const ManagerDashboard: React.FC = () => {
                         border: '1px solid rgba(0,0,0,0.04)',
                         transition: 'all 0.3s ease',
                         cursor: stat.href ? 'pointer' : 'default',
+                        // وقتی کارت لینک است: بدون زیرخط، رنگ موروثی و حلقهٔ focus برای کیبورد
+                        display: 'block',
+                        color: 'inherit',
+                        textDecoration: 'none',
+                        '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: 2 },
                         '&:hover': {
                           transform: 'translateY(-4px)',
                           boxShadow: '0 12px 40px rgba(0,0,0,0.1)',
@@ -976,8 +982,8 @@ const ManagerDashboard: React.FC = () => {
                                 content: '""',
                                 position: 'absolute',
                                 top: 0,
-                                left: 0,
-                                right: 0,
+                                insetInlineEnd: 0,
+                                insetInlineStart: 0,
                                 bottom: 0,
                                 background: stat.gradient,
                                 opacity: 0.1,
@@ -1031,7 +1037,7 @@ const ManagerDashboard: React.FC = () => {
                             </Typography>
                             {stat.hint && (
                               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
-                                <Typography sx={{ color: '#d97706', fontWeight: 700, fontSize: '0.75rem' }}>
+                                <Typography sx={{ color: 'warning.main', fontWeight: 700, fontSize: '0.75rem' }}>
                                   {stat.hint}
                                 </Typography>
                                 <Icon icon="mdi:arrow-left" style={{ width: 13, height: 13, color: '#d97706' }} />
@@ -1062,7 +1068,7 @@ const ManagerDashboard: React.FC = () => {
                     <Button
                       size="small"
                       onClick={() => navigate('/finance')}
-                      sx={{ mr: 'auto', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem', minHeight: 44, px: 2 }}
+                      sx={{ ms: 'auto', color: '#2563eb', fontWeight: 700, fontSize: '0.78rem', minHeight: 44, px: 2 }}
                       endIcon={<Icon icon="mdi:arrow-left" style={{ width: 14, height: 14 }} />}
                     >
                       جزئیات مالی
@@ -1472,7 +1478,7 @@ const ManagerDashboard: React.FC = () => {
                                         fontSize: '0.85rem',
                                         flex: 1,
                                         borderColor: 'rgba(217,119,6,0.3)',
-                                        color: '#d97706',
+                                        color: 'warning.main',
                                         '&:hover': {
                                           borderColor: '#d97706',
                                           background: 'rgba(217,119,6,0.04)',
@@ -1682,17 +1688,17 @@ const ManagerDashboard: React.FC = () => {
                       overflow: 'hidden',
                     }}
                   >
-                    <Table>
+                    <Table aria-label="سانس‌های سالن">
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>سالن</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>تاریخ</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>ساعت شروع</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>مدت (دقیقه)</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>قیمت</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>وضعیت</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>تخفیف داینامیک</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>عملیات</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>سالن</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>تاریخ</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>ساعت شروع</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>مدت (دقیقه)</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>قیمت</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>وضعیت</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>تخفیف داینامیک</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>عملیات</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -1721,7 +1727,7 @@ const ManagerDashboard: React.FC = () => {
                               <Typography variant="body2">{slot.duration}</Typography>
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#059669' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
                                 {formatPrice(slot.current_price)}
                               </Typography>
                             </TableCell>
@@ -1751,10 +1757,10 @@ const ManagerDashboard: React.FC = () => {
                                       fontSize: '0.75rem',
                                       height: 24,
                                       bgcolor: 'rgba(245,158,11,0.15)',
-                                      color: '#d97706',
+                                      color: 'warning.main',
                                     }}
                                   />
-                                  <Typography variant="caption" sx={{ fontWeight: 700, color: '#059669' }}>
+                                  <Typography variant="caption" sx={{ fontWeight: 700, color: 'success.main' }}>
                                     {formatPrice(dealsMap[slot.id].deal_price)}
                                   </Typography>
                                   <Button
@@ -1939,7 +1945,7 @@ const ManagerDashboard: React.FC = () => {
                   </Box>
                   {pendingLoading ? (
                     <Box sx={{ textAlign: 'center', py: 3 }}>
-                      <CircularProgress size={28} sx={{ color: '#d97706' }} />
+                      <CircularProgress size={28} sx={{ color: 'warning.main' }} />
                     </Box>
                   ) : pendingList.length === 0 ? (
                     <Typography variant="body2" color="text.secondary">
@@ -2063,15 +2069,15 @@ const ManagerDashboard: React.FC = () => {
                       overflow: 'hidden',
                     }}
                   >
-                    <Table>
+                    <Table aria-label="رزروهای سالن">
                       <TableHead>
                         <TableRow>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>شناسه</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>سالن</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>مبلغ</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>تاریخ رزرو</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>وضعیت</TableCell>
-                          <TableCell sx={{ fontWeight: 700, fontSize: '0.85rem' }}>پرداخت / رسید</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>شناسه</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>سالن</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>مبلغ</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>تاریخ رزرو</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>وضعیت</TableCell>
+                          <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.85rem' }}>پرداخت / رسید</TableCell>
                         </TableRow>
                       </TableHead>
                       <TableBody>
@@ -2094,7 +2100,7 @@ const ManagerDashboard: React.FC = () => {
                               </Typography>
                             </TableCell>
                             <TableCell>
-                              <Typography variant="body2" sx={{ fontWeight: 600, color: '#059669' }}>
+                              <Typography variant="body2" sx={{ fontWeight: 600, color: 'success.main' }}>
                                 {formatPrice(booking.payment_amount)}
                               </Typography>
                             </TableCell>
@@ -2146,7 +2152,7 @@ const ManagerDashboard: React.FC = () => {
                                     size="small"
                                     variant="contained"
                                     onClick={() => setReviewTarget(booking)}
-                                    sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, minHeight: 32, bgcolor: '#d97706', '&:hover': { bgcolor: '#b45309' } }}
+                                    sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, minHeight: 44, bgcolor: 'warning.main', '&:hover': { bgcolor: 'warning.dark' } }}
                                     startIcon={<Icon icon="mdi:receipt-text-check-outline" className="h-4 w-4" />}
                                   >
                                     بررسی فیش
@@ -2157,7 +2163,7 @@ const ManagerDashboard: React.FC = () => {
                                     size="small"
                                     variant="contained"
                                     onClick={() => setInPersonTarget(booking)}
-                                    sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, minHeight: 32, bgcolor: '#059669', '&:hover': { bgcolor: '#047857' } }}
+                                    sx={{ borderRadius: '8px', textTransform: 'none', fontWeight: 700, minHeight: 44, bgcolor: 'success.main', '&:hover': { bgcolor: 'success.dark' } }}
                                     startIcon={<Icon icon="mdi:cash-register" className="h-4 w-4" />}
                                   >
                                     ثبت دریافت در محل
@@ -2346,14 +2352,14 @@ const ManagerDashboard: React.FC = () => {
                         component={Paper}
                         sx={{ borderRadius: '16px', border: '1px solid rgba(0,0,0,0.06)', overflow: 'hidden' }}
                       >
-                        <Table>
+                        <Table aria-label="اشتراک‌های خریداری‌شده">
                           <TableHead>
                             <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                              <TableCell sx={{ fontWeight: 700 }}>پلن</TableCell>
-                              <TableCell sx={{ fontWeight: 700 }}>مبلغ</TableCell>
-                              <TableCell sx={{ fontWeight: 700 }}>وضعیت</TableCell>
-                              <TableCell sx={{ fontWeight: 700 }}>جلسات باقی‌مانده</TableCell>
-                              <TableCell sx={{ fontWeight: 700 }}>عملیات</TableCell>
+                              <TableCell scope="col" sx={{ fontWeight: 700 }}>پلن</TableCell>
+                              <TableCell scope="col" sx={{ fontWeight: 700 }}>مبلغ</TableCell>
+                              <TableCell scope="col" sx={{ fontWeight: 700 }}>وضعیت</TableCell>
+                              <TableCell scope="col" sx={{ fontWeight: 700 }}>جلسات باقی‌مانده</TableCell>
+                              <TableCell scope="col" sx={{ fontWeight: 700 }}>عملیات</TableCell>
                             </TableRow>
                           </TableHead>
                           <TableBody>
@@ -2500,6 +2506,7 @@ const ManagerDashboard: React.FC = () => {
 
       {/* Create Venue Dialog */}
       <Dialog
+        aria-label={editingVenueId ? 'ویرایش سالن' : 'افزودن سالن جدید'}
         open={openCreateVenue}
         onClose={() => setOpenCreateVenue(false)}
         maxWidth="sm"
@@ -2605,6 +2612,7 @@ const ManagerDashboard: React.FC = () => {
               <TextField
                 size="small"
                 placeholder="مثلاً: پارکینگ، دوش، رختکن..."
+                aria-label="افزودن امکان جدید"
                 value={newAmenity}
                 onChange={(e) => setNewAmenity(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addAmenity() } }}
@@ -2638,18 +2646,22 @@ const ManagerDashboard: React.FC = () => {
               عکس‌های سالن <span style={{ color: '#6b7280', fontSize: '0.75rem' }}>(حداکثر ۱۰ عکس، هرکدام تا ۵MB)</span>
             </Typography>
             <Box
-              onClick={() => document.getElementById('venue-image-upload')?.click()}
+              component="label"
+              htmlFor="venue-image-upload"
               onDragOver={(e) => e.preventDefault()}
               onDrop={(e) => { e.preventDefault(); handleImageUpload(e.dataTransfer.files) }}
               sx={{
                 border: '2px dashed rgba(37,99,235,0.25)',
                 borderRadius: '12px',
                 p: 3,
+                display: 'block',
                 textAlign: 'center',
                 cursor: 'pointer',
                 bgcolor: 'rgba(37,99,235,0.03)',
                 transition: 'all 0.2s',
                 '&:hover': { borderColor: 'rgba(37,99,235,0.5)', bgcolor: 'rgba(37,99,235,0.06)' },
+                // اینپوت فایل focusable است؛ حلقهٔ focus روی خود ناحیهٔ آپلود دیده می‌شود
+                '&:focus-within': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: 2 },
               }}
             >
               {uploadingImages ? (
@@ -2667,7 +2679,17 @@ const ManagerDashboard: React.FC = () => {
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif"
                 multiple
-                style={{ display: 'none' }}
+                // sr-only (نه display:none) تا با کیبورد قابل تمرکز بماند و Enter فایل باز کند
+                style={{
+                  position: 'absolute',
+                  width: 1,
+                  height: 1,
+                  padding: 0,
+                  border: 0,
+                  overflow: 'hidden',
+                  clip: 'rect(0 0 0 0)',
+                  whiteSpace: 'nowrap',
+                }}
                 onClick={(e) => e.stopPropagation()}
                 onChange={(e) => { handleImageUpload(e.target.files); e.target.value = '' }}
               />
@@ -2678,8 +2700,28 @@ const ManagerDashboard: React.FC = () => {
                   <Box key={i} sx={{ position: 'relative', width: 80, height: 80, borderRadius: '10px', overflow: 'hidden', border: '1px solid rgba(0,0,0,0.1)' }}>
                     <img src={img} alt={`عکس ${i + 1}`} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                     <Box
+                      component="button"
+                      type="button"
                       onClick={() => removeImage(img)}
-                      sx={{ position: 'absolute', top: 2, left: 2, width: 20, height: 20, borderRadius: '50%', bgcolor: 'rgba(239,68,68,0.9)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}
+                      aria-label={`حذف عکس ${i + 1}`}
+                      sx={{
+                        position: 'absolute',
+                        top: 2,
+                        insetInlineEnd: 2,
+                        width: 20,
+                        height: 20,
+                        borderRadius: '50%',
+                        bgcolor: 'rgba(239,68,68,0.9)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        cursor: 'pointer',
+                        border: 0,
+                        padding: 0,
+                        appearance: 'none',
+                        '&::after': { content: '""', position: 'absolute', inset: -12 },
+                        '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.contrastText', outlineOffset: 2 },
+                      }}
                     >
                       <Icon icon="mdi:close" className="h-3 w-3" style={{ color: 'white' }} />
                     </Box>
@@ -2727,6 +2769,7 @@ const ManagerDashboard: React.FC = () => {
 
       {/* Generate Slots Dialog */}
       <Dialog
+        aria-label="ایجاد سانس برای سالن"
         open={openGenerateSlots}
         onClose={() => setOpenGenerateSlots(false)}
         maxWidth="sm"
@@ -2794,6 +2837,7 @@ const ManagerDashboard: React.FC = () => {
 
       {/* Create Plan Dialog — پلن اشتراک بدنسازی */}
       <Dialog
+        aria-label="پلن اشتراک جدید"
         open={openCreatePlan}
         onClose={() => !savingPlan && setOpenCreatePlan(false)}
         maxWidth="sm"

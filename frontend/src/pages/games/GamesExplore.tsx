@@ -2,7 +2,7 @@
 // صفحه کشف بازی‌ها — فیلترها (ورزش/سطح/ظرفیت/مرتب‌سازی) + تب‌های «بازی‌های من» و «دعوت‌نامه‌ها»
 
 import React, { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import {
   Box,
@@ -168,7 +168,7 @@ const GamesExplore: React.FC = () => {
               <ToggleButton value="" aria-label="نمایش همه ورزش‌ها">همه</ToggleButton>
               {SPORTS.map((s) => (
                 <ToggleButton key={s.key} value={s.key} aria-label={`فیلتر ${s.label}`}>
-                  <Box component="span" sx={{ ml: 0.5 }} aria-hidden="true">{s.emoji}</Box>
+                  <Box component="span" sx={{ me: 0.5 }} aria-hidden="true">{s.emoji}</Box>
                   {s.label}
                 </ToggleButton>
               ))}
@@ -207,30 +207,24 @@ const GamesExplore: React.FC = () => {
                 <MenuItem key={s} value={s} sx={{ minHeight: 44 }}>{SKILL_LEVEL_LABELS[s]}</MenuItem>
               ))}
             </TextField>
-            <Box
-              component="span"
-              role="button"
-              tabIndex={0}
+            {/* خودِ Chip کنترل است (کلیک + کیبورد) — wrapper با role=button قبلاً دو بار toggle می‌کرد */}
+            <Chip
+              icon={<Icon icon={availabilityOnly ? 'mdi:check-circle' : 'mdi:circle-outline'} style={{ width: 18, height: 18 }} />}
+              label="فقط جای خالی دارد"
+              aria-pressed={availabilityOnly}
               aria-label={availabilityOnly ? 'نمایش همه بازی‌ها' : 'فیلتر بازی‌های دارای ظرفیت'}
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { setAvailabilityOnly((v) => !v); setLimit(PAGE_SIZE) } }}
-              sx={{ cursor: 'pointer', outline: 'none' }}
-            >
-              <Chip
-                icon={<Icon icon={availabilityOnly ? 'mdi:check-circle' : 'mdi:circle-outline'} style={{ width: 18, height: 18 }} />}
-                label="فقط جای خالی دارد"
-                onClick={() => { setAvailabilityOnly((v) => !v); setLimit(PAGE_SIZE) }}
-                color={availabilityOnly ? 'primary' : 'default'}
-                variant={availabilityOnly ? 'filled' : 'outlined'}
-                sx={{
-                  borderRadius: '999px',
-                  fontWeight: 600,
-                  fontSize: '0.8rem',
-                  px: 0.5,
-                  minHeight: 44,
-                  '& .MuiChip-label': { px: 1.5 },
-                }}
-              />
-            </Box>
+              onClick={() => { setAvailabilityOnly((v) => !v); setLimit(PAGE_SIZE) }}
+              color={availabilityOnly ? 'primary' : 'default'}
+              variant={availabilityOnly ? 'filled' : 'outlined'}
+              sx={{
+                borderRadius: '999px',
+                fontWeight: 600,
+                fontSize: '0.8rem',
+                px: 0.5,
+                minHeight: 44,
+                '& .MuiChip-label': { px: 1.5 },
+              }}
+            />
           </Box>
 
           {isLoading ? (
@@ -349,8 +343,17 @@ const GamesExplore: React.FC = () => {
                 </Avatar>
                 <Box sx={{ minWidth: 0, flex: 1 }}>
                   <Typography
-                    onClick={() => navigate(`/games/${inv.game_id}`)}
-                    sx={{ fontSize: '0.9rem', fontWeight: 700, color: '#0f172a', cursor: 'pointer', '&:hover': { color: '#2563eb' } }}
+                    component={Link}
+                    to={`/games/${inv.game_id}`}
+                    sx={{
+                      fontSize: '0.9rem',
+                      fontWeight: 700,
+                      color: '#0f172a',
+                      cursor: 'pointer',
+                      textDecoration: 'none',
+                      '&:hover': { color: '#2563eb' },
+                      '&:focus-visible': { outline: '3px solid #f59e0b', outlineOffset: 2 },
+                    }}
                     noWrap
                   >
                     {inv.game_name || `بازی #${inv.game_id.toLocaleString('fa-IR')}`}

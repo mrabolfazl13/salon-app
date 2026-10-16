@@ -83,7 +83,7 @@ export function parseDateInput(raw: string): string | null {
     }
     return null
   }
-  const j = /^(\d{4})[\/\-](\d{1,2})[\/\-](\d{1,2})$/.exec(t)
+  const j = /^(\d{4})[-/](\d{1,2})[-/](\d{1,2})$/.exec(t)
   if (j) return fromJalali(Number(j[1]), Number(j[2]), Number(j[3])) || null
   return null
 }

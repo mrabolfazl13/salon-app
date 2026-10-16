@@ -110,7 +110,7 @@ const JoinRequestsBadge: React.FC<{ team: Team }> = ({ team }) => {
         py: 0.25,
         borderRadius: '999px',
         bgcolor: 'rgba(245,158,11,0.14)',
-        color: '#b45309',
+        color: 'warning.main',
         fontSize: '0.75rem',
         fontWeight: 800,
       }}
@@ -170,7 +170,7 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
                 }}
               />
               {team.my_status === 'pending' && (
-                <Typography sx={{ fontSize: '0.75rem', color: '#b45309', fontWeight: 700 }}>
+                <Typography sx={{ fontSize: '0.75rem', color: 'warning.main', fontWeight: 700 }}>
                   {TEAM_MEMBER_STATUS_LABELS.pending}
                 </Typography>
               )}
@@ -215,7 +215,7 @@ const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
             <Chip
               label={`رتبه شما: ${toPersianDigits(q.data.my_rank)}`}
               size="small"
-              sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', mr: 'auto' }}
+              sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: 'warning.main', ms: 'auto' }}
             />
           )}
         </Box>
@@ -258,8 +258,8 @@ const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
                 </Typography>
               </Box>
               <Box sx={{ textAlign: 'center', fontSize: '0.75rem', color: '#334155', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.played)}</Box>
-              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, color: '#059669', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.won)}</Box>
-              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', color: '#dc2626', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.lost)}</Box>
+              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, color: 'success.main', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.won)}</Box>
+              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', color: 'error.main', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.lost)}</Box>
               <Box sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 900, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.points)}</Box>
             </Box>
           </motion.div>

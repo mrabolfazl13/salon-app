@@ -146,7 +146,7 @@ const ManagerContracts: React.FC = () => {
         {tab === 0 && (
           pendingQuery.isLoading ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {[1, 2].map((i) => <Skeleton key={i} variant="rounded" height={190} sx={{ borderRadius: '16px' }} />)}
+              {[1, 2].map((i) => <Skeleton aria-hidden="true" key={i} variant="rounded" height={190} sx={{ borderRadius: '16px' }} />)}
             </Box>
           ) : pendingQuery.isError ? (
             isForbidden(pendingQuery.error) ? (
@@ -329,6 +329,7 @@ const ManagerContracts: React.FC = () => {
               <TextField
                 size="small"
                 placeholder="جستجو: نام کاربر / شناسه"
+                aria-label="جستجوی کاربر بر اساس نام یا شناسه"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
                 sx={{ width: 210, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
@@ -338,7 +339,7 @@ const ManagerContracts: React.FC = () => {
             <Box sx={{ mt: 2 }}>
               {allQuery.isLoading ? (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {[1, 2, 3].map((i) => <Skeleton key={i} variant="rounded" height={52} sx={{ borderRadius: '12px' }} />)}
+                  {[1, 2, 3].map((i) => <Skeleton aria-hidden="true" key={i} variant="rounded" height={52} sx={{ borderRadius: '12px' }} />)}
                 </Box>
               ) : allQuery.isError ? (
                 isForbidden(allQuery.error) ? (
@@ -350,11 +351,11 @@ const ManagerContracts: React.FC = () => {
                 <EmptyBox icon="mdi:file-search-outline" title="قراردادی با این فیلترها نیست" />
               ) : (
                 <TableContainer sx={{ overflowX: 'auto' }}>
-                  <Table size="small" stickyHeader sx={{ minWidth: 880 }}>
+                  <Table aria-label="لیست قراردادها" size="small" stickyHeader sx={{ minWidth: 880 }}>
                     <TableHead>
                       <TableRow>
                         {['#', 'متقاضی', 'سالن', 'بازه / برنامه', 'سانس', 'قیمت و کل', 'پرداخت', 'وضعیت', ''].map((h, i) => (
-                          <TableCell key={i} sx={{ fontWeight: 700, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{h}</TableCell>
+                          <TableCell scope="col" key={i} sx={{ fontWeight: 700, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{h}</TableCell>
                         ))}
                       </TableRow>
                     </TableHead>
@@ -367,8 +368,18 @@ const ManagerContracts: React.FC = () => {
                           <TableRow
                             key={c.id}
                             hover
-                            sx={{ cursor: 'pointer' }}
+                            tabIndex={0}
                             onClick={() => navigate(`/manager/contracts/${c.id}`)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' || e.key === ' ') {
+                                e.preventDefault()
+                                navigate(`/manager/contracts/${c.id}`)
+                              }
+                            }}
+                            sx={{
+                              cursor: 'pointer',
+                              '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
+                            }}
                           >
                             <TableCell sx={{ fontSize: '0.8rem', fontWeight: 700 }}>{faNum(c.id)}</TableCell>
                             <TableCell sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>

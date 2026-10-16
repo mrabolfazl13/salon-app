@@ -98,7 +98,7 @@ const StatementDialog: React.FC<Props> = ({ open, onClose, userId, userName, ven
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>موجودی اختتامیه</Typography>
                 <Typography
                   variant="body2"
-                  sx={{ fontWeight: 800, color: statement.data.closing_balance > 0 ? '#dc2626' : '#059669' }}
+                  sx={{ fontWeight: 800, color: (t) => (statement.data.closing_balance > 0 ? t.palette.error.main : t.palette.success.main) }}
                 >
                   {formatRial(statement.data.closing_balance)}
                 </Typography>
@@ -145,7 +145,7 @@ const StatementDialog: React.FC<Props> = ({ open, onClose, userId, userName, ven
                       <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>{formatJalaliDateTime(e.occurred_at, { format: 'numeric' })}</td>
                       <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>{labelOf(TX_TYPE_LABELS, e.type)}</td>
                       <td style={{ padding: '7px 10px', whiteSpace: 'nowrap' }}>{formatRial(e.amount, false)}</td>
-                      <td style={{ padding: '7px 10px', whiteSpace: 'nowrap', fontWeight: 700, color: e.delta > 0 ? '#dc2626' : '#059669' }}>
+                      <td style={{ padding: '7px 10px', whiteSpace: 'nowrap', fontWeight: 700, color: e.delta > 0 ? '#dc2626' : '#047857' }}>
                         {e.delta > 0 ? '+' : ''}{formatRial(e.delta, false)}
                       </td>
                       <td style={{ padding: '7px 10px', whiteSpace: 'nowrap', fontWeight: 700 }}>{formatRial(e.running_balance, false)}</td>
@@ -307,7 +307,7 @@ const PaymentDialog: React.FC<{
         <Chip
           label={`مبلغ: ${formatRial(Number.isNaN(parseAmountInput(amount)) ? 0 : parseAmountInput(amount))}`}
           size="small"
-          sx={{ fontWeight: 700, mr: 'auto', borderRadius: '8px' }}
+          sx={{ fontWeight: 700, ms: 'auto', borderRadius: '8px' }}
           icon={<Icon icon="mdi:bank-outline" className="h-4 w-4" />}
         />
         <Button

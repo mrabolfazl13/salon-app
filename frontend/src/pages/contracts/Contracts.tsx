@@ -126,7 +126,7 @@ const Contracts: React.FC = () => {
         ) : contractsQuery.isLoading ? (
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} variant="rounded" height={160} sx={{ borderRadius: '16px' }} />
+              <Skeleton aria-hidden="true" key={i} variant="rounded" height={160} sx={{ borderRadius: '16px' }} />
             ))}
           </Box>
         ) : filtered.length === 0 ? (
@@ -180,6 +180,7 @@ const Contracts: React.FC = () => {
       <Dialog
         open={createOpen}
         onClose={() => setCreateOpen(false)}
+        aria-label="ثبت درخواست قرارداد بلندمدت"
         maxWidth="md"
         fullWidth
         sx={{ '& .MuiDialog-paper': { borderRadius: '20px', maxHeight: '90vh' } }}

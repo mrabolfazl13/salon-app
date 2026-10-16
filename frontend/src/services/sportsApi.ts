@@ -72,7 +72,6 @@ export interface NewsItem {
   category: string
   icon: string
   date: string
-  views: number
   color: string
   image: string
   source: string
@@ -202,8 +201,7 @@ export const sportsApi = {
               month: 'long',
               day: 'numeric',
             })
-          : '۱۴۰۲',
-        views: Math.floor(Math.random() * 20000) + 5000,
+          : '',
         color: getRandomGradient(index),
         image: '',
         source: item.link,
@@ -237,8 +235,7 @@ export const sportsApi = {
               month: 'long',
               day: 'numeric',
             })
-          : '۱۴۰۲',
-        views: Math.floor(Math.random() * 20000) + 5000,
+          : '',
         color: getRandomGradient(index),
         image: '',
         source: item.link,

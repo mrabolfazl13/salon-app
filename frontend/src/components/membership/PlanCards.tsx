@@ -59,7 +59,7 @@ const PlanCards: React.FC<Props> = ({ plans, onBuy, compact = false }) => {
                 sx={{
                   position: 'absolute',
                   top: -10,
-                  left: 12,
+                  insetInlineEnd: 12,
                   height: 20,
                   fontSize: '0.75rem',
                   fontWeight: 800,

@@ -1,8 +1,9 @@
 // frontend/src/components/crm/CampaignsTab.tsx
 // «کمپین» — ساخت کمپین پیامکی (segment یا انتخاب دستی مشتری) با پیش‌نمایش دامنه
 // از /crm/stats + جعبه هشدار قاعده‌ی فقط-رضایت + تاریخچه کمپین‌ها.
-// نکته: بک‌اند تعدادِ دارایِ رضایت را در stats منتشر نمی‌کند؛ فیلتر رضایت
-// سمت سرور اعمال و در پاسخ sent_count/skipped_no_consent برمی‌گردد.
+// /crm/stats شمارش دارایانِ رضایت (consent_count / consent_by_segment) را هم
+// می‌دهد؛ پس «قابل‌ارسال» پیش از ارسال دیده می‌شود. فیلتر نهایی همچنان سمت
+// سرور است و در پاسخ sent_count/skipped_no_consent برمی‌گردد.
 
 import React, { useEffect, useMemo, useState } from 'react'
 import {
@@ -70,6 +71,13 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
     return statsQuery.data?.segments?.[segment] ?? null
   }, [targetMode, segment, selected.length, statsQuery.data])
 
+  /** چند نفر از این دامنه رضایت دارند — تخمین «قابل‌ارسال» (فیلتر نهایی سمت سرور) */
+  const consentReach = useMemo(() => {
+    if (targetMode === 'customers') return selected.filter((s) => s.marketing_consent).length
+    if (!statsQuery.data) return null
+    return statsQuery.data.consent_by_segment?.[segment] ?? null
+  }, [targetMode, segment, selected, statsQuery.data])
+
   const toggle = (row: CrmCustomerRow) => {
     setSelected((prev) => {
       const exists = prev.some((p) => p.user_id === row.user_id)
@@ -111,14 +119,14 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
       {/* فرم ساخت */}
       <SectionCard title="کمپین جدید" icon="mdi:message-alert-outline" color="#d97706">
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <RadioGroup row value={targetMode} onChange={(e) => setTargetMode(e.target.value as 'segment' | 'customers')}>
+          <RadioGroup aria-label="روش انتخاب مخاطبان کمپین" row value={targetMode} onChange={(e) => setTargetMode(e.target.value as 'segment' | 'customers')}>
             <FormControlLabel value="segment" control={<Radio size="small" />} label={<Typography variant="body2" sx={{ fontWeight: 700 }}>بر اساس گروه مشتریان</Typography>} />
             <FormControlLabel value="customers" control={<Radio size="small" />} label={<Typography variant="body2" sx={{ fontWeight: 700 }}>انتخاب دستی مشتریان</Typography>} />
           </RadioGroup>
 
           {targetMode === 'segment' ? (
             <FormControl size="small" fullWidth>
-              <Select value={segment} onChange={(e) => setSegment(e.target.value)} sx={{ borderRadius: '10px' }}>
+              <Select value={segment} aria-label="گروه مشتریان" onChange={(e) => setSegment(e.target.value)} sx={{ borderRadius: '10px' }}>
                 {SEGMENT_ORDER.map((s) => (
                   <MenuItem key={s} value={s}>{SEGMENT_LABELS[s]}</MenuItem>
                 ))}
@@ -129,6 +137,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
               <TextField
                 size="small"
                 fullWidth
+                label="جست‌وجوی مشتری"
                 placeholder="جست‌وجوی نام یا موبایل مشتری..."
                 value={searchInput}
                 onChange={(e) => setSearchInput(e.target.value)}
@@ -141,12 +150,23 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
                     return (
                       <Box
                         key={c.user_id}
+                        component="button"
+                        type="button"
+                        aria-pressed={picked}
                         onClick={() => toggle(c)}
                         sx={{
                           display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1,
                           px: 1.5, py: 1, cursor: 'pointer',
                           bgcolor: picked ? 'rgba(37,99,235,0.06)' : 'transparent',
                           borderBottom: '1px solid rgba(15,23,42,0.04)',
+                          // Box به‌عنوان <button>: عرض کامل + بازتنظیم پیش‌فرض‌های مرورگر
+                          width: '100%',
+                          textAlign: 'inherit',
+                          fontFamily: 'inherit',
+                          color: 'inherit',
+                          appearance: 'none',
+                          WebkitTapHighlightColor: 'transparent',
+                          '&:focus-visible': { outline: '3px solid', outlineColor: '#f59e0b', outlineOffset: -2 },
                         }}
                       >
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
@@ -155,7 +175,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
                           <Typography variant="caption" color="text.secondary" dir="ltr">{c.phone}</Typography>
                         </Box>
                         {!c.marketing_consent && (
-                          <Chip label="بدون رضایت" size="small" sx={{ height: 18, fontSize: '0.6rem', bgcolor: 'rgba(239,68,68,0.1)', color: '#ef4444', fontWeight: 700 }} />
+                          <Chip label="بدون رضایت" size="small" sx={{ height: 18, fontSize: '0.6rem', bgcolor: 'rgba(239,68,68,0.1)', color: 'error.main', fontWeight: 700 }} />
                         )}
                       </Box>
                     )
@@ -183,8 +203,14 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
               دامنه پیش‌بینی‌شده: {reachCount === null ? '…' : `${toPersianDigits(reachCount)} مشتری`}
               {targetMode === 'segment' && ` در گروه «${SEGMENT_LABELS[segment]}»`}
             </Typography>
+            <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, color: (t) => ((consentReach ?? 0) > 0 ? t.palette.success.main : t.palette.warning.main) }}>
+              <Icon icon="mdi:email-check-outline" className="h-4 w-4 inline ml-1" />
+              {'قابل‌ارسال (دارای رضایت): '}
+              {consentReach === null ? '…' : `${toPersianDigits(consentReach)} نفر`}
+              {consentReach === 0 && ' — به هیچ‌کس پیام ارسال نمی‌شود'}
+            </Typography>
             <Typography variant="caption" color="text.secondary">
-              شمارش نهاییِ دارایانِ رضایت سمت سرور انجام می‌شود؛ سقف روزانه کمپین هر سالن هم اعمال می‌گردد.
+              شمارش نهاییِ دارایانِ رضایت هنگام ارسال سمت سرور اعمال می‌شود؛ سقف روزانه کمپین هر سالن هم اعمال می‌گردد.
             </Typography>
           </Box>
 
@@ -233,7 +259,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
         ) : items.length === 0 ? (
           <EmptyBox icon="mdi:message-text-outline" title="هنوز کمپینی ارسال نشده" />
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, maxHeight: 560, overflow: 'auto', pl: 0.5 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, maxHeight: 560, overflow: 'auto', pe: 0.5 }}>
             {items.map((c) => (
               <Box key={c.id} sx={{ p: 1.75, borderRadius: '14px', border: '1px solid rgba(15,23,42,0.06)', bgcolor: 'rgba(248,250,252,0.6)' }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
@@ -250,9 +276,9 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
                   {c.segment && (
                     <Chip label={SEGMENT_LABELS[c.segment] ?? c.segment} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
                   )}
-                  <Chip icon={<Icon icon="mdi:email-check" />} label={`${toPersianDigits(c.sent_count)} ارسال`} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.1)', color: '#059669' }} />
+                  <Chip icon={<Icon icon="mdi:email-check" />} label={`${toPersianDigits(c.sent_count)} ارسال`} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.1)', color: 'success.main' }} />
                   {c.skipped_no_consent > 0 && (
-                    <Chip icon={<Icon icon="mdi:email-off" />} label={`${toPersianDigits(c.skipped_no_consent)} بدون رضایت`} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(239,68,68,0.1)', color: '#ef4444' }} />
+                    <Chip icon={<Icon icon="mdi:email-off" />} label={`${toPersianDigits(c.skipped_no_consent)} بدون رضایت`} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(239,68,68,0.1)', color: 'error.main' }} />
                   )}
                 </Box>
               </Box>

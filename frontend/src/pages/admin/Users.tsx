@@ -125,6 +125,7 @@ const Users: React.FC = () => {
             <InputBase
               sx={{ flex: 1, fontSize: '0.875rem', direction: 'rtl' }}
               placeholder="جستجوی نام یا شماره موبایل..."
+              aria-label="جستجوی کاربران"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
@@ -150,20 +151,20 @@ const Users: React.FC = () => {
         {loading ? (
           <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton key={i} variant="rounded" height={52} />
+              <Skeleton aria-hidden="true" key={i} variant="rounded" height={52} />
             ))}
           </Box>
         ) : (
           <TableContainer>
-            <Table size="small">
+            <Table size="small" aria-label="لیست کاربران سیستم">
               <TableHead>
                 <TableRow sx={{ bgcolor: 'grey.50' }}>
-                  <TableCell>کاربر</TableCell>
-                  <TableCell>شماره موبایل</TableCell>
-                  <TableCell>نقش</TableCell>
-                  <TableCell>وضعیت</TableCell>
-                  <TableCell>تایید</TableCell>
-                  <TableCell>تاریخ ثبت‌نام</TableCell>
+                  <TableCell scope="col">کاربر</TableCell>
+                  <TableCell scope="col">شماره موبایل</TableCell>
+                  <TableCell scope="col">نقش</TableCell>
+                  <TableCell scope="col">وضعیت</TableCell>
+                  <TableCell scope="col">تایید</TableCell>
+                  <TableCell scope="col">تاریخ ثبت‌نام</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

@@ -138,7 +138,7 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                   </Typography>
                 </Box>
                 <Tooltip title="کپی لینک">
-                  <IconButton size="small" onClick={() => copy(link)} sx={{ color: '#2563eb' }}>
+                  <IconButton size="small" onClick={() => copy(link)} aria-label="کپی لینک دعوت" sx={{ color: '#2563eb' }}>
                     <Icon icon="mdi:content-copy" style={{ width: 17, height: 17 }} />
                   </IconButton>
                 </Tooltip>
@@ -152,6 +152,7 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                         onError: (err) => toast.error(getGameError(err)),
                       })
                     }
+                    aria-label={`بازتولید توکن لینک #${link.id}`}
                     sx={{ color: '#7c3aed' }}
                   >
                     <Icon icon="mdi:sync" style={{ width: 17, height: 17 }} />
@@ -167,7 +168,8 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                         onError: (err) => toast.error(getGameError(err)),
                       })
                     }
-                    sx={{ color: '#dc2626' }}
+                    aria-label={`غیرفعال کردن لینک دعوت #${link.id}`}
+                    sx={{ color: 'error.main' }}
                   >
                     <Icon icon="mdi:link-off" style={{ width: 17, height: 17 }} />
                   </IconButton>

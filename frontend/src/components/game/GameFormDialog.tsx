@@ -176,7 +176,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
               border: '1px solid rgba(16,185,129,0.2)',
             }}
           >
-            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#059669' }}>
+            <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: 'success.main' }}>
               رزرو پایه‌ی بازی
             </Typography>
             <Typography sx={{ fontSize: '0.75rem', color: '#334155', mt: 0.25 }}>

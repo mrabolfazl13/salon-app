@@ -171,11 +171,13 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
         <Box sx={{ width: 306 }} dir="rtl">
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
             <Box sx={{ display: 'flex' }}>
+              {/* convention RTL این پروژه (DateSelector/SlotWeekGrid): «قبل» با شیولرون راست،
+                  «بعد» با شیولرون چپ — چون جریان خواندن راست‌به‌چپ است */}
               <IconButton size="small" onClick={() => setView(prevYear)} aria-label="سال قبل">
-                <Icon icon="mdi:chevron-double-left" style={{ width: 18, height: 18 }} />
+                <Icon icon="mdi:chevron-double-right" style={{ width: 18, height: 18 }} />
               </IconButton>
               <IconButton size="small" onClick={() => setView(shiftMonth(view, -1))} aria-label="ماه قبل">
-                <Icon icon="mdi:chevron-left" style={{ width: 18, height: 18 }} />
+                <Icon icon="mdi:chevron-right" style={{ width: 18, height: 18 }} />
               </IconButton>
             </Box>
             <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>
@@ -183,10 +185,10 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
             </Typography>
             <Box sx={{ display: 'flex' }}>
               <IconButton size="small" onClick={() => setView(shiftMonth(view, 1))} aria-label="ماه بعد">
-                <Icon icon="mdi:chevron-right" style={{ width: 18, height: 18 }} />
+                <Icon icon="mdi:chevron-left" style={{ width: 18, height: 18 }} />
               </IconButton>
               <IconButton size="small" onClick={() => setView(nextYear)} aria-label="سال بعد">
-                <Icon icon="mdi:chevron-double-right" style={{ width: 18, height: 18 }} />
+                <Icon icon="mdi:chevron-double-left" style={{ width: 18, height: 18 }} />
               </IconButton>
             </Box>
           </Box>

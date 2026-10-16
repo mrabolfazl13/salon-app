@@ -1,5 +1,5 @@
 // src/components/ui/Dialog.tsx
-import React from 'react'
+import React, { useId } from 'react'
 import {
   Dialog as MuiDialog,
   DialogTitle,
@@ -29,6 +29,8 @@ const Dialog: React.FC<DialogProps> = ({
   fullWidth = true,
   ...props
 }) => {
+  // MUI دیالوگ را خودکار به DialogTitle وصل نمی‌کند؛ بدون این، صفحه‌خوان دیالوگ بی‌نام اعلام می‌کند
+  const titleId = useId()
   return (
     <AnimatePresence>
       {open && (
@@ -43,10 +45,11 @@ const Dialog: React.FC<DialogProps> = ({
             onClose={onClose}
             maxWidth={maxWidth}
             fullWidth={fullWidth}
+            aria-labelledby={title ? titleId : undefined}
             {...props}
           >
             {title && (
-              <DialogTitle sx={{ fontWeight: 800 }}>
+              <DialogTitle id={titleId} sx={{ fontWeight: 800 }}>
                 {title}
                 <IconButton
                   onClick={onClose}

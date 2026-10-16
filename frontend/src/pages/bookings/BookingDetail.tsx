@@ -37,6 +37,7 @@ import {
 } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import PricingBreakdown, { normalizeBreakdown } from '@/components/deals/PricingBreakdown'
+import { downloadIcsEvent } from '@/utils/calendar'
 
 interface ApiBooking {
   id: number
@@ -166,6 +167,24 @@ const BookingDetail: React.FC = () => {
     window.print()
   }
 
+  // افزودن به تقویم — .ics سمت کلاینت (بدون endpoint بک‌اند)
+  const handleAddToCalendar = () => {
+    if (!booking) return
+    if (!booking.slot_date || !booking.start_time) {
+      toast.error('اطلاعات زمانی این رزرو کامل نیست')
+      return
+    }
+    downloadIcsEvent({
+      bookingId: booking.id,
+      venueName: booking.venue_name || `سالن #${booking.slot_id}`,
+      date: booking.slot_date,
+      time: String(booking.start_time).slice(0, 5),
+      durationMinutes: booking.duration || 90,
+      price: Number(booking.payment_amount) || undefined,
+    })
+    toast.success('فایل تقویم دانلود شد')
+  }
+
   // رزرو دوباره — پاسخ بک‌اند venue_id ندارد؛ تطبیق با جست‌وجوی نام سالن و
   // ناوبری /venues/{id}?date=&time= (الگوی preselect لینک دیل در VenueDetail)
   const handleRebook = async () => {
@@ -208,9 +227,9 @@ const BookingDetail: React.FC = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-          <Skeleton variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton variant="rounded" height={120} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton variant="rounded" height={260} sx={{ borderRadius: 2 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={120} sx={{ borderRadius: 2, mb: 3 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={260} sx={{ borderRadius: 2 }} />
         </Container>
       </Layout>
     )
@@ -414,19 +433,30 @@ const BookingDetail: React.FC = () => {
                   </Box>
 
                   {checkinLoading ? (
-                    <Skeleton variant="rounded" height={80} sx={{ borderRadius: 2 }} />
+                    <Skeleton aria-hidden="true" variant="rounded" height={80} sx={{ borderRadius: 2 }} />
                   ) : qrCodeData ? (
                     <Paper
+                      component="button"
+                      type="button"
+                      aria-label="مشاهده کد حضور"
                       onClick={() => setQrDialogOpen(true)}
                       sx={{
                         p: 3,
+                        display: 'block',
+                        width: '100%',
                         textAlign: 'center',
                         cursor: 'pointer',
+                        // Paper به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر
+                        fontFamily: 'inherit',
+                        color: 'inherit',
+                        appearance: 'none',
+                        WebkitTapHighlightColor: 'transparent',
                         border: `2px dashed ${theme.palette.primary.main}`,
                         bgcolor: `${theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.05)'}`,
                         '&:hover': {
                           bgcolor: `${theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.08)'}`,
                         },
+                        '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: 2 },
                       }}
                     >
                       <Typography
@@ -514,6 +544,15 @@ const BookingDetail: React.FC = () => {
                 </Button>
                 <Button
                   variant="outlined"
+                  onClick={handleAddToCalendar}
+                  disabled={!booking.slot_date || !booking.start_time}
+                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1 }}
+                  startIcon={<Icon icon="mdi:calendar-plus" />}
+                >
+                  افزودن به تقویم
+                </Button>
+                <Button
+                  variant="outlined"
                   onClick={handleShare}
                   sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1 }}
                   startIcon={<Icon icon="mdi:share" />}
@@ -548,6 +587,7 @@ const BookingDetail: React.FC = () => {
 
       {/* QR Code Dialog */}
       <Dialog
+        aria-label="کد ورود به سالن"
         open={qrDialogOpen}
         onClose={() => setQrDialogOpen(false)}
         maxWidth="sm"

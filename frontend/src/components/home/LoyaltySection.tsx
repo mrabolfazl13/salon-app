@@ -53,7 +53,7 @@ const LevelCard: React.FC<LevelCardProps> = ({
           sx={{
             position: 'absolute',
             top: 12,
-            left: 12,
+            insetInlineEnd: 12,
             px: 1,
             py: 0.3,
             borderRadius: '6px',
@@ -203,6 +203,8 @@ const RewardCard: React.FC<RewardCardProps> = ({
           <LinearProgress
             variant="determinate"
             value={progress}
+            aria-label={`پیشرفت به سطح ${title}`}
+            aria-valuetext={`${Math.round(progress)} درصد`}
             sx={{
               height: 6,
               borderRadius: '3px',
@@ -256,7 +258,7 @@ const LEVELS = [
     description: 'شروع سفر فوتسالی شما',
     minPoints: 0,
     maxPoints: 1000,
-    color: '#cd7f32',
+    color: '#92400e',
     isCurrent: true,
   },
   {
@@ -273,14 +275,14 @@ const LEVELS = [
     description: 'بازیکن حرفه‌ای با مزایای عالی',
     minPoints: 5000,
     maxPoints: 15000,
-    color: '#fbbf24',
+    color: '#a16207',
   },
   {
     icon: 'mdi:diamond-stone',
     name: 'الماسی',
     description: 'VIP با بهترین امکانات و تخفیف‌ها',
     minPoints: 15000,
-    color: '#3b82f6',
+    color: '#2563eb',
   },
 ]
 
@@ -292,7 +294,7 @@ const REWARDS = [
     pointsRequired: 500,
     userPoints: 750,
     canClaim: true,
-    color: '#10b981',
+    color: '#047857',
   },
   {
     icon: 'mdi:tshirt-crew',
@@ -301,7 +303,7 @@ const REWARDS = [
     pointsRequired: 2000,
     userPoints: 750,
     canClaim: false,
-    color: '#3b82f6',
+    color: '#2563eb',
   },
   {
     icon: 'mdi:soccer',
@@ -310,7 +312,7 @@ const REWARDS = [
     pointsRequired: 3000,
     userPoints: 750,
     canClaim: false,
-    color: '#f59e0b',
+    color: '#b45309',
   },
   {
     icon: 'mdi:gift-outline',
@@ -319,7 +321,7 @@ const REWARDS = [
     pointsRequired: 1000,
     userPoints: 750,
     canClaim: false,
-    color: '#ec4899',
+    color: '#be185d',
   },
 ]
 
@@ -407,6 +409,8 @@ export const LoyaltySection: React.FC = () => {
             <LinearProgress
               variant="determinate"
               value={progress}
+              aria-label="پیشرفت به سطح نقره‌ای"
+              aria-valuetext={`${Math.round(progress)} درصد`}
               sx={{
                 height: 8,
                 borderRadius: '4px',

@@ -38,7 +38,7 @@ const UpdateDialog: React.FC = () => {
   const pct = progress.total > 0 ? Math.min(100, (progress.received / progress.total) * 100) : 0
 
   return (
-    <Dialog open onClose={closeDialog} maxWidth="sm">
+    <Dialog aria-label="بروزرسانی برنامه" open onClose={closeDialog} maxWidth="sm">
       <div className="text-center py-3">
         <motion.div
           initial={{ scale: 0, rotate: -30 }}
@@ -52,7 +52,7 @@ const UpdateDialog: React.FC = () => {
               phase === 'error'
                 ? 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400'
                 : phase === 'up-to-date'
-                  ? 'bg-emerald-100 text-emerald-600 dark:bg-emerald-500/15 dark:text-emerald-400'
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400'
                   : 'bg-gradient-to-br from-lime-400 to-emerald-500 text-white shadow-lg',
             )}
           >
@@ -111,7 +111,7 @@ const UpdateDialog: React.FC = () => {
             <ul className="text-right text-sm text-gray-600 dark:text-gray-300 space-y-1.5 mb-3 px-2">
               {manifest.notes.map((n, i) => (
                 <li key={i} className="flex items-start gap-2">
-                  <Icon icon="mdi:soccer-ball" className="h-4 w-4 mt-0.5 shrink-0 text-emerald-500" />
+                  <Icon icon="mdi:soccer-ball" className="h-4 w-4 mt-0.5 shrink-0 text-emerald-700" />
                   <span>{n}</span>
                 </li>
               ))}
@@ -127,7 +127,7 @@ const UpdateDialog: React.FC = () => {
             )}
 
             {phase === 'ready' && (
-              <p className="text-xs text-emerald-600 dark:text-emerald-400 mb-2">
+              <p className="text-xs text-emerald-700 dark:text-emerald-400 mb-2">
                 دانلود تمام شد — در حال باز کردن نصب‌کننده…
               </p>
             )}

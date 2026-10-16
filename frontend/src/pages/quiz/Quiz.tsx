@@ -173,17 +173,17 @@ const Quiz: React.FC = () => {
                     if (isCorrectChoice) {
                       sx = {
                         ...sx,
-                        bgcolor: 'rgba(5,150,105,0.12)',
-                        borderColor: '#059669',
-                        color: '#059669',
+                        bgcolor: 'success.main',
+                        borderColor: 'success.main',
+                        color: 'success.contrastText',
                         fontWeight: 800,
                       }
                     } else if (picked && mine && !mine.result.correct) {
                       sx = {
                         ...sx,
-                        bgcolor: 'rgba(220,38,38,0.10)',
-                        borderColor: '#dc2626',
-                        color: '#dc2626',
+                        bgcolor: 'error.main',
+                        borderColor: 'error.main',
+                        color: 'error.contrastText',
                         fontWeight: 800,
                       }
                     }
@@ -250,7 +250,7 @@ const Quiz: React.FC = () => {
               <Button
                 component={Link}
                 to="/profile"
-                sx={{ mt: 1.5, fontWeight: 800, color: '#b45309', textTransform: 'none' }}
+                sx={{ mt: 1.5, fontWeight: 800, color: 'warning.main', textTransform: 'none' }}
                 endIcon={<Icon icon="mdi:arrow-left" />}
               >
                 مشاهده امتیازها در پروفایل

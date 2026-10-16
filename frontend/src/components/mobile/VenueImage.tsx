@@ -10,11 +10,10 @@ interface Props {
   ratio?: '16:10' | '4:3'
   verified?: boolean
   children?: React.ReactNode // overlay مثل FavoriteButton
-  onClick?: () => void
 }
 
 /** تصویر بزرگ سالن با نسبت موبایلی + fallback گرادیانی */
-const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, children, onClick }) => {
+const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, children }) => {
   const theme = useTheme()
   const [failed, setFailed] = useState(false)
   const imgs = parseList(images)
@@ -23,7 +22,6 @@ const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, 
 
   return (
     <Box
-      onClick={onClick}
       sx={{
         position: 'relative',
         width: '100%',
@@ -31,7 +29,6 @@ const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, 
         overflow: 'hidden',
         borderRadius: `${radii.image}px`,
         bgcolor: theme.palette.grey[100],
-        cursor: onClick ? 'pointer' : 'default',
       }}
     >
       {src && !failed ? (
@@ -74,7 +71,7 @@ const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, 
             backdropFilter: 'blur(6px)',
             fontSize: '0.75rem',
             fontWeight: 700,
-            color: verified ? '#059669' : '#b45309',
+            color: verified ? '#047857' : '#b45309',
           }}
         >
           <Icon icon={verified ? 'mdi:shield-check' : 'mdi:shield-alert-outline'} style={{ width: 13, height: 13 }} />

@@ -455,14 +455,14 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
               <EmptyBox icon="mdi:emoticon-happy-outline" title="سانس کم‌تقاضایی یافت نشد" text="الگوی تقاضا در بازه انتخابی بالای حد آستانه است." />
             ) : (
               <TableContainer sx={{ maxHeight: 300 }}>
-                <Table size="small" stickyHeader>
+                <Table aria-label="سانس‌های کم‌تقاضا" size="small" stickyHeader>
                   <TableHead>
                     <TableRow>
-                      <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>روز هفته</TableCell>
-                      <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>ساعت</TableCell>
-                      <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>سانس فعال</TableCell>
-                      <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>رزروشده</TableCell>
-                      <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>اشغال</TableCell>
+                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>روز هفته</TableCell>
+                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>ساعت</TableCell>
+                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>سانس فعال</TableCell>
+                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>رزروشده</TableCell>
+                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>اشغال</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -513,7 +513,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                       borderBottom: i < debtors.data!.items.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
                     }}
                   >
-                    <Avatar sx={{ width: 32, height: 32, borderRadius: '10px', bgcolor: 'rgba(239,68,68,0.1)', color: '#dc2626', fontSize: '0.8rem', fontWeight: 800 }}>
+                    <Avatar sx={{ width: 32, height: 32, borderRadius: '10px', bgcolor: 'rgba(239,68,68,0.1)', color: 'error.main', fontSize: '0.8rem', fontWeight: 800 }}>
                       {toPersianDigits(i + 1)}
                     </Avatar>
                     <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -524,7 +524,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                         کاربر #{toPersianDigits(acc.user_id)}
                       </Typography>
                     </Box>
-                    <Typography variant="body2" dir="rtl" sx={{ fontWeight: 800, color: '#dc2626', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                    <Typography variant="body2" dir="rtl" sx={{ fontWeight: 800, color: 'error.main', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
                       {formatRial(acc.balance)}
                     </Typography>
                     <Button
@@ -596,7 +596,7 @@ const PieSourceLegend: React.FC<{ points: { source: string; income: number; coun
         <Typography variant="caption" sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
           {formatRial(s.income)}
         </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary', mr: 'auto' }} dir="rtl">
+        <Typography variant="caption" sx={{ color: 'text.secondary', ms: 'auto' }} dir="rtl">
           {total > 0 ? formatPct((s.income / total) * 100) : ''} • {toPersianDigits(s.count)} ردیف
         </Typography>
       </Box>

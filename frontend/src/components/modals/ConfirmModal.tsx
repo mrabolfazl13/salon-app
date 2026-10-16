@@ -29,7 +29,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
   variant = 'default',
 }) => {
   return (
-    <Dialog open={open} onClose={() => onOpenChange(false)} maxWidth="xs">
+    <Dialog aria-label={title} open={open} onClose={() => onOpenChange(false)} maxWidth="xs">
       <div className="text-center py-4">
         <motion.div
           initial={{ scale: 0 }}
@@ -42,7 +42,7 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
               'w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-4',
               variant === 'destructive'
                 ? 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400'
-                : 'bg-amber-100 text-amber-600 dark:bg-amber-500/15 dark:text-amber-400'
+                : 'bg-amber-100 text-amber-800 dark:bg-amber-500/15 dark:text-amber-400'
             )}
           >
             <Icon

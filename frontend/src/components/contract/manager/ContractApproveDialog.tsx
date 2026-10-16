@@ -120,7 +120,7 @@ const ContractApproveDialog: React.FC<Props> = ({ open, onClose, target }) => {
   }
 
   return (
-    <Dialog open={open} onClose={mutation.isPending ? undefined : onClose} maxWidth="sm" fullWidth
+    <Dialog aria-label="تأیید قرارداد" open={open} onClose={mutation.isPending ? undefined : onClose} maxWidth="sm" fullWidth
       slotProps={{ paper: { sx: { borderRadius: '18px', maxHeight: '92vh' } } }}>
       <DialogTitle sx={{ fontWeight: 800, fontSize: '1.02rem', pb: 1 }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

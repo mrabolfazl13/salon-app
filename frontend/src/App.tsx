@@ -4,7 +4,7 @@ import { BrowserRouter, Routes, Route, useLocation, Link, useNavigate, Navigate 
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
 import { ThemeProvider, Box, Container, Button, Typography, Paper, CircularProgress } from '@mui/material'
 import CssBaseline from '@mui/material/CssBaseline'
-import { motion, AnimatePresence } from 'framer-motion'
+import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { Toaster } from 'react-hot-toast'
 import { getTheme } from '@/theme'
@@ -115,10 +115,10 @@ const NotFound: React.FC = () => {
           >
             <Icon icon="mdi:compass-off-outline" className="h-10 w-10" style={{ color: '#f59e0b' }} />
           </Box>
-          <Typography variant="h3" sx={{ fontWeight: 800, mb: 1 }}>
+          <Typography variant="h3" component="p" sx={{ fontWeight: 800, mb: 1 }}>
             ۴۰۴
           </Typography>
-          <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+          <Typography variant="h6" component="h1" sx={{ fontWeight: 600, mb: 1 }}>
             صفحه مورد نظر یافت نشد
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mb: 4, lineHeight: 1.8 }}>
@@ -277,7 +277,9 @@ function App() {
   return (
     <ThemeProvider theme={getTheme(mode)}>
       <CssBaseline />
-      <QueryClientProvider client={queryClient}>
+      {/* درخواست کاهش حرکت سیستم‌عامل برای همهٔ انیمیشن‌های framer (۶۳ فایل) یک‌جا محترم می‌ماند */}
+      <MotionConfig reducedMotion="user">
+        <QueryClientProvider client={queryClient}>
         <Toaster
           position="top-center"
           toastOptions={{
@@ -299,7 +301,8 @@ function App() {
             </Suspense>
           </AuthInitializer>
         </BrowserRouter>
-      </QueryClientProvider>
+        </QueryClientProvider>
+      </MotionConfig>
     </ThemeProvider>
   )
 }

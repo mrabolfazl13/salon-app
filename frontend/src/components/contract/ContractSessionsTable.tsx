@@ -62,16 +62,16 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
 
   return (
     <TableContainer sx={{ overflowX: 'auto' }}>
-      <Table size="small" sx={{ minWidth: 620 }}>
+      <Table aria-label="سانس‌های قرارداد" size="small" sx={{ minWidth: 620 }}>
         <TableHead>
           <TableRow>
-            <TableCell sx={cellHead}>تاریخ سانس</TableCell>
-            <TableCell sx={cellHead}>ساعت</TableCell>
-            <TableCell sx={cellHead}>مدت</TableCell>
-            <TableCell sx={cellHead}>وضعیت</TableCell>
-            <TableCell sx={cellHead}>یادداشت</TableCell>
-            {mode === 'manager' && <TableCell align="left" sx={cellHead}>عملکرد</TableCell>}
-            {mode === 'user' && <TableCell align="left" sx={cellHead}>درخواست</TableCell>}
+            <TableCell scope="col" sx={cellHead}>تاریخ سانس</TableCell>
+            <TableCell scope="col" sx={cellHead}>ساعت</TableCell>
+            <TableCell scope="col" sx={cellHead}>مدت</TableCell>
+            <TableCell scope="col" sx={cellHead}>وضعیت</TableCell>
+            <TableCell scope="col" sx={cellHead}>یادداشت</TableCell>
+            {mode === 'manager' && <TableCell scope="col" align="left" sx={cellHead}>عملکرد</TableCell>}
+            {mode === 'user' && <TableCell scope="col" align="left" sx={cellHead}>درخواست</TableCell>}
           </TableRow>
         </TableHead>
         <TableBody>
@@ -91,7 +91,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                     {moved && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                         <Icon icon="mdi:arrow-conditional-right" className="h-3.5 w-3.5" style={{ color: '#d97706' }} />
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: '#d97706' }}>
+                        <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.main' }}>
                           جدید: {formatJalaliDate(eff.date)}
                         </Typography>
                       </Box>
@@ -104,7 +104,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                       <Typography variant="caption" color="text.disabled" sx={{ textDecoration: 'line-through' }}>
                         {cs.start_time?.slice(0, 5)}
                       </Typography>
-                      <Typography sx={{ fontWeight: 700, color: '#d97706', fontSize: '0.82rem' }}>
+                      <Typography sx={{ fontWeight: 700, color: 'warning.main', fontSize: '0.82rem' }}>
                         {(cs.rescheduled_time || '').slice(0, 5)}
                       </Typography>
                     </Box>
@@ -152,7 +152,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                             variant="text"
                             disabled={busySessionId === cs.id}
                             onClick={() => onExclude?.(cs)}
-                            sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem', mr: 0.5 }}
+                            sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem', ms: 0.5 }}
                           >
                             استثنا/لغو
                           </Button>

@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useId, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { Box, Typography } from '@mui/material'
@@ -12,6 +12,7 @@ interface FAQItemProps {
 
 const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
   const [isOpen, setIsOpen] = useState(false)
+  const panelId = useId()
 
   return (
     <motion.div
@@ -34,7 +35,12 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
       >
         {/* سوال */}
         <Box
+          role="button"
+          tabIndex={0}
+          aria-expanded={isOpen}
+          aria-controls={panelId}
           onClick={() => setIsOpen(!isOpen)}
+          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsOpen(!isOpen) } }}
           sx={{
             display: 'flex',
             alignItems: 'center',
@@ -60,6 +66,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
               height: 28,
               borderRadius: '50%',
               bgcolor: isOpen ? 'primary.main' : 'rgba(0,0,0,0.05)',
+              color: isOpen ? 'primary.contrastText' : 'text.secondary',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -71,7 +78,6 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
               style={{
                 width: 18,
                 height: 18,
-                color: isOpen ? '#fff' : 'text.secondary',
               }}
             />
           </Box>
@@ -81,10 +87,13 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
         <AnimatePresence>
           {isOpen && (
             <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.3 }}
+              id={panelId}
+              /* انیمیشن ارتفاع (property چیدمانی) حذف شد: فقط opacity/transform تا
+                 reflow و CLS نداشته باشیم و reduced-motion به‌درستی اعمال شود */
+              initial={{ opacity: 0, y: -6 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -6 }}
+              transition={{ duration: 0.25 }}
             >
               <Box
                 sx={{

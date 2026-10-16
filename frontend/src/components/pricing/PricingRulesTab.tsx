@@ -152,16 +152,16 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
           />
         ) : (
           <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '12px', overflow: 'hidden' }}>
-            <Table size="small">
+            <Table aria-label="قوانین قیمت‌گذاری" size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                  <TableCell sx={{ fontWeight: 700 }}>برچسب</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>روز</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>بازه</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>اثر</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>اولویت</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>فعال</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 700 }}>عملیات</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>برچسب</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>روز</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>بازه</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>اثر</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>اولویت</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>فعال</TableCell>
+                  <TableCell scope="col" align="center" sx={{ fontWeight: 700 }}>عملیات</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

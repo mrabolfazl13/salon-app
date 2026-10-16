@@ -82,7 +82,7 @@ const SectionCard: React.FC<{ title: string; icon: string; badge?: number; child
           component="span"
           sx={{
             px: 0.9, py: 0.1, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.14)',
-            color: '#b45309', fontSize: '0.75rem', fontWeight: 800,
+            color: 'warning.main', fontSize: '0.75rem', fontWeight: 800,
           }}
         >
           {badge.toLocaleString('fa-IR')}
@@ -237,7 +237,7 @@ const GameDetail: React.FC = () => {
     )
   } else if (myStatus === 'pending' || game.has_pending_join_request) {
     primaryAction = (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#b45309' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'warning.main' }}>
         <Icon icon="mdi:clock-outline" style={{ width: 20, height: 20 }} />
         <Typography sx={{ fontWeight: 700, fontSize: '0.88rem' }}>درخواست شما در انتظار تأیید است</Typography>
       </Box>
@@ -413,7 +413,7 @@ const GameDetail: React.FC = () => {
         <Box sx={{ display: 'flex', gap: 1.5, mt: 2.5, flexWrap: 'wrap', alignItems: 'center' }}>
           {primaryAction}
           {remaining > 0 && game.status === 'open' && (
-            <Typography sx={{ fontSize: '0.78rem', color: '#059669', fontWeight: 700 }}>
+            <Typography sx={{ fontSize: '0.78rem', color: 'success.main', fontWeight: 700 }}>
               {`${remaining.toLocaleString('fa-IR')} جای خالی`}
             </Typography>
           )}
@@ -496,7 +496,7 @@ const GameDetail: React.FC = () => {
             {game.result_set ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1, py: 0.2, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.10)', color: '#059669', fontSize: '0.75rem', fontWeight: 800 }}>
+                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1, py: 0.2, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.10)', color: 'success.main', fontSize: '0.75rem', fontWeight: 800 }}>
                     <Icon icon="mdi:check-decagram" style={{ width: 14, height: 14 }} />
                     نتیجه ثبت شده
                   </Box>
@@ -511,7 +511,7 @@ const GameDetail: React.FC = () => {
                 ) : (
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
                     {winnerList.map((w) => (
-                      <Box key={w.userId} component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1.1, py: 0.4, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309', fontSize: '0.78rem', fontWeight: 700 }}>
+                      <Box key={w.userId} component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1.1, py: 0.4, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.12)', color: 'warning.main', fontSize: '0.78rem', fontWeight: 700 }}>
                         <Icon icon="mdi:trophy" style={{ width: 14, height: 14 }} />
                         {w.name}
                       </Box>

@@ -90,7 +90,7 @@ const MoveContractDialog: React.FC<Props> = ({ open, onClose, contract }) => {
   }
 
   return (
-    <Dialog open={open} onClose={mutation.isPending ? undefined : onClose} maxWidth="xs" fullWidth
+    <Dialog aria-label="جابه‌جایی کل قرارداد" open={open} onClose={mutation.isPending ? undefined : onClose} maxWidth="xs" fullWidth
       slotProps={{ paper: { sx: { borderRadius: '18px' } } }}>
       <DialogTitle sx={{ fontWeight: 800, fontSize: '1rem' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

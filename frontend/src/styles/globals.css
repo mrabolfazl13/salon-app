@@ -26,8 +26,11 @@
     @apply m-0 p-0 box-border;
   }
   html {
-    /* جلوگیری از افقی شدن ناخواسته صفحه در موبایل */
-    overflow-x: hidden;
+    /* جلوگیری از افقی شدن ناخواسته صفحه در موبایل.
+       «clip» نه «hidden»: hidden عنصر را scroll-container می‌کند و در RTL
+       مبدأ افقی جابه‌جا می‌شود (محتوای پارک‌شدهٔ drawer داک را بلند می‌کند)
+       و sticky را می‌شکند؛ clip فقط برش می‌زند. */
+    overflow-x: clip;
   }
   body {
     @apply antialiased;

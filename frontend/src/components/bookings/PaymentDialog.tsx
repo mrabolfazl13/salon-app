@@ -123,6 +123,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
 
   return (
     <Dialog
+      aria-label="پرداخت آنلاین رزرو"
       open={open}
       onClose={step === 'processing' ? undefined : onClose}
       maxWidth="xs"

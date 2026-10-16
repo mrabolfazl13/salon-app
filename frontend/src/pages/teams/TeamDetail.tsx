@@ -279,7 +279,7 @@ const TeamDetail: React.FC = () => {
             </Button>
           )}
           {team.has_open_join_request && !isMember && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#b45309' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'warning.main' }}>
               <Icon icon="mdi:clock-outline" style={{ width: 20, height: 20 }} />
               <Typography sx={{ fontWeight: 700, fontSize: '0.88rem' }}>درخواست شما در انتظار بررسی مدیران است</Typography>
             </Box>
@@ -325,7 +325,7 @@ const TeamDetail: React.FC = () => {
               <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
                 {t.label}
                 {!!t.badge && (
-                  <Box component="span" sx={{ px: 0.8, py: 0.1, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.14)', color: '#b45309', fontSize: '0.75rem', fontWeight: 800 }}>
+                  <Box component="span" sx={{ px: 0.8, py: 0.1, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.14)', color: 'warning.main', fontSize: '0.75rem', fontWeight: 800 }}>
                     {toPersianDigits(t.badge)}
                   </Box>
                 )}

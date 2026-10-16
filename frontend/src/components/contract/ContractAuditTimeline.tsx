@@ -1,7 +1,7 @@
 // frontend/src/components/contract/ContractAuditTimeline.tsx
 // روند ممیزی قرارداد — RTL، جدیدترین در بالا؛ جمع‌شونده با خلاصه‌ی diff داده‌ها.
 
-import React, { useMemo, useState } from 'react'
+import React, { useId, useMemo, useState } from 'react'
 import {
   Box,
   Button,
@@ -22,6 +22,7 @@ import {
 
 const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId }) => {
   const [expanded, setExpanded] = useState(false)
+  const panelId = useId()
   const query = useContractAudit(expanded ? contractId : null)
 
   const events = useMemo(
@@ -34,11 +35,13 @@ const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId })
       <Button
         size="small"
         onClick={() => setExpanded((v) => !v)}
+        aria-expanded={expanded}
+        aria-controls={panelId}
         sx={{
           textTransform: 'none',
           fontWeight: 700,
           gap: 0.75,
-          '& .MuiButton-endIcon': { mr: 0.5 },
+          '& .MuiButton-endIcon': { ms: 0.5 },
         }}
         startIcon={<Icon icon="mdi:file-document-edit-outline" className="h-4 w-4" style={{ color: '#7c3aed' }} />}
         endIcon={<Icon icon={expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'} className="h-4 w-4" />}
@@ -47,10 +50,10 @@ const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId })
       </Button>
 
       <Collapse in={expanded}>
-        <Box sx={{ pt: 1.5 }}>
+        <Box id={panelId} sx={{ pt: 1.5 }}>
           {query.isLoading ? (
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {[1, 2, 3].map((i) => <Skeleton key={i} variant="rounded" height={64} sx={{ borderRadius: '12px' }} />)}
+              {[1, 2, 3].map((i) => <Skeleton aria-hidden="true" key={i} variant="rounded" height={64} sx={{ borderRadius: '12px' }} />)}
             </Box>
           ) : query.isError ? (
             <ErrorBox message="روند ممیزی بارگذاری نشد." onRetry={() => query.refetch()} />
@@ -60,7 +63,7 @@ const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId })
             </Typography>
           ) : (
             <Box sx={{ position: 'relative' }}>
-              <Box sx={{ position: 'absolute', top: 6, bottom: 6, right: 17, width: '2px', bgcolor: 'divider' }} />
+              <Box sx={{ position: 'absolute', top: 6, bottom: 6, insetInlineStart: 17, width: '2px', bgcolor: 'divider' }} />
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {events.map((ev) => {
                   const rows = summarizeAuditData(ev.data)

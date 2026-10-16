@@ -164,7 +164,7 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
   const inputSx = { '& .MuiOutlinedInput-root': { borderRadius: '10px' } } as const
 
   return (
-    <Dialog open={open} onClose={saving ? undefined : onClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px', overflow: 'hidden' } } }}>
+    <Dialog aria-label={isEdit ? 'ویرایش کد تخفیف' : 'کد تخفیف جدید'} open={open} onClose={saving ? undefined : onClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px', overflow: 'hidden' } } }}>
       <Box sx={{ background: 'linear-gradient(135deg, #db2777, #f472b6)', px: 3, py: 2.5 }}>
         <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon="mdi:ticket-percent-outline" className="h-5 w-5" />
@@ -258,7 +258,7 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
           <FormControlLabel control={<Switch checked={active} onChange={(e) => setActive(e.target.checked)} />} label={<Typography variant="body2" sx={{ fontWeight: 600 }}>کد فعال باشد</Typography>} />
         )}
 
-        {localError && <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>{localError}</Typography>}
+        {localError && <Typography variant="body2" role="alert" sx={{ color: 'error.main', fontWeight: 600 }}>{localError}</Typography>}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
         <Button onClick={onClose} disabled={saving} variant="outlined" sx={{ borderRadius: '10px', textTransform: 'none', px: 3 }}>انصراف</Button>

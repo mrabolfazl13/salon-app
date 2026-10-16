@@ -93,6 +93,10 @@ export interface CrmCustomerUpdatePayload {
 export interface CrmStats {
   total_customers: number
   segments: Record<string, number>
+  /** شمارش دارای/بدون رضایت بازاریابی — مبنای «قابل‌ارسال» در کمپین */
+  consent_count: number
+  no_consent_count: number
+  consent_by_segment: Record<string, number>
   inactive_count: number
   top_spenders: { user_id: number; full_name: string | null; total_spend: number }[]
   recent_new_customers: { user_id: number; full_name: string | null; first_seen: string | null }[]
@@ -146,6 +150,13 @@ export interface ConsentUpdateResponse {
   updated: number
 }
 
+/** GET /crm/consent — خوانش خودسرویس وضعیت رضایت کاربر */
+export interface MyConsentResponse {
+  marketing_consent: boolean
+  notify_deals: boolean
+  venues_with_consent: number[]
+}
+
 // ─────────────── سرویس ───────────────
 
 export const crmService = {
@@ -195,7 +206,12 @@ export const crmService = {
     return response.data
   },
 
-  // self-service رضایت بازاریابی — فقط PUT در بک‌اند وجود دارد (GET ندارد)
+  // self-service رضایت بازاریابی — GET برای خوانش وضعیت، PUT برای ثبت
+  getMyConsent: async (): Promise<MyConsentResponse> => {
+    const response = await apiClient.get('/crm/consent')
+    return response.data
+  },
+
   setConsent: async (data: ConsentUpdatePayload): Promise<ConsentUpdateResponse> => {
     const response = await apiClient.put('/crm/consent', data)
     return response.data

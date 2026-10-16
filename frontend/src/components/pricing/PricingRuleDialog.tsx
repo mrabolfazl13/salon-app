@@ -135,7 +135,7 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, saving, onClo
   }
 
   return (
-    <Dialog open={open} onClose={saving ? undefined : onClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px' } } }}>
+    <Dialog aria-label={rule ? 'ویرایش قانون قیمت' : 'قانون قیمت جدید'} open={open} onClose={saving ? undefined : onClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px' } } }}>
       <Box sx={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', px: 3, py: 2.5 }}>
         <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon="mdi:tag-percent" className="h-5 w-5" />
@@ -258,7 +258,7 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, saving, onClo
         <FormControlLabel control={<Switch checked={active} onChange={(e) => setActive(e.target.checked)} />} label={<Typography variant="body2" sx={{ fontWeight: 600 }}>فعال</Typography>} />
 
         {localError && (
-          <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 600 }}>{localError}</Typography>
+          <Typography variant="body2" role="alert" sx={{ color: 'error.main', fontWeight: 600 }}>{localError}</Typography>
         )}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>

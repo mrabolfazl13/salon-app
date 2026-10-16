@@ -72,6 +72,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
           <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
             <Typography
               variant="subtitle1"
+              component="h2"
               sx={{ fontWeight: 800, fontSize: '1rem', lineHeight: 1.4, color: 'text.primary', minWidth: 0 }}
               noWrap
             >

@@ -493,6 +493,8 @@ const Home: React.FC = () => {
           transition={{ duration: 0.4 }}
         >
           <Box
+            component="button"
+            type="button"
             onClick={() => navigate(isAuthenticated ? '/venues' : '/register')}
             sx={{
               position: 'relative',
@@ -505,6 +507,14 @@ const Home: React.FC = () => {
               mb: 4,
               cursor: 'pointer',
               boxShadow: '0 10px 30px rgba(15,23,42,0.35)',
+              // Box به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر + حفظ چیدمان بلوکی
+              display: 'block',
+              width: '100%',
+              textAlign: 'inherit',
+              fontFamily: 'inherit',
+              appearance: 'none',
+              WebkitTapHighlightColor: 'transparent',
+              '&:focus-visible': { outline: '3px solid', outlineColor: '#f59e0b', outlineOffset: 2 },
             }}
           >
             <Box
@@ -577,18 +587,29 @@ const Home: React.FC = () => {
         {/* بنر شگفت‌انگیزها — سانس‌های لحظه آخری */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
           <Box
+            component="button"
+            type="button"
             onClick={() => navigate(isAuthenticated ? '/deals' : '/login')}
             sx={{
               position: 'relative',
               overflow: 'hidden',
               borderRadius: `${radii.card}px`,
               background: gradients.deals,
-              color: '#fff',
+              // متن سفید روی این گرادیان ۲٫۱–۳٫۸:۱ می‌شود (رد)؛ مرکبِ تیره ۴٫۶۵–۸٫۱:۱
+              color: '#1c1917',
               px: 2.5,
               py: 2.25,
               mb: 4,
               cursor: 'pointer',
               boxShadow: '0 10px 30px rgba(239,68,68,0.28)',
+              // Box به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر + حفظ چیدمان بلوکی
+              display: 'block',
+              width: '100%',
+              textAlign: 'inherit',
+              fontFamily: 'inherit',
+              appearance: 'none',
+              WebkitTapHighlightColor: 'transparent',
+              '&:focus-visible': { outline: '3px solid', outlineColor: '#f59e0b', outlineOffset: 2 },
             }}
           >
             <Box sx={{ position: 'absolute', bottom: -50, left: -30, width: 150, height: 150, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)' }} />
@@ -598,7 +619,7 @@ const Home: React.FC = () => {
                   <Icon icon="mdi:fire" style={{ width: 20, height: 20, flexShrink: 0 }} />
                   <Typography sx={{ fontWeight: 800, fontSize: '1.02rem' }}>شگفت‌انگیزهای لحظه آخری</Typography>
                 </Box>
-                <Typography sx={{ fontSize: '0.78rem', color: 'rgba(255,255,255,0.9)', mt: 0.25 }}>
+                <Typography sx={{ fontSize: '0.78rem', color: '#1c1917', mt: 0.25 }}>
                   سانس‌های تخفیف‌دار نزدیک تو — تا مهلت تمام نشده رزرو کن
                 </Typography>
               </Box>
@@ -748,6 +769,8 @@ const Home: React.FC = () => {
               {recentVenues.map((v) => (
                 <Box
                   key={v.id}
+                  component="button"
+                  type="button"
                   onClick={() => navigate(`/venues/${v.id}`)}
                   sx={{
                     flexShrink: 0,
@@ -760,6 +783,14 @@ const Home: React.FC = () => {
                     boxShadow: shadows.card,
                     overflow: 'hidden',
                     cursor: 'pointer',
+                    // Box به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر
+                    display: 'block',
+                    textAlign: 'inherit',
+                    fontFamily: 'inherit',
+                    color: 'inherit',
+                    appearance: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                    '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: 2 },
                   }}
                 >
                   <Box
@@ -767,7 +798,7 @@ const Home: React.FC = () => {
                     src={parseList(v.images)[0] ? toFullUrl(parseList(v.images)[0]) : ''}
                     alt={v.name}
                     onError={(e) => {
-                      ;(e.target as HTMLImageElement).style.display = 'none'
+                      (e.target as HTMLImageElement).style.display = 'none'
                     }}
                     sx={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }}
                   />
@@ -813,6 +844,7 @@ const Home: React.FC = () => {
                 <Box
                   key={tab.id}
                   component="button"
+                  type="button"
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   aria-label={`تب ${tab.label}`}
                   sx={{
@@ -870,7 +902,7 @@ const Home: React.FC = () => {
                           {match.league}
                         </Typography>
                         {match.status === 'live' ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '0.75rem', color: '#dc2626', fontWeight: 700 }}>
+                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '0.75rem', color: 'error.main', fontWeight: 700 }}>
                             <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#dc2626', animation: 'pulse 1.5s infinite' }} />
                             {match.minute}'
                           </Box>
@@ -894,11 +926,11 @@ const Home: React.FC = () => {
                           </Typography>
                         </Box>
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1, flexShrink: 0 }}>
-                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: match.status === 'live' ? '#f59e0b' : 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
+                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: (th) => (match.status === 'live' ? th.palette.warning.main : th.palette.text.primary), fontVariantNumeric: 'tabular-nums' }}>
                             {match.homeScore}
                           </Typography>
                           <Typography sx={{ color: 'text.secondary' }}>-</Typography>
-                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: match.status === 'live' ? '#f59e0b' : 'text.primary', fontVariantNumeric: 'tabular-nums' }}>
+                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: (th) => (match.status === 'live' ? th.palette.warning.main : th.palette.text.primary), fontVariantNumeric: 'tabular-nums' }}>
                             {match.awayScore}
                           </Typography>
                         </Box>
@@ -926,6 +958,9 @@ const Home: React.FC = () => {
         {/* اخبار ورزشی — عملکرد حفظ شده */}
         <SectionHeader title="اخبار ورزشی" />
         <Box
+          role="region"
+          aria-label="اخبار ورزشی، فهرست افقی قابل پیمایش با کیبورد"
+          tabIndex={0}
           sx={{
             display: 'flex',
             gap: 2,
@@ -933,6 +968,7 @@ const Home: React.FC = () => {
             pb: 1,
             mb: 2,
             scrollSnapType: 'x mandatory',
+            '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
           }}
           className="scrollbar-hide"
         >
@@ -999,10 +1035,6 @@ const Home: React.FC = () => {
                     </Typography>
                     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
                       <span>{item.date}</span>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Icon icon="mdi:eye-outline" style={{ width: 13, height: 13 }} />
-                        {(item.views / 1000).toFixed(0)}k
-                      </Box>
                     </Box>
                   </Box>
                 </Box>

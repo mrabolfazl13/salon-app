@@ -2,7 +2,7 @@
 // تراز تیم — کاشی‌های سهم (کل/پرداختی/باز/معوق) + حساب تیم در دفتر کل + خالص؛
 // «تاریخچه» ممیزی به‌صورت تایم‌لاین تاشو (فقط کاپیتان/مدیر — بک‌اند ۴۰۳ می‌دهد)
 
-import React, { useMemo, useState } from 'react'
+import React, { useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import { Box, Button as MuiButton, Grid, Typography } from '@mui/material'
 
@@ -17,6 +17,7 @@ const AUDIT_PAGE = 25
 const AuditTimeline: React.FC<{ teamId: number }> = ({ teamId }) => {
   const [expanded, setExpanded] = useState(false)
   const [pages, setPages] = useState(1)
+  const panelId = useId()
 
   const params = useMemo(() => ({ limit: AUDIT_PAGE * pages, offset: 0 }), [pages])
   const auditQ = useTeamAudit(teamId, params, expanded)
@@ -28,13 +29,15 @@ const AuditTimeline: React.FC<{ teamId: number }> = ({ teamId }) => {
       <MuiButton
         size="small"
         onClick={() => setExpanded((e) => !e)}
+        aria-expanded={expanded}
+        aria-controls={panelId}
         endIcon={<Icon icon={expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'} style={{ width: 18, height: 18 }} />}
         sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', color: '#2563eb' }}
       >
         {`تاریخچه فعالیت‌های تیم${total ? ` (${toPersianDigits(total)} رویداد)` : ''}`}
       </MuiButton>
       {expanded && (
-        <Box sx={{ mt: 1.25 }}>
+        <Box id={panelId} sx={{ mt: 1.25 }}>
           {auditQ.isPending ? (
             <LoadingBox text="در حال دریافت تاریخچه..." />
           ) : auditQ.isError ? (
@@ -42,14 +45,14 @@ const AuditTimeline: React.FC<{ teamId: number }> = ({ teamId }) => {
           ) : items.length === 0 ? (
             <EmptyBox icon="mdi:history" title="رویدادی ثبت نشده" />
           ) : (
-            <Box sx={{ position: 'relative', pr: '18px' }}>
-              <Box sx={{ position: 'absolute', top: 6, bottom: 6, right: 6, width: '2px', bgcolor: 'rgba(37,99,235,0.15)', borderRadius: 1 }} />
+            <Box sx={{ position: 'relative', ps: '18px' }}>
+              <Box sx={{ position: 'absolute', top: 6, bottom: 6, insetInlineStart: 6, width: '2px', bgcolor: 'rgba(37,99,235,0.15)', borderRadius: 1 }} />
               {items.map((ev) => (
                 <Box key={ev.id} sx={{ position: 'relative', pb: 1.75 }}>
                   <Box
                     sx={{
                       position: 'absolute',
-                      right: -18,
+                      insetInlineStart: -18,
                       top: 4,
                       width: 10,
                       height: 10,

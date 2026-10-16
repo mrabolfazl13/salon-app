@@ -48,7 +48,7 @@ export const FinalCTA: React.FC = () => {
             sx={{
               position: 'absolute',
               top: -100,
-              right: -100,
+              insetInlineStart: -100,
               width: 300,
               height: 300,
               borderRadius: '50%',
@@ -60,7 +60,7 @@ export const FinalCTA: React.FC = () => {
             sx={{
               position: 'absolute',
               bottom: -80,
-              left: -80,
+              insetInlineEnd: -80,
               width: 250,
               height: 250,
               borderRadius: '50%',
@@ -89,6 +89,7 @@ export const FinalCTA: React.FC = () => {
               </Box>
               <Typography
                 variant="h4"
+                component="h2"
                 sx={{
                   fontWeight: 900,
                   fontSize: { xs: '1.5rem', sm: '1.8rem', md: '2.2rem' },

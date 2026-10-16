@@ -12,7 +12,7 @@ import { bookingService } from '@/services/booking'
 import { teamService } from '@/services/team'
 import { gameService } from '@/services/game'
 import { LOYALTY_REASON_LABELS } from '@/components/pricing/shared'
-import { useSetMarketingConsent } from '@/hooks/useCrm'
+import { useMyMarketingConsent, useSetMarketingConsent } from '@/hooks/useCrm'
 import { formatRial } from '@/components/finance/shared'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { Icon } from '@iconify/react'
@@ -82,8 +82,17 @@ const Profile: React.FC = () => {
   // امتیاز وفاداری + اشتراک اعلان تخفیف‌های لحظه‌ای (GET/PUT /deals/subscription)
   const loyaltyQuery = useMyLoyalty(8)
   const setConsent = useSetMarketingConsent()
+  // وضعیت واقعی رضایت از GET /crm/consent؛ تاگل محلی تا رسیدن پاسخ سرور
+  const consentQuery = useMyMarketingConsent(!!user)
   const [marketingConsent, setMarketingConsent] = useState(false)
-  const [consentKnown, setConsentKnown] = useState(false)
+  useEffect(() => {
+    if (consentQuery.data && !setConsent.isPending) setMarketingConsent(consentQuery.data.marketing_consent)
+  }, [consentQuery.data, setConsent.isPending])
+  const consentLabel = consentQuery.isError
+    ? 'نامشخص (وضعیت خوانده نشد)'
+    : consentQuery.data
+      ? (marketingConsent ? 'فعال' : 'غیرفعال')
+      : 'در حال خواندن…'
   const subscriptionQuery = useDealSubscription()
   const setSubscription = useSetDealSubscription()
   // کارمند انتصابی — برای رابط‌های فرعی (رقابت‌ها/امور مالی) در «مرور سریع»
@@ -665,7 +674,7 @@ const Profile: React.FC = () => {
                             </Box>
                             <Typography
                               variant="body2"
-                              sx={{ fontWeight: 900, fontVariantNumeric: 'tabular-nums', color: h.points >= 0 ? '#059669' : '#dc2626', whiteSpace: 'nowrap' }}
+                              sx={{ fontWeight: 900, fontVariantNumeric: 'tabular-nums', color: (th) => (h.points >= 0 ? th.palette.success.main : th.palette.error.main), whiteSpace: 'nowrap' }}
                               dir="rtl"
                             >
                               {h.points >= 0 ? '+' : '−'}{toPersianDigits(Math.abs(h.points))} امتیاز
@@ -714,7 +723,7 @@ const Profile: React.FC = () => {
                           />
                         }
                         label=""
-                        sx={{ mr: 0 }}
+                        sx={{ ms: 0 }}
                       />
                     </Box>
                     {subscriptionQuery.isError && (
@@ -724,9 +733,8 @@ const Profile: React.FC = () => {
                     )}
                     <Box sx={{ height: 2 }} />
 
-                    {/* رضایت بازاریابی — PUT /crm/consent (self-service، همه سالن‌ها).
-                        بک‌اند GET برای خواندن وضعیت فعلی ندارد ⇒ سوئیچ با مقدار
-                        محلی خوش‌بینانه شروع می‌شود و پاسخ سرور همان را تثبیت می‌کند. */}
+                    {/* رضایت بازاریابی — وضعیت اولیه از GET /crm/consent و ثبت با
+                        PUT /crm/consent (self-service، همه سالن‌ها). */}
                     <Box
                       sx={{
                         mt: 2,
@@ -747,7 +755,7 @@ const Profile: React.FC = () => {
                           <Typography variant="body2" sx={{ fontWeight: 800 }}>دریافت پیام‌های بازاریابی</Typography>
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                             با فعال بودن این گزینه، سالن‌ها می‌توانند به شما کمپین/تخفیف پیامک کنند. فعلی:
-                            {' '}{consentKnown ? (marketingConsent ? 'فعال' : 'غیرفعال') : 'نامشخص (ثبت نشده)'}
+                            {' '}{consentLabel}
                           </Typography>
                         </Box>
                       </Box>
@@ -763,7 +771,6 @@ const Profile: React.FC = () => {
                                 { marketing_consent: next },
                                 {
                                   onSuccess: () => {
-                                    setConsentKnown(true)
                                     toast.success(next ? 'رضایت بازاریابی فعال شد' : 'رضایت بازاریابی لغو شد')
                                   },
                                   onError: () => {
@@ -776,7 +783,7 @@ const Profile: React.FC = () => {
                           />
                         }
                         label=""
-                        sx={{ mr: 0 }}
+                        sx={{ ms: 0 }}
                       />
                     </Box>
                   </motion.div>
@@ -879,7 +886,7 @@ const Profile: React.FC = () => {
                                   {b.desc}
                                 </Typography>
                                 {!unlocked && (
-                                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontWeight: 700, color: '#d97706', fontVariantNumeric: 'tabular-nums' }}>
+                                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontWeight: 700, color: 'warning.main', fontVariantNumeric: 'tabular-nums' }}>
                                     {toPersianDigits(Math.min(b.progress, b.goal))}/{toPersianDigits(b.goal)}
                                   </Typography>
                                 )}

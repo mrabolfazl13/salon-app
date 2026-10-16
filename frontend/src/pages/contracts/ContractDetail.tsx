@@ -80,9 +80,9 @@ const ContractDetail: React.FC = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-          <Skeleton variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton variant="rounded" height={140} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton variant="rounded" height={300} sx={{ borderRadius: 2 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={140} sx={{ borderRadius: 2, mb: 3 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={300} sx={{ borderRadius: 2 }} />
         </Container>
       </Layout>
     )
@@ -355,13 +355,13 @@ const ContractDetail: React.FC = () => {
           {contract.payments.length > 0 && (
             <>
               <Typography variant="subtitle2" sx={{ fontWeight: 800, mt: 2, mb: 1 }}>اقساط</Typography>
-              <Table size="small">
+              <Table aria-label="اقساط قرارداد" size="small">
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ fontWeight: 800 }}>عنوان</TableCell>
-                    <TableCell sx={{ fontWeight: 800 }}>سررسید</TableCell>
-                    <TableCell sx={{ fontWeight: 800 }}>مبلغ</TableCell>
-                    <TableCell sx={{ fontWeight: 800 }}>وضعیت</TableCell>
+                    <TableCell scope="col" sx={{ fontWeight: 800 }}>عنوان</TableCell>
+                    <TableCell scope="col" sx={{ fontWeight: 800 }}>سررسید</TableCell>
+                    <TableCell scope="col" sx={{ fontWeight: 800 }}>مبلغ</TableCell>
+                    <TableCell scope="col" sx={{ fontWeight: 800 }}>وضعیت</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>

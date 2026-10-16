@@ -128,7 +128,7 @@ const AdminDashboard: React.FC = () => {
         {stats.map((stat, index) => (
           <Grid size={{ xs: 6, md: 3 }} key={index}>
             {loading ? (
-              <Skeleton variant="rounded" height={120} sx={{ borderRadius: 2 }} />
+              <Skeleton aria-hidden="true" variant="rounded" height={120} sx={{ borderRadius: 2 }} />
             ) : (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
@@ -252,18 +252,18 @@ const AdminDashboard: React.FC = () => {
             {loading ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton key={i} variant="rounded" height={48} />
+                  <Skeleton aria-hidden="true" key={i} variant="rounded" height={48} />
                 ))}
               </Box>
             ) : (
               <TableContainer>
-                <Table size="small">
+                <Table aria-label="کاربران اخیر" size="small">
                   <TableHead>
                     <TableRow>
-                      <TableCell>کاربر</TableCell>
-                      <TableCell>شماره موبایل</TableCell>
-                      <TableCell>نقش</TableCell>
-                      <TableCell>تاریخ ثبت‌نام</TableCell>
+                      <TableCell scope="col">کاربر</TableCell>
+                      <TableCell scope="col">شماره موبایل</TableCell>
+                      <TableCell scope="col">نقش</TableCell>
+                      <TableCell scope="col">تاریخ ثبت‌نام</TableCell>
                     </TableRow>
                   </TableHead>
                   <TableBody>
@@ -320,7 +320,7 @@ const AdminDashboard: React.FC = () => {
             {loading ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                 {[1, 2, 3, 4].map((i) => (
-                  <Skeleton key={i} variant="rounded" height={36} />
+                  <Skeleton aria-hidden="true" key={i} variant="rounded" height={36} />
                 ))}
               </Box>
             ) : (

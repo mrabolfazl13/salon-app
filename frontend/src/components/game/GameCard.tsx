@@ -171,7 +171,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
           >
             <Box sx={{ minWidth: 0 }}>
               {game.payment_mode === 'free' || game.price_per_player == null ? (
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#059669' }}>رایگان</Typography>
+                <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: 'success.main' }}>رایگان</Typography>
               ) : (
                 <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
                   <Typography
@@ -209,7 +209,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                   py: 0.5,
                   borderRadius: '999px',
                   bgcolor: 'rgba(245,158,11,0.14)',
-                  color: '#b45309',
+                  color: 'warning.main',
                   fontSize: '0.75rem',
                   fontWeight: 800,
                   whiteSpace: 'nowrap',
@@ -218,7 +218,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                 {`رتبه انتظار ${game.my_waitlist_position.toLocaleString('fa-IR')}`}
               </Box>
             ) : (
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: remaining > 0 ? '#059669' : '#b45309', whiteSpace: 'nowrap' }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: (th) => (remaining > 0 ? th.palette.success.main : th.palette.warning.main), whiteSpace: 'nowrap' }}>
                 {remaining > 0 ? `${remaining.toLocaleString('fa-IR')} جای خالی` : 'تکمیل — لیست انتظار'}
               </Typography>
             )}

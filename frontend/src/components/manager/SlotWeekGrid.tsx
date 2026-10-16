@@ -29,13 +29,14 @@ import {
   TableRow,
   Tooltip,
   Typography,
+  useTheme,
 } from '@mui/material'
 import toast from 'react-hot-toast'
 
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import DealPublishDialog, { type PublishSlot } from '@/components/deals/DealPublishDialog'
 import { slotService, type Slot } from '@/services/slot'
-import { extractError, faNum } from '@/components/finance/shared'
+import { extractError, faNum, statusColorToken } from '@/components/finance/shared'
 import { formatJalaliDate, jalaliWeekdayNames, toPersianDigits } from '@/lib/jalali'
 
 interface Props {
@@ -94,6 +95,12 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
   const [busyId, setBusyId] = useState<number | null>(null)
   const [blockConfirm, setBlockConfirm] = useState<Slot | null>(null)
   const [publishSlot, setPublishSlot] = useState<PublishSlot | null>(null)
+  const theme = useTheme()
+  /** رنگ متن سلول: هگز تزئینی → توکن سمانتیک با کنتراست ≥۴٫۵:۱ */
+  const textOf = (hex: string) => {
+    const token = statusColorToken(hex)
+    return token ? theme.palette[token].main : hex
+  }
 
   const activeVenueId = venueId ?? venues[0]?.id ?? null
   const startDate = toIso(weekStart)
@@ -185,7 +192,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
         ) : (
           <Chip label="سالنی در دسترس نیست" size="small" color="warning" sx={{ borderRadius: '8px', fontWeight: 700 }} />
         )}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mr: 'auto' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ms: 'auto' }}>
           <IconButton size="small" onClick={() => setWeekStart((w) => addDays(w, -7))} aria-label="هفته قبل">
             <Icon icon="mdi:chevron-right" className="h-5 w-5" />
           </IconButton>
@@ -205,18 +212,21 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
       <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 1.5 }}>
         {Object.entries(STATUS_LABELS).map(([k, label]) => (
           <Box key={k} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: STATUS_COLORS[k] }} />
+            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: STATUS_COLORS[k] }} aria-hidden="true" />
             <Typography variant="caption" color="text.secondary">{label}</Typography>
           </Box>
         ))}
       </Box>
 
       {slotsQuery.isPending && venues.length > 0 ? (
-        <Box sx={{ textAlign: 'center', py: 5 }}>
-          <CircularProgress size={32} sx={{ color: '#2563eb' }} />
+        <Box role="status" aria-busy="true" sx={{ textAlign: 'center', py: 5 }}>
+          <CircularProgress size={32} sx={{ color: 'primary.main' }} />
+          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+            در حال بارگذاری سانس‌های هفته…
+          </Typography>
         </Box>
       ) : slotsQuery.isError ? (
-        <Typography variant="body2" color="error.main">
+        <Typography variant="body2" color="error.main" role="alert">
           {extractError(slotsQuery.error, 'خطا در دریافت سانس‌های هفته')}
         </Typography>
       ) : times.length === 0 ? (
@@ -225,12 +235,12 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
         </Typography>
       ) : (
         <Box sx={{ overflowX: 'auto', borderRadius: '14px', border: '1px solid rgba(0,0,0,0.06)' }}>
-          <Table size="small" sx={{ minWidth: 760, '& td, & th': { p: 0.5, border: '1px solid rgba(0,0,0,0.06)' } }}>
+          <Table aria-label="سانس‌های هفته" size="small" sx={{ minWidth: 760, '& td, & th': { p: 0.5, border: '1px solid rgba(0,0,0,0.06)' } }}>
             <TableHead>
               <TableRow sx={{ bgcolor: 'rgba(248,250,252,0.9)' }}>
-                <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>ساعت</TableCell>
+                <TableCell scope="col" sx={{ fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>ساعت</TableCell>
                 {days.map((day, i) => (
-                  <TableCell key={day} align="center" sx={{ fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                  <TableCell scope="col" key={day} align="center" sx={{ fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
                     {jalaliWeekdayNames[i]}
                     <Typography component="div" variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
                       {toPersianDigits(formatJalaliDate(day, { format: 'numeric' }).slice(5))}
@@ -251,17 +261,24 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                       return <TableCell key={day} align="center" sx={{ color: 'text.disabled', fontSize: '0.75rem' }}>—</TableCell>
                     }
                     const color = STATUS_COLORS[slot.status] || '#6b7280'
+                    const accent = textOf(color)
                     return (
                       <TableCell key={day} align="center" sx={{ p: 0.25 }}>
                         <Tooltip title={`${STATUS_LABELS[slot.status] || slot.status} — ${faNum(slot.current_price)}`}>
                           <Box
+                            component="button"
+                            type="button"
                             onClick={() => setSelectedSlot(slot)}
+                            aria-label={`سانس ${toPersianDigits(time)} ${jalaliWeekdayNames[days.indexOf(day)] ?? day}، ${STATUS_LABELS[slot.status] || slot.status}، ${faNum(slot.current_price)} ریال`}
                             sx={{
+                              // جدول متراکم است، اما هدف لمسی باید ≥۴۴px بماند (Material)
+                              minHeight: 44,
+                              minWidth: 44,
+                              width: '100%',
                               cursor: 'pointer',
                               borderRadius: '8px',
                               px: 0.5,
                               py: 0.75,
-                              minHeight: 34,
                               display: 'flex',
                               flexDirection: 'column',
                               alignItems: 'center',
@@ -270,13 +287,24 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                               bgcolor: `${color}14`,
                               border: `1px solid ${color}40`,
                               transition: 'all .15s',
+                              fontFamily: 'inherit',
+                              color: accent,
+                              appearance: 'none',
+                              WebkitTapHighlightColor: 'transparent',
+                              '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: 1 },
                               '&:hover': { bgcolor: `${color}26`, transform: 'translateY(-1px)' },
                             }}
                           >
-                            <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: color }} />
-                            <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color, lineHeight: 1.2 }}>
+                            <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: color }} aria-hidden="true" />
+                            <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: accent, lineHeight: 1.2 }}>
                               {faNum(slot.current_price)}
                             </Typography>
+                            {/* وضعیت نباید فقط با رنگ فهمیده شود (WCAG 1.4.1) */}
+                            {slot.status !== 'available' && (
+                              <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, color: accent, lineHeight: 1.1 }}>
+                                {STATUS_LABELS[slot.status] || slot.status}
+                              </Typography>
+                            )}
                           </Box>
                         </Tooltip>
                       </TableCell>
@@ -291,6 +319,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
 
       {/* دیالوگ جزئیات/میان‌بر سانس */}
       <Dialog
+        aria-label="جزئیات سانس"
         open={Boolean(selectedSlot)}
         onClose={() => setSelectedSlot(null)}
         maxWidth="xs"
@@ -369,7 +398,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                     {busyId === s.id ? <CircularProgress size={16} color="inherit" /> : 'آزاد کردن سانس'}
                   </Button>
                 )}
-                <Button size="small" onClick={() => setSelectedSlot(null)} sx={{ textTransform: 'none', borderRadius: '10px', mr: 'auto' }}>
+                <Button size="small" onClick={() => setSelectedSlot(null)} sx={{ textTransform: 'none', borderRadius: '10px', ms: 'auto' }}>
                   بستن
                 </Button>
               </DialogActions>

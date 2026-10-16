@@ -35,7 +35,9 @@ export function toLatinDigits(text: string): string {
  */
 export function formatNumber(num: number): string {
   const formatted = num.toLocaleString('en-US')
-  return toPersianDigits(formatted)
+  // جداکنندهٔ هزارگان در خروجی فارسی باید «٬» باشد، نه «,» — بقیهٔ کد (formatPrice)
+  // از Intl 'fa-IR' استفاده می‌کند و همین کاراکتر را تولید می‌کند
+  return toPersianDigits(formatted).replace(/,/g, '٬')
 }
 
 /**

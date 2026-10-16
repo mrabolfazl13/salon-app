@@ -243,7 +243,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
               sx={{
                 position: 'absolute',
                 bottom: 16,
-                right: 16,
+                insetInlineStart: 16,
                 bgcolor: 'background.paper',
                 borderRadius: '12px',
                 p: 1.5,
@@ -291,7 +291,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
               sx={{
                 position: 'absolute',
                 top: 16,
-                right: 16,
+                insetInlineStart: 16,
                 bgcolor: 'background.paper',
                 borderRadius: '12px',
                 px: 2,

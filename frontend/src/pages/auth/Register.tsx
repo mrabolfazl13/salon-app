@@ -121,7 +121,7 @@ const Register: React.FC = () => {
 
   if (success) {
     return (
-      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-amber-50 via-white to-blue-50 dark:from-[#0b1220] dark:via-[#0b1220] dark:to-[#101a30]">
+      <main className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-amber-50 via-white to-blue-50 dark:from-[#0b1220] dark:via-[#0b1220] dark:to-[#101a30]">
         <motion.div
           initial={{ opacity: 0, scale: 0.9 }}
           animate={{ opacity: 1, scale: 1 }}
@@ -150,12 +150,12 @@ const Register: React.FC = () => {
             </div>
           </Card>
         </motion.div>
-      </div>
+      </main>
     )
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-amber-50 via-white to-blue-50 dark:from-[#0b1220] dark:via-[#0b1220] dark:to-[#101a30] relative overflow-hidden">
+    <main className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-amber-50 via-white to-blue-50 dark:from-[#0b1220] dark:via-[#0b1220] dark:to-[#101a30] relative overflow-hidden">
       {/* Background Decorations */}
       <div className="absolute -top-40 -right-40 w-96 h-96 bg-amber-500/10 rounded-full blur-3xl animate-float" />
       <div className="absolute -bottom-40 -left-40 w-96 h-96 bg-blue-500/10 rounded-full blur-3xl animate-float" style={{ animationDelay: '2s' }} />
@@ -444,7 +444,7 @@ const Register: React.FC = () => {
                 قبلاً ثبت‌نام کردید؟{' '}
                 <Link
                   to="/login"
-                  className="inline-flex items-center min-h-[44px] px-2 text-amber-600 hover:text-amber-700 dark:text-amber-400 dark:hover:text-amber-300 font-semibold hover:underline"
+                  className="inline-flex items-center min-h-[44px] px-2 text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-semibold hover:underline"
                 >
                   وارد شوید
                 </Link>
@@ -453,7 +453,7 @@ const Register: React.FC = () => {
           </CardContent>
         </Card>
       </motion.div>
-    </div>
+    </main>
   )
 }
 

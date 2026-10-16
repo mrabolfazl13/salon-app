@@ -125,7 +125,7 @@ const BookingPaymentPanel: React.FC<Props> = ({ booking, compact = false, onChan
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <Icon icon="mdi:check-decagram" className="h-5 w-5" style={{ color: '#059669' }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#059669' }}>فیش شما تأیید شد</Typography>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'success.main' }}>فیش شما تأیید شد</Typography>
           <Chip label={getReceiptStatusLabel('approved')} color="success" size="small" sx={{ borderRadius: '8px', fontWeight: 600 }} />
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
@@ -154,7 +154,7 @@ const BookingPaymentPanel: React.FC<Props> = ({ booking, compact = false, onChan
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
           <Icon icon="mdi:clock-outline" className="h-5 w-5" style={{ color: '#d97706' }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: '#d97706' }}>در انتظار بررسی مدیر</Typography>
+          <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'warning.main' }}>در انتظار بررسی مدیر</Typography>
         </Box>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1.5 }}>
           فیش واریزی شما ثبت شد و پس از تأیید مدیر سالن، رزرو شما پرداخت‌شده می‌شود.

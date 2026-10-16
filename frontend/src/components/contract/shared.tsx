@@ -289,7 +289,7 @@ export const ReasonDialog: React.FC<ReasonDialogProps> = ({
   }
 
   return (
-    <Dialog open={open} onClose={loading ? undefined : onClose} maxWidth="sm" fullWidth
+    <Dialog aria-label={title} open={open} onClose={loading ? undefined : onClose} maxWidth="sm" fullWidth
       slotProps={{ paper: { sx: { borderRadius: '18px' } } }}>
       <DialogTitle sx={{ fontWeight: 800, fontSize: '1.02rem', pb: 0.5 }}>{title}</DialogTitle>
       <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>

@@ -102,7 +102,7 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
           <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: '#059669' }}>
+            <Typography variant="h5" sx={{ fontWeight: 900, color: 'success.main' }}>
               {formatRial(deal.deal_price)}
             </Typography>
             <Typography variant="body2" sx={{ color: '#64748b', textDecoration: 'line-through' }}>
@@ -112,7 +112,7 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
           <Chip
             size="small"
             label={`${toPersianDigits(deal.savings)} ریال سود شما`}
-            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.12)', color: '#059669' }}
+            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.12)', color: 'success.main' }}
           />
         </Box>
 

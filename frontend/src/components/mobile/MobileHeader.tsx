@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography, Avatar, IconButton } from '@mui/material'
+import { Box, Typography, Avatar } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
@@ -62,25 +62,29 @@ const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true }) 
                 </Avatar>
               </Link>
             ) : (
-              <Link to="/login">
-                <IconButton
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    bgcolor: 'background.paper',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    boxShadow: (t) =>
-                      t.palette.mode === 'dark'
-                        ? '0 1px 3px rgba(0,0,0,0.4)'
-                        : '0 1px 3px rgba(15,23,42,0.05)',
-                    color: 'primary.main',
-                  }}
-                  aria-label="ورود"
-                >
-                  <Icon icon="mdi:login-variant" style={{ width: 22, height: 22 }} />
-                </IconButton>
-              </Link>
+              <Box
+                component={Link}
+                to="/login"
+                aria-label="ورود"
+                sx={{
+                  width: 44,
+                  height: 44,
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  borderRadius: '50%',
+                  bgcolor: 'background.paper',
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  boxShadow: (t) =>
+                    t.palette.mode === 'dark'
+                      ? '0 1px 3px rgba(0,0,0,0.4)'
+                      : '0 1px 3px rgba(15,23,42,0.05)',
+                  color: 'primary.main',
+                }}
+              >
+                <Icon icon="mdi:login-variant" style={{ width: 22, height: 22 }} />
+              </Box>
             )}
           </Box>
         )}

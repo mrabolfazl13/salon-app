@@ -104,13 +104,13 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
                   {PARTICIPANT_STATUS_LABELS[p.status as keyof typeof PARTICIPANT_STATUS_LABELS] ?? p.status}
                 </Typography>
                 {p.payment_status === 'paid' && (
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: '#059669', fontSize: '0.75rem', fontWeight: 700 }}>
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: 'success.main', fontSize: '0.75rem', fontWeight: 700 }}>
                     <Icon icon="mdi:check-circle" style={{ width: 13, height: 13 }} />
                     پرداخت‌شده
                   </Box>
                 )}
                 {p.payment_status === 'pending' && (
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: '#b45309', fontSize: '0.75rem', fontWeight: 700 }}>
+                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: 'warning.main', fontSize: '0.75rem', fontWeight: 700 }}>
                     <Icon icon="mdi:clock-outline" style={{ width: 13, height: 13 }} />
                     سهم پرداخت‌نشده
                   </Box>
@@ -125,6 +125,8 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
                   size="small"
                   onClick={() => handleToggleAdmin(p)}
                   disabled={setRole.isPending}
+                  aria-label={p.role === 'admin' ? `برداشتن ادمین از ${p.full_name ?? ''}` : `منصوب کردن ${p.full_name ?? ''} به ادمین`}
+                  aria-pressed={p.role === 'admin'}
                   sx={{ color: p.role === 'admin' ? '#7c3aed' : '#2563eb' }}
                 >
                   <Icon icon={p.role === 'admin' ? 'mdi:crown-cancel-outline' : 'mdi:crown-outline'} style={{ width: 18, height: 18 }} />
@@ -133,7 +135,7 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
             )}
             {canManage && p.role !== 'organizer' && !isMe && (
               <Tooltip title="حذف از بازی">
-                <IconButton size="small" onClick={() => setConfirmRemove(p)} sx={{ color: '#dc2626' }}>
+                <IconButton size="small" onClick={() => setConfirmRemove(p)} aria-label={`حذف ${p.full_name ?? ''} از بازی`} sx={{ color: 'error.main' }}>
                   <Icon icon="mdi:account-remove-outline" style={{ width: 18, height: 18 }} />
                 </IconButton>
               </Tooltip>

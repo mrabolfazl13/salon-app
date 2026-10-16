@@ -73,6 +73,9 @@ const GameResultDialog: React.FC<Props> = ({ open, onClose, gameId, participants
               return (
                 <Box
                   key={p.id}
+                  component="button"
+                  type="button"
+                  aria-pressed={on}
                   onClick={() => toggle(p.user_id)}
                   sx={{
                     display: 'flex',
@@ -85,9 +88,19 @@ const GameResultDialog: React.FC<Props> = ({ open, onClose, gameId, participants
                     border: '1px solid',
                     borderColor: on ? 'rgba(37,99,235,0.4)' : 'rgba(15,23,42,0.06)',
                     bgcolor: on ? 'rgba(37,99,235,0.06)' : 'transparent',
+                    // Box به‌عنوان <button>: عرض کامل + بازتنظیم پیش‌فرض‌های مرورگر
+                    width: '100%',
+                    textAlign: 'inherit',
+                    fontFamily: 'inherit',
+                    color: 'inherit',
+                    appearance: 'none',
+                    WebkitTapHighlightColor: 'transparent',
+                    // ردیف در لیست اسکرول‌شونده: حلقه فوکوس داخل خود ردیف تا بریده نشود
+                    '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: -2 },
                   }}
                 >
-                  <Checkbox checked={on} size="small" sx={{ p: 0.5 }} />
+                  {/* چک‌باکس فقط بصری است؛ کنترل اصلی همان ردیفِ دکمه است */}
+                  <Checkbox checked={on} size="small" disableRipple tabIndex={-1} aria-hidden="true" sx={{ p: 0.5, pointerEvents: 'none' }} />
                   <Avatar sx={{ width: 30, height: 30, bgcolor: 'rgba(37,99,235,0.1)', color: '#2563eb', fontSize: '0.8rem', fontWeight: 800 }}>
                     {(p.full_name ?? '؟').trim().charAt(0)}
                   </Avatar>

@@ -113,7 +113,16 @@ const FilterBottomSheet: React.FC<Props> = ({
           <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary' }}>
             فیلترها
             {activeCount > 0 && (
-              <Box component="span" sx={{ fontSize: '0.75rem', color: dark ? '#fbbf24' : '#d97706', mr: 1, fontWeight: 700 }}>
+              <Box
+                component="span"
+                sx={{
+                  fontSize: '0.75rem',
+                  // #d97706 روی سفید ۳٫۲:۱ بود — متن شمار باید ≥۴٫۵:۱ باشد
+                  color: (t) => (dark ? '#fbbf24' : t.palette.warning.main),
+                  ms: 1,
+                  fontWeight: 700,
+                }}
+              >
                 ({activeCount.toLocaleString('fa-IR')})
               </Box>
             )}
@@ -133,13 +142,20 @@ const FilterBottomSheet: React.FC<Props> = ({
             return (
               <Chip
                 key={sport.key}
+                aria-pressed={on}
                 icon={
                   <Icon
                     icon={sport.icon}
                     style={{ width: 16, height: 16, color: on ? (dark ? '#fcd34d' : '#b45309') : (dark ? '#fbbf24' : '#d97706') }}
                   />
                 }
-                label={sport.label}
+                // انتخاب فقط با رنگ تفکیک نشود: تیک + حالت فشرده (aria-pressed)
+                label={
+                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                    {sport.label}
+                    {on && <Icon icon="mdi:check" aria-hidden="true" style={{ width: 15, height: 15 }} />}
+                  </Box>
+                }
                 onClick={() => handleSport(sport)}
                 sx={{
                   borderRadius: '10px',
@@ -194,7 +210,13 @@ const FilterBottomSheet: React.FC<Props> = ({
                 return (
                   <Chip
                     key={a}
-                    label={a}
+                    aria-pressed={on}
+                    label={
+                      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+                        {a}
+                        {on && <Icon icon="mdi:check" aria-hidden="true" style={{ width: 15, height: 15 }} />}
+                      </Box>
+                    }
                     onClick={() => toggleAmenity(a)}
                     sx={{
                       borderRadius: '10px',
@@ -225,6 +247,7 @@ const FilterBottomSheet: React.FC<Props> = ({
           <Switch
             checked={draft.verifiedOnly ?? false}
             onChange={(e) => setDraft((d) => ({ ...d, verifiedOnly: e.target.checked || undefined }))}
+            slotProps={{ input: { 'aria-label': 'فقط سالن‌های تأیید شده' } }}
           />
         </Box>
 

@@ -116,7 +116,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
   }
 
   return (
-    <Dialog open={open} onClose={busy ? undefined : close} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px', overflow: 'hidden' } } }}>
+    <Dialog aria-label="انتشار سانس تخفیف‌دار" open={open} onClose={busy ? undefined : close} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px', overflow: 'hidden' } } }}>
       <Box sx={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)', px: 3, py: 2.5 }}>
         <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon="mdi:lightning-bolt" className="h-5 w-5" />
@@ -159,7 +159,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
           </Select>
         </FormControl>
 
-        {localError && <Typography variant="body2" sx={{ color: 'error.main', fontWeight: 700 }}>{localError}</Typography>}
+        {localError && <Typography variant="body2" role="alert" sx={{ color: 'error.main', fontWeight: 700 }}>{localError}</Typography>}
       </DialogContent>
       <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
         <Button onClick={close} disabled={busy} variant="outlined" sx={{ borderRadius: '10px', textTransform: 'none' }}>انصراف</Button>

@@ -90,6 +90,7 @@ const ContractInstallmentPayDialog: React.FC<Props> = ({
 
   return (
     <Dialog
+      aria-label="پرداخت قسط قرارداد"
       open={open}
       onClose={step === 'processing' ? undefined : onClose}
       maxWidth="xs"

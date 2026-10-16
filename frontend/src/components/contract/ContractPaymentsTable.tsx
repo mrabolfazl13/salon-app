@@ -61,15 +61,15 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
 
   return (
     <TableContainer sx={{ overflowX: 'auto' }}>
-      <Table size="small" sx={{ minWidth: 560 }}>
+      <Table aria-label="اقساط قرارداد" size="small" sx={{ minWidth: 560 }}>
         <TableHead>
           <TableRow>
-            <TableCell sx={cellHead}>قسط</TableCell>
-            <TableCell sx={cellHead}>سررسید</TableCell>
-            <TableCell sx={cellHead}>مبلغ</TableCell>
-            <TableCell sx={cellHead}>وضعیت</TableCell>
-            <TableCell sx={cellHead}>توضیحات</TableCell>
-            <TableCell align="left" sx={cellHead}>عملکرد</TableCell>
+            <TableCell scope="col" sx={cellHead}>قسط</TableCell>
+            <TableCell scope="col" sx={cellHead}>سررسید</TableCell>
+            <TableCell scope="col" sx={cellHead}>مبلغ</TableCell>
+            <TableCell scope="col" sx={cellHead}>وضعیت</TableCell>
+            <TableCell scope="col" sx={cellHead}>توضیحات</TableCell>
+            <TableCell scope="col" align="left" sx={cellHead}>عملکرد</TableCell>
           </TableRow>
         </TableHead>
         <TableBody>
@@ -137,7 +137,7 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
                       color="success"
                       disabled={busyMarkPaidId === p.id}
                       onClick={() => onMarkPaid?.(p)}
-                      sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '0.75rem', ml: 0.5 }}
+                      sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '0.75rem', me: 0.5 }}
                       startIcon={busyMarkPaidId === p.id
                         ? undefined
                         : <Icon icon="mdi:cash-outline" className="h-4 w-4" />}

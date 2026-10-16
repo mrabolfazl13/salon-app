@@ -27,6 +27,7 @@ export const crmKeys = {
   customer: (userId: number, venueId: number) => ['crm', 'customer', userId, venueId] as const,
   stats: (venueId: number) => ['crm', 'stats', { venueId }] as const,
   campaigns: (venueId: number) => ['crm', 'campaigns', { venueId }] as const,
+  myConsent: ['crm', 'consent', 'me'] as const,
 }
 
 export const staffKeys = {
@@ -60,6 +61,16 @@ export function useCrmStats(venueId: number | null) {
     queryKey: crmKeys.stats(venueId ?? 0),
     queryFn: () => crmService.getStats(venueId as number),
     enabled: venueId !== null && venueId > 0,
+  })
+}
+
+/** وضعیت رضایت بازاریابی خودِ کاربر (GET /crm/consent) — مقدار واقعی سرور، نه حدس محلی */
+export function useMyMarketingConsent(enabled = true) {
+  return useQuery({
+    queryKey: crmKeys.myConsent,
+    queryFn: () => crmService.getMyConsent(),
+    enabled,
+    staleTime: 30_000,
   })
 }
 
@@ -103,8 +114,10 @@ export function useCreateCampaign() {
 }
 
 export function useSetMarketingConsent() {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: ConsentUpdatePayload) => crmService.setConsent(data),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: crmKeys.myConsent }),
   })
 }
 

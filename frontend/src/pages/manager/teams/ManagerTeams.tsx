@@ -113,27 +113,45 @@ const ManagerTeams: React.FC = () => {
             overflowX: 'auto',
           }}
         >
-          <Table size="small" sx={{ minWidth: 720 }}>
+          <Table size="small" aria-label="لیست تیم‌های همکار" sx={{ minWidth: 720 }}>
             <TableHead>
               <TableRow>
                 {HEADERS.map((h) => (
-                  <TableCell
+                  <TableCell scope="col"
                     key={h.key}
-                    onClick={() => toggleSort(h.key)}
                     align={h.numeric ? 'left' : 'right'}
+                    aria-sort={sortKey === h.key ? (sortDir === -1 ? 'descending' : 'ascending') : undefined}
                     sx={{
                       fontWeight: 800,
                       fontSize: '0.75rem',
                       color: sortKey === h.key ? '#2563eb' : '#64748b',
-                      cursor: 'pointer',
                       whiteSpace: 'nowrap',
-                      userSelect: 'none',
                       display: h.hideOnMobile ? { xs: 'none', md: 'table-cell' } : undefined,
                     }}
                   >
-                    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+                    {/* مرتب‌سازی روی <th> کلیک‌پذیر کیبورد را نمی‌خواند: دکمهٔ واقعی داخل سرستون */}
+                    <Box
+                      component="button"
+                      type="button"
+                      onClick={() => toggleSort(h.key)}
+                      sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 1,
+                        border: 0,
+                        p: 0,
+                        m: 0,
+                        background: 'none',
+                        font: 'inherit',
+                        color: 'inherit',
+                        cursor: 'pointer',
+                        appearance: 'none',
+                        WebkitTapHighlightColor: 'transparent',
+                        '&:focus-visible': { outline: '3px solid #f59e0b', outlineOffset: 2 },
+                      }}
+                    >
                       {h.label}
-                      {sortKey === h.key && <Icon icon={sortDir === -1 ? 'mdi:sort-descending' : 'mdi:sort-ascending'} style={{ width: 14, height: 14 }} />}
+                      {sortKey === h.key && <Icon icon={sortDir === -1 ? 'mdi:sort-descending' : 'mdi:sort-ascending'} aria-hidden="true" style={{ width: 14, height: 14 }} />}
                     </Box>
                   </TableCell>
                 ))}
@@ -173,7 +191,7 @@ const ManagerTeams: React.FC = () => {
                     <Typography sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(p.total_bookings_at_my_venues)}</Typography>
                   </TableCell>
                   <TableCell align="left">
-                    <Typography sx={{ fontWeight: 700, color: p.upcoming_bookings_at_my_venues ? '#059669' : '#64748b', fontVariantNumeric: 'tabular-nums' }}>
+                    <Typography sx={{ fontWeight: 700, color: (th) => (p.upcoming_bookings_at_my_venues ? th.palette.success.main : th.palette.text.secondary), fontVariantNumeric: 'tabular-nums' }}>
                       {toPersianDigits(p.upcoming_bookings_at_my_venues)}
                     </Typography>
                   </TableCell>

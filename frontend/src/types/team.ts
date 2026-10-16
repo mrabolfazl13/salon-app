@@ -26,6 +26,7 @@ export interface Team {
   my_status: TeamMemberStatus | null
   has_open_join_request: boolean
   has_pending_invitation: boolean
+  dues_plan?: TeamDuesPlan | null
 }
 
 export interface Paginated<T> {
@@ -91,6 +92,7 @@ export interface TeamDue {
   payment_reference?: string | null
   transaction_id?: number | null
   void_reason?: string | null
+  penalty_for_id?: number | null
   created_at: string
 }
 
@@ -112,6 +114,23 @@ export interface TeamDuesGenerateResult {
 export interface TeamDuesPayPayload {
   method: DuesPayMethod
   reference?: string | null
+}
+
+export interface TeamDuesPlan {
+  dues_auto: boolean
+  amount?: number | null
+  title: string
+  due_day: number
+  late_fee_pct: number
+  grace_days: number
+}
+
+export interface TeamDuesPlanPayload {
+  dues_auto: boolean
+  amount?: number | null
+  title?: string
+  due_day: number
+  late_fee_pct: number
 }
 
 export interface TeamBalance {

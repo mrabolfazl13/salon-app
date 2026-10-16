@@ -166,6 +166,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
         {/* Method Selection */}
         <RadioGroup
+          aria-label="روش تقسیم مبلغ"
           value={method}
           onChange={(e) => setMethod(e.target.value as any)}
           row
@@ -212,6 +213,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
                 <Box key={share.user_id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Typography sx={{ flex: 1 }}>{member?.full_name || `کاربر ${share.user_id}`}</Typography>
                   <TextField
+                    label="سهم"
                     type="number"
                     value={share.amount}
                     onChange={(e) => handleUpdateCustomShare(share.user_id, Number(e.target.value) || 0)}
@@ -243,6 +245,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
                 <Box key={share.user_id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   <Typography sx={{ flex: 1 }}>{member?.full_name || `کاربر ${share.user_id}`}</Typography>
                   <TextField
+                    label="درصد"
                     type="number"
                     value={share.percentage}
                     onChange={(e) => handleUpdatePercentageShare(share.user_id, Number(e.target.value) || 0)}

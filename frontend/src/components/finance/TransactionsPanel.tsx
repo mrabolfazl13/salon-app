@@ -25,6 +25,7 @@ import {
   TableRow,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
@@ -52,6 +53,7 @@ import {
   extractError,
   formatRial,
   labelOf,
+  statusPairOf,
 } from './shared'
 import TransactionEntryDialog from './TransactionEntryDialog'
 import ExpenseCategoriesPanel from './ExpenseCategoriesPanel'
@@ -78,6 +80,7 @@ const STATUS_CHIPS: { value: StatusFilter; label: string }[] = [
 ]
 
 const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
+  const theme = useTheme()
   const [venueSel, setVenueSel] = useState<number | 'all'>('all')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -144,8 +147,8 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                 borderRadius: '8px',
                 fontWeight: 700,
                 fontSize: '0.75rem',
-                bgcolor: direction === chip.value ? chip.color : 'rgba(0,0,0,0.04)',
-                color: direction === chip.value ? 'white' : 'text.primary',
+                bgcolor: direction === chip.value ? statusPairOf(theme, chip.color).main : 'rgba(0,0,0,0.04)',
+                color: direction === chip.value ? statusPairOf(theme, chip.color).on : 'text.primary',
               }}
             />
           ))}
@@ -157,7 +160,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
             onClick={handleExport}
             disabled={exportCsv.isPending}
             startIcon={exportCsv.isPending ? <CircularProgress size={14} /> : <Icon icon="mdi:file-download-outline" className="h-4 w-4" />}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, borderColor: 'rgba(5,150,105,0.3)', color: '#059669' }}
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, borderColor: 'rgba(5,150,105,0.3)', color: 'success.main' }}
           >
             خروجی CSV
           </Button>
@@ -251,18 +254,18 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
           </Box>
         ) : (
           <TableContainer sx={{ maxHeight: 560 }}>
-            <Table size="small" stickyHeader>
+            <Table aria-label="تراکنش‌های مالی" size="small" stickyHeader>
               <TableHead>
                 <TableRow>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>ردیف</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>تاریخ</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>نوع / منبع</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>طرف‌حساب / شرح</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>سالن</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>روش</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>وضعیت</TableCell>
-                  <TableCell sx={{ fontWeight: 700, fontSize: '0.78rem' }}>مبلغ</TableCell>
-                  <TableCell align="left" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>عملیات</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>ردیف</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>تاریخ</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>نوع / منبع</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>طرف‌حساب / شرح</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>سالن</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>روش</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>وضعیت</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>مبلغ</TableCell>
+                  <TableCell scope="col" align="left" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>عملیات</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -427,7 +430,7 @@ const VoidTransactionDialog: React.FC<{ tx: FinanceTransaction | null; onClose: 
             </Box>
           </Box>
           {!isSuper && tx.venue_id === null && (
-            <Typography variant="caption" sx={{ color: '#d97706', display: 'block', mb: 1 }}>
+            <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mb: 1 }}>
               توجه: ردیف بدون سالن برای مدیران قابل ابطال نیست (۴۰۳).
             </Typography>
           )}

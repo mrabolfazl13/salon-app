@@ -97,7 +97,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
     if (row.inactive_days === null) return <Typography variant="caption" color="text.secondary">بدون بازدید</Typography>
     const color = row.segment === 'dormant' ? '#64748b' : row.segment === 'at_risk' ? '#ef4444' : '#059669'
     return (
-      <Box component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, color, mr: 0.75 }}>
+      <Box component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, color, ms: 0.75 }}>
         {toPersianDigits(row.inactive_days)} روز
       </Box>
     )
@@ -115,6 +115,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
       >
         <TextField
           size="small"
+          label="جست‌وجوی مشتری"
           placeholder="جست‌وجوی نام یا شماره موبایل..."
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
@@ -145,8 +146,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
           onClick={() => { setVipOnly((v) => !v); setPage(1) }}
           sx={{ borderRadius: '9px', fontWeight: 700, fontSize: '0.75rem', height: 32 }}
         />
-        <FormControl size="small" sx={{ minWidth: 150, mr: 'auto' }}>
-          <Select value={sort} onChange={(e) => { setSort(e.target.value as CrmSort); setPage(1) }} sx={{ borderRadius: '10px' }}>
+        <FormControl size="small" sx={{ minWidth: 150, ms: 'auto' }}>
+          <Select value={sort} aria-label="مرتب‌سازی مشتریان" onChange={(e) => { setSort(e.target.value as CrmSort); setPage(1) }} sx={{ borderRadius: '10px' }}>
             {SORT_OPTIONS.map((o) => (
               <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
             ))}
@@ -165,11 +166,11 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
       ) : (
         <>
           <Box sx={{ display: { xs: 'none', md: 'block' }, borderRadius: '16px', overflow: 'auto', bgcolor: 'rgba(255,255,255,0.92)', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 28px rgba(15,23,42,0.06)' }}>
-            <Table size="small" sx={{ minWidth: 880 }}>
+            <Table aria-label="لیست مشتریان" size="small" sx={{ minWidth: 880 }}>
               <TableHead>
                 <TableRow>
                   {['مشتری', 'موبایل', 'رزرو', 'مجموع پرداختی', 'مانده', 'امتیاز', 'آخرین بازدید', 'گروه', ''].map((h, i) => (
-                    <TableCell key={i} sx={{ fontWeight: 800, whiteSpace: 'nowrap', bgcolor: 'rgba(248,250,252,0.8)' }}>{h}</TableCell>
+                    <TableCell scope="col" key={i} sx={{ fontWeight: 800, whiteSpace: 'nowrap', bgcolor: 'rgba(248,250,252,0.8)' }}>{h}</TableCell>
                   ))}
                 </TableRow>
               </TableHead>
@@ -178,8 +179,20 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                   <TableRow
                     key={row.user_id}
                     hover
-                    sx={{ cursor: 'pointer', '&:hover': { bgcolor: 'rgba(37,99,235,0.04)' } }}
+                    tabIndex={0}
                     onClick={() => setDetailUserId(row.user_id)}
+                    // سطر کلیک‌پذیر بدون کیبورد = کنترل دست‌نیافتنی
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' || e.key === ' ') {
+                        e.preventDefault()
+                        setDetailUserId(row.user_id)
+                      }
+                    }}
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': { bgcolor: 'rgba(37,99,235,0.04)' },
+                      '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
+                    }}
                   >
                     <TableCell>
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
@@ -197,7 +210,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                     <TableCell
                       sx={{
                         fontWeight: 800, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
-                        color: row.balance_due > 0 ? '#dc2626' : row.balance_due < 0 ? '#059669' : 'text.secondary',
+                        color: (t) => (row.balance_due > 0 ? t.palette.error.main
+                          : row.balance_due < 0 ? t.palette.success.main : t.palette.text.secondary),
                       }}
                     >
                       {row.balance_due > 0 ? formatRial(row.balance_due) : row.balance_due < 0 ? formatRial(-row.balance_due) + ' (اعتبار)' : '—'}
@@ -208,7 +222,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                           icon={<Icon icon="mdi:star-four-points" />}
                           label={toPersianDigits(row.loyalty_balance ?? 0)}
                           size="small"
-                          sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: '#b45309', '& .MuiChip-icon': { color: '#d97706' } }}
+                          sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: 'warning.main', '& .MuiChip-icon': { color: 'warning.main' } }}
                         />
                       </Tooltip>
                     </TableCell>
@@ -225,12 +239,15 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                           <Box component="span" sx={{ display: 'inline-flex', px: 0.5 }}><ConsentIcon consent={row.marketing_consent} /></Box>
                         </Tooltip>
                         <Tooltip title={row.is_vip ? 'حذف از مشتریان ویژه' : 'افزودن به مشتریان ویژه'}>
-                          <IconButton size="small" onClick={() => toggleVip(row)} disabled={updateCustomer.isPending}>
-                            <Icon
-                              icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'}
-                              className="h-5 w-5"
-                              style={{ color: row.is_vip ? '#d97706' : '#9ca3af' }}
-                            />
+                          <IconButton
+                            size="small"
+                            onClick={() => toggleVip(row)}
+                            disabled={updateCustomer.isPending}
+                            aria-label={row.is_vip ? `خارج کردن ${row.full_name ?? row.phone ?? ''} از مشتریان ویژه` : `افزودن ${row.full_name ?? row.phone ?? ''} به مشتریان ویژه`}
+                            aria-pressed={row.is_vip}
+                            sx={{ '& svg': { color: row.is_vip ? (t) => t.palette.warning.main : (t) => t.palette.text.disabled } }}
+                          >
+                            <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" />
                           </IconButton>
                         </Tooltip>
                       </Box>
@@ -245,15 +262,42 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
             {items.map((row) => (
               <Box
                 key={row.user_id}
-                onClick={() => setDetailUserId(row.user_id)}
                 sx={{
-                  p: 2, borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.92)',
+                  position: 'relative', p: 2, borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.92)',
                   border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 16px rgba(15,23,42,0.04)',
-                  cursor: 'pointer', '&:active': { transform: 'scale(0.98)' },
+                  '&:active': { transform: 'scale(0.98)' },
                 }}
               >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                  <Box sx={{ minWidth: 0 }}>
+                {/* کنترل‌های تعاملی بیرون از دکمهٔ کارت‌اند: دکمهٔ تودرتو در HTML مجاز نیست
+                    و روی نامِ دکمه هم سایه می‌اندازد */}
+                <Box sx={{ position: 'absolute', top: 14, insetInlineEnd: 14, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                  <ConsentIcon consent={row.marketing_consent} />
+                  <IconButton
+                    size="small"
+                    onClick={() => toggleVip(row)}
+                    disabled={updateCustomer.isPending}
+                    sx={{ p: 0.5, '& svg': { color: row.is_vip ? (t) => t.palette.warning.main : (t) => t.palette.text.disabled } }}
+                    aria-label={`مشتری ویژه: ${row.full_name ?? row.phone ?? ''}`}
+                    aria-pressed={row.is_vip}
+                  >
+                    <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" />
+                  </IconButton>
+                </Box>
+
+                <Box
+                  component="button"
+                  type="button"
+                  aria-haspopup="dialog"
+                  aria-label={`مشاهده جزئیات ${row.full_name ?? row.phone ?? 'مشتری'}`}
+                  onClick={() => setDetailUserId(row.user_id)}
+                  sx={{
+                    display: 'block', width: '100%', p: 0, m: 0, border: 0, borderRadius: 'inherit',
+                    appearance: 'none', WebkitTapHighlightColor: 'transparent', bgcolor: 'transparent',
+                    fontFamily: 'inherit', color: 'inherit', textAlign: 'start', cursor: 'pointer',
+                    '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+                  }}
+                >
+                  <Box sx={{ minWidth: 0, mb: 1.5, paddingInlineEnd: 92 }}>
                     <Typography variant="subtitle2" sx={{ fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                       {row.full_name ?? '—'}
                     </Typography>
@@ -261,52 +305,53 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                       {row.phone ?? '—'}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }} onClick={(e) => e.stopPropagation()}>
-                    <ConsentIcon consent={row.marketing_consent} />
-                    <IconButton size="small" onClick={() => toggleVip(row)} disabled={updateCustomer.isPending} sx={{ p: 0.5 }}>
-                      <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" style={{ color: row.is_vip ? '#d97706' : '#9ca3af' }} />
-                    </IconButton>
-                  </Box>
-                </Box>
 
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
-                  <SegmentChip segment={row.segment} />
-                  <Chip
-                    icon={<Icon icon="mdi:calendar-check-outline" />}
-                    label={`${toPersianDigits(row.bookings_count)} رزرو`}
-                    size="small"
-                    sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }}
-                  />
-                  <Chip
-                    icon={<Icon icon="mdi:star-four-points" />}
-                    label={toPersianDigits(row.loyalty_balance ?? 0)}
-                    size="small"
-                    sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: '#b45309', '& .MuiChip-icon': { color: '#d97706' } }}
-                  />
-                  {row.tags.slice(0, 2).map((t) => (
-                    <Chip key={t} label={t} size="small" sx={{ height: 22, fontSize: '0.75rem', borderRadius: '8px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
-                  ))}
-                </Box>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+                    <SegmentChip segment={row.segment} />
+                    <Chip
+                      icon={<Icon icon="mdi:calendar-check-outline" />}
+                      label={`${toPersianDigits(row.bookings_count)} رزرو`}
+                      size="small"
+                      sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }}
+                    />
+                    <Chip
+                      icon={<Icon icon="mdi:star-four-points" />}
+                      label={toPersianDigits(row.loyalty_balance ?? 0)}
+                      size="small"
+                      sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: 'warning.main', '& .MuiChip-icon': { color: 'warning.main' } }}
+                    />
+                    {row.tags.slice(0, 2).map((t) => (
+                      <Chip key={t} label={t} size="small" sx={{ height: 22, fontSize: '0.75rem', borderRadius: '8px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
+                    ))}
+                  </Box>
 
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, borderTop: '1px dashed rgba(0,0,0,0.06)' }}>
-                  <Box>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>پرداختی</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-                      {formatRial(row.total_spend)}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ textAlign: 'center' }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>مانده</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 800, color: row.balance_due > 0 ? '#dc2626' : row.balance_due < 0 ? '#059669' : 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
-                      {row.balance_due > 0 ? formatRial(row.balance_due) : row.balance_due < 0 ? formatRial(-row.balance_due) : '—'}
-                    </Typography>
-                  </Box>
-                  <Box sx={{ textAlign: 'left' }}>
-                    <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>بازدید</Typography>
-                    <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
-                      {row.last_booking_date ? formatJalaliDate(row.last_booking_date, { format: 'numeric' }) : '—'}
-                    </Typography>
-                    {inactiveBadge(row)}
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, borderTop: '1px dashed rgba(0,0,0,0.06)' }}>
+                    <Box>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>پرداختی</Typography>
+                      <Typography variant="body2" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                        {formatRial(row.total_spend)}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ textAlign: 'center' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>مانده</Typography>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 800, fontVariantNumeric: 'tabular-nums',
+                          color: (t) => (row.balance_due > 0 ? t.palette.error.main
+                            : row.balance_due < 0 ? t.palette.success.main : t.palette.text.secondary),
+                        }}
+                      >
+                        {row.balance_due > 0 ? formatRial(row.balance_due) : row.balance_due < 0 ? formatRial(-row.balance_due) : '—'}
+                      </Typography>
+                    </Box>
+                    <Box sx={{ textAlign: 'end' }}>
+                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>بازدید</Typography>
+                      <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
+                        {row.last_booking_date ? formatJalaliDate(row.last_booking_date, { format: 'numeric' }) : '—'}
+                      </Typography>
+                      {inactiveBadge(row)}
+                    </Box>
                   </Box>
                 </Box>
               </Box>

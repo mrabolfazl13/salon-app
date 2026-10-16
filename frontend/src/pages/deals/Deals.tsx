@@ -107,7 +107,7 @@ const Deals: React.FC = () => {
               overflow: 'hidden',
             }}
           >
-            <Box sx={{ position: 'absolute', top: -60, left: -60, width: 220, height: 220, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)' }} />
+            <Box sx={{ position: 'absolute', top: -60, insetInlineEnd: -60, width: 220, height: 220, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)' }} />
             <Typography component="h1" variant="h4" sx={{ fontWeight: 900, mb: 0.5, fontSize: { xs: '1.4rem', md: '1.8rem' } }}>
               🔥 شگفت‌انگیزهای لحظه آخری
             </Typography>
@@ -184,7 +184,7 @@ const Deals: React.FC = () => {
                   setCoords(null)
                   if (sort === 'distance') setSort('time')
                 }}
-                sx={{ borderRadius: '999px', bgcolor: 'rgba(5,150,105,0.1)', color: '#059669', fontWeight: 700, fontSize: '0.8rem', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 2 } }}
+                sx={{ borderRadius: '999px', bgcolor: 'rgba(5,150,105,0.1)', color: 'success.main', fontWeight: 700, fontSize: '0.8rem', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 2 } }}
               />
             )}
           </Box>
@@ -228,6 +228,7 @@ const TextFieldCompact: React.FC<{ label: string; value: string; onChange: (v: s
     value={value}
     onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
     placeholder={label}
+    aria-label={label}
     inputMode="numeric"
     sx={{
       width: '100%',
@@ -239,8 +240,12 @@ const TextFieldCompact: React.FC<{ label: string; value: string; onChange: (v: s
       fontSize: '0.9rem',
       fontFamily: 'inherit',
       background: 'rgba(255,255,255,0.9)',
-      outline: 'none',
-      '&:focus': { borderColor: '#2563eb' },
+      '&:focus-visible': {
+        outline: '3px solid',
+        outlineColor: 'primary.main',
+        outlineOffset: 1,
+        borderColor: 'primary.main',
+      },
     }}
   />
 )

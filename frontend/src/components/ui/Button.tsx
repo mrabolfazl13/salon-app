@@ -12,7 +12,7 @@ const buttonVariants = cva(
       variant: {
         default: 'bg-gradient-to-l from-amber-400 to-orange-500 text-stone-900 font-bold shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-500/40 hover:-translate-y-0.5',
         destructive: 'bg-red-600 text-white hover:bg-red-700 dark:bg-red-500 dark:hover:bg-red-600',
-        outline: 'border-2 border-amber-500 bg-transparent text-amber-600 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10',
+        outline: 'border-2 border-amber-600 bg-transparent text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-500/10',
         secondary: 'bg-gray-100 text-gray-700 hover:bg-gray-200 dark:bg-white/10 dark:text-gray-200 dark:hover:bg-white/15',
         ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-white/10 dark:hover:text-white',
         link: 'text-blue-600 dark:text-blue-400 underline-offset-4 hover:underline',
@@ -37,13 +37,10 @@ export interface ButtonProps
     VariantProps<typeof buttonVariants> {
   loading?: boolean
   icon?: string
-  onDrag?: (event: React.DragEvent<HTMLButtonElement>) => void
-  onDragStart?: (event: React.DragEvent<HTMLButtonElement>) => void
-  onDragEnd?: (event: React.DragEvent<HTMLButtonElement>) => void
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, loading = false, icon, children, disabled, onDrag, onDragStart, onDragEnd, ...props }, ref) => {
+  ({ className, variant, size, loading = false, icon, children, disabled, ...props }, ref) => {
     return (
       <motion.button
         whileHover={{ scale: 1.02 }}

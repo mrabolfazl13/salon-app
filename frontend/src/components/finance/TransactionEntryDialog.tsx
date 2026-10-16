@@ -17,6 +17,7 @@ import {
   Select,
   TextField,
   Typography,
+  useTheme,
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
@@ -35,6 +36,7 @@ import {
   extractError,
   formatRial,
   parseAmountInput,
+  statusPairOf,
 } from './shared'
 import type { TransactionMethod, TransactionStatus } from '@/services/finance'
 import { getTodayISO } from '@/lib/jalali'
@@ -50,6 +52,7 @@ const TransactionEntryDialog: React.FC<{
   onClose: () => void
   venues: FinanceVenue[]
 }> = ({ open, onClose, venues }) => {
+  const theme = useTheme()
   const isSuper = useAuthStore((s) => s.user?.role === 'super_admin')
   const venueRequired = !isSuper
   const [mode, setMode] = useState<EntryMode>('payment')
@@ -179,8 +182,8 @@ const TransactionEntryDialog: React.FC<{
               height: 40,
               borderRadius: '12px',
               fontWeight: 800,
-              bgcolor: mode === m.value ? m.color : 'rgba(0,0,0,0.04)',
-              color: mode === m.value ? 'white' : 'text.primary',
+              bgcolor: mode === m.value ? statusPairOf(theme, m.color).main : 'rgba(0,0,0,0.04)',
+              color: mode === m.value ? statusPairOf(theme, m.color).on : 'text.primary',
             }}
           />
         ))}
@@ -253,7 +256,7 @@ const TransactionEntryDialog: React.FC<{
                   {availableCategories.map((cat) => (
                     <MenuItem key={cat.id} value={cat.id}>
                       {cat.name}
-                      <Typography component="span" variant="caption" sx={{ color: 'text.secondary', mr: 0.75 }}>
+                      <Typography component="span" variant="caption" sx={{ color: 'text.secondary', ms: 0.75 }}>
                         ({cat.venue_id === null ? 'سراسری' : 'اختصاصی'})
                       </Typography>
                     </MenuItem>
@@ -268,6 +271,8 @@ const TransactionEntryDialog: React.FC<{
               <IconButton
                 size="small"
                 onClick={() => setAddingCategory((v) => !v)}
+                aria-expanded={addingCategory}
+                aria-label="ایجاد دسته‌بندی جدید"
                 sx={{ border: '1px dashed rgba(37,99,235,0.4)', borderRadius: '10px', color: 'primary.main' }}
                 title="ایجاد دسته‌بندی جدید"
               >
@@ -280,6 +285,7 @@ const TransactionEntryDialog: React.FC<{
                   fullWidth
                   size="small"
                   placeholder="مثلاً: هزینه برق"
+                  aria-label="نام دسته‌بندی جدید"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}

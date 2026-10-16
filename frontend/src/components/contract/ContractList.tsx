@@ -15,8 +15,10 @@ import {
   Button,
   Avatar,
   Alert,
+  useTheme,
 } from '@mui/material'
 import { formatDate } from '@/lib/utils'
+import { statusColorToken } from '@/components/finance/shared'
 import {
   contractStatusMeta,
   faNum,
@@ -34,6 +36,12 @@ interface ContractListProps {
 }
 
 const ContractList: React.FC<ContractListProps> = ({ contracts, venueNames, onView }) => {
+  const theme = useTheme()
+  // رنگ متن چیپ از توکن سمانتیک می‌آید (هگزهای کنفیگ ≈۳٫۲–۳٫۸:۱ برای متن رد می‌شوند)
+  const chipText = (hex: string) => {
+    const token = statusColorToken(hex)
+    return token ? theme.palette[token].main : hex
+  }
   return (
     <Grid container spacing={3}>
       {contracts.map((contract, index) => {
@@ -121,8 +129,8 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, venueNames, onVi
                         sx={{
                           borderRadius: '8px',
                           fontWeight: 700,
-                          bgcolor: `${meta.color}18`,
-                          color: meta.color,
+                          bgcolor: `${chipText(meta.color)}1f`,
+                          color: chipText(meta.color),
                         }}
                       />
                     </Box>
@@ -169,8 +177,8 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, venueNames, onVi
                           fontSize: '0.75rem',
                           fontWeight: 600,
                           borderRadius: '8px',
-                          bgcolor: `${payMeta.color}18`,
-                          color: payMeta.color,
+                          bgcolor: `${chipText(payMeta.color)}1f`,
+                          color: chipText(payMeta.color),
                         }}
                       />
                     </Box>

@@ -121,9 +121,9 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
                 {detail.customer.phone ?? '—'}
               </Typography>
             </Box>
-            <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', mr: 'auto' }}>
+            <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', ms: 'auto' }}>
               {detail.customer.is_vip && (
-                <Chip icon={<Icon icon="mdi:star" />} label="VIP" size="small" sx={{ borderRadius: '8px', fontWeight: 700, color: '#d97706', bgcolor: 'rgba(217,119,6,0.1)' }} />
+                <Chip icon={<Icon icon="mdi:star" />} label="VIP" size="small" sx={{ borderRadius: '8px', fontWeight: 700, color: 'warning.main', bgcolor: 'rgba(217,119,6,0.1)' }} />
               )}
               <SegmentChip segment={detail.customer.segment} small />
             </Box>
@@ -156,7 +156,7 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
                     <Typography variant="body2" sx={{ fontWeight: 700 }}>مشتری ویژه (VIP)</Typography>
                   </Box>
                 }
-                sx={{ mr: 0 }}
+                sx={{ ms: 0 }}
               />
               <Box>
                 <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
@@ -180,6 +180,7 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
                   <TextField
                     size="small"
                     placeholder="افزودن برچسب..."
+                    aria-label="افزودن برچسب جدید"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={(e) => {
@@ -261,7 +262,7 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
                           {t.status === 'voided' ? ' — باطل' : ''}
                         </Typography>
                       </Box>
-                      <Typography variant="caption" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: t.direction === 'income' ? '#059669' : '#dc2626' }} dir="rtl">
+                      <Typography variant="caption" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: (th) => (t.direction === 'income' ? th.palette.success.main : th.palette.error.main) }} dir="rtl">
                         {t.direction === 'income' ? '＋' : '−'}{formatRial(t.amount)}
                       </Typography>
                     </Box>

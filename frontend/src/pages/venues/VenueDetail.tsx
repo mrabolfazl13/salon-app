@@ -511,7 +511,7 @@ const VenueDetail: React.FC = () => {
                   bottom: 12,
                   insetInlineStart: 12,
                   zIndex: 2,
-                  bgcolor: 'rgba(76,175,80,0.92)',
+                  bgcolor: 'rgba(4,120,87,0.92)',
                   color: 'white',
                   fontWeight: 700,
                   borderRadius: '10px',
@@ -563,7 +563,7 @@ const VenueDetail: React.FC = () => {
                 elevation={0}
                 sx={{ mt: 2, p: 2, borderRadius: `${radii.card}px`, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
               >
-                <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 0.75 }}>درباره سالن</Typography>
+                <Typography variant="subtitle2" component="h2" sx={{ fontWeight: 800, mb: 0.75 }}>درباره سالن</Typography>
                 <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.9 }}>
                   {venue.description}
                 </Typography>
@@ -721,10 +721,12 @@ const VenueDetail: React.FC = () => {
                 key={mainImage}
                 src={mainImage}
                 alt={venue.name}
-                sx={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                // در جریان عادی بماند، عنوان را به زیر جعبه و پشت overflow:hidden پرت می‌کند
+                sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
               />
             ) : (
               <Box sx={{
+                position: 'absolute', inset: 0,
                 width: '100%', height: '100%',
                 background: gradients.primary,
                 display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -757,7 +759,7 @@ const VenueDetail: React.FC = () => {
                     </Box>
                     {venue.average_rating > 0 && (
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'rgba(255,255,255,0.15)', borderRadius: '8px', px: 1.5, py: 0.3 }}>
-                        <Rating value={venue.average_rating} readOnly precision={0.5} size="small" sx={{ '& .MuiRating-icon': { color: '#fbbf24' } }} />
+                        <Rating value={venue.average_rating} readOnly precision={0.5} size="small" name="venue-average-rating" aria-label={`امتیاز کاربران ${toPersianDigits(venue.average_rating.toFixed(1))} از ۵`} getLabelText={(v) => `${toPersianDigits(v ?? 0)} از ۵ ستاره`} sx={{ '& .MuiRating-icon': { color: '#fbbf24' } }} />
                         <Typography variant="body2" sx={{ color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>
                           {venue.average_rating.toFixed(1)}
                         </Typography>
@@ -771,7 +773,7 @@ const VenueDetail: React.FC = () => {
                       label={venue.is_verified ? 'تایید شده' : 'در انتظار تایید'}
                       color={venue.is_verified ? 'success' : 'warning'}
                       size="small"
-                      sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: venue.is_verified ? 'rgba(76,175,80,0.9)' : 'rgba(255,152,0,0.9)', color: 'white' }}
+                      sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: venue.is_verified ? 'rgba(4,120,87,0.92)' : 'rgba(180,83,9,0.92)', color: 'white' }}
                     />
                   </Box>
                 </motion.div>
@@ -834,7 +836,7 @@ const VenueDetail: React.FC = () => {
                           </Typography>
 
                           {/* Amenities */}
-                          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
+                          <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700, mb: 2 }}>
                             <Icon icon="mdi:star-outline" className="h-5 w-5 ml-1" style={{ verticalAlign: 'middle' }} />
                             امکانات
                           </Typography>
@@ -865,7 +867,7 @@ const VenueDetail: React.FC = () => {
                           <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
                             <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.10)' : 'rgba(245,158,11,0.08)'), flex: 1, minWidth: 150 }}>
                               <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>قیمت هر جلسه</Typography>
-                              <Typography variant="h5" sx={{ fontWeight: 800, color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309') }}>{formatPrice(venue.price)}</Typography>
+                              <Typography variant="h5" component="div" sx={{ fontWeight: 800, color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309') }}>{formatPrice(venue.price)}</Typography>
                             </Paper>
                             <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(37,99,235,0.05)'), flex: 1, minWidth: 150 }}>
                               <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>مدیر سالن</Typography>
@@ -952,7 +954,7 @@ const VenueDetail: React.FC = () => {
                                 <Divider sx={{ my: 2 }} />
                                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                                   <Typography variant="body2" sx={{ color: 'text.secondary' }}>قیمت:</Typography>
-                                  <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>{formatPrice(selectedSlot.price)}</Typography>
+                                  <Typography variant="h6" component="div" sx={{ fontWeight: 800, color: 'primary.main' }}>{formatPrice(selectedSlot.price)}</Typography>
                                 </Box>
                                 
                                 {/* اگر سانس پر است، دکمه ورود به صف انتظار نشان بده */}
@@ -1039,7 +1041,7 @@ const VenueDetail: React.FC = () => {
                   <Box sx={{ position: 'sticky', top: 24 }}>
                     <Card sx={{ borderRadius: `${radii.card}px`, overflow: 'hidden', boxShadow: shadows.card, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', mb: 3 }}>
                       <CardContent sx={{ p: 3 }}>
-                        <Typography variant="h6" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
+                        <Typography variant="h6" component="h3" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
                           <Icon icon="mdi:phone-in-talk" className="h-5 w-5" style={{ color: '#2563eb' }} />
                           اطلاعات تماس
                         </Typography>
@@ -1072,7 +1074,7 @@ const VenueDetail: React.FC = () => {
                           <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
                             {isGym ? 'از قیمت' : 'قیمت هر جلسه'}
                           </Typography>
-                          <Typography variant="h4" sx={{ fontWeight: 800, color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), mt: 0.5 }}>
+                          <Typography variant="h4" component="div" sx={{ fontWeight: 800, color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), mt: 0.5 }}>
                             {formatPrice(isGym ? (minPlanPrice ?? venue.price) : venue.price)}
                           </Typography>
                         </Box>
@@ -1180,6 +1182,7 @@ const VenueDetail: React.FC = () => {
       <Dialog
         open={confirmOpen}
         onClose={() => !bookingLoading && closeConfirm()}
+        aria-label="تایید رزرو"
         slotProps={{
           paper: { sx: { borderRadius: '20px', maxWidth: 400, p: 1 } }
         }}
@@ -1199,7 +1202,7 @@ const VenueDetail: React.FC = () => {
           {bookingResult ? (
             <Box>
               <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 800, color: '#059669', mb: 0.5 }}>
+                <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main', mb: 0.5 }}>
                   رزرو ثبت شد — در انتظار تأیید مدیر سالن
                 </Typography>
                 <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main' }}>

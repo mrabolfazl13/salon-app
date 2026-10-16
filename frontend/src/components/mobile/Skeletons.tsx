@@ -4,7 +4,7 @@ import { Box, Skeleton, type SkeletonProps } from '@mui/material'
 /** اسکلتون‌های استاندارد — جایگزین spinner */
 
 export const Shimmer: React.FC<SkeletonProps> = (props) => (
-  <Skeleton
+  <Skeleton aria-hidden="true"
     variant="rounded"
     animation="pulse"
     sx={{
@@ -26,7 +26,7 @@ export const VenueCardSkeleton: React.FC = () => (
       overflow: 'hidden',
     }}
   >
-    <Skeleton variant="rectangular" height={0} sx={{ aspectRatio: '16 / 10', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.05)') }} />
+    <Skeleton aria-hidden="true" variant="rectangular" height={0} sx={{ aspectRatio: '16 / 10', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.05)') }} />
     <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
       <Shimmer width="60%" height={22} />
       <Shimmer width="35%" height={16} />
@@ -50,7 +50,7 @@ export const VenueCardSkeletonList: React.FC<{ count?: number }> = ({ count = 3 
 /** اسکلتون صفحه جزئیات سالن */
 export const VenueDetailSkeleton: React.FC = () => (
   <Box>
-    <Skeleton variant="rectangular" height={260} sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.05)') }} />
+    <Skeleton aria-hidden="true" variant="rectangular" height={260} sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.05)') }} />
     <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
       <Shimmer width="55%" height={28} />
       <Shimmer width="40%" height={18} />

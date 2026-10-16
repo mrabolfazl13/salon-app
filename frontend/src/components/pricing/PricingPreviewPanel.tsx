@@ -160,7 +160,7 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
                   <Typography
                     variant="body2"
                     dir="rtl"
-                    sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', color: r.delta > 0 ? '#dc2626' : r.delta < 0 ? '#059669' : '#6b7280' }}
+                    sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', color: (th) => (r.delta > 0 ? th.palette.error.main : r.delta < 0 ? th.palette.success.main : th.palette.text.secondary) }}
                   >
                     {r.delta >= 0 ? '+' : '−'}{formatRial(Math.abs(r.delta))}
                   </Typography>
@@ -170,7 +170,7 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
           )}
           <Box sx={{ mt: 2, p: 2, borderRadius: '12px', bgcolor: 'rgba(5,150,105,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#065f46' }}>قیمت نهایی این سانس</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: '#059669', fontVariantNumeric: 'tabular-nums' }}>{formatRial(result.final_price)}</Typography>
+            <Typography variant="h6" sx={{ fontWeight: 900, color: 'success.main', fontVariantNumeric: 'tabular-nums' }}>{formatRial(result.final_price)}</Typography>
           </Box>
           {preview.isPending && <LoadingBoxCompact />}
         </Box>

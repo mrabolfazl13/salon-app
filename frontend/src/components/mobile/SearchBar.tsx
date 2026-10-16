@@ -52,11 +52,18 @@ const SearchBar: React.FC<Props> = ({
         },
       }}
     >
-      <Icon icon="mdi:magnify" style={{ width: 22, height: 22, color: dark ? '#fbbf24' : '#d97706', flexShrink: 0 }} />
+      {/* #d97706 روی سفید ۳٫۲:۱ است — حتی برای گرافیک غیرمتنی هم زیر ۳:۱؛ نسخهٔ warning.main */}
+      <Icon icon="mdi:magnify" style={{ width: 22, height: 22, color: dark ? '#fbbf24' : '#b45309', flexShrink: 0 }} />
       <InputBase
         value={value}
         onChange={(e) => onChange?.(e.target.value)}
-        onKeyDown={(e) => e.key === 'Enter' && onSubmit?.()}
+        // در حالت readOnly باکس با کلیک باز می‌شود؛ کیبورد روی خود input فوکوس است،
+        // پس Enter باید همان کار کلیک را بکند (وگرنه کنترل با کیبورد غیرقابل استفاده است)
+        onKeyDown={(e) => {
+          if (e.key !== 'Enter') return
+          if (readOnly) { if (onClick) { e.preventDefault(); onClick() } return }
+          onSubmit?.()
+        }}
         placeholder={placeholder}
         readOnly={readOnly}
         autoFocus={autoFocus}

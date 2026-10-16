@@ -128,7 +128,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
                     {TEAM_VISIBILITY_LABELS[v]}
                   </Typography>
                 }
-                sx={{ mr: 0.5 }}
+                sx={{ ms: 0.5 }}
               />
             ))}
           </RadioGroup>

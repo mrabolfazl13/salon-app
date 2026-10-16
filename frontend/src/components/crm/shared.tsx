@@ -3,11 +3,11 @@
 // پنل ۴۰۳ دوستانه و چیپ‌های مشترک کنسول CRM/کارکنان.
 
 import React from 'react'
-import { Box, Chip } from '@mui/material'
+import { Box, Chip, useTheme } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { isAxiosError } from 'axios'
 import ErrorState from '@/components/mobile/ErrorState'
-import { extractError } from '@/components/finance/shared'
+import { extractError, useStatusColor } from '@/components/finance/shared'
 import type { CrmSegment } from '@/services/crm'
 import type { StaffPosition } from '@/services/staff'
 
@@ -73,28 +73,46 @@ export const PERMISSION_LABELS: Record<string, string> = {
   'staff.audit': 'ممیزی کارکنان',
 }
 
-export const SegmentChip: React.FC<{ segment: string; small?: boolean }> = ({ segment }) => (
-  <Chip
-    size='small'
-    label={SEGMENT_LABELS[segment] ?? segment}
-    sx={{
-      borderRadius: '8px',
-      fontWeight: 700,
-      fontSize: '0.75rem',
-      height: 22,
-      bgcolor: `${SEGMENT_COLORS[segment] ?? '#6b7280'}18`,
-      color: SEGMENT_COLORS[segment] ?? '#6b7280',
-    }}
-  />
-)
+export const SegmentChip: React.FC<{ segment: string; small?: boolean }> = ({ segment }) => {
+  const { main: text, mapped } = useStatusColor(SEGMENT_COLORS[segment as CrmSegment] ?? '#6b7280')
+  return (
+    <Chip
+      size='small'
+      label={SEGMENT_LABELS[segment as CrmSegment] ?? segment}
+      sx={{
+        borderRadius: '8px',
+        fontWeight: 700,
+        fontSize: '0.75rem',
+        height: 22,
+        // متن چیپ باید ≥۴٫۵:۱ باشد؛ هگزهای تزئینی از کنفیگ رنگ، توکن سمانتیک می‌شوند
+        bgcolor: `${text}${mapped ? '1f' : '18'}`,
+        color: text,
+      }}
+    />
+  )
+}
 
-export const ConsentIcon: React.FC<{ consent: boolean }> = ({ consent }) => (
-  <Icon
-    icon={consent ? 'mdi:email-check-outline' : 'mdi:email-off-outline'}
-    className="h-4 w-4"
-    style={{ color: consent ? '#059669' : '#9ca3af' }}
-  />
-)
+export const ConsentIcon: React.FC<{ consent: boolean }> = ({ consent }) => {
+  const theme = useTheme()
+  // رنگ تنها نشانه نبود؛ صفحه‌خوان باید بداند کدام وضعیت است (جدول مشتری فقط این آیکون را دارد)
+  const color = consent ? theme.palette.success.main : theme.palette.text.secondary
+  return (
+    <Box
+      component="span"
+      role="img"
+      aria-label={consent ? 'رضایت تبلیغات ایمیلی دارد' : 'رضایت تبلیغات ایمیلی ندارد'}
+      title={consent ? 'رضایت تبلیغات: دارد' : 'رضایت تبلیغات: ندارد'}
+      sx={{ display: 'inline-flex', alignItems: 'center', color, lineHeight: 1 }}
+    >
+      <Icon
+        icon={consent ? 'mdi:email-check-outline' : 'mdi:email-off-outline'}
+        className="h-4 w-4"
+        aria-hidden="true"
+        style={{ color }}
+      />
+    </Box>
+  )
+}
 
 // ─────────────── مدیریت ۴۰۳ ───────────────
 
@@ -119,42 +137,62 @@ export function crmErrorMessage(err: unknown, fallback: string): string {
   return extractError(err, fallback)
 }
 
+/** نماد دسترسی — ماتریس CSS-grid است و <th> ندارد، پس نام متنی خود آن را می‌سازد */
+const AccessGlyph: React.FC<{ allowed: boolean; label: string }> = ({ allowed, label }) => {
+  const theme = useTheme()
+  const color = allowed ? theme.palette.success.main : theme.palette.text.secondary
+  return (
+    <Box
+      component="span"
+      role="img"
+      aria-label={`${label}: ${allowed ? 'مجاز' : 'غیرمجاز'}`}
+      sx={{ display: 'inline-flex', color }}
+    >
+      <Icon
+        icon={allowed ? 'mdi:check-circle' : 'mdi:minus-circle-outline'}
+        className="h-4 w-4"
+        aria-hidden="true"
+        style={{ color }}
+      />
+    </Box>
+  )
+}
+
 /** ردیف‌های نمودار دسترسی‌ها — بر اساس کد دسترسی (مرتب، مطابق ALL_PERMISSION_CODES) */
 export const PermissionMatrixRow: React.FC<{
   code: string
   allowedFor: Set<string>[]
-}> = ({ code, allowedFor }) => (
-  <Box
-    sx={{
-      display: 'grid',
-      gridTemplateColumns: 'minmax(0,1.6fr) repeat(4, minmax(44px,0.6fr))',
-      alignItems: 'center',
-      gap: 0.5,
-      px: 1.5,
-      py: 0.75,
-      borderBottom: '1px solid rgba(15,23,42,0.05)',
-      '&:hover': { bgcolor: 'rgba(37,99,235,0.03)' },
-    }}
-  >
-    <Box sx={{ minWidth: 0 }}>
-      <Box component="span" sx={{ fontSize: '0.78rem', fontWeight: 700 }}>
-        {PERMISSION_LABELS[code] ?? code}
+}> = ({ code, allowedFor }) => {
+  const permissionLabel = PERMISSION_LABELS[code] ?? code
+  return (
+    <Box
+      sx={{
+        display: 'grid',
+        gridTemplateColumns: 'minmax(0,1.6fr) repeat(4, minmax(44px,0.6fr))',
+        alignItems: 'center',
+        gap: 0.5,
+        px: 1.5,
+        py: 0.75,
+        borderBottom: '1px solid rgba(15,23,42,0.05)',
+        '&:hover': { bgcolor: 'rgba(37,99,235,0.03)' },
+      }}
+    >
+      <Box sx={{ minWidth: 0 }}>
+        <Box component="span" sx={{ fontSize: '0.78rem', fontWeight: 700 }}>
+          {permissionLabel}
+        </Box>
+        <Box component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary', me: 1 }} dir="ltr">
+          {code}
+        </Box>
       </Box>
-      <Box component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary', mr: 1 }} dir="ltr">
-        {code}
-      </Box>
+      {allowedFor.map((set, i) => (
+        <Box key={i} sx={{ textAlign: 'center' }}>
+          <AccessGlyph allowed={set.has(code)} label={permissionLabel} />
+        </Box>
+      ))}
     </Box>
-    {allowedFor.map((set, i) => (
-      <Box key={i} sx={{ textAlign: 'center' }}>
-        {set.has(code) ? (
-          <Icon icon="mdi:check-circle" className="h-4 w-4" style={{ color: '#059669' }} />
-        ) : (
-          <Icon icon="mdi:minus-circle-outline" className="h-4 w-4" style={{ color: '#d1d5db' }} />
-        )}
-      </Box>
-    ))}
-  </Box>
-)
+  )
+}
 // ─────────────── وضعیت رزرو ───────────────
 
 export const BOOKING_STATUS_LABELS: Record<string, string> = {
@@ -171,17 +209,20 @@ export const BOOKING_STATUS_COLORS: Record<string, string> = {
   cancelled: '#ef4444',
 }
 
-export const BookingStatusChip: React.FC<{ status: string }> = ({ status }) => (
-  <Chip
-    label={BOOKING_STATUS_LABELS[status] ?? status}
-    size="small"
-    sx={{
-      borderRadius: '8px',
-      fontWeight: 700,
-      fontSize: '0.75rem',
-      height: 20,
-      bgcolor: `${BOOKING_STATUS_COLORS[status] ?? '#6b7280'}18`,
-      color: BOOKING_STATUS_COLORS[status] ?? '#6b7280',
-    }}
-  />
-)
+export const BookingStatusChip: React.FC<{ status: string }> = ({ status }) => {
+  const { main: text, mapped } = useStatusColor(BOOKING_STATUS_COLORS[status] ?? '#6b7280')
+  return (
+    <Chip
+      label={BOOKING_STATUS_LABELS[status] ?? status}
+      size="small"
+      sx={{
+        borderRadius: '8px',
+        fontWeight: 700,
+        fontSize: '0.75rem',
+        height: 20,
+        bgcolor: `${text}${mapped ? '1f' : '18'}`,
+        color: text,
+      }}
+    />
+  )
+}

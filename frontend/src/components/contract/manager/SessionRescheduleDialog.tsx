@@ -67,7 +67,7 @@ const SessionRescheduleDialog: React.FC<Props> = ({ open, onClose, contractId, s
   }
 
   return (
-    <Dialog open={open} onClose={mutation.isPending ? undefined : onClose} maxWidth="xs" fullWidth
+    <Dialog aria-label="جابه‌جایی سانس" open={open} onClose={mutation.isPending ? undefined : onClose} maxWidth="xs" fullWidth
       slotProps={{ paper: { sx: { borderRadius: '18px' } } }}>
       <DialogTitle sx={{ fontWeight: 800, fontSize: '1rem' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>

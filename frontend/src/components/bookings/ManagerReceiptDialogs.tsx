@@ -120,7 +120,7 @@ export const ReceiptReviewDialog: React.FC<{
   }
 
   return (
-    <Dialog open={open} onClose={busy ? undefined : onClose} maxWidth="sm" fullWidth slotProps={{ paper: dialogPaper }}>
+    <Dialog aria-label="بررسی فیش واریزی" open={open} onClose={busy ? undefined : onClose} maxWidth="sm" fullWidth slotProps={{ paper: dialogPaper }}>
       <Header icon="mdi:receipt-text-check-outline" title={`بررسی فیش واریزی${venueName ? ` — ${venueName}` : ''}`} gradient="linear-gradient(135deg, #d97706, #f59e0b)" />
       <DialogContent sx={{ pt: 3, pb: 1 }}>
         {loading ? (
@@ -278,7 +278,7 @@ export const InPersonCollectDialog: React.FC<{
   }
 
   return (
-    <Dialog open={open} onClose={busy ? undefined : onClose} maxWidth="xs" fullWidth slotProps={{ paper: dialogPaper }}>
+    <Dialog aria-label="ثبت دریافت در محل" open={open} onClose={busy ? undefined : onClose} maxWidth="xs" fullWidth slotProps={{ paper: dialogPaper }}>
       <Header icon="mdi:cash-register" title={`ثبت دریافت در محل${venueName ? ` — ${venueName}` : ''}`} gradient="linear-gradient(135deg, #059669, #10b981)" />
       <DialogContent sx={{ pt: 3, pb: 1 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>

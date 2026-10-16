@@ -205,14 +205,14 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
           <EmptyBox icon="mdi:calendar-blank-outline" title="مناسبتی ثبت نشده" text="در دو سال پیشِ‌رو تعطیلی‌ای ثبت نشده است." />
         ) : (
           <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '12px', overflow: 'hidden' }}>
-            <Table size="small">
+            <Table aria-label="تعطیلات و مناسبت‌ها" size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                  <TableCell sx={{ fontWeight: 700 }}>تاریخ (جلالی)</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>روز</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>نام</TableCell>
-                  <TableCell sx={{ fontWeight: 700 }}>دامنه</TableCell>
-                  <TableCell align="center" sx={{ fontWeight: 700 }}>حذف</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>تاریخ (جلالی)</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>روز</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>نام</TableCell>
+                  <TableCell scope="col" sx={{ fontWeight: 700 }}>دامنه</TableCell>
+                  <TableCell scope="col" align="center" sx={{ fontWeight: 700 }}>حذف</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -244,7 +244,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
       </SectionCard>
 
       {/* دیالوگ افزودن تک */}
-      <Dialog open={addOpen} onClose={createHoliday.isPending ? undefined : closeAdd} slotProps={{ paper: { sx: { borderRadius: '20px', maxWidth: 420, width: '100%', p: 1 } } }}>
+      <Dialog aria-label="افزودن مناسبت" open={addOpen} onClose={createHoliday.isPending ? undefined : closeAdd} slotProps={{ paper: { sx: { borderRadius: '20px', maxWidth: 420, width: '100%', p: 1 } } }}>
         <DialogTitleSx title="افزودن مناسبت" />
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2.5 }}>
           <TextField label="نام مناسبت" value={newName} onChange={(e) => setNewName(e.target.value)} fullWidth size="small" placeholder="مثلاً: عید آکادمی" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }} />
@@ -268,7 +268,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
       </Dialog>
 
       {/* دیالوگ افزودن دسته‌ای */}
-      <Dialog open={bulkOpen} onClose={bulkHoliday.isPending ? undefined : () => setBulkOpen(false)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px' } } }}>
+      <Dialog aria-label="افزودن دسته‌ای مناسبت" open={bulkOpen} onClose={bulkHoliday.isPending ? undefined : () => setBulkOpen(false)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px' } } }}>
         <DialogTitleSx title="افزودن دسته‌ای مناسبت‌ها" />
         <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2.5 }}>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>

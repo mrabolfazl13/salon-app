@@ -170,7 +170,7 @@ export const HowItWorksSection: React.FC = () => {
           <Icon icon="mdi:lightbulb-on" style={{ width: 24, height: 24, color: '#3b82f6', flexShrink: 0 }} />
           <Typography sx={{ fontSize: '0.82rem', color: 'text.primary', flex: 1 }}>
             <strong>نکته:</strong> اولین رزروت با{' '}
-            <Box component="span" sx={{ color: '#3b82f6', fontWeight: 700 }}>
+            <Box component="span" sx={{ color: 'info.main', fontWeight: 700 }}>
               ۵۰٪ تخفیف
             </Box>{' '}
             همراهه! همین حالا شروع کن.

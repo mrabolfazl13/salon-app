@@ -250,6 +250,8 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
                   size="small"
                   onClick={(e) => setRoleMenuFor({ member: m, anchor: e.currentTarget })}
                   disabled={setRole.isPending}
+                  aria-haspopup="menu"
+                  aria-label={`تغییر نقش ${m.full_name ?? ''}`}
                   sx={{ color: '#2563eb' }}
                 >
                   <Icon icon={m.role === 'admin' ? 'mdi:shield-account' : 'mdi:shield-account-outline'} style={{ width: 18, height: 18 }} />
@@ -258,7 +260,7 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
             )}
             {removable && m.role !== 'captain' && (
               <Tooltip title={m.status === 'pending' ? 'ابطال دعوت' : 'حذف از تیم'}>
-                <IconButton size="small" onClick={() => setConfirmRemove(m)} sx={{ color: '#dc2626' }}>
+                <IconButton size="small" onClick={() => setConfirmRemove(m)} aria-label={m.status === 'pending' ? `ابطال دعوت ${m.full_name ?? ''}` : `حذف ${m.full_name ?? ''} از تیم`} sx={{ color: 'error.main' }}>
                   <Icon icon={m.status === 'pending' ? 'mdi:email-cancel-outline' : 'mdi:account-remove-outline'} style={{ width: 18, height: 18 }} />
                 </IconButton>
               </Tooltip>

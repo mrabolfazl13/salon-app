@@ -82,6 +82,9 @@ const BookingsLinkDialog: React.FC<{ team: Team; linkedIds: Set<number>; open: b
             {options.map((b) => (
               <Box
                 key={b.id}
+                component="button"
+                type="button"
+                aria-pressed={selected === b.id}
                 onClick={() => setSelected(b.id)}
                 sx={{
                   display: 'flex',
@@ -94,6 +97,15 @@ const BookingsLinkDialog: React.FC<{ team: Team; linkedIds: Set<number>; open: b
                   border: '1px solid',
                   borderColor: selected === b.id ? '#2563eb' : 'rgba(15,23,42,0.08)',
                   bgcolor: selected === b.id ? 'rgba(37,99,235,0.06)' : 'transparent',
+                  // Box به‌عنوان <button>: عرض کامل + بازتنظیم پیش‌فرض‌های مرورگر
+                  width: '100%',
+                  textAlign: 'inherit',
+                  fontFamily: 'inherit',
+                  color: 'inherit',
+                  appearance: 'none',
+                  WebkitTapHighlightColor: 'transparent',
+                  // ردیف در لیست اسکرول‌شونده: حلقه فوکوس داخل خود ردیف تا بریده نشود
+                  '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: -2 },
                 }}
               >
                 <Icon

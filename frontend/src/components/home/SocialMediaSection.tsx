@@ -8,7 +8,6 @@ interface SocialPlatformProps {
   icon: string
   name: string
   handle: string
-  followers: string
   color: string
   bgColor: string
   link: string
@@ -18,7 +17,6 @@ const SocialPlatform: React.FC<SocialPlatformProps> = ({
   icon,
   name,
   handle,
-  followers,
   color,
   bgColor,
   link,
@@ -72,16 +70,6 @@ const SocialPlatform: React.FC<SocialPlatformProps> = ({
         <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>
           @{handle}
         </Typography>
-        <Typography
-          sx={{
-            fontSize: '0.75rem',
-            color: color,
-            fontWeight: 700,
-            mt: 0.25,
-          }}
-        >
-          {followers} دنبال‌کننده
-        </Typography>
       </Box>
       <Icon icon="mdi:arrow-top-right" style={{ width: 20, height: 20, color: 'text.secondary' }} />
     </Box>
@@ -93,7 +81,6 @@ const SOCIAL_PLATFORMS = [
     icon: 'mdi:instagram',
     name: 'اینستاگرام',
     handle: 'futsal.ma',
-    followers: '۲۵.۴K',
     color: '#E4405F',
     bgColor: 'rgba(228,64,95,0.1)',
     link: 'https://instagram.com/futsal.ma',
@@ -102,7 +89,6 @@ const SOCIAL_PLATFORMS = [
     icon: 'mdi:telegram',
     name: 'تلگرام',
     handle: 'futsal_ma',
-    followers: '۱۸.۲K',
     color: '#0088cc',
     bgColor: 'rgba(0,136,204,0.1)',
     link: 'https://t.me/futsal_ma',
@@ -111,7 +97,6 @@ const SOCIAL_PLATFORMS = [
     icon: 'mdi:youtube',
     name: 'یوتیوب',
     handle: 'FutsalMa',
-    followers: '۱۲.۸K',
     color: '#FF0000',
     bgColor: 'rgba(255,0,0,0.1)',
     link: 'https://youtube.com/@FutsalMa',
@@ -162,68 +147,14 @@ export const SocialMediaSection: React.FC = () => {
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
             <Icon icon="mdi:camera" style={{ width: 24, height: 24, color: '#E4405F' }} />
             <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: 'text.primary' }}>
-              آخرین پست‌های اینستاگرام
+              پیج اینستاگرام ما
             </Typography>
           </Box>
 
-          <Box
-            sx={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(3, 1fr)',
-              gap: 1.5,
-            }}
-          >
-            {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Box
-                key={i}
-                sx={{
-                  aspectRatio: '1/1',
-                  borderRadius: '12px',
-                  bgcolor: 'rgba(0,0,0,0.05)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  cursor: 'pointer',
-                  position: 'relative',
-                  overflow: 'hidden',
-                  transition: 'all 0.3s ease',
-                  '&:hover': {
-                    transform: 'scale(1.05)',
-                    '& .overlay': {
-                      opacity: 1,
-                    },
-                  },
-                }}
-              >
-                <Icon
-                  icon="mdi:image-outline"
-                  style={{ width: 32, height: 32, color: '#9ca3af' }}
-                />
-                <Box
-                  className="overlay"
-                  sx={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    bottom: 0,
-                    bgcolor: 'rgba(0,0,0,0.5)',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 1,
-                    opacity: 0,
-                    transition: 'opacity 0.3s ease',
-                  }}
-                >
-                  <Icon icon="mdi:heart" style={{ width: 18, height: 18, color: '#fff' }} />
-                  <Typography sx={{ fontSize: '0.75rem', color: '#fff', fontWeight: 700 }}>
-                    {Math.floor(Math.random() * 500 + 100)}
-                  </Typography>
-                </Box>
-              </Box>
-            ))}
-          </Box>
+          {/* گالری پست‌ها حذف شد: بدون Instagram API فقط کادر خالی و عدد ساختگی نمایش داده می‌شد */}
+          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+            جدیدترین عکس‌ها، فیلم‌های بازی و تخفیف‌ها در پیج ما منتشر می‌شود.
+          </Typography>
 
           <Button
             fullWidth
@@ -235,12 +166,12 @@ export const SocialMediaSection: React.FC = () => {
               minHeight: 48,
               py: 1.2,
               borderRadius: '12px',
-              bgcolor: '#E4405F',
+              bgcolor: '#be185d',
               color: '#fff',
               fontWeight: 700,
               textTransform: 'none',
               '&:hover': {
-                bgcolor: '#d63384',
+                bgcolor: '#9d174d',
               },
             }}
             startIcon={<Icon icon="mdi:instagram" style={{ width: 20, height: 20 }} />}

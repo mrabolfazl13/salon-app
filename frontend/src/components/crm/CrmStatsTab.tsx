@@ -80,7 +80,7 @@ const CrmStatsTab: React.FC<Props> = ({ venueId }) => {
               stats.top_spenders.map((t, i) => (
                 <Box key={t.user_id} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.6 }}>
                   <Box sx={{ width: 22, height: 22, borderRadius: '7px', bgcolor: i === 0 ? 'rgba(217,119,6,0.14)' : 'rgba(37,99,235,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: i === 0 ? '#d97706' : '#2563eb' }}>{toPersianDigits(i + 1)}</Typography>
+                    <Typography variant="caption" sx={{ fontWeight: 800, color: (th) => (i === 0 ? th.palette.warning.main : th.palette.info.main) }}>{toPersianDigits(i + 1)}</Typography>
                   </Box>
                   <Typography variant="body2" sx={{ flex: 1, fontWeight: 600, minWidth: 0 }}>{t.full_name ?? '—'}</Typography>
                   <Typography variant="caption" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{formatRial(t.total_spend)}</Typography>

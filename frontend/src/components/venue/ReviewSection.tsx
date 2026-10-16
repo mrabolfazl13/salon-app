@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useId } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
@@ -19,6 +19,7 @@ import { useNavigate } from 'react-router-dom'
 import { reviewService, type ReviewResponse } from '@/services/review'
 import { useAuthStore } from '@/store/authStore'
 import { formatDateTime } from '@/lib/utils'
+import { toPersianDigits } from '@/lib/jalali'
 
 interface Props {
   venueId: number
@@ -38,6 +39,8 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
   const [comment, setComment] = useState('')
   const [myReview, setMyReview] = useState<ReviewResponse | null>(null)
   const [editing, setEditing] = useState(false)
+  // شناسانه یکتای برچسب دیداری امتیاز — دو نمونه ReviewSection (موبایل/دسکتاپ) هم‌زمان در DOM هستند
+  const ratingLabelId = useId()
 
   const isNormalUser = isAuthenticated && user?.role === 'user'
 
@@ -128,12 +131,20 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
     <Box>
       {/* Header with summary */}
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 1 }}>
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+        <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon="mdi:star" className="h-5 w-5" style={{ color: '#f59e0b' }} />
           نظرات کاربران
         </Typography>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Rating value={averageRating || 0} readOnly precision={0.5} size="small" />
+          <Rating
+            value={averageRating || 0}
+            readOnly
+            precision={0.5}
+            size="small"
+            name="venue-reviews-average"
+            aria-label={`امتیاز متوسط ${toPersianDigits((averageRating || 0).toFixed(1))} از ۵`}
+            getLabelText={(v) => `${toPersianDigits(v ?? 0)} از ۵ ستاره`}
+          />
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
             {averageRating ? averageRating.toFixed(1) : '—'}
           </Typography>
@@ -159,11 +170,14 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
             {editing ? 'ویرایش نظر شما' : 'نظر خود را ثبت کنید'}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>امتیاز شما:</Typography>
+            <Typography variant="body2" id={ratingLabelId} sx={{ color: 'text.secondary' }}>امتیاز شما:</Typography>
             <Rating
               value={rating}
               onChange={(_, newValue) => setRating(newValue)}
               size="medium"
+              aria-labelledby={ratingLabelId}
+              getLabelText={(v) => `${toPersianDigits(v ?? 0)} ستاره از ۵`}
+              emptyLabelText="بدون امتیاز"
             />
           </Box>
           <TextField
@@ -171,6 +185,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
             multiline
             minRows={2}
             maxRows={4}
+            label="متن نظر"
             placeholder="تجربه خود را از این مجموعه بنویسید (اختیاری)..."
             value={comment}
             onChange={(e) => setComment(e.target.value)}
@@ -266,7 +281,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                           <Chip
                             label="شما"
                             size="small"
-                            sx={{ ml: 1, height: 18, fontSize: '0.75rem', bgcolor: 'rgba(37,99,235,0.1)', color: 'primary.main', fontWeight: 700 }}
+                            sx={{ me: 1, height: 18, fontSize: '0.75rem', bgcolor: 'rgba(37,99,235,0.1)', color: 'primary.main', fontWeight: 700 }}
                           />
                         )}
                       </Typography>
@@ -275,7 +290,15 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                       </Typography>
                     </Box>
                   </Box>
-                  <Rating value={review.rating} readOnly size="small" sx={{ '& .MuiRating-icon': { fontSize: '0.9rem' } }} />
+                  <Rating
+                    value={review.rating}
+                    readOnly
+                    size="small"
+                    name={`review-${review.id}-rating`}
+                    aria-label={`امتیاز ${toPersianDigits(review.rating)} از ۵`}
+                    getLabelText={(v) => `${toPersianDigits(v ?? 0)} از ۵ ستاره`}
+                    sx={{ '& .MuiRating-icon': { fontSize: '0.9rem' } }}
+                  />
                 </Box>
                 {review.comment && (
                   <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.8, mt: 1, whiteSpace: 'pre-wrap' }}>

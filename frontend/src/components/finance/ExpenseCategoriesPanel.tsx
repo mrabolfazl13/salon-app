@@ -162,7 +162,7 @@ const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }
                 alignItems: 'center',
                 gap: 1.5,
                 p: 1.25,
-                pl: 1,
+                pe: 1,
                 borderRadius: '12px',
                 border: '1px solid rgba(0,0,0,0.05)',
                 bgcolor: cat.is_active ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.02)',

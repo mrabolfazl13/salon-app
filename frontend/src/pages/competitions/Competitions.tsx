@@ -220,7 +220,7 @@ const Competitions: React.FC = () => {
             <Grid container spacing={2} sx={{ alignItems: 'center' }}>
               <Grid size={{  xs: 12, sm: 6  }}>
                 {loadingVenues ? (
-                  <Skeleton variant="rounded" height={56} sx={{ borderRadius: '10px' }} />
+                  <Skeleton aria-hidden="true" variant="rounded" height={56} sx={{ borderRadius: '10px' }} />
                 ) : venues.length === 0 ? (
                   <Alert severity="warning" sx={{ borderRadius: '10px' }}>
                     هنوز سالنی ندارید. ابتدا از پنل مدیریت سالن‌ها سالن خود را ایجاد کنید.
@@ -271,7 +271,7 @@ const Competitions: React.FC = () => {
           <Grid container spacing={2}>
             {[1, 2, 3].map((i) => (
               <Grid size={{  xs: 12, sm: 6, md: 4  }} key={i}>
-                <Skeleton variant="rounded" height={190} sx={{ borderRadius: '16px' }} />
+                <Skeleton aria-hidden="true" variant="rounded" height={190} sx={{ borderRadius: '16px' }} />
               </Grid>
             ))}
           </Grid>
@@ -375,6 +375,7 @@ const Competitions: React.FC = () => {
       <Dialog
         open={Boolean(startTarget)}
         onClose={() => !starting && setStartTarget(null)}
+        aria-label="شروع رقابت قیمت"
         maxWidth="xs"
         fullWidth
         sx={{ '& .MuiDialog-paper': { borderRadius: '20px' } }}

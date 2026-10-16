@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
@@ -32,7 +32,6 @@ interface ApiBooking {
 
 const Dashboard: React.FC = () => {
   const theme = useTheme()
-  const navigate = useNavigate()
   const user = useAuthStore((state) => state.user)
 
   const [bookings, setBookings] = useState<ApiBooking[]>([])
@@ -120,15 +119,15 @@ const Dashboard: React.FC = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-          <Skeleton variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
           <Grid container spacing={2} sx={{ mb: 3 }}>
             {[1, 2, 3, 4].map((i) => (
               <Grid size={{ xs: 6, md: 3 }} key={i}>
-                <Skeleton variant="rounded" height={120} sx={{ borderRadius: 2 }} />
+                <Skeleton aria-hidden="true" variant="rounded" height={120} sx={{ borderRadius: 2 }} />
               </Grid>
             ))}
           </Grid>
-          <Skeleton variant="rounded" height={300} sx={{ borderRadius: 2 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={300} sx={{ borderRadius: 2 }} />
         </Container>
       </Layout>
     )
@@ -237,7 +236,8 @@ const Dashboard: React.FC = () => {
                   {recentBookings.map((b) => (
                     <Box
                       key={b.id}
-                      onClick={() => navigate(`/bookings/${b.id}`)}
+                      component={Link}
+                      to={`/bookings/${b.id}`}
                       sx={{
                         display: 'flex',
                         justifyContent: 'space-between',
@@ -246,8 +246,17 @@ const Dashboard: React.FC = () => {
                         borderRadius: 1.5,
                         bgcolor: 'rgba(0,0,0,0.02)',
                         cursor: 'pointer',
+                        // لینک: بدون زیرخط/رنگ آبی، ارتفاع لمسی و حلقهٔ فوکوس برای کیبورد
+                        textDecoration: 'none',
+                        color: 'inherit',
+                        minHeight: 44,
                         transition: 'background 0.2s',
                         '&:hover': { bgcolor: 'rgba(37,99,235,0.05)' },
+                        '&:focus-visible': {
+                          outline: '3px solid',
+                          outlineColor: 'primary.main',
+                          outlineOffset: 2,
+                        },
                       }}
                     >
                       <Box>

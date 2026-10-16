@@ -105,9 +105,9 @@ const ManagerContractDetail: React.FC = () => {
     return (
       <Layout>
         <Container maxWidth="lg" sx={{ py: 4 }}>
-          <Skeleton variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton variant="rounded" height={140} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton variant="rounded" height={320} sx={{ borderRadius: 2 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={140} sx={{ borderRadius: 2, mb: 3 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={320} sx={{ borderRadius: 2 }} />
         </Container>
       </Layout>
     )

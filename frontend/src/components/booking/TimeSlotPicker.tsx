@@ -34,6 +34,15 @@ const statusOf = (slot: TimeSlot): string => slot.status ?? (slot.available ? 'a
 const isAvailableSlot = (slot: TimeSlot): boolean => statusOf(slot) === 'available'
 const isBidableSlot = (slot: TimeSlot): boolean => statusOf(slot) === 'in_competition'
 
+// برچسب وضعیت برای نام قابل‌خواندن دکمهٔ سانس (صفحه‌خوان فقط «۱۸:۰۰» نمی‌خواند)
+const STATUS_LABEL: Record<string, string> = {
+  available: 'آزاد',
+  booked: 'پر',
+  blocked: 'مسدود',
+  reserved: 'رزرو قرارداد',
+  in_competition: 'رقابت با بقیه',
+}
+
 const formatDate = (dateStr: string) => {
   const date = new Date(dateStr + 'T00:00:00')
   const today = new Date()
@@ -125,7 +134,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
             fontWeight: 700,
             background: 'linear-gradient(135deg, #f59e0b, #7c3aed)',
             color: 'white',
-            '& .MuiChip-icon': { color: 'white', ml: '4px' },
+            '& .MuiChip-icon': { color: 'white', me: '4px' },
           }}
         />
       )
@@ -274,11 +283,24 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
 
               const card = (
                 <Paper
+                  component="button"
+                  type="button"
                   elevation={selected === slot.id ? 4 : 1}
+                  disabled={!clickable}
+                  aria-pressed={selected === slot.id}
+                  aria-label={`سانس ${slot.startTime} تا ${slot.endTime}، ${formatPrice(slot.price)} ریال، ${STATUS_LABEL[st]}`}
                   sx={{
                     p: 1.5,
                     textAlign: 'center',
                     borderRadius: '12px',
+                    // Paper به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر + ارتفاع لمسی
+                    display: 'block',
+                    width: '100%',
+                    minHeight: 96,
+                    fontFamily: 'inherit',
+                    color: 'inherit',
+                    appearance: 'none',
+                    WebkitTapHighlightColor: 'transparent',
                     cursor: clickable ? 'pointer' : 'not-allowed',
                     opacity: clickable ? 1 : 0.55,
                     border: selected === slot.id ? '2px solid' : bidable ? '1.5px solid rgba(124,58,237,0.5)' : '1px solid',
@@ -293,12 +315,16 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
                     transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
                     position: 'relative',
                     overflow: 'hidden',
+                    '&:focus-visible': {
+                      outline: '3px solid #f59e0b',
+                      outlineOffset: 2,
+                    },
                     '&::before': selected === slot.id ? {
                       content: '""',
                       position: 'absolute',
                       top: 0,
-                      left: 0,
-                      right: 0,
+                      insetInlineEnd: 0,
+                      insetInlineStart: 0,
                       height: '3px',
                       background: 'linear-gradient(90deg, #2563eb, #7c3aed)',
                     } : {},
@@ -350,7 +376,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: 'spring', stiffness: 500 }}
-                      style={{ position: 'absolute', top: 6, right: 6 }}
+                      style={{ position: 'absolute', top: 6, insetInlineStart: 6 }}
                     >
                       <Box sx={{
                         width: 18,

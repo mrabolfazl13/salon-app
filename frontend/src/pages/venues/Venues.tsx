@@ -212,7 +212,7 @@ const Venues: React.FC = () => {
         onRemove: () => setFilters((f) => ({ ...f, verifiedOnly: false })),
       })
     }
-    ;(filters.amenities ?? []).forEach((a) => {
+    (filters.amenities ?? []).forEach((a) => {
       chips.push({
         key: `am-${a}`,
         label: a,
@@ -365,7 +365,7 @@ const Venues: React.FC = () => {
                 fontWeight: 600,
                 minHeight: 44,
                 px: 1,
-                '&:hover': { color: '#ef4444' },
+                '&:hover': { color: 'error.main' },
               }}
             >
               <Icon icon="mdi:filter-remove-outline" style={{ width: 18, height: 18 }} />

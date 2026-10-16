@@ -116,6 +116,7 @@ const MembershipPurchaseDialog: React.FC<Props> = ({ plan, venueName, open, onCl
 
   return (
     <Dialog
+      aria-label="خرید اشتراک"
       open={open}
       onClose={() => step !== 'processing' && onClose()}
       fullWidth

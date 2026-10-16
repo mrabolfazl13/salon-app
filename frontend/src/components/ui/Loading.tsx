@@ -22,6 +22,10 @@ const Loading: React.FC<LoadingProps> = ({
 
   const content = (
     <Box
+      // role=status: پیشرفت بارگذاری بدون کلیک به صفحه‌خوان اعلام شود (متن با تغییر aria-busy خوانده می‌شود)
+      role="status"
+      aria-live="polite"
+      aria-busy="true"
       sx={{
         display: 'flex',
         flexDirection: 'column',
@@ -31,6 +35,7 @@ const Loading: React.FC<LoadingProps> = ({
       }}
     >
       <motion.div
+        aria-hidden="true"
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
       >

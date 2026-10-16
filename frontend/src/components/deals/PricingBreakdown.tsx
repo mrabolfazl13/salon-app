@@ -2,8 +2,8 @@
 // «جزئیات قیمت» — نمایش مرحله‌به‌مرحله‌ی pricing_breakdown پاسخ رزرو:
 // base → قوانین → (تطبیق سرور) → دیل → کوپن → امتیاز → قابل پرداخت. همه ارقام سمت سرور.
 
-import React, { useState } from 'react'
-import { Box, Collapse, IconButton, Typography } from '@mui/material'
+import React, { useId, useState } from 'react'
+import { Box, Collapse, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { formatRial } from '@/components/finance/shared'
 import { toPersianDigits } from '@/lib/jalali'
@@ -65,7 +65,7 @@ export function normalizeBreakdown(raw: unknown): BreakdownStep[] | null {
 const AmountRow: React.FC<{ label: React.ReactNode; amount: number; strong?: boolean; subRow?: boolean }> = ({ label, amount, strong = false, subRow = false }) => {
   const zero = amount === 0
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1.5, py: subRow ? 0.2 : 0.55, pl: subRow ? 3 : 0 }}>
+    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1.5, py: subRow ? 0.2 : 0.55, pe: subRow ? 3 : 0 }}>
       <Typography
         variant={subRow ? 'caption' : 'body2'}
         sx={{ color: subRow ? 'text.secondary' : strong ? '#0f172a' : '#334155', fontWeight: strong ? 800 : subRow ? 400 : 600, minWidth: 0 }}
@@ -91,6 +91,7 @@ const AmountRow: React.FC<{ label: React.ReactNode; amount: number; strong?: boo
 
 const PricingBreakdown: React.FC<{ steps: BreakdownStep[]; payable: number | null }> = ({ steps, payable }) => {
   const [open, setOpen] = useState(false)
+  const panelId = useId()
   if (!steps || steps.length === 0) return null
 
   return (
@@ -103,7 +104,12 @@ const PricingBreakdown: React.FC<{ steps: BreakdownStep[]; payable: number | nul
       }}
     >
       <Box
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
+        onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((o) => !o) } }}
         sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, px: 1.75, py: 1.25, cursor: 'pointer', userSelect: 'none' }}
       >
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
@@ -113,16 +119,16 @@ const PricingBreakdown: React.FC<{ steps: BreakdownStep[]; payable: number | nul
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
           {isNumber(payable) && (
             <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              قابل پرداخت: <b style={{ color: '#059669', fontVariantNumeric: 'tabular-nums' }}>{formatRial(payable)}</b>
+              قابل پرداخت:{' '}
+              <b style={{ color: '#047857', fontVariantNumeric: 'tabular-nums' }}>{formatRial(payable)}</b>
             </Typography>
           )}
-          <IconButton size="small" sx={{ color: '#64748b' }}>
-            <Icon icon={open ? 'mdi:chevron-up' : 'mdi:chevron-down'} style={{ width: 18, height: 18 }} />
-          </IconButton>
+          {/* ردیف خودش role=button است؛ دکمهٔ تودرتو یک tab stop تکراری می‌سازد */}
+          <Icon icon={open ? 'mdi:chevron-up' : 'mdi:chevron-down'} aria-hidden="true" style={{ width: 18, height: 18, color: '#64748b' }} />
         </Box>
       </Box>
       <Collapse in={open}>
-        <Box sx={{ px: 1.75, pb: 1.5, borderTop: '1px dashed rgba(15,23,42,0.08)' }}>
+        <Box id={panelId} sx={{ px: 1.75, pb: 1.5, borderTop: '1px dashed rgba(15,23,42,0.08)' }}>
           {steps.map((s, i) => {
             const label =
               s.step === 'coupon' && s.code

@@ -83,7 +83,7 @@ const AdminVenues: React.FC = () => {
           </Typography>
         </Box>
         {loading ? (
-          <Skeleton variant="rounded" height={90} sx={{ borderRadius: 2 }} />
+          <Skeleton aria-hidden="true" variant="rounded" height={90} sx={{ borderRadius: 2 }} />
         ) : pending.length === 0 ? (
           <Paper sx={{ p: 3, borderRadius: 2, border: `1px dashed ${theme.palette.divider}`, textAlign: 'center' }}>
             <Icon icon="mdi:check-all" className="h-6 w-6" style={{ color: '#16a34a' }} />
@@ -148,20 +148,20 @@ const AdminVenues: React.FC = () => {
         {loading ? (
           <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
             {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton key={i} variant="rounded" height={52} />
+              <Skeleton aria-hidden="true" key={i} variant="rounded" height={52} />
             ))}
           </Box>
         ) : (
           <TableContainer>
-            <Table size="small">
+            <Table aria-label="لیست سالن‌ها" size="small">
               <TableHead>
                 <TableRow sx={{ bgcolor: 'grey.50' }}>
-                  <TableCell>سالن</TableCell>
-                  <TableCell>آدرس</TableCell>
-                  <TableCell>تلفن</TableCell>
-                  <TableCell>حداقل قیمت</TableCell>
-                  <TableCell>وضعیت</TableCell>
-                  <TableCell>تاریخ ثبت</TableCell>
+                  <TableCell scope="col">سالن</TableCell>
+                  <TableCell scope="col">آدرس</TableCell>
+                  <TableCell scope="col">تلفن</TableCell>
+                  <TableCell scope="col">حداقل قیمت</TableCell>
+                  <TableCell scope="col">وضعیت</TableCell>
+                  <TableCell scope="col">تاریخ ثبت</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>

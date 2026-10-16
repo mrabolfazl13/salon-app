@@ -145,7 +145,7 @@ const FinanceConsole: React.FC = () => {
                           minWidth: 'auto',
                           px: 2,
                           borderRadius: '12px',
-                          mr: 0,
+                          ms: 0,
                           color: '#64748b',
                           transition: 'all 0.2s ease',
                           '&.Mui-selected': {

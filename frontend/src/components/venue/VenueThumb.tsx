@@ -38,7 +38,7 @@ const VenueThumb: React.FC<Props> = ({ images, name, size = 44, radius = 12 }) =
           alt={name}
           loading="lazy"
           onError={(e) => {
-            ;(e.target as HTMLImageElement).style.opacity = '0'
+            (e.target as HTMLImageElement).style.opacity = '0'
           }}
           sx={{
             position: 'absolute',

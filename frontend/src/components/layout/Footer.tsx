@@ -24,7 +24,6 @@ const Footer: React.FC = () => {
       transition={{ duration: 0.5, delay: 0.3 }}
     >
       <Box
-        component="footer"
         sx={{
           py: 4,
           px: 2,
@@ -66,7 +65,7 @@ const Footer: React.FC = () => {
                 sx={{
                   fontWeight: 800,
                   fontSize: '1rem',
-                  background: 'linear-gradient(135deg, #d97706, #ea580c)',
+                  background: 'linear-gradient(135deg, #b45309, #c2410c)',
                   WebkitBackgroundClip: 'text',
                   WebkitTextFillColor: 'transparent',
                 }}

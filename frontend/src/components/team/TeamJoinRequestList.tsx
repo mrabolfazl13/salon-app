@@ -55,7 +55,7 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
             bgcolor: 'rgba(245,158,11,0.05)',
           }}
         >
-          <Avatar sx={{ width: 36, height: 36, bgcolor: 'rgba(245,158,11,0.15)', color: '#b45309', fontSize: '0.85rem', fontWeight: 700 }}>
+          <Avatar sx={{ width: 36, height: 36, bgcolor: 'rgba(245,158,11,0.15)', color: 'warning.main', fontSize: '0.85rem', fontWeight: 700 }}>
             {getInitials(req.full_name || '؟')}
           </Avatar>
           <Box sx={{ minWidth: 0, flex: 1 }}>
@@ -71,7 +71,8 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
               size="small"
               disabled={busy}
               onClick={() => handleDecide(req, true)}
-              sx={{ bgcolor: 'rgba(16,185,129,0.12)', color: '#059669', '&:hover': { bgcolor: 'rgba(16,185,129,0.2)' } }}
+              aria-label={`تأیید درخواست عضویت ${req.full_name ?? ''}`}
+              sx={{ bgcolor: 'rgba(16,185,129,0.12)', color: 'success.main', '&:hover': { bgcolor: 'rgba(16,185,129,0.2)' } }}
             >
               <Icon icon="mdi:check-bold" style={{ width: 18, height: 18 }} />
             </IconButton>
@@ -81,7 +82,8 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
               size="small"
               disabled={busy}
               onClick={() => handleDecide(req, false)}
-              sx={{ bgcolor: 'rgba(239,68,68,0.10)', color: '#dc2626', '&:hover': { bgcolor: 'rgba(239,68,68,0.18)' } }}
+              aria-label={`رد درخواست عضویت ${req.full_name ?? ''}`}
+              sx={{ bgcolor: 'rgba(239,68,68,0.10)', color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,0.18)' } }}
             >
               <Icon icon="mdi:close" style={{ width: 18, height: 18 }} />
             </IconButton>

@@ -243,7 +243,7 @@ export const TeamQuotaProgress: React.FC<{
         />
       )}
       {showHint && !isOfficial && total > 0 && (
-        <Typography sx={{ fontSize: '0.75rem', color: '#b45309', mt: 0.5, fontWeight: 600 }}>
+        <Typography sx={{ fontSize: '0.75rem', color: 'warning.main', mt: 0.5, fontWeight: 600 }}>
           {`برای رسمی‌شدن تیم به حداقل ${toPersianDigits(total)} عضو نیاز دارید`}
         </Typography>
       )}

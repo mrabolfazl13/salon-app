@@ -1,6 +1,6 @@
 // src/pages/Search.tsx — صفحه اختصاصی جستجو: چسبان + تاریخچه + محبوب‌ها + نتایج
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Box, IconButton, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import Layout from '@/components/layout/Layout'
@@ -130,29 +130,48 @@ const Search: React.FC = () => {
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        gap: 1,
-                        px: 1.5,
-                        py: 1.25,
-                        minHeight: 48,
-                        minWidth: 48,
                         borderRadius: `${radii.button}px`,
-                        cursor: 'pointer',
                         '&:hover': { bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.04)') },
                       }}
-                      onClick={() => pickQuery(q)}
                     >
-                      <Icon icon="mdi:history" style={{ width: 20, height: 20, color: '#64748b', flexShrink: 0 }} />
-                      <Typography sx={{ flex: 1, fontSize: '0.88rem', fontWeight: 500, color: 'text.primary' }} noWrap>
-                        {q}
-                      </Typography>
+                      <Box
+                        component="button"
+                        type="button"
+                        onClick={() => pickQuery(q)}
+                        sx={{
+                          flex: 1,
+                          minWidth: 0,
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 1,
+                          px: 1.5,
+                          py: 1.25,
+                          minHeight: 48,
+                          borderRadius: 'inherit',
+                          appearance: 'none',
+                          WebkitTapHighlightColor: 'transparent',
+                          bgcolor: 'transparent',
+                          border: 0,
+                          margin: 0,
+                          fontFamily: 'inherit',
+                          fontSize: '0.88rem',
+                          fontWeight: 500,
+                          color: 'text.primary',
+                          textAlign: 'start',
+                          cursor: 'pointer',
+                          '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
+                        }}
+                      >
+                        <Icon icon="mdi:history" aria-hidden="true" style={{ width: 20, height: 20, color: '#64748b', flexShrink: 0 }} />
+                        <Typography sx={{ flex: 1, fontSize: '0.88rem', fontWeight: 500, color: 'text.primary' }} noWrap>
+                          {q}
+                        </Typography>
+                      </Box>
                       <IconButton
                         size="medium"
-                        aria-label={`حذف ${q}`}
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          remove(q)
-                        }}
-                        sx={{ width: 44, height: 44, minHeight: 44, minWidth: 44, color: '#cbd5e1', '&:hover': { color: '#ef4444' } }}
+                        aria-label={`حذف ${q} از جستجوهای اخیر`}
+                        onClick={() => remove(q)}
+                        sx={{ width: 44, height: 44, minHeight: 44, minWidth: 44, color: '#cbd5e1', '&:hover': { color: 'error.main' } }}
                       >
                         <Icon icon="mdi:close" style={{ width: 20, height: 20 }} />
                       </IconButton>
@@ -231,8 +250,6 @@ const Search: React.FC = () => {
               return (
                 <Box
                   key={v.id}
-                  component={Box}
-                  onClick={() => navigate(`/venues/${v.id}`)}
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
@@ -243,42 +260,56 @@ const Search: React.FC = () => {
                     border: '1px solid',
                     borderColor: 'divider',
                     boxShadow: shadows.card,
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: 'border-color 0.2s ease',
                     '&:hover': { borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.45)' : 'rgba(245,158,11,0.55)') },
                   }}
                 >
                   <Box
-                    component="img"
-                    src={imgs[0] ? toFullUrl(imgs[0]) : ''}
-                    alt={v.name}
-                    onError={(e) => {
-                      ;(e.target as HTMLImageElement).style.visibility = 'hidden'
-                    }}
-                    loading="lazy"
+                    component={Link}
+                    to={`/venues/${v.id}`}
                     sx={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: '14px',
-                      objectFit: 'cover',
-                      flexShrink: 0,
-                      bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)'),
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 1.5,
+                      flex: 1,
+                      minWidth: 0,
+                      p: 0,
+                      borderRadius: 'inherit',
+                      color: 'inherit',
+                      textDecoration: 'none',
+                      '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
                     }}
-                  />
-                  <Box sx={{ flex: 1, minWidth: 0 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: 'text.primary' }} noWrap>
-                      {v.name}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
-                      <Rating value={v.average_rating} count={v.total_reviews} size="sm" />
-                    </Box>
-                    <Box sx={{ mt: 0.5 }}>
-                      <Price value={v.price} from size="sm" />
+                  >
+                    <Box
+                      component="img"
+                      src={imgs[0] ? toFullUrl(imgs[0]) : ''}
+                      alt={v.name}
+                      onError={(e) => {
+                        (e.target as HTMLImageElement).style.visibility = 'hidden'
+                      }}
+                      loading="lazy"
+                      sx={{
+                        width: 64,
+                        height: 64,
+                        borderRadius: '14px',
+                        objectFit: 'cover',
+                        flexShrink: 0,
+                        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)'),
+                      }}
+                    />
+                    <Box sx={{ flex: 1, minWidth: 0 }}>
+                      <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: 'text.primary' }} noWrap>
+                        {v.name}
+                      </Typography>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
+                        <Rating value={v.average_rating} count={v.total_reviews} size="sm" />
+                      </Box>
+                      <Box sx={{ mt: 0.5 }}>
+                        <Price value={v.price} from size="sm" />
+                      </Box>
                     </Box>
                   </Box>
-                  <Box onClick={(e) => e.stopPropagation()} sx={{ flexShrink: 0 }}>
-                    <FavoriteButton venue={{ id: v.id, name: v.name }} size="sm" onImage={false} />
-                  </Box>
+                  <FavoriteButton venue={{ id: v.id, name: v.name }} size="sm" onImage={false} />
                 </Box>
               )
             })}

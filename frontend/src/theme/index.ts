@@ -259,6 +259,9 @@ function buildTheme(mode: ThemeMode): Theme {
       text: {
         primary: dark ? '#eef2f7' : '#0f172a',
         secondary: dark ? '#9aa7b8' : '#5b6472',
+        // پیش‌فرض MUI (شفاف ۰٫۳۸ ≈ ۲٫۸:۱) برای محتوای واقعی مثل زمان پایان سانس
+        // یا برچسب فیلدها استفاده می‌شود → باید ≥۴٫۵:۱ بماند
+        disabled: dark ? '#94a3b8' : '#64748b',
       },
       divider: dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)',
       grey: dark

@@ -147,6 +147,7 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
           size="small"
           multiline
           maxRows={4}
+          label="پیام"
           placeholder="پیام خود را بنویسید..."
           value={draft}
           onChange={(e) => setDraft(e.target.value)}

@@ -20,6 +20,7 @@ import type {
   TeamDuesFilters,
   TeamDuesGeneratePayload,
   TeamDuesPayPayload,
+  TeamDuesPlanPayload,
   TeamInvitePayload,
   TeamRole,
   TeamUpdatePayload,
@@ -380,6 +381,21 @@ export function useVoidTeamDue(teamId: number) {
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ['teams', teamId, 'dues'] })
       qc.invalidateQueries({ queryKey: teamKeys.balance(teamId) })
+    },
+    onError: (error) => syncOnConflict(qc, error, teamId),
+  })
+}
+
+export function useSetTeamDuesPlan(teamId: number) {
+  const qc = useQueryClient()
+  return useMutation({
+    mutationFn: (data: TeamDuesPlanPayload) => teamService.setDuesPlan(teamId, data),
+    onSuccess: () => {
+      // برنامه حق‌عضویت روی Team.dues_plan خوانده می‌شود → جزئیات و لیست‌ها باطل شوند
+      qc.invalidateQueries({ queryKey: teamKeys.detail(teamId) })
+      qc.invalidateQueries({ queryKey: teamKeys.my() })
+      qc.invalidateQueries({ queryKey: ['teams', 'discover'] })
+      qc.invalidateQueries({ queryKey: ['teams', teamId, 'audit'] })
     },
     onError: (error) => syncOnConflict(qc, error, teamId),
   })

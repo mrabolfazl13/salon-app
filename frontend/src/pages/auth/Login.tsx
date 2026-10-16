@@ -86,6 +86,7 @@ const Login: React.FC = () => {
 
   return (
     <Box
+      component="main"
       sx={{
         minHeight: '100dvh',
         display: 'flex',
@@ -189,6 +190,7 @@ const Login: React.FC = () => {
               <TextField
                 {...register('phone')}
                 placeholder="09xxxxxxxxx"
+                aria-label="شماره تلفن همراه"
                 inputMode="tel"
                 autoComplete="tel"
                 autoFocus
@@ -210,6 +212,7 @@ const Login: React.FC = () => {
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="رمز عبور"
+                aria-label="رمز عبور"
                 autoComplete="current-password"
                 error={Boolean(errors.password)}
                 helperText={errors.password?.message}

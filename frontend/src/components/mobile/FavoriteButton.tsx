@@ -23,8 +23,8 @@ const FavoriteButton: React.FC<Props> = ({ venue, size = 'md', onImage = true })
     e.stopPropagation()
     const added = toggle(venue)
     toast(added ? 'به علاقه‌مندی‌ها اضافه شد' : 'از علاقه‌مندی‌ها حذف شد', {
-      icon: added ? '❤' : undefined,
       duration: 1800,
+      icon: added ? <span aria-hidden="true">❤</span> : undefined,
     })
   }
 

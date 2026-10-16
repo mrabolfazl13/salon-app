@@ -29,10 +29,11 @@ const AppFeature: React.FC<AppFeatureProps> = ({ icon, title, description, color
       <Icon icon={icon} style={{ width: 20, height: 20, color }} />
     </Box>
     <Box>
-      <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: 'text.primary' }}>
+      {/* کارت این بخش تیره است؛ توکن‌های text.* پالت روشن روی آن ≈۱:۱ می‌شوند */}
+      <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#fff' }}>
         {title}
       </Typography>
-      <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+      <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.72)' }}>
         {description}
       </Typography>
     </Box>
@@ -69,7 +70,7 @@ export const AppDownloadSection: React.FC = () => {
             sx={{
               position: 'absolute',
               top: -80,
-              right: -80,
+              insetInlineStart: -80,
               width: 250,
               height: 250,
               borderRadius: '50%',

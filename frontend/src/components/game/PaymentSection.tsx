@@ -79,7 +79,7 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
   // حالت رایگان
   if (game.payment_mode === 'free') {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#059669' }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'success.main' }}>
         <Icon icon="mdi:gift-outline" style={{ width: 18, height: 18 }} />
         <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>این بازی رایگان است.</Typography>
       </Box>
