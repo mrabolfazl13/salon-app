@@ -22,7 +22,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/payments", tags=["Payments"])
 
 
-def _to_response(p: BookingPayment) -> PaymentResponse:
+def _to_response(p: BookingPayment, payment_url: str | None = None) -> PaymentResponse:
     return PaymentResponse(
         id=p.id,
         booking_id=p.booking_id,
@@ -35,6 +35,7 @@ def _to_response(p: BookingPayment) -> PaymentResponse:
         card_pan=p.card_pan,
         created_at=p.created_at,
         paid_at=p.paid_at,
+        payment_url=payment_url,
     )
 
 
@@ -100,23 +101,32 @@ async def pay_payment(
         raise HTTPException(status_code=403, detail="این فاکتور متعلق به شما نیست")
     if payment.status == BookingPaymentStatus.PAID:
         raise HTTPException(status_code=400, detail="این فاکتور قبلاً پرداخت شده است")
+    if payment.status == BookingPaymentStatus.REFUNDED:
+        raise HTTPException(status_code=400,
+                            detail="این فاکتور بازگشت وجه شده است؛ برای رزرو تازه اقدام کنید")
+
+    # فاکتور وقتی ساخته می‌شود رزرو تأییدشده است؛ بین ساخت فاکتور و پرداخت ممکن است
+    # رزرو لغو شده باشد (سانس آزاد و حتی فروخته شده). پول فقط برای رزروِ زنده گرفته
+    # می‌شود، وگرنه یک سانس دو نفر را دارد و درآمد بی‌سانس در دفتر کل می‌نشیند.
+    booking = uow.bookings.get_by_id(payment.booking_id)
+    if booking is None:
+        raise HTTPException(status_code=404, detail="رزرو یافت نشد")
+    if booking.status != BookingStatus.CONFIRMED:
+        raise HTTPException(status_code=400,
+                            detail="این رزرو لغو یا بسته شده و قابل پرداخت نیست")
     
     # دریافت درگاه پیکربندی‌شده
     gateway = get_payment_gateway()
     
     # اگر درگاه پیکربندی نشده، از mock استفاده کن
     if gateway is None:
-        # Mock mode for development
-        booking = uow.bookings.get_by_id(payment.booking_id)
-        slot = uow.slots.get_by_id(booking.slot_id) if booking else None
+        slot = uow.slots.get_by_id(booking.slot_id)
         uow.payments.update(payment.id, {
             "status": BookingPaymentStatus.PAID,
             "transaction_id": f"mock-{secrets.token_hex(8)}",
             "card_pan": "**** **** **** 1234",
             "paid_at": datetime.now(timezone.utc),
         })
-        if booking:
-            booking.status = BookingStatus.CONFIRMED
 
         # دفتر کل: دقیقاً همان قیدِ مسیر webhook (همان idempotency) — بدون آن رزرو
         # «پرداخت‌شده» می‌شود ولی هیچ درآمدی در دفتر کل ثبت نمی‌شود
@@ -140,7 +150,7 @@ async def pay_payment(
             current_user.id,
             title="پرداخت موفق",
             message=f"پرداخت بابت رزرو سالن {venue.name if venue else 'نامشخص'} با موفقیت انجام شد.",
-            data={"booking_id": booking.id if booking else payment.booking_id, "amount": payment.amount},
+            data={"booking_id": booking.id, "amount": payment.amount},
         )
         
         return _to_response(payment)
@@ -164,10 +174,7 @@ async def pay_payment(
         uow.commit()
         
         # بازگشت URL برای ریدایرکت کاربر به درگاه
-        return {
-            **_to_response(payment),
-            "payment_url": result["payment_url"],
-        }
+        return _to_response(payment, payment_url=result["payment_url"])
         
     except PaymentGatewayError as e:
         raise HTTPException(status_code=502, detail=f"خطا در اتصال به درگاه: {str(e)}")
@@ -226,8 +233,10 @@ async def payment_callback(
             "paid_at": datetime.now(timezone.utc),
         })
         
-        if booking:
-            booking.status = BookingStatus.CONFIRMED
+        # رزرو از این مسیر زنده نمی‌شود: اگر در فاصلۀ رفت‌وآمد با درگاه لغو شده باشد
+        # سانس آزاد (و شاید فروخته) شده، پس تأییدِ دوباره یعنی دو فروشِ یک سانس.
+        # پول در درگاه گرفته شده، بنابراین فاکتور paid می‌ماند و مدیر هشدار می‌گیرد.
+        needs_manual_refund = booking is None or booking.status != BookingStatus.CONFIRMED
         
         # دفتر کل: ثبت درآمد با idempotency
         FinanceService.record_income(
@@ -268,6 +277,21 @@ async def payment_callback(
                 data={"booking_id": payment.booking_id, "amount": payment.amount},
                 notif_type="payment",
             )
+
+        if needs_manual_refund:
+            logger.warning("Gateway captured payment %s for inactive booking %s",
+                           payment_id, payment.booking_id)
+            if venue and venue.manager_id:
+                await notification_service.send_to_user(
+                    venue.manager_id,
+                    title="⚠️ پرداخت برای رزروِ غیرفعال",
+                    message=(f"مبلغ {payment.amount:,} بابت رزرو #{payment.booking_id} "
+                             f"({venue_name} {date_str} {time_str}) دریافت شد ولی این رزرو "
+                             "فعال نیست؛ بازگشت وجه را ثبت کنید."),
+                    data={"booking_id": payment.booking_id, "payment_id": payment_id,
+                          "amount": payment.amount},
+                    notif_type="payment",
+                )
         
         return {"status": "success", "payment_id": payment_id}
         

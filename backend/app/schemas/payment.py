@@ -26,6 +26,8 @@ class PaymentResponse(BaseModel):
     card_pan: Optional[str] = None
     created_at: datetime
     paid_at: Optional[datetime] = None
+    # فقط حالت درگاه واقعی پر می‌شود: نشانی ریدایرکت کاربر به صفحۀ پرداخت
+    payment_url: Optional[str] = None
 
     class Config:
         from_attributes = True
