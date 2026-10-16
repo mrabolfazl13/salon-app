@@ -41,11 +41,133 @@ jobs:
         run: pnpm exec tsc --noEmit
 
       - name: ESLint
-        if: ${{ hashFiles('frontend/.eslintrc*', 'frontend/eslint.config.*') != '' }}
-        run: pnpm exec eslint src --ext .ts,.tsx --max-warnings 0
+        # گیت فقط خطاها را می‌شکند (هشدارها در `pnpm lint` محلی دیده می‌شوند): ۱۳۵ هشدار
+        # بدهی فنی از قبل وجود دارد و `--max-warnings 0` شغل را همیشه قرمز می‌کرد.
+        # پیکربندی eslint هم مستقیم بررسی می‌شود؛ شرط `hashFiles` قبلاً این مرحله را
+        # بی‌صدا skip می‌کرد و گیت هرگز اجرا نمی‌شد.
+        run: |
+          test -f .eslintrc.cjs -o -f eslint.config.js -o -f eslint.config.mjs || {
+            echo "::error::هیچ پیکربندی ESLint در frontend نیست؛ گیت بی‌آنکه اجرا شود سبز می‌شود"
+            exit 1
+          }
+          pnpm exec eslint src --ext .ts,.tsx --quiet
+
+      - name: Accessibility guardrails
+        # آستانه‌ها = شمارش واقعیِ امروز (۲۰۲۶-۱۰-۱۶)؛ گیت فقط از دست رفتن این
+        # ویژگی‌ها را می‌شکند، نه بدهی‌های حل‌نشده را. هر افزودن = آستانه بالاتر.
+        run: |
+          set -e
+          fail=0
+          check() {
+            local label="$1" pattern="$2" min="$3"
+            local n
+            n=$(grep -rl --include='*.tsx' --include='*.ts' --include='*.css' --include='*.js' -F "$pattern" src | wc -l)
+            if [ "$n" -lt "$min" ]; then
+              echo "::error::$label: $n فایل (< $min) — ویژگی دسترس‌پذیری حذف شده"
+              fail=1
+            else
+              echo "OK $label: $n فایل (>= $min)"
+            fi
+          }
+          check 'role="alert" برای پیام‌های خطا'      'role="alert"'              5
+          check 'aria-busy برای بارگذاری async'      'aria-busy'                 3
+          check 'aria-expanded برای disclosure'      'aria-expanded'             4
+          check 'scope="col" روی سرستون جدول'        'scope="col"'               18
+          check 'aria-hidden روی Skeleton تزئینی'    'aria-hidden="true"'        26
+          check 'احترام به prefers-reduced-motion'   'prefers-reduced-motion'    1
+          # حلقهٔ focus نباید حذف شود: مرورگر بدون این، کیبورد را نخوانا می‌کند
+          if grep -rn --include='*.tsx' -E "outline: *'none'" src; then
+            echo "::error::outline:'none' بدون جایگزین دیدنی برگشته"; fail=1
+          fi
+          # نام جدول (axe: table-filename): هر <Table> باید aria-label داشته باشد.
+          # grep روی خط کافی نیست — ویژگی‌های چندخطی با > داخل تابع sx اولین > را
+          # می‌شکنند، پس انتهای تگ با پیمایش عمقِ قلاب/براکت پیدا می‌شود.
+          if python3 - <<'PY'
+          import io, os, re, sys
+          try:
+              sys.stdout.reconfigure(encoding="utf-8")
+          except Exception:
+              pass
+          tag = re.compile(r"<Table\b")
+          total, unlabeled = 0, []
+          for dp, _d, fs in os.walk("src"):
+              for f in fs:
+                  if not f.endswith(".tsx"):
+                      continue
+                  p = os.path.join(dp, f)
+                  src = io.open(p, encoding="utf-8").read()
+                  for m in tag.finditer(src):
+                      i, depth = m.end(), 0
+                      while i < len(src):
+                          c = src[i]
+                          if c in "([{":
+                              depth += 1
+                          elif c in ")]}":
+                              depth -= 1
+                          elif c == ">" and depth == 0:
+                              break
+                          i += 1
+                      total += 1
+                      if "aria-label" not in src[m.end():i]:
+                          unlabeled.append("%s:%d" % (p, src[:m.start()].count("\n") + 1))
+          if unlabeled:
+              print("::error::%d جدول بدون aria-label: %s" % (len(unlabeled), ", ".join(unlabeled)))
+              sys.exit(1)
+          print("OK نام دسترسی‌پذیر جدول‌ها: %d/%d" % (total, total))
+          PY
+          then :; else fail=1; fi
+          # رنگ متن نباید هگز کم‌کنتراست باشد. آیکون (style={{}}) و کنفیگ‌های
+          # وضعیتی که به توکن سمانتیک نگاشت می‌شوند مستثنااند: گرافیک ۳:۱ می‌خواهد.
+          if python3 - <<'PY'
+          import io, os, re, sys
+          try:
+              sys.stdout.reconfigure(encoding="utf-8")
+          except Exception:
+              pass
+          LOW = ("#059669", "#d97706", "#ef4444")
+          hits = []
+          for dp, _d, fs in os.walk("src"):
+              for f in fs:
+                  if not f.endswith(".tsx"):
+                      continue
+                  p = os.path.join(dp, f)
+                  src = io.open(p, encoding="utf-8").read()
+                  for m in re.finditer(r"\bsx=\{\{", src):
+                      depth, i = 1, m.end()
+                      while i < len(src) and depth:
+                          if src[i] == "{":
+                              depth += 1
+                          elif src[i] == "}":
+                              depth -= 1
+                          i += 1
+                      if re.search(r"\bcolor: *'(?:%s)'" % "|".join(LOW), src[m.end():i]):
+                          hits.append("%s:%d" % (p, src[:m.start()].count("\n") + 1))
+          if hits:
+              print("::error::رنگ متن با هگز کم‌کنتراست (<4.5:1) در sx: %s" % ", ".join(hits))
+              sys.exit(1)
+          print("OK کنتراست رنگ متن: هیچ هگز کم‌کنتراستی داخل sx باقی نمانده")
+          PY
+          then :; else fail=1; fi
+          exit $fail
 
       - name: Build
         run: pnpm run build
+
+      - name: Assert no source maps shipped
+        # sourcemap فقط خارج از production — انتشار .map یعنی افشای کد منبع
+        run: |
+          if ls dist/assets/*.map >/dev/null 2>&1; then
+            echo "::error::sourcemap در بیلد production منتشر شد (dist/assets/*.map)"; exit 1
+          fi
+          echo "OK: هیچ فایل .map در dist نیست"
+
+      - name: Bundle size budget
+        # بودجهٔ حجم — از postprocess/bundle-size-monitor.py جدا نیست؛ همان اسکریپت با --ci
+        run: |
+          python3 ../monitoring/bundle-size-monitor.py \
+            --frontend-dist ./dist \
+            --thresholds ../monitoring/bundle-thresholds.json \
+            --ci
 
       - name: Upload build artifacts
         if: success()
@@ -54,6 +176,33 @@ jobs:
           name: dist
           path: frontend/dist
           retention-days: 7
+
+  unit-tests:
+    runs-on: ubuntu-latest
+    needs: lint-and-build
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install pnpm
+        uses: pnpm/action-setup@v6
+        with:
+          version: 10
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+          cache-dependency-path: frontend/pnpm-lock.yaml
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Vitest unit tests
+        run: pnpm test -- --reporter=basic
 
   e2e-tests:
     runs-on: ubuntu-latest

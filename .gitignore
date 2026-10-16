@@ -11,6 +11,9 @@ node_modules/
 .env
 .env.local
 *.env.*
+# …اما الگوهای بدون راز باید ترک شوند (backend/.env.example، frontend/.env.example)
+!*.env.example
+!*.env.*.example
 
 # Editors
 .vscode/
@@ -73,3 +76,6 @@ android_flutter/keystore-base64.txt
 *.jks
 *.keystore
 key.properties
+
+# Generated bundle-size reports (monitoring output, not source)
+frontend/monitoring/reports/

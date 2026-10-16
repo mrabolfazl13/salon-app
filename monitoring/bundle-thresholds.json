@@ -1,0 +1,7 @@
+{
+  "_note": "واحد max_chunk_mb در اسکریپت عملاً کیلوبایت است (با size_kb مقایسه می‌شود) — نام کلید از نسخهٔ اول مانده",
+  "_measured": "2026-10-15 بیلد production: total 2.97MB، بزرگ‌ترین chunk vendor-mui 397KB",
+  "max_frontend_mb": 3.6,
+  "max_chunk_mb": 460,
+  "max_backend_mb": 900
+}

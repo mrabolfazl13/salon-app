@@ -9,11 +9,16 @@ Usage:
 """
 
 import os
+import sys
 import json
 import argparse
 import subprocess
 from pathlib import Path
 from datetime import datetime
+
+# لاگ‌های این اسکریپت ایموجی دارند — روی کنسول Windows (cp1252) بدون این خط crash می‌کند
+if hasattr(sys.stdout, "reconfigure"):
+    sys.stdout.reconfigure(encoding="utf-8")
 
 
 def get_frontend_size(dist_path: str) -> dict:
