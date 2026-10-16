@@ -706,6 +706,55 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 
 ---
 
+### C6 تحلیل بین-سالنه (P007) — راند ۱۰ ✅ کد + تست (راستی‌آزمایی prod منتظر X6)
+
+- [x] C6.1 endpoint تجمیعی `GET /finance/venue-comparison` (یک ردیف به ازای هر سالنِ دامنه)
+- [x] C6.2 پنل فارسی «مقایسهٔ سالن‌ها» در داشبورد مالی (جدول دسکتاپ + کارت موبایل)
+- [x] C6.3 ⛔ نه ML و نه forecast — این برش **گزارش توصیفی** است: رتبه، سهم، دلتای بازهٔ قبل
+
+- **بک‌اند (`backend/`):**
+  - `TransactionRepository.venue_rollups()` — تک کوئریِ grouped روی `FinancialTransaction.venue_id`
+    با `venue_id IS NOT NULL`. دلیل ساختِ متد جدید به‌جای `series_grouped("venue")`: آن متد ردیف‌های
+    بی‌سالن را با کلید رشته‌ای `"None"` برمی‌گرداند و در مقایسهٔ بین‌سالنه سمّی است.
+    **هر سه عدد روی یک جامعه:** درآمد، هزینه و *تعداد* ردیف همگی VOIDED را بیرون می‌گذارند؛ تست
+    `test_voided_and_null_venue_rows_never_count` همین را می‌شکند (نسخۀ اول `count()` خام بود و
+    تعداد ۴ در برابر درآمدِ ۳ ردیف می‌داد — با همان تست گرفته شد).
+  - `BookingRepository.venue_rollups()` — رزرو/لغو/درآمد/مشتریان یکتا از **`Booking`** (نه `Slot.status`)،
+    با همان قاعدۀ C5: شمارش پول‌شده فقط `CONFIRMED/COMPLETED`، ولی نرخ لغو به `CANCELLED` هم نیاز دارد
+    ⇒ `customers` با `count(distinct case(...))` فقط رزروهای پرداخت‌شده را می‌شمارد.
+  - `FinanceService.venue_comparison()` — **بازهٔ قبلی هم‌طول** را خودش می‌سازد
+    (`prev_to = from-1`, `prev_from = prev_to-(span-1)`) و در پاسخ می‌گذارد؛ UI هیچ دلتایی محلی حساب
+    نمی‌کند. دامنه از همان `_scope()` قبلی می‌آید: super_admin ⇒ همهٔ سالن‌ها و `venue_ids: null`،
+    مدیر ⇒ فقط سالن‌های خودش، سالن غریبه ⇒ ۴۰۳، کارکنان ⇒ `venue_id` الزامی (۴۰۳ بدون آن).
+  - صداقت اعداد: `avg_per_booking = null` وقتی رزروی نیست (نه ۰ ریال)؛ سالنِ بدون هیچ فعالیتی هم
+    ردیف صفر می‌گیرد تا «کمبود داده» با «حذف شده» یکی نشود؛ `share_pct` مخرجش درآمد *همان دامنه* است.
+  - مرتب‌سازی و `rank` سمت سرور (`-net`, سپس `-income`, سپس `venue_id`) ⇒ UI فقط نمایش می‌دهد.
+  - مهاجرت: **ندارد** — فقط کوئری روی `FinancialTransaction`/`Booking`/`Slot` موجود.
+- **فرانت (`frontend/`):**
+  - `services/finance.ts` → `getVenueComparison()` + تایپ‌های `VenueComparison*`؛
+    `hooks/useFinance.ts` → `financeKeys.venueComparison` و `useVenueComparison` (زیر دامۀ
+    `['finance']` ⇒ با هر mutation مالی خودکار refresh می‌شود).
+  - `components/finance/VenueComparisonPanel.tsx` داخل سربرگ داشبورد، با **همان فیلتر بازه/سالن**
+    (`scope` از `FinanceDashboardTab` پاس می‌شود — منبع فیلتر یکی می‌ماند).
+  - جدول دسکتاپ (`useAboveSm`) و کارت موبایل؛ رنگ فقط مکمل است: هر سلول دلتا متن ▲/▼ و رقم کامل دارد،
+    `aria-label="مقایسهٔ سالن‌ها"` روی جدول، و «—» به‌جای صفر برای سالن بی‌رزرو.
+- **معیار (شاهد، ۲۰۲۶-۱۰-۱۶ — همگی سطح unit/CI، نه prod):**
+  | گیت | نتیجه |
+  |---|---|
+  | `pytest tests/test_finance_venue_comparison.py` | **۱۳ passed** در 1.23s |
+  | `pytest` (رگرسیون کامل بک‌اند) | **۶۲۶ passed** در 107.64s (۶۱۳ قبل + ۱۳) |
+  | `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` |
+  | `app.openapi()['paths']` | **۲۳۸** (۲۳۷ قبل) — `/api/v1/finance/venue-comparison` |
+  | `tsc --noEmit` / `eslint --quiet` | exit **0** / exit **0** |
+  | `vitest run` | **۱۵۸ passed در ۱۸ فایل** (۱۰ جدید: `VenueComparisonPanel.test.tsx`) |
+  | `vite build` | `✓ built in 26.47s`، `FinanceConsole` chunk = 55.24 kB (gzip 15.02) |
+  | راستی‌آزمایی زنده روی prod | **مسدود (X6)** — prod از این ماشین قابل دسترس نیست |
+- **نکتۀ صداقت:** این برش **فقط‌خواندنی** است و هیچ مسیر نوشتن/قیمت‌گذاری را تغییر نمی‌دهد؛
+  شمارش ۶۲۶ و ۱۵۸ روی SQLite و jsdom است — روی PostgreSQL پرود (با دادهٔ چند-سالنهٔ واقعی) هنوز
+  اجرا نشده، چون deploy منتظر X6 است.
+
+---
+
 ## Track D — UI/دسترس‌پذیری/موبایل (P015، P016)
 
 > **وضعیت ۲۰۲۶-۱۰-۱۶: کل Track D بسته شد** — هم با شمارش گرپی روی ۲۲۸ فایل `src/**.tsx` و هم با
@@ -826,7 +875,7 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 | «Typography `variant="h1..h6"` بدون `component=` → `<div>`» | MUI این variantها را به عنصر عنوان واقعی نگاشت می‌کند (`Typography.js:102,141`) | راستی‌آزمایی axe `heading-order`/`page-has-heading-one` |
 
 ### درس‌های هارنس (تا دوباره عدد ساختگی گزارش نشود)
-`Page.bringToFront` قبل از axe (ورودی Frumer否则 `opacity:0`) · ۱۲s انتظار برای روت lazy (با ۹s فقط ۷ pass گرفته شد و نتیجه باطل بود: `landmark-one-main` نادرست گزارش شد) · نرمال‌سازی کنتراست با `c/255` قبل از تابع انتقال sRGB · آستانهٔ luminance برای عبور ۴.۵:۱ در برابر سفید ≤ ۰.۱۸۳۳ · لایه‌های گرادیانی و تصویر در axe «incomplete»اند نه fail ⇒ نمونه‌برداری پیکسل · لنگر برش با `data-a11y` · کنتراست نمی‌تواند overlay خواهر را ببیند · پایپ‌لاین Node را با `pnpm exec` محلی بسنج (این‌جا `eslint` با `pnpm exec` exit 127 می‌دهد؛ `pnpm run lint` درست است) · ذخیرهٔ `html`/`failureSummary` در خروجی axe وگرنه تشخیص نود غیرممکن است.
+`Page.bringToFront` قبل از axe (ورودی Frumer در غیر این صورت `opacity:0`) · ۱۲s انتظار برای روت lazy (با ۹s فقط ۷ pass گرفته شد و نتیجه باطل بود: `landmark-one-main` نادرست گزارش شد) · نرمال‌سازی کنتراست با `c/255` قبل از تابع انتقال sRGB · آستانهٔ luminance برای عبور ۴.۵:۱ در برابر سفید ≤ ۰.۱۸۳۳ · لایه‌های گرادیانی و تصویر در axe «incomplete»اند نه fail ⇒ نمونه‌برداری پیکسل · لنگر برش با `data-a11y` · کنتراست نمی‌تواند overlay خواهر را ببیند · پایپ‌لاین Node را با `pnpm exec` محلی بسنج (این‌جا `eslint` با `pnpm exec` exit 127 می‌دهد؛ `pnpm run lint` درست است) · ذخیرهٔ `html`/`failureSummary` در خروجی axe وگرنه تشخیص نود غیرممکن است.
 
 ---
 
@@ -853,10 +902,27 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
    `tail -15` وقتی خلاصه‌ای نیست (کرش/خطای collection) و در `backend-tests.yml` هم `tee pytest.log`
    + استپ annotation اضافه شد. بدنهٔ لاگ از این ماشین خوانده نمی‌شود (401 روی Azure Blob با
    توکن `/logs`؛ 404 وقتی شناسۀ job با run اشتباه می‌شود)، پس annotation تنها مسیر دیدن است.
-4. **Flutter iOS build:** هنوز قرمز و دست‌نخورده — در این راند بررسی نشد (تنها annotation موجود
-   `Process completed with exit code 1` است؛ گام شکست `Build iOS (no codesign for CI)`).
-5. **`Workers Builds: salon-app`:** قرمز با **۰ annotation** ⇒ از این ماشین چیزی برای دیدن ندارد
-   (لاگ‌ها ۴۰۱ می‌دهند)؛ برای دیدن علت باید خروجی را به annotation کشید (کار بعدی، نه این راند).
+4. **Flutter iOS build:** **سبز شد (۲۰۲۶-۱۰-۱۶، راند ۱۰)** — سه گام لازم بود:
+   - *قابل دیدن کردن:* استپ `Surface iOS build errors` خط‌های `error:` را one-per-annotation می‌کند
+     و build از `-v` خارج شد؛ run `38917244529` بلافاصله **۱۳ annotation** داد (قبلاً فقط
+     `Process completed with exit code 1`). علت واقعی: `builtin-precompileModule` با
+     `-Werror=non-modular-include-in-framework-module` روی `firebase_messaging.FLTFirebaseMessagingPlugin`.
+   - *اولین تلاش (کافی نبود):* `ios/Podfile` تازه با `use_modular_headers!` و `post_install` روی
+     همهٔ pod targetها ⇒ run `38918346666` **همون خطا** را دوباره داد. شاهد از لاگ: دستور شکست‌خورده
+     `-D COCOAPODS=1` و defineهای nanopb داشت که از `Pods-Runner.release.xcconfig` می‌آیند ⇒
+     آن precompile job مال **هدف Runner** است، نه pod؛ پس تنظیمِ pod هرگز به آن نمی‌رسد.
+   - *رفع:* `CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES` در
+     `ios/Flutter/Release.xcconfig` و `Debug.xcconfig` (همان‌جا که Flutter آن را include می‌کند)،
+     + استپ شاهد `Show iOS build settings` که `xcodebuild -showBuildSettings` هدف Runner را grep می‌کند
+     و `::notice::IOS-SET ...` یا `::error::IOS-SET-MISSING` می‌زند تا راند بعد **جعلی‌ناپذیر** باشد.
+   - نتیجهٔ اندازه‌گیری‌شده برای SHA `2d28ebd`: run `38920184082` ⇒ `IOS JOB: completed / success`،
+     annotationها: `IOS-SET  CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES`،
+     `IPHONEOS_DEPLOYMENT_TARGET = 15.0`. (تذکر: سقف annotationها وجود دارد؛ لاگ کامل ۱۹٬۴۳۲ خط بود
+     و فقط با دانلود مستقیم blob خوانده شد.)
+5. **`Workers Builds: salon-app`:** **بیرونی است، نه خرابی این ریپو** — ممیزی: در
+   `.github/workflows/` هیچ workflow ای با این نام (و هیچ ارجاعی به `workers`) نیست و پوشهٔ
+   `workers/` هم در ریشه وجود ندارد. این check از GitHub App حساب است، پس از این ریپو قابل رفع نیست؛
+   قبلاً «۰ annotation ⇒ دیدنی ندارد» ثبت شده بود و حالا علتش قطعی شد.
 
 ### دو شکست واقعی بک‌اند که annotationهای تازه بیرون دادند (۲۰۲۶-۱۰-۱۶)
 استپ لنگاردار که در بالا اضافه شد، دقیقاً دو خط را نشان داد (قبلاً فقط warningهای Pydantic دیده
