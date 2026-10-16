@@ -29,6 +29,7 @@ from .coupon import Coupon, CouponRedemption, CouponType
 from .loyalty import LoyaltyPoint, LoyaltyReason
 from .favorite import FavoriteVenue
 from .staff import StaffAssignment, SecurityAuditEvent
+from .staff_shift import StaffShift, ShiftStatus
 from .customer import VenueCustomer, CrmCampaign
 from .team import (
     Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamBooking, TeamDues,
@@ -80,6 +81,7 @@ __all__ = [
     "TeamSplitPayment", "SplitPaymentShare", "SplitPaymentAuditEvent",
     "SplitMethod", "SplitPaymentStatus", "ShareStatus",
     "StaffAssignment", "SecurityAuditEvent",
+    "StaffShift", "ShiftStatus",
     "VenueCustomer", "CrmCampaign",
     "QuizQuestion", "QuizAttempt",
     "WaitlistEntry",

@@ -1,11 +1,15 @@
 # فایل تسک اجرای FINAL_REVIEW (breakdown ریز، قابل پیگیری)
 
-**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۴ — C2 تورنمنت/براکت) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۵ — C3 شیفت پرسنل) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**وضعیت راند ۵:** C3 ✅ کد + تست (بک‌اند **۴۷۳ passed در ۱۰۶.۸۸s** از ۲۱ تست جدید شیفت، فرانت
+**۸۵ passed در ۱۲ فایل** از ۱۷ تست جدید، `tsc` ۰ · `eslint` ۰ · build ✓ ۱۹.۶۰s بدون `.map` ·
+دروازۀ ruff `E9,F82` پاک · **۲۲۹** مسیر OpenAPI با ۵ مسیر `/shifts*` · مهاجرت `m0s023` چرخهٔ
+up/down/up را سالم گذراند).
 **وضعیت راند ۴:** C2 ✅ کد + تست (بک‌اند **۴۵۲ passed در ۹۷.۷۹s**، فرانت **۶۸ passed در ۱۰ فایل**،
 `tsc` ۰ · `eslint` ۰ · build ✓ ۲۰.۱۴s بدون `.map` · دروازۀ ruff `E9,F82` پاک · ۲۲۴ مسیر OpenAPI).
 **وضعیت راند ۳:** Track A ✅ (جز A9.1=X5) · Track B ✅ (جز B7.2=X8) · **Track D ✅ کامل** — axe-core روی
 ۶ مسیر عمومی: **۰ نود نقض**؛ گیت‌ها: `tsc` ۰ · `eslint` ۰ · ۳۷ تست vitest · build ✓ ۵۳.۰۶s بدون `.map`.
-باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: C3/C4/C5.1-C5.2 و X1–X8.
+باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: C4/C5.1-C5.2، برش‌های C2.5 و X1–X8.
 **قانون:** هیچ تسکی بدون «معیار راستی‌آزمایی» بسته نمی‌شود. `✅` = انجام و راستی‌آزمایی‌شده، `🟡` = کد نوشته، در انتظار CI/راستی‌آزمایی، `⛔` = مسدود (تصمیم کاربر/دسترسی بیرونی).
 
 ---
@@ -27,9 +31,10 @@
 | `grep "color:'#059669'"` = ۰ (D6.2) | **معیار باطل** — آیکون‌ها (۳:۱) و ورودی‌های نگاشتِ توکن را هم می‌شمرد؛ جانشین: گاردریل CI با پیمایش بدنهٔ `sx={{…}}` |
 | صفحهٔ سالن سالم است | **باگ تولیدی** در دسکتاپ: عنوان/برچسب/آدرس سالن پشت `overflow:hidden` و تصویرِ هم‌جریان **نامرئی** بود (D13؛ با `elementFromPoint` ثابت شد) |
 
-**۴ مورد عملاً غایب (وضعیت ۲۰۲۶-۱۰-۱۶):** تقویم `.ics` ساخته شد (B1)، نقش مربی کامل شد (C1) و
-تورنمنت/براکت تک‌حذفی ساخته شد (C2 — بک‌اند ۳۰ تست + فرانت ۲۰ تست، ۴۵۲ تست بک‌اند و ۶۸ تست فرانت سبز)؛
-باقی‌مانده: **شیفت پرسنل (C3)** و برش‌های C2.5 (Double-Elimination/Round-Robin).
+**۴ مورد عملاً غایب (وضعیت ۲۰۲۶-۱۰-۱۶):** تقویم `.ics` ساخته شد (B1)، نقش مربی کامل شد (C1)،
+تورنمنت/براکت تک‌حذفی ساخته شد (C2) و **شیفت پرسنل ساخته شد (C3 — بک‌اند ۲۱ تست + فرانت ۱۷ تست؛
+رگرسیون ۴۷۳ تست بک‌اند و ۸۵ تست فرانت سبز)**. باقی‌ماندۀ واقعی فقط برش‌های C2.5
+(Double-Elimination/Round-Robin) و C4/C5 است.
 **باگ قطعی و بزرگ (رفع شد — A1):** ۴ endpoint نوتیفیکیشن در بک‌اند وجود ندارد
 (`backend/app/api/v1/notifications.py:16,32` فقط fcm-token) ولی فرانت این‌ها را صدا می‌زند
 (`frontend/src/services/notification.ts:20,25,30,35`) → پنل اعلان‌ها ۴۰۴ می‌گیرد؛ درحالی‌که
@@ -340,10 +345,54 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   باید روی سرور run شود (X6 = نیازمند تأیید صریح کاربر) و دامنهٔ `api.salon.absadeghi.ir` از این
   ماشین resolve نمی‌شود (`curl` ⇒ exit 6)، پس راستی‌آزمایی زندهٔ UI/HTTP مسدود است.
 
-### C3 شیفت پرسنل (P020 — واقعاً غایب)
-- [ ] C3.1 مدل `StaffShift` + تشخیص تعارض
-- [ ] C3.2 API + UI هفتگی drag-free (اول نسخهٔ فرمی)
-- **معیار:** تعارض شیفت رد می‌شود؛ خروجی ماهانه قابل خروج.
+### C3 شیفت پرسنل (P020) — ✅ کد + تست (راستی‌آزمایی prod منتظر X6)
+- [x] C3.1 مدل `StaffShift` + تشخیص تعارض
+- [x] C3.2 API + UI هفتگی drag-free (نسخهٔ فرمی)
+- **شاهد (۲۰۲۶-۱۰-۱۶، همه اجراشده):**
+  - بک‌اند: `pytest tests/test_shifts.py` → **۲۱ passed در 1.24s**؛ رگرسیون کامل `pytest` →
+    **۴۷۳ passed در 106.88s** (۴۵۲ قبل + ۲۱ جدید)؛ دروازۀ `ruff check app/ tests/ migrations/
+    --select E9,F82` → `All checks passed!`
+  - قرارداد API: `app.openapi()['paths']` = **۲۲۹** که **۵ مسیر / ۶ عملیات** آن `/shifts*` است
+    (`GET /shifts`، `GET /shifts/summary`، `GET /shifts/export`، `POST /shifts`،
+    `PUT /shifts/{id}`، `POST /shifts/{id}/cancel`). فیلترهای بازه با **alias** `from`/`to`
+    می‌خوانده می‌شوند (نام پایتونشان `date_from`/`date_to` است).
+  - قاعدۀ تعارض (تست‌شده): کلید روی **شخص** است نه سالن — `overlapping()` بدون فیلتر `venue_id`
+    و فقط وضعیت‌های ≠ `cancelled`؛ مجاورت مجاز (`starts_at < ends_at AND ends_at > starts_at`)،
+    کف/سقف مدت **۱۵ دقیقه تا ۱۲ ساعت**، و شیفتِ عبورکننده از نیمه‌شب هم گرفته می‌شود. دو تست
+    مرز را ثابت می‌کنند: `test_overlap_across_two_venues_is_rejected` (ارسال دوم از مدیر سالن B
+    ⇒ ۴۰۰ با متن «تعارض شیفت»، چون دروازۀ هر سالن جداست ولی تعارض سراسری) و
+    `test_reception_staff_without_staff_manage_gets_403` / `test_plain_user_without_staff_code_gets_403`
+    (کد `staff.manage` لازم است؛ `test_branch_manager_staff_can_plan_shifts` سبز بودنش را).
+  - مهاجرت: `migrations/versions/m0s023_staff_shifts.py` (تک‌سر روی `m0s022tournaments`) با چرخهٔ
+    upgrade→downgrade→upgrade روی DB تازه ⇒ `current = m0s023staffshifts (head)`،
+    **۱۰ ستون** (`status VARCHAR(9)` — enum با NAME persist می‌شود)، **۵ ایندکس**، **۳ FK**
+    (`venues`, `users` برای `user_id`, `users` برای `created_by`) و downgrade چیزی باقی نگذاشت.
+    عمداً **FK به `staff_assignments` ندارد** تا تاریخچۀ شیفت با حذف انتصاب نمیرد (در docstring
+    مدل توضیح داده شده).
+  - ممیزی: تنها `shift.export` در `SecurityAuditEvent` ثبت می‌شود (خروج داده از سیستم) — همان
+    رویۀ کنسول مالی؛ تست `test_export_is_audited` با `select(SecurityAuditEvent)` شمارش می‌کند.
+  - فرانت: `tsc --noEmit` exit 0 · `eslint --quiet` exit 0 · `vitest run` → **۸۵ passed / ۱۲ فایل**
+    (۱۷ مورد جدید: `services/shift.test.ts` ۵، `pages/manager/shifts/ManagerShifts.test.tsx` ۱۲) ·
+    `vite build` ⇒ `✓ built in 19.60s`، `dist/assets/*.map` = **۰**، chunk جدید
+    `ManagerShifts-*.js`.
+  - UI: `pages/manager/shifts/ManagerShifts.tsx` — جدول شنبه‌محور (۷ روز × پرسنل فعال)،
+    سلول/چیپ/دکمه با `data-testid` (`shift-cell-{user}-{day}`، `shift-chip-{id}`،
+    `shift-add-{user}-{day}`)، دیالوگ فرمی (بدون drag&drop)، KPI ساعت کاری (لغوشده‌ها خارج)،
+    انتخاب ماه + «خروجی CSV ماهانه» (`downloadBlob`). **چرا رشته‌برش به‌جای `new Date`:**
+    بک‌اند `+03:30` می‌فرستد؛ تبدیل محلیِ دستگاه شیفت ۰۰:۳۰ تهران را به روز قبل می‌انداخت —
+    تست `puts the shift on the Tehran wall-clock day, not the UTC one` همین را قفل می‌کند.
+  - خروج CSV: هدر فارسی + BOM (`\ufeff`) و `Content-Disposition: attachment`؛ `month` با
+    الگوی `^\d{4}-\d{2}$` (خلاف ⇒ ۴۲۲ — تست‌شده). انحراف آگاهانۀ از هدر انگلیسیِ کنسول مالی:
+    مخاطب این فایل مدیر سالن است.
+  - دسترسی: روت lazy `/manager/shifts` پشت `ProtectedRoute requiredRole="venue_manager" allowStaff`؛
+    ورودی‌ها: `Navbar.tsx` navItem (مدیر و کارمند) + منوی آواتار، tile «شیفت پرسنل» در
+    `ManagerDashboard.tsx`. دامنهٔ سالن‌ها از `useManagedVenues()` و فیلتر `staff.manage`؛
+    دروازۀ واقعی روی بک‌اند است (فرانت فقط ناوبری را باز/بسته می‌کند). نوار پایین عمداً تغییر
+    نکرد (سقف ۵ آیتم).
+- **معیار:** تعارض شیفت رد می‌شود؛ خروجی ماهانه قابل خروج. — **محقق‌شده در تست** (تعارض ⇒ ۴۰۰ با
+  متن فارسی و باز ماندن پنجره پس از لغو؛ خروجی ⇒ blob با BOM و هدر فارسی). **روی prod هنوز اجرا
+  نشده:** مهاجرت `m0s023` باید روی سرور run شود (X6 = نیازمند تأیید صریح کاربر) و دامنهٔ
+  `api.salon.absadeghi.ir` از این ماشین resolve نمی‌شود (`curl` ⇒ exit 6).
 
 ### C4 حریف‌یابی هوشمند (P010 — بخشی هست)
 - [ ] C4.1 امتیاز تطبیق بر پایهٔ رتبه/سطح/منطقه/زمان در `team_service.py:269`

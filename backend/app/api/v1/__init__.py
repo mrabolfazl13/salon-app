@@ -20,6 +20,7 @@ from .favorites import router as favorites_router
 from .deals import router as deals_router
 from .teams import router as teams_router
 from .staff import router as staff_router
+from .shift import router as shift_router
 from .crm import router as crm_router
 from .quiz import router as quiz_router
 from .waitlist import router as waitlist_router
@@ -53,6 +54,7 @@ __all__ = [
     "deals_router",
     "teams_router",
     "staff_router",
+    "shift_router",
     "crm_router",
     "quiz_router",
     "waitlist_router",

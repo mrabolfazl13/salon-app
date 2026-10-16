@@ -830,6 +830,16 @@ const ManagerDashboard: React.FC = () => {
       href: '/finance',
       hint: 'داشبورد مالی و تراکنش‌ها',
     },
+    {
+      label: 'شیفت پرسنل',
+      value: 'برنامهٔ هفتگی',
+      icon: 'mdi:calendar-clock',
+      gradient: 'linear-gradient(135deg, #0891b2, #22d3ee)',
+      lightBg: 'rgba(8,145,178,0.08)',
+      color: '#0891b2',
+      href: '/manager/shifts',
+      hint: 'تعارض‌گیر + خروجی ماهانه',
+    },
   ]
 
   const getVenueName = (venueId: number) => {

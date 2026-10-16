@@ -57,6 +57,7 @@ from app.models.team import (
     TeamAuditEvent, TeamMessage,
 )
 from app.models.staff import StaffAssignment, SecurityAuditEvent
+from app.models.staff_shift import StaffShift
 from app.models.customer import VenueCustomer, CrmCampaign
 from app.models.quiz import QuizQuestion, QuizAttempt
 from app.models.split_payment import TeamSplitPayment, SplitPaymentShare, SplitPaymentAuditEvent
@@ -152,6 +153,7 @@ _TABLES_CLEAN_ORDER = [
     GamePayment, GameWaitlist, GameInviteLink, GameInvitation,
     GameJoinRequest, GameParticipant, Game,
     ContractAuditEvent, ContractPayment, ContractSlot,
+    StaffShift,
     StaffAssignment, SecurityAuditEvent, CrmCampaign, VenueCustomer,
     WaitlistEntry, Review,
     PriceCompetition,

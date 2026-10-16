@@ -29,6 +29,7 @@ from app.repositories.waitlist_repository import WaitlistRepository
 from app.repositories.waitlist_repository import WaitlistRepository
 from app.repositories.staff_repository import (StaffAssignmentRepository,
                                                  SecurityAuditEventRepository)
+from app.repositories.shift_repository import StaffShiftRepository
 from app.repositories.customer_repository import (VenueCustomerRepository,
                                                   CrmCampaignRepository)
 from app.repositories.team_repository import (
@@ -302,6 +303,12 @@ class UnitOfWork:
         if "security_audits" not in self._repositories:
             self._repositories["security_audits"] = SecurityAuditEventRepository(self.session)
         return self._repositories["security_audits"]
+
+    @property
+    def shifts(self) -> "StaffShiftRepository":
+        if "shifts" not in self._repositories:
+            self._repositories["shifts"] = StaffShiftRepository(self.session)
+        return self._repositories["shifts"]
 
     @property
     def customers(self) -> VenueCustomerRepository:

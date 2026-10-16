@@ -47,6 +47,7 @@ const ManagerContractDetail = lazy(() => import('@/pages/manager/contracts/Manag
 const ManagerTeams = lazy(() => import('@/pages/manager/teams/ManagerTeams'))
 const ManagerCrm = lazy(() => import('@/pages/manager/crm/ManagerCrm'))
 const ManagerCheckin = lazy(() => import('@/pages/manager/ManagerCheckin'))
+const ManagerShifts = lazy(() => import('@/pages/manager/shifts/ManagerShifts'))
 const CoachDashboard = lazy(() => import('@/pages/coach/CoachDashboard'))
 const Teams = lazy(() => import('@/pages/teams/Teams'))
 const Tournaments = lazy(() => import('@/pages/tournaments/Tournaments'))
@@ -248,6 +249,8 @@ function AppRoutes() {
             {/* کنسول مشتریان/پرسنل — گیت لاگین؛ کارمندِ انتصابی (role=user) هم باز می‌کند و ۴۰۳ بک‌اند با پنل دوستانه مدیریت می‌شود */}
             <Route path="/manager/crm" element={<ProtectedRoute><ManagerCrm /></ProtectedRoute>} />
             <Route path="/manager/checkin" element={<ProtectedRoute requiredRole="venue_manager"><ManagerCheckin /></ProtectedRoute>} />
+            {/* شیفت پرسنل (P020) — گیت بک‌اند کد staff.manage است؛ کارمندِ دارای این کد هم باز می‌کند */}
+            <Route path="/manager/shifts" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerShifts /></ProtectedRoute>} />
             {/* پنل مربی — نقش coach (بک‌اند هم در /coach/* گیت نقش دارد) */}
             <Route path="/coach" element={<ProtectedRoute requiredRole="coach"><CoachDashboard /></ProtectedRoute>} />
             {/* /manager/finance قدیمی به کنسول مالی جدید منتقل شده — مسیر legacy ریدایرکت می‌شود */}

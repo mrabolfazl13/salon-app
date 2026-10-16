@@ -82,8 +82,8 @@ const Navbar: React.FC<NavbarProps> = () => {
     { label: 'رزروها', icon: 'mdi:calendar', href: '/bookings' },
     { label: 'قراردادها', icon: 'mdi:file-document', href: '/contracts' },
     ...(isAuthenticated ? [{ label: 'شگفت\u200cانگیز', icon: 'mdi:lightning-bolt', href: '/deals' }] : []),
-    ...(isManager ? [{ label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'مدیریت قراردادها', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }] : []),
-    ...(!isManager && isStaff ? [{ label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'قراردادها (مدیریت)', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }] : []),
+    ...(isManager ? [{ label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'مدیریت قراردادها', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }, { label: 'شیفت پرسنل', icon: 'mdi:calendar-clock', href: '/manager/shifts' }] : []),
+    ...(!isManager && isStaff ? [{ label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'قراردادها (مدیریت)', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }, { label: 'شیفت پرسنل', icon: 'mdi:calendar-clock', href: '/manager/shifts' }] : []),
     ...(isCoach ? [{ label: 'پنل مربی', icon: 'mdi:school-outline', href: '/coach' }] : []),
   ]
 
@@ -103,6 +103,7 @@ const Navbar: React.FC<NavbarProps> = () => {
       { to: '/finance', label: 'امور مالی', icon: <Icon icon="mdi:cash-register" style={iconifyStyle} /> },
       { to: '/manager/crm', label: 'مشتریان', icon: <Icon icon="mdi:account-heart-outline" style={iconifyStyle} /> },
       { to: '/manager/contracts', label: 'مدیریت قراردادها', icon: <Icon icon="mdi:file-document-check-outline" style={iconifyStyle} /> },
+      { to: '/manager/shifts', label: 'شیفت پرسنل', icon: <Icon icon="mdi:calendar-clock" style={iconifyStyle} /> },
     ] : []),
     ...(isManager ? [{ to: '/manager/teams', label: 'تیم\u200cهای همکار', icon: <Icon icon="mdi:handshake-outline" style={iconifyStyle} /> }] : []),
     ...(user?.role === 'super_admin' ? [{ to: '/admin', label: 'پنل ادمین', icon: <AdminPanelIcon sx={muiIconSx} /> }] : []),
