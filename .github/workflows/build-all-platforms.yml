@@ -143,7 +143,23 @@ jobs:
 
       - name: Build iOS (no codesign for CI)
         working-directory: android_flutter
-        run: flutter build ios --release --no-codesign
+        run: flutter build ios --release --no-codesign 2>&1 | tee ios-build.log; exit ${PIPESTATUS[0]}
+
+      - name: Surface iOS build errors
+        if: failure()
+        working-directory: android_flutter
+        # همان دلیلی که برای بک‌اند: بدنهٔ لاگ از بیرون ۴۰۱ می‌دهد، پس علت شکست
+        # باید annotation شود، وگرنه تنها چیزی که می‌بینیم «exit code 1» است.
+        run: |
+          if [ ! -f ios-build.log ]; then echo "::error::لاگی از build ios نوشته نشد (کرش زودتر از tee)"; exit 0; fi
+          hits=$(grep -inE "^Error|error:|Error \(Xcode|Exception|fatal:|No such file|not found" ios-build.log | cut -c1-220)
+          if [ -n "$hits" ]; then
+            echo "$hits" | head -10 | while IFS= read -r l; do echo "::error::$l"; done
+          else
+            echo "::error::خطای شناخته‌شده‌ای در لاگ نیست — ۲۰ خط آخر:"
+            tail -20 ios-build.log | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done
+          fi
+          true
 
       - name: Create IPA
         working-directory: android_flutter/build/ios/iphoneos
