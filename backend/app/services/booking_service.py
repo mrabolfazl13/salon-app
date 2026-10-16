@@ -214,7 +214,11 @@ class BookingService:
         cancelled = uow.bookings.update(booking_id, {"status": BookingStatus.CANCELLED})
 
         # آزادسازی ترویج‌ها — کوپن و امتیاز نسوزند
-        CouponService.release_for_booking(uow.session, booking_id)
+        # کوپن فقط وقتی آزاد می‌شود که هیچ پرداخت موفقی روی این رزرو نباشد؛
+        # وگرنه چرخۀ «رزرو ← پرداخت ← لغوِ با بازگشت وجه» یک کدِ یک‌بارمصرف را
+        # بی‌نهایت بار دوباره قابل مصرف می‌کند و ردیف ممیزی‌اش هم حذف می‌شود.
+        if uow.payments.get_paid_for_booking(booking_id) is None:
+            CouponService.release_for_booking(uow.session, booking_id)
         if cancelled:
             LoyaltyService.refund_for_booking(uow.session, cancelled)
 

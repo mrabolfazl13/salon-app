@@ -18,6 +18,16 @@ from app.utils.venue_guard import manager_venue_ids
 router = APIRouter(prefix="/coupons", tags=["Coupons"])
 
 
+def _ensure_value_valid(discount_type, value: int):
+    """percent در دیتا ×۱۰۰ ذخیره می‌شود ⇒ ۱۰٬۰۰۰ یعنی ۱۰۰٪.
+
+    موتور قیمت تخفیف را روی مبلغ کل clamp می‌کند، پس مقدارِ بزرگ‌تر از ۱۰۰٪ عملاً
+    «رزرو رایگان» است — همان چیزی که کوپن نیست.
+    """
+    if discount_type == CouponType.PERCENT and value > 10000:
+        raise HTTPException(status_code=400, detail="درصد تخفیف نمی‌تواند بیش از ۱۰۰٪ باشد")
+
+
 def _ensure_scope(uow: UnitOfWork, user: User, venue_id: Optional[int],
                   request: Request = None):
     """کوپن سراسری: فقط سرپرست؛ کوپن سالن: مالک یا کارکنان با coupon.manage."""
@@ -63,8 +73,7 @@ def create_coupon(
     code = normalize_code(data.code)
     if uow.coupons.get_by_code(code):
         raise HTTPException(status_code=400, detail="این کد تخفیف از قبل وجود دارد")
-    if data.discount_type == CouponType.PERCENT and data.value > 10000:
-        raise HTTPException(status_code=400, detail="درصد تخفیف نمی‌تواند بیش از ۱۰۰٪ باشد")
+    _ensure_value_valid(data.discount_type, data.value)
     if data.valid_from and data.valid_until and data.valid_from > data.valid_until:
         raise HTTPException(status_code=400, detail="تاریخ شروع نمی‌تواند بعد از پایان باشد")
     coupon = uow.coupons.create({
@@ -105,6 +114,10 @@ def update_coupon(
     vu = changes.get("valid_until", coupon.valid_until)
     if vf and vu and vf > vu:
         raise HTTPException(status_code=400, detail="تاریخ شروع نمی‌تواند بعد از پایان باشد")
+    # جفتِ *نهایی* (نوع × مقدار) سنجیده می‌شود، نه فقط فیلدهای ارسالی —
+    # وگرنه یک فیلد fixed را می‌توان با یک PUT به percentِ ۵۰۰٪ تبدیل کرد
+    _ensure_value_valid(changes.get("discount_type", coupon.discount_type),
+                        changes.get("value", coupon.value))
     if changes:
         coupon = uow.coupons.update(coupon_id, changes)
     uow.commit()
