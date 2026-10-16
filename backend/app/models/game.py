@@ -6,10 +6,13 @@ Booking = رزرو زمین | Game = رویداد گروهی روی آن رزر�
 """
 from sqlmodel import SQLModel, Field, Relationship
 from sqlalchemy import CheckConstraint, UniqueConstraint
-from typing import Optional, List
+from typing import List, Optional, TYPE_CHECKING
 from datetime import datetime, timezone
 from enum import Enum
 
+if TYPE_CHECKING:  # فقط برای type-check؛ در runtime اجرا نمی‌شود
+    from app.models.booking import Booking
+    from app.models.user import User
 
 def _utcnow() -> datetime:
     return datetime.now(timezone.utc)

@@ -25,8 +25,8 @@
 | `grep "color:'#059669'"` = ۰ (D6.2) | **معیار باطل** — آیکون‌ها (۳:۱) و ورودی‌های نگاشتِ توکن را هم می‌شمرد؛ جانشین: گاردریل CI با پیمایش بدنهٔ `sx={{…}}` |
 | صفحهٔ سالن سالم است | **باگ تولیدی** در دسکتاپ: عنوان/برچسب/آدرس سالن پشت `overflow:hidden` و تصویرِ هم‌جریان **نامرئی** بود (D13؛ با `elementFromPoint` ثابت شد) |
 
-**۴ مورد عملاً غایب (وضعیت ۲۰۲۶-۱۰-۱۶):** تقویم `.ics` ساخته شد (B1)؛ باقی‌مانده: نقش مربی (C1)،
-تورنمنت/براکت (C2)، شیفت پرسنل (C3).
+**۴ مورد عملاً غایب (وضعیت ۲۰۲۶-۱۰-۱۶):** تقویم `.ics` ساخته شد (B1) و نقش مربی کامل شد (C1 — بک‌اند +
+فرانت + تست، با ۴۲۲ تست بک‌اند و ۴۸ تست فرانت سبز)؛ باقی‌مانده: تورنمنت/براکت (C2)، شیفت پرسنل (C3).
 **باگ قطعی و بزرگ (رفع شد — A1):** ۴ endpoint نوتیفیکیشن در بک‌اند وجود ندارد
 (`backend/app/api/v1/notifications.py:16,32` فقط fcm-token) ولی فرانت این‌ها را صدا می‌زند
 (`frontend/src/services/notification.ts:20,25,30,35`) → پنل اعلان‌ها ۴۰۴ می‌گیرد؛ درحالی‌که
@@ -288,12 +288,17 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 ## Track C — فیچرهای بزرگ (MVP برش‌خورده؛ هر برش مستقل قابل انتشار)
 
 ### C1 نقش مربی (P004 — واقعاً غایب)
-- [ ] C1.1 افزودن `COACH` به `UserRole` (`backend/app/models/user.py:7-11`) + مهاجرت + ماتریس مجوزها
-- [ ] C1.2 مدل `CoachSession` (مربی، شاگرد، زمان، وضعیت، شهریه)
-- [ ] C1.3 endpointهای CRUD + ثبت حضور و غیاب
-- [ ] C1.4 `CoachDashboard` فرانت (لیست جلسات امروز، ثبت حضور سریع)
-- [ ] C1.5 مسیر روت + ورودی ناوبری + نقش‌محور بودن
-- **معیار:** با حساب مربی روی دستگاه، جلسه بساز/حضور ثبت کن/تقویم ببین.
+- [x] C1.1 افزودن `COACH` به `UserRole` (`backend/app/models/user.py:7-11`) + مهاجرت + ماتریس مجوزها
+- [x] C1.2 مدل `CoachSession` (مربی، شاگرد، زمان، وضعیت، شهریه)
+- [x] C1.3 endpointهای CRUD + ثبت حضور و غیاب
+- [x] C1.4 `CoachDashboard` فرانت (لیست جلسات امروز، ثبت حضور سریع)
+- [x] C1.5 مسیر روت + ورودی ناوبری + نقش‌محور بودن
+- [x] C1.6 بستن حفرهٔ تشدید نقش در `/auth/register` + endpoint تخصیص نقش (`PUT /admin/users/{id}/role`) + UI آن در پنل کاربران
+- **شاهد (۲۰۲۶-۱۰-۱۶، همه اجراشده):**
+  - بک‌اند: `pytest tests/test_coach.py` → **۲۷ passed in 19.88s**؛ رگرسیون کامل `pytest` → **۴۲۲ passed, 32 warnings in 801.67s (0:13:21)**؛ دروازۀ lint `flake8 app/ --count --select=E9,F63,F7,F82` → **۰** (۳۵ خطای F821 از پیش موجود با `if TYPE_CHECKING` بسته شد)؛ زنجیرۀ alembic تک‌سر `m0s021coachesessions` با upgrade→downgrade→upgrade بررسی شد و `app.openapi()['paths']` = **۲۱۳** مسیر از جمله **۶** مسیر `/coach/*`.
+  - فرانت: `tsc --noEmit` پاک، `eslint --quiet` با کد خروج ۰، `vitest run` → **۴۸ passed / 7 files** (۱۱ مورد جدید: `services/coach.test.ts` ۴ + `pages/coach/CoachDashboard.test.tsx` ۷).
+  - نقش‌گیت در UI: `/coach` پشت `<ProtectedRoute requiredRole="coach">`؛ ۷ اتحاد نقش (`types/user.ts:1`, `store/authStore.ts:10`, `components/auth/ProtectedRoute.tsx:9`, `services/admin.ts:8`, `services/auth.ts:8` و `:24`, `pages/auth/Register.tsx:27`) گسترش یافت؛ ریدایرکت ورود در `pages/auth/Login.tsx:70`؛ ورودی‌های ناوبری: `Navbar.tsx` (navItem + منوی آواتار + برچسب نقش)، `BottomNavigation.tsx:44` (۵ آیتم)، `Profile.tsx` «مرور سریع»؛ `/coach` به `HIDDEN_PREFIXES` اضافه شد تا نوار پایین روی پنل سایه نیندازد.
+- **معیار:** با حساب مربی روی دستگاه، جلسه بساز/حضور ثبت کن/تقویم ببین. — **نیمه‌موفق:** صحت عملکردی روی دادهٔ واقعی در تست‌های بک‌اند و واحد فرانت اثبات شده، اما اجرای دستی روی دستگاه هنوز ممکن نیست (X1: حساب مربی روی پروداکشن + X6: اجرای مهاجرت `m0s021` روی سرور؛ هر دو منتظر تأیید صریح کاربر).
 
 ### C2 تورنمنت و براکت (P005 — واقعاً غایب)
 - [ ] C2.1 مدل‌های `Tournament`, `TournamentRound`, `TournamentMatch`, `TournamentParticipant`

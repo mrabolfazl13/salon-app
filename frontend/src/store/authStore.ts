@@ -7,7 +7,7 @@ interface User {
   id: number
   fullName: string
   phone: string
-  role: 'user' | 'venue_manager' | 'club_admin' | 'super_admin'
+  role: 'user' | 'venue_manager' | 'club_admin' | 'super_admin' | 'coach'
   isVerified: boolean
   isActive: boolean
   createdAt?: string

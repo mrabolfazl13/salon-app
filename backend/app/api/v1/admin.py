@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException
+from pydantic import BaseModel
 from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.utils.auth import get_current_admin
 from app.models.user import User, UserRole
@@ -106,3 +107,50 @@ def reject_user(
     uow.users.update(user_id, {"is_verified": False, "is_active": False})
     uow.commit()
     return {"message": f"حساب {user.full_name} رد شد"}
+
+
+# ─────────────────────── تخصیص نقش ( تنها مسیرِ تغییر نقش ) ───────────────────────
+
+class RoleIn(BaseModel):
+    role: UserRole
+
+
+@router.put("/users/{user_id}/role")
+def set_user_role(
+    user_id: int,
+    data: RoleIn,
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    current_user: User = Depends(get_current_admin)
+):
+    """تخصیص نقش — تا پیش از این هیچ endpoint‌ای برای تغییر نقش وجود نداشت، پس
+    مربی/مدیر/ادمین فقط با SQL دستی ساخته می‌شد (و ثبت‌نام عمومی هم نقش دلخواه
+    می‌گرفت). این مسیر نقش را عوض می‌کند و در ممیزی امنیتی ثبت می‌کند.
+
+    تن‌خودِ ادمین را نمی‌توان از this path پایین آورد: آخرین SUPER_ADMIN فعال
+    باید بماند، وگرنه سیستم بی‌ادمین می‌شود (تأیید بعدی دستی/دیتابیس).
+    """
+    user = uow.users.get_by_id(user_id)
+    if not user:
+        raise HTTPException(status_code=404, detail="User not found")
+
+    if user.role == UserRole.SUPER_ADMIN and data.role != UserRole.SUPER_ADMIN:
+        remaining = [u for u in uow.users.get_all(limit=1000)
+                     if u.role == UserRole.SUPER_ADMIN and u.is_active and u.id != user_id]
+        if not remaining:
+            raise HTTPException(
+                status_code=400,
+                detail="آخرین مدیر سیستم را نمی‌توان تنزل داد؛ اول مدیر دیگری بسازید.")
+
+    old_role = user.role
+    uow.users.update(user_id, {"role": data.role})
+    # مدیر سالنِ تازه‌انتخاب‌شده باید دوباره از صف تایید عبور کند
+    if data.role in (UserRole.VENUE_MANAGER, UserRole.CLUB_ADMIN):
+        uow.users.update(user_id, {"is_verified": False})
+    uow.security_audits.log(
+        "admin.user_role_changed", current_user.id,
+        target_type="user", target_id=user_id,
+        data={"from": old_role.value, "to": data.role.value})
+    uow.commit()
+    return {"message": f"نقش {user.full_name} به «{data.role.value}» تغییر کرد",
+            "role": data.role.value}
+

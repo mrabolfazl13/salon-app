@@ -1,11 +1,19 @@
 import importlib
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional, List
+from typing import List, Optional, TYPE_CHECKING
 from datetime import datetime, timezone
 from enum import Enum
 
+if TYPE_CHECKING:  # فقط برای type-check؛ در runtime اجرا نمی‌شود
+    from app.models.booking import Booking
+    from app.models.competition import PriceCompetition
+    from app.models.contract import Contract
+    from app.models.review import Review
+    from app.models.venue import Venue
+
 class UserRole(str, Enum):
     USER = "user"
+    COACH = "coach"
     VENUE_MANAGER = "venue_manager"
     CLUB_ADMIN = "club_admin"
     SUPER_ADMIN = "super_admin"

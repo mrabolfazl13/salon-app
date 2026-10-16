@@ -12,11 +12,12 @@ import type { UserStats, VenueStats, AdminUser } from '@/services/admin'
 import { formatDate, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
-const roleConfig: Record<string, { label: string; color: 'default' | 'info' | 'secondary' | 'warning' }> = {
+const roleConfig: Record<string, { label: string; color: 'default' | 'info' | 'secondary' | 'warning' | 'success' }> = {
   user: { label: 'کاربر', color: 'default' },
   venue_manager: { label: 'مدیر سالن', color: 'info' },
   club_admin: { label: 'مدیر باشگاه', color: 'secondary' },
   super_admin: { label: 'مدیر کل', color: 'warning' },
+  coach: { label: 'مربی', color: 'success' },
 }
 
 const AdminDashboard: React.FC = () => {

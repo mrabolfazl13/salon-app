@@ -49,6 +49,7 @@ const roleLabels: Record<string, string> = {
   venue_manager: 'مدیر سالن',
   club_admin: 'مدیر باشگاه',
   super_admin: 'مدیر کل',
+  coach: 'مربی',
 }
 
 // اگر بک‌اند اندپوینت مربوطه را هنوز ندارد، پیام مناسب نمایش می‌دهد
@@ -170,9 +171,10 @@ const Profile: React.FC = () => {
 
   const isManager =
     user.role === 'venue_manager' || user.role === 'club_admin' || user.role === 'super_admin'
+  const isCoach = user.role === 'coach'
   const isStaff = (staffQuery.data?.length ?? 0) > 0
   const canConsoleNav = isManager || isStaff
-  const dashboardPath = isManager ? '/manager-dashboard' : '/dashboard'
+  const dashboardPath = isCoach ? '/coach' : isManager ? '/manager-dashboard' : '/dashboard'
 
   // بخش‌های فرعی که در منوی بالا/موبایل کم‌دسترسی‌اند — «مرور سریع»
   const quickLinks = [
@@ -184,7 +186,7 @@ const Profile: React.FC = () => {
       { label: 'رقابت‌ها', icon: 'mdi:trophy', href: '/competitions' },
       { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' },
     ] : []),
-    { label: isManager ? 'داشبورد مدیریت' : 'داشبورد', icon: 'mdi:dashboard', href: dashboardPath },
+    { label: isCoach ? 'پنل مربی' : isManager ? 'داشبورد مدیریت' : 'داشبورد', icon: isCoach ? 'mdi:school' : 'mdi:dashboard', href: dashboardPath },
   ]
 
   const handleLogout = () => {

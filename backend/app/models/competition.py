@@ -1,7 +1,12 @@
 from sqlmodel import SQLModel, Field, Relationship
-from typing import List, Optional
+from typing import List, Optional, TYPE_CHECKING
 from datetime import datetime, timezone
 from enum import Enum
+
+if TYPE_CHECKING:  # فقط برای type-check؛ در runtime اجرا نمی‌شود
+    from app.models.slot import Slot
+    from app.models.user import User
+    from app.models.venue import Venue
 
 class CompetitionStatus(str, Enum):
     ACTIVE = "active"

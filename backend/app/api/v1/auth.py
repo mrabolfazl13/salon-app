@@ -73,7 +73,18 @@ def register(
 
     - کاربر عادی: برای رزرو باید بعداً ایمیل (یا شماره) خود را تأیید کند
     - مدیر سالن: حساب تا تایید توسط مدیر نرم‌افزار (super admin) فعال نمی‌شود
+    - مربی: بلافاصله فعال؛ دسترسی‌اش فقط به جلسات خودش محدود است
+
+    نقش‌های بالاتر از این سه از مسیر عمومی قابل‌دریافت نیستند: `UserCreate.role`
+    مستقیم از بدنۀ درخواست می‌آید و نبودِ این فهرست یعنی هر کسی با
+    `{"role": "super_admin"}` ادمین کل سیستم می‌شد. انتصاب این نقش‌ها فقط
+    `PUT /admin/users/{id}/role` است.
     """
+    if user_data.role not in (UserRole.USER, UserRole.VENUE_MANAGER, UserRole.COACH):
+        raise HTTPException(
+            status_code=400,
+            detail="این نقش از طریق ثبت‌نام قابل انتخاب نیست؛ مدیر سیستم باید آن را تخصیص دهد.")
+
     existing_user = uow.users.get_by_phone(user_data.phone)
     if existing_user:
         raise HTTPException(status_code=400, detail="User already exists")

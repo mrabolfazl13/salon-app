@@ -41,6 +41,7 @@ from .split_payment import (
 )
 from .quiz import QuizQuestion, QuizAttempt
 from .waitlist import WaitlistEntry
+from .coach import CoachSession, CoachSessionStatus
 
 # ترتیب import مهم است
 __all__ = [
@@ -78,4 +79,5 @@ __all__ = [
     "VenueCustomer", "CrmCampaign",
     "QuizQuestion", "QuizAttempt",
     "WaitlistEntry",
+    "CoachSession", "CoachSessionStatus",
 ]

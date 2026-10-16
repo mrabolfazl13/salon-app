@@ -18,13 +18,25 @@ const toLatinDigits = (value: string): string =>
     .replace(/[۰-۹]/g, (d) => String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d)))
     .replace(/[٠-٩]/g, (d) => String('٠١٢٣٤٥٦٧٨٩'.indexOf(d)))
 
+const REGISTER_ROLE_LABELS: Record<RegisterForm['role'], string> = {
+  user: 'کاربر',
+  venue_manager: 'مدیر سالن',
+  coach: 'مربی',
+}
+
+const roleHints: Record<RegisterForm['role'], string> = {
+  user: 'اطلاعات شما برای ارسال پیام‌های مربوط به رزرو استفاده می‌شود',
+  venue_manager: 'به عنوان مدیر سالن می‌توانید سالن خود را مدیریت و قیمت‌گذاری کنید',
+  coach: 'به عنوان مربی می‌توانید برای شاگردهایتان جلسهٔ تمرینی بگذارید و حضور/تسویه را ثبت کنید',
+}
+
 const registerSchema = z
   .object({
     fullName: z.string().min(3, 'نام حداقل ۳ کاراکتر'),
     phone: z.string().regex(/^09[0-9]{9}$/, 'شماره موبایل معتبر وارد کنید'),
     password: z.string().min(4, 'رمز عبور حداقل ۴ کاراکتر'),
     confirmPassword: z.string(),
-    role: z.enum(['user', 'venue_manager']),
+    role: z.enum(['user', 'venue_manager', 'coach']),
     terms: z.boolean().refine((val) => val === true, {
       message: 'پذیرش قوانین الزامی است',
     }),
@@ -233,21 +245,10 @@ const Register: React.FC = () => {
                 >
                   <div>
                     <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">نوع حساب</label>
-                    <div className="grid grid-cols-2 gap-3">
+                    <div className="grid grid-cols-3 gap-2">
                       <button
                         type="button"
-                        onClick={() => setValue('role', 'venue_manager')}
-                        className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
-                          selectedRole === 'venue_manager'
-                            ? 'border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300'
-                            : 'border-gray-200 hover:border-gray-300 text-gray-600 dark:border-[#223049] dark:hover:border-[#33445f] dark:text-gray-300'
-                        }`}
-                      >
-                        <Icon icon="mdi:store" className="h-6 w-6" />
-                        <span className="text-sm font-medium">مدیر سالن</span>
-                      </button>
-                      <button
-                        type="button"
+                        aria-pressed={selectedRole === 'user'}
                         onClick={() => setValue('role', 'user')}
                         className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
                           selectedRole === 'user'
@@ -257,6 +258,32 @@ const Register: React.FC = () => {
                       >
                         <Icon icon="mdi:account" className="h-6 w-6" />
                         <span className="text-sm font-medium">کاربر عادی</span>
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={selectedRole === 'coach'}
+                        onClick={() => setValue('role', 'coach')}
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                          selectedRole === 'coach'
+                            ? 'border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-600 dark:border-[#223049] dark:hover:border-[#33445f] dark:text-gray-300'
+                        }`}
+                      >
+                        <Icon icon="mdi:school-outline" className="h-6 w-6" />
+                        <span className="text-sm font-medium">مربی</span>
+                      </button>
+                      <button
+                        type="button"
+                        aria-pressed={selectedRole === 'venue_manager'}
+                        onClick={() => setValue('role', 'venue_manager')}
+                        className={`p-4 rounded-xl border-2 transition-all duration-200 flex flex-col items-center gap-2 ${
+                          selectedRole === 'venue_manager'
+                            ? 'border-amber-500 bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300'
+                            : 'border-gray-200 hover:border-gray-300 text-gray-600 dark:border-[#223049] dark:hover:border-[#33445f] dark:text-gray-300'
+                        }`}
+                      >
+                        <Icon icon="mdi:store" className="h-6 w-6" />
+                        <span className="text-sm font-medium">مدیر سالن</span>
                       </button>
                     </div>
                   </div>
@@ -393,9 +420,7 @@ const Register: React.FC = () => {
                     <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
                       <Icon icon="mdi:information" className="h-5 w-5 text-blue-600 flex-shrink-0" />
                       <span>
-                        {selectedRole === 'venue_manager'
-                          ? 'به عنوان مدیر سالن می‌توانید سالن خود را مدیریت و قیمت‌گذاری کنید'
-                          : 'اطلاعات شما برای ارسال پیام‌های مربوط به رزرو استفاده می‌شود'}
+                        {roleHints[selectedRole]}
                       </span>
                     </div>
                   </div>
@@ -434,7 +459,7 @@ const Register: React.FC = () => {
                     loading={loading}
                   >
                     <Icon icon="mdi:check" className="h-5 w-5 ml-2" />
-                    ثبت‌نام ({selectedRole === 'venue_manager' ? 'مدیر سالن' : 'کاربر'})
+                    ثبت‌نام ({REGISTER_ROLE_LABELS[selectedRole as keyof typeof REGISTER_ROLE_LABELS] ?? 'کاربر'})
                   </Button>
                 )}
               </div>

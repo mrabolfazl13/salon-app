@@ -60,6 +60,7 @@ from app.models.staff import StaffAssignment, SecurityAuditEvent
 from app.models.customer import VenueCustomer, CrmCampaign
 from app.models.quiz import QuizQuestion, QuizAttempt
 from app.models.split_payment import TeamSplitPayment, SplitPaymentShare, SplitPaymentAuditEvent
+from app.models.coach import CoachSession
 from app.utils.auth import get_current_user
 from app.api.v1.games import get_optional_user
 from app.database import get_session
@@ -154,6 +155,7 @@ _TABLES_CLEAN_ORDER = [
     Contract,
     Booking, Slot, Notification, Venue,
     Club,
+    CoachSession,
     User,
 ]
 

@@ -1,8 +1,12 @@
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional, List
+from typing import List, Optional, TYPE_CHECKING
 from datetime import date, time, datetime, timezone
 from enum import Enum
 
+if TYPE_CHECKING:  # فقط برای type-check؛ در runtime اجرا نمی‌شود
+    from app.models.slot import Slot
+    from app.models.user import User
+    from app.models.venue import Venue
 
 class ContractStatus(str, Enum):
     PENDING = "pending"        # درخواست کاربر — در انتظار تأیید مدیر

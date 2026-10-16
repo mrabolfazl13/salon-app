@@ -10,12 +10,14 @@ import Layout from '@/components/layout/Layout'
 import { adminService } from '@/services/admin'
 import type { AdminUser, UserStats } from '@/services/admin'
 import { formatDate, getInitials } from '@/lib/utils'
+import toast from 'react-hot-toast'
 
-const roleConfig: Record<string, { label: string; color: 'default' | 'info' | 'secondary' | 'warning'; icon: string }> = {
+const roleConfig: Record<string, { label: string; color: 'default' | 'info' | 'secondary' | 'warning' | 'success'; icon: string }> = {
   user: { label: 'کاربر', color: 'default', icon: 'mdi:account' },
   venue_manager: { label: 'مدیر سالن', color: 'info', icon: 'mdi:stadium' },
   club_admin: { label: 'مدیر باشگاه', color: 'secondary', icon: 'mdi:soccer' },
   super_admin: { label: 'مدیر کل', color: 'warning', icon: 'mdi:crown' },
+  coach: { label: 'مربی', color: 'success', icon: 'mdi:school' },
 }
 
 const Users: React.FC = () => {
@@ -25,6 +27,7 @@ const Users: React.FC = () => {
   const [loading, setLoading] = useState(true)
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState('all')
+  const [busyRole, setBusyRole] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -55,6 +58,24 @@ const Users: React.FC = () => {
       return matchesSearch && matchesRole
     })
   }, [users, search, roleFilter])
+
+  /** تغییر نقش — writes به PUT /admin/users/{id}/role؛ خطا → rollback تا جدول با سرور نخواند */
+  const changeRole = async (userId: number, role: AdminUser['role']) => {
+    const prev = users
+    setUsers((list) => list.map((u) => (u.id === userId ? { ...u, role } : u)))
+    setBusyRole(userId)
+    try {
+      const res = await adminService.setUserRole(userId, role)
+      toast.success(res?.message || 'نقش کاربر تغییر کرد')
+      // مدیر سالن/باشگاهِ تازه باید دوباره تایید شود → سرور is_verified را false کرده
+      await fetchData()
+    } catch (err: any) {
+      setUsers(prev)
+      toast.error(err?.response?.data?.detail || 'تغییر نقش ممکن نشد')
+    } finally {
+      setBusyRole(null)
+    }
+  }
 
   const miniStats = [
     { label: 'فعال', value: stats?.active_users, icon: 'mdi:account-check', color: '#16a34a' },
@@ -162,6 +183,7 @@ const Users: React.FC = () => {
                   <TableCell scope="col">کاربر</TableCell>
                   <TableCell scope="col">شماره موبایل</TableCell>
                   <TableCell scope="col">نقش</TableCell>
+                  <TableCell scope="col">تخصیص نقش</TableCell>
                   <TableCell scope="col">وضعیت</TableCell>
                   <TableCell scope="col">تایید</TableCell>
                   <TableCell scope="col">تاریخ ثبت‌نام</TableCell>
@@ -191,6 +213,22 @@ const Users: React.FC = () => {
                       />
                     </TableCell>
                     <TableCell>
+                      <FormControl size="small">
+                        <Select
+                          value={user.role}
+                          disabled={busyRole === user.id}
+                          onChange={(e) => changeRole(user.id, e.target.value as AdminUser['role'])}
+                          aria-label={`تخصیص نقش برای ${user.full_name}`}
+                          data-testid={`user-role-${user.id}`}
+                          sx={{ borderRadius: 1, fontSize: '0.8rem', minWidth: 128, minHeight: 40 }}
+                        >
+                          {Object.entries(roleConfig).map(([value, conf]) => (
+                            <MenuItem key={value} value={value}>{conf.label}</MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    </TableCell>
+                    <TableCell>
                       <Chip
                         label={user.is_active ? 'فعال' : 'غیرفعال'}
                         color={user.is_active ? 'success' : 'error'}
@@ -213,7 +251,7 @@ const Users: React.FC = () => {
                 ))}
                 {filtered.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={6}>
+                    <TableCell colSpan={7}>
                       <Box sx={{ textAlign: 'center', py: 6 }}>
                         <Icon icon="mdi:account-search-outline" className="h-8 w-8" style={{ color: 'rgba(0,0,0,0.2)' }} />
                         <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>

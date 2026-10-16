@@ -1,8 +1,14 @@
 from sqlmodel import SQLModel, Field, Relationship
-from typing import Optional, List
+from typing import List, Optional, TYPE_CHECKING
 from datetime import datetime, timezone
 from enum import Enum
 from app.models.user import User
+
+if TYPE_CHECKING:  # فقط برای type-check؛ در runtime اجرا نمی‌شود
+    from app.models.contract import Contract
+    from app.models.membership import MembershipPlan
+    from app.models.review import Review
+    from app.models.slot import Slot
 
 # روش پرداخت سالن — الگوی VARCHAR-with-Enum-name (مانند finance/teams/games):
 # ستون در DB به‌صورت VARCHAR ساخته می‌شود و اپلیکیشن مقدار را بر اساس NAME عضو

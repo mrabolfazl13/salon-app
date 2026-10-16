@@ -68,7 +68,9 @@ const Login: React.FC = () => {
 
       // Redirect based on role
       const user = useAuthStore.getState().user
-      if (
+      if (user?.role === 'coach') {
+        navigate('/coach')
+      } else if (
         user?.role === 'venue_manager' ||
         user?.role === 'club_admin' ||
         user?.role === 'super_admin'

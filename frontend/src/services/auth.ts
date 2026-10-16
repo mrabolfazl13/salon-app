@@ -5,7 +5,7 @@ export interface RawUser {
   id: number
   phone: string
   full_name: string
-  role: 'user' | 'venue_manager' | 'club_admin' | 'super_admin'
+  role: 'user' | 'venue_manager' | 'coach' | 'club_admin' | 'super_admin'
   is_active?: boolean
   is_verified?: boolean
   created_at?: string
@@ -21,7 +21,7 @@ interface RegisterData {
   phone: string
   full_name: string
   password: string
-  role: 'user' | 'venue_manager'
+  role: 'user' | 'venue_manager' | 'coach'
 }
 
 interface LoginResponse {

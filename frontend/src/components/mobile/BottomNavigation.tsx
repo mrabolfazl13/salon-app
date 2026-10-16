@@ -51,6 +51,7 @@ const HIDDEN_PREFIXES = [
   '/verify',
   '/payment',
   '/dashboard',
+  '/coach',
   '/admin',
   '/join',
 ]

@@ -6,7 +6,7 @@ import toast from 'react-hot-toast'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  requiredRole?: 'user' | 'venue_manager' | 'club_admin' | 'super_admin'
+  requiredRole?: 'user' | 'venue_manager' | 'club_admin' | 'super_admin' | 'coach'
   /**
    * کنسول‌های عملیاتی سالن (مالی/قیمت‌گذاری/قراردادها/CRM): برای هر کاربر
    * لاگین‌کرده رندر می‌شود — کارمندِ انتصابی (role=user با کد دسترسی)؛ تصمیم

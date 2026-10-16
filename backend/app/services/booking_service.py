@@ -9,7 +9,11 @@ from app.models.contract import ContractStatus
 from app.services.coupon_service import CouponService
 from app.services.loyalty_service import LoyaltyService
 from app.services.pricing_service import PricingService
+from typing import TYPE_CHECKING
 
+
+if TYPE_CHECKING:  # فقط برای type-check؛ در runtime اجرا نمی‌شود
+    from app.models.booking import Booking
 
 class BookingService:
 

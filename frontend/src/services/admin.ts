@@ -5,7 +5,7 @@ export interface AdminUser {
   id: number
   phone: string
   full_name: string
-  role: 'user' | 'venue_manager' | 'club_admin' | 'super_admin'
+  role: 'user' | 'venue_manager' | 'club_admin' | 'super_admin' | 'coach'
   is_active: boolean
   is_verified: boolean
   created_at: string
@@ -73,6 +73,12 @@ export const adminService = {
   // رد حساب مدیر سالن
   rejectUser: async (userId: number) => {
     const response = await apiClient.post(`/admin/users/${userId}/reject`)
+    return response.data
+  },
+
+  // تخصیص/تغییر نقش کاربر (فقط مدیر کل؛ در ممیزی امنیتی ثبت می‌شود)
+  setUserRole: async (userId: number, role: AdminUser['role']): Promise<{ message: string; role: string }> => {
+    const response = await apiClient.put(`/admin/users/${userId}/role`, { role })
     return response.data
   },
 }
