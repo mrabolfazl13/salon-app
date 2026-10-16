@@ -1,7 +1,9 @@
 // frontend/src/pages/tournaments/TournamentDetail.tsx
-// صفحهٔ تورنمنت (P005) — ثبت‌نام تیم، قرعه‌کشی، براکت و رده‌بندی.
+// صفحهٔ تورنمنت (P005) — ثبت‌نام تیم، قرعه‌کشی، براکت/برنامهٔ هفته‌ها و رده‌بندی.
 // براکت با CSS grid و `gridAutoFlow: column` رندر می‌شود: در RTL ستون اول سمت راست
 // می‌نشیند (همان مسیر زمان)، بدون transform یا ترتیب معکوسِ دست‌سازی.
+// هر دو فرمت (تک‌حذفی و لیگ) از همین grid استفاده می‌کنند: لیگ هم «مراحل» مرتب دارد
+// (هفته‌ها)، فقط معنای مرحله عوض شده؛ پس دو مسیر رندر برای هم‌ترازیِ ظاهر لازم نیست.
 
 import React, { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
@@ -39,6 +41,7 @@ import {
   formatRial,
 } from '@/components/finance/shared'
 import {
+  TOURNAMENT_FORMAT_LABELS,
   TOURNAMENT_STATUS_COLORS,
   TOURNAMENT_STATUS_LABELS,
 } from '@/pages/tournaments/Tournaments'
@@ -53,7 +56,7 @@ import {
   useWithdrawTournamentTeam,
 } from '@/hooks/useTournament'
 import { useMyTeams } from '@/hooks/useTeams'
-import type { MatchStatus, TournamentMatch } from '@/types/tournament'
+import type { LeagueStanding, MatchStatus, TournamentMatch, TournamentStanding } from '@/types/tournament'
 import { useAuthStore } from '@/store/authStore'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { radii, shadows } from '@/theme'
@@ -147,8 +150,14 @@ const TournamentDetailPage: React.FC = () => {
   const user = useAuthStore((s) => s.user)
 
   const bracketQ = useTournamentBracket(tournamentId || null)
-  const standingsQ = useTournamentStandings(tournamentId || null,
-    bracketQ.data?.tournament.status === 'completed')
+  const bracketStatus = bracketQ.data?.tournament.status
+  const bracketFormat = bracketQ.data?.tournament.format
+  // جدول لیگ وسطِ راه هم معنا دارد (امتیازها از نتیجه‌های ثبت‌شده ساخته می‌شود)،
+  // برخلاف رده‌بندی حذفی که پیش از تمام‌شدن براکت چیزی برای نشان دادن ندارد.
+  const standingsEnabled = bracketFormat === 'round_robin'
+    ? ['drawn', 'in_progress', 'completed'].includes(String(bracketStatus))
+    : bracketStatus === 'completed'
+  const standingsQ = useTournamentStandings(tournamentId || null, standingsEnabled)
   const myTeamsQ = useMyTeams(!!user)
 
   const openMut = useOpenRegistration()
@@ -170,6 +179,7 @@ const TournamentDetailPage: React.FC = () => {
   const participants = bracketQ.data?.participants ?? []
 
   const canManage = !!tournament && (tournament.organizer_id === user?.id || user?.role === 'super_admin')
+  const isLeague = tournament?.format === 'round_robin'
   const mutating = openMut.isPending || drawMut.isPending || cancelMut.isPending
     || registerMut.isPending || withdrawMut.isPending || resultMut.isPending
 
@@ -193,7 +203,7 @@ const TournamentDetailPage: React.FC = () => {
       toast.error('هر دو نتیجه را وارد کن.')
       return
     }
-    if (a === b) {
+    if (a === b && !isLeague) {
       toast.error('در تورنمنت حذفی نتیجهٔ مساوی ثبت نمی‌شود.')
       return
     }
@@ -201,7 +211,9 @@ const TournamentDetailPage: React.FC = () => {
       { matchId: resultMatch.id, scoreA: a, scoreB: b },
       {
         onSuccess: () => {
-          toast.success('نتیجه ثبت و برنده به مرحلهٔ بعد رفت.')
+          toast.success(isLeague
+            ? 'نتیجه در جدول لیگ ثبت شد.'
+            : 'نتیجه ثبت و برنده به مرحلهٔ بعد رفت.')
           setResultMatch(null)
         },
         onError: (err) => toast.error(extractError(err, 'ثبت نتیجه ممکن نشد.')),
@@ -231,6 +243,16 @@ const TournamentDetailPage: React.FC = () => {
   const drawn = rounds.length > 0 && !!tournament && tournament.status !== 'draft' && tournament.status !== 'registration'
   const totalMatches = rounds.reduce((sum, r) => sum + r.matches.length, 0)
 
+  // دو فرمت دو شکل ردیف برمی‌گردانند؛ تفکیک با خودِ فیلدها انجام می‌شود نه حدسِ ترتیب
+  const standingsRows = standingsQ.data?.items ?? []
+  const leagueRows = standingsRows.filter((row): row is LeagueStanding => 'points' in row)
+  const elimRows = standingsRows.filter((row): row is TournamentStanding => !('points' in row))
+  // صدر جدولِ لیگ وسطِ راه هم هست، اما «قهرمان» نیست؛ اگر رتبهٔ ۱ مشترک بماند
+  // همان را می‌نویسم و پلی‌آف را در جدول توضیح می‌دهم.
+  const leagueFirst = leagueRows.filter((row) => row.rank === 1)
+  const leagueLeader = leagueFirst.length === 0 ? null
+    : leagueFirst.length === 1 ? leagueFirst[0].team_name ?? '—' : 'مشترک'
+
   return (
     <Layout>
       <Box sx={{ mb: 2 }}>
@@ -257,6 +279,7 @@ const TournamentDetailPage: React.FC = () => {
               {tournament.name}
               <StatusChip label={TOURNAMENT_STATUS_LABELS[tournament.status]}
                           color={TOURNAMENT_STATUS_COLORS[tournament.status]} />
+              <StatusChip label={TOURNAMENT_FORMAT_LABELS[tournament.format]} color="#7c3aed" />
             </Typography>
             {tournament.description && (
               <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
@@ -277,8 +300,9 @@ const TournamentDetailPage: React.FC = () => {
                        icon="mdi:calendar-outline" color="#7c3aed" />
             </Grid>
             <Grid size={{ xs: 6, md: 3 }}>
-              <KpiCard label="قهرمان" value={tournament.winner_team_name ?? '—'}
-                       icon="mdi:trophy-outline" color="#16a34a" />
+              <KpiCard label={isLeague ? 'صدر جدول' : 'قهرمان'}
+                       value={tournament.winner_team_name ?? (isLeague ? leagueLeader ?? '—' : '—')}
+                       icon={isLeague ? 'mdi:table-check' : 'mdi:trophy-outline'} color="#16a34a" />
             </Grid>
           </Grid>
 
@@ -293,16 +317,20 @@ const TournamentDetailPage: React.FC = () => {
               </Button>
             )}
             {canManage && tournament.status === 'registration' && (
-              <Tooltip title="براکت ساخته می‌شود؛ پس از آن قابل تغییر نیست">
+              <Tooltip title={isLeague
+                ? 'برنامهٔ هفته‌ها ساخته می‌شود؛ پس از آن قابل تغییر نیست'
+                : 'براکت ساخته می‌شود؛ پس از آن قابل تغییر نیست'}>
                 <span>
                   <Button variant="contained" disabled={mutating || tournament.team_count < 2}
                           data-testid="tournament-draw"
                           startIcon={<Icon icon="mdi:shuffle-variant" />}
                           onClick={() => drawMut.mutate(tournament.id, {
-                            onSuccess: () => toast.success('براکت ساخته شد'),
+                            onSuccess: () => toast.success(isLeague
+                              ? 'برنامهٔ هفته‌ها ساخته شد'
+                              : 'براکت ساخته شد'),
                             onError: (err) => toast.error(extractError(err, 'قرعه‌کشی ممکن نشد.')),
                           })} sx={{ borderRadius: '12px', minHeight: 44 }}>
-                    قرعه‌کشی و ساخت براکت
+                    {isLeague ? 'قرعه‌کشی و ساخت برنامهٔ هفته‌ها' : 'قرعه‌کشی و ساخت براکت'}
                   </Button>
                 </span>
               </Tooltip>
@@ -338,13 +366,13 @@ const TournamentDetailPage: React.FC = () => {
                   borderRadius: `${radii.card}px`, boxShadow: shadows.card,
                   border: '1px solid rgba(15,23,42,0.05)', bgcolor: 'rgba(255,255,255,0.92)', overflowX: 'auto',
                 }}>
-                  <Table size="small" data-testid="tournament-participants">
+                  <Table size="small" aria-label="تیم‌های ثبت‌نام‌شده در تورنمنت" data-testid="tournament-participants">
                     <TableHead>
                       <TableRow>
-                        <TableCell>تیم</TableCell>
-                        <TableCell align="right">سید</TableCell>
-                        <TableCell>وضعیت</TableCell>
-                        {canManage && <TableCell align="right">عمل</TableCell>}
+                        <TableCell scope="col">تیم</TableCell>
+                        <TableCell scope="col" align="right">سید</TableCell>
+                        <TableCell scope="col">وضعیت</TableCell>
+                        {canManage && <TableCell scope="col" align="right">عمل</TableCell>}
                       </TableRow>
                     </TableHead>
                     <TableBody>
@@ -377,8 +405,10 @@ const TournamentDetailPage: React.FC = () => {
               )}
               {tournament.status === 'registration' && (
                 <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  برای قرعه‌کشی حداقل {toPersianDigits(2)} تیم لازم است. تعداد دیدارهای براکت:{' '}
-                  {toPersianDigits(totalMatches || 0)}
+                  برای قرعه‌کشی حداقل {toPersianDigits(2)} تیم لازم است.{' '}
+                  {isLeague
+                    ? `در لیگ هر تیم با همه بازی می‌کند ⇒ ${toPersianDigits(totalMatches || 0)} دیدار.`
+                    : `تعداد دیدارهای براکت: ${toPersianDigits(totalMatches || 0)}`}
                 </Typography>
               )}
             </Box>
@@ -386,7 +416,9 @@ const TournamentDetailPage: React.FC = () => {
 
           {drawn && (
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>براکت</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
+                {isLeague ? 'برنامهٔ هفته‌ها' : 'براکت'}
+              </Typography>
               <Box sx={{ overflowX: 'auto', pb: 1 }}>
                 <Box data-testid="tournament-bracket"
                      sx={{
@@ -401,6 +433,13 @@ const TournamentDetailPage: React.FC = () => {
                       }}>
                         {round.name}
                       </Typography>
+                      {round.bye_team_name && (
+                        <Typography variant="caption" data-testid={`tournament-bye-${round.id}`}
+                                    sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                          <Icon icon="mdi:sofa-single" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+                          {round.bye_team_name} استراحت می‌کند
+                        </Typography>
+                      )}
                       <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: 2, flexGrow: 1 }}>
                         {round.matches.map((match) => (
                           <MatchCard key={match.id} match={match} canManage={canManage}
@@ -414,23 +453,65 @@ const TournamentDetailPage: React.FC = () => {
             </Box>
           )}
 
-          {tournament.status === 'completed' && (
+          {standingsEnabled && (
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>رده‌بندی نهایی</Typography>
+              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
+                {isLeague ? (tournament.status === 'completed' ? 'جدول نهایی' : 'جدول امتیازها') : 'رده‌بندی نهایی'}
+              </Typography>
               <Box sx={{
                 borderRadius: `${radii.card}px`, boxShadow: shadows.card,
                 border: '1px solid rgba(15,23,42,0.05)', bgcolor: 'rgba(255,255,255,0.92)', overflowX: 'auto',
               }}>
-                <Table size="small" data-testid="tournament-standings">
+                <Table size="small"
+                       aria-label={isLeague ? 'جدول امتیازهای تورنمنت' : 'رده‌بندی نهایی تورنمنت'}
+                       data-testid="tournament-standings">
                   <TableHead>
                     <TableRow>
-                      <TableCell align="right">رتبه</TableCell>
-                      <TableCell>تیم</TableCell>
-                      <TableCell>مرحله</TableCell>
+                      <TableCell scope="col" align="right">رتبه</TableCell>
+                      <TableCell scope="col">تیم</TableCell>
+                      {isLeague ? (
+                        <>
+                          <TableCell scope="col" align="right">بازی</TableCell>
+                          <TableCell scope="col" align="right">برد</TableCell>
+                          <TableCell scope="col" align="right">تساوی</TableCell>
+                          <TableCell scope="col" align="right">باخت</TableCell>
+                          <TableCell scope="col" align="right">گل</TableCell>
+                          <TableCell scope="col" align="right">تفاضل</TableCell>
+                          <TableCell scope="col" align="right">امتیاز</TableCell>
+                        </>
+                      ) : (
+                        <TableCell scope="col">مرحله</TableCell>
+                      )}
                     </TableRow>
                   </TableHead>
                   <TableBody>
-                    {(standingsQ.data?.items ?? []).map((row) => (
+                    {leagueRows.map((row) => (
+                      <TableRow key={`${row.rank}-${row.team_id}`} data-testid={`league-row-${row.team_id}`}>
+                        <TableCell align="right" sx={{ fontWeight: 800 }}>
+                          {toPersianDigits(row.rank)}{row.tied ? ' *' : ''}
+                        </TableCell>
+                        <TableCell sx={{ fontWeight: row.rank === 1 ? 800 : 600 }}>
+                          {row.rank === 1 && !row.tied && (
+                            <Icon icon="mdi:trophy" style={{ verticalAlign: 'middle', marginLeft: 4, color: '#d97706' }} />
+                          )}
+                          {row.team_name ?? `تیم #${row.team_id}`}
+                        </TableCell>
+                        <TableCell align="right">{toPersianDigits(row.played)}</TableCell>
+                        <TableCell align="right">{toPersianDigits(row.won)}</TableCell>
+                        <TableCell align="right">{toPersianDigits(row.drawn)}</TableCell>
+                        <TableCell align="right">{toPersianDigits(row.lost)}</TableCell>
+                        <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                          {toPersianDigits(row.goals_for)}−{toPersianDigits(row.goals_against)}
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                          {row.goal_difference > 0 ? '+' : ''}{toPersianDigits(row.goal_difference)}
+                        </TableCell>
+                        <TableCell align="right" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                          {toPersianDigits(row.points)}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                    {elimRows.map((row) => (
                       <TableRow key={`${row.rank}-${row.team_id}`}>
                         <TableCell align="right" sx={{ fontWeight: 800 }}>{toPersianDigits(row.rank)}</TableCell>
                         <TableCell sx={{ fontWeight: row.rank === 1 ? 800 : 600 }}>
@@ -444,11 +525,19 @@ const TournamentDetailPage: React.FC = () => {
                 </Table>
                 {standingsQ.isPending ? (
                   <Box sx={{ p: 2 }}><Shimmer variant="rounded" sx={{ height: 48, borderRadius: '12px' }} /></Box>
-                ) : (standingsQ.data?.items.length ?? 0) === 0 ? (
+                ) : standingsRows.length === 0 ? (
                   <Box sx={{ p: 2 }}>
                     <Typography variant="body2" color="text.secondary">رتبه‌ای ثبت نشده است.</Typography>
                   </Box>
                 ) : null}
+                {isLeague && leagueRows.some((row) => row.tied && row.rank === 1) && (
+                  <Box sx={{ p: 1.5 }}>
+                    <Typography variant="caption" color="warning.dark" data-testid="league-tie-note">
+                      <Icon icon="mdi:information-outline" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+                      رتبهٔ ۱ مشترک است؛ با امتیاز، تفاضل گل و گل زده جدا نشد. برای تعیین قهرمان به پلی‌آف نیاز است.
+                    </Typography>
+                  </Box>
+                )}
               </Box>
             </Box>
           )}
@@ -456,7 +545,9 @@ const TournamentDetailPage: React.FC = () => {
           {drawn && totalMatches > 0 && tournament.status !== 'completed' && (
             <Typography variant="body2" color="text.secondary">
               <Icon icon="mdi:information-outline" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
-              فقط برگزارکننده نتیجه ثبت می‌کند؛ برنده خودش به دیدار بعد می‌رود.
+              {isLeague
+                ? 'فقط برگزارکننده نتیجه ثبت می‌کند؛ تساوی مجاز است و جدول امتیازها خودکار به‌روز می‌شود.'
+                : 'فقط برگزارکننده نتیجه ثبت می‌کند؛ برنده خودش به دیدار بعد می‌رود.'}
             </Typography>
           )}
         </Stack>
@@ -521,7 +612,9 @@ const TournamentDetailPage: React.FC = () => {
                          inputMode="numeric" sx={{ width: 96 }} slotProps={{ inputLabel: { shrink: true } }} />
             </Stack>
             <Typography variant="caption" color="text.secondary">
-              تساوی مجاز نیست؛ برنده به مرحلهٔ بعد می‌رود.
+              {isLeague
+                ? 'تساوی مجاز است؛ هر تیم یک امتیاز می‌گیرد.'
+                : 'تساوی مجاز نیست؛ برنده به مرحلهٔ بعد می‌رود.'}
             </Typography>
           </Stack>
         </DialogContent>

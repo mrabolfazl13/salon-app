@@ -4,12 +4,12 @@
 
 import apiClient from './api'
 import type {
+  StandingRow,
   Tournament,
   TournamentBracket,
   TournamentCreatePayload,
   TournamentList,
   TournamentMatch,
-  TournamentStanding,
 } from '@/types/tournament'
 
 export interface TournamentsParams {
@@ -35,7 +35,7 @@ export const tournamentService = {
     return response.data
   },
 
-  standings: async (id: number): Promise<{ items: TournamentStanding[] }> => {
+  standings: async (id: number): Promise<{ items: StandingRow[] }> => {
     const response = await apiClient.get(`/tournaments/${id}/standings`)
     return response.data
   },

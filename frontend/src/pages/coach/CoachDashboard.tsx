@@ -374,7 +374,7 @@ const CoachDashboard: React.FC = () => {
                   overflowX: 'auto',
                 }}
               >
-                <Table size="small" data-testid="coach-clients">
+                <Table size="small" aria-label="فهرست شاگردهای مربی" data-testid="coach-clients">
                   <TableHead>
                     <TableRow>
                       <TableCell>شاگرد</TableCell>

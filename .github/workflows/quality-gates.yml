@@ -84,7 +84,18 @@ jobs:
         if: failure()
         working-directory: ./backend
         run: |
-          grep -inE "FAILED|ERROR|assert" pytest.log | tail -20 | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done
+          # لог‌های GitHub Actions از این ماشین قابل خواندن نیستند؛ فقط annotation
+          # می‌رسد. Lint: warningهای Deprecation هم «error/assert» دارند، پس لایه‌ی
+          # اول باید لایه‌ی شروعِ خط باشد (FAILED/ERROR در خلاصهٔ کوتاهِ pytest).
+          hits=$(grep -E "^(FAILED|ERROR) " pytest.log | cut -c1-220)
+          if [ -n "$hits" ]; then
+            echo "$hits" | head -10 | while IFS= read -r l; do echo "::error::$l"; done
+            echo "CLIPPED=$(echo "$hits" | wc -l)"
+            echo "::error::pytest trace-back: $(awk '/^=+ FAILURES =+$/{f=1;next} f&&/^E /{print}' pytest.log | tail -12 | tr '\n' '|' | cut -c1-200)"
+          else
+            echo "::error::خلاصهٔ FAILED ندارد (کرش/خطای جمع‌آوری) — 15 خط آخر:"
+            tail -15 pytest.log | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done
+          fi
           tail -5 pytest.log | cut -c1-220 | while IFS= read -r l; do echo "::error::TAIL $l"; done
           true
           

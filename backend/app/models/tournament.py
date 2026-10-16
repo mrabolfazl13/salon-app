@@ -1,5 +1,5 @@
 # backend/app/models/tournament.py
-"""تورنمنت و براکت (P005) — Single-Elimination با bye تا براکت کامل شود.
+"""تورنمنت و براکت (P005) — تک‌حذفی با bye، و لیگِ همه-بازی (round-robin).
 
 انتخاب‌های طراحی (عمداً مستند شده، چون بقیهٔ فیچرها همین قیده را دارند):
 - شرکت‌کننده **تیم** است نه کاربر (`team_id` → `teams.id`): محصول تیم‌محور است و
@@ -13,8 +13,12 @@
   SQLite DDL آن‌ها `VARCHAR(n)` + CHECK و روی PostgreSQL نوع native است، و در هر دو
   مقدار persist‌شده نامِ عضو است: 'FINAL' نه 'final'). server_default در مهاجرت هم
   بزرگ‌نویس است، وگرنه پیش‌فرض DB با چیزی که ORM می‌خواند نمی‌خواند.
-- فقط فرمت Single-Elimination پیاده شده (`format` تک‌عضو). ستون VARCHAR است، پس
-  افزودن Double-Elimination/Round-Robin در برش بعدی مهاجرت لازم ندارد.
+- فرمت‌ها: `SINGLE_ELIMINATION` و `ROUND_ROBIN`. برخلاف ادعای قبلی این فایل، افزودن
+  عضو تازه **مهاجرت لازم دارد** (اندازه‌گیری شد): روی PostgreSQL نوع `tournamentformat`
+  native است و باید `ALTER TYPE … ADD VALUE` بخورد؛ روی SQLite ستون `VARCHAR(18)` **بدون
+  CHECK** است (DDLِ ساختۀ مهاجرت دیده شد) پس آنجا no-op است. کرقتد بودن نام برچسب هم
+  از همان‌جا می‌آید: ۱۸ کاراکترِ `SINGLE_ELIMINATION` طول ستون SQLite را قفل کرده است.
+  `DOUBLE_ELIMINATION` در این برش پیاده نشده (به ستون «کدام براکت» و منطق reset نیاز دارد).
 - تاریخ‌ها همیشه tz-aware (SQLModel `UTCDateTime` با naive مقدار می‌سوزد).
 """
 from datetime import datetime, timezone
@@ -43,6 +47,7 @@ class TournamentStatus(str, Enum):
 
 class TournamentFormat(str, Enum):
     SINGLE_ELIMINATION = "single_elimination"
+    ROUND_ROBIN = "round_robin"
 
 
 class TournamentParticipantStatus(str, Enum):

@@ -13,7 +13,7 @@ from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException, Query
 from pydantic import BaseModel, Field
 
-from app.models.tournament import TournamentStatus
+from app.models.tournament import TournamentFormat, TournamentStatus
 from app.models.user import User
 from app.services import tournament_service
 from app.unit_of_work import UnitOfWork, get_unit_of_work
@@ -29,6 +29,8 @@ class TournamentCreateIn(BaseModel):
     venue_id: Optional[int] = None
     starts_at: Optional[datetime] = None
     entry_fee: int = Field(default=0, ge=0)
+    # فرمت پس از قرعه‌کشی عوض نمی‌شود؛ همان‌جا برنامه/پیشروی ساخته شده است
+    format: TournamentFormat = Field(default=TournamentFormat.SINGLE_ELIMINATION)
 
 
 class RegisterIn(BaseModel):
@@ -58,7 +60,8 @@ def create_tournament(
         tournament = tournament_service.create_tournament(
             uow, current_user, name=data.name, starts_at=data.starts_at,
             venue_id=data.venue_id, sport=data.sport,
-            description=data.description, entry_fee=data.entry_fee)
+            description=data.description, entry_fee=data.entry_fee,
+            format=data.format)
     except (ValueError, PermissionError) as exc:
         _fail(exc)
     uow.commit()

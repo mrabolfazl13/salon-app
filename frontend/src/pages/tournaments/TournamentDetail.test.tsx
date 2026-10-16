@@ -262,3 +262,112 @@ describe('TournamentDetail — ثبت‌نام و قرعه‌کشی', () => {
     expect(await screen.findByText(/دریافت تورنمنت ممکن نشد/)).toBeInTheDocument()
   })
 })
+
+describe('TournamentDetail — لیگ (همه با همه)', () => {
+  const league = (over: Partial<Tournament> = {}) => tournament({ format: 'round_robin', ...over })
+
+  const leagueRound = (id: number, number: number, matches: TournamentMatch[], bye?: { id: number; name: string }) => ({
+    id,
+    number,
+    name: `هفته ${number}`,
+    matches,
+    bye_team_id: bye?.id ?? null,
+    bye_team_name: bye?.name ?? null,
+  })
+
+  it('هفته‌ها را با تیمِ استراحت‌کرده رندر می‌کند، نه با عنوان «براکت»', async () => {
+    bracket.mockResolvedValue({
+      tournament: league(),
+      rounds: [
+        leagueRound(201, 1, [match({ id: 301, round_id: 201, status: 'final' }),
+                             match({ id: 302, round_id: 201, position: 2, team_a_id: 13, team_a_name: 'آرش', team_b_id: 14, team_b_name: 'کاووش', score_a: 2, score_b: 0, winner_team_id: 13 })]),
+        leagueRound(202, 2, [match({ id: 303, round_id: 202, status: 'ready', score_a: null, score_b: null, winner_team_id: null })], { id: 14, name: 'کاووش' }),
+      ],
+      participants: fourTeams,
+    })
+    renderPage()
+    const root = await screen.findByTestId('tournament-bracket')
+    const columns = Array.from(root.children) as HTMLElement[]
+    expect(columns).toHaveLength(2)
+    expect(columns[0].textContent).toContain('هفته 1')
+    expect(screen.getByText('برنامهٔ هفته‌ها')).toBeInTheDocument()
+    expect(screen.getByTestId('tournament-bye-202')).toHaveTextContent('کاووش استراحت می‌کند')
+    expect(screen.queryByTestId('tournament-bye-201')).not.toBeInTheDocument()
+  })
+
+  it('تساوی در لیگ نتیجهٔ واقعی است و به سرویس می‌رود', async () => {
+    bracket.mockResolvedValue({
+      tournament: league(),
+      rounds: [leagueRound(201, 1, [match({ id: 301, round_id: 201, status: 'ready', score_a: null, score_b: null, winner_team_id: null })])],
+      participants: fourTeams,
+    })
+    renderPage()
+    fireEvent.click(await screen.findByRole('button', { name: 'ثبت نتیجه' }))
+    const dialog = await screen.findByTestId('tournament-result-dialog')
+    expect(dialog).toHaveTextContent('تساوی مجاز است')
+    const inputs = within(dialog).getAllByLabelText('گل')
+    fireEvent.change(inputs[0], { target: { value: '2' } })
+    fireEvent.change(inputs[1], { target: { value: '2' } })
+    fireEvent.click(within(dialog).getByTestId('tournament-result-submit'))
+    await waitFor(() => expect(setResult).toHaveBeenCalledWith(301, 2, 2))
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith(expect.stringContaining('جدول لیگ')))
+    expect(toastError).not.toHaveBeenCalled()
+  })
+
+  it('جدول امتیازها را وسطِ راه می‌خواند و رتبهٔ مشترک را پلی‌آف اعلام می‌کند', async () => {
+    bracket.mockResolvedValue({
+      tournament: league({ status: 'in_progress' }),
+      rounds: [leagueRound(201, 1, [match({ id: 301, round_id: 201, status: 'final' })])],
+      participants: fourTeams,
+    })
+    standings.mockResolvedValue({ items: [
+      { rank: 1, team_id: 11, team_name: 'پارس', played: 2, won: 1, drawn: 1, lost: 0,
+        goals_for: 4, goals_against: 2, goal_difference: 2, points: 4, tied: true },
+      { rank: 1, team_id: 13, team_name: 'آرش', played: 2, won: 1, drawn: 1, lost: 0,
+        goals_for: 4, goals_against: 2, goal_difference: 2, points: 4, tied: true },
+      { rank: 3, team_id: 12, team_name: 'سپید', played: 2, won: 0, drawn: 1, lost: 1,
+        goals_for: 2, goals_against: 5, goal_difference: -3, points: 1, tied: false },
+    ] })
+    renderPage()
+    await screen.findByTestId('league-row-11')
+    const table = screen.getByTestId('tournament-standings')
+    await waitFor(() => expect(standings).toHaveBeenCalledWith(1))
+    expect(within(table).getAllByRole('row')).toHaveLength(4)
+    expect(table).toHaveTextContent('امتیاز')
+    expect(within(table).getByRole('row', { name: /پارس/ })).toHaveTextContent('۴')
+    expect(await screen.findByTestId('league-tie-note')).toHaveTextContent('پلی‌آف')
+    // رتبهٔ ۱ دوتایی ⇒ قهرمانی ساخته نمی‌شود، حتی اگر جدول باز باشد
+    expect(screen.getByTestId('tournament-kpis')).toHaveTextContent('مشترک')
+  })
+
+  it('صدر جدولِ یک‌دانه را نشان می‌دهد و پلی‌آف نمی‌خواهد', async () => {
+    bracket.mockResolvedValue({
+      tournament: league({ status: 'in_progress' }),
+      rounds: [leagueRound(201, 1, [match({ id: 301, round_id: 201, status: 'final' })])],
+      participants: fourTeams,
+    })
+    standings.mockResolvedValue({ items: [
+      { rank: 1, team_id: 11, team_name: 'پارس', played: 2, won: 2, drawn: 0, lost: 0,
+        goals_for: 6, goals_against: 1, goal_difference: 5, points: 6, tied: false },
+      { rank: 2, team_id: 13, team_name: 'آرش', played: 2, won: 1, drawn: 0, lost: 1,
+        goals_for: 3, goals_against: 4, goal_difference: -1, points: 3, tied: false },
+    ] })
+    renderPage()
+    // جدول پیش از رسیدن داده هم سرستون دارد ⇒ باید منتظر ردیف واقعی ماند
+    await screen.findByTestId('league-row-11')
+    expect(screen.getByTestId('tournament-kpis')).toHaveTextContent('پارس')
+    expect(screen.queryByTestId('league-tie-note')).not.toBeInTheDocument()
+  })
+
+  it('رده‌بندی حذفی پیش از تمام‌شدن تورنمنت خوانده نمی‌شود', async () => {
+    bracket.mockResolvedValue({
+      tournament: tournament({ status: 'in_progress' }),
+      rounds: [{ id: 101, number: 1, name: 'نیمه‌نهایی', matches: [match({ id: 201 })] }],
+      participants: fourTeams,
+    })
+    renderPage()
+    await screen.findByTestId('tournament-bracket')
+    expect(standings).not.toHaveBeenCalled()
+    expect(screen.queryByTestId('tournament-standings')).not.toBeInTheDocument()
+  })
+})

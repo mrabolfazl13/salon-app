@@ -65,15 +65,31 @@ jobs:
       
       - name: Run tests with coverage
         env:
-          DATABASE_URL: postgresql://fursal:secret@localhost:5432/futsal_test
+          DATABASE_URL: postgresql://futsal:secret@localhost:5432/futsal_test
           REDIS_URL: redis://localhost:6379/0
           JWT_SECRET: test-secret-key-for-ci-only-minimum-32-chars
           ADMIN_PASSWORD: admin123
           ALLOWED_ORIGINS: http://localhost:3000
         run: |
           cd backend
-          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing
-      
+          pytest tests/ -v --cov=app --cov-report=xml --cov-report=term-missing 2>&1 | tee pytest.log; exit ${PIPESTATUS[0]}
+
+      - name: Surface test failures
+        if: failure()
+        working-directory: ./backend
+        # همان دلیلی که در quality-gates.yml: بدنهٔ لاگ از بیرون خوانده نمی‌شود،
+        # پس علت شکست باید به‌صورت annotation بیرون بیاید (خط‌های شروعِ FAILED/ERROR).
+        run: |
+          hits=$(grep -E "^(FAILED|ERROR) " pytest.log | cut -c1-220)
+          if [ -n "$hits" ]; then
+            echo "$hits" | head -10 | while IFS= read -r l; do echo "::error::$l"; done
+          else
+            echo "::error::خلاصهٔ FAILED ندارد — 15 خط آخر:"
+            tail -15 pytest.log | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done
+          fi
+          tail -5 pytest.log | cut -c1-220 | while IFS= read -r l; do echo "::error::TAIL $l"; done
+          true
+
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v3
         with:

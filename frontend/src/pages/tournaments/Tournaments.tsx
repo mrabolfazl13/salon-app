@@ -14,7 +14,10 @@ import {
   DialogContent,
   DialogTitle,
   Divider,
+  FormControlLabel,
   IconButton,
+  Radio,
+  RadioGroup,
   Stack,
   TextField,
   Tooltip,
@@ -32,7 +35,7 @@ import {
   useOpenRegistration,
   useTournaments,
 } from '@/hooks/useTournament'
-import type { Tournament, TournamentStatus } from '@/types/tournament'
+import type { Tournament, TournamentFormat, TournamentStatus } from '@/types/tournament'
 import { useAuthStore } from '@/store/authStore'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { radii, shadows } from '@/theme'
@@ -53,6 +56,17 @@ export const TOURNAMENT_STATUS_COLORS: Record<TournamentStatus, string> = {
   in_progress: '#d97706',
   completed: '#16a34a',
   cancelled: '#6b7280',
+}
+
+export const TOURNAMENT_FORMAT_LABELS: Record<TournamentFormat, string> = {
+  single_elimination: 'تک‌حذفی',
+  round_robin: 'لیگ (همه با همه)',
+}
+
+/** متن هر گزینه باید فرقِ واقعیِ دو فرمت را بگوید، نه فقط نامش را */
+export const TOURNAMENT_FORMAT_HINTS: Record<TournamentFormat, string> = {
+  single_elimination: 'با یک باخت حذف می‌شوی؛ قرعه براکت را می‌سازد و تساوی ثبت نمی‌شود.',
+  round_robin: 'هر تیم با همهٔ تیم‌ها بازی می‌کند؛ برد ۳ امتیاز و تساوی ۱. قهرمان با جدول امتیازات تعیین می‌شود.',
 }
 
 /** مقدار پیش‌فرض datetime-local — بک‌اند ورودی naive را وقت تهران می‌گیرد */
@@ -92,7 +106,8 @@ const TournamentCard: React.FC<{
             {tournament.name}
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
-            {toPersianDigits(tournament.team_count)} تیم
+            {TOURNAMENT_FORMAT_LABELS[tournament.format]}
+            {` · ${toPersianDigits(tournament.team_count)} تیم`}
             {tournament.starts_at ? ` · ${formatJalaliDateTime(tournament.starts_at)}` : ''}
             {tournament.entry_fee > 0 ? ` · ورودی ${formatRial(tournament.entry_fee)}` : ''}
           </Typography>
@@ -113,7 +128,9 @@ const TournamentCard: React.FC<{
             </Button>
           )}
           {canManage && tournament.status === 'registration' && (
-            <Tooltip title="براکت ساخته می‌شود و دیگر قابل تغییر نیست">
+            <Tooltip title={tournament.format === 'round_robin'
+              ? 'برنامهٔ هفته‌ها ساخته می‌شود و دیگر قابل تغییر نیست'
+              : 'براکت ساخته می‌شود و دیگر قابل تغییر نیست'}>
               <span>
                 <Button size="small" variant="contained" disabled={busy || tournament.team_count < 2}
                         onClick={onDraw} sx={{ borderRadius: '10px', minHeight: 40 }}>
@@ -151,6 +168,7 @@ const TournamentsPage: React.FC = () => {
   const [startsAt, setStartsAt] = useState(defaultStartsAt)
   const [entryFee, setEntryFee] = useState('0')
   const [description, setDescription] = useState('')
+  const [format, setFormat] = useState<TournamentFormat>('single_elimination')
 
   const canManage = (t: Tournament) =>
     t.organizer_id === user?.id || user?.role === 'super_admin'
@@ -166,7 +184,9 @@ const TournamentsPage: React.FC = () => {
 
   const runDraw = (t: Tournament) => {
     drawMut.mutate(t.id, {
-      onSuccess: () => toast.success('براکت ساخته شد'),
+      onSuccess: () => toast.success(t.format === 'round_robin'
+        ? 'برنامهٔ هفته‌ها ساخته شد'
+        : 'براکت ساخته شد'),
       onError: (err) => toast.error(extractError(err, 'قرعه‌کشی ممکن نشد.')),
     })
   }
@@ -189,6 +209,7 @@ const TournamentsPage: React.FC = () => {
         starts_at: startsAt || null,
         entry_fee: Math.max(0, Number(entryFee) || 0),
         description: description.trim() || null,
+        format,
       },
       {
         onSuccess: () => {
@@ -197,6 +218,7 @@ const TournamentsPage: React.FC = () => {
           setName('')
           setDescription('')
           setEntryFee('0')
+          setFormat('single_elimination')
         },
         onError: (err) => toast.error(extractError(err, 'ساخت تورنمنت ممکن نشد.')),
       },
@@ -214,7 +236,7 @@ const TournamentsPage: React.FC = () => {
             تورنمنت‌ها
           </Typography>
           <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            جام‌های حذفی با براکت خودکار — تیمت را ثبت کن و نتیجه‌ها را وارد کن.
+            جام‌های حذفی و لیگِ همه‌با‌همه با قرعهٔ خودکار — تیمت را ثبت کن و نتیجه‌ها را وارد کن.
           </Typography>
         </Box>
         {isAuthenticated && (
@@ -251,6 +273,27 @@ const TournamentsPage: React.FC = () => {
           <Stack spacing={2} sx={{ pt: 1 }}>
             <TextField label="نام تورنمنت" value={name} onChange={(e) => setName(e.target.value)}
                        fullWidth placeholder="جام بهارانه" autoFocus />
+            <Box>
+              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', mb: 0.5 }}>
+                فرمت مسابقات
+              </Typography>
+              <RadioGroup row value={format} data-testid="tournament-format"
+                          onChange={(e) => setFormat(e.target.value as TournamentFormat)}
+                          sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+                {(Object.keys(TOURNAMENT_FORMAT_LABELS) as TournamentFormat[]).map((f) => (
+                  <FormControlLabel key={f} value={f} control={<Radio size="small" />}
+                                    sx={{ ms: 0.5 }}
+                                    label={
+                                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
+                                        {TOURNAMENT_FORMAT_LABELS[f]}
+                                      </Typography>
+                                    } />
+                ))}
+              </RadioGroup>
+              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.5, lineHeight: 1.8 }}>
+                {TOURNAMENT_FORMAT_HINTS[format]}
+              </Typography>
+            </Box>
             <TextField label="زمان شروع" type="datetime-local" value={startsAt}
                        onChange={(e) => setStartsAt(e.target.value)} fullWidth
                        slotProps={{ inputLabel: { shrink: true } }} />

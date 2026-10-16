@@ -2,7 +2,7 @@
 // تایپ‌های تورنمنت — آینهٔ پاسخ‌های snake_case بک‌اند (app/api/v1/tournament.py + tournament_service)
 
 export type TournamentStatus = 'draft' | 'registration' | 'drawn' | 'in_progress' | 'completed' | 'cancelled'
-export type TournamentFormat = 'single_elimination'
+export type TournamentFormat = 'single_elimination' | 'round_robin'
 export type MatchStatus = 'pending' | 'ready' | 'live' | 'final' | 'bye'
 export type TournamentParticipantStatus = 'registered' | 'withdrawn'
 
@@ -47,6 +47,9 @@ export interface TournamentRound {
   number: number
   name: string
   matches: TournamentMatch[]
+  // در لیگِ تیم‌فرد، یک تیم در هر هفته استراحت می‌کند؛ بک‌اند آن را از خودِ برنامهٔ هفته می‌خواند
+  bye_team_id?: number | null
+  bye_team_name?: string | null
 }
 
 export interface TournamentBracket {
@@ -67,6 +70,24 @@ export interface TournamentStanding {
   label: string
 }
 
+/** ردیف جدول لیگ (round_robin) — رتبهٔ مشترک با `tied` معلوم می‌شود، نه با ترتیب ساختگی. */
+export interface LeagueStanding {
+  rank: number
+  team_id: number
+  team_name?: string | null
+  played: number
+  won: number
+  drawn: number
+  lost: number
+  goals_for: number
+  goals_against: number
+  goal_difference: number
+  points: number
+  tied: boolean
+}
+
+export type StandingRow = TournamentStanding | LeagueStanding
+
 export interface TournamentList {
   total: number
   items: Tournament[]
@@ -79,4 +100,5 @@ export interface TournamentCreatePayload {
   venue_id?: number | null
   starts_at?: string | null
   entry_fee?: number
+  format?: TournamentFormat
 }

@@ -350,7 +350,7 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
       دیدار بعد می‌رود، byeها در همان قرعه‌کشی تعیین تکلیف می‌شوند)
 - [x] C2.3 API: ساخت، بازکردن ثبت‌نام، ثبت‌نام/حذف تیم، قرعه‌کشی، ثبت نتیجه، لغو، براکت، رده‌بندی
 - [x] C2.4 UI براکت بصری (CSS grid، RTL-safe) + جدول رده‌بندی + مسیر روت و ورودی‌های ناوبری
-- [ ] C2.5 برش‌های بعدی: Double-Elimination، Round-Robin (فقط یک مقدار در `TournamentFormat`)
+- [x] C2.5 برش‌های بعدی: Round-Robin (لیگ همه‌با‌همه) — پایین را ببین؛ Double-Elimination هنوز انجام نشده
 - **شاهد (۲۰۲۶-۱۰-۱۶، همه اجراشده):**
   - بک‌اند: `pytest tests/test_tournament.py` → **۳۰ passed** (تست معیار:
     `test_eight_teams_run_to_champion_without_manual_help` — `[۴,۲,۱]` دیدار در سه مرحله،
@@ -380,6 +380,53 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   پیشروی خودکار برنده با `next_match_id`/`next_slot`). **روی prod هنوز اجرا نشده:** مهاجرت `m0s022`
   باید روی سرور run شود (X6 = نیازمند تأیید صریح کاربر) و دامنهٔ `api.salon.absadeghi.ir` از این
   ماشین resolve نمی‌شود (`curl` ⇒ exit 6)، پس راستی‌آزمایی زندهٔ UI/HTTP مسدود است.
+
+#### C2.5 فرمت Round-Robin (لیگِ همه‌با‌همه) — راند ۸ — ✅ کد + تست (راستی‌آزمایی prod منتظر X6)
+- [x] C2.5a موتور: `round_robin_weeks` (روش دایره: `arr[0]` ثابت، بقیه چرخش، `None` = استراحت)،
+      `_draw_round_robin` (برنامهٔ هفته‌ها + bye)، `_settle_league` و `_league_table`
+      (امتیاز ۳/۱/۰ → تفاضل → گل زده → `team_id` فقط برای پایداری رندر) در
+      `app/services/tournament_service.py`
+- [x] C2.5b تست: `tests/test_tournament_round_robin.py` (ویژگی + سرویس + API)
+- [x] C2.5c UI: انتخاب فرمت در دیالوگ ساخت، برچسب فرمت روی کارت و هدر، رندر «برنامهٔ هفته‌ها» با
+      چیپ تیمِ استراحت‌کرده، تساوی مجاز فقط در لیگ، جدول امتیازها با رتبهٔ مشترک و یادداشت پلی‌آف،
+      KPI «صدر جدول»
+- [x] C2.5d مهاجرت `m0s025_tournament_round_robin.py`: `ALTER TYPE tournamentformat ADD VALUE
+      IF NOT EXISTS 'ROUND_ROBIN'` داخل `autocommit_block()` روی PostgreSQL؛ روی SQLite بی‌اثر
+      (ستون `VARCHAR(18)` بدون CHECK است — از `sqlite_master` خوانده شد)
+- **شاهد (۲۰۲۶-۱۰-۱۶، همه اجراشده):**
+  - بک‌اند: `pytest tests/test_tournament_round_robin.py` → **۲۵ passed در 1.48s**؛
+    `pytest tests/test_tournament_round_robin.py tests/test_tournament.py` → **۵۵ passed در 3.28s**؛
+    رگرسیون کامل `pytest` → **۵۵۲ passed در 106.70s** (۵۲۷ قبل + ۲۵ جدید، exit 0 روی SQLite).
+    تست‌های معیار: جفت‌ها دقیقاً `N(N−1)/2` و یکتا برای `N=2..9`، هیچ تیمی در یک هفته دو بار نیست؛
+    هفته‌ها `N−1` (زوج) / `N` (فرد)؛ هر تیم دقیقاً یک بار استراحت (فرد) / هیچ (زوج)؛ تساوی در لیگ
+    `winner_team_id=None` و `completed` می‌کند ولی در حذفی همچنان **۴۰۰** با «مساوی»؛ ترتیب
+    `(۴امتیاز، +۲، ۵گل)` قبل از `(۴امتیاز، +۲، ۳گل)`؛ `[۱,۱,۳,۳]` ⇒ هر دو `tied=True` و قهرمان
+    **ساخته نمی‌شود**؛ پایان تورنمنت فقط وقتی `sum(played) == 2*(N−1)` (بیتنِ آخر بازی‌شده).
+  - راستی‌آزمایی روی **PostgreSQL واقعی** (نه فقط SQLite): با `pgserver` (پستgres ۱۸ محلی) چرخۀ
+    `alembic upgrade head` → `downgrade -1` → `upgrade head` هر سه **exit 0**، برچسب‌های نوع
+    `tournamentformat` = `['SINGLE_ELIMINATION', 'ROUND_ROBIN']` و یک ردیف با
+    `format='ROUND_ROBIN'` در ستونی با `data_type='USER-DEFINED'` persist شد (کری.کوئری مستقیم).
+  - **مسیر کامل لیگ روی همان PG واقعی** (`~/.qoder-tmp/pg_league.py`، چون `tests/conftest.py:18`
+    خودِ pytest را به SQLite می‌چسباند و ستون enum بومی هرگز دیده نمی‌شود): ساخت ← بازکردن ثبت‌نام ←
+    ۴ تیم ← قرعه ⇒ `WEEKS: ['هفته ۱','هفته ۲','هفته ۳']`, `MATCHES: 6`, همه `ready`؛ ثبت ۶ نتیجه
+    (یکی تساوی ۱−۱) ⇒ `STANDINGS: [(1,'تیم PG1',9,0),(2,'تیم PG3',4,1),(3,'تیم PG4',3,0),(4,'تیم PG2',1,1)]`
+    و `TOURNAMENT: completed / winner: تیم PG1`؛ بازخوانی با SQL خام ⇒ `('USER-DEFINED','tournamentformat')`
+    و `PERSISTED ROW: ('ROUND_ROBIN','COMPLETED')` و `DB WEEKS` همان نام‌های فارسی. خروجی `PG-LEAGUE-OK`.
+  - فرانت: `pnpm exec tsc --noEmit -p tsconfig.app.json` exit **0** · `npm run lint` exit **0** ·
+    `pnpm exec vitest run src/pages/tournaments` → **۱۹ passed در ۲ فایل** (۱۳ جزئیات + ۶ فهرست) ·
+    رگرسیون کامل `vitest run` → **۱۳۷ passed / ۱۷ فایل** · `NODE_OPTIONS=--max-old-space-size=3072 npm run build`
+    ⇒ `✓ built in 38.57s`، بدون `dist/assets/*.map`.
+  - گاردریل‌های CI (بازتولید محلی از `web-tests.yml`): جداول بدون `aria-label` **۰/۲۴** (قبل از این
+    راند **۳** خطا می‌داد)، `sx` با هگز کم‌کنتراست **۰**، فایل‌های دارای `scope="col"` **۲۰** (آستانه ۱۸).
+  - آیکون‌های جدید (`mdi:table-check`, `mdi:sofa-single`) روی iconify با HTTP **۲۰۰** بررسی شدند.
+- **تصمیم‌های صادقانه (نه حدس):** رتبهٔ مشترک همان‌طور نمایش داده می‌شود (`* + یادداشت پلی‌آف`) و
+  قهرمان اختراع نمی‌شود؛ `leagueLeader` تنها وقتی نام می‌دهد که رتبهٔ ۱ یکتا باشد، وگرنه
+  `مشترک`/`—`؛ تیم استراحت‌کرده از همان دیدارهای هفته خوانده می‌شود (`bye_team_name`) نه شمارش مجدد؛
+  جدول لیگ وسطِ راه باز است (status `drawn/in_progress/completed`) چون برای حذفی بی‌معناست ⇒ آنجا
+  فقط پس از `completed` خوانده می‌شود.
+- **معیار:** یک تورنمنت لیگی از ثبت‌نام تا جدول نهایی بدون دخالت دستی، با تساوی‌های واقعی.
+  **مسدود:** اجرای `m0s025` روی prod (X6) و راستی‌آزمایی زنده در مرورگر (دامنه resolve نمی‌شود) ⇒
+  شواهد این راند در سطح تست واحد/jsdom + SQL واقعی است، نه E2E روی سرویس زنده.
 
 ### C3 شیفت پرسنل (P020) — ✅ کد + تست (راستی‌آزمایی prod منتظر X6)
 - [x] C3.1 مدل `StaffShift` + تشخیص تعارض
@@ -686,6 +733,23 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 | `pnpm test` (vitest v2.1.9) | **37 passed** در ۵ فایل (l10n 6 · venueMedia 9 · calendar 14 · notification 4 · VenueCard 4) — 8.83s |
 | `pnpm run build` | `✓ built in 53.06s`؛ `dist/assets/*.map` **وجود ندارد** (A2)؛ بزرگ‌ترین chunk: `vendor-mui 406.81 kB` (gzip 119.97) |
 
+### قرمزی CI: چه چیزی واقعاً خراب بود و چه تغییر کرد (۲۰۲۶-۱۰-۱۶)
+CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). علت‌ها جدا و اندازه‌گیری‌شده:
+1. **Web Tests → Accessibility guardrails:** `::error::3 جدول بدون aria-label`
+   (`pages/coach/CoachDashboard.tsx:377`, `pages/tournaments/TournamentDetail.tsx:341`, `:424`).
+   رفع: سه `aria-label` (جدول لیگ بعداً برچسب پویا گرفت) ⇒ بازنشینی محلی: **۰ خطا / ۲۴ جدول**.
+2. **`backend-tests.yml`:** URL سرویس Postgres غلط بود (`fursal` → `futsal`)؛ رفع شد. نکته:
+   `tests/conftest.py:18` همان اول `DATABASE_URL` را به SQLite موقت می‌چسباند، پس خودِ pytest هرگز
+   به Postgres وصل نمی‌شود — ارزش این job اجرای `alembic upgrade head` روی PG است.
+3. **چرایی بی‌رسید بودن علت شکست:** استپ «Surface test failures» در `quality-gates.yml` با
+   `grep -inE "FAILED|ERROR|assert"` و `tail -20` نوشته شده بود؛ warningهای Pydantic V2 پر از
+   «deprecated/assert» همان `tail` را پُر می‌کردند و ۲۰ annotation آخر فقط warning بودند.
+   رفع در هر دو workflow: لنگر شروع خط `^(FAILED|ERROR) ` (خلاصهٔ کوتاه pytest)، fallback به
+   `tail -15` وقتی خلاصه‌ای نیست (کرش/خطای collection) و در `backend-tests.yml` هم `tee pytest.log`
+   + استپ annotation اضافه شد. بدنهٔ لاگ از این ماشین خوانده نمی‌شود (401 روی Azure Blob با
+   توکن `/logs`؛ 404 وقتی شناسۀ job با run اشتباه می‌شود)، پس annotation تنها مسیر دیدن است.
+4. **Flutter iOS build:** هنوز قرمز و دست‌نخورده — در این راند بررسی نشد.
+
 ---
 
 ## موارد مسدود (تصمیم/دسترسی بیرونی — نباید جلوی بقیه را بگیرد)
@@ -697,6 +761,6 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 | X3 | تأیید پر بودن `KEYSTORE_*` در GitHub Secrets | فقط با اجرای tag-release مشخص می‌شود | کاربر/CI |
 | X4 | قرارداد درگاه پرداخت و سرویس SMS | اداری | کاربر |
 | X5 | حذف APKهای ۸۹MB از تاریخچه git | بازگشت‌ناپذیر | کاربر |
-| X6 | مستقر کردن تغییرات بک‌اند روی سرور prod | روی سرویس زنده؛ نیاز به تأیید صریح. مهاجرت‌های منتظر اجرا: `m0s021coachesessions`، `m0s022tournaments`، `m0s023staffshifts`، `m0s024teamchallenges` (زنجیرۀ تک‌سر؛ همه روی SQLite با up/down/up راستی‌آزمایی شدند) | کاربر |
+| X6 | مستقر کردن تغییرات بک‌اند روی سرور prod | روی سرویس زنده؛ نیاز به تأیید صریح. مهاجرت‌های منتظر اجرا: `m0s021coachesessions`، `m0s022tournaments`، `m0s023staffshifts`، `m0s024teamchallenges`، `m0s025roundrobin` (زنجیرۀ تک‌سر؛ همه روی SQLite با up/down/up راستی‌آزمایی شدند، و `m0s025` علاوه بر آن روی PostgreSQL واقعی با up/down/up + خواندن برچسب‌های enum اثبات شد) | کاربر |
 | X7 | دادهٔ تاریخی ۱۲ ماهه برای ML قیمت | ذاتاً زمان‌بر | — |
 | X8 | عدد‌های بازاریابی صفحهٔ اصلی (`HeroSection.tsx:15-20`: +۱۲٬۰۰۰ بازیکن، +۵۰ زمین، +۳۰۰ مسابقه، ۴.۸) و شمارنده‌های `StatsSection` ساختگی‌اند؛ endpoint واقعی وجود ندارد | یا از سرور باید بیاید یا از صفحه برود — تصمیم محصول | کاربر |
