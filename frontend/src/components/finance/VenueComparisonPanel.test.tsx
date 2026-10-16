@@ -65,7 +65,11 @@ const response = (rows: VenueComparisonRow[]): VenueComparisonResponse => ({
   },
 })
 
-const SCOPE = { venue_id: undefined, from: '2026-05-05', to: '2026-05-11' }
+const SCOPE: { venue_id?: number; from?: string; to?: string } = {
+  venue_id: undefined,
+  from: '2026-05-05',
+  to: '2026-05-11',
+}
 
 /** پیش‌فرض jsdom موبایل است (matches:false)؛ برای مسیر دسکتاپ matchMedia را جمع می‌کنیم */
 function setDesktop(on: boolean) {
