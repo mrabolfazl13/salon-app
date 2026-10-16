@@ -77,6 +77,18 @@ def _active_member_ids(session: Session, team_id: int) -> List[int]:
     return [r.user_id for r in rows]
 
 
+def _allocate_by_weight(total: int, weights: List[float]) -> List[int]:
+    """تقسیم total به نسبت weights؛ کسرِ هر سهم دور ریخته نمی‌شود، بین بزرگ‌ترین
+    کسرها پخش می‌شود تا جمعِ سهم‌ها دقیقاً total شود (قاعدهٔ همان divmod در EQUAL)."""
+    raw = [total * w for w in weights]
+    rows = [int(v) for v in raw]
+    order = sorted(range(len(raw)), key=lambda i: raw[i] - rows[i], reverse=True)
+    delta = total - sum(rows)
+    for k in range(abs(delta)):
+        rows[order[k % len(order)]] += 1 if delta > 0 else -1
+    return rows
+
+
 def _user_names(session: Session, payment_id: int) -> dict:
     rows = session.exec(
         select(SplitPaymentShare.user_id, User.full_name)
@@ -183,14 +195,18 @@ async def create_split_payment(
                 status_code=422,
                 detail=f"مجموع درصدها باید ۱۰۰ باشد (الان {pct_total:g})",
             )
-        for s in data.percentage_shares:
+        amounts = _allocate_by_weight(data.amount,
+                                      [s.percentage / 100 for s in data.percentage_shares])
+        for s, amt in zip(data.percentage_shares, amounts):
             if s.user_id not in member_ids:
                 raise HTTPException(status_code=422, detail="سهم باید متعلق به عضو تیم باشد")
-            share_rows.append({
-                "user_id": s.user_id,
-                "amount": int(data.amount * s.percentage / 100),
-                "percentage": s.percentage,
-            })
+            share_rows.append({"user_id": s.user_id, "amount": amt, "percentage": s.percentage})
+
+    if any(r["amount"] < 1 for r in share_rows):
+        raise HTTPException(
+            status_code=422,
+            detail=f"مبلغ کل آن‌قدر کم است که به هر یک از {len(share_rows)} عضو یک ریال نمی‌رسد",
+        )
 
     if len({r["user_id"] for r in share_rows}) != len(share_rows):
         raise HTTPException(status_code=422, detail="هر عضو فقط یک سهم می‌تواند داشته باشد")
