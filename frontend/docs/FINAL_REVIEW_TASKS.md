@@ -809,6 +809,56 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 
 ---
 
+### C8 صف انتظار در مسیر لغو (بازبینی #4) — راند ۱۲ ✅ دیسپچ جلوی commit بود
+
+- [x] C8.1 `notify_waitlist_on_cancellation.delay()` از بالای `DELETE /bookings/{id}` به **بعد از
+  `uow.commit()`** منتقل شد (`backend/app/api/v1/bookings.py:366,403`)
+- [x] C8.2 یک کوئری مُرده در همان تابع حذف شد (`paid_tx` خوانده می‌شد و هرگز استفاده نمی‌شد)
+- [x] C8.3 ⚠️ ثبت شد، رفع نشد: `_send_waitlist_notification_sync` داخل event loop نمی‌تواند
+  `run_until_complete` کند و خطای تسک با `task_eager_propagates=False` بلعیده می‌شود
+
+- **چرا این نقص واقعی است:** تسک سلری `Session(engine)` **خودش** را باز می‌کند
+  (`app/tasks/reminder_tasks.py:139`). وقتی دیسپچ پیش از commit بود، درخواست هنوز
+  تراکنشِ نوشتنِ باز داشت ⇒ لغو برای تسک committed نشده بود.
+- **شاهدِ قبل‑و‑بعد (این دور، برعکسِ بیشتر دورها، با rollback عمدی اندازه‌گیری شد):**
+  ترتیبِ رفع‌شده موقتاً به حالت اول برگردانده و همان دو تست اجرا شد ⇒ **۲ failed**، و هر
+  کدام دقیقاً یکی از دو چهرۀ باگ را نشان داد:
+  - تستِ ترتیب: probe در لحظهٔ دیسپچ `{'slot_status': 'BOOKED', 'booking_status': 'CONFIRMED'}`
+    خواند — یعنی تسک در prod (worker با سشن خودش) لغو را **نبیند** و پنجرهٔ ۲ ساعته را برای
+    سانسِ هنوز-اشغال‌شده می‌سوزاند؛ اگر request بعدتر rollback می‌کرد، اعلان بی‌محل می‌شد.
+  - تستِ تسکِ واقعی: `sqlite3.OperationalError: database is locked` داخل
+    `reminder_tasks.py:197` — نوشتنِ `status=notified` اصلاً انجام نمی‌شد، خطا با
+    `task_eager_propagates=False` بلعیده می‌شد و API همان **۲۰۰** را برمی‌گرداند.
+  بعد از بازگرداندنِ رفع: **۱۳ passed** (۲ تست جدید + ۱۱ تست `test_waitlist.py` که دست‌نخورده
+  سبز ماندند).
+- **تست‌ها (`backend/tests/test_booking_cancel_notify_order.py`):**
+  - اولی `.delay()` را با یک probe جایگزین می‌کند که در **همان لحظه** وضعیت را می‌خواند:
+    باید `AVAILABLE/CANCELLED` ببیند؛ یعنی دیسپچ بعد از commit است. خواندن با SQLite **خام**
+    انجام می‌شود، چون `test_engine` برای هر تراکنش `BEGIN IMMEDIATE` می‌فرستد
+    (`tests/conftest.py:104`) و یک سشنِ SQLAlchemy حتی برای *خواندن* قفل نوشتن می‌گیرد؛ آن
+    نسخهٔ اولِ همین تست به‌جای «دادهٔ قدیمی» با `database is locked` می‌ترکید و چیزی را ثابت
+    نمی‌کرد. توجه: ستون Enum در دیتابیس **نام** عضو را نگه می‌دارد (`'AVAILABLE'`)، پس
+    مقایسه‌ها با `.name`اند.
+  - دومی فقط **ارسال** اعلان (FCM/WebSocket) را mock می‌کند و بقیهٔ مسیر واقعی است: بدنهٔ تسک
+    اجرا می‌شود، `entry.status == "notified"` و `expires_at` نوشته می‌شود.
+- **F بعدی (ثبت‌شدنی):** در محیطِ eager (تست/دیباغ)، بدنهٔ تسک داخل event loopِ request اجرا
+  می‌شود و `run_until_complete` با `RuntimeError: Cannot run the event loop while another loop
+  is running` می‌ترکد. در prod این مسیر در worker (بدون loop) است، پس رفتار درستی دارد؛
+  رفعِ آن یعنی تغییرِ هم‌زمانیِ ارسالِ اعلان، بدون تست هم‌زمانیِ موجود انجام نشد.
+- **معیار (شاهد، ۲۰۲۶-۱۰-۱۷ — سطح unit/SQLite):**
+  | گیت | نتیجه |
+  |---|---|
+  | `pytest tests/test_booking_cancel_notify_order.py` (پس از رفع) | **۲ passed** |
+  | همان تست‌ها با rollback عمدیِ رفع | **۲ failed** (`database is locked` روی `BEGIN IMMEDIATE`) |
+  | `pytest tests/test_waitlist.py` هم‌اجرا | **۱۱ passed** (رگرسیون صف انتظار نشکست) |
+  | `pytest` (رگرسیون کامل بک‌اند) | **۶۳۵ passed** (۶۳۳ راند قبل + ۲) |
+  | `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` |
+  | `app.openapi()['paths']` | **۲۳۸** (بدون تغییر) |
+- **نکتۀ صداقت:** ترتیبِ دیسپچ روی SQLite اثبات شد، ولی «اعلان واقعاً روی دستگاه کاربر می‌نشیند»
+  همچنان به X1/X2 (FCM) و deployِ prod (X6) نیاز دارد.
+
+---
+
 ## Track D — UI/دسترس‌پذیری/موبایل (P015، P016)
 
 > **وضعیت ۲۰۲۶-۱۰-۱۶: کل Track D بسته شد** — هم با شمارش گرپی روی ۲۲۸ فایل `src/**.tsx` و هم با

@@ -363,10 +363,7 @@ async def cancel_booking(
     if not result:
         raise HTTPException(status_code=400, detail="Cannot cancel")
 
-    # Notify first person in waitlist if slot became available
-    if result.slot_id:
-        from app.tasks.reminder_tasks import notify_waitlist_on_cancellation
-        notify_waitlist_on_cancellation.delay(result.slot_id)
+    slot_id_for_waitlist = result.slot_id
 
     # بازگشت وجه (شبیه‌سازی): فاکتور پرداختی به refunded تبدیل می‌شود
     refunded_amount = 0
@@ -374,7 +371,6 @@ async def cancel_booking(
         uow.payments.update(paid_payment.id, {"status": BookingPaymentStatus.REFUNDED})
         refunded_amount = paid_payment.amount
         # دفتر کل: ردیف بازگشت وجه متناظر با پرداخت اولیه — ردیف اصلی دست‌نخورده
-        paid_tx = uow.transactions.get_by_idempotency_key(f"booking-payment:{paid_payment.id}")
         slot = uow.slots.get_by_id(result.slot_id) if result and result.slot_id else None
         FinanceService.record_refund(
             uow,
@@ -400,6 +396,13 @@ async def cancel_booking(
                 idempotency_key=f"booking-refund:{_orig.id}", created_by=current_user.id)
 
     uow.commit()
+
+    # اعلان به صف انتظار **بعد از** commit: این تسک سشن خودش را باز می‌کند، پس تا
+    # لغو committed نشود باید صبر کند — وگرنه برای سانسِ هنوز-رزروشده پنجرهٔ
+    # پاسخ‌گویی می‌سوزاند (و اگر request بعداً rollback شود، اعلانِ بی‌محل).
+    if slot_id_for_waitlist:
+        from app.tasks.reminder_tasks import notify_waitlist_on_cancellation
+        notify_waitlist_on_cancellation.delay(slot_id_for_waitlist)
 
     # اطلاعات سالن/سانس برای پیام اعلان
     slot = uow.slots.get_by_id(result.slot_id) if result.slot_id else None
