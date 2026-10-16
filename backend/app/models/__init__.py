@@ -42,6 +42,10 @@ from .split_payment import (
 from .quiz import QuizQuestion, QuizAttempt
 from .waitlist import WaitlistEntry
 from .coach import CoachSession, CoachSessionStatus
+from .tournament import (
+    Tournament, TournamentParticipant, TournamentRound, TournamentMatch,
+    TournamentStatus, TournamentFormat, TournamentParticipantStatus, MatchStatus,
+)
 
 # ترتیب import مهم است
 __all__ = [
@@ -80,4 +84,6 @@ __all__ = [
     "QuizQuestion", "QuizAttempt",
     "WaitlistEntry",
     "CoachSession", "CoachSessionStatus",
+    "Tournament", "TournamentParticipant", "TournamentRound", "TournamentMatch",
+    "TournamentStatus", "TournamentFormat", "TournamentParticipantStatus", "MatchStatus",
 ]

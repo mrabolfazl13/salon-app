@@ -49,6 +49,8 @@ const ManagerCrm = lazy(() => import('@/pages/manager/crm/ManagerCrm'))
 const ManagerCheckin = lazy(() => import('@/pages/manager/ManagerCheckin'))
 const CoachDashboard = lazy(() => import('@/pages/coach/CoachDashboard'))
 const Teams = lazy(() => import('@/pages/teams/Teams'))
+const Tournaments = lazy(() => import('@/pages/tournaments/Tournaments'))
+const TournamentDetail = lazy(() => import('@/pages/tournaments/TournamentDetail'))
 const TeamDiscover = lazy(() => import('@/pages/teams/TeamDiscover'))
 const TeamDetail = lazy(() => import('@/pages/teams/TeamDetail'))
 const AdminDashboard = lazy(() => import('@/pages/admin/AdminDashboard'))
@@ -224,6 +226,9 @@ function AppRoutes() {
             <Route path="/bookings" element={<ProtectedRoute><Bookings /></ProtectedRoute>} />
             <Route path="/bookings/:id" element={<ProtectedRoute><BookingDetail /></ProtectedRoute>} />
             <Route path="/competitions" element={<ProtectedRoute><Competitions /></ProtectedRoute>} />
+            {/* تورنمنت‌ها (P005) — براکت تک‌حذفی؛ همهٔ مسیرهای /tournaments* در بک‌اند گیت لاگین دارند */}
+            <Route path="/tournaments" element={<ProtectedRoute><Tournaments /></ProtectedRoute>} />
+            <Route path="/tournaments/:id" element={<ProtectedRoute><TournamentDetail /></ProtectedRoute>} />
             <Route path="/contracts" element={<ProtectedRoute><Contracts /></ProtectedRoute>} />
             <Route path="/join/g/:token" element={<ProtectedRoute><JoinByToken /></ProtectedRoute>} />
 

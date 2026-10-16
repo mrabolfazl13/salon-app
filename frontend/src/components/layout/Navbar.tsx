@@ -78,6 +78,7 @@ const Navbar: React.FC<NavbarProps> = () => {
     { label: 'بازی‌ها', icon: 'mdi:gamepad-variant', href: '/games' },
     { label: 'تیم\u200cها', icon: 'mdi:account-group', href: '/teams' },
     { label: 'رقابت\u200cها', icon: 'mdi:trophy', href: '/competitions' },
+    { label: 'تورنمنت\u200cها', icon: 'mdi:trophy-outline', href: '/tournaments' },
     { label: 'رزروها', icon: 'mdi:calendar', href: '/bookings' },
     { label: 'قراردادها', icon: 'mdi:file-document', href: '/contracts' },
     ...(isAuthenticated ? [{ label: 'شگفت\u200cانگیز', icon: 'mdi:lightning-bolt', href: '/deals' }] : []),
@@ -94,6 +95,7 @@ const Navbar: React.FC<NavbarProps> = () => {
     { to: '/teams', label: 'تیم\u200cها', icon: <Icon icon="mdi:account-group" style={iconifyStyle} /> },
     { to: '/games', label: 'بازی\u200cها', icon: <Icon icon="mdi:gamepad-variant" style={iconifyStyle} /> },
     { to: '/competitions', label: 'رقابت\u200cها', icon: <Icon icon="mdi:trophy" style={iconifyStyle} /> },
+    { to: '/tournaments', label: 'تورنمنت\u200cها', icon: <Icon icon="mdi:trophy-outline" style={iconifyStyle} /> },
     { to: dashboardPath, label: isCoach ? 'پنل مربی' : isManager ? 'داشبورد مدیریت' : 'داشبورد', icon: <DashboardIcon sx={muiIconSx} /> },
     { to: '/deals', label: 'شگفت\u200cانگیزها', icon: <Icon icon="mdi:lightning-bolt" style={iconifyStyle} /> },
     ...(canConsoleNav ? [

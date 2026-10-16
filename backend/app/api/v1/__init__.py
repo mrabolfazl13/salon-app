@@ -27,6 +27,7 @@ from .checkin import router as checkin_router
 from .split_payments import router as split_payments_router
 from .reconciliation import router as reconciliation_router
 from .coach import router as coach_router
+from .tournament import router as tournament_router
 from .health import router as health_router
 
 __all__ = [
@@ -58,4 +59,5 @@ __all__ = [
     "checkin_router",
     "split_payments_router",
     "coach_router",
+    "tournament_router",
 ]

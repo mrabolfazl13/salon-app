@@ -38,6 +38,10 @@ from app.repositories.team_repository import (
 )
 from app.repositories.quiz_repository import QuizQuestionRepository, QuizAttemptRepository
 from app.repositories.coach_repository import CoachSessionRepository
+from app.repositories.tournament_repository import (
+    TournamentRepository, TournamentParticipantRepository,
+    TournamentRoundRepository, TournamentMatchRepository,
+)
 
 class UnitOfWork:
     
@@ -334,6 +338,30 @@ class UnitOfWork:
         if "coach_sessions" not in self._repositories:
             self._repositories["coach_sessions"] = CoachSessionRepository(self.session)
         return self._repositories["coach_sessions"]
+
+    @property
+    def tournaments(self) -> "TournamentRepository":
+        if "tournaments" not in self._repositories:
+            self._repositories["tournaments"] = TournamentRepository(self.session)
+        return self._repositories["tournaments"]
+
+    @property
+    def tournament_participants(self) -> "TournamentParticipantRepository":
+        if "tournament_participants" not in self._repositories:
+            self._repositories["tournament_participants"] = TournamentParticipantRepository(self.session)
+        return self._repositories["tournament_participants"]
+
+    @property
+    def tournament_rounds(self) -> "TournamentRoundRepository":
+        if "tournament_rounds" not in self._repositories:
+            self._repositories["tournament_rounds"] = TournamentRoundRepository(self.session)
+        return self._repositories["tournament_rounds"]
+
+    @property
+    def tournament_matches(self) -> "TournamentMatchRepository":
+        if "tournament_matches" not in self._repositories:
+            self._repositories["tournament_matches"] = TournamentMatchRepository(self.session)
+        return self._repositories["tournament_matches"]
 
 def get_unit_of_work():
     uow = UnitOfWork()

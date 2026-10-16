@@ -107,6 +107,7 @@ const Dashboard: React.FC = () => {
   const quickActions = [
     { icon: 'mdi:store-search', label: 'رزرو جدید', href: '/venues' },
     { icon: 'mdi:trophy', label: 'رقابت‌ها', href: '/competitions' },
+    { icon: 'mdi:trophy-outline', label: 'تورنمنت‌ها', href: '/tournaments' },
     { icon: 'mdi:file-document', label: 'قراردادها', href: '/contracts' },
     { icon: 'mdi:account', label: 'پروفایل', href: '/profile' },
   ]

@@ -182,6 +182,7 @@ const Profile: React.FC = () => {
     { label: 'کاوش تیم‌ها', icon: 'mdi:compass', href: '/teams/discover' },
     { label: 'رزروهای من', icon: 'mdi:calendar-check', href: '/bookings' },
     { label: 'قراردادها', icon: 'mdi:file-document', href: '/contracts' },
+    { label: 'تورنمنت‌ها', icon: 'mdi:trophy-outline', href: '/tournaments' },
     ...(canConsoleNav ? [
       { label: 'رقابت‌ها', icon: 'mdi:trophy', href: '/competitions' },
       { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' },

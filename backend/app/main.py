@@ -21,7 +21,8 @@ from app.api.v1 import (
     holidays_router, pricing_router, coupons_router,
     loyalty_router, favorites_router, deals_router,
     teams_router, staff_router, crm_router, quiz_router, waitlist_router, checkin_router,
-    split_payments_router, reconciliation_router, coach_router, health_router,
+    split_payments_router, reconciliation_router, coach_router,
+    tournament_router, health_router,
 )
 from app.utils.websocket import manager
 from app.utils.rate_limit import global_rate_limit_middleware
@@ -262,6 +263,7 @@ app.include_router(checkin_router, prefix="/api/v1")
 app.include_router(split_payments_router, prefix="/api/v1")
 app.include_router(reconciliation_router, prefix="/api/v1")
 app.include_router(coach_router, prefix="/api/v1")
+app.include_router(tournament_router, prefix="/api/v1")
 app.include_router(health_router, prefix="/api/v1")
 
 # Static files - عکس‌های واقعی سالن‌ها

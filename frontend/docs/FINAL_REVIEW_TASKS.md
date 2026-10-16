@@ -1,9 +1,11 @@
 # فایل تسک اجرای FINAL_REVIEW (breakdown ریز، قابل پیگیری)
 
-**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۳) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۴ — C2 تورنمنت/براکت) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**وضعیت راند ۴:** C2 ✅ کد + تست (بک‌اند **۴۵۲ passed در ۹۷.۷۹s**، فرانت **۶۸ passed در ۱۰ فایل**،
+`tsc` ۰ · `eslint` ۰ · build ✓ ۲۰.۱۴s بدون `.map` · دروازۀ ruff `E9,F82` پاک · ۲۲۴ مسیر OpenAPI).
 **وضعیت راند ۳:** Track A ✅ (جز A9.1=X5) · Track B ✅ (جز B7.2=X8) · **Track D ✅ کامل** — axe-core روی
 ۶ مسیر عمومی: **۰ نود نقض**؛ گیت‌ها: `tsc` ۰ · `eslint` ۰ · ۳۷ تست vitest · build ✓ ۵۳.۰۶s بدون `.map`.
-باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: Track C، X1–X8.
+باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: C3/C4/C5.1-C5.2 و X1–X8.
 **قانون:** هیچ تسکی بدون «معیار راستی‌آزمایی» بسته نمی‌شود. `✅` = انجام و راستی‌آزمایی‌شده، `🟡` = کد نوشته، در انتظار CI/راستی‌آزمایی، `⛔` = مسدود (تصمیم کاربر/دسترسی بیرونی).
 
 ---
@@ -25,8 +27,9 @@
 | `grep "color:'#059669'"` = ۰ (D6.2) | **معیار باطل** — آیکون‌ها (۳:۱) و ورودی‌های نگاشتِ توکن را هم می‌شمرد؛ جانشین: گاردریل CI با پیمایش بدنهٔ `sx={{…}}` |
 | صفحهٔ سالن سالم است | **باگ تولیدی** در دسکتاپ: عنوان/برچسب/آدرس سالن پشت `overflow:hidden` و تصویرِ هم‌جریان **نامرئی** بود (D13؛ با `elementFromPoint` ثابت شد) |
 
-**۴ مورد عملاً غایب (وضعیت ۲۰۲۶-۱۰-۱۶):** تقویم `.ics` ساخته شد (B1) و نقش مربی کامل شد (C1 — بک‌اند +
-فرانت + تست، با ۴۲۲ تست بک‌اند و ۴۸ تست فرانت سبز)؛ باقی‌مانده: تورنمنت/براکت (C2)، شیفت پرسنل (C3).
+**۴ مورد عملاً غایب (وضعیت ۲۰۲۶-۱۰-۱۶):** تقویم `.ics` ساخته شد (B1)، نقش مربی کامل شد (C1) و
+تورنمنت/براکت تک‌حذفی ساخته شد (C2 — بک‌اند ۳۰ تست + فرانت ۲۰ تست، ۴۵۲ تست بک‌اند و ۶۸ تست فرانت سبز)؛
+باقی‌مانده: **شیفت پرسنل (C3)** و برش‌های C2.5 (Double-Elimination/Round-Robin).
 **باگ قطعی و بزرگ (رفع شد — A1):** ۴ endpoint نوتیفیکیشن در بک‌اند وجود ندارد
 (`backend/app/api/v1/notifications.py:16,32` فقط fcm-token) ولی فرانت این‌ها را صدا می‌زند
 (`frontend/src/services/notification.ts:20,25,30,35`) → پنل اعلان‌ها ۴۰۴ می‌گیرد؛ درحالی‌که
@@ -300,13 +303,42 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   - نقش‌گیت در UI: `/coach` پشت `<ProtectedRoute requiredRole="coach">`؛ ۷ اتحاد نقش (`types/user.ts:1`, `store/authStore.ts:10`, `components/auth/ProtectedRoute.tsx:9`, `services/admin.ts:8`, `services/auth.ts:8` و `:24`, `pages/auth/Register.tsx:27`) گسترش یافت؛ ریدایرکت ورود در `pages/auth/Login.tsx:70`؛ ورودی‌های ناوبری: `Navbar.tsx` (navItem + منوی آواتار + برچسب نقش)، `BottomNavigation.tsx:44` (۵ آیتم)، `Profile.tsx` «مرور سریع»؛ `/coach` به `HIDDEN_PREFIXES` اضافه شد تا نوار پایین روی پنل سایه نیندازد.
 - **معیار:** با حساب مربی روی دستگاه، جلسه بساز/حضور ثبت کن/تقویم ببین. — **نیمه‌موفق:** صحت عملکردی روی دادهٔ واقعی در تست‌های بک‌اند و واحد فرانت اثبات شده، اما اجرای دستی روی دستگاه هنوز ممکن نیست (X1: حساب مربی روی پروداکشن + X6: اجرای مهاجرت `m0s021` روی سرور؛ هر دو منتظر تأیید صریح کاربر).
 
-### C2 تورنمنت و براکت (P005 — واقعاً غایب)
-- [ ] C2.1 مدل‌های `Tournament`, `TournamentRound`, `TournamentMatch`, `TournamentParticipant`
-- [ ] C2.2 موتور قرعه‌کشی Single-Elimination (تخمین‌شده + seed) + تست‌های ویژگی (هر برنده به بالا می‌رود، byeها)
-- [ ] C2.3 API: ساخت، ثبت‌نام تیم، ثبت نتیجه، محاسبهٔ خودکار مرحلهٔ بعد
-- [ ] C2.4 UI براکت بصری (CSS grid، RTL-safe) + جدول امتیازات
-- [ ] C2.5 برش‌های بعدی: Double-Elimination، Round-Robin
-- **معیار:** تورنمنت ۸ تیمی از ثبت‌نام تا قهرمان بدون دخالت دستی.
+### C2 تورنمنت و براکت (P005) — ✅ کد + تست (راستی‌آزمایی prod منتظر X6)
+- [x] C2.1 مدل‌های `Tournament`, `TournamentRound`, `TournamentMatch`, `TournamentParticipant`
+- [x] C2.2 موتور قرعه‌کشی Single-Elimination (توان دو بعدی + seed + bye) + تست‌های ویژگی (برنده به
+      دیدار بعد می‌رود، byeها در همان قرعه‌کشی تعیین تکلیف می‌شوند)
+- [x] C2.3 API: ساخت، بازکردن ثبت‌نام، ثبت‌نام/حذف تیم، قرعه‌کشی، ثبت نتیجه، لغو، براکت، رده‌بندی
+- [x] C2.4 UI براکت بصری (CSS grid، RTL-safe) + جدول رده‌بندی + مسیر روت و ورودی‌های ناوبری
+- [ ] C2.5 برش‌های بعدی: Double-Elimination، Round-Robin (فقط یک مقدار در `TournamentFormat`)
+- **شاهد (۲۰۲۶-۱۰-۱۶، همه اجراشده):**
+  - بک‌اند: `pytest tests/test_tournament.py` → **۳۰ passed** (تست معیار:
+    `test_eight_teams_run_to_champion_without_manual_help` — `[۴,۲,۱]` دیدار در سه مرحله،
+    ۷ دیدار بازی‌شده تا قهرمان، رتبه‌ها `[۱,۲,۳,۳]`، replay پس از اتمام ⇒ ۴۰۰)؛ رگرسیون کامل
+    `pytest` → **۴۵۲ passed in 97.79s** (۴۲۲ قبل + ۳۰ جدید؛ اجرای همزمان با build تحت بار ۷۰۴s شد).
+  - دروازۀ lint: `flake8` روی این ماشین دیگر نصب نیست (`No module named flake8`) ⇒ معادل
+    `E9,F63,F7,F82` با **ruff 0.8.4** (`--select E9,F82` روی `app/ tests/ migrations/`) اجرا شد و
+    **یک F821 واقعی** را بیرون داد: `app/models/tournament.py:116` ارجاع forward به `Team` بدون
+    import ⇒ با بلوک `if TYPE_CHECKING` (الگوی `app/models/competition.py:6`) بسته شد و اکنون
+    `All checks passed!`.
+  - قرارداد API: `app.openapi()['paths']` = **۲۲۴** که **۱۰ مسیر / ۱۱ عملیات** آن `/tournaments*`
+    است (`app/api/v1/tournament.py`)؛ ثبت نتیجه روی `PUT /tournaments/matches/{id}/result` است نه
+    زیرمسیر تورنمنت، چون پاسخ دیدار `tournament_id` ندارد.
+  - مهاجرت: `migrations/versions/m0s022_tournaments.py` با چرخهٔ upgrade→downgrade→upgrade روی یک
+    DB تازه ⇒ `current = m0s022tournaments (head)`، **۱۷ ایندکس**، self-FK `next_match_id` و هر دو
+    unique constraint (`uq_tournament_participant_tournament_team`,
+    `uq_tournament_match_round_position`) ساخته شدند و downgrade چیزی باقی نگذاشت. ستون‌های enum
+    با **NAME** persist می‌شوند (اندازه‌گیری شد)، پس `server_default`ها بزرگ‌نویس‌اند.
+  - فرانت: `tsc --noEmit` exit 0 · `eslint --quiet` exit 0 · `vitest run` → **۶۸ passed / ۱۰ فایل**
+    (۲۰ مورد جدید: `services/tournament.test.ts` ۶، `pages/tournaments/Tournaments.test.tsx` ۶،
+    `pages/tournaments/TournamentDetail.test.tsx` ۸) · `vite build` ⇒ `✓ built in 20.14s`،
+    `dist/assets/*.map` = **۰**، دو chunk جدید `Tournaments-*.js` و `TournamentDetail-*.js`.
+  - دسترسی: روت‌های lazy `/tournaments` و `/tournaments/:id` پشت `ProtectedRoute` (در `App.tsx`)؛
+    ورودی‌ها: `Navbar.tsx` navItem + منوی آواتار، «مرور سریع» `Profile.tsx`، `quickActions` در
+    `Dashboard.tsx`. نوار پایین عمداً تغییر نکرد (سقف ۵ آیتم؛ تورنمنت از منوی آواتار باز می‌شود).
+- **معیار:** تورنمنت ۸ تیمی از ثبت‌نام تا قهرمان بدون دخالت دستی. — **محقق‌شده در تست** (۷ دیدار،
+  پیشروی خودکار برنده با `next_match_id`/`next_slot`). **روی prod هنوز اجرا نشده:** مهاجرت `m0s022`
+  باید روی سرور run شود (X6 = نیازمند تأیید صریح کاربر) و دامنهٔ `api.salon.absadeghi.ir` از این
+  ماشین resolve نمی‌شود (`curl` ⇒ exit 6)، پس راستی‌آزمایی زندهٔ UI/HTTP مسدود است.
 
 ### C3 شیفت پرسنل (P020 — واقعاً غایب)
 - [ ] C3.1 مدل `StaffShift` + تشخیص تعارض
