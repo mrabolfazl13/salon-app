@@ -1,6 +1,6 @@
 // frontend/src/pages/teams/TeamDetail.tsx
 // جزئیات تیم — سربرگ اطلاعات + Tabهای «اعضا» / «درخواست‌ها» (مدیر) / «بازی‌ها و رزروها»
-// / «حصه‌ها» / «تراز»؛ اقدامات: ویرایش (مدیر)، غیرفعال‌سازی (کاپیتان)، خروج، درخواست عضویت،
+// / «حریف‌یابی» / «چالش‌ها» / «حصه‌ها» / «تراز»؛ اقدامات: ویرایش (مدیر)، غیرفعال‌سازی (کاپیتان)، خروج، درخواست عضویت،
 // پذیرش/رد دعوت بازِ خودِ کاربر (از /teams/invitations/me)
 
 import React, { useMemo, useState } from 'react'
@@ -19,11 +19,13 @@ import {
   SPORT_NAME_FA,
   TeamBalancePanel,
   TeamBookingsPanel,
+  TeamChallengePanel,
   TeamChatPanel,
   TeamDuesPanel,
   TeamFormDialog,
   TeamInviteDialog,
   TeamJoinRequestList,
+  TeamMatchmakingPanel,
   TeamMemberList,
   TeamQuotaProgress,
   TeamVisibilityChip,
@@ -31,6 +33,7 @@ import {
   getTeamError,
 } from '@/components/team'
 import SplitPaymentsPanel from '@/components/split-payment/SplitPaymentsPanel'
+import { useChallenges } from '@/hooks/useMatching'
 import {
   useAcceptTeamInvitation,
   useDeclineTeamInvitation,
@@ -77,6 +80,10 @@ const TeamDetail: React.FC = () => {
   const membersQ = useTeamMembers(teamId, !!team && (isViewer || team.visibility !== 'private'))
   const joinRequestsQ = useTeamJoinRequests(teamId, isManager && team?.is_active === true)
   const unreadQ = useTeamUnreadCount(teamId, isMember, 15000)
+  const pendingChallengesQ = useChallenges(
+    { team_id: teamId, direction: 'inbox', status: 'pending' },
+    isMember,
+  )
   const myInvitesQ = useMyTeamInvitations(isAuthenticated)
   const myInvitation = useMemo(
     () => (myInvitesQ.data ?? []).find((i) => i.team_id === teamId && i.status === 'pending' && i.member_id),
@@ -174,6 +181,8 @@ const TeamDetail: React.FC = () => {
     { label: 'گفتگو', show: isMember, badge: unreadQ.data?.unread },
     { label: 'درخواست‌ها', show: isManager && team.is_active, badge: openRequests },
     { label: 'بازی‌ها و رزروها', show: isMember },
+    { label: 'حریف‌یابی', show: isMember },
+    { label: 'چالش‌ها', show: isMember, badge: pendingChallengesQ.data?.total },
     { label: 'حصه‌ها', show: isMember },
     { label: 'تراز', show: isMember },
     { label: 'پرداخت اشتراکی', show: isMember },
@@ -356,6 +365,8 @@ const TeamDetail: React.FC = () => {
       {currentTab === 'گفتگو' && <TeamChatPanel teamId={teamId} />}
 
       {currentTab === 'بازی‌ها و رزروها' && <TeamBookingsPanel team={team} />}
+      {currentTab === 'حریف‌یابی' && <TeamMatchmakingPanel team={team} canChallenge={isManager} />}
+      {currentTab === 'چالش‌ها' && <TeamChallengePanel teamId={teamId} canRespond={isManager} />}
       {currentTab === 'حصه‌ها' && <TeamDuesPanel team={team} members={membersQ.data ?? []} isManager={isManager} />}
       {currentTab === 'تراز' && <TeamBalancePanel team={team} isManager={isManager} />}
       {currentTab === 'پرداخت اشتراکی' && (

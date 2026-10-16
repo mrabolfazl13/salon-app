@@ -37,6 +37,7 @@ from app.repositories.team_repository import (
     TeamJoinRequestRepository, TeamBookingRepository, TeamDuesRepository,
     TeamAuditEventRepository, TeamMessageRepository,
 )
+from app.repositories.team_challenge_repository import TeamChallengeRepository
 from app.repositories.quiz_repository import QuizQuestionRepository, QuizAttemptRepository
 from app.repositories.coach_repository import CoachSessionRepository
 from app.repositories.tournament_repository import (
@@ -291,6 +292,12 @@ class UnitOfWork:
         if "team_audits" not in self._repositories:
             self._repositories["team_audits"] = TeamAuditEventRepository(self.session)
         return self._repositories["team_audits"]
+
+    @property
+    def team_challenges(self) -> TeamChallengeRepository:
+        if "team_challenges" not in self._repositories:
+            self._repositories["team_challenges"] = TeamChallengeRepository(self.session)
+        return self._repositories["team_challenges"]
 
     @property
     def staff(self) -> StaffAssignmentRepository:

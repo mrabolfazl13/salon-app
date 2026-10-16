@@ -50,6 +50,12 @@ const TEAM_ERROR_MESSAGES: Record<string, string> = {
   NOT_MY_BOOKING: 'فقط صاحب رزرو می‌تواند آن را به تیم منتسب کند.',
   ALREADY_LINKED: 'این رزرو قبلاً به همین تیم منتسب شده است.',
   BOOKING_LINKED_ELSEWHERE: 'این رزرو به تیم دیگری منتسب شده است.',
+  CHALLENGE_NOT_FOUND: 'چالش بازی یافت نشد یا متعلق به تیم‌های شما نیست.',
+  CHALLENGE_EXPIRED: 'مهلت پاسخ به این چالش تمام شده است؛ می‌توانید چالش جدیدی بفرستید.',
+  CHALLENGE_ALREADY_ANSWERED: 'این چالش پیش‌تر پاسخ گرفته است و دوباره قابل پذیرش یا رد نیست.',
+  CHALLENGE_OPEN_EXISTS: 'بین این دو تیم یک چالش باز وجود دارد؛ پیش از پاسخ آن چالش جدید نفرستید.',
+  SELF_CHALLENGE: 'به تیم خودتان چالش بازی نفرستید.',
+  VENUE_NOT_FOUND: 'سالن پیشنهادی یافت نشد — آن را از فهرست سالن‌ها انتخاب کنید.',
 }
 
 export function getTeamError(err: unknown, fallback = 'خطایی رخ داد. لطفاً دوباره تلاش کنید.'): string {

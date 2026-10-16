@@ -56,6 +56,7 @@ from app.models.team import (
     Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamBooking, TeamDues,
     TeamAuditEvent, TeamMessage,
 )
+from app.models.team_challenge import TeamChallenge
 from app.models.staff import StaffAssignment, SecurityAuditEvent
 from app.models.staff_shift import StaffShift
 from app.models.customer import VenueCustomer, CrmCampaign
@@ -145,7 +146,7 @@ _TABLES_CLEAN_ORDER = [
     TeamMessage,
     SplitPaymentAuditEvent, SplitPaymentShare, TeamSplitPayment,
     TeamAuditEvent, TeamDues, TeamBooking, TeamJoinRequest, TeamInvitation,
-    TeamMember, Team,
+    TeamMember, TeamChallenge, Team,
     CouponRedemption, Coupon, LoyaltyPoint, FavoriteVenue,
     PricingRule, Holiday,
     FinancialTransaction, ExpenseCategory,

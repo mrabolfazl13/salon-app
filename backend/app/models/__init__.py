@@ -36,6 +36,7 @@ from .team import (
     TeamAuditEvent, TeamMessage, TeamVisibility, TeamMemberRole, TeamMemberStatus,
     TeamInvitationStatus, TeamJoinRequestStatus, TeamDuesMethod, TeamAuditAction,
 )
+from .team_challenge import TeamChallenge, ChallengeStatus
 from .split_payment import (
     TeamSplitPayment, SplitPaymentShare, SplitPaymentAuditEvent,
     SplitMethod, SplitPaymentStatus, ShareStatus,
@@ -78,6 +79,7 @@ __all__ = [
     "Team", "TeamMember", "TeamInvitation", "TeamJoinRequest", "TeamBooking", "TeamDues",
     "TeamAuditEvent", "TeamMessage", "TeamVisibility", "TeamMemberRole", "TeamMemberStatus",
     "TeamInvitationStatus", "TeamJoinRequestStatus", "TeamDuesMethod", "TeamAuditAction",
+    "TeamChallenge", "ChallengeStatus",
     "TeamSplitPayment", "SplitPaymentShare", "SplitPaymentAuditEvent",
     "SplitMethod", "SplitPaymentStatus", "ShareStatus",
     "StaffAssignment", "SecurityAuditEvent",

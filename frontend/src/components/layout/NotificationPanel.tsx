@@ -46,6 +46,10 @@ const typeIcons: Record<string, { icon: string; color: string }> = {
   team_invitation: { icon: 'mdi:email-fast-outline', color: '#7c3aed' },
   team_message: { icon: 'mdi:message-text-outline', color: '#0891b2' },
   team_official: { icon: 'mdi:shield-star-outline', color: '#7c3aed' },
+  team_challenge_received: { icon: 'mdi:handshake-outline', color: '#d97706' },
+  team_challenge_accepted: { icon: 'mdi:handshake', color: '#16a34a' },
+  team_challenge_declined: { icon: 'mdi:handshake-remove', color: '#dc2626' },
+  team_challenge_cancelled: { icon: 'mdi:bell-cancel-outline', color: '#6b7280' },
   dues: { icon: 'mdi:cash-clock-outline', color: '#0891b2' },
 }
 

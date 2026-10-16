@@ -1,6 +1,10 @@
 # فایل تسک اجرای FINAL_REVIEW (breakdown ریز، قابل پیگیری)
 
-**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۵ — C3 شیفت پرسنل) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۶ — C4 حریف‌یابی و چالش بازی) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**وضعیت راند ۶:** C4 ✅ کد + تست (بک‌اند **۵۱۱ passed در ۱۰۲.۱۱s** از ۳۸ تست جدید matchmaking، فرانت
+**۱۱۱ passed در ۱۵ فایل** از ۲۶ تست جدید، `tsc` ۰ · `eslint` ۰ · build ✓ ۳۱.۱۸s بدون `.map` ·
+دروازۀ ruff `E9,F82` پاک · **۲۳۵** مسیر OpenAPI با ۶ مسیر `/matching*` · مهاجرت `m0s024` چرخهٔ
+up/down/up را سالم گذراند).
 **وضعیت راند ۵:** C3 ✅ کد + تست (بک‌اند **۴۷۳ passed در ۱۰۶.۸۸s** از ۲۱ تست جدید شیفت، فرانت
 **۸۵ passed در ۱۲ فایل** از ۱۷ تست جدید، `tsc` ۰ · `eslint` ۰ · build ✓ ۱۹.۶۰s بدون `.map` ·
 دروازۀ ruff `E9,F82` پاک · **۲۲۹** مسیر OpenAPI با ۵ مسیر `/shifts*` · مهاجرت `m0s023` چرخهٔ
@@ -9,8 +13,21 @@ up/down/up را سالم گذراند).
 `tsc` ۰ · `eslint` ۰ · build ✓ ۲۰.۱۴s بدون `.map` · دروازۀ ruff `E9,F82` پاک · ۲۲۴ مسیر OpenAPI).
 **وضعیت راند ۳:** Track A ✅ (جز A9.1=X5) · Track B ✅ (جز B7.2=X8) · **Track D ✅ کامل** — axe-core روی
 ۶ مسیر عمومی: **۰ نود نقض**؛ گیت‌ها: `tsc` ۰ · `eslint` ۰ · ۳۷ تست vitest · build ✓ ۵۳.۰۶s بدون `.map`.
-باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: C4/C5.1-C5.2، برش‌های C2.5 و X1–X8.
+باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: C5.1-C5.2، برش‌های C2.5 و X1–X8.
 **قانون:** هیچ تسکی بدون «معیار راستی‌آزمایی» بسته نمی‌شود. `✅` = انجام و راستی‌آزمایی‌شده، `🟡` = کد نوشته، در انتظار CI/راستی‌آزمایی، `⛔` = مسدود (تصمیم کاربر/دسترسی بیرونی).
+
+### گیت‌های راند ۶ (C4 — شاهد زنده، ۲۰۲۶-۱۰-۱۶)
+| گیت | نتیجه |
+|---|---|
+| `pytest tests/test_matchmaking.py` | **۳۸ passed** در 2.17s |
+| `pytest` (رگرسیون کامل بک‌اند) | **۵۱۱ passed** در 102.11s (۴۷۳ قبل + ۳۸) |
+| `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` |
+| `app.openapi()['paths']` | **۲۳۵** (۲۲۹ قبل) — **۶ مسیر / ۷ عملیات** زیر `/api/v1/matching*` |
+| alembic up→down→upgrade (SQLite موقت) | `current = m0s024teamchallenges (head)`، exit 0 هر سه مرحله |
+| `tsc --noEmit` / `eslint --quiet` | exit **0** / exit **0** |
+| `vitest run` | **۱۱۱ passed در ۱۵ فایل** (۲۶ جدید: service ۶ + دو پنل ۱۰/۱۰) |
+| `vite build` | `✓ built in 31.18s`، `dist/assets/*.map` = **۰** |
+| `curl` دامنهٔ prod | exit **6** (resolve نمی‌شود) ⇒ راستی‌آزمایی زنده مسدود، منتظر X6 |
 
 ---
 
@@ -31,10 +48,10 @@ up/down/up را سالم گذراند).
 | `grep "color:'#059669'"` = ۰ (D6.2) | **معیار باطل** — آیکون‌ها (۳:۱) و ورودی‌های نگاشتِ توکن را هم می‌شمرد؛ جانشین: گاردریل CI با پیمایش بدنهٔ `sx={{…}}` |
 | صفحهٔ سالن سالم است | **باگ تولیدی** در دسکتاپ: عنوان/برچسب/آدرس سالن پشت `overflow:hidden` و تصویرِ هم‌جریان **نامرئی** بود (D13؛ با `elementFromPoint` ثابت شد) |
 
-**۴ مورد عملاً غایب (وضعیت ۲۰۲۶-۱۰-۱۶):** تقویم `.ics` ساخته شد (B1)، نقش مربی کامل شد (C1)،
-تورنمنت/براکت تک‌حذفی ساخته شد (C2) و **شیفت پرسنل ساخته شد (C3 — بک‌اند ۲۱ تست + فرانت ۱۷ تست؛
-رگرسیون ۴۷۳ تست بک‌اند و ۸۵ تست فرانت سبز)**. باقی‌ماندۀ واقعی فقط برش‌های C2.5
-(Double-Elimination/Round-Robin) و C4/C5 است.
+**۵ مورد عملاً غایب (وضعیت ۲۰۲۶-۱۰-۱۶):** تقویم `.ics` ساخته شد (B1)، نقش مربی کامل شد (C1)،
+تورنمنت/براکت تک‌حذفی ساخته شد (C2)، شیفت پرسنل ساخته شد (C3) و **حریف‌یابی هوشمند + چالش بازی
+ساخته شد (C4 — بک‌اند ۳۸ تست + فرانت ۲۶ تست؛ رگرسیون ۵۱۱ تست بک‌اند و ۱۱۱ تست فرانت سبز)**.
+باقی‌ماندۀ واقعی فقط برش‌های C2.5 (Double-Elimination/Round-Robin) و C5 است.
 **باگ قطعی و بزرگ (رفع شد — A1):** ۴ endpoint نوتیفیکیشن در بک‌اند وجود ندارد
 (`backend/app/api/v1/notifications.py:16,32` فقط fcm-token) ولی فرانت این‌ها را صدا می‌زند
 (`frontend/src/services/notification.ts:20,25,30,35`) → پنل اعلان‌ها ۴۰۴ می‌گیرد؛ درحالی‌که
@@ -394,10 +411,76 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   نشده:** مهاجرت `m0s023` باید روی سرور run شود (X6 = نیازمند تأیید صریح کاربر) و دامنهٔ
   `api.salon.absadeghi.ir` از این ماشین resolve نمی‌شود (`curl` ⇒ exit 6).
 
-### C4 حریف‌یابی هوشمند (P010 — بخشی هست)
-- [ ] C4.1 امتیاز تطبیق بر پایهٔ رتبه/سطح/منطقه/زمان در `team_service.py:269`
-- [ ] C4.2 «چالش بازی» با پذیرش/رد طرفین (روی endpoint بازی‌های موجود)
-- **معیار:** دو تیم با سطح نزدیک، هم را پیشنهاد می‌گیرند و چالش ثبت می‌شود.
+### C4 حریف‌یابی هوشمند (P010) — ✅ کد + تست (راستی‌آزمایی prod منتظر X6)
+- [x] C4.1 امتیاز تطبیق بر پایهٔ رتبه/سطح/منطقه/زمان
+- [x] C4.2 «چالش بازی» با پذیرش/رد طرفین
+- **شاهد (۲۰۲۶-۱۰-۱۶، همه اجراشده):**
+  - بک‌اند: `pytest tests/test_matchmaking.py` → **۳۸ passed در 2.17s**؛ رگرسیون کامل `pytest` →
+    **۵۱۱ passed در 102.11s** (۴۷۳ قبل + ۳۸ جدید)؛ `ruff check app/ tests/ migrations/ --select E9,F82`
+    → `All checks passed!`
+  - **چرا سرویس جدید به‌جای `team_service.py`:** ادعای اصلی به `team_service.py:269` (همان `list_my_teams`)
+    اشاره می‌کرد، ولی امتیاز به join سه منبع جدا می‌خواهد (نتایج دیدارها، رزروهای تیمی، جایگاه سالن).
+    `app/services/matchmaking_service.py` تنها مصرف‌کنندۀ `TeamService.standings()` است — یعنی **رتبه از
+    همان منبع یکتای صفحۀ لیگ** می‌آید و دو ترتیب متفاوت در سیستم ساخته نمی‌شود.
+  - سیگنال‌ها و وزن‌ها (`matchmaking_service.py:33-41`): `WEIGHT_LEVEL 0.45` / `WEIGHT_REGION 0.35` /
+    `WEIGHT_TIME 0.20`، `NEAR_KM 3.0` تا `FAR_KM 40.0` با نزول خطی haversine، `LEVEL_UNKNOWN_BOTH 1.0`
+    و `LEVEL_UNKNOWN_ONE 0.35`. زمان = Jaccard روی کلید `(روز هفته × بازۀ صبح/بعدازظهر/عصر‌وشب)`.
+  - **قاعدۀ «بی‌داده ≠ ضعیف»:** سیگنالِ در دسترس نبودن `value=None` می‌شود و **از مخرج میانگین هم بیرون
+    می‌رود** (نه صفر). تست‌ها: `test_region_signal_without_geo_is_unavailable_not_zero`,
+    `test_score_drops_unavailable_signals_from_denominator`, `test_rookie_pair_is_not_penalised`,
+    `test_level_signal_one_rookie_is_discounted_not_zero`, `test_zero_coordinates_are_not_a_location`,
+    `test_bucket_boundaries`, `test_time_signal_is_overlap_of_shared_windows`.
+    **هیچ ستونی به `Team` اضافه نشد** — همه‌چیز از دادهٔ موجود مشتق است.
+  - قرارداد API: `app.openapi()['paths']` = **۲۳۵** که **۶ مسیر / ۷ عملیات** آن `/matching*` است
+    (`app/api/v1/matching.py`): `GET /matching/teams/{team_id}`، `GET|POST /matching/challenges`،
+    `GET /matching/challenges/{id}`، `POST .../accept`، `POST .../decline`، `POST .../cancel`.
+    فیلترها: `limit` ۱..۵۰، `status` و `direction` با الگوی صریح (خلاف ⇒ ۴۲۲).
+  - **چالش ≠ رزرو:** `test_challenge_creates_no_booking` ثابت می‌کند پذیرش هیچ `Booking`/`Slot`/پرداختی
+    نمی‌سازد؛ فقط وضعیت + ممیزی هر دو تیم (`test_challenge_records_audit_on_both_teams`) + اعلان به
+    مدیران حریف (`test_create_challenge_returns_row_and_notifies_target`).
+  - حالتمندی و مهلت: `test_one_open_challenge_per_pair_in_either_direction` (۴۰۹ `CHALLENGE_OPEN_EXISTS`
+    از هر دو جهت)، `test_self_challenge_rejected`، `test_private_target_rejected`،
+    `test_unknown_venue_proposal_rejected` (۴۰۴)، `test_responding_twice_is_conflict` (۴۰۹)،
+    `test_expired_challenge_is_answered_with_410` (ترتیب بررسی مهم است: EXPIRED **قبل** از non-PENDING ⇒
+    ۴۱۰ نه ۴۰۹)، `test_listing_expires_stale_challenges` (انفعالی‌سازی هنگام خواندن — **به‌جای Celery
+    beat**، چون زیرساخت beat برای این کار سنگین بود و مهلت `CHALLENGE_TTL_DAYS = 7` است)،
+    `test_cancel_only_by_sender_before_answer`، `test_cancelled_pair_can_challenge_again`.
+  - دروازه: `_open_for_side()` اول چالش‌های کهنه را منقضی می‌کند، بعد `_require_manage_permission` را صدا
+    می‌زند ⇒ تست‌های ۴۰۳ دو حالت واقعی دارند: `test_sender_cannot_accept_its_own_challenge` و
+    `test_unrelated_team_cannot_respond` هر دو `NOT_A_MEMBER` می‌گیرند (چک عضویت قبل از چک مدیریت) و
+    `test_plain_member_cannot_send_challenge` ⇒ `NOT_AUTHORIZED`؛ `test_suggest_requires_active_membership`
+    و `test_challenge_list_requires_membership` عضویت را برای خواندن لازم می‌دانند.
+  - زمان: SQLite مقدار را **آگاه از zone (UTC)** برمی‌گرداند (اندازه‌گیری شد) — پس مقایسهٔ naive در
+    `stale_pending` می‌شکست؛ docstring ریپو با رفتار واقعی اصلاح شد و `_now()` آگاه است.
+  - مهاجرت: `migrations/versions/m0s024_team_challenges.py` (تک‌سر روی `m0s023staffshifts`) با چرخهٔ
+    upgrade→downgrade→upgrade روی DB موقت SQLite ⇒ `current = m0s024teamchallenges (head)`، enum با
+    **NAME** persist می‌شود (`STATUS_LABELS` بزرگ‌نویس)، **۵ ایندکس** و **۵ FK**، و در PG
+    `DROP TYPE IF EXISTS challengestatus` هم اجرا می‌شود (الگوی idempotent m0s021).
+  - فرانت: `tsc --noEmit` exit 0 · `eslint --quiet` exit 0 · `vitest run` → **۱۱۱ passed / ۱۵ فایل**
+    (۲۶ مورد جدید: `services/matching.test.ts` ۶، `components/team/TeamMatchmakingPanel.test.tsx` ۱۰،
+    `components/team/TeamChallengePanel.test.tsx` ۱۰) · `vite build` ⇒ `✓ built in 31.18s`،
+    `dist/assets/*.map` = **۰**، سربرگ‌ها داخل chunk تنبل `TeamDetail-*.js` (۵۰.۳۴ kB) نشسته‌اند.
+  - UI: دو سربرگ تازه در `pages/teams/TeamDetail.tsx` — «حریف‌یابی» و «چالش‌ها» (badge = `total`
+    چالش‌های ورودیِ در انتظار پاسخ)؛ هر دو `show: isMember` و اقدامات فقط با
+    `canChallenge`/`canRespond = isManager`. **چرا سربرگ و نه روت جدید:** کنش به یک تیم خاص وابسته است،
+    کشف‌پذیری در همان صفحه حفظ می‌شود و زحمت ترتیب روتر/روت‌های هم‌پیشوند حذف می‌شود.
+    `data-testid`ها: `match-suggestion-{id}`, `match-challenge-open-{id}`, `match-open-challenge-{id}`,
+    `match-basis`, `match-challenge-send`, `challenge-card-{id}`, `challenge-accept-{id}`,
+    `challenge-decline-open-{id}`, `challenge-cancel-{id}`, `challenge-view-{inbox|outbox|all}`,
+    `challenge-filter-pending`, `challenge-decline-confirm`.
+  - اعلان و خطا: چهار نوع `team_challenge_{received,accepted,declined,cancelled}` به `typeIcons` در
+    `components/layout/NotificationPanel.tsx` (آیکن + رنگ، نه رنگ‌تنها)؛ شش کد ساختارمند تازه در
+    `components/team/shared.tsx` (`CHALLENGE_NOT_FOUND`, `CHALLENGE_EXPIRED`,
+    `CHALLENGE_ALREADY_ANSWERED`, `CHALLENGE_OPEN_EXISTS`, `SELF_CHALLENGE`, `VENUE_NOT_FOUND`).
+  - دسترسی‌پذیری: نوار سیگنال `aria-label` متنی دارد تا فقدان داده فقط با رنگ/طول منتقل نشود — تست
+    `labels an unavailable signal as «no data» instead of a zero bar`؛ متن «پذیرش رزرو نمی‌سازد؛ سالن را
+    جدا رزرو کنید» جلوی انتظار غلط از دکمهٔ پذیرش را می‌گیرد
+    (`warns that accepting does not create a booking`).
+- **معیار:** دو تیم با سطح نزدیک، هم را پیشنهاد می‌گیرند و چالش ثبت می‌شود. — **محقق‌شده در تست**:
+  `test_suggest_ranks_closer_level_first`، `test_suggest_prefers_near_home_venue`،
+  `test_suggest_scores_shared_time_window` و چرخۀ کامل `create → accept` با اعلان/ممیزی هر دو طرف.
+  **روی prod هنوز اجرا نشده:** مهاجرت `m0s024` باید روی سرور run شود (X6 = نیازمند تأیید صریح کاربر)
+  و دامنهٔ `api.salon.absadeghi.ir` از این ماشین resolve نمی‌شود (`curl` ⇒ exit 6).
 
 ### C5 قیمت‌گذاری بر پایهٔ تقاضا (P008 — موتور قوانین هست)
 - [ ] C5.1 جمع‌آوری سیگنال نرخ اشغال per slot-hour (بدون ML)
@@ -549,6 +632,6 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 | X3 | تأیید پر بودن `KEYSTORE_*` در GitHub Secrets | فقط با اجرای tag-release مشخص می‌شود | کاربر/CI |
 | X4 | قرارداد درگاه پرداخت و سرویس SMS | اداری | کاربر |
 | X5 | حذف APKهای ۸۹MB از تاریخچه git | بازگشت‌ناپذیر | کاربر |
-| X6 | مستقر کردن تغییرات بک‌اند روی سرور prod | روی سرویس زنده؛ نیاز به تأیید صریح | کاربر |
+| X6 | مستقر کردن تغییرات بک‌اند روی سرور prod | روی سرویس زنده؛ نیاز به تأیید صریح. مهاجرت‌های منتظر اجرا: `m0s021coachesessions`، `m0s022tournaments`، `m0s023staffshifts`، `m0s024teamchallenges` (زنجیرۀ تک‌سر؛ همه روی SQLite با up/down/up راستی‌آزمایی شدند) | کاربر |
 | X7 | دادهٔ تاریخی ۱۲ ماهه برای ML قیمت | ذاتاً زمان‌بر | — |
 | X8 | عدد‌های بازاریابی صفحهٔ اصلی (`HeroSection.tsx:15-20`: +۱۲٬۰۰۰ بازیکن، +۵۰ زمین، +۳۰۰ مسابقه، ۴.۸) و شمارنده‌های `StatsSection` ساختگی‌اند؛ endpoint واقعی وجود ندارد | یا از سرور باید بیاید یا از صفحه برود — تصمیم محصول | کاربر |

@@ -83,6 +83,10 @@ class TeamAuditAction(str, Enum):
     DUES_PLAN_UPDATED = "dues_plan_updated"
     BOOKING_LINKED = "booking_linked"
     TEAM_BECAME_OFFICIAL = "team_became_official"
+    CHALLENGE_SENT = "challenge_sent"
+    CHALLENGE_ACCEPTED = "challenge_accepted"
+    CHALLENGE_DECLINED = "challenge_declined"
+    CHALLENGE_CANCELLED = "challenge_cancelled"
 
 
 # ─────────────────────────── Team ───────────────────────────
