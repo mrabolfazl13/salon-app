@@ -141,6 +141,24 @@ jobs:
         working-directory: android_flutter
         run: flutter pub get
 
+      - name: Show iOS build settings (witness)
+        working-directory: android_flutter/ios
+        # چرا این step: دو بار تلاش برای رفع خطای «non-modular header» با اهرمِ
+        # پادها بی‌اثر بود، چون دستور شکست‌خورده (`builtin-precompileModule`) متعلق
+        # به هدفِ Runner است. این خروجی در همان ران ثابت می‌کند کلید واقعاً به هدفِ
+        # برنامه رسیده یا نه؛ بدون آن هر شکست فقط «exit code 1» است.
+        # `xcodebuild -showBuildSettings` بدون pod install هم کار می‌کند (اعدادِ
+        # xcconfig را می‌خواند) و ثانیه‌ها طول می‌کشد.
+        run: |
+          settings=$(xcodebuild -project Runner.xcodeproj -target Runner -configuration Release -showBuildSettings 2>/dev/null || true)
+          line=$(printf '%s\n' "$settings" | grep -i "CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES" || echo "")
+          if [ -z "$line" ]; then
+            echo "::error::IOS-SET-MISSING کلید در buildSettings هدف Runner پیدا نشد (Runner.xcodeproj این کلید را override کرده؟)"
+          else
+            echo "::notice::IOS-SET $line"
+          fi
+          printf '%s\n' "$settings" | grep -iE "IPHONEOS_DEPLOYMENT_TARGET|GCC_PREPROCESSOR_DEFINITIONS" | head -4 | cut -c1-200 | while IFS= read -r l; do echo "::notice::IOS-SET-CTX $l"; done
+
       - name: Build iOS (no codesign for CI)
         working-directory: android_flutter
         # `--verbose` عمداً است: شکست‌های این job فقط با «exit code 1» دیده می‌شدند، چون

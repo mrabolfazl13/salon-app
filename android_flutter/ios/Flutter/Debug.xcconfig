@@ -1,1 +1,7 @@
+// Flutter/Debug.xcconfig
 #include "Generated.xcconfig"
+
+// همان اهرمِ Release.xcconfig (توضیح کامل + شاهد آنجا): مالکِ
+// `builtin-precompileModule` که با آن خطا می‌سوزد هدفِ Runner است، نه پادها، پس
+// این کلید باید روی هدفِ برنامه هم ست شود.
+CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES
