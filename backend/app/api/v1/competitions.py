@@ -4,6 +4,7 @@ from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.schemas.competition import CompetitionCreate, CompetitionBid, CompetitionResponse
 from app.services.competition_service import CompetitionService
 from app.utils.auth import get_current_manager
+from app.utils.utc import as_utc
 from app.models.user import User
 from app.services.notification_service import notification_service
 
@@ -13,9 +14,6 @@ router = APIRouter(prefix="/competitions", tags=["Competitions"])
 def list_active_competitions(uow: UnitOfWork = Depends(get_unit_of_work)):
     """رقابت‌های در جریان، گروه‌شده بر اساس سانس — نزدیک‌ترین مهلت اول."""
     now = datetime.now(timezone.utc)
-
-    def as_utc(dt):
-        return dt.replace(tzinfo=timezone.utc) if dt.tzinfo is None else dt
 
     comps = [c for c in uow.competitions.get_active_competitions() if as_utc(c.expires_at) > now]
 

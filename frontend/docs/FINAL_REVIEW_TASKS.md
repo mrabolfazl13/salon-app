@@ -748,7 +748,37 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
    `tail -15` وقتی خلاصه‌ای نیست (کرش/خطای collection) و در `backend-tests.yml` هم `tee pytest.log`
    + استپ annotation اضافه شد. بدنهٔ لاگ از این ماشین خوانده نمی‌شود (401 روی Azure Blob با
    توکن `/logs`؛ 404 وقتی شناسۀ job با run اشتباه می‌شود)، پس annotation تنها مسیر دیدن است.
-4. **Flutter iOS build:** هنوز قرمز و دست‌نخورده — در این راند بررسی نشد.
+4. **Flutter iOS build:** هنوز قرمز و دست‌نخورده — در این راند بررسی نشد (تنها annotation موجود
+   `Process completed with exit code 1` است؛ گام شکست `Build iOS (no codesign for CI)`).
+5. **`Workers Builds: salon-app`:** قرمز با **۰ annotation** ⇒ از این ماشین چیزی برای دیدن ندارد
+   (لاگ‌ها ۴۰۱ می‌دهند)؛ برای دیدن علت باید خروجی را به annotation کشید (کار بعدی، نه این راند).
+
+### دو شکست واقعی بک‌اند که annotationهای تازه بیرون دادند (۲۰۲۶-۱۰-۱۶)
+استپ لنگاردار که در بالا اضافه شد، دقیقاً دو خط را نشان داد (قبلاً فقط warningهای Pydantic دیده
+می‌شد):
+- `tests/test_waitlist.py::test_join_waitlist_returns_201_and_position` → `assert None is not None`
+  روی `.tzinfo`
+- `tests/test_matchmaking.py::test_create_challenge_returns_row_and_notifies_target` →
+  `TypeError: can't compare offset-naive and offset-aware datetimes`
+
+علت ریشه‌ای (با بازتولید، نه حدس): `backend/requirements.txt` خط ۳ `sqlmodel==0.0.42` را pin
+می‌کند، ولی محیط توسعهٔ این ماشین **0.0.47** دارد. در یک venv تازه از همان pins، هر دو تست
+**درست مثل CI** شکستند (`2 failed in 0.98s`). روی SQLiteِ استک pinned مقدار `datetime` به‌صورت
+**naive** برمی‌گردد؛ با 0.0.47 آگاه. ⇒ تست‌های CI با ستونِ naive مقایسهٔ aware انجام می‌دادند و
+محیط توسعه این را می‌پوشاند.
+- این **باگ پرود نیست**: روی PostgreSQL مهاجرت‌شده شمارش شد — **۱۸۴ از ۱۸۴** ستون زمانی
+  `timestamp with time zone` و صفر ستون naive؛ پس prod مقدار آگاه می‌دهد. (اثبات: خواندن
+  `membership_purchases.expires_at` بعد از `alembic upgrade head` روی pgserver ⇒
+  `2026-10-21 13:24:55.524723+00:00`, `tzinfo: UTC`.)
+- رفع: `app/utils/utc.py::as_utc()` (naive ⇒ UTC-aware، روی PG بی‌اثر) و استفادهٔ آن در مقایسه‌ها؛
+  `app/api/v1/competitions.py` تعریف localsِ همان تابع را داشت که به util مشترک وصل شد. تست
+  waitlist دیگر awarenessِ درایور را نمی‌سنجد، بلکه خودِ قاعده را: `created_at` باید «اکنونِ UTC»
+  باشد (پنجرهٔ ۲ ساعتهٔ `convert_expired` به همین عدد تکیه دارد).
+- گیت‌ها بعد از رفع: استک pinned → `49 passed in 2.83s` برای دو فایل درگیر و
+  **۵۵۲ passed در 104.70s** رگرسیون کامل؛ محیط توسعه (0.0.47) → هر دو تست هم رد می‌شوند؛
+  `ruff --select E9,F82 app tests migrations` ⇒ All checks passed.
+- **درس هارنس (به حافظه هم نوشته شد):** «سبز بودن سوئیت محلی» دلیل بر سالم بودن CI نیست؛ برای
+  هر تغییر زمانی/مدلی، استک pinned را در venv جدا (`E:/venvs/salon-pinned`) اجرا کن.
 
 ---
 

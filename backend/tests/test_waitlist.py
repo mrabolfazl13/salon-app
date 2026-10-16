@@ -1,9 +1,11 @@
 # backend/tests/test_waitlist.py
 """صف انتظار — ورود/خروج/جابه‌جایی موقعیت و تبدیل خودکار پس از پنجرهٔ ۲ ساعته (B5).
 
-created_at این جدول به UTCDateTime نگاشت می‌شود؛ default_factory نایو (datetime.utcnow)
-هنگام INSERT خطای «Datetime values must have timezone information» می‌دهد ⇒ POST /waitlist/join
-همیشه ۵۰۰ برمی‌گرداند. تست اول همان مسیر واقعی (endpoint) را می‌زند، نه مدل را.
+تست اول همان مسیر واقعی (endpoint) را می‌زند، نه مدل را.
+نکتهٔ زمان که در CI (۲۰۲۶-۱۰-۱۶) اندازه‌گیری شد: روی SQLite با `sqlmodel==0.0.42` (استکِ
+CI/prod) مقدار `created_at` naive برمی‌گردد، ولی روی PostgreSQL مهاجرت‌شده همهٔ ۱۸۴ ستون
+زمانی `timestamp with time zone`‌اند ⇒ برای اینکه تست روی هر دو stack معنا داشته باشد،
+مقایسه‌ها از `app.utils.utc.as_utc` رد می‌شوند.
 """
 from datetime import datetime, timedelta, timezone
 
@@ -14,6 +16,7 @@ from conftest import test_engine
 from helpers import FakeRedis, auth
 from app.models.slot import Slot, SlotStatus
 from app.models.waitlist import WaitlistEntry
+from app.utils.utc import as_utc
 
 BASE = "/api/v1/waitlist"
 
@@ -64,8 +67,14 @@ def test_join_waitlist_returns_201_and_position(client, seed):
     rows = _rows(chain["slot"].id)
     assert len(rows) == 1
     assert rows[0][3] == "pending"
-    # رگرسیون tz: مقدار باید awareness داشته باشد وگرنه INSERT می‌ترکد
-    assert rows[0][4].tzinfo is not None
+    # رگرسیون زمانی: ردیف باید «اکنونِ UTC» را ثبت کرده باشد، چون پنجرهٔ ۲ ساعتهٔ
+    # convert_expired به همین عدد تکیه می‌کند. awareness عمداً سنجیده نمی‌شود: هیچ مدلی
+    # `DateTime(timezone=True)` ندارد، پس روی PostgreSQL (و با sqlmodel==0.0.42 که CI/prod
+    # نصب می‌کند) مقدار بازگشتی naive است — ادعای قبلیِ همین فایل («باید aware باشد وگرنه
+    # INSERT می‌سوزد») با همان نسخهٔ pinned نقض شد، درحالی‌که مسیر INSERT درست کار می‌کند.
+    stored = as_utc(rows[0][4])
+    now = datetime.now(timezone.utc)
+    assert now - timedelta(minutes=5) <= stored <= now + timedelta(seconds=5)
 
 
 def test_join_waitlist_requires_booked_slot(client, seed):

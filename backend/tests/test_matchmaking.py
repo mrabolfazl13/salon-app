@@ -22,6 +22,7 @@ from app.models.team import (
 from app.models.team_challenge import ChallengeStatus, TeamChallenge
 from app.models.user import User
 from app.models.venue import Venue
+from app.utils.utc import as_utc
 from app.services.matchmaking_service import (
     FAR_KM, LEVEL_UNKNOWN_ONE, MatchmakingService, TeamSignals, _bucket, _has_geo,
 )
@@ -321,7 +322,9 @@ def test_create_challenge_returns_row_and_notifies_target(client, sent_notificat
         audits = s.exec(select(TeamChallenge).where(
             col(TeamChallenge.id) == row["id"])).all()
         assert len(audits) == 1
-        assert audits[0].expires_at > _now()
+        # مهلت باید آینده باشد؛ روی SQLiteِ استک pinned مقدار naive برمی‌گردد، پس با as_utc
+        # نرمال می‌شود (مقایسهٔ مستقیم = TypeError در CI؛ روی PG خودِ مقدار آگاه است).
+        assert as_utc(audits[0].expires_at) > _now()
 
 
 def test_challenge_records_audit_on_both_teams(client):

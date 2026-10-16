@@ -8,6 +8,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlmodel import Session, select
 
 from app.database import get_session
+from app.utils.utc import as_utc
 from app.models.membership import (
     MembershipPlan,
     MembershipPurchase,
@@ -291,7 +292,7 @@ def consume_session(
         raise HTTPException(status_code=400, detail="این اشتراک پرداخت نشده است")
     if purchase.sessions_remaining is None:
         raise HTTPException(status_code=400, detail="این اشتراک جلسه‌ای نیست (ماهانه است)")
-    if purchase.expires_at and purchase.expires_at < datetime.now(timezone.utc):
+    if purchase.expires_at and as_utc(purchase.expires_at) < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="اعتبار اشتراک به پایان رسیده است")
     if purchase.sessions_remaining <= 0:
         raise HTTPException(status_code=400, detail="جلسات این اشتراک تمام شده است")
