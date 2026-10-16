@@ -145,6 +145,7 @@ export const AUDIT_ACTION_LABELS: Record<string, string> = {
   payment_voided: 'ابطال قسط',
   overdue_notified: 'اعلامیه‌ی تأخیر',
   renewed: 'تمدید قرارداد',
+  expired: 'انقضای دوره‌ی قرارداد',
 }
 
 const AUDIT_ACTION_ICONS: Record<string, string> = {
@@ -162,6 +163,7 @@ const AUDIT_ACTION_ICONS: Record<string, string> = {
   payment_voided: 'mdi:backup-restore',
   overdue_notified: 'mdi:alert-circle-outline',
   renewed: 'mdi:autorenew',
+  expired: 'mdi:calendar-end',
 }
 
 export function auditActionIcon(action: string): string {

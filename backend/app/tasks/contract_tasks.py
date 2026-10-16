@@ -69,9 +69,8 @@ def check_expired_contracts():
                 objections += 1
             uow.contracts.update(contract.id, {"status": ContractStatus.EXPIRED})
             uow.contract_audits.log(
-                contract.id, ContractAuditAction.CANCELLED if False else ContractAuditAction.RENEWED
-                if False else ContractAuditAction.APPROVED, None,
-                {"expired": True, "end_date": str(contract.end_date)})
+                contract.id, ContractAuditAction.EXPIRED, None,
+                {"end_date": str(contract.end_date)})
             expired_count += 1
 
         uow.commit()

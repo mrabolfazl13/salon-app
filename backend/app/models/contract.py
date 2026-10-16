@@ -59,6 +59,7 @@ class ContractAuditAction(str, Enum):
     PAYMENT_VOIDED = "payment_voided"
     OVERDUE_NOTIFIED = "overdue_notified"
     RENEWED = "renewed"
+    EXPIRED = "expired"
 
 
 def _utcnow() -> datetime:

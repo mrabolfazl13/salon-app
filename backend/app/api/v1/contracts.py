@@ -202,7 +202,7 @@ async def approve_contract(
     uow: UnitOfWork = Depends(get_unit_of_work),
     current_user: User = Depends(get_current_user),
 ):
-    """تأیید درخواست (با/بدون اصلاح قیمت/سقف سانس) → ACTIVE + تقویم اقساط. کارکنan: contract.manage."""
+    """تأیید درخواست (با/بدون اصلاح قیمت/سقف سانس) → ACTIVE + تقویم اقساط. کارکنان: contract.manage."""
     contract = _load_contract_or_404(uow, contract_id)
     _check_venue_manager(uow, contract.venue_id, current_user,
                          [Perm.CONTRACT_MANAGE], request)

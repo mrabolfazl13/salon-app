@@ -446,3 +446,86 @@ def test_expiry_task_marks_past_scheduled_completed_keeps_slot(client, db, seed,
         assert st in (SlotStatus.RESERVED, SlotStatus.BOOKED)  # سانس واقعی دست‌نخورده (مستند)
     future = [c for c in _contract_slots(cid) if c.session_date > date.today()]
     assert all(c.status == ContractSlotStatus.SCHEDULED for c in future)
+
+
+# ─────────────── تسک انقضا + سانسِ جابه‌جا‌شده (بازبینی #5) ───────────────
+# جابه‌جاییِ قانونی `session_date` اصلی را دست نمی‌زند و `rescheduled_date` را پر می‌کند،
+# پس «گذشته» باید با coalesce سنجیده شود. دو حالتِ قرینه:
+#   الف) سانسِ جابه‌جا‌شده که مهلتش گذشته ⇒ باید COMPLETED شود (با فیلترِ قبلی هرگز نمی‌شد).
+#   ب) سانسِ جابه‌جا‌شده به آینده، با session_date قدیمی ⇒ نباید COMPLETED شود.
+
+def _move_row(cs_id, *, session_date=None, rescheduled_date=None):
+    """ردیف را در وضعیت «جابه‌جا‌شده» می‌گذارد (API جابه‌جایی به گذشته ۴۰۰ می‌دهد)."""
+    with _fresh() as s:
+        cs = s.get(ContractSlot, cs_id)
+        if session_date is not None:
+            cs.session_date = session_date
+        cs.rescheduled_date = rescheduled_date
+        cs.rescheduled_time = dtime(18, 0)
+        cs.status = ContractSlotStatus.RESCHEDULED
+        s.add(cs)
+        s.commit()
+
+
+def test_expiry_task_completes_a_rescheduled_session_whose_new_date_passed(client, db, seed, fake_redis):
+    from app.tasks.contract_tasks import check_expired_contracts
+    m_id, m_phone = _make_manager(seed, "09114000231")
+    vid = _make_venue(db, m_id)
+    body, _ = _create_contract(client, seed, db, m_phone, vid, price=140000)
+    cid = body["id"]
+    assert client.post(f"/api/v1/contracts/{cid}/approve", json={},
+                       headers=auth(m_phone)).status_code == 200
+
+    last = _contract_slots(cid)[-1]
+    _move_row(last.id, rescheduled_date=date.today() - timedelta(days=1))
+
+    result = check_expired_contracts()
+    assert result["completed_sessions"] >= 1
+    with _fresh() as s:
+        assert s.get(ContractSlot, last.id).status == ContractSlotStatus.COMPLETED
+
+
+def test_expiry_task_leaves_a_rescheduled_future_session_alone(client, db, seed, fake_redis):
+    """نگهبانِ رفع: coalesce نباید سانسِ جابه‌جا‌شده به آینده را «گذشته» بخواند."""
+    from app.tasks.contract_tasks import check_expired_contracts
+    m_id, m_phone = _make_manager(seed, "09114000232")
+    vid = _make_venue(db, m_id)
+    body, _ = _create_contract(client, seed, db, m_phone, vid, price=140000)
+    cid = body["id"]
+    assert client.post(f"/api/v1/contracts/{cid}/approve", json={},
+                       headers=auth(m_phone)).status_code == 200
+
+    first = _contract_slots(cid)[0]
+    _move_row(first.id, session_date=date.today() - timedelta(days=3),
+              rescheduled_date=date.today() + timedelta(days=14))
+
+    check_expired_contracts()
+    with _fresh() as s:
+        assert s.get(ContractSlot, first.id).status == ContractSlotStatus.RESCHEDULED
+
+
+def test_expiry_records_an_expired_event_not_a_second_approval(client, db, seed, fake_redis):
+    """رویداد انقضا باید «expired» باشد؛ پیش از رفع با اقدام approved ثبت می‌شد."""
+    from app.tasks.contract_tasks import check_expired_contracts
+    m_id, m_phone = _make_manager(seed, "09114000233")
+    vid = _make_venue(db, m_id)
+    body, _ = _create_contract(client, seed, db, m_phone, vid, price=140000)
+    cid = body["id"]
+    assert client.post(f"/api/v1/contracts/{cid}/approve", json={},
+                       headers=auth(m_phone)).status_code == 200
+
+    with _fresh() as s:
+        c = s.get(Contract, cid)
+        c.end_date = date.today() - timedelta(days=1)
+        s.add(c)
+        s.commit()
+
+    assert check_expired_contracts()["expired_count"] == 1
+
+    actions = _audit_actions(cid)
+    assert ContractAuditAction.EXPIRED in actions
+    # تنها یک «approved» واقعی در تاریخچه باشد (تأیید مدیر)، نه دو
+    assert actions.count(ContractAuditAction.APPROVED) == 1
+    assert actions[-1] == ContractAuditAction.EXPIRED
+    with _fresh() as s:
+        assert s.get(Contract, cid).status == ContractStatus.EXPIRED

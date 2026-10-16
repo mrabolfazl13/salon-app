@@ -1,3 +1,4 @@
+from sqlalchemy import func as sa_func
 from sqlmodel import Session, select
 from datetime import date, datetime, timedelta, timezone
 from typing import Optional, List
@@ -100,10 +101,17 @@ class ContractSlotRepository(BaseRepository[ContractSlot]):
         return self.get_one(contract_id=contract_id, id=cs_id)
 
     def get_past_scheduled(self) -> List[ContractSlot]:
-        """سانس‌های SCHEDULED که تاریخشان گذشته — ورودی تسک روزانه (→ COMPLETED)."""
+        """سانس‌های SCHEDULED/RESCHEDULED که تاریخ **موثرشان** گذشته (ورود تسک روزانه → COMPLETED).
+
+        جابه‌جایی `session_date` اصلی را دست نمی‌زند، پس «گذشته» یعنی
+        `coalesce(rescheduled_date, session_date) < today`؛ فیلترِ قبلی سانسِ
+        جابه‌جا‌شده را برای همیشه RESCHEDULED می‌گذاشت.
+        """
+        effective = sa_func.coalesce(ContractSlot.rescheduled_date, ContractSlot.session_date)
         stmt = select(ContractSlot).where(
-            ContractSlot.status == ContractSlotStatus.SCHEDULED,
-            ContractSlot.session_date < date.today(),
+            ContractSlot.status.in_((ContractSlotStatus.SCHEDULED,
+                                     ContractSlotStatus.RESCHEDULED)),
+            effective < date.today(),
         )
         return list(self.session.exec(stmt).all())
 
