@@ -63,6 +63,7 @@ from app.models.customer import VenueCustomer, CrmCampaign
 from app.models.quiz import QuizQuestion, QuizAttempt
 from app.models.split_payment import TeamSplitPayment, SplitPaymentShare, SplitPaymentAuditEvent
 from app.models.coach import CoachSession
+from app.models.reconciliation_report import ReconciliationReport
 from app.models.tournament import (
     Tournament, TournamentParticipant, TournamentRound, TournamentMatch,
 )
@@ -149,6 +150,7 @@ _TABLES_CLEAN_ORDER = [
     TeamMember, TeamChallenge, Team,
     CouponRedemption, Coupon, LoyaltyPoint, FavoriteVenue,
     PricingRule, Holiday,
+    ReconciliationReport,
     FinancialTransaction, ExpenseCategory,
     MembershipPurchase, MembershipPlan, BookingPayment,
     GamePayment, GameWaitlist, GameInviteLink, GameInvitation,

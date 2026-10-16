@@ -48,6 +48,7 @@ from .tournament import (
     Tournament, TournamentParticipant, TournamentRound, TournamentMatch,
     TournamentStatus, TournamentFormat, TournamentParticipantStatus, MatchStatus,
 )
+from .reconciliation_report import ReconciliationReport, ReconciliationStatus
 
 # ترتیب import مهم است
 __all__ = [
@@ -90,4 +91,5 @@ __all__ = [
     "CoachSession", "CoachSessionStatus",
     "Tournament", "TournamentParticipant", "TournamentRound", "TournamentMatch",
     "TournamentStatus", "TournamentFormat", "TournamentParticipantStatus", "MatchStatus",
+    "ReconciliationReport", "ReconciliationStatus",
 ]
