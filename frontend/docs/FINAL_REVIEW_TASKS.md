@@ -1113,6 +1113,98 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 
 ---
 
+### C14 مغایرگیری دفتر کل ↔ درگاه: جدولِ گزارشِ غایب، کلیدِ مقایسه و دروازۀ دسترسی (بازبینی #4، مالی) — راند ۱۷ ✅ پنج نقص، هر پنج رفع + چهار گره ثبت‌شده
+
+> بعد از راند ۱۶ فقط دو فایلِ پولیِ «هیچ‌وقت با نامشان ممیزی نشده» مانده بود:
+> `app/api/v1/reconciliation.py` و `app/api/v1/slots.py` (از ۳۴ ماژول `app/api/v1/*.py`).
+> اولی بدترین نوع توهم بود: **سه endpoint در OpenAPI زنده بود، ولی جدولی که گزارش در آن
+> نوشته شود هرگز ساخته نشده بود** — یعنی پاسخِ «صفر مغایرت» نه از مقایسه، از نبودِ جدول می‌آمد.
+
+- [x] C14.1 **جدولِ گزارش وجود نداشت ⇒ همۀ «همه‌چیز درست است» کاذب:** `app/models/reconciliation_report.py`
+  غایب بود و در زنجیرۀ alembic (`m0s021`…`m0s026`) هیچ مهاجرتی برای `reconciliation_reports` نبود.
+  هر دو خواندنی `try: from app.models.reconciliation_report import ReconciliationReport` را با
+  `except ImportError: return {"total": 0, …, "items": []}` می‌پوشاندند (سطح unit، شاهد: پیش از رفع
+  `GET /reconciliation/reports` **۲۰۰ با صفر ردیف** روی دیتابیسی که پرداخت و ردیف دفتر کل داشت).
+  بدتر: همان کد ستون‌های `ReconciliationReport.date` و `.data` را می‌خواند که روی هیچ مدلی وجود
+  نداشتند — اگر فقط فایل مدل ساخته می‌شد، `AttributeError` می‌آمد و `except ImportError` آن را
+  نمی‌گرفت ⇒ **۵۰۰**. خودِ task هم در docstring‌اش نوشته بود «Results stored in
+  reconciliation_report table (to be created)» و نوشتن را در `try/except Exception` پیچیده بود.
+  رفع: مدلِ واقعی + مهاجرت `m0s027reconreports` (جدول، چهار ایندکس، `uq_reconciliation_period`،
+  FK به `users.id`، enum بومی `reconciliationstatus`) + `ReconciliationService.save/run` با
+  upsert-per-period.
+- [x] C14.2 **کلیدِ مقایسه غلط بود: `source_id` با `booking_id`:** ردیف درآمدِ دفتر کل با
+  `source_type=booking_payment` و `source_id=payment.id` نوشته می‌شود (`payments.py:137` مسیر mock،
+  `payments.py:246` webhook، `contract_service.py:522`، `game_service.py:1129`)، ولی کارِ قبلی
+  `ledger_by_booking[txn.source_id]` را با `gateway_by_booking[payment.booking_id]` می‌ساخت.
+  **شاهدِ اندازه‌گیری‌شده روی داده‌ای که ۱۰۰٪ سالم ساخته شده بود** (دو رزرو؛ رزرو ۱ سه سهم
+  ۵۰٬۰۰۰/۷۰٬۰۰۰/۸۰٬۰۰۰ و رزرو ۲ یک پرداخت ۲۰۰٬۰۰۰ ریالی، هر چهار ردیف دفتر کل دقیقاً هم‌مبلغ خودِ پرداخت):
+  الگوریتم قدیمی **۴ مغایرت** گزارش کرد — `amount_mismatch` با «دفتر کل ۵۰٬۰۰۰ / درگاه ۸۰٬۰۰۰»
+  (اختلاف −۳۰٬۰۰۰)، `amount_mismatch` با «دفتر کل ۷۰٬۰۰۰ / درگاه ۲۰۰٬۰۰۰» (اختلاف −۱۳۰٬۰۰۰:
+  ردیفِ پرداخت ۲ با رزرو ۲ مقایسه شد، چون شمارۀ پرداخت با شمارۀ رزروِ دیگر تصادفاً برابر بود)، و دو
+  `ledger_without_gateway` برای دو ردیفِ کاملاً سالم. الگوریتم جدید روی همان داده:
+  `payments_checked=4، mismatch_count=0`. متنِ کاملِ شاهد: `~/.qoder-tmp/c14_old_algorithm_witness.txt`
+  (اسکریپت بازتولید: `~/.qoder-tmp/c14_witness_probe.py`، سطح unit/SQLite).
+- [x] C14.3 **بازه روی `created_at` (زمانِ نوشتنِ ردیف) بود، نه `occurred_at` (مبنای همۀ گزارش‌های
+  مالی):** همان اسکریپت شاهد، با فیلترِ `created_at` دقیقاً مثل نسخۀ ship‌شده، **هر چهار ردیف دفتر کل
+  را بیرونِ بازه انداخت** (`ledger=0`) ⇒ خروجی تبدیل شد به دو `gateway_without_ledger` جعلی («پرداخت
+  موفق ولی در دفتر کل ثبت نشده») روی داده‌ای که هر چهار ردیفش وجود داشت. رفع: بردِ روز با
+  `date(…) >= 'YYYY-MM-DD'` روی `BookingPayment.paid_at` و `FinancialTransaction.occurred_at`
+  (الگوی `transaction_repository._range`) — همان کلاسِ باگی که راند ۲۷ از naive/aware ردیف کرد.
+- [x] C14.4 **ردیفِ بازگشت وجه «درآمد» شمرده می‌شد و نقشه overwrite می‌کرد:** فیلتر قبلی فقط
+  `source_type == "booking_payment"` بود بدون `direction`/`type`، درحالی‌که برگشتِ وجه با **همان**
+  جفت `(source_type, source_id)` و `direction=EXPENSE/type=REFUND` نوشته می‌شود؛ ضمن اینکه
+  `ledger_by_booking[k] = txn` برای چند ردیفِ هم‌کلید فقط آخرین را نگه می‌داشت (پرداختِ چندسهمیِ
+  P003). رفع: aggregationِ خالص (`_sums()` با `GROUP BY source_id` و حذف `VOIDED`) per-payment،
+  به‌علاوه دو قاعده‌ای که قبلاً اصلاً وجود نداشتند: `refund_without_ledger` (وضعیت REFUNDED ولی
+  برگشتِ کمتری در دفتر) و `refunded_while_paid` (برگشت ثبت شده ولی پرداخت هنوز paid).
+- [x] C14.5 **دروازۀ خواندن و `total` جعلی:** `GET /reports` و `GET /reports/{id}` با
+  `get_current_manager` بودند (docstring: «managers only») درحالی‌که هر گزارش **کلِ دفتر کل** را
+  می‌دهد (شمارۀ پرداخت و رزروِ همۀ سالن‌ها) ⇒ هر مدیرِ سالن می‌توانست مغایرت‌های سالن دیگر را
+  ببیند؛ `/run` درست روی SUPER_ADMIN بود. رفع: `_require_super_admin()` روی هر سه (تست: مدیر ⇒ ۴۰۳،
+  سرپرست ⇒ ۲۰۰). `total` هم `len(reports)` بود یعنی طولِ صفحه، نه شمارِ کل ⇒ `select(func.count())`.
+- [x] C14.6 ⚠️ ثبت شد، رفع نشد (چهار گره):
+  1. **گزارش سراسری است، نه per-venue:** جدول `venue_id` ندارد. تا وقتی ندارد، «مغایرتِ سالن من»
+     قابل نمایش نیست — و این دقیقاً همان چیزی است که یک مدیر مصرف می‌کند. تصمیم UI/محصول.
+  2. **مصرف‌کنندۀ UI ندارد:** `reconciliation` در `frontend/src` صفر بار ذکر شده (grep)؛ یعنی کل
+     فیچر — حتی در حالت درستِ جدید — هیچ‌جا دیده نمی‌شود. هم‌خانوادۀ C13.3.2 (ردیفِ مصرفِ کوپن).
+  3. **«دیروز» بر مبنای UTC:** task بازۀ `[دیروزِ UTC]` را می‌گیرد و روی PG مرزِ روزِ `date(timestamptz)`
+     به TimeZone سشن وابسته است (شاهدِ همین راند: `SERVER TZ: GMT` روی pgserver). تا تصمیمِ واحدِ
+     «روزِ مالیِ تهران» گرفته نشود، گزارشِ نیمه‌شب می‌تواند یک پرداختِ ۲۳:۳۰ را با ردیفِ
+     دفترکلی‌اش در دو روزِ متفاوت ببیند — کد این حالت را با «پرداختِ paid/refunded ⇒ مغایرت نیست»
+     خنثی می‌کند، ولی **یک روز جابه‌جایی** در شمارشِ `payments_checked` باقی می‌ماند.
+  4. **`slots.py` (دومین فایلِ ممیزی‌شدۀ این راند):** نقصِ commitِ جاافتاده نداشت (UoW در مسیر موفق
+     commit می‌کند)، ولی `POST /slots/generate/{venue_id}؟slot_date=گذشته` هیچ نگهبانی ندارد
+     (`slot_repository.py:194-216` تاریخ را نمی‌پرسد) و `GET /slots/range` (`slots.py:48-56`) نه
+     طولِ بازه را می‌سنجد نه `start > end` را؛ در مقابل `block/unblock` نگهبان `is_past_slot` دارند
+     (`slots.py:86,106`) ⇒ ناسازگاریِ صریح در یک فایل. رفعش یک فیچر-تصمیم است (تاریخِ گذشته برای
+     ثبتِ مالیِ رزروهای قدیمی لازم است) پس فقط ثبت شد.
+- **تست‌ها (سطح unit/SQLite):** ۱۳ تست در `tests/test_reconciliation_reports.py` — جفتِ سالم ⇒ صفر؛
+  ردیفِ دفتر کلِ مفقود ⇒ `payment_without_ledger`؛ مبلغِ نابرابر ⇒ `amount_mismatch` با
+  `difference=20000` و واحدِ «ریال» (نه تومان)؛ برخوردِ idِ دو جدول ⇒ پرچمِ درست؛ پرداختِ سه‌سهمه ⇒
+  فقط سهمِ بی‌ردیف علامت می‌خورد؛ جفتِ بازگشت‌خورده ⇒ صفر؛ برگشتِ بی‌ردیف ⇒ `refund_without_ledger`؛
+  برگشت روی paid ⇒ `refunded_while_paid`؛ ردیفِ درآمد برای پرداخت FAILED ⇒
+  `ledger_without_paid_payment` با `payment_status == "failed"` (این تست نقضِ خودِ سرویس را گرفت:
+  `str(member)` مقدارِ enum نمی‌دهد، نامِ عضو — `getattr(st, "value", …)` لازم است)؛ `run` و اجرای
+  دوباره ⇒ یک ردیف با وضعیتِ flip؛ فهرست ⇒ ۴۰۳ برای مدیر و ۲۰۰ + `total` واقعی برای سرپرست؛
+  جزئیات ⇒ ۴۰۰ نه، **۴۰۴** با «گزارش یافت نشد»؛ `/run` زیر Celery eager ⇒ ردیف می‌نویسد.
+- **معیار (شاهد، ۲۰۲۶-۱۰-۱۷):**
+  | گیت | نتیجه |
+  |---|---|
+  | `pytest tests/test_reconciliation_reports.py` | **۱۳ passed** (بعد از هر ویرایش دوباره: ۱۳ passed در 4.29s) |
+  | همان فایل روی **استک pinned** (`sqlmodel 0.0.42`) | **۱۳ passed در 2.11s** |
+  | شاهدِ پیش از رفع (دبارِ C14.2/C14.3) | **۴ مغایرت جعلی** / **۲ مغایرت جعلی** ⇒ جدید **۰** |
+  | `pytest` (رگرسیون کامل بک‌اند، روی درختِ نهایی) | **۶۷۴ passed در 77.59s** (= ۶۶۱ راند ۱۶ + ۱۳) |
+  | `ruff check app/ tests/ migrations/ --select E9,F82` + ruff روی پنج فایل جدید/تغییریافته | `All checks passed!` |
+  | `app.openapi()['paths']` | **۲۳۸** (سه endpoint موجود، هیچ مسیر تازه‌ای نه) |
+  | `pnpm test` (فرانت، دست‌نخورده) | **۱۶۴ passed در ۱۹ فایل، 19.06s** |
+  | **PostgreSQL واقعی** (`~/.qoder-tmp/pg_recon17.py` با pgserver) | up→down −1→up پاک · `status = USER-DEFINED/reconciliationstatus` با برچسب‌های `COMPLETED, ISSUES_FOUND` · `uq_reconciliation_period:u` + `fk_reconciliation_reports_triggered_by:f` + چهار ایندکس · `generated_at = timestamptz` · داده‌های کاشته‌شده: `payments_checked=3` و دقیقاً دو مغایرت درست (`payment_without_ledger #2`، `amount_mismatch #3 با difference 10000`) · اجرای دوباره ⇒ **یک** ردیف · `count(*) WHERE date(paid_at)` ⇒ ۳ |
+- **نکتۀ صداقت:** این مغایرگیریِ **دفتر کل ↔ رکوردِ پرداخت داخل همان دیتابیس** است، نه دفتر کل ↔
+  صورت‌حسابِ خودِ درگاه؛ «gateway_amount» در پیاده‌سازیِ فعلی همان `BookingPayment.amount` است که
+  webhook نوشته. تا X4 (قرارداد درگاه) و دریافتِ settlement file، هیچ کد نمی‌تواند ادعا کند
+  «پول واقعاً در درگاه نشسته» — و این دقیقاً همان چیزی است که نامِ فیچر وعده می‌دهد.
+
+---
+
 ## Track D — UI/دسترس‌پذیری/موبایل (P015، P016)
 
 > **وضعیت ۲۰۲۶-۱۰-۱۶: کل Track D بسته شد** — هم با شمارش گرپی روی ۲۲۸ فایل `src/**.tsx` و هم با
@@ -1370,6 +1462,11 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 | C11.3-C11.5 مسیرِ پرداختِ سهم و چیپ‌های خالی | `SplitPaymentsPanel.test.tsx` | **۶ failed** | **۶ passed** |
 | C13.1 لغوِ رزروِ پرداخت‌شده کوپن را آزاد می‌کرد | `test_coupon_burn_and_edit_guard.py` | **۱ failed** (مصرفِ دوباره ۲۰۰ داد) | سبز |
 | C13.2 PUT بدون نگهبان٪ ⇒ رزروِ رایگان | همان فایل (دو تستِ نوع/مقدار) | **۲ failed** (هر دو ۲۰۰) | سبز |
+| C14.1 جدولِ غایب ⇒ «صفر مغایرت» کاذب | `test_reconciliation_reports.py` (run/rerun + فهرست) | **۲۰۰ با صفر ردیف** (بدون هیچ جدول) | ۲۰۰ با ردیفِ واقعی و `total` درست |
+| C14.2 کلیدِ `payment.id` ↔ `booking_id` | همان فایل (دو تستِ برخورد id و سه‌سهمه) + اسکریپت شاهد | **۴ مغایرت جعلی** روی دادهِ سالم | **۰ مغایرت** روی همان داده |
+| C14.3 بردِ بازه روی `created_at` | اسکریپت شاهد (`~/.qoder-tmp/c14_witness_probe.py`) | `ledger=0` ⇒ **۲ مغایرت جعلی** | هر ۴ ردیف دیده می‌شوند |
+| C14.4 شمارشِ برگشت وجه به‌عنوان درآمد | همان فایل (`refund_without_ledger`, `refunded_while_paid`) | ردیف EXPENSE در جمعِ درآمد می‌نشست | جمعِ per-payment با فیلترِ direction/type |
+| C14.5 خواندنِ سراسری با نگهبانِ manager | همان فایل (فهرست: مدیر/سرپرست) | مدیر ⇒ **۲۰۰** با مغایرت‌های بقیۀ سالن‌ها | مدیر ⇒ **۴۰۳** |
 
 - **جمع‌بندی راند ۱۴ (بازبینی #4 و #10):** سه نقص پرداخت با نگهبان وضعیت رزرو + فیلد `payment_url`
   رفع شد، دو نقص (`بدنه‌خوانی /pay`، TTL فاکتور `PENDING`) با دلیلِ سازنده ثبت شد؛ رگرسیون دو محیط
@@ -1410,6 +1507,26 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 - **E2 این راند:** نه `vite build` و نه Playwright و نه Flutter اجرا شد (تغییری در آن‌ها نبود)؛
   تست **همزمانی کوپن** (`max_uses`/`per_user_limit` بی‌قفل) هم به همان دلیلِ SQLite قابل falsify
   نبود و در C13.3.1 ثبت شد.
+
+### E7 بازسنجی راند ۱۷ (مغایرگیری — بک‌اند تنها، + راستی‌آزمایی روی PostgreSQL)
+
+| گیت | نتیجه (۲۰۲۶-۱۰-۱۷، سطح local) | تغییر نسبت به راند ۱۶ |
+|---|---|---|
+| `python -m pytest -q -p no:warnings` | **۶۷۴ passed در 77.59s** | +۱۳ (فایل جدید `test_reconciliation_reports.py`) |
+| `tests/test_reconciliation_reports.py` روی **استک pinned** (`sqlmodel 0.0.42`) | **۱۳ passed در 2.11s** | ردیفِ جدیدِ E1؛ CI همین را نصب می‌کند |
+| `pnpm test` (سوئیت واحد فرانت) | **۱۶۴ passed در ۱۹ فایل، 19.06s** | صفر؛ کد فرانت دست‌نخورده |
+| `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` | بی‌تغییر (روی پنج فایل جدید/تغییریافته با قواعدِ پیش‌فرض هم پاک) |
+| `len(app.openapi()['paths'])` | **۲۳۸** | بی‌تغییر؛ سه endpointِ `/reconciliation/*` از قبل بودند و حالا واقعاً کار می‌کنند |
+| مهاجرت روی **PostgreSQL واقعی** (pgserver) | `upgrade head → downgrade −1 → upgrade head` exit 0 | نخستین بارِ `m0s027`؛ سومین مهاجرتِ اثبات‌شده روی PG بعد از `m0s025`/`m0s026` |
+| کاتالوگِ PG | `reconciliationstatus` بومی با `COMPLETED, ISSUES_FOUND` · `uq_reconciliation_period:u` · `fk_reconciliation_reports_triggered_by:f` · ۴ ایندکس · `generated_at timestamptz` | SQLite این چهار مورد را نمی‌بیند (E3) |
+| منطقِ مغایرت روی PG | `payments_checked=3` از ۴ پرداخت (بیرونیِ بازه حذف شد) · دو مغایرتِ درست · اجرای دوباره ⇒ یک ردیف | ادعای «idempotent» فقط روی PG قفل شد، نه فقط SQLite |
+
+- **E2 این راند:** نه `vite build`، نه Playwright، نه Flutter (هیچ‌کدام دست‌نخورده)؛ و شاهدِ
+  «پیش از رفع» در جدول بالا از **اجرای الگوریتمِ قدیمی روی همان فیکسچر** آمده، نه از حدس
+  (اسکریپت: `~/.qoder-tmp/c14_witness_probe.py`، خروجی: `~/.qoder-tmp/c14_old_algorithm_witness.txt`).
+- **مرزِ صادقانۀ همین راند:** مغایرگیری، دفتر کل را با رکوردِ پرداختِ **همان دیتابیس** مقایسه
+  می‌کند؛ صورت‌حسابِ خودِ درگاه (settlement file) منبع نیست، پس هیچ عددی در این راند ادعای
+  «تطبیق با درگاه» ندارد (X4).
 
 ---
 
@@ -1467,7 +1584,7 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 | X3 | تأیید پر بودن `KEYSTORE_*` در GitHub Secrets | فقط با اجرای tag-release مشخص می‌شود | کاربر/CI |
 | X4 | قرارداد درگاه پرداخت و سرویس SMS | اداری | کاربر |
 | X5 | حذف APKهای ۸۹MB از تاریخچه git | بازگشت‌ناپذیر | کاربر |
-| X6 | مستقر کردن تغییرات بک‌اند روی سرور prod | روی سرویس زنده؛ نیاز به تأیید صریح. مهاجرت‌های منتظر اجرا: `m0s021coachesessions`، `m0s022tournaments`، `m0s023staffshifts`، `m0s024teamchallenges`، `m0s025roundrobin`، `m0s026doubleelim` (زنجیرۀ تک‌سر؛ همه روی SQLite با up/down/up راستی‌آزمایی شدند، و `m0s025` و `m0s026` علاوه بر آن روی PostgreSQL واقعی با up/down/up + خواندن برچسب‌های enum و نوع بومی `tournamentbracket` اثبات شد) | کاربر |
+| X6 | مستقر کردن تغییرات بک‌اند روی سرور prod | روی سرویس زنده؛ نیاز به تأیید صریح. مهاجرت‌های منتظر اجرا: `m0s021coachesessions`، `m0s022tournaments`، `m0s023staffshifts`، `m0s024teamchallenges`، `m0s025roundrobin`، `m0s026doubleelim`، `m0s027reconreports` (زنجیرۀ تک‌سر؛ همه روی SQLite با up/down/up راستی‌آزمایی شدند، و `m0s025`، `m0s026` و `m0s027` علاوه بر آن روی PostgreSQL واقعی با up/down/up + خواندن کاتالوگ اثبات شد — برای `m0s027`: enum بومی `reconciliationstatus`، قیدِ `uq_reconciliation_period`، FK و `generated_at timestamptz`) | کاربر |
 | X7 | دادهٔ تاریخی ۱۲ ماهه برای ML قیمت | ذاتاً زمان‌بر | — |
 | X8 | عدد‌های بازاریابی صفحهٔ اصلی (`HeroSection.tsx:15-20`: +۱۲٬۰۰۰ بازیکن، +۵۰ زمین، +۳۰۰ مسابقه، ۴.۸) و شمارنده‌های `StatsSection` ساختگی‌اند؛ endpoint واقعی وجود ندارد | یا از سرور باید بیاید یا از صفحه برود — تصمیم محصول | کاربر |
 | X9 | تصمیم راجع به trigger ابرِ «Workers Builds: salon-app» (دو گزینه در C12.5): build+dist، یا غیرفعال کردن | PATCH روی pipeline زنده؛ با پیکربندی فعلی سبز شدنش یعنی جایگزینی prodِ `salon-app.mrabolfazl1314.workers.dev` با سورس‌دیپِ شکسته. خارج از مجوز push/tag | کاربر |
