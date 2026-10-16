@@ -108,22 +108,39 @@ async def pay_payment(
     if gateway is None:
         # Mock mode for development
         booking = uow.bookings.get_by_id(payment.booking_id)
+        slot = uow.slots.get_by_id(booking.slot_id) if booking else None
         uow.payments.update(payment.id, {
             "status": BookingPaymentStatus.PAID,
             "transaction_id": f"mock-{secrets.token_hex(8)}",
             "card_pan": "**** **** **** 1234",
             "paid_at": datetime.now(timezone.utc),
         })
-        booking.status = BookingStatus.CONFIRMED
+        if booking:
+            booking.status = BookingStatus.CONFIRMED
+
+        # دفتر کل: دقیقاً همان قیدِ مسیر webhook (همان idempotency) — بدون آن رزرو
+        # «پرداخت‌شده» می‌شود ولی هیچ درآمدی در دفتر کل ثبت نمی‌شود
+        FinanceService.record_income(
+            uow,
+            amount=payment.amount,
+            source_type=TransactionSourceType.BOOKING_PAYMENT,
+            source_id=payment.id,
+            venue_id=slot.venue_id if slot else None,
+            counterparty_user_id=payment.user_id,
+            method=TransactionMethod.GATEWAY,
+            description=f"پرداخت رزرو #{payment.booking_id} (mock)",
+            idempotency_key=f"booking-payment:{payment.id}",
+            created_by=payment.user_id,
+        )
         uow.commit()
-        
-        # ارسال اعلان پرداخت موفق
-        venue = uow.venues.get_by_id(booking.venue_id)
-        notification_service.send_to_user(
+
+        # ارسال اعلان پرداخت موفق — Booking فیلد venue_id ندارد؛ سالن از slot خوانده می‌شود
+        venue = uow.venues.get_by_id(slot.venue_id) if slot else None
+        await notification_service.send_to_user(
             current_user.id,
             title="پرداخت موفق",
-            message=f"پرداخت بابت رزرو سالن {venue.name} با موفقیت انجام شد.",
-            data={"booking_id": booking.id, "amount": payment.amount},
+            message=f"پرداخت بابت رزرو سالن {venue.name if venue else 'نامشخص'} با موفقیت انجام شد.",
+            data={"booking_id": booking.id if booking else payment.booking_id, "amount": payment.amount},
         )
         
         return _to_response(payment)

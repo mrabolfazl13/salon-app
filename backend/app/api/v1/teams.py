@@ -16,7 +16,8 @@ from app.models.user import User
 from app.schemas.team import (
     TeamActionResponse, TeamAuditListResponse, TeamBalanceResponse,
     TeamBookingListResponse, TeamCreate, TeamDuesGenerate, TeamDuesListResponse,
-    TeamDuesPayRequest, TeamDuesVoidRequest, TeamInviteCreate, TeamInvitationResponse,
+    TeamDuesPayRequest, TeamDuesPlanUpdate, TeamDuesVoidRequest, TeamInviteCreate,
+    TeamInvitationResponse,
     TeamJoinRequestCreate, TeamJoinRequestResponse, TeamListResponse, TeamMemberResponse,
     TeamMessageCreate, TeamMessageItem, TeamMessageListResponse, TeamResponse,
     TeamRoleUpdate, TeamTransferCaptain, TeamUnreadCountResponse, TeamUpdate,
@@ -64,8 +65,8 @@ def discover_teams(
     current_user: User = Depends(get_current_user),
     uow: UnitOfWork = Depends(get_unit_of_work),
 ):
-    """تیم‌های عمومی (public) قابل‌کشف."""
-    return TeamService.discover(uow, search, sport, limit, offset)
+    """تیم‌های عمومی (public) قابل‌کشف — با پرچم «نسبت به من» (عضویت/دعوت/درخواست باز)."""
+    return TeamService.discover(uow, search, sport, limit, offset, current_user)
 
 
 @router.get("/invitations/me", response_model=List[TeamInvitationResponse])
@@ -308,6 +309,17 @@ async def generate_dues(
     result, notifications = TeamService.generate_dues(uow, team_id, current_user, data)
     await TeamService.dispatch_notifications(uow, notifications)
     return result
+
+
+@router.put("/{team_id}/dues/plan", response_model=dict)
+def set_dues_plan(
+    team_id: int,
+    data: TeamDuesPlanUpdate,
+    current_user: User = Depends(get_current_user),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+):
+    """برنامه حق‌عضویت خودکار تیم (فقط کاپیتان/مدیر) — مبلغ، روز سررسید، جریمه دیرکرد."""
+    return TeamService.set_dues_plan(uow, team_id, current_user, data)
 
 
 @router.post("/{team_id}/dues/{due_id}/pay", response_model=dict)

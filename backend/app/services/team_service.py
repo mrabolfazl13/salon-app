@@ -35,7 +35,7 @@ from app.models.transaction import (
 )
 from app.models.user import User
 from app.schemas.team import (
-    TeamCreate, TeamUpdate, TeamInviteCreate, TeamDuesGenerate,
+    TeamCreate, TeamUpdate, TeamInviteCreate, TeamDuesGenerate, TeamDuesPlanUpdate,
     TeamJoinRequestCreate, TeamMessageCreate,
 )
 from app.services.finance_service import FinanceService
@@ -47,6 +47,17 @@ def _utcnow() -> datetime:
 
 def _err(status: int, code: str, message: str) -> HTTPException:
     return HTTPException(status_code=status, detail={"code": code, "message": message})
+
+
+# to_response نام کاپیتان را کوئری می‌زند؛ فراخوانان صفحه‌به‌صفحه (discover)
+# نام‌ها را گروهی می‌سازند و با این sentinel «همین است، کوئری نزن» پاس می‌دهند.
+_RESOLVE = object()
+
+
+def _next_month_day(d: date, day: int) -> date:
+    """همان روز در ماه بعد (day≤28 ⇒ برای هر ماهی معتبر است)."""
+    y, m = (d.year + 1, 1) if d.month == 12 else (d.year, d.month + 1)
+    return date(y, m, day)
 
 
 _METHOD_MAP = {
@@ -213,7 +224,8 @@ class TeamService:
 
     @staticmethod
     def to_response(uow: UnitOfWork, team: Team, viewer: Optional[User],
-                    member_count: Optional[int] = None) -> dict:
+                    member_count: Optional[int] = None,
+                    captain_name=_RESOLVE) -> dict:
         count = (member_count if member_count is not None
                  else uow.team_members.count_by_status(
                      team.id, [TeamMemberStatus.ACTIVE]))
@@ -223,13 +235,15 @@ class TeamService:
             "visibility": (team.visibility.value if hasattr(team.visibility, "value")
                            else str(team.visibility)),
             "captain_id": team.captain_id,
-            "captain_name": TeamService._user_name(uow, team.captain_id),
+            "captain_name": (TeamService._user_name(uow, team.captain_id)
+                             if captain_name is _RESOLVE else captain_name),
             "is_active": team.is_active, "member_count": count,
             "quota": team.min_members, "is_official": team.is_official,
             "official_since": team.official_since,
             "created_at": team.created_at, "updated_at": team.updated_at,
             "my_role": None, "my_status": None,
             "has_open_join_request": False, "has_pending_invitation": False,
+            "dues_plan": TeamService.dues_plan(team),
         }
         if viewer:
             m = TeamService._member(uow, team.id, viewer.id)
@@ -257,28 +271,93 @@ class TeamService:
     def list_my_teams(uow: UnitOfWork, user_id: int) -> List[dict]:
         rows = uow.teams.list_by_member(user_id)
         counts = uow.team_members.count_active_by_team([t.id for t, _ in rows])
+        names: dict = {}
+        captain_ids = list({t.captain_id for t, _ in rows})
+        if captain_ids:
+            names = {u.id: u.full_name for u in uow.session.exec(
+                select(User).where(col(User.id).in_(captain_ids))).all()}
         out = []
         for team, member in rows:
-            resp = TeamService.to_response(uow, team, None, counts.get(team.id, 0))
+            resp = TeamService.to_response(uow, team, None, counts.get(team.id, 0),
+                                           names.get(team.captain_id))
             resp["my_role"] = member.role.value
             resp["my_status"] = member.status.value
             out.append(resp)
         return out
 
     @staticmethod
+    def _viewer_flags(uow: UnitOfWork, team_ids: List[int],
+                      viewer_id: int) -> dict:
+        """پرچم‌های «نسبت به بیننده» برای کل یک صفحه با ۳ کوئری گروهی.
+
+        to_response برای هر ردیف ۳ کوئری تک‌نفره می‌زند؛ در discover با ۱۰۰ ردیف
+        این N+1 می‌شد، پس اینجا membership/invitation/join-request هر کدام با یک
+        کوئری روی team_id IN (...) خوانده می‌شوند.
+        """
+        flags: dict = {}
+        if not team_ids:
+            return flags
+
+        def _flag(tid: int) -> dict:
+            return flags.setdefault(tid, {
+                "my_role": None, "my_status": None,
+                "has_open_join_request": False, "has_pending_invitation": False,
+            })
+
+        members = uow.session.exec(
+            select(TeamMember).where(
+                col(TeamMember.team_id).in_(team_ids),
+                TeamMember.user_id == viewer_id,
+            )
+        ).all()
+        for m in members:
+            f = _flag(m.team_id)
+            f["my_role"] = m.role.value
+            f["my_status"] = m.status.value
+            if m.status == TeamMemberStatus.PENDING:
+                f["has_pending_invitation"] = True
+
+        invitations = uow.session.exec(
+            select(TeamInvitation).where(
+                col(TeamInvitation.team_id).in_(team_ids),
+                TeamInvitation.invitee_user_id == viewer_id,
+                TeamInvitation.status == TeamInvitationStatus.PENDING,
+            )
+        ).all()
+        for inv in invitations:
+            _flag(inv.team_id)["has_pending_invitation"] = True
+
+        requests = uow.session.exec(
+            select(TeamJoinRequest).where(
+                col(TeamJoinRequest.team_id).in_(team_ids),
+                TeamJoinRequest.user_id == viewer_id,
+                TeamJoinRequest.status == TeamJoinRequestStatus.PENDING,
+            )
+        ).all()
+        for req in requests:
+            _flag(req.team_id)["has_open_join_request"] = True
+
+        return flags
+
+    @staticmethod
     def discover(uow: UnitOfWork, search: Optional[str], sport: Optional[str],
-                 limit: int, offset: int) -> dict:
+                 limit: int, offset: int,
+                 viewer: Optional[User] = None) -> dict:
         rows, total = uow.teams.list_discover(search, sport, limit, offset)
-        counts = uow.team_members.count_active_by_team([t.id for t in rows])
+        team_ids = [t.id for t in rows]
+        counts = uow.team_members.count_active_by_team(team_ids)
         names = {}
         captain_ids = list({t.captain_id for t in rows})
         if captain_ids:
             names = {u.id: u.full_name for u in uow.session.exec(
                 select(User).where(col(User.id).in_(captain_ids))).all()}
+        viewer_flags = (TeamService._viewer_flags(uow, team_ids, viewer.id)
+                        if viewer else {})
         items = []
         for t in rows:
-            resp = TeamService.to_response(uow, t, None, counts.get(t.id, 0))
-            resp["captain_name"] = names.get(t.captain_id)
+            resp = TeamService.to_response(uow, t, None, counts.get(t.id, 0),
+                                           names.get(t.captain_id))
+            resp.update(viewer_flags.get(t.id, {}))
             items.append(resp)
         return {"items": items, "total": total, "limit": limit, "offset": offset}
 
@@ -912,7 +991,151 @@ class TeamService:
                         n.get("notif_type", "team"))
                 except Exception as e:  # اعلان نباید جریان اصلی را بشکند
                     print(f"[TeamService] notification failed: {e}")
+
     # ─────────────────────────── حق‌عضویت / سهم ───────────────────────────
+
+    @staticmethod
+    def dues_plan(team: Team) -> dict:
+        """برنامه حق‌عضویت تیم — خواندنی برای UI (خودکار/دستی، مبلغ، روز، جریمه)."""
+        return {
+            "dues_auto": bool(team.dues_auto),
+            "amount": team.dues_amount,
+            "title": team.dues_title,
+            "due_day": team.dues_day,
+            "late_fee_pct": team.dues_late_fee_pct,
+            "grace_days": settings.TEAM_DUES_LATE_FEE_GRACE_DAYS,
+        }
+
+    @staticmethod
+    def set_dues_plan(uow: UnitOfWork, team_id: int, actor: User,
+                      data: TeamDuesPlanUpdate) -> dict:
+        """روشن/خاموش کردن سهم خودکار و تنظیم مبلغ، روز سررسید و درصد جریمه دیرکرد."""
+        team = TeamService._get_team_or_404_locked(uow, team_id)
+        TeamService._require_manage_permission(uow, team, actor.id)
+        TeamService._require_active_team(team)
+        if data.dues_auto and not data.amount:
+            raise _err(400, "DUES_AMOUNT_REQUIRED",
+                       "برای فعال‌کردن حق‌عضویت خودکار، مبلغ ماهانه (amount) الزامی است.")
+        team.dues_auto = data.dues_auto
+        if data.amount is not None:
+            team.dues_amount = data.amount
+        if data.title:
+            team.dues_title = data.title.strip()[:80]
+        team.dues_day = data.due_day
+        team.dues_late_fee_pct = data.late_fee_pct
+        team.updated_at = _utcnow()
+        uow.session.add(team)
+        uow.session.flush()
+        plan = TeamService.dues_plan(team)
+        TeamService._audit(uow, team.id, TeamAuditAction.DUES_PLAN_UPDATED, actor.id,
+                           {"dues_plan": plan})
+        return plan
+
+    @staticmethod
+    def run_monthly_dues(uow: UnitOfWork,
+                         today: Optional[date] = None) -> Tuple[dict, List[dict]]:
+        """Job حق‌عضویت: سهم دوره جاری را برای اعضای فعال تیم‌های خودکار می‌سازد.
+
+        ضدتکرار: عنوان برچسب دوره دارد («… — 2026-04») و سررسید در آن دوره ثابت است،
+        پس find_duplicate اجراهای مکرر (روزانه یا دستی) را خنثی می‌کند.
+        اگر سررسیدِ این ماه رد شده باشد دوره بعد ساخته می‌شود — سهم هیچ‌وقت با
+        تاریخ گذشته (و از بدو تولد معوق) تولید نمی‌شود.
+        """
+        today = today or date.today()
+        teams = uow.teams.list_auto_dues_teams()
+        created_total = skipped = no_amount = no_members = 0
+        notifications: List[dict] = []
+        for team in teams:
+            if not team.dues_amount:
+                no_amount += 1
+                continue
+            ids = uow.team_members.active_user_ids(team.id)
+            if not ids:
+                no_members += 1
+                continue
+            due_day = min(team.dues_day, 28)
+            due_date = date(today.year, today.month, due_day)
+            if due_date < today:
+                due_date = _next_month_day(today, due_day)
+            period = f"{due_date.year:04d}-{due_date.month:02d}"
+            title = f"{team.dues_title} — {period}"[:100]
+            made: List[TeamDues] = []
+            for uid in ids:
+                if uow.team_dues.find_duplicate(team.id, uid, title, due_date):
+                    skipped += 1
+                    continue
+                made.append(uow.team_dues.create(TeamDues(
+                    team_id=team.id, user_id=uid, title=title,
+                    amount=team.dues_amount, due_date=due_date)))
+            if not made:
+                continue
+            created_total += len(made)
+            TeamService._audit(uow, team.id, TeamAuditAction.DUES_GENERATED, None,
+                               {"auto": True, "title": title, "amount": team.dues_amount,
+                                "due_date": str(due_date), "created": len(made)})
+            for due in made:
+                notifications.append({
+                    "user_id": due.user_id,
+                    "title": "💰 سهم ماهانه تیم",
+                    "message": f"سهم «{due.title}» به مبلغ {due.amount} ریال تا "
+                               f"{due.due_date} برای شما در تیم «{team.name}» ثبت شد.",
+                    "data": {"team_id": team.id, "team_name": team.name,
+                             "due_id": due.id, "amount": due.amount, "auto": True},
+                    "notif_type": "dues_created",
+                })
+        uow.session.flush()
+        # period تیم‌به‌تیم حساب می‌شود (سررسیدِ ردشده دوره را به ماه بعد می‌برد)،
+        # پس در خروجی فقط شمارش‌ها می‌آید؛ جزئیات دوره در ردیف‌های سهم و audit است.
+        return {"teams": len(teams), "created": created_total, "skipped": skipped,
+                "teams_without_amount": no_amount,
+                "teams_without_members": no_members}, notifications
+
+    @staticmethod
+    def run_late_fees(uow: UnitOfWork,
+                      today: Optional[date] = None) -> Tuple[dict, List[dict]]:
+        """Job جریمه: برای سهم بازِ گذشته از سررسید + مهلت، یک ردیف جریمه می‌سازد.
+
+        جریمه policy تیم است (dues_late_fee_pct)، پس سهم دستی هم مشمول می‌شود.
+        ضدتکرار: لینک penalty_for_id ⇒ هر سهم حداکثر یک جریمه می‌گیرد.
+        """
+        today = today or date.today()
+        grace = settings.TEAM_DUES_LATE_FEE_GRACE_DAYS
+        teams = {t.id: t for t in uow.teams.list_with_dues_late_fee()}
+        if not teams:
+            return {"penalized": 0, "scanned": 0, "grace_days": grace}, []
+        rows = uow.team_dues.list_late_originals(today - timedelta(days=grace),
+                                                sorted(teams))
+        already = uow.team_dues.penalized_ids([r.id for r in rows])
+        penalized = 0
+        notifications: List[dict] = []
+        for due in rows:
+            if due.id in already:
+                continue
+            team = teams[due.team_id]
+            amount = max(1, int(round(due.amount * team.dues_late_fee_pct / 100)))
+            penalty = uow.team_dues.create(TeamDues(
+                team_id=team.id, user_id=due.user_id,
+                title=f"جریمه دیرکرد — {due.title}"[:100],
+                amount=amount, due_date=today, penalty_for_id=due.id))
+            already.add(due.id)
+            penalized += 1
+            TeamService._audit(uow, team.id, TeamAuditAction.DUES_LATE_FEE, None,
+                               {"due_id": due.id, "penalty_id": penalty.id,
+                                "amount": amount, "pct": team.dues_late_fee_pct,
+                                "original_due_date": str(due.due_date)})
+            notifications.append({
+                "user_id": due.user_id,
+                "title": "⏰ جریمه دیرکرد سهم تیم",
+                "message": f"سهم «{due.title}» از سررسید {due.due_date} رد شده است؛ "
+                           f"{amount} ریال ({team.dues_late_fee_pct}٪) جریمه به حساب شما "
+                           f"در تیم «{team.name}» اضافه شد.",
+                "data": {"team_id": team.id, "team_name": team.name,
+                         "original_due_id": due.id, "penalty_id": penalty.id,
+                         "amount": amount},
+                "notif_type": "dues_late_fee",
+            })
+        uow.session.flush()
+        return {"penalized": penalized, "scanned": len(rows), "grace_days": grace}, notifications
 
     @staticmethod
     def generate_dues(uow: UnitOfWork, team_id: int, actor: User,
@@ -979,6 +1202,7 @@ class TeamService:
             "payment_method": due.payment_method.value if due.payment_method else None,
             "payment_reference": due.payment_reference,
             "transaction_id": due.transaction_id, "void_reason": due.void_reason,
+            "penalty_for_id": due.penalty_for_id,
             "created_at": due.created_at,
         }
 

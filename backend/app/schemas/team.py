@@ -49,6 +49,8 @@ class TeamResponse(BaseModel):
     my_status: Optional[str] = None
     has_open_join_request: bool = False
     has_pending_invitation: bool = False
+    # برنامه حق‌عضویت خودکار (TeamDuesPlanResponse) — dict تا از ترتیب تعریف کلاس‌ها آزاد باشد
+    dues_plan: Optional[dict] = None
 
     class Config:
         from_attributes = True
@@ -152,6 +154,25 @@ class TeamDuesPayRequest(BaseModel):
     reference: Optional[str] = Field(default=None, max_length=120)
 
 
+class TeamDuesPlanUpdate(BaseModel):
+    """برنامه حق‌عضویت خودکار تیم — با dues_auto=True، مبلغ ماهانه الزامی است."""
+    dues_auto: bool
+    amount: Optional[int] = Field(default=None, gt=0, description="سهم ماهانه هر عضو (ریال)")
+    title: Optional[str] = Field(default=None, min_length=2, max_length=80)
+    due_day: int = Field(default=1, ge=1, le=28, description="روز سررسید در هر ماه")
+    late_fee_pct: int = Field(default=0, ge=0, le=100,
+                              description="٪ جریمه دیرکرد؛ ۰ = بدون جریمه")
+
+
+class TeamDuesPlanResponse(BaseModel):
+    dues_auto: bool
+    amount: Optional[int] = None
+    title: str
+    due_day: int
+    late_fee_pct: int
+    grace_days: int = Field(description="روز مهلت بعد از سررسید قبل از بستن جریمه")
+
+
 class TeamDuesVoidRequest(BaseModel):
     reason: Optional[str] = Field(default=None, max_length=300)
 
@@ -173,6 +194,7 @@ class TeamDuesResponse(BaseModel):
     payment_reference: Optional[str] = None
     transaction_id: Optional[int] = None
     void_reason: Optional[str] = None
+    penalty_for_id: Optional[int] = None
     created_at: datetime
 
 

@@ -20,6 +20,8 @@ class Settings(BaseSettings):
     TEAM_MAX_MEMBERS: int = 50
     # تیم: حدنصاب رسمی‌شدن — تعداد اعضای فعال لازم (قابل تنظیم از env)
     TEAM_MIN_MEMBERS: int = 5
+    # حق‌عضویت: چند روز بعد از سررسید، جریمه دیرکرد team.dues_late_fee_pct بسته می‌شود
+    TEAM_DUES_LATE_FEE_GRACE_DAYS: int = 3
     # سقف خرج امتیاز: حداکثر چند درصد قیمت نهایی (قبل کوپن) با امتیاز تخفیف بگیرد
     LOYALTY_REDEEM_MAX_PERCENT: int = 50
     # وفاداری — اهدای امتیاز به‌ازای برد در بازی گروهی و ثبت نظر (قابل تنظیم از env)
@@ -43,6 +45,11 @@ class Settings(BaseSettings):
     # Rate limiting configuration
     RATE_LIMIT_PER_MINUTE: int = 60  # General rate limit
     AUTH_RATE_LIMIT_PER_HOUR: int = 10  # Login attempts per hour
+    # رفتار هنگام قطعی Redis: True = عبور درخواست (دسترس‌پذیری)، False = 503 (امنیت)
+    RATE_LIMIT_FAIL_OPEN: bool = True
+    # کران‌دار کردن اتصال Redis: بدون آن، میزبان غیرقابل‌حل ساعت‌ها در getaddrinfo
+    # می‌ماند و fail-open هرگز اجرا نمی‌شود (هر درخواست یک ترد بلاک)
+    REDIS_SOCKET_TIMEOUT_SECONDS: float = 1.0
     
     # Security headers
     ENABLE_HSTS: bool = True

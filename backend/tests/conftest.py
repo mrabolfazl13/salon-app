@@ -32,7 +32,9 @@ import app.database as database_module
 import app.unit_of_work as uow_module
 from app.unit_of_work import UnitOfWork
 from app.models.user import User, UserRole
-from app.models.venue import Venue
+from app.models.venue import Venue, Club
+from app.models.review import Review
+from app.models.competition import PriceCompetition
 from app.models.slot import Slot, SlotStatus
 from app.models.booking import Booking, BookingStatus
 from app.models.game import (
@@ -49,6 +51,7 @@ from app.models.pricing_rule import PricingRule
 from app.models.coupon import Coupon, CouponRedemption
 from app.models.loyalty import LoyaltyPoint
 from app.models.favorite import FavoriteVenue
+from app.models.waitlist import WaitlistEntry
 from app.models.team import (
     Team, TeamMember, TeamInvitation, TeamJoinRequest, TeamBooking, TeamDues,
     TeamAuditEvent, TeamMessage,
@@ -129,6 +132,10 @@ SQLModel.metadata.create_all(test_engine)
 # ─────────────────────────── پاک‌سازی ───────────────────────────
 
 _TABLES_CLEAN_ORDER = [
+    # ترتیب = فرزند پیش از والد (FK). سه والدِ دایره‌ای در مدل‌ها هست و روی SQLite
+    # (بدون PRAGMA foreign_keys) قابل‌اجراست: Contract→Slot، Slot→PriceCompetition،
+    # PriceCompetition→Slot. زیرمجموعه‌های Team اول، سپس بازی/قرارداد/مالی،
+    # در نهایت PriceCompetition ← Slot، Club ← Venue و User آخر از همه.
     QuizAttempt, QuizQuestion,
     TeamMessage,
     SplitPaymentAuditEvent, SplitPaymentShare, TeamSplitPayment,
@@ -140,9 +147,14 @@ _TABLES_CLEAN_ORDER = [
     MembershipPurchase, MembershipPlan, BookingPayment,
     GamePayment, GameWaitlist, GameInviteLink, GameInvitation,
     GameJoinRequest, GameParticipant, Game,
-    ContractAuditEvent, ContractPayment, ContractSlot, Contract,
+    ContractAuditEvent, ContractPayment, ContractSlot,
     StaffAssignment, SecurityAuditEvent, CrmCampaign, VenueCustomer,
-    Booking, Slot, Notification, Venue, User,
+    WaitlistEntry, Review,
+    PriceCompetition,
+    Contract,
+    Booking, Slot, Notification, Venue,
+    Club,
+    User,
 ]
 
 
@@ -152,6 +164,19 @@ def clean_db():
         for model in _TABLES_CLEAN_ORDER:
             session.exec(delete(model))
         session.commit()
+    yield
+
+
+@pytest.fixture(autouse=True)
+def fake_rate_limit_redis(monkeypatch):
+    """میان‌افزار سقف نرخ روی همهٔ /api/* می‌نشیند؛ بدون Redis واقعی هر درخواست
+    در getaddrinfo می‌خوابد (این ماشین Redis ندارد). Fake در حافظه، هم تست را
+    سریع و قطعی‌کردنی می‌کند هم رفتار 429 واقعاً اجرا می‌شود."""
+    import app.utils.rate_limit as rate_limit_module
+    from tests.helpers import FakeRedis
+
+    monkeypatch.setattr(rate_limit_module, "_client", FakeRedis())
+    monkeypatch.setattr(rate_limit_module, "_down_until", 0.0)
     yield
 
 

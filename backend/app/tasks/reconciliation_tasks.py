@@ -8,7 +8,7 @@ import logging
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, name="app.tasks.reconcile_ledger_with_gateway")
 def reconcile_ledger_with_gateway(self):
     """Compare yesterday's ledger transactions with actual payment gateway settlements.
     

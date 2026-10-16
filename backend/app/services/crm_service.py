@@ -198,6 +198,7 @@ def stats_for(rows: List[dict]) -> dict:
     by_seg: Dict[str, int] = {}
     for r in rows:
         by_seg[r["segment"]] = by_seg.get(r["segment"], 0) + 1
+    consented = [r for r in rows if r["marketing_consent"]]
     inactive = [r for r in rows
                 if r["inactive_days"] is not None and r["inactive_days"] >= AT_RISK_DAYS]
     top = sorted(rows, key=lambda r: -r["total_spend"])[:5]
@@ -206,6 +207,12 @@ def stats_for(rows: List[dict]) -> dict:
     return {
         "total_customers": len(rows),
         "segments": by_seg,
+        "consent_count": len(consented),
+        "no_consent_count": len(rows) - len(consented),
+        "consent_by_segment": {
+            seg: sum(1 for r in consented if r["segment"] == seg)
+            for seg in sorted({r["segment"] for r in rows})
+        },
         "inactive_count": len(inactive),
         "top_spenders": [{"user_id": r["user_id"], "full_name": r["full_name"],
                           "total_spend": r["total_spend"]} for r in top],

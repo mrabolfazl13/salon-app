@@ -7,7 +7,7 @@ from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.schemas.review import ReviewCreate, ReviewResponse, VenueRatingSummary
 from app.repositories.review_repository import ReviewRepository
 from app.utils.auth import get_current_user
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.review import Review
 from app.services.loyalty_service import LoyaltyService
 

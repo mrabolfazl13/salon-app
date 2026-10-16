@@ -96,13 +96,30 @@ def test_ws_role_room_managers_and_admins(client, seed):
 
 
 def test_ws_connection_keyed_by_verified_user_id(client, seed):
-    """شناسه‌ی ثبت‌شده در اتاق باید شناسه‌ی تأییدشده از JWT باشد، نه ادعای URL"""
-    owner = seed["user"]("09121000013")
-    with client.websocket_connect(f"/ws/user/{owner.id}?token={_token(owner)}") as ws:
-        uid = manager.active_connections["users"][0][1]
-        assert uid == owner.id
-        ws.send_text("ok")
-        ws.receive_text()
+    """شناسه‌ی ثبت‌شده در اتاق باید شناسه‌ی تأییدشده از JWT باشد، نه ادعای URL
+
+    active_connections نقشه‌ی user_id → set(websocket) است (اتاق‌های قدیمی به‌شکل
+    {"users": [(ws, uid)]} بودند و این تست همان شکل را فرض می‌کرد).
+    """
+    manager_user = seed["user"]("09121000013", role=UserRole.VENUE_MANAGER)
+    with client.websocket_connect(f"/ws/managers?token={_token(manager_user)}") as ws:
+        assert manager_user.id in manager.active_connections
+        ws.send_text("ping")
+        assert ws.receive_text() == "Echo: ping"
+    # اتصال بسته شد ⇒ باید از نقشه هم حذف شود (وگرنه سوکت مرده تا ابد می‌ماند)
+    assert manager_user.id not in manager.active_connections
+
+
+def test_ws_personal_channel_registers_under_authorized_channel_id(client, seed):
+    """کانال شخصی: شناسه‌ی کانال = هدفِ تأییدشده؛ هویت متصل‌کننده جایش را نمی‌گیرد"""
+    admin = seed["user"]("09121000014", role=UserRole.SUPER_ADMIN)
+    owner = seed["user"]("09121000015")
+    with client.websocket_connect(f"/ws/user/{owner.id}?token={_token(admin)}") as ws:
+        assert owner.id in manager.active_connections
+        assert admin.id not in manager.active_connections
+        ws.send_text("ping")
+        assert ws.receive_text() == "Echo: ping"
+    assert owner.id not in manager.active_connections
 
 
 # ─────────────────────────── dev_code gating ───────────────────────────

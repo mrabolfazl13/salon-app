@@ -48,7 +48,7 @@ def _send_waitlist_notification_sync(user_id: int, title: str, message: str, dat
         loop.close()
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, name="app.tasks.send_booking_reminders")
 def send_booking_reminders(self):
     """Send reminders for bookings starting in 2 hours.
     
@@ -130,7 +130,7 @@ def send_booking_reminders(self):
         db.close()
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, name="app.tasks.notify_waitlist_on_cancellation")
 def notify_waitlist_on_cancellation(self, slot_id: int):
     """Notify first person in waitlist when a booking is cancelled.
     
@@ -160,8 +160,9 @@ def notify_waitlist_on_cancellation(self, slot_id: int):
         time_str = f"{slot.start_time.hour:02d}:{slot.start_time.minute:02d}"
         date_str = slot.slot_date.strftime("%Y-%m-%d")
         
-        # Set expiry time (user has 2 hours to book)
-        expires_at = datetime.utcnow() + timedelta(hours=2)
+        # پنجره پاسخ‌گویی — همان عددی که job تبدیل (B5) منتظرش است
+        from app.services.waitlist_service import WaitlistService
+        expires_at = datetime.now(timezone.utc) + timedelta(hours=WaitlistService.window_hours())
         
         title = "سانس آزاد شد!"
         message = (
@@ -183,9 +184,9 @@ def notify_waitlist_on_cancellation(self, slot_id: int):
         
         # Update entry status
         entry.status = "notified"
-        entry.notified_at = datetime.utcnow()
+        entry.notified_at = datetime.now(timezone.utc)
         entry.expires_at = expires_at
-        entry.updated_at = datetime.utcnow()
+        entry.updated_at = datetime.now(timezone.utc)
         
         db.commit()
         

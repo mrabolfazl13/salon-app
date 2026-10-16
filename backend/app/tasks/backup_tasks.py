@@ -1,4 +1,5 @@
 """Automated database backup task."""
+import os
 import subprocess
 import logging
 from datetime import datetime, timezone
@@ -8,7 +9,7 @@ from app.config import settings
 logger = logging.getLogger(__name__)
 
 
-@celery_app.task(bind=True)
+@celery_app.task(bind=True, name="app.tasks.perform_database_backup")
 def perform_database_backup(self):
     """Trigger automated database backup.
     

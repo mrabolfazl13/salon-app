@@ -128,3 +128,69 @@ def test_deactivate_only_captain_soft(client, seed):
     ids = [i["id"] for i in client.get(f"{BASE}/discover",
                                        headers=auth(C)).json()["items"]]
     assert t["id"] not in ids
+
+
+# ─────────────────────────── discover + پرچم بیننده (B6.1) ───────────────────────────
+
+def test_discover_carries_viewer_flags(client, seed):
+    """هر کاربر در discover فقط پرچم خودش را می‌بیند — نه پرچم دیگران."""
+    t = _create(client, seed, C, "تیم کشف‌پرچم", visibility="public").json()
+    invited, applied, stranger = "09350000021", "09350000022", "09350000023"
+    for phone in (invited, applied, stranger):
+        seed["user"](phone)
+    client.post(f"{BASE}/{t['id']}/invite", json={"phone": invited}, headers=auth(C))
+    client.post(f"{BASE}/{t['id']}/join-request", json={"message": "ممنون می‌شم"},
+                headers=auth(applied))
+
+    def _row(phone):
+        items = client.get(f"{BASE}/discover", headers=auth(phone)).json()["items"]
+        return next(i for i in items if i["id"] == t["id"])
+
+    inv = _row(invited)
+    assert inv["my_status"] == "pending" and inv["has_pending_invitation"] is True
+    assert inv["has_open_join_request"] is False
+
+    req = _row(applied)
+    assert req["has_open_join_request"] is True
+    assert req["has_pending_invitation"] is False
+    assert req["my_role"] is None and req["my_status"] is None
+
+    other = _row(stranger)
+    assert (other["my_role"], other["my_status"]) == (None, None)
+    assert other["has_open_join_request"] is False
+    assert other["has_pending_invitation"] is False
+
+    cap = _row(C)
+    assert cap["my_role"] == "captain" and cap["my_status"] == "active"
+
+
+def test_discover_query_count_is_constant(client, seed):
+    """پرچم‌ها گروهی خوانده می‌شوند: تعداد کوئری با بزرگ‌شدن صفحه ثابت می‌ماند."""
+    from sqlalchemy import event
+    from conftest import test_engine
+
+    statements: list = []
+
+    def _record(conn, cursor, statement, params, context, executemany):
+        statements.append(statement)
+
+    def _discover_once():
+        statements.clear()
+        event.listen(test_engine, "before_cursor_execute", _record)
+        try:
+            r = client.get(f"{BASE}/discover?limit=100", headers=auth(C))
+            assert r.status_code == 200, r.text
+            return len(r.json()["items"]), len(statements)
+        finally:
+            event.remove(test_engine, "before_cursor_execute", _record)
+
+    for i in range(4):
+        _create(client, seed, C, f"تیم کوئری {i}", visibility="public")
+    rows_small, q_small = _discover_once()
+
+    for i in range(4, 10):
+        _create(client, seed, C, f"تیم کوئری {i}", visibility="public")
+    rows_big, q_big = _discover_once()
+
+    assert (rows_small, rows_big) == (4, 10)
+    assert q_big == q_small, f"تعداد کوئری از {q_small} به {q_big} رسید — N+1 برگشته"

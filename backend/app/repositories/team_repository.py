@@ -31,6 +31,22 @@ class TeamRepository(BaseRepository[Team]):
         stmt = select(Team).where(Team.captain_id == captain_id, Team.name == name)
         return self.session.exec(stmt).first()
 
+    def list_auto_dues_teams(self) -> List[Team]:
+        """تیم‌های زنده‌ای که حق‌عضویت خودکار دارند — ورودی تسک ماهانه."""
+        stmt = (select(Team)
+                .where(Team.is_active == True,  # noqa: E712
+                       Team.dues_auto == True)  # noqa: E712
+                .order_by(col(Team.id)))
+        return list(self.session.exec(stmt).all())
+
+    def list_with_dues_late_fee(self) -> List[Team]:
+        """تیم‌های زنده با درصد جریمه دیرکرد > ۰ — ورودی تسک جریمه (سهم دستی هم مشمول)."""
+        stmt = (select(Team)
+                .where(Team.is_active == True,  # noqa: E712
+                       col(Team.dues_late_fee_pct) > 0)
+                .order_by(col(Team.id)))
+        return list(self.session.exec(stmt).all())
+
     def list_by_member(self, user_id: int,
                        statuses: Tuple[TeamMemberStatus, ...] = (
                            TeamMemberStatus.ACTIVE, TeamMemberStatus.PENDING,
@@ -414,6 +430,29 @@ class TeamDuesRepository(BaseRepository[TeamDues]):
             conds.append(TeamDues.due_date == due_date)
         stmt = select(TeamDues).where(and_(*conds)).order_by(col(TeamDues.created_at).asc())
         return self.session.exec(stmt).first()
+
+    def list_late_originals(self, cutoff: date,
+                            team_ids: Optional[List[int]] = None) -> List[TeamDues]:
+        """سهم‌های باز که از cutoff رد شده‌اند — خودِ جریمه‌ها مستثنا (بدون حلقه کوئری)."""
+        conds = [
+            TeamDues.is_paid == False,  # noqa: E712
+            TeamDues.is_voided == False,  # noqa: E712
+            col(TeamDues.due_date) <= cutoff,
+            col(TeamDues.penalty_for_id).is_(None),
+        ]
+        if team_ids is not None:
+            conds.append(col(TeamDues.team_id).in_(team_ids))
+        stmt = (select(TeamDues).where(and_(*conds))
+                .order_by(col(TeamDues.due_date), col(TeamDues.id)))
+        return list(self.session.exec(stmt).all())
+
+    def penalized_ids(self, original_ids: List[int]) -> set:
+        """سهم‌هایی که جریمه‌شان پیش‌تر ساخته شده — ضدتکرار job روزانه."""
+        if not original_ids:
+            return set()
+        stmt = select(TeamDues.penalty_for_id).where(
+            col(TeamDues.penalty_for_id).in_(original_ids))
+        return {int(pid) for pid in self.session.exec(stmt).all() if pid is not None}
 
 
 class TeamAuditEventRepository(BaseRepository[TeamAuditEvent]):

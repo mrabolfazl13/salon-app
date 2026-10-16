@@ -12,6 +12,7 @@ from app.utils.permissions import Perm
 from app.utils.staff_access import ensure_venue_permission
 from app.utils.rate_limit import booking_rate_limit
 from app.models.user import User, UserRole
+from app.models.venue import Venue
 from app.models.slot import SlotStatus
 from app.services.notification_service import notification_service
 from app.models.payment import BookingPaymentStatus
@@ -336,7 +337,10 @@ def get_booking_detail(
         ensure_venue_permission(uow, current_user, slot.venue_id,
                                 [Perm.BOOKING_VIEW], request)
 
-    data = _enrich_bookings(uow, [booking])[0].model_dump()
+    enriched = _enrich_bookings(uow, [booking])[0]
+    # model_dump() خروجیِ field_serializer را می‌برد (تاریخ جلالی) و در
+    # re-validationِ BookingDetailResponse می‌شکند — پس از خودِ فیلدها خوانده می‌شود
+    data = {name: getattr(enriched, name) for name in BookingResponse.model_fields}
     for _f in ("receipt_amount", "receipt_reference", "receipt_bank",
                "receipt_image", "receipt_submitted_at", "receipt_reviewed_at",
                "receipt_review_note", "receipt_reviewed_by"):

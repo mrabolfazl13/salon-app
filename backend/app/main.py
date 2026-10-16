@@ -24,6 +24,7 @@ from app.api.v1 import (
     split_payments_router, reconciliation_router, health_router,
 )
 from app.utils.websocket import manager
+from app.utils.rate_limit import global_rate_limit_middleware
 from app.utils.staff_access import flush_security_denials
 from app.utils.auth import get_password_hash, get_user_by_token
 from app.models.user import User, UserRole
@@ -76,12 +77,21 @@ async def security_denial_audit(request, call_next):
     return response
 
 
+# سقف سراسری نرخ — قبل از CORS ثبت می‌شود تا CORS آن را بپوشاند و پاسخ ۴۲۹
+# هدرهای CORS و هدرهای امنیتی را بگیرد (مرورگر به‌جای «خطای شبکه» پیام فارسی می‌بیند)
+@app.middleware("http")
+async def api_rate_limit(request, call_next):
+    return await global_rate_limit_middleware(request, call_next)
+
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.allowed_origins_list,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    # مرورگر با credentials مقدار "*" را نادیده می‌گیرد؛ فهرست صریح هم درست‌تر
+    # و هم امن‌تر است (فرانت فقط Authorization/Content-Type/Accept می‌فرستد)
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "Accept"],
 )
 
 # Security Headers Middleware
@@ -182,7 +192,7 @@ async def websocket_endpoint(websocket: WebSocket, role: str, session: Session =
     except Exception:  # noqa: BLE001
         pass
     finally:
-        manager.disconnect(websocket, role)
+        manager.disconnect(websocket, user.id)
 
 
 @app.websocket("/ws/user/{user_id}")
@@ -209,7 +219,9 @@ async def websocket_user_endpoint(websocket: WebSocket, user_id: int, session: S
     except Exception:  # noqa: BLE001
         pass
     finally:
-        manager.disconnect(websocket, "users")
+        # disconnect باید همان شناسه‌ای باشد که connect با آن ثبت کرده؛
+        # رشتهٔ "users" هیچ‌وقت در active_connections نیست ⇒ اتصال مرده تا ابد می‌ماند
+        manager.disconnect(websocket, user_id)
 
 # Health check
 @app.get("/health")

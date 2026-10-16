@@ -203,3 +203,71 @@ def test_refund_points_on_cancel(client, fake_redis):
         assert sum(x.points for x in rows) == 50  # خرج برگشت خورده
         refund = [x for x in rows if x.reason == LoyaltyReason.LOYALTY_REFUND]
         assert len(refund) == 1 and refund[0].points == 20
+
+
+# ─────────────────────────── B3: جایزه در چک‌این ───────────────────────────
+
+def _checkin_booking(a, code, days_ago=1, price=450000):
+    with _fresh() as s:
+        sid = _slot(s, a["v"], date.today() - timedelta(days=days_ago), price)
+        b = Booking(slot_id=sid, user_id=a["u_id"], status=BookingStatus.CONFIRMED,
+                    payment_amount=price, check_in_code=code)
+        s.add(b)
+        s.commit()
+        s.refresh(b)
+        return b.id
+
+
+def _completed_rows(booking_id):
+    with _fresh() as s:
+        return s.exec(select(LoyaltyPoint).where(
+            LoyaltyPoint.source_id == booking_id,
+            LoyaltyPoint.reason == LoyaltyReason.BOOKING_COMPLETED)).all()
+
+
+def test_check_in_awards_loyalty_points(client, fake_redis, sent_notifications):
+    a = _setup("9")
+    bid = _checkin_booking(a, "CIN-A")
+    assert client.get("/api/v1/loyalty/me", headers=auth(a["u"])).json()["balance"] == 0
+
+    r = client.post("/api/v1/checkin/verify", params={"check_in_code": "CIN-A"},
+                    headers=auth(a["m"]))
+    assert r.status_code == 200, r.text
+    assert "45" in r.json()["message"]
+
+    # ۴۵۰۰۰۰ ÷ ۱۰۰۰۰ = ۴۵ امتیاز، همان لحظهٔ چک‌این
+    me = client.get("/api/v1/loyalty/me", headers=auth(a["u"])).json()
+    assert me["balance"] == 45
+    assert len(_completed_rows(bid)) == 1
+    assert any("45 امتیاز" in n["message"] for n in sent_notifications)
+
+
+def test_check_in_twice_awards_points_once(client, fake_redis):
+    """idempotency: چک‌این دوبار (و تسک روزانه) ردیف امتیاز دوم نمی‌سازند."""
+    a = _setup("9")
+    bid = _checkin_booking(a, "CIN-B")
+    assert client.post("/api/v1/checkin/verify", params={"check_in_code": "CIN-B"},
+                       headers=auth(a["m"])).status_code == 200
+    again = client.post("/api/v1/checkin/verify", params={"check_in_code": "CIN-B"},
+                        headers=auth(a["m"]))
+    assert again.status_code == 400
+    assert "قبلاً" in again.json()["detail"]
+    assert client.get("/api/v1/loyalty/me", headers=auth(a["u"])).json()["balance"] == 45
+
+    # تسک «اتمام سانس» همین رزرو را COMPLETED می‌کند و جایزه را تکرار نمی‌کند
+    res = complete_past_bookings()
+    assert res == {"completed": 1, "awarded": 0}
+    assert len(_completed_rows(bid)) == 1
+    assert client.get("/api/v1/loyalty/me", headers=auth(a["u"])).json()["balance"] == 45
+
+
+def test_check_in_with_small_amount_awards_nothing(client, fake_redis):
+    """رزرو زیر آستانهٔ امتیاز: چک‌این می‌شود، ردیف امتیاز صفر ساخته نمی‌شود."""
+    a = _setup("9")
+    bid = _checkin_booking(a, "CIN-C", price=5000)
+    r = client.post("/api/v1/checkin/verify", params={"check_in_code": "CIN-C"},
+                    headers=auth(a["m"]))
+    assert r.status_code == 200, r.text
+    assert "امتیاز" not in r.json()["message"]
+    assert len(_completed_rows(bid)) == 0
+    assert client.get("/api/v1/loyalty/me", headers=auth(a["u"])).json()["balance"] == 0

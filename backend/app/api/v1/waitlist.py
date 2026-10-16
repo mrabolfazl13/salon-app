@@ -5,11 +5,11 @@ from app.database import get_session
 from app.models.waitlist import WaitlistEntry
 from app.models.slot import Slot, SlotStatus
 from app.models.booking import Booking, BookingStatus
-from app.models.user import User
+from app.models.user import User, UserRole
 from app.models.venue import Venue
 from app.utils.auth import get_current_user
 from app.services.notification_service import NotificationService
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 from typing import List
 
 router = APIRouter(prefix="/waitlist", tags=["waitlist"])
@@ -110,7 +110,7 @@ async def leave_waitlist(
         raise HTTPException(status_code=404, detail="Waitlist entry not found")
     
     entry.status = "cancelled"
-    entry.updated_at = datetime.utcnow()
+    entry.updated_at = datetime.now(timezone.utc)
     
     # Update positions for remaining entries
     remaining = session.exec(
@@ -140,7 +140,7 @@ async def get_my_waitlist(
 ):
     """Get user's active waitlist entries with pagination."""
     # Use joinedload to avoid N+1 queries
-    from sqlmodel import joinedload
+    from sqlalchemy.orm import joinedload
     
     stmt = (
         select(WaitlistEntry)
@@ -198,11 +198,11 @@ async def get_slot_waitlist(
     # Check if user is venue manager
     venue = session.exec(select(Venue).where(Venue.id == slot.venue_id)).first()
     if not venue or venue.manager_id != current_user.id:
-        if current_user.role not in ["SUPER_ADMIN", "CLUB_ADMIN"]:
+        if current_user.role not in [UserRole.SUPER_ADMIN, UserRole.CLUB_ADMIN]:
             raise HTTPException(status_code=403, detail="Access denied")
     
     # Eager load users to avoid N+1
-    from sqlmodel import joinedload
+    from sqlalchemy.orm import joinedload
     
     entries = session.exec(
         select(WaitlistEntry)

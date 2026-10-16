@@ -8,12 +8,11 @@ complete_past_bookings (روزانه ۰۳:۳۰):
 """
 from datetime import date, datetime, timedelta, timezone
 
-from celery.schedules import crontab
 
 from app.tasks.worker import celery_app
 
 
-@celery_app.task(name="complete_past_bookings")
+@celery_app.task(name="app.tasks.complete_past_bookings")
 def complete_past_bookings():
     from sqlmodel import select
 
@@ -49,11 +48,3 @@ def complete_past_bookings():
             completed += 1
         uow.commit()
     return {"completed": completed, "awarded": awarded}
-
-
-celery_app.conf.beat_schedule.update({
-    "complete-past-bookings": {
-        "task": "complete_past_bookings",
-        "schedule": crontab(hour=3, minute=30),
-    },
-})

@@ -49,7 +49,7 @@ async def verify_check_in(
     if current_user.role not in [UserRole.VENUE_MANAGER, UserRole.CLUB_ADMIN, UserRole.SUPER_ADMIN]:
         raise HTTPException(status_code=403, detail="فقط مدیران سالن می‌توانند چک‌این کنند")
     
-    success, message, booking = CheckInService.verify_and_check_in(
+    success, message, booking = await CheckInService.verify_and_check_in(
         session=session,
         check_in_code=check_in_code,
         manager_user_id=current_user.id,

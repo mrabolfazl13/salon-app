@@ -183,6 +183,28 @@ def test_detail_vip_notes_update_and_staff_read_access(client, fake_redis):
     assert stats["recent_new_customers"]
 
 
+def test_stats_publishes_consent_counts(client):
+    """B6.2 — شمارش دارای/بدون رضایت + تفکیک به تفکیک segment در /crm/stats."""
+    e = _seed_customers("6")
+    with _fresh() as s:
+        s.add(VenueCustomer(venue_id=e["v"].id, user_id=e["regular"].id,
+                            marketing_consent=True))
+        s.add(VenueCustomer(venue_id=e["v"].id, user_id=e["fresh"].id,
+                            marketing_consent=False))
+        existing = s.exec(select(VenueCustomer).where(
+            VenueCustomer.venue_id == e["v"].id,
+            VenueCustomer.user_id == e["vip"].id)).first()
+        existing.marketing_consent = True
+        s.commit()
+    stats = client.get(f"/api/v1/crm/stats?venue_id={e['v'].id}",
+                       headers=auth(e["m"].phone)).json()
+    assert stats["consent_count"] == 2
+    assert stats["no_consent_count"] == 3
+    assert stats["consent_count"] + stats["no_consent_count"] == stats["total_customers"]
+    assert stats["consent_by_segment"] == {"regular": 1, "vip": 1, "new": 0,
+                                           "at_risk": 0, "dormant": 0}
+
+
 # ─────────────────────────── کمپین‌ها ───────────────────────────
 
 def _consent(client, user, venue_id, value=True):

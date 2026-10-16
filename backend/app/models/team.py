@@ -79,6 +79,8 @@ class TeamAuditAction(str, Enum):
     DUES_GENERATED = "dues_generated"
     DUES_PAID = "dues_paid"
     DUES_VOIDED = "dues_voided"
+    DUES_LATE_FEE = "dues_late_fee"
+    DUES_PLAN_UPDATED = "dues_plan_updated"
     BOOKING_LINKED = "booking_linked"
     TEAM_BECAME_OFFICIAL = "team_became_official"
 
@@ -89,6 +91,11 @@ class Team(SQLModel, table=True):
     __tablename__ = "teams"
     __table_args__ = (
         UniqueConstraint("captain_id", "name", name="uq_team_captain_name"),
+        CheckConstraint("dues_day >= 1 AND dues_day <= 28", name="ck_team_dues_day"),
+        CheckConstraint("dues_late_fee_pct >= 0 AND dues_late_fee_pct <= 100",
+                        name="ck_team_dues_late_fee_pct"),
+        CheckConstraint("dues_amount IS NULL OR dues_amount > 0",
+                        name="ck_team_dues_amount_positive"),
     )
 
     id: Optional[int] = Field(default=None, primary_key=True)
@@ -103,6 +110,15 @@ class Team(SQLModel, table=True):
     min_members: int = Field(default=settings.TEAM_MIN_MEMBERS)
     is_official: bool = Field(default=False, index=True)
     official_since: Optional[datetime] = None
+
+    # حق‌عضویت خودکار (recurrence) — با dues_auto=True تسک ماهانه برای هر عضو
+    # فعال سهم همان ماه را می‌سازد؛ با dues_auto=False فقط POST دستی کاپیتان کار
+    # می‌کند. dues_day تا ۲۸ محدود است تا ماه‌های کوتاه سررسیدِ نامعتبر ندهند.
+    dues_auto: bool = Field(default=False, index=True)
+    dues_amount: Optional[int] = Field(default=None, description="سهم ماهانه هر عضو (ریال)")
+    dues_title: str = Field(default="حق عضویت ماهانه", max_length=100)
+    dues_day: int = Field(default=1)
+    dues_late_fee_pct: int = Field(default=0, description="۰ یعنی جریمه‌ای بسته نمی‌شود")
 
     created_at: datetime = Field(default_factory=_utcnow)
     updated_at: datetime = Field(default_factory=_utcnow)
@@ -204,6 +220,8 @@ class TeamDues(SQLModel, table=True):
     payment_method: Optional[TeamDuesMethod] = None
     payment_reference: Optional[str] = Field(default=None, max_length=120)
     transaction_id: Optional[int] = Field(default=None, description="Ledger row ID")
+    # ردیف جریمه دیرکرد به سهم اصلی وصل می‌شود؛ همین لینس ضدتکرار job روزانه است
+    penalty_for_id: Optional[int] = Field(default=None, foreign_key="team_dues.id", index=True)
 
     created_at: datetime = Field(default_factory=_utcnow)
     updated_at: datetime = Field(default_factory=_utcnow)

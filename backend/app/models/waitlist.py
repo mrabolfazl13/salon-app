@@ -1,7 +1,14 @@
 """Waitlist model for fully-booked slots."""
-from sqlmodel import SQLModel, Field
+from sqlmodel import SQLModel, Field, Relationship
 from typing import Optional
-from datetime import datetime
+from datetime import datetime, timezone
+
+from app.models.slot import Slot
+from app.models.user import User
+
+
+def _utcnow() -> datetime:
+    return datetime.now(timezone.utc)
 
 
 class WaitlistEntry(SQLModel, table=True):
@@ -25,5 +32,9 @@ class WaitlistEntry(SQLModel, table=True):
     # Expiry time for notification (user has X hours to book)
     expires_at: Optional[datetime] = None
     
-    created_at: datetime = Field(default_factory=datetime.utcnow)
+    created_at: datetime = Field(default_factory=_utcnow)
     updated_at: Optional[datetime] = None
+
+    # endpoint های /waitlist/my و /waitlist/slot/{id} این دو را joinedload می‌کنند
+    slot: Optional[Slot] = Relationship(sa_relationship_kwargs={"foreign_keys": "[WaitlistEntry.slot_id]"})
+    user: Optional[User] = Relationship(sa_relationship_kwargs={"foreign_keys": "[WaitlistEntry.user_id]"})

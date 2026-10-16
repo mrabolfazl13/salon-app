@@ -10,12 +10,11 @@
 import asyncio
 from datetime import date, timedelta
 
-from celery.schedules import crontab
 
 from app.tasks.worker import celery_app
 
 
-@celery_app.task(name="check_expired_contracts")
+@celery_app.task(name="app.tasks.check_expired_contracts")
 def check_expired_contracts():
     from app.models.contract import (ContractSlotStatus, ContractStatus, ContractAuditAction)
     from app.services.contract_service import ContractService, cs_effective
@@ -80,7 +79,7 @@ def check_expired_contracts():
                 "completed_sessions": completed, "renewal_objections": objections}
 
 
-@celery_app.task(name="notify_overdue_contract_payments")
+@celery_app.task(name="app.tasks.notify_overdue_contract_payments")
 def notify_overdue_contract_payments():
     from datetime import datetime, timezone
 
@@ -125,15 +124,3 @@ def notify_overdue_contract_payments():
             uow.contracts.update_payment_status(row["payment"].contract_id, PaymentStatus.OVERDUE)
         uow.commit()
         return {"overdue_count": len(rows)}
-
-
-celery_app.conf.beat_schedule.update({
-    "check-expired-contracts": {
-        "task": "check_expired_contracts",
-        "schedule": crontab(hour=2, minute=0),
-    },
-    "notify-overdue-contract-payments": {
-        "task": "notify_overdue_contract_payments",
-        "schedule": crontab(hour=3, minute=0),
-    },
-})

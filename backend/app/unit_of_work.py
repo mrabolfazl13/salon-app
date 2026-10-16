@@ -25,6 +25,8 @@ from app.repositories.pricing_rule_repository import PricingRuleRepository
 from app.repositories.coupon_repository import CouponRepository, CouponRedemptionRepository
 from app.repositories.loyalty_repository import LoyaltyRepository
 from app.repositories.favorite_repository import FavoriteVenueRepository
+from app.repositories.waitlist_repository import WaitlistRepository
+from app.repositories.waitlist_repository import WaitlistRepository
 from app.repositories.staff_repository import (StaffAssignmentRepository,
                                                  SecurityAuditEventRepository)
 from app.repositories.customer_repository import (VenueCustomerRepository,
@@ -193,6 +195,12 @@ class UnitOfWork:
         if "game_waitlist" not in self._repositories:
             self._repositories["game_waitlist"] = GameWaitlistRepository(self.session)
         return self._repositories["game_waitlist"]
+
+    @property
+    def slot_waitlist(self) -> WaitlistRepository:
+        if "slot_waitlist" not in self._repositories:
+            self._repositories["slot_waitlist"] = WaitlistRepository(self.session)
+        return self._repositories["slot_waitlist"]
 
     @property
     def game_payments(self) -> GamePaymentRepository:

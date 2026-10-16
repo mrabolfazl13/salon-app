@@ -12,7 +12,6 @@
 import asyncio
 from datetime import date, timedelta
 
-from celery.schedules import crontab
 from sqlmodel import select
 
 from app.tasks.worker import celery_app
@@ -22,7 +21,7 @@ DORMANT_DAYS_MIN = 90
 TOP_SPENDERS_PER_VENUE = 5
 
 
-@celery_app.task(name="send_contract_renewal_reminders")
+@celery_app.task(name="app.tasks.send_contract_renewal_reminders")
 def send_contract_renewal_reminders():
     from app.models.contract import Contract, ContractStatus
     from app.services.notification_service import notification_service
@@ -64,7 +63,7 @@ def send_contract_renewal_reminders():
         return {"notified_contracts": len(contracts)}
 
 
-@celery_app.task(name="notify_dormant_high_value_customers")
+@celery_app.task(name="app.tasks.notify_dormant_high_value_customers")
 def notify_dormant_high_value_customers():
     from app.models.venue import Venue
     from app.services.crm_service import DORMANT_DAYS, compute_customer_rows
@@ -105,15 +104,3 @@ def notify_dormant_high_value_customers():
             notified = loop.run_until_complete(_notify_all())
             loop.close()
         return {"dormant_high_value": notified}
-
-
-celery_app.conf.beat_schedule.update({
-    "send-contract-renewal-reminders": {
-        "task": "send_contract_renewal_reminders",
-        "schedule": crontab(hour=4, minute=0),
-    },
-    "notify-dormant-high-value-customers": {
-        "task": "notify_dormant_high_value_customers",
-        "schedule": crontab(hour=4, minute=0, day_of_week="tuesday"),
-    },
-})
