@@ -1048,6 +1048,69 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   مثل بقیۀ راندها به X1 (حساب تست) و X6 (deploy بک‌اند روی prod) وابسته است — روی prodِ فعلی،
   `pay_share` همان کدِ قبل از رفع است و سهم‌های درصدی هنوز یک ریال کم می‌آورند.
 
+### C13 کوپن تخفیف: عمرِ ردیف مصرف و نگهبان ویرایش (بازبینی #4، P008) — راند ۱۶ ✅ دو نقص، هر دو رفع
+
+> راند ۱۵ تمام شد و هنوز سه فایل پولِ ممیزی‌نشده روی میز بود (`coupons`، `reconciliation`,
+> `slots` با شمارِ نامِ فایل در ۳۴ ماژول `app/api/v1/*.py`). `coupons.py` در هیچ راندی نامش
+> نرفته بود؛ در UI اما کامل ساخته شده (`CouponsTab.tsx`, `CouponDialog.tsx` و شمارندهٔ
+> `uses_count` در `CouponsTab.tsx:129-157`). همین تفاوت، جای دقیقِ نقص بود: **UI نگهبان داشت،
+> API نه.**
+
+- [x] C13.1 **چرخۀ «رزرو ← پرداخت ← لغو» یک کوپنِ یک‌بارمصرف را بی‌نهایت بار برمی‌گرداند:**
+  `BookingService.cancel_booking()` بدون پرسیدنِ وضعیتِ پرداخت، `release_for_booking()` را صدا
+  می‌زد؛ `release_by_id()` ردیف `coupon_redemptions` را **حذف** می‌کند و `uses_count` را کم می‌کند
+  (`coupon_service.py:105-113`). با `per_user_limit=1` یعنی همان کاربر بعد از لغو (که روی رزروِ
+  پرداخت‌شده **بازگشت وجه هم می‌زند**: `bookings.py:370-384`) دوباره کد را مجاز دارد — و چون ردیف
+  ممیزی پاک شده، مدیر هیچ‌وقت نمی‌بیند چند بار. شاهدِ قبل از رفع: `test_cancel_of_paid_booking_keeps_coupon_burned`
+  ⇒ **۴۰۰ انتظار، ۲۰۰ گرفت** («کد دوباره مصرف شد»).
+  رفع: آزادسازی کوپن مشروط به «هیچ `BookingPayment` با وضعیت PAID روی این رزرو نیست» شد
+  (`booking_service.py:216-221`). حالتِ **پرداخت‌نشده دست‌نخورده ماند** (پول جابه‌جا نشده ⇒ کد
+  نباید بسوزد) و با تست جداگانه قفل شد؛ تست‌های از پیش موجودِ همین رفتار
+  (`test_cancel_pending_releases_coupon`, `test_cancel_confirmed_booking_releases_coupon`،
+  `test_expiry_task_releases_coupon`) سبز ماندند چون هیچ‌کدام پرداخت نمی‌کنند.
+- [x] C13.2 **`PUT /coupons/{id}` نگهبانِ «درصد ≤ ۱۰۰٪» را نمی‌خواند:** بررسی فقط در
+  `create_coupon` بود (`coupons.py:66-67` در نسخۀ قبل). `value` در دیتا `percent×100` است، پس
+  percent=۱۰۰٬۰۰۰ یعنی ۱٬۰۰۰٪؛ `compute_discount()` آن را با `min(amount, …)` clamp می‌کند ⇒
+  تخفیف = کل مبلغ. اندازه‌گیریِ پیامد (با درجِ همان وضعیت در دیتابیس، سطح unit):
+  **`payment_amount=0`، `discount=250000`** ⇒ رزروِ رایگان. حالت دومِ همان سوراخ: تبدیل یک کوپن
+  `fixed` ۵۰٬۰۰۰ ریالی به `percent` با همان `value` ⇒ ۵۰۰٪ (شاهد خام: پاسخ **۲۰۰** با
+  `{"discount_type":"percent","value":50000}`). رفع: `_ensure_value_valid()` مشترک برای ساخت و
+  ویرایش، و در ویرایش روی **جفتِ نهایی** (نوع و مقدارِ ارسال‌شده با جایگزینیِ مقدارِ فعلی) نه فقط
+  فیلدهای ارسالی. UI از قبل `val > 100` را رد می‌کرد (`CouponDialog.tsx:93`) — حالا سرور هم رد
+  می‌کند، همان درسی که راند ۱۴ از اعتبارسنجی کارتِ فقط-UI گرفت.
+- [x] C13.3 ⚠️ ثبت شد، رفع نشد (دو گره):
+  1. **ظرفیت‌ها قفل ندارند:** `validate_and_compute()` می‌خواند `uses_count` و `per_user_limit` را،
+     بعد `reserve()` دوباره همان `coupon`ِ در-حافظه را چک و `bump_uses()` می‌کند
+     (`coupon_repository.py:42-51` read-modify-write). دو رزروِ موازیِ یک کدِ `max_uses=1` می‌توانند
+     هر دو از validate رد شوند. **روی این ماشین falsify نمی‌شود** (`tests/conftest.py:104` ⇒
+     `BEGIN IMMEDIATE`؛ همان دلیلِ C11.6.3) ⇒ جایش تست همزمانی روی PostgreSQL در CI است.
+  2. **ردیف مصرف هیچ‌جا فهرست نمی‌شود:** نه endpoint `GET /coupons/{id}/redemptions`، نه در
+     `CouponResponse`؛ مدیر فقط `uses_count` را می‌بیند. با C13.1 together یعنی «چه کسی و چقدر
+     تخفیف گرفت» عملاً قابل ممیزی نیست — یک فیچر است نه باگ، و چون تصمیم UI دارد اینجا ثبت شد.
+  3. (کوچک) `BookingRepository.cancel_booking()` (`booking_repository.py:113-120`) یک مسیرِ لغویِ
+     دومی است که **هیچ callers** ندارد (`grep -rn ".cancel_booking(" app/ tests/` فقط
+     `BookingService` را می‌دهد) ولی اگر کسی صدا بزندش، بازگشت وجه، کوپن و امتیاز را رد می‌کند.
+     نامِ یکسان با سرویس، تله است؛ چون مرده است حذفش را به یک برشِ پاکسازی واگذار کردیم.
+- **تست‌ها (سطح unit/SQLite):** ۵ تست در `tests/test_coupon_burn_and_edit_guard.py` — لغوِ
+  پرداخت‌شده ⇒ ردیف redemption با `amount_discounted=50000` می‌ماند، `uses_count == 1`، و مصرفِ
+  دوباره **۴۰۰ با «سقف»**؛ لغوِ پرداخت‌نشده ⇒ هنوز آزاد می‌شود و مصرفِ دوباره **۲۰۰**؛
+  PUT با `value=100000` ⇒ ۴۰۰ و مقدارِ دیتابیس دست‌نخورده (۲۰۰۰)؛ PUT با تبدیل نوع به percent ⇒
+  ۴۰۰ و کوپن `fixed` می‌ماند؛ PUT قانونی (۱۰۰۰ و بعد ۱۰۰۰۰ = دقیقاً ۱۰۰٪) ⇒ ۲۰۰.
+- **معیار (شاهد، ۲۰۲۶-۱۰-۱۷):**
+  | گیت | نتیجه |
+  |---|---|
+  | `pytest tests/test_coupon_burn_and_edit_guard.py tests/test_coupons.py` | **۱۵ passed** (۵ جدید + ۱۰ از پیش موجود) |
+  | همان دو فایل روی **استک pinned** (`sqlmodel 0.0.42`) | **۱۵ passed در 5.29s** |
+  | شاهدِ پیش از رفع (همان فایل جدید) | **۳ failed، ۲ passed** (۲ تستِ دفاعی سبز بودند) |
+  | `pytest` (رگرسیون کامل بک‌اند) | **۶۶۱ passed در 65.71s** |
+  | `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` |
+  | `app.openapi()['paths']` | **۲۳۸** (endpoint تازه‌ای اضافه نشد) |
+- **فرانت این راند تغییر نکرد** (صادقانه): نگهبانِ درصد و نمایش `uses_count` در UI از قبل بود؛
+  رفع‌ها سمتِ سرورند و سوئیت فرانت بی‌تغییر **۱۶۴ passed** ماند (E6).
+- **نکتۀ صداقت:** C13.1 روی `mock` gateway اثبات شد (ساخت فاکتور + `/pay` با کارتِ تستی در همان
+  هارنس). روی درگاه واقعی، توالی «webhook → PAID → لغو» همان شرط را می‌زند، ولی شاهدِ زنده‌اش تا
+  X4/X6 نداریم.
+
 ---
 
 ## Track D — UI/دسترس‌پذیری/موبایل (P015، P016)
@@ -1070,7 +1133,7 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 ### D2 دیالوگ‌های بی‌نام — ✅
 - [x] D2.1 `components/ui/Dialog.tsx:41` — تولید خودکار `aria-labelledby`/`aria-label`
 - [x] D2.2 همهٔ فراخوانی‌های `<Dialog>` بدون عنوان تکمیل شد (PaymentDialog، MembershipPurchaseDialog، CouponDialog، ManagerDashboard، SplitPaymentsPanel:214، TeamDuesPanel:590، Competitions:375، Contracts:180، TeamDetail:394، VenueDetail:1182)
-- **شاهد:** اسکن صحیح تگ‌ها (با 깊이 `{}` — نسخهٔ اولِ اسکریپت من به‌خاطر `=>` داخل `onClose` برچیدگی می‌داد و ۶ مورد **مثبت کاذب** نشان می‌داد): **۰ `<Dialog>` بدون `title=`/`aria-label`**.
+- **شاهد:** اسکن صحیح تگ‌ها (با دقتِ شمارشِ عمقِ `{}` — نسخهٔ اولِ اسکریپت من به‌خاطر `=>` داخل `onClose` برچیدگی می‌داد و ۶ مورد **مثبت کاذب** نشان می‌داد): **۰ `<Dialog>` بدون `title=`/`aria-label`**.
 - **معیار:** ✅ صفر؛ در صفحه‌خوان هر دیالوگ با نام فارسی اعلام می‌شود.
 
 ### D3 دکمه‌های فقط-آیکون بی‌نام و تودرتوهای غلط — ✅
@@ -1303,6 +1366,10 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 | C10.1-C10.3 پرداختِ رزروِ لغو/بازگشت‌وجه‌شده | `test_payment_booking_state_guard.py` | **۳ failed / ۱ passed** | **۵ passed** |
 | C10.4 `return {**PaymentResponse}` ⇒ ۵۰۰ قطعی | همان فایل (`-k redirect_url`) | **۱ failed** (`TypeError` در `payments.py:177`) | سبز |
 | C7 ابطالِ درآمدِ برگشت‌خورده | `test_finance_refund_void_consistency.py` | نقص دوفروشِ دفتری | سبز |
+| C11.1/C11.2 گم‌شدنِ کسرِ سهم و کرش ۵۰۰ | `test_split_payment_settlement.py` | **۶ failed / ۱ passed** | **۷ passed** |
+| C11.3-C11.5 مسیرِ پرداختِ سهم و چیپ‌های خالی | `SplitPaymentsPanel.test.tsx` | **۶ failed** | **۶ passed** |
+| C13.1 لغوِ رزروِ پرداخت‌شده کوپن را آزاد می‌کرد | `test_coupon_burn_and_edit_guard.py` | **۱ failed** (مصرفِ دوباره ۲۰۰ داد) | سبز |
+| C13.2 PUT بدون نگهبان٪ ⇒ رزروِ رایگان | همان فایل (دو تستِ نوع/مقدار) | **۲ failed** (هر دو ۲۰۰) | سبز |
 
 - **جمع‌بندی راند ۱۴ (بازبینی #4 و #10):** سه نقص پرداخت با نگهبان وضعیت رزرو + فیلد `payment_url`
   رفع شد، دو نقص (`بدنه‌خوانی /pay`، TTL فاکتور `PENDING`) با دلیلِ سازنده ثبت شد؛ رگرسیون دو محیط
@@ -1328,6 +1395,21 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
   — روی این ماشین falsify نمی‌شود، چون `tests/conftest.py:104` هر تراکنش را `BEGIN IMMEDIATE`
   می‌کند. این تنها موردی است که در `FINAL_REVIEW.md` برای P003 «باقی‌مانده» نوشته شده بود و
   باقی‌مانده ماند (با دلیل، نه با سکوت): جایش یک job روی PostgreSQL با دو درخواست موازی است.
+
+### E6 بازسنجی راند ۱۶ (کوپن‌ها — بک‌اند تنها)
+
+| گیت | نتیجه (۲۰۲۶-۱۰-۱۷، سطح local) | تغییر نسبت به راند ۱۵ |
+|---|---|---|
+| `python -m pytest -q -p no:warnings` | **۶۶۱ passed در 65.71s** | +۵ (فایل جدید `test_coupon_burn_and_edit_guard.py`) |
+| `pnpm test` (سوئیت واحد فرانت) | **۱۶۴ passed در ۱۹ فایل، 18.68s** | صفر؛ کد فرانت دست‌نخورده ماند |
+| `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` | بی‌تغییر |
+| `len(app.openapi()['paths'])` | **۲۳۸** | بی‌تغییر؛ endpoint تازه‌ای اضافه نشد |
+
+- دو گیتِ اولِ E5 روی **استک pinned** هم تکرار شد: `tests/test_coupon_burn_and_edit_guard.py` +
+  `tests/test_coupons.py` ⇒ **۱۵ passed در 5.29s** (`sqlmodel 0.0.42` = چیزی که CI نصب می‌کند).
+- **E2 این راند:** نه `vite build` و نه Playwright و نه Flutter اجرا شد (تغییری در آن‌ها نبود)؛
+  تست **همزمانی کوپن** (`max_uses`/`per_user_limit` بی‌قفل) هم به همان دلیلِ SQLite قابل falsify
+  نبود و در C13.3.1 ثبت شد.
 
 ---
 
@@ -1371,7 +1453,7 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
      Output Directory = `frontend/dist` ⇒ prod واقعاً از git build می‌شود؛ قبل از آن باید تأیید شود
      که سورسِ `frontend/` (نه `dist`) الان روی nginxِ `salon.absadeghi.ir` سرو نمی‌شود که قرار است
      بماند (دو مسیر انتشار متفاوت‌اند).
-  2. غیرفعال/حذف کردن trigger از Cloudflare ⇒ check از 리스팅 SHAها می‌افتد و دیگر گیتِ شکستهٔ
+  2. غیرفعال/حذف کردن trigger از Cloudflare ⇒ check از فهرستِ SHAها می‌افتد و دیگر گیتِ شکستهٔ
      دائمی نداریم؛ prodِ موجود دست‌نخورده می‌ماند.
 
 ---
