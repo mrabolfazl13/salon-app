@@ -236,3 +236,51 @@ class DashboardResponse(BaseModel):
 
 
 OccupancyResponse.model_rebuild()
+
+
+class VenueComparisonRow(BaseModel):
+    """یک سالن در مقایسهٔ بین‌سالنه — دامنهٔ مالی از دفتر کل، رزرو از Booking."""
+
+    venue_id: int
+    venue_name: Optional[str] = None
+    income: int = Field(description="درآمد غیرباطلِ این سالن در بازه (ریال)")
+    expense: int
+    net: int
+    prev_net: int = Field(description="خالص بازهٔ قبلی هم‌طول (ریال)")
+    net_change: int = Field(description="net - prev_net؛ بازهٔ قبلی خالی ⇒ همان net")
+    share_pct: float = Field(description="سهم از درآمد کل دامنه در بازه (درصد)")
+    transactions: int
+    bookings: int = Field(description="رزروهای پرداخت‌شده (confirmed/completed)")
+    cancelled: int
+    cancel_rate: float = Field(description="لغو / همهٔ رزروهای بازه (درصد)")
+    booking_revenue: int = Field(description="مجموع payment_amount رزروهای پرداخت‌شده")
+    avg_per_booking: Optional[int] = Field(
+        default=None, description="booking_revenue / bookings؛ null اگر رزروی نبود")
+    customers: int = Field(description="مشتریان یکتای رزروهای پرداخت‌شده")
+    total_active_slots: int
+    occupied_slots: int
+    occupancy_rate: float
+    rank: int = Field(description="رتبهٔ ۱-محور بر پایهٔ net نزولی")
+
+
+class VenueComparisonTotals(BaseModel):
+    venues: int
+    income: int
+    expense: int
+    net: int
+    transactions: int
+    bookings: int
+    cancelled: int
+    total_active_slots: int
+    occupied_slots: int
+    occupancy_rate: float
+
+
+class VenueComparisonResponse(BaseModel):
+    from_date: date
+    to_date: date
+    prev_from_date: date
+    prev_to_date: date
+    venue_ids: Optional[List[int]] = Field(default=None, description="null = کل سامانه (ادمین)")
+    rows: List[VenueComparisonRow]
+    totals: VenueComparisonTotals

@@ -166,6 +166,60 @@ export interface LowDemandSlot {
   occupancy_rate: number
 }
 
+/** یک سالن در مقایسهٔ بین‌سالنه — پول از دفتر کل، رزرو از Booking */
+export interface VenueComparisonRow {
+  venue_id: number
+  venue_name: string | null
+  income: number
+  expense: number
+  net: number
+  /** خالص بازهٔ قبلی هم‌طول */
+  prev_net: number
+  /** net - prev_net؛ بازهٔ قبلی خالی ⇒ همان net */
+  net_change: number
+  /** سهم از درآمد کل دامنه (درصد) */
+  share_pct: number
+  transactions: number
+  /** رزروهای پرداخت‌شده (confirmed/completed) */
+  bookings: number
+  cancelled: number
+  /** لغو / همهٔ رزروهای بازه (درصد) */
+  cancel_rate: number
+  booking_revenue: number
+  /** null اگر رزروی در بازه نبوده — صفر نه‌انگار میانگین */
+  avg_per_booking: number | null
+  customers: number
+  total_active_slots: number
+  occupied_slots: number
+  occupancy_rate: number
+  /** رتبهٔ ۱-محور بر پایهٔ خالص نزولی */
+  rank: number
+}
+
+export interface VenueComparisonTotals {
+  venues: number
+  income: number
+  expense: number
+  net: number
+  transactions: number
+  bookings: number
+  cancelled: number
+  total_active_slots: number
+  occupied_slots: number
+  occupancy_rate: number
+}
+
+export interface VenueComparisonResponse {
+  from_date: string
+  to_date: string
+  prev_from_date: string
+  prev_to_date: string
+  /** null = کل سامانه (ادمین) */
+  venue_ids: number[] | null
+  rows: VenueComparisonRow[]
+  totals: VenueComparisonTotals
+}
+
 export interface FinanceDashboard {
   from_date: string
   to_date: string
@@ -285,6 +339,11 @@ export const financeService = {
 
   getLowDemandSlots: async (params?: LowDemandParams): Promise<LowDemandSlot[]> => {
     const response = await apiClient.get('/finance/low-demand-slots', { params })
+    return response.data
+  },
+
+  getVenueComparison: async (params?: FinanceScopeParams): Promise<VenueComparisonResponse> => {
+    const response = await apiClient.get('/finance/venue-comparison', { params })
     return response.data
   },
 

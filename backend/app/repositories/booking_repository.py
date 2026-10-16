@@ -1,5 +1,5 @@
 from sqlmodel import Session, select, and_, func
-from sqlalchemy import text
+from sqlalchemy import case, text
 from datetime import date, datetime, timedelta
 from typing import Optional, List
 from app.models.booking import Booking, BookingStatus
@@ -75,6 +75,40 @@ class BookingRepository(BaseRepository[Booking]):
             bucket["bookings"] += 1
             bucket["revenue"] += int(amount or 0)
         return stats
+
+    def venue_rollups(
+        self, venue_ids: Optional[List[int]], start_date: date, end_date: date
+    ) -> dict:
+        """رزرو/لغو/درآمد/مشتری هر سالن در بازهٔ تاریخِ سانس — تک کوئری.
+
+        مثل `realized_bucket_stats` فقط CONFIRMED/COMPLETED پولی شمرده می‌شوند
+        (pending هنوز پرداخت نکرده)؛ لغوها جدا شمارش می‌شوند تا نرخ لغو ساخته شود.
+        خروجی: {venue_id: {bookings, cancelled, revenue, customers}}
+        """
+        counted = [BookingStatus.CONFIRMED, BookingStatus.COMPLETED]
+        statement = select(
+            Slot.venue_id,
+            func.sum(case((Booking.status.in_(counted), 1), else_=0)),
+            func.sum(case((Booking.status == BookingStatus.CANCELLED, 1), else_=0)),
+            func.coalesce(func.sum(case(
+                (Booking.status.in_(counted), Booking.payment_amount), else_=0)), 0),
+            func.count(func.distinct(case(
+                (Booking.status.in_(counted), Booking.user_id), else_=None))),
+        ).join(Slot, Booking.slot_id == Slot.id).where(
+            Slot.slot_date >= start_date,
+            Slot.slot_date <= end_date,
+            Booking.status.in_([*counted, BookingStatus.CANCELLED]),
+        )
+        if venue_ids is not None:
+            statement = statement.where(Slot.venue_id.in_(venue_ids))
+        statement = statement.group_by(Slot.venue_id)
+        out: dict = {}
+        for vid, bk, cn, revenue, customers in self.session.exec(statement).all():
+            out[int(vid)] = {
+                "bookings": int(bk or 0), "cancelled": int(cn or 0),
+                "revenue": int(revenue or 0), "customers": int(customers or 0),
+            }
+        return out
 
     def cancel_booking(self, booking_id: int, user_id: int) -> Optional[Booking]:
         booking = self.get_by_id(booking_id)

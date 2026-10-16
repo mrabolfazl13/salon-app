@@ -29,6 +29,7 @@ export const financeKeys = {
   bySource: (p: FinanceScopeParams) => ['finance', 'by-source', p] as const,
   occupancy: (p: FinanceScopeParams) => ['finance', 'occupancy', p] as const,
   lowDemand: (p: LowDemandParams) => ['finance', 'low-demand', p] as const,
+  venueComparison: (p: FinanceScopeParams) => ['finance', 'venue-comparison', p] as const,
   transactions: (p: TransactionListParams) => ['finance', 'transactions', p] as const,
   categories: (includeInactive: boolean) => ['finance', 'categories', { includeInactive }] as const,
   accounts: (p: AccountListParams) => ['finance', 'accounts', p] as const,
@@ -98,6 +99,14 @@ export function useLowDemandSlots(params: LowDemandParams, enabled = true) {
   return useQuery({
     queryKey: financeKeys.lowDemand(params),
     queryFn: () => financeService.getLowDemandSlots(params),
+    enabled,
+  })
+}
+
+export function useVenueComparison(params: FinanceScopeParams, enabled = true) {
+  return useQuery({
+    queryKey: financeKeys.venueComparison(params),
+    queryFn: () => financeService.getVenueComparison(params),
     enabled,
   })
 }

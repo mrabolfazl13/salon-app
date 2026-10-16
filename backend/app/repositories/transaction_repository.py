@@ -221,6 +221,43 @@ class TransactionRepository(BaseRepository[FinancialTransaction]):
             out.append((str(key), int(income or 0), int(expense or 0), int(count or 0)))
         return out
 
+    def venue_rollups(
+        self,
+        venue_ids: Optional[List[int]] = None,
+        from_date: Optional[date] = None,
+        to_date: Optional[date] = None,
+    ) -> Dict[int, Dict[str, int]]:
+        """(درآمد, هزینه, تعداد) هر سالن در بازه — تک کوئری، بدون ردیف‌های بی‌سالن.
+
+        برخلاف `series_grouped("venue")` که ردیف‌های `venue_id IS NULL` را با کلید
+        "None" برمی‌گرداند، اینجا هر کلید یک `int` واقعی است؛ مقایسهٔ بین‌سالنه
+        روی سالن است نه روی «ردیف‌های بدون سالن».
+
+        هر سه عدد (درآمد، هزینه، تعداد) روی یک جامعهٔ یکسان حساب می‌شوند: ردیف‌های
+        VOIDED هیچ‌جا شمارش نمی‌شوند، وگرنه تعداد با مجموعِ پول‌ها نمی‌خواند.
+        """
+        live = FinancialTransaction.status != TransactionStatus.VOIDED
+        stmt = select(
+            FinancialTransaction.venue_id,
+            sa_func.coalesce(sa_func.sum(case(
+                (and_(live,
+                    FinancialTransaction.direction == TransactionDirection.INCOME),
+                 FinancialTransaction.amount), else_=0)), 0),
+            sa_func.coalesce(sa_func.sum(case(
+                (and_(live,
+                    FinancialTransaction.direction == TransactionDirection.EXPENSE),
+                 FinancialTransaction.amount), else_=0)), 0),
+            sa_func.count(case((live, FinancialTransaction.id), else_=None)),
+        ).where(FinancialTransaction.venue_id.is_not(None))
+        stmt = self._scope(stmt, venue_ids)
+        stmt = self._range(stmt, from_date, to_date)
+        out: Dict[int, Dict[str, int]] = {}
+        for vid, income, expense, count in self.session.exec(
+                stmt.group_by(FinancialTransaction.venue_id)).all():
+            out[int(vid)] = {"income": int(income or 0), "expense": int(expense or 0),
+                             "transactions": int(count or 0)}
+        return out
+
     def revenue_by_source(
         self,
         venue_ids: Optional[List[int]] = None,

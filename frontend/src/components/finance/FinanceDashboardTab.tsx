@@ -65,6 +65,7 @@ import {
   useAboveSm,
 } from './shared'
 import StatementDialog from './StatementDialog'
+import VenueComparisonPanel from './VenueComparisonPanel'
 import { getTodayISO, toPersianDigits } from '@/lib/jalali'
 import PersianDatePicker from '@/components/ui/PersianDatePicker'
 import type { SeriesPoint } from '@/services/finance'
@@ -541,6 +542,10 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
           </SectionCard>
         </Grid>
       </Grid>
+
+      <Box sx={{ mt: 2 }}>
+        <VenueComparisonPanel scope={scope} />
+      </Box>
 
       <StatementDialog
         open={statementUser !== null}

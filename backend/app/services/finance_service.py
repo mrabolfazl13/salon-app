@@ -491,6 +491,82 @@ class FinanceService:
         return rows
 
     @staticmethod
+    def venue_comparison(uow, scope: Optional[List[int]],
+                         from_date: Optional[date], to_date: Optional[date]) -> dict:
+        """تجمیع بین-سالنهٔ P007 — هر سالن در دامنه یک ردیف، با رتبه و سهم و روند.
+
+        چهار تجمیع SQL (دفتر کلِ جاری، دفتر کلِ بازهٔ قبلی، رزروها، اشغال) به‌جای
+        حلقهٔ per-venue؛ بازهٔ مقایسه همیشه هم‌طولِ بلافاصله قبل از [from, to] است.
+        ردیف‌های دفتر کل با `venue_id IS NULL` (درآمد بدون سالن) عمداً نمی‌شوند،
+        ولی در `totals` هم نمی‌آیند — totals جمعِ همان ردیف‌هاست.
+        """
+        f, t = FinanceService._norm_range(from_date, to_date)
+        span = (t - f).days + 1
+        prev_to = f - timedelta(days=1)
+        prev_from = prev_to - timedelta(days=span - 1)
+
+        venue_ids = scope if scope is not None else list(
+            uow.session.exec(select(Venue.id)).all())
+        names = {v.id: v.name for v in uow.session.exec(
+            select(Venue).where(Venue.id.in_(venue_ids))).all()} if venue_ids else {}
+        current = uow.transactions.venue_rollups(scope, f, t) if venue_ids else {}
+        previous = uow.transactions.venue_rollups(scope, prev_from, prev_to) if venue_ids else {}
+        booked = uow.bookings.venue_rollups(scope, f, t) if venue_ids else {}
+        occ = uow.slots.occupancy_by_venue(venue_ids, f, t) if venue_ids else {}
+
+        total_income = sum(x["income"] for x in current.values())
+        rows = []
+        for vid in venue_ids:
+            fin = current.get(vid, {"income": 0, "expense": 0, "transactions": 0})
+            prev = previous.get(vid, {"income": 0, "expense": 0, "transactions": 0})
+            b = booked.get(vid, {"bookings": 0, "cancelled": 0, "revenue": 0, "customers": 0})
+            vt, vo = occ.get(vid, (0, 0))
+            net = fin["income"] - fin["expense"]
+            prev_net = prev["income"] - prev["expense"]
+            all_bookings = b["bookings"] + b["cancelled"]
+            rows.append({
+                "venue_id": vid,
+                "venue_name": names.get(vid),
+                "income": fin["income"],
+                "expense": fin["expense"],
+                "net": net,
+                "prev_net": prev_net,
+                "net_change": net - prev_net,
+                "share_pct": round(fin["income"] / total_income * 100, 2) if total_income else 0.0,
+                "transactions": fin["transactions"],
+                "bookings": b["bookings"],
+                "cancelled": b["cancelled"],
+                "cancel_rate": round(b["cancelled"] / all_bookings * 100, 2) if all_bookings else 0.0,
+                "booking_revenue": b["revenue"],
+                "avg_per_booking": round(b["revenue"] / b["bookings"]) if b["bookings"] else None,
+                "customers": b["customers"],
+                "total_active_slots": vt,
+                "occupied_slots": vo,
+                "occupancy_rate": round(vo / vt * 100, 2) if vt else 0.0,
+            })
+        rows.sort(key=lambda r: (-r["net"], -r["income"], r["venue_id"]))
+        for i, r in enumerate(rows, start=1):
+            r["rank"] = i
+
+        total_slots = sum(r["total_active_slots"] for r in rows)
+        total_occupied = sum(r["occupied_slots"] for r in rows)
+        totals = {
+            "venues": len(rows),
+            "income": sum(r["income"] for r in rows),
+            "expense": sum(r["expense"] for r in rows),
+            "net": sum(r["net"] for r in rows),
+            "transactions": sum(r["transactions"] for r in rows),
+            "bookings": sum(r["bookings"] for r in rows),
+            "cancelled": sum(r["cancelled"] for r in rows),
+            "total_active_slots": total_slots,
+            "occupied_slots": total_occupied,
+            "occupancy_rate": round(total_occupied / total_slots * 100, 2) if total_slots else 0.0,
+        }
+        return {"from_date": f, "to_date": t,
+                "prev_from_date": prev_from, "prev_to_date": prev_to,
+                "venue_ids": scope, "rows": rows, "totals": totals}
+
+    @staticmethod
     def dashboard(uow, actor: User, venue_id: Optional[int],
                   from_date: Optional[date], to_date: Optional[date],
                   venue_scope: Optional[List[int]] = None) -> dict:

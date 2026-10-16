@@ -32,6 +32,7 @@ from app.schemas.finance import (
     TransactionListResponse,
     TransactionResponse,
     TransactionVoidRequest,
+    VenueComparisonResponse,
 )
 from app.services.finance_service import FinanceService
 from app.utils.auth import get_current_user
@@ -135,6 +136,24 @@ def get_occupancy(
     """اشغال سانس = (booked+reserved) / سانس‌های فعال (نامسدود)."""
     scope = _scope(uow, current_user, venue_id, VIEW_CODES, request)
     return FinanceService.occupancy(uow, scope, from_date, to_date)
+
+
+@router.get("/venue-comparison", response_model=VenueComparisonResponse)
+def get_venue_comparison(
+    venue_id: Optional[int] = Query(None),
+    from_date: Optional[date] = Query(None, alias="from"),
+    to_date: Optional[date] = Query(None, alias="to"),
+    request: Request = None,
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    current_user: User = Depends(get_current_user),
+):
+    """مقایسهٔ شانه‌به‌شانهٔ سالن‌های دامنه (P007) — یک ردیف برای هر سالن.
+
+    `venue_id` مثل بقیهٔ گزارش‌ها دامنه را به یک سالن محدود می‌کند؛ بدون آن،
+    سالن‌های مدیر (یا کل سامانه برای ادمین) مقایسه می‌شوند.
+    """
+    scope = _scope(uow, current_user, venue_id, VIEW_CODES, request)
+    return FinanceService.venue_comparison(uow, scope, from_date, to_date)
 
 
 @router.get("/low-demand-slots", response_model=List[LowDemandSlot])
