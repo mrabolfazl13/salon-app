@@ -1331,6 +1331,51 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 
 ---
 
+## Track F — ریشۀ قطعیِ check قرمزِ «Workers Builds: salon-app» (راند ۱۵ ✅ تشخیص، رفع مسدود)
+
+> این check از GitHub Actions نیست؛ توسط GitHub App «Cloudflare Workers and Pages» ساخته می‌شود،
+> پس لاگش در API لاگ‌های Actions نبود و تا این راند فقط «failure» دیده می‌شد. خواندن از
+> `GET /accounts/{acc}/builds/builds/{uuid}` و `…/logs`:
+> `https://api.github.com/repos/mrabolfazl13/salon-app/commits/{sha}/check-runs` → `summary` → Build ID.
+
+- [x] **C12.1 تشخیص (شاهد خام، build `a2ddbec6-9eaf-41c9-b33a-13a8d9a8d2ee` روی `08a3833`):**
+  ```
+  Executing user deploy command: npx wrangler deploy
+  Detected Project Settings: Worker Name: salon-app · Framework: Static · Output Directory: frontend
+  ✘ [ERROR] Asset too large.
+    … a file /opt/buildhome/repo/frontend/Salon-v1.1.0-universal.apk with a size of 65.2 MiB.
+  Failed: error occurred while running deploy command
+  ```
+  یعنی **از زمان اولین push تا امروز** این check به یک فایل باینریِ commit‌شده می‌میرد، نه به کد؛
+  build زمان کل ۲۱ ثانیه دارد و در مرحلۀ `deploying` رد می‌شود (`status: stopped`,
+  `build_outcome: fail`).
+- [x] **C12.2 پیکربندی trigger (از همان API):** `build_command: ""` (خالی)،
+  `deploy_command: "npx wrangler deploy"`، `root_directory: "/"`، `branch_includes: ["master"]`.
+  چون build نمی‌شود، «Output Directory: frontend» به **دایرکتوریِ سورسِ Vite** اشاره دارد، نه
+  `frontend/dist`؛ یعنی حتی اگر APK حذف شود، wrangler دایرکتوری‌ای را آپلود می‌کند که
+  `index.html`ش به `/src/main.tsx` ارجاع می‌دهد ⇒ یک سورس‌دیپِ شکسته روی prod.
+  پس «حذف APK» **رفع نیست** — تنها رفعِ درست، build command + خروجی `frontend/dist` است.
+- [x] **C12.3 دامنهٔ خطر (چرا خودسرانه انجام نشد):** prodِ `salon-app` روی
+  `salon-app.mrabolfazl1314.workers.dev` زنده است (`/workers/subdomain` = `mrabolfazl1314`)،
+  route سفارشی ندارد (`/workers/scripts/salon-app/routes` → `[]`)، و آخرین deployment‌های موفقش
+  دو `dash_template` با `triggered_by: upload` در ۲۰۲۶-۱۰-۱۰ هستند (چسبانی، نه از git). یعنی
+  سبز کردن این build **نسخۀ جاریِ prod را با یک build تازه جایگزین می‌کند** — و با پیکربندی فعلی،
+  جایگزینی با سورس‌دیپِ شکسته. PATCH کردن trigger روی such pipeline خارج از مجوز «push/tag CI» است
+  ⇒ به کاربر واگذار شد (X9).
+- [x] **C12.4 ثبتِ منشأ: دو APK در `frontend/` commit شده** (`git ls-files`):
+  `Salon-v0.2.0-arm64.apk` = ۲۰٬۴۴۱٬۲۱۰ بایت و `Salon-v1.1.0-universal.apk` = ۶۸٬۴۱۴٬۹۰۴ بایت.
+  سقف asset در Workers **۲۵ MiB** است ⇒ فقط دومی build را می‌شکند. حذف/جابه‌جایی فایل‌ها در
+  HEAD یک commit معمولی و برگشت‌پذیر است، ولی تاریخچه را کوچک نمی‌کند (همان X5).
+- [x] **C12.5 دو گزینهٔ پیشِ روی کاربر (هر دو با شاهد همین راند):**
+  1. build command = `cd frontend && pnpm install --frozen-lockfile && pnpm build` و
+     Output Directory = `frontend/dist` ⇒ prod واقعاً از git build می‌شود؛ قبل از آن باید تأیید شود
+     که سورسِ `frontend/` (نه `dist`) الان روی nginxِ `salon.absadeghi.ir` سرو نمی‌شود که قرار است
+     بماند (دو مسیر انتشار متفاوت‌اند).
+  2. غیرفعال/حذف کردن trigger از Cloudflare ⇒ check از 리스팅 SHAها می‌افتد و دیگر گیتِ شکستهٔ
+     دائمی نداریم؛ prodِ موجود دست‌نخورده می‌ماند.
+
+---
+
 ## موارد مسدود (تصمیم/دسترسی بیرونی — نباید جلوی بقیه را بگیرد)
 
 | # | مورد | چرا مسدود | چه‌کسی باید بدهد |
@@ -1343,3 +1388,4 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 | X6 | مستقر کردن تغییرات بک‌اند روی سرور prod | روی سرویس زنده؛ نیاز به تأیید صریح. مهاجرت‌های منتظر اجرا: `m0s021coachesessions`، `m0s022tournaments`، `m0s023staffshifts`، `m0s024teamchallenges`، `m0s025roundrobin`، `m0s026doubleelim` (زنجیرۀ تک‌سر؛ همه روی SQLite با up/down/up راستی‌آزمایی شدند، و `m0s025` و `m0s026` علاوه بر آن روی PostgreSQL واقعی با up/down/up + خواندن برچسب‌های enum و نوع بومی `tournamentbracket` اثبات شد) | کاربر |
 | X7 | دادهٔ تاریخی ۱۲ ماهه برای ML قیمت | ذاتاً زمان‌بر | — |
 | X8 | عدد‌های بازاریابی صفحهٔ اصلی (`HeroSection.tsx:15-20`: +۱۲٬۰۰۰ بازیکن، +۵۰ زمین، +۳۰۰ مسابقه، ۴.۸) و شمارنده‌های `StatsSection` ساختگی‌اند؛ endpoint واقعی وجود ندارد | یا از سرور باید بیاید یا از صفحه برود — تصمیم محصول | کاربر |
+| X9 | تصمیم راجع به trigger ابرِ «Workers Builds: salon-app» (دو گزینه در C12.5): build+dist، یا غیرفعال کردن | PATCH روی pipeline زنده؛ با پیکربندی فعلی سبز شدنش یعنی جایگزینی prodِ `salon-app.mrabolfazl1314.workers.dev` با سورس‌دیپِ شکسته. خارج از مجوز push/tag | کاربر |
