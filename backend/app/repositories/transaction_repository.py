@@ -44,7 +44,7 @@ class TransactionRepository(BaseRepository[FinancialTransaction]):
     def __init__(self, session: Session):
         super().__init__(FinancialTransaction, session)
 
-    # ─────────────────────────── کمکى ───────────────────────────
+    # ─────────────────────────── کمکی ───────────────────────────
 
     @property
     def _dialect(self) -> str:
@@ -65,6 +65,35 @@ class TransactionRepository(BaseRepository[FinancialTransaction]):
     def get_by_idempotency_key(self, key: str) -> Optional[FinancialTransaction]:
         stmt = select(FinancialTransaction).where(FinancialTransaction.idempotency_key == key)
         return self.session.exec(stmt).first()
+
+    def refund_vs_live_income(
+        self,
+        source_type: Optional[TransactionSourceType],
+        source_id: Optional[int],
+    ) -> tuple[int, int]:
+        """جمعِ برگشت‌های زنده و جمعِ درآمدهای زندهٔ همین منبع، در یک کوئری.
+
+        درآمد و برگشتش جفتِ `(source_type, source_id)` مشترک دارند (برگشت با
+        `type=refund` شناخته می‌شود). منبع بدون جفت (ردیف‌های دستی) `(0, 0)`
+        می‌دهد، پس باطل‌کردنشان همیشه آزاد است.
+        """
+        if source_type is None or source_id is None:
+            return 0, 0
+        live = FinancialTransaction.status != TransactionStatus.VOIDED
+        stmt = select(
+            sa_func.coalesce(
+                sa_func.sum(case((and_(live, FinancialTransaction.type == TransactionType.REFUND),
+                                  FinancialTransaction.amount), else_=0)), 0),
+            sa_func.coalesce(
+                sa_func.sum(case((and_(live, FinancialTransaction.direction
+                                       == TransactionDirection.INCOME),
+                                  FinancialTransaction.amount), else_=0)), 0),
+        ).where(
+            FinancialTransaction.source_type == source_type,
+            FinancialTransaction.source_id == source_id,
+        )
+        row = self.session.exec(stmt).one()
+        return int(row[0]), int(row[1])
 
     # ─────────────────────────── لیست/فیلتر ───────────────────────────
 

@@ -392,7 +392,8 @@ async def cancel_booking(
     for _tpl, _lbl in (("booking-receipt:{id}", "فیش واریزی"), ("booking-inperson:{id}", "در محل")):
         _orig = uow.transactions.get_by_idempotency_key(_tpl.format(id=booking_id))
         if _orig and _orig.status not in ("voided",):
-            FinanceService.record_refund(uow, amount=_orig.amount, original_source_id=_orig.id,
+            FinanceService.record_refund(uow, amount=_orig.amount, original_source_id=_orig.source_id,
+                source_type=_orig.source_type,
                 venue_id=ref_slot.venue_id if ref_slot else None,
                 counterparty_user_id=ref_user.user_id if ref_user else None,
                 description=f"بازگشت وجه لغو رزرو #{booking_id} ({_lbl})",

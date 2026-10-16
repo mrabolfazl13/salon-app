@@ -49,7 +49,8 @@ def venue_setup(db, seed):
 def test_is_past_slot_rule():
     today = date.today()
     assert is_past_slot(today - timedelta(days=1), dtime(23, 59)) is True
-    assert is_past_slot(today, (datetime.now() - timedelta(hours=1)).time()) is True
+    an_hour_ago = datetime.now() - timedelta(hours=1)
+    assert is_past_slot(an_hour_ago.date(), an_hour_ago.time()) is True
     future_dt = datetime.now() + timedelta(days=1)
     assert is_past_slot(future_dt.date(), future_dt.time()) is False
 

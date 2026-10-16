@@ -286,6 +286,17 @@ class FinanceService:
         tx = FinanceService.get_transaction_in_scope(uow, tx_id, scope)
         if tx.status == TransactionStatus.VOIDED:
             raise HTTPException(status_code=400, detail="این تراکنش پیش‌تر باطل شده است")
+        # باطل‌کردنِ درآمدی که برگشتش cleared است، پول را دوبار از دفتر بیرون می‌برد:
+        # ردیف درآمد حذف می‌شود و ردیف expenseِ برگشت سرِ جایش می‌ماند ⇒ خالص منفیِ کاذب.
+        # مجاز فقط تا جایی است که برگشت‌های زنده، درآمدهای زندهٔ دیگرِ همان منبع را پوشش
+        # دهند (رزروهای چندردیفه: فیش + در محل، یا بازگشتِ جزئی).
+        if tx.direction == TransactionDirection.INCOME:
+            refunded, live_income = uow.transactions.refund_vs_live_income(
+                tx.source_type, tx.source_id)
+            if refunded > 0 and refunded > live_income - tx.amount:
+                raise HTTPException(
+                    status_code=400,
+                    detail="این درآمد برگشت خورده است؛ ابتدا ردیف بازگشت وجه را باطل کنید")
         # دفتر کل فقط-افزودنی: خود ردیف حذف نمی‌شود؛ وضعیت به voided تبدیل می‌گردد
         updated = uow.transactions.update(tx.id, {
             "status": TransactionStatus.VOIDED,
