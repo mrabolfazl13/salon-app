@@ -52,6 +52,58 @@ export interface PricingPreview {
   rules: PricingPreviewRule[]
 }
 
+// ─────────── C5 — تحلیل تقاضا و پیشنهاد قیمت (فقط‌خواندنی) ───────────
+
+export interface OccupancyBucket {
+  /** date.weekday() پایتون: 0=دوشنبه … 6=یکشنبه — همان کلید قوانین */
+  weekday: number
+  hour: number
+  label: string
+  slots: number
+  bookings: number
+  /** null یعنی مخرجی برای تقسیم نبود (نه صفرِ گمراه‌کننده) */
+  occupancy: number | null
+  avg_paid: number | null
+}
+
+export interface OccupancyReport {
+  venue_id: number
+  days: number
+  start_date: string
+  end_date: string
+  total_slots: number
+  total_bookings: number
+  overall_occupancy: number | null
+  overall_avg_paid: number | null
+  buckets: OccupancyBucket[]
+}
+
+export type SuggestionConfidence = 'high' | 'medium' | 'low'
+
+export interface PriceSuggestion {
+  venue_id: number
+  slot_date: string
+  start_time: string
+  weekday: number
+  hour: number
+  days: number
+  duration: number
+  base_price: number
+  engine_price: number
+  rules: PricingPreviewRule[]
+  floor_price: number
+  ceiling_price: number
+  recommended_price: number
+  /** false ⇒ پیشنهاد = قیمت موتور (داده کم است یا clamp برابرش کرده) */
+  applies: boolean
+  confidence: SuggestionConfidence
+  delta_percent: number
+  demand_gap: number | null
+  bucket: OccupancyBucket | null
+  overall_occupancy: number | null
+  reasons: string[]
+}
+
 export const pricingService = {
   listRules: async (venueId: number, includeInactive = true): Promise<PricingRule[]> => {
     const response = await apiClient.get('/pricing/rules', {
@@ -88,6 +140,32 @@ export const pricingService = {
       start_time: data.start_time,
       base_price: data.base_price ?? null,
       duration: data.duration ?? 90,
+    })
+    return response.data
+  },
+
+  occupancy: async (venueId: number, days?: number): Promise<OccupancyReport> => {
+    const response = await apiClient.get('/pricing/occupancy', {
+      params: { venue_id: venueId, days: days ?? null },
+    })
+    return response.data
+  },
+
+  suggestion: async (data: {
+    venue_id: number
+    slot_date: string
+    start_time: string
+    duration?: number
+    days?: number
+  }): Promise<PriceSuggestion> => {
+    const response = await apiClient.get('/pricing/suggestion', {
+      params: {
+        venue_id: data.venue_id,
+        slot_date: data.slot_date,
+        start_time: data.start_time,
+        duration: data.duration ?? 90,
+        days: data.days ?? null,
+      },
     })
     return response.data
   },

@@ -51,6 +51,31 @@ class BookingRepository(BaseRepository[Booking]):
         ).order_by(Slot.slot_date.desc()).limit(limit)
         return self.session.exec(statement).all()
     
+    def realized_bucket_stats(self, venue_id: int, start_date: date, end_date: date) -> dict:
+        """آمارِ محقق‌شدهٔ هر دستهٔ (روز هفته, ساعت) از روی رزروهای پرداخت‌شده.
+
+        منبع سیگنال تقاضا «Booking» است نه status سانس: سانسِ لغوشده به AVAILABLE برمی‌گردد
+        و status گذشته را نمی‌بیند، ولی رزروِ لغوشده هرگز شمارش نمی‌شود.
+        فقط CONFIRMED/COMPLETED (pending هنوز پول نداده). payment_amount قیمت واقعی پرداختی است.
+        خروجی: {(date.weekday(), hour): {"bookings": n, "revenue": sum}}
+        """
+        counted = [BookingStatus.CONFIRMED, BookingStatus.COMPLETED]
+        statement = select(
+            Slot.slot_date, Slot.start_time, Booking.payment_amount
+        ).join(Slot, Booking.slot_id == Slot.id).where(
+            Slot.venue_id == venue_id,
+            Booking.status.in_(counted),
+            Slot.slot_date >= start_date,
+            Slot.slot_date <= end_date,
+        )
+        stats: dict = {}
+        for slot_date, start_time, amount in self.session.exec(statement).all():
+            key = (slot_date.weekday(), start_time.hour)
+            bucket = stats.setdefault(key, {"bookings": 0, "revenue": 0})
+            bucket["bookings"] += 1
+            bucket["revenue"] += int(amount or 0)
+        return stats
+
     def cancel_booking(self, booking_id: int, user_id: int) -> Optional[Booking]:
         booking = self.get_by_id(booking_id)
         if booking and booking.user_id == user_id and booking.status == BookingStatus.CONFIRMED:

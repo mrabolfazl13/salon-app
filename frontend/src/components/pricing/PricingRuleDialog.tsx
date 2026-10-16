@@ -25,16 +25,27 @@ import { Icon } from '@iconify/react'
 import { MODIFIER_LABELS, WEEKDAYS_PY_ORDER, parseIntFa, timeToHHMM } from './shared'
 import type { ModifierType, PricingRule, PricingRulePayload } from '@/services/pricing'
 
+/** پیش‌پرکردن قانون تازه (مثلاً از پیشنهاد قیمت) — فقط وقتی rule=null معنا دارد */
+export interface RuleDraft {
+  day_of_week?: number | null
+  start_time?: string | null
+  end_time?: string | null
+  modifier_type?: ModifierType
+  value?: number
+  label?: string
+}
+
 interface Props {
   open: boolean
   venueId: number
   rule: PricingRule | null
+  draft?: RuleDraft | null
   saving: boolean
   onClose: () => void
   onSubmit: (payload: PricingRulePayload) => void
 }
 
-const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, saving, onClose, onSubmit }) => {
+const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null, saving, onClose, onSubmit }) => {
   const [day, setDay] = useState<number | null>(null)
   const [holidayApplies, setHolidayApplies] = useState(false)
   const [startTime, setStartTime] = useState('')
@@ -62,18 +73,20 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, saving, onClo
       setLabel(rule.label)
       setActive(rule.is_active)
     } else {
-      setDay(null)
+      const dType = draft?.modifier_type ?? 'percent'
+      const dValue = draft?.value
+      setDay(draft?.day_of_week ?? null)
       setHolidayApplies(false)
-      setStartTime('')
-      setEndTime('')
-      setModifierType('percent')
-      setIncrease(true)
-      setAmount('')
+      setStartTime(draft?.start_time ?? '')
+      setEndTime(draft?.end_time ?? '')
+      setModifierType(dType)
+      setIncrease(dValue == null || dValue >= 0)
+      setAmount(dValue == null ? '' : String(Math.abs(dType === 'percent' ? dValue / 100 : dValue)))
       setPriority('0')
-      setLabel('')
+      setLabel(draft?.label ?? '')
       setActive(true)
     }
-  }, [open, rule])
+  }, [open, rule, draft])
 
   const handleSubmit = () => {
     setLocalError('')

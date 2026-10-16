@@ -26,8 +26,9 @@ import { ForbiddenPanel } from '@/components/crm/shared'
 import PricingRulesTab from '@/components/pricing/PricingRulesTab'
 import HolidaysTab from '@/components/pricing/HolidaysTab'
 import CouponsTab from '@/components/pricing/CouponsTab'
+import PricingInsightsTab from '@/components/pricing/PricingInsightsTab'
 
-const TAB_KEYS = ['rules', 'holidays', 'coupons'] as const
+const TAB_KEYS = ['rules', 'insights', 'holidays', 'coupons'] as const
 type TabKey = (typeof TAB_KEYS)[number]
 
 const ManagerPricing: React.FC = () => {
@@ -146,6 +147,7 @@ const ManagerPricing: React.FC = () => {
                   }}
                 >
                   <Tab value="rules" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:tag-percent-outline" className="h-4 w-4" />قوانین قیمت</Box>} />
+                  <Tab value="insights" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:chart-bubble" className="h-4 w-4" />تقاضا و پیشنهاد</Box>} />
                   <Tab value="holidays" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:calendar-multiple" className="h-4 w-4" />تعطیلات</Box>} />
                   <Tab value="coupons" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:ticket-percent-outline" className="h-4 w-4" />کدهای تخفیف</Box>} />
                 </Tabs>
@@ -171,6 +173,7 @@ const ManagerPricing: React.FC = () => {
               {venues.length > 0 && (
                 <>
                   {tab === 'rules' && <PricingRulesTab venues={venues} venueId={selectedVenue} />}
+                  {tab === 'insights' && <PricingInsightsTab venues={venues} venueId={selectedVenue} />}
                   {tab === 'holidays' && <HolidaysTab venues={venues} venueId={selectedVenue} />}
                   {tab === 'coupons' && <CouponsTab venues={venues} venueId={selectedVenue} />}
                 </>

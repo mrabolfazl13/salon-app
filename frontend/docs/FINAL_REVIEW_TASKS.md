@@ -1,6 +1,10 @@
 # فایل تسک اجرای FINAL_REVIEW (breakdown ریز، قابل پیگیری)
 
-**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۶ — C4 حریف‌یابی و چالش بازی) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۷ — C5 تحلیل تقاضا و پیشنهاد قیمت) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**وضعیت راند ۷:** C5.1 + C5.2 ✅ کد + تست (بک‌اند **۵۲۷ passed در ۱۰۶.۴۱s** از ۱۶ تست جدید insight، فرانت
+**۱۳۲ passed در ۱۷ فایل** از ۲۱ تست جدید، `tsc` ۰ · `eslint` ۰ · build ✓ ۲۲.۶۰s بدون `.map` ·
+دروازۀ ruff `E9,F82` پاک · **۲۳۷** مسیر OpenAPI با ۲ مسیر فقط‌خواندنی `/pricing/{occupancy,suggestion}` ·
+**بدون مهاجرت**: هیچ جدول تازه‌ای ساخته نشد، سیگنال از `Booking`/`Slot` موجود خوانده می‌شود.
 **وضعیت راند ۶:** C4 ✅ کد + تست (بک‌اند **۵۱۱ passed در ۱۰۲.۱۱s** از ۳۸ تست جدید matchmaking، فرانت
 **۱۱۱ passed در ۱۵ فایل** از ۲۶ تست جدید، `tsc` ۰ · `eslint` ۰ · build ✓ ۳۱.۱۸s بدون `.map` ·
 دروازۀ ruff `E9,F82` پاک · **۲۳۵** مسیر OpenAPI با ۶ مسیر `/matching*` · مهاجرت `m0s024` چرخهٔ
@@ -13,8 +17,21 @@ up/down/up را سالم گذراند).
 `tsc` ۰ · `eslint` ۰ · build ✓ ۲۰.۱۴s بدون `.map` · دروازۀ ruff `E9,F82` پاک · ۲۲۴ مسیر OpenAPI).
 **وضعیت راند ۳:** Track A ✅ (جز A9.1=X5) · Track B ✅ (جز B7.2=X8) · **Track D ✅ کامل** — axe-core روی
 ۶ مسیر عمومی: **۰ نود نقض**؛ گیت‌ها: `tsc` ۰ · `eslint` ۰ · ۳۷ تست vitest · build ✓ ۵۳.۰۶s بدون `.map`.
-باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: C5.1-C5.2، برش‌های C2.5 و X1–X8.
+باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: برش‌های C2.5، C5.3 (ML واقعی = مسدود ذاتی) و X1–X8.
 **قانون:** هیچ تسکی بدون «معیار راستی‌آزمایی» بسته نمی‌شود. `✅` = انجام و راستی‌آزمایی‌شده، `🟡` = کد نوشته، در انتظار CI/راستی‌آزمایی، `⛔` = مسدود (تصمیم کاربر/دسترسی بیرونی).
+
+### گیت‌های راند ۷ (C5 — شاهد زنده، ۲۰۲۶-۱۰-۱۶)
+| گیت | نتیجه |
+|---|---|
+| `pytest tests/test_pricing_insight.py` | **۱۶ passed** در 1.06s |
+| `pytest` (رگرسیون کامل بک‌اند) | **۵۲۷ passed** در 106.41s (۵۱۱ قبل + ۱۶) |
+| `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` |
+| `app.openapi()['paths']` | **۲۳۷** (۲۳۵ قبل) — ۲ مسیر تازه زیر `/api/v1/pricing*` |
+| مهاجرت | لازم نبود — جدول تازه‌ای ساخته نشد |
+| `tsc --noEmit` / `eslint --quiet` | exit **0** / exit **0** |
+| `vitest run` | **۱۳۲ passed در ۱۷ فایل** (۲۱ جدید: پنل ۱۶ + service ۵) |
+| `vite build` | `✓ built in 22.60s`، `dist/assets/*.map` = **۰** |
+| `curl` دامنهٔ prod | exit **6** (resolve نمی‌شود) ⇒ راستی‌آزمایی زنده مسدود، منتظر X6 |
 
 ### گیت‌های راند ۶ (C4 — شاهد زنده، ۲۰۲۶-۱۰-۱۶)
 | گیت | نتیجه |
@@ -36,11 +53,11 @@ up/down/up را سالم گذراند).
 | ادعای سند | واقعیت کد |
 |---|---|
 | پرداخت تقسیم‌شده ۰٪ | **ساخته شده** — مدل+API+UI (`backend/app/models/split_payment.py:44`, `frontend/src/components/split-payment/SplitPaymentsPanel.tsx`) |
-| قیمت‌گذاری پویا ۰٪ | **موتور قوانین سمت سرور موجود است** (`backend/app/services/pricing_service.py:95`)؛ فقط forecast/ML غایب است |
+| قیمت‌گذاری پویا ۰٪ | **موتور قوانین سمت سرور** (`backend/app/services/pricing_service.py:95`) **+ سیگنال تقاضا و پیشنهاد قیمت** (`backend/app/services/pricing_insight_service.py:73` — راند ۷)؛ forecast/ML هنوز غایب است و عمداً ساخته نشد |
 | اعلان‌های دستی | **۹ job زمان‌بندی‌شده** (`backend/app/tasks/worker.py:27-75`) |
 | CI بدون امضا | **امضا در workflow سیم‌کشی شده** (`.github/workflows/build-all-platforms.yml:79-100,211-250`)؛ اگر secret نباشد فقط warning |
 | CORS باز و ناامن | `*` نیست؛ مشکل واقعی: `allow_methods/headers="*"` با `credentials=True` |
-| rate limit فقط auth | روی ۵ روتر هست؛ مشکل واقعی: **۲۴ روتر بدون محدودیت + fail-open** |
+| rate limit فقط auth | گاردِ سطح-endpoint روی **۵** روتر از **۳۳** (`auth`, `bookings`, `contracts`, `games`, `payments`)؛ مشکل واقعی: **۲۸ روتر فقط تحت middleware سراسری + fail-open** (شمارش ۲۰۲۶-۱۰-۱۶، مسیرهای تازهٔ C5 هم در همین دسته‌اند) |
 | CSP ندارد | در بک‌اند هست؛ مشکل واقعی: **nginx برای SPA هدری نمی‌فرستد** + `unsafe-inline` |
 | bundle بهینه نشده | ۳۶ روت lazy + ۷ manualChunks؛ مشکل واقعی: **sourcemap در prod منتشر می‌شود** |
 | «۴۸ `Typography variant="h1..h6"` بدون `component=` به `<div>` رندر می‌شود» (D10.2) | **غلط** — MUI این variantها را به عنصر عنوان نگاشت می‌کند (`node_modules/@mui/material/Typography/Typography.js:102,141`)؛ نقص واقعی **سطحِ غلط سرفصل** بود (axe `heading-order`) |
@@ -49,9 +66,11 @@ up/down/up را سالم گذراند).
 | صفحهٔ سالن سالم است | **باگ تولیدی** در دسکتاپ: عنوان/برچسب/آدرس سالن پشت `overflow:hidden` و تصویرِ هم‌جریان **نامرئی** بود (D13؛ با `elementFromPoint` ثابت شد) |
 
 **۵ مورد عملاً غایب (وضعیت ۲۰۲۶-۱۰-۱۶):** تقویم `.ics` ساخته شد (B1)، نقش مربی کامل شد (C1)،
-تورنمنت/براکت تک‌حذفی ساخته شد (C2)، شیفت پرسنل ساخته شد (C3) و **حریف‌یابی هوشمند + چالش بازی
-ساخته شد (C4 — بک‌اند ۳۸ تست + فرانت ۲۶ تست؛ رگرسیون ۵۱۱ تست بک‌اند و ۱۱۱ تست فرانت سبز)**.
-باقی‌ماندۀ واقعی فقط برش‌های C2.5 (Double-Elimination/Round-Robin) و C5 است.
+تورنمنت/براکت تک‌حذفی ساخته شد (C2)، شیفت پرسنل ساخته شد (C3)، حریف‌یابی هوشمند + چالش بازی
+ساخته شد (C4) و **تحلیل تقاضا + پیشنهاد قیمت چسبیده به موتور ساخته شد (C5.1/C5.2 — بک‌اند ۱۶ تست
++ فرانت ۲۱ تست؛ رگرسیون ۵۲۷ تست بک‌اند و ۱۳۲ تست فرانت سبز)**.
+باقی‌ماندۀ واقعی فقط برش‌های C2.5 (Double-Elimination/Round-Robin) و C5.3 است — و C5.3 (ML واقعی)
+**مسدود ذاتی** است: دادهٔ ۱۲ ماهه در این سامانه وجود ندارد، پس عددِ مدل در این مرحله فقط ساختگی می‌شد.
 **باگ قطعی و بزرگ (رفع شد — A1):** ۴ endpoint نوتیفیکیشن در بک‌اند وجود ندارد
 (`backend/app/api/v1/notifications.py:16,32` فقط fcm-token) ولی فرانت این‌ها را صدا می‌زند
 (`frontend/src/services/notification.ts:20,25,30,35`) → پنل اعلان‌ها ۴۰۴ می‌گیرد؛ درحالی‌که
@@ -482,10 +501,56 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   **روی prod هنوز اجرا نشده:** مهاجرت `m0s024` باید روی سرور run شود (X6 = نیازمند تأیید صریح کاربر)
   و دامنهٔ `api.salon.absadeghi.ir` از این ماشین resolve نمی‌شود (`curl` ⇒ exit 6).
 
-### C5 قیمت‌گذاری بر پایهٔ تقاضا (P008 — موتور قوانین هست)
-- [ ] C5.1 جمع‌آوری سیگنال نرخ اشغال per slot-hour (بدون ML)
-- [ ] C5.2 پیشنهاد قیمت از روی تاریخچه + سقف/کف ایمن
-- [ ] C5.3 ⛔ ML واقعی: نیاز به دادهٔ ۱۲ ماهه (مسدود ذاتی)
+### C5 قیمت‌گذاری بر پایهٔ تقاضا (P008 — موتور قوانین هست) — راند ۷ ✅ کد + تست
+- [x] C5.1 جمع‌آوری سیگنال نرخ اشغال per slot-hour (بدون ML)
+- [x] C5.2 پیشنهاد قیمت از روی تاریخچه + سقف/کف ایمن
+- [x] C5.3 ⛔ ML واقعی: نیاز به دادهٔ ۱۲ ماهه (مسدود ذاتی) — این راند عمداً **آمار توصیفی** است، نه مدل
+- **بک‌اند:**
+  - سرویس تازه `backend/app/services/pricing_insight_service.py` — `occupancy()` و `suggest_price()`.
+    سیگنال از **`Booking`** خوانده می‌شود نه `Slot.status`: رزروِ لغوشده سانس را به AVAILABLE برمی‌گرداند
+    و تاریخچۀ status پاک می‌شود، پس شمارشِ status گمراه‌کننده است؛ در `BookingRepository.realized_bucket_stats`
+    فقط `CONFIRMED/COMPLETED` شمرده می‌شود (pending پول نداده) و `payment_amount` به‌عنوان درآمد واقعی.
+  - مخرجِ اشغال: `SlotRepository.slot_bucket_totals` (سانس‌های ACTIVE در پنجره). **کلید هر دو side
+    `date.weekday()` (۰=دوشنبه)** است تا با `PricingRule.day_of_week` هم‌خوان بماند؛ `demand_profile`
+    موجود دامنهٔ `%w` (۰=یکشنبه) دارد و عمداً استفاده نشد — خلط این دو سیگنال را چند روز جابه‌جا می‌کند
+    و بی‌سروصدا غلط می‌ماند.
+  - **پنجره فقط گذشته** (`end = today-1`): سانس آینده هنوز اشغال نشده و وارد کردنش مخرج را رقیق و
+    نرخ را کاذب پایین می‌برد.
+  - **صادقانه بودن اعداد:** هر عددی که دادهٔ کافی پشتش نیست `None` است (نه صفر) — `occupancy: null`
+    و `avg_paid: null` در UI «—» می‌شود؛ با تستِ فرانتی `shows «—» instead of a misleading ۰٪ when the denominator is missing`.
+  - ریل‌های ایمن در `app/config.py` (۷ تنظیم تازه): `PRICING_INSIGHT_WINDOW_DAYS=90`,
+    `PRICING_INSIGHT_MIN_SAMPLES=3`, `PRICING_DEMAND_SENSITIVITY_PERCENT=25`,
+    `PRICING_SUGGESTION_MAX_DELTA_PERCENT=15`, `FLOOR=70`, `CEILING=130`, `ROUND_STEP=5000`.
+    موتور قیمت قبلاً **فقط کف** داشت و سقف نداشت؛ اینجا سقف + گام گردِ ریالی اضافه شد.
+  - **هیچ چیزی اعمال/ذخیره نمی‌شود:** دو endpoint فقط‌خواندنی (`GET /pricing/occupancy`,
+    `GET /pricing/suggestion`) با همان `ensure_venue_permission(..., PRICING_MANAGE)`؛ تست‌های
+    `test_suggest_price_writes_nothing` (هیچ رزرو/قانون/قیمتی نوشته نمی‌شود) و
+    `test_occupancy_and_suggestion_endpoints_are_venue_scoped` (فقط برای مدیر همان سالن) هر دو مسیر را می‌بندند.
+  - مهاجرت: **ندارد** — جدول تازه‌ای ساخته نشد، فقط کوئری روی `Booking`/`Slot` موجود.
+- **فرانت:**
+  - تب تازهٔ **«تقاضا و پیشنهاد»** در `pages/manager/pricing/ManagerPricing.tsx` (`TAB_KEYS` → ۴ تب)
+    و کامپوننت `components/pricing/PricingInsightsTab.tsx`: نقشهٔ حرارتی اشغال (روز × ساعت) با
+    سلول‌های `data-testid="insight-cell-{weekday}-{hour}"`، و کارت پیشنهاد قیمت با لنگرِ «قیمت موتور».
+  - حلقۀ بستن به موتور: `PricingRuleDialog` پروپ `draft` گرفت تا «اعمال به‌عنوان قانون قیمت» همان
+    پیشنهاد را به مسیر **موجود** قوانین (نه مسیر جدید) بفرستد — با تست
+    `applies through the existing rule path with an absolute prefill`. تا مدیر صریحاً قانون نسازد،
+    هیچ رزرویی با عدد پیشنهادی فروش نمی‌رود.
+  - رنگ مکمل است، نه حامل معنا: هر سلول `aria-label` متنی کامل دارد (اشغال، رزرو/سانس، میانگین پرداخت).
+- **معیار (شاهد زنده، ۲۰۲۶-۱۰-۱۶):**
+  | گیت | نتیجه |
+  |---|---|
+  | `pytest tests/test_pricing_insight.py` | **۱۶ passed** در 1.06s |
+  | `pytest` (رگرسیون کامل بک‌اند) | **۵۲۷ passed** در 106.41s (۵۱۱ قبل + ۱۶) |
+  | `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` |
+  | `app.openapi()['paths']` | **۲۳۷** (۲۳۵ قبل) — ۲ مسیر تازه `/pricing/occupancy` و `/pricing/suggestion` |
+  | `tsc --noEmit` / `eslint --quiet` | exit **0** / exit **0** |
+  | `vitest run` | **۱۳۲ passed در ۱۷ فایل** (۲۱ جدید: `PricingInsightsTab.test.tsx` ۱۶ + `services/pricing.test.ts` ۵) |
+  | `vite build` | `✓ built in 22.60s`، `dist/assets/*.map` = **۰** |
+  | راستی‌آزمایی زنده روی prod | **مسدود (X6)** — `api.salon.absadeghi.ir` از این ماشین resolve نمی‌شود (`curl` ⇒ exit 6) |
+- **نکتۀ صداقت (نه ادعای پوشش‌داده‌شده):** دو endpoint تازه گاردِ rate-limitِ سطح-endpoint **ندارند** و
+  فقط زیر middleware سراسری‌اند — همان نقص ثبت‌شدهٔ «۲۸ روتر بدون محدودیت» که در این راند عمداً باز نکردمش،
+  چون تغییر رفتار rate limit کل سامانه باید یک برش مستقل و اندازه‌گیری‌شده باشد.
+  پیشنهاد همچنین **اعمال نمی‌شود**؛ تا مدیر قانون نسازد، مسیر قیمتِ رزرو دقیقاً همان قبل است.
 
 ---
 

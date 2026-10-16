@@ -327,3 +327,23 @@ class SlotRepository(BaseRepository[Slot]):
             if status in (SlotStatus.BOOKED, SlotStatus.RESERVED):
                 bucket["booked"] += 1
         return profile
+
+    def slot_bucket_totals(self, venue_id: int, start_date: date, end_date: date) -> dict:
+        """مخرجِ هر کلید (روز هفته, ساعت) — تعداد نمونه‌های سانس در بازه.
+
+        کلید با date.weekday() است (0=دوشنبه) تا با PricingRule.day_of_week هم‌خوان باشد؛
+        برخلاف demand_profile که دامنهٔ %w (0=یکشنبه) دارد. خلط این دو، سیگنال تقاضا را
+        چند روز جابه‌جا می‌کند و بی‌سروصدا غلط می‌ماند.
+        """
+        active = [SlotStatus.AVAILABLE, SlotStatus.BOOKED, SlotStatus.RESERVED, SlotStatus.IN_COMPETITION]
+        stmt = select(Slot.slot_date, Slot.start_time).where(
+            Slot.venue_id == venue_id,
+            Slot.status.in_(active),
+            Slot.slot_date >= start_date,
+            Slot.slot_date <= end_date,
+        )
+        totals: dict = {}
+        for slot_date, start_time in self.session.exec(stmt).all():
+            key = (slot_date.weekday(), start_time.hour)
+            totals[key] = totals.get(key, 0) + 1
+        return totals

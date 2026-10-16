@@ -29,6 +29,20 @@ class Settings(BaseSettings):
     LOYALTY_POINTS_PER_REVIEW: int = 50
     # CRM: سقف کمپین بازاریابی به‌ازای هر سالن در هر روز (brief §4)
     CRM_CAMPAIGN_DAILY_LIMIT: int = 1
+    # قیمت‌گذاری بر پایهٔ تقاضا (P008/C5 — قطعاً بدون ML): پنجرهٔ تاریخچه و ریل‌های ایمن
+    # فقط چند روز گذشته برای ساخت سیگنال اشغال خوانده می‌شود
+    PRICING_INSIGHT_WINDOW_DAYS: int = 90
+    # حداقل نمونه لازم برای اینکه پیشنهادی داده شود؛ کمتر ⇒ «داده کافی نیست»
+    PRICING_INSIGHT_MIN_SAMPLES: int = 3
+    # حساسیت ضریب تقاضا: اختلاف اشغال (۰..۱) × این درصد ⇒ جابه‌جایی قیمت
+    PRICING_DEMAND_SENSITIVITY_PERCENT: int = 25
+    # ریل ایمن: پیشنهاد حداکثر چند درصد نسبت به قیمت موتور جابه‌جا شود
+    PRICING_SUGGESTION_MAX_DELTA_PERCENT: int = 15
+    # کف/سقف مطلق پیشنهاد، نسبت به قیمت موتور (درصد)
+    PRICING_SUGGESTION_FLOOR_PERCENT: int = 70
+    PRICING_SUGGESTION_CEILING_PERCENT: int = 130
+    # گرد کردن پیشنهاد به نزدیک‌ترین مضرب (ریال) تا عدد قابل استفاده باشد
+    PRICING_SUGGESTION_ROUND_STEP: int = 5000
 
     # محیط اجرا — در production فقط Alembic اسکیما را می‌سازد (create_all غیرفعال)
     APP_ENV: str = "development"

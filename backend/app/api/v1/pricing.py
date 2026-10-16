@@ -4,7 +4,8 @@
 این مسیر تنها مبدأ تعریف قیمت است؛ هیچ نقطه‌ی دیگری از کلاینت مبلغ
 نمی‌پذیرد (برخورد سرور با «قیمت هرگز سمت کلاینت محاسبه/افزایش نمی‌شود»).
 """
-from typing import List
+from datetime import date, time
+from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from pydantic import BaseModel
@@ -13,9 +14,12 @@ from app.unit_of_work import get_unit_of_work, UnitOfWork
 from app.models.pricing_rule import ModifierType, PricingRule
 from app.models.user import User
 from app.schemas.pricing import (
+    PricingOccupancyResponse,
     PricingPreviewRequest, PricingPreviewResponse,
     PricingRuleCreate, PricingRuleResponse, PricingRuleUpdate,
+    PricingSuggestionResponse,
 )
+from app.services.pricing_insight_service import PricingInsightService
 from app.services.pricing_service import PricingService
 from app.utils.auth import get_current_user
 from app.utils.permissions import Perm
@@ -177,6 +181,41 @@ def preview_price(
         is_holiday=PricingService.is_holiday(uow.session, data.slot_date, data.venue_id),
         rules=rules,
     )
+
+
+@router.get("/occupancy", response_model=PricingOccupancyResponse)
+def get_occupancy(
+    request: Request,
+    venue_id: int = Query(...),
+    days: Optional[int] = Query(None, ge=7, le=365),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    current_user: User = Depends(get_current_user),
+):
+    """نرخ اشغال و میانگین پرداخت واقعی به تفکیک (روز هفته, ساعت) از رزروهای گذشته."""
+    ensure_venue_permission(uow, current_user, venue_id,
+                            [Perm.PRICING_MANAGE], request)
+    return PricingInsightService.occupancy(uow.session, venue_id, days)
+
+
+@router.get("/suggestion", response_model=PricingSuggestionResponse)
+def get_price_suggestion(
+    request: Request,
+    venue_id: int = Query(...),
+    slot_date: date = Query(...),
+    start_time: time = Query(...),
+    duration: int = Query(90, ge=15, le=240),
+    days: Optional[int] = Query(None, ge=7, le=365),
+    uow: UnitOfWork = Depends(get_unit_of_work),
+    current_user: User = Depends(get_current_user),
+):
+    """پیشنهاد قیمت بر پایهٔ تاریخچه — محاسبه می‌کند و چیزی ذخیره نمی‌کند.
+
+    هیچ تغییری در قیمت لحظه‌ای رزرو ایجاد نمی‌شود؛ مدیر باید صریحاً قانون بسازد.
+    """
+    ensure_venue_permission(uow, current_user, venue_id,
+                            [Perm.PRICING_MANAGE], request)
+    return PricingInsightService.suggest_price(
+        uow.session, venue_id, slot_date, start_time, duration=duration, days=days)
 
 
 @router.put("/venue/{venue_id}/default-price")

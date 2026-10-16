@@ -6,9 +6,13 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
   pricingService,
+  type OccupancyBucket,
+  type OccupancyReport,
+  type PriceSuggestion,
   type PricingPreview,
   type PricingRulePayload,
 } from '@/services/pricing'
+
 import {
   couponService,
   type CouponCreatePayload,
@@ -34,6 +38,13 @@ export const holidayKeys = {
   list: (start: string, end: string) => ['holidays', 'list', { start, end }] as const,
 }
 
+// پیشنهاد قیمت از سیگنال اشغال می‌آید ⇒ با هر تغییر قوانین/مبنا باید باطل شود
+export const pricingInsightKeys = {
+  all: ['pricing-insight'] as const,
+  occupancy: (venueId: number | null, days: number) =>
+    ['pricing-insight', 'occupancy', venueId, days] as const,
+}
+
 // ─────────────────────────── قوانین قیمت ───────────────────────────
 
 export function usePricingRules(venueId: number | null, enabled = true) {
@@ -48,7 +59,10 @@ export function useCreatePricingRule(_venueId: number | null) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (data: PricingRulePayload) => pricingService.createRule(data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: pricingRuleKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: pricingRuleKeys.all })
+      queryClient.invalidateQueries({ queryKey: pricingInsightKeys.all })
+    },
   })
 }
 
@@ -57,7 +71,10 @@ export function useUpdatePricingRule(_venueId: number | null) {
   return useMutation({
     mutationFn: ({ ruleId, data }: { ruleId: number; data: Partial<PricingRulePayload> }) =>
       pricingService.updateRule(ruleId, data),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: pricingRuleKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: pricingRuleKeys.all })
+      queryClient.invalidateQueries({ queryKey: pricingInsightKeys.all })
+    },
   })
 }
 
@@ -65,14 +82,19 @@ export function useDeletePricingRule(_venueId: number | null) {
   const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (ruleId: number) => pricingService.deleteRule(ruleId),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: pricingRuleKeys.all }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: pricingRuleKeys.all })
+      queryClient.invalidateQueries({ queryKey: pricingInsightKeys.all })
+    },
   })
 }
 
 export function useSetDefaultPrice(venueId: number | null) {
+  const queryClient = useQueryClient()
   return useMutation({
     mutationFn: (defaultSlotPrice: number) =>
       pricingService.setDefaultPrice(venueId as number, defaultSlotPrice),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: pricingInsightKeys.all }),
   })
 }
 
@@ -89,7 +111,33 @@ export function usePricingPreview() {
   })
 }
 
-export type { PricingPreview }
+// ─────────────────────────── C5 — تحلیل تقاضا / پیشنهاد قیمت ───────────────────────────
+
+/** پنجره‌های تاریخچهٔ مجاز (بک‌اند ۷..۳۶۵ روز را می‌پذیرد) */
+export const PRICING_INSIGHT_WINDOWS = [30, 60, 90, 180] as const
+
+export function usePricingOccupancy(venueId: number | null, days: number, enabled = true) {
+  return useQuery({
+    queryKey: pricingInsightKeys.occupancy(venueId, days),
+    queryFn: () => pricingService.occupancy(venueId as number, days),
+    enabled: enabled && venueId != null,
+  })
+}
+
+/** پیشنهاد قیمت — دستی (mutation) مثل پیش‌نمایش، چون با هر کلیک محاسبه می‌شود */
+export function usePriceSuggestion() {
+  return useMutation({
+    mutationFn: (data: {
+      venue_id: number
+      slot_date: string
+      start_time: string
+      duration?: number
+      days?: number
+    }) => pricingService.suggestion(data),
+  })
+}
+
+export type { PriceSuggestion, OccupancyBucket, OccupancyReport, PricingPreview }
 
 // ─────────────────────────── کدهای تخفیف ───────────────────────────
 
