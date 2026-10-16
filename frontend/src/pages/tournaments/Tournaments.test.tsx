@@ -142,4 +142,31 @@ describe('Tournaments', () => {
     renderPage()
     expect(await screen.findByText(/دریافت فهرست تورنمنت‌ها ممکن نشد/)).toBeInTheDocument()
   })
+
+  it('هر سه فرمت را در دیالوگ ساخت می‌گذارد و دو-حذفی را با payload می‌فرستد', async () => {
+    renderPage()
+    fireEvent.click(await screen.findByTestId('tournament-new'))
+    const dialog = await screen.findByTestId('tournament-create-dialog')
+    const group = within(dialog).getByTestId('tournament-format')
+    expect(within(group).getAllByRole('radio').map((r) => r.closest('label')?.textContent)).toEqual([
+      'تک‌حذفی', 'دو-حذفی', 'لیگ (همه با همه)',
+    ])
+    // متنِ گزینه باید فرقِ واقعی را بگوید، وگرنه کاربر bracket reset را انتظار دارد
+    expect(within(group).getByText('دو-حذفی')).toBeInTheDocument()
+
+    fireEvent.change(within(dialog).getByLabelText('نام تورنمنت'), { target: { value: 'جام دوباختی' } })
+    fireEvent.click(within(group).getAllByRole('radio')[1])
+    expect(await screen.findByText(/بازیِ دوباره \(bracket reset\) ندارد/)).toBeInTheDocument()
+    fireEvent.click(within(dialog).getByRole('button', { name: 'ساخت تورنمنت' }))
+    await waitFor(() => expect(create).toHaveBeenCalledTimes(1))
+    expect(create.mock.calls[0][0]).toMatchObject({ name: 'جام دوباختی', format: 'double_elimination' })
+  })
+
+  it('برچسبِ فرمتِ دو-حذفی را روی کارت نشان می‌دهد', async () => {
+    list.mockResolvedValue({ total: 1, items: [tournament({ format: 'double_elimination', team_count: 5 })] })
+    renderPage()
+    const card = await screen.findByTestId('tournament-card-1')
+    expect(card).toHaveTextContent('دو-حذفی')
+    expect(card).toHaveTextContent('۵ تیم')
+  })
 })

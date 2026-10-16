@@ -190,7 +190,9 @@ def _play(client, organizer, drawn, games):
 
 
 def test_api_rejects_unknown_format(client, organizer):
-    r = client.post(BASE, json={"name": "جام نامعلوم", "format": "double_elimination"},
+    # «double_elimination» دیگر ناشناخته نیست (C2.6)؛ مثالِ نامعتبر باید واقعاً
+    # supports نمی‌شود: swiss هنوز فرمتی است که این برش نمی‌سازد.
+    r = client.post(BASE, json={"name": "جام نامعلوم", "format": "swiss"},
                     headers=auth(organizer.phone))
     assert r.status_code == 422, r.text
 

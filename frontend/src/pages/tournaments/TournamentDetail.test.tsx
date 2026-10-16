@@ -53,7 +53,7 @@ vi.mock('react-hot-toast', () => ({
 
 import TournamentDetailPage from './TournamentDetail'
 import { useAuthStore } from '@/store/authStore'
-import type { Tournament, TournamentBracket, TournamentMatch } from '@/types/tournament'
+import type { Tournament, TournamentBracket, TournamentMatch, TournamentRound } from '@/types/tournament'
 import type { Team } from '@/types/team'
 
 const match = (over: Partial<TournamentMatch>): TournamentMatch => ({
@@ -369,5 +369,178 @@ describe('TournamentDetail — لیگ (همه با همه)', () => {
     await screen.findByTestId('tournament-bracket')
     expect(standings).not.toHaveBeenCalled()
     expect(screen.queryByTestId('tournament-standings')).not.toBeInTheDocument()
+  })
+})
+
+describe('TournamentDetail — دو-حذفی', () => {
+  const de = (over: Partial<Tournament> = {}) => tournament({ format: 'double_elimination', ...over })
+
+  // چهار تیم ⇒ براکتِ برندگان ۳ دیدار، براکتِ بازندگان ۲ دیدار، فینالِ بزرگ ۱ دیدار
+  const deRounds = (): TournamentRound[] => ([
+    { id: 101, number: 1, name: 'برندگان ۱', bracket: 'winners' as const, matches: [
+      match({ id: 201, round_id: 101, status: 'ready', score_a: null, score_b: null, winner_team_id: null }),
+      match({ id: 202, round_id: 101, position: 2, team_a_id: 13, team_a_name: 'آرش', team_b_id: 14,
+              team_b_name: 'کاووش', status: 'ready', score_a: null, score_b: null, winner_team_id: null }),
+    ] },
+    { id: 102, number: 2, name: 'بازندگان ۱', bracket: 'losers' as const, matches: [
+      match({ id: 203, round_id: 102, team_a_id: 11, team_a_name: 'پارس', team_b_id: 13, team_b_name: 'آرش',
+              status: 'ready', score_a: null, score_b: null, winner_team_id: null,
+              loser_next_match_id: 204, loser_next_slot: 'b' }),
+    ] },
+    { id: 103, number: 3, name: 'فینالِ بازندگان', bracket: 'losers' as const, matches: [
+      match({ id: 204, round_id: 103, status: 'pending', score_a: null, score_b: null, winner_team_id: null }),
+    ] },
+    { id: 104, number: 4, name: 'فینالِ بزرگ', bracket: 'grand_final' as const, matches: [
+      match({ id: 205, round_id: 104, status: 'pending', score_a: null, score_b: null, winner_team_id: null,
+              next_match_id: null, next_slot: null }),
+    ] },
+  ])
+
+  const deBracket = (over: Partial<Tournament> = {}) => ({
+    tournament: de(over),
+    rounds: deRounds(),
+    participants: fourTeams,
+  })
+
+  it('دو براکت جدا می‌دهد: برندگان+فینالِ بزرگ در ستون اصلی و بازندگان جدا', async () => {
+    bracket.mockResolvedValue(deBracket())
+    renderPage()
+    const main = await screen.findByTestId('tournament-bracket')
+    const mainColumns = Array.from(main.children) as HTMLElement[]
+    expect(mainColumns).toHaveLength(2)
+    expect(mainColumns[0].textContent).toContain('برندگان ۱')
+    expect(mainColumns[1].textContent).toContain('فینالِ بزرگ')
+    expect(within(main).getAllByTestId(/^bracket-match-/).map((n) => n.dataset.testid))
+      .toEqual(['bracket-match-201', 'bracket-match-202', 'bracket-match-205'])
+
+    const losers = await screen.findByTestId('tournament-losers-bracket')
+    expect(Array.from(losers.children)).toHaveLength(2)
+    expect(within(losers).getByTestId('bracket-match-203')).toBeInTheDocument()
+    expect(losers).toHaveTextContent('بازندگان ۱')
+    expect(screen.getByText('براکت برندگان و فینالِ بزرگ')).toBeInTheDocument()
+    expect(screen.getByText('براکت بازندگان')).toBeInTheDocument()
+  })
+
+  it('قانونِ بدونِ bracket reset را صریح می‌نویسد', async () => {
+    bracket.mockResolvedValue(deBracket())
+    renderPage()
+    const note = await screen.findByTestId('double-elim-note')
+    expect(note).toHaveTextContent('دومین باخت')
+    expect(note).toHaveTextContent('bracket reset')
+    expect(note).toHaveTextContent('فینالِ بزرگ یک دیدار است')
+  })
+
+  it('دیدارِ نیمهٔ برندگان: بازنده فقط یک باخت دارد', async () => {
+    bracket.mockResolvedValue(deBracket())
+    renderPage()
+    const winnersMatch = await screen.findByTestId('bracket-match-201')
+    fireEvent.click(within(winnersMatch).getByRole('button', { name: 'ثبت نتیجه' }))
+    const dialog = await screen.findByTestId('tournament-result-dialog')
+    expect(dialog).toHaveTextContent('فقط یک باخت دارد')
+    const inputs = within(dialog).getAllByLabelText('گل')
+    fireEvent.change(inputs[0], { target: { value: '2' } })
+    fireEvent.change(inputs[1], { target: { value: '1' } })
+    fireEvent.click(within(dialog).getByTestId('tournament-result-submit'))
+    await waitFor(() => expect(setResult).toHaveBeenCalledWith(201, 2, 1))
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith(expect.stringContaining('یک باخت گرفت')))
+    expect(toastError).not.toHaveBeenCalled()
+  })
+
+  it('دیدارِ نیمهٔ بازندگان: باخت دوم یعنی حذف', async () => {
+    bracket.mockResolvedValue(deBracket())
+    renderPage()
+    // دیالوگ باز شده نباید دو بار در یک تست باز شود: MUI روی محتوا aria-hidden می‌گذارد
+    // و پرس‌وجوی دومِ نقشِ button را بی‌اثر می‌کند.
+    fireEvent.click(within(await screen.findByTestId('bracket-match-203')).getByRole('button', { name: 'ثبت نتیجه' }))
+    const dialog = await screen.findByTestId('tournament-result-dialog')
+    expect(dialog).toHaveTextContent('دومین باختش')
+    const inputs = within(dialog).getAllByLabelText('گل')
+    fireEvent.change(inputs[0], { target: { value: '1' } })
+    fireEvent.change(inputs[1], { target: { value: '0' } })
+    fireEvent.click(within(dialog).getByTestId('tournament-result-submit'))
+    await waitFor(() => expect(setResult).toHaveBeenCalledWith(203, 1, 0))
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith(expect.stringContaining('حذف شد')))
+  })
+
+  it('فینالِ بزرگ را قهرمانی اعلام می‌کند، نه پیشروی', async () => {
+    bracket.mockResolvedValue({
+      tournament: de({ status: 'in_progress' }),
+      rounds: [
+        { id: 102, number: 2, name: 'بازندگان ۱', bracket: 'losers' as const, matches: [
+          match({ id: 203, round_id: 102, status: 'final', score_a: 2, score_b: 0, winner_team_id: 11,
+                  loser_next_match_id: 205, loser_next_slot: 'b' }),
+        ] },
+        { id: 104, number: 4, name: 'فینالِ بزرگ', bracket: 'grand_final' as const, matches: [
+          match({ id: 205, round_id: 104, team_b_id: 12, team_b_name: 'سپید', status: 'ready',
+                  score_a: null, score_b: null, winner_team_id: null, next_match_id: null, next_slot: null }),
+        ] },
+      ],
+      participants: fourTeams,
+    })
+    renderPage()
+    const gf = await screen.findByTestId('bracket-match-205')
+    fireEvent.click(within(gf).getByRole('button', { name: 'ثبت نتیجه' }))
+    const dialog = await screen.findByTestId('tournament-result-dialog')
+    expect(dialog).toHaveTextContent('برنده قهرمان می‌شود')
+    const inputs = within(dialog).getAllByLabelText('گل')
+    fireEvent.change(inputs[0], { target: { value: '3' } })
+    fireEvent.change(inputs[1], { target: { value: '0' } })
+    fireEvent.click(within(dialog).getByTestId('tournament-result-submit'))
+    await waitFor(() => expect(setResult).toHaveBeenCalledWith(205, 3, 0))
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith(expect.stringContaining('قهرمان مشخص شد')))
+    // ستون اصلی فینالِ بزرگ را دارد و نیمهٔ بازندگان جدا می‌ماند
+    expect(await screen.findByTestId('tournament-bracket')).toHaveTextContent('فینالِ بزرگ')
+    expect(screen.getByTestId('tournament-losers-bracket')).toHaveTextContent('بازندگان ۱')
+  })
+
+  it('با مساوی در هر دو نیمه جلو می‌گیرد', async () => {
+    bracket.mockResolvedValue(deBracket())
+    renderPage()
+    fireEvent.click(within(await screen.findByTestId('bracket-match-203')).getByRole('button', { name: 'ثبت نتیجه' }))
+    const dialog = await screen.findByTestId('tournament-result-dialog')
+    const inputs = within(dialog).getAllByLabelText('گل')
+    fireEvent.change(inputs[0], { target: { value: '1' } })
+    fireEvent.change(inputs[1], { target: { value: '1' } })
+    fireEvent.click(within(dialog).getByTestId('tournament-result-submit'))
+    await waitFor(() => expect(toastError).toHaveBeenCalledWith(expect.stringContaining('مساوی')))
+    expect(setResult).not.toHaveBeenCalled()
+  })
+
+  it('رده‌بندی سه‌رتبه‌ایِ دو-حذفی را در همان جدولِ حذفی نشان می‌دهد', async () => {
+    standings.mockResolvedValue({ items: [
+      { rank: 1, team_id: 11, team_name: 'پارس', label: 'قهرمان' },
+      { rank: 2, team_id: 12, team_name: 'سپید', label: 'نایب‌قهرمان' },
+      { rank: 3, team_id: 13, team_name: 'آرش', label: 'نهاییِ براکت بازندگان' },
+    ] })
+    bracket.mockResolvedValue(deBracket({
+      status: 'completed', winner_team_id: 11, winner_team_name: 'پارس',
+      completed_at: '2026-11-02T20:00:00+03:30',
+    }))
+    renderPage()
+    const table = await screen.findByTestId('tournament-standings')
+    await waitFor(() => expect(standings).toHaveBeenCalledWith(1))
+    expect(within(table).getAllByRole('row')).toHaveLength(4)
+    expect(table).toHaveTextContent('نهاییِ براکت بازندگان')
+    expect(screen.getByTestId('tournament-kpis')).toHaveTextContent('پارس')
+  })
+
+  it('پیش از قرعه‌کشی تعداد دیدارهای دو-حذفی را می‌گوید', async () => {
+    bracket.mockResolvedValue({ tournament: de({ status: 'registration', team_count: 4 }), rounds: [], participants: fourTeams })
+    renderPage()
+    const hint = await screen.findByTestId('double-elim-plan-hint')
+    expect(hint).toHaveTextContent('۶ دیدار')
+    expect(screen.getByTestId('tournament-draw')).toBeEnabled()
+  })
+
+  it('تک‌حذفی هیچ براکتِ بازندگانی نمی‌گیرد', async () => {
+    bracket.mockResolvedValue({
+      tournament: tournament(),
+      rounds: [{ id: 101, number: 1, name: 'نیمه‌نهایی', matches: [match({ id: 201 })] }],
+      participants: fourTeams,
+    })
+    renderPage()
+    await screen.findByTestId('tournament-bracket')
+    expect(screen.queryByTestId('tournament-losers-bracket')).not.toBeInTheDocument()
+    expect(screen.queryByTestId('double-elim-note')).not.toBeInTheDocument()
   })
 })

@@ -60,12 +60,17 @@ export const TOURNAMENT_STATUS_COLORS: Record<TournamentStatus, string> = {
 
 export const TOURNAMENT_FORMAT_LABELS: Record<TournamentFormat, string> = {
   single_elimination: 'تک‌حذفی',
+  double_elimination: 'دو-حذفی',
   round_robin: 'لیگ (همه با همه)',
 }
 
 /** متن هر گزینه باید فرقِ واقعیِ دو فرمت را بگوید، نه فقط نامش را */
 export const TOURNAMENT_FORMAT_HINTS: Record<TournamentFormat, string> = {
   single_elimination: 'با یک باخت حذف می‌شوی؛ قرعه براکت را می‌سازد و تساوی ثبت نمی‌شود.',
+  // «بدون bracket reset» عمداً در همین متن است: کاربر باید بداند فینالِ بزرگ یک بازیست،
+  // نه دو بازی — وگرنه باختِ تیمِ صدرِ براکتِ برندگان را اشتباه تفسیر می‌کند.
+  double_elimination: 'با دومین باخت حذف می‌شوی؛ بازنده‌ها به براکت بازندگان می‌افتند. '
+    + 'فینالِ بزرگ یک دیدار است و بازیِ دوباره (bracket reset) ندارد.',
   round_robin: 'هر تیم با همهٔ تیم‌ها بازی می‌کند؛ برد ۳ امتیاز و تساوی ۱. قهرمان با جدول امتیازات تعیین می‌شود.',
 }
 

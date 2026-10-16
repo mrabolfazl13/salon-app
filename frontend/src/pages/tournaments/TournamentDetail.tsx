@@ -56,7 +56,7 @@ import {
   useWithdrawTournamentTeam,
 } from '@/hooks/useTournament'
 import { useMyTeams } from '@/hooks/useTeams'
-import type { LeagueStanding, MatchStatus, TournamentMatch, TournamentStanding } from '@/types/tournament'
+import type { LeagueStanding, MatchStatus, TournamentBracketHalf, TournamentMatch, TournamentRound, TournamentStanding } from '@/types/tournament'
 import { useAuthStore } from '@/store/authStore'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { radii, shadows } from '@/theme'
@@ -143,6 +143,51 @@ const MatchCard: React.FC<{
   )
 }
 
+/** یک ردیفِ ستونِ براکت: هر مرحله یک ستون، با ترتیب چپ→راستِ رندر RTL.
+ *
+ * دو-حذفی همین را دو بار می‌خواند (برندگان/فینالِ بزرگ، سپس بازندگان)، پس grid
+ * باید مستقل از «کدام نیمه» باشد و برچسب نیمه بیرون آن تصمیم گرفته شود.
+ */
+const BracketGrid: React.FC<{
+  rounds: TournamentRound[]
+  testId: string
+  canManage: boolean
+  busy: boolean
+  onResult: (match: TournamentMatch) => void
+}> = ({ rounds, testId, canManage, busy, onResult }) => (
+  <Box sx={{ overflowX: 'auto', pb: 1 }}>
+    <Box data-testid={testId}
+         sx={{
+           display: 'grid', gridAutoFlow: 'column',
+           gridAutoColumns: 'minmax(232px, max-content)', gap: 2, alignItems: 'stretch',
+         }}>
+      {rounds.map((round) => (
+        <Box key={round.id} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <Typography variant="overline" sx={{
+            fontWeight: 800, color: 'text.secondary', textAlign: 'center',
+            letterSpacing: '0.4px', bgcolor: 'rgba(15,23,42,0.04)', borderRadius: '10px', py: 0.5,
+          }}>
+            {round.name}
+          </Typography>
+          {round.bye_team_name && (
+            <Typography variant="caption" data-testid={`tournament-bye-${round.id}`}
+                        sx={{ textAlign: 'center', color: 'text.secondary' }}>
+              <Icon icon="mdi:sofa-single" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+              {round.bye_team_name} استراحت می‌کند
+            </Typography>
+          )}
+          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: 2, flexGrow: 1 }}>
+            {round.matches.map((match) => (
+              <MatchCard key={match.id} match={match} canManage={canManage}
+                         busy={busy} onResult={() => onResult(match)} />
+            ))}
+          </Box>
+        </Box>
+      ))}
+    </Box>
+  </Box>
+)
+
 const TournamentDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const tournamentId = Number(id)
@@ -180,6 +225,11 @@ const TournamentDetailPage: React.FC = () => {
 
   const canManage = !!tournament && (tournament.organizer_id === user?.id || user?.role === 'super_admin')
   const isLeague = tournament?.format === 'round_robin'
+  const isDouble = tournament?.format === 'double_elimination'
+  // نیمهٔ مرحله از خودِ داده خوانده می‌شود؛ بک‌اند در تک‌حذفی `bracket` را نمی‌فرستد،
+  // پس پیش‌فرض «winners» است و فیلتر برای تک‌حذفی همان آرایۀ قبلی را برمی‌گرداند.
+  const mainRounds = rounds.filter((r) => (r.bracket ?? 'winners') !== 'losers')
+  const losersRounds = rounds.filter((r) => r.bracket === 'losers')
   const mutating = openMut.isPending || drawMut.isPending || cancelMut.isPending
     || registerMut.isPending || withdrawMut.isPending || resultMut.isPending
 
@@ -207,13 +257,23 @@ const TournamentDetailPage: React.FC = () => {
       toast.error('در تورنمنت حذفی نتیجهٔ مساوی ثبت نمی‌شود.')
       return
     }
+    const half = isDouble ? halfOf(resultMatch) : undefined
+    const matchId = resultMatch.id
     resultMut.mutate(
-      { matchId: resultMatch.id, scoreA: a, scoreB: b },
+      { matchId, scoreA: a, scoreB: b },
       {
         onSuccess: () => {
-          toast.success(isLeague
-            ? 'نتیجه در جدول لیگ ثبت شد.'
-            : 'نتیجه ثبت و برنده به مرحلهٔ بعد رفت.')
+          toast.success(
+            isLeague
+              ? 'نتیجه در جدول لیگ ثبت شد.'
+              : half === 'grand_final'
+                ? 'نتیجه ثبت شد؛ قهرمان مشخص شد.'
+                : half === 'losers'
+                  ? 'نتیجه ثبت شد؛ بازنده دومین باخت را گرفت و حذف شد.'
+                  : isDouble
+                    ? 'نتیجه ثبت شد؛ برنده جلو رفت و بازنده یک باخت گرفت.'
+                    : 'نتیجه ثبت و برنده به مرحلهٔ بعد رفت.',
+          )
           setResultMatch(null)
         },
         onError: (err) => toast.error(extractError(err, 'ثبت نتیجه ممکن نشد.')),
@@ -242,6 +302,11 @@ const TournamentDetailPage: React.FC = () => {
 
   const drawn = rounds.length > 0 && !!tournament && tournament.status !== 'draft' && tournament.status !== 'registration'
   const totalMatches = rounds.reduce((sum, r) => sum + r.matches.length, 0)
+  // «بازنده حذف شد» فقط در نیمهٔ بازندگان راست است و «به دیدار بعد» فقط در برندگان؛
+  // نیمه روی خودِ match نیست، از مرحله‌ای که آن را دارد خوانده می‌شود.
+  const halfOf = (match: TournamentMatch): TournamentBracketHalf | undefined =>
+    rounds.find((r) => r.matches.some((m) => m.id === match.id))?.bracket
+  const dialogHalf = resultMatch ? halfOf(resultMatch) : undefined
 
   // دو فرمت دو شکل ردیف برمی‌گردانند؛ تفکیک با خودِ فیلدها انجام می‌شود نه حدسِ ترتیب
   const standingsRows = standingsQ.data?.items ?? []
@@ -319,7 +384,9 @@ const TournamentDetailPage: React.FC = () => {
             {canManage && tournament.status === 'registration' && (
               <Tooltip title={isLeague
                 ? 'برنامهٔ هفته‌ها ساخته می‌شود؛ پس از آن قابل تغییر نیست'
-                : 'براکت ساخته می‌شود؛ پس از آن قابل تغییر نیست'}>
+                : isDouble
+                  ? 'هر دو براکت (برندگان و بازندگان) ساخته می‌شود؛ پس از آن قابل تغییر نیست'
+                  : 'براکت ساخته می‌شود؛ پس از آن قابل تغییر نیست'}>
                 <span>
                   <Button variant="contained" disabled={mutating || tournament.team_count < 2}
                           data-testid="tournament-draw"
@@ -327,7 +394,9 @@ const TournamentDetailPage: React.FC = () => {
                           onClick={() => drawMut.mutate(tournament.id, {
                             onSuccess: () => toast.success(isLeague
                               ? 'برنامهٔ هفته‌ها ساخته شد'
-                              : 'براکت ساخته شد'),
+                              : isDouble
+                                ? 'براکتِ دو-حذفی ساخته شد'
+                                : 'براکت ساخته شد'),
                             onError: (err) => toast.error(extractError(err, 'قرعه‌کشی ممکن نشد.')),
                           })} sx={{ borderRadius: '12px', minHeight: 44 }}>
                     {isLeague ? 'قرعه‌کشی و ساخت برنامهٔ هفته‌ها' : 'قرعه‌کشی و ساخت براکت'}
@@ -404,12 +473,22 @@ const TournamentDetailPage: React.FC = () => {
                 </Box>
               )}
               {tournament.status === 'registration' && (
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
-                  برای قرعه‌کشی حداقل {toPersianDigits(2)} تیم لازم است.{' '}
-                  {isLeague
-                    ? `در لیگ هر تیم با همه بازی می‌کند ⇒ ${toPersianDigits(totalMatches || 0)} دیدار.`
-                    : `تعداد دیدارهای براکت: ${toPersianDigits(totalMatches || 0)}`}
-                </Typography>
+                <Box sx={{ mt: 1 }}>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    برای قرعه‌کشی حداقل {toPersianDigits(2)} تیم لازم است.{' '}
+                    {isLeague
+                      ? `در لیگ هر تیم با همه بازی می‌کند ⇒ ${toPersianDigits(totalMatches || 0)} دیدار.`
+                      : `تعداد دیدارهای براکت: ${toPersianDigits(totalMatches || 0)}`}
+                  </Typography>
+                  {isDouble && (
+                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}
+                                data-testid="double-elim-plan-hint">
+                      <Icon icon="mdi:information-outline" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+                      با {toPersianDigits(tournament.team_count)} تیم و حذفِ دوباختی، {toPersianDigits(Math.max(0, (tournament.team_count - 1) * 2))} دیدار
+                      بازی می‌شود؛ دیدارهای بدون حریفِ مرحلهٔ اول «بدون بازی» رد می‌شوند.
+                    </Typography>
+                  )}
+                </Box>
               )}
             </Box>
           )}
@@ -417,39 +496,27 @@ const TournamentDetailPage: React.FC = () => {
           {drawn && (
             <Box>
               <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
-                {isLeague ? 'برنامهٔ هفته‌ها' : 'براکت'}
+                {isLeague ? 'برنامهٔ هفته‌ها' : isDouble ? 'براکت برندگان و فینالِ بزرگ' : 'براکت'}
               </Typography>
-              <Box sx={{ overflowX: 'auto', pb: 1 }}>
-                <Box data-testid="tournament-bracket"
-                     sx={{
-                       display: 'grid', gridAutoFlow: 'column',
-                       gridAutoColumns: 'minmax(232px, max-content)', gap: 2, alignItems: 'stretch',
-                     }}>
-                  {rounds.map((round) => (
-                    <Box key={round.id} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                      <Typography variant="overline" sx={{
-                        fontWeight: 800, color: 'text.secondary', textAlign: 'center',
-                        letterSpacing: '0.4px', bgcolor: 'rgba(15,23,42,0.04)', borderRadius: '10px', py: 0.5,
-                      }}>
-                        {round.name}
-                      </Typography>
-                      {round.bye_team_name && (
-                        <Typography variant="caption" data-testid={`tournament-bye-${round.id}`}
-                                    sx={{ textAlign: 'center', color: 'text.secondary' }}>
-                          <Icon icon="mdi:sofa-single" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
-                          {round.bye_team_name} استراحت می‌کند
-                        </Typography>
-                      )}
-                      <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: 2, flexGrow: 1 }}>
-                        {round.matches.map((match) => (
-                          <MatchCard key={match.id} match={match} canManage={canManage}
-                                     busy={mutating} onResult={() => openResult(match)} />
-                        ))}
-                      </Box>
-                    </Box>
-                  ))}
+              <BracketGrid rounds={mainRounds} testId="tournament-bracket"
+                           canManage={canManage} busy={mutating} onResult={openResult} />
+
+              {isDouble && losersRounds.length > 0 && (
+                <Box sx={{ mt: 2 }}>
+                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                    <Icon icon="mdi:arrow-down-bold-circle-outline" style={{ verticalAlign: 'middle', marginLeft: 6 }} />
+                    براکت بازندگان
+                  </Typography>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}
+                              data-testid="double-elim-note">
+                    تیمی که اینجا می‌بازد دومین باختش را داشته و حذف شده است. برندهٔ آخرین
+                    دیدارِ این براکت به فینالِ بزرگ می‌رود؛ فینالِ بزرگ یک دیدار است و
+                    بازیِ دوباره (bracket reset) ندارد.
+                  </Typography>
+                  <BracketGrid rounds={losersRounds} testId="tournament-losers-bracket"
+                               canManage={canManage} busy={mutating} onResult={openResult} />
                 </Box>
-              </Box>
+              )}
             </Box>
           )}
 
@@ -547,7 +614,9 @@ const TournamentDetailPage: React.FC = () => {
               <Icon icon="mdi:information-outline" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
               {isLeague
                 ? 'فقط برگزارکننده نتیجه ثبت می‌کند؛ تساوی مجاز است و جدول امتیازها خودکار به‌روز می‌شود.'
-                : 'فقط برگزارکننده نتیجه ثبت می‌کند؛ برنده خودش به دیدار بعد می‌رود.'}
+                : isDouble
+                  ? 'فقط برگزارکننده نتیجه ثبت می‌کند؛ برنده در براکت برندگان می‌ماند و بازنده به براکت بازندگان می‌افتد (با دومین باخت حذف می‌شود).'
+                  : 'فقط برگزارکننده نتیجه ثبت می‌کند؛ برنده خودش به دیدار بعد می‌رود.'}
             </Typography>
           )}
         </Stack>
@@ -614,7 +683,13 @@ const TournamentDetailPage: React.FC = () => {
             <Typography variant="caption" color="text.secondary">
               {isLeague
                 ? 'تساوی مجاز است؛ هر تیم یک امتیاز می‌گیرد.'
-                : 'تساوی مجاز نیست؛ برنده به مرحلهٔ بعد می‌رود.'}
+                : isDouble && dialogHalf === 'grand_final'
+                  ? 'تساوی مجاز نیست؛ برنده قهرمان می‌شود و بازنده نایب‌قهرمان.'
+                  : isDouble && dialogHalf === 'losers'
+                    ? 'تساوی مجاز نیست؛ بازندهٔ این دیدار دومین باختش را می‌گیرد و حذف می‌شود.'
+                    : isDouble
+                      ? 'تساوی مجاز نیست؛ برنده جلو می‌رود و بازنده فقط یک باخت دارد، پس حذف نمی‌شود.'
+                      : 'تساوی مجاز نیست؛ برنده به مرحلهٔ بعد می‌رود.'}
             </Typography>
           </Stack>
         </DialogContent>

@@ -1,6 +1,11 @@
 # فایل تسک اجرای FINAL_REVIEW (breakdown ریز، قابل پیگیری)
 
-**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۷ — C5 تحلیل تقاضا و پیشنهاد قیمت) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**به‌روز شده:** ۲۰۲۶-۱۰-۱۶ (راند ۹ — C2.6 فرمت دو-حذفی) — بر پایهٔ ممیزی شواهدی (هر مورد یک `file:line` معتبر دارد)
+**وضعیت راند ۹:** C2.6 ✅ کد + تست (بک‌اند **۶۱۳ passed در ۱۰۸.۸۰s** از ۶۱ تست جدید دو-حذفی، فرانت
+**۱۴۸ passed در ۱۷ فایل** از ۱۱ تست جدید، `tsc` ۰ · `eslint` ۰ · build ✓ ۲۸.۵۷s بدون `.map` ·
+دروازۀ ruff `E9,F82` پاک · **۲۳۷** مسیر OpenAPI (بدون endpoint تازه — همان ۱۰ مسیر `/tournaments*`) ·
+مهاجرت `m0s026` روی **SQLite و PostgreSQL واقعی** چرخۀ up/down/up را گذراند و مسیر کامل دو-حذفی
+(۵ تیم تا قهرمان) روی همان PG اجرا شد).
 **وضعیت راند ۷:** C5.1 + C5.2 ✅ کد + تست (بک‌اند **۵۲۷ passed در ۱۰۶.۴۱s** از ۱۶ تست جدید insight، فرانت
 **۱۳۲ passed در ۱۷ فایل** از ۲۱ تست جدید، `tsc` ۰ · `eslint` ۰ · build ✓ ۲۲.۶۰s بدون `.map` ·
 دروازۀ ruff `E9,F82` پاک · **۲۳۷** مسیر OpenAPI با ۲ مسیر فقط‌خواندنی `/pricing/{occupancy,suggestion}` ·
@@ -17,8 +22,25 @@ up/down/up را سالم گذراند).
 `tsc` ۰ · `eslint` ۰ · build ✓ ۲۰.۱۴s بدون `.map` · دروازۀ ruff `E9,F82` پاک · ۲۲۴ مسیر OpenAPI).
 **وضعیت راند ۳:** Track A ✅ (جز A9.1=X5) · Track B ✅ (جز B7.2=X8) · **Track D ✅ کامل** — axe-core روی
 ۶ مسیر عمومی: **۰ نود نقض**؛ گیت‌ها: `tsc` ۰ · `eslint` ۰ · ۳۷ تست vitest · build ✓ ۵۳.۰۶s بدون `.map`.
-باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: برش‌های C2.5، C5.3 (ML واقعی = مسدود ذاتی) و X1–X8.
+باقی‌مانده فقط موارد وابسته به تصمیم/دسترسی: C5.3 (ML واقعی = مسدود ذاتی) و X1–X8. برش‌های C2.5/C2.6
+ساخته شدند (لیگ و دو-حذفی).
 **قانون:** هیچ تسکی بدون «معیار راستی‌آزمایی» بسته نمی‌شود. `✅` = انجام و راستی‌آزمایی‌شده، `🟡` = کد نوشته، در انتظار CI/راستی‌آزمایی، `⛔` = مسدود (تصمیم کاربر/دسترسی بیرونی).
+
+### گیت‌های راند ۹ (C2.6 — شاهد زنده، ۲۰۲۶-۱۰-۱۶)
+| گیت | نتیجه |
+|---|---|
+| `pytest tests/test_tournament_double_elim.py` | **۶۱ passed** |
+| `pytest tests/test_tournament_double_elim.py tests/test_tournament_round_robin.py tests/test_tournament.py` | **۱۱۶ passed** در 11.34s (۶۱ + ۲۵ + ۳۰؛ هر سه فرمت با هم سبز) |
+| `pytest` (رگرسیون کامل بک‌اند) | **۶۱۳ passed** در 108.80s (۵۵۲ قبل + ۶۱) |
+| `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` |
+| `tests/test_backend_hardening.py` (زنجیرۀ کامل alembic تا `base`، SQLite) | **۷ passed** در 19.74s |
+| `app.openapi()['paths']` | **۲۳۷** (تغییر نکرد) — `TournamentFormat.enum` = `['single_elimination','round_robin','double_elimination']` |
+| مهاجرت SQLite | `m0s026doubleelim` با up/down/up و زنجیرۀ `downgrade base` (با `batch_alter_table`) exit 0 |
+| مهاجرت PostgreSQL واقعی | `pgserver`: up→downgrade −1→up هر سه **exit 0**؛ `CREATE TYPE tournamentbracket` |
+| `tsc --noEmit` / `eslint --quiet` | exit **0** / exit **0** |
+| `vitest run` | **۱۴۸ passed در ۱۷ فایل** (۱۱ جدید: جزئیات ۹ + فهرست ۲) |
+| `vite build` | `✓ built in 28.57s`، `dist/assets/*.map` = **۰** |
+| `curl` دامنهٔ prod | resolve نمی‌شود ⇒ راستی‌آزمایی زنده مسدود، منتظر X6 |
 
 ### گیت‌های راند ۷ (C5 — شاهد زنده، ۲۰۲۶-۱۰-۱۶)
 | گیت | نتیجه |
@@ -69,8 +91,8 @@ up/down/up را سالم گذراند).
 تورنمنت/براکت تک‌حذفی ساخته شد (C2)، شیفت پرسنل ساخته شد (C3)، حریف‌یابی هوشمند + چالش بازی
 ساخته شد (C4) و **تحلیل تقاضا + پیشنهاد قیمت چسبیده به موتور ساخته شد (C5.1/C5.2 — بک‌اند ۱۶ تست
 + فرانت ۲۱ تست؛ رگرسیون ۵۲۷ تست بک‌اند و ۱۳۲ تست فرانت سبز)**.
-باقی‌ماندۀ واقعی فقط برش‌های C2.5 (Double-Elimination/Round-Robin) و C5.3 است — و C5.3 (ML واقعی)
-**مسدود ذاتی** است: دادهٔ ۱۲ ماهه در این سامانه وجود ندارد، پس عددِ مدل در این مرحله فقط ساختگی می‌شد.
+باقی‌ماندۀ واقعی فقط C5.3 است — و C5.3 (ML واقعی) **مسدود ذاتی** است: دادهٔ ۱۲ ماهه در این سامانه
+وجود ندارد، پس عددِ مدل در این مرحله فقط ساختگی می‌شد. (C2.5 لیگ و C2.6 دو-حذفی در راندهای ۸ و ۹ ساخته شدند.)
 **باگ قطعی و بزرگ (رفع شد — A1):** ۴ endpoint نوتیفیکیشن در بک‌اند وجود ندارد
 (`backend/app/api/v1/notifications.py:16,32` فقط fcm-token) ولی فرانت این‌ها را صدا می‌زند
 (`frontend/src/services/notification.ts:20,25,30,35`) → پنل اعلان‌ها ۴۰۴ می‌گیرد؛ درحالی‌که
@@ -350,7 +372,8 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
       دیدار بعد می‌رود، byeها در همان قرعه‌کشی تعیین تکلیف می‌شوند)
 - [x] C2.3 API: ساخت، بازکردن ثبت‌نام، ثبت‌نام/حذف تیم، قرعه‌کشی، ثبت نتیجه، لغو، براکت، رده‌بندی
 - [x] C2.4 UI براکت بصری (CSS grid، RTL-safe) + جدول رده‌بندی + مسیر روت و ورودی‌های ناوبری
-- [x] C2.5 برش‌های بعدی: Round-Robin (لیگ همه‌با‌همه) — پایین را ببین؛ Double-Elimination هنوز انجام نشده
+- [x] C2.5 برش‌های بعدی: Round-Robin (لیگ همه‌با‌همه) — پایین را ببین
+- [x] C2.6 Double-Elimination (دو-حذفی) — راند ۹، پایین را ببین
 - **شاهد (۲۰۲۶-۱۰-۱۶، همه اجراشده):**
   - بک‌اند: `pytest tests/test_tournament.py` → **۳۰ passed** (تست معیار:
     `test_eight_teams_run_to_champion_without_manual_help` — `[۴,۲,۱]` دیدار در سه مرحله،
@@ -427,6 +450,88 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
 - **معیار:** یک تورنمنت لیگی از ثبت‌نام تا جدول نهایی بدون دخالت دستی، با تساوی‌های واقعی.
   **مسدود:** اجرای `m0s025` روی prod (X6) و راستی‌آزمایی زنده در مرورگر (دامنه resolve نمی‌شود) ⇒
   شواهد این راند در سطح تست واحد/jsdom + SQL واقعی است، نه E2E روی سرویس زنده.
+
+#### C2.6 فرمت Double-Elimination (دو-حذفی) — راند ۹ — ✅ کد + تست (راستی‌آزمایی prod منتظر X6)
+- [x] C2.6a موتور: `losers_bracket_plan` (قیفِ بازندگان: survivors×newcomers با `_interleave`،
+      باقیماندۀ فرد به مرحلۀ بعد منتقل می‌شود، دیدارهای دُمِ براکت هم برنامه‌ریزی می‌شوند)،
+      `_draw_double_elimination` (براکت برندگان با bye مرحلهٔ اول + نیمه‌ها روی
+      `tournament_rounds.bracket` + `number` سراسری)، `_wire`/`_advance_loser`
+      (`loser_next_match_id`/`loser_next_slot`) و `_double_elim_ranks` در
+      `app/services/tournament_service.py`
+- [x] C2.6b تست: `tests/test_tournament_double_elim.py` (ویژگی + ساختار + API)
+- [x] C2.6c UI: گزینهٔ «دو-حذفی» در دیالوگ ساخت، دو براکت جدا (برندگان+فینالِ بزرگ / بازندگان)،
+      یادداشت صریح «بدون bracket reset»، پیام‌های نیمه‌به‌پیامِ نیمه (دیالوگ + توست)، KPI و
+      رده‌بندی سه‌رتبه‌ای
+- [x] C2.6d مهاجرت `migrations/versions/m0s026_double_elimination.py`: سه برچسبِ `tournamentformat`
+      + نوع بومی `tournamentbracket` + ستون‌های `bracket`، `loser_next_match_id`، `loser_next_slot`
+      و ایندکس `ix_tournament_matches_loser_next_match_id`
+- **شاهد (۲۰۲۶-۱۰-۱۶، همه اجراشده):**
+  - بک‌اند: `pytest tests/test_tournament_double_elim.py` → **۶۱ passed**؛ سه‌گانۀ تورنمنت
+    (دو-حذفی + لیگ + تک‌حذفی) → **۱۱۶ passed در 11.34s**؛ رگرسیون کامل `pytest` →
+    **۶۱۳ passed در 108.80s** (۵۵۲ قبل + ۶۱)؛ `ruff check app/ tests/ migrations/ --select E9,F82`
+    → `All checks passed!`؛ `tests/test_backend_hardening.py` (زنجیرۀ کامل alembic تا `base`) →
+    **۷ passed در 19.74s**.
+  - تست‌های معیار: `losers_bracket_plan` برای `N=2..16` ⇒ تعداد دیدارهای براکتِ بازندگان دقیقاً
+    `N−2`، جمع دیدارهای بازی‌شده `2N−2`، هر feeder دقیقاً یک بار مصرف می‌شود، survivor =
+    `("l", len(plan), 1)`؛ ساختار ⇒ نیمه‌ها با برچسب‌های `BRACKET_WINNERS/LOSERS/GRAND_FINAL`،
+    `number`ها یکتا و صعودی، لینکِ بازنده روی دیدارهای non-bye هست و روی bye‌ها نیست، فینالِ بزرگ
+    **تنها نقطۀ پایانی** است (`next_match_id IS NULL`)؛ API ⇒ درایور «تا قهرمان» برای `N=4` که
+    **پیش از هر ثبت نتیجه assert می‌کند هر دو تیم کمتر از ۲ باخت دارند** (معیار اصلی دو-حذفی)،
+    `len(played) == 2N−2`، رتبه‌ها `[۱,۲,۳]`، و برای `N=6` راستی‌آزمایی اینکه بازنده واقعاً در
+    اسلات `loser_next_match_id` نشسته است؛ تساوی همچنان **۴۰۰** با «مساوی».
+  - **باگ واقعی که همین تست‌ها بیرون آوردند (رفع شد):** `_set_target` نام ستون را با f-string
+    می‌ساخت (`f"{outcome}_next_match_id"`)، ولی ستون برنده روی مدل `next_match_id` است نه
+    `winner_next_match_id` ⇒ هر قرعه‌کشیِ دو-حذفی با `ValueError: "TournamentMatch" object has no
+    field "winner_next_match_id"` می‌مرد. نگاشت اکنون صریح است و کامنتِ همان‌جا نامِ غلط را
+    ممنوع می‌کند (`backend/app/services/tournament_service.py`).
+  - مهاجرت — سه راستی‌آزمایی اندازه‌گیری‌شده (نه حدس): ① `op.add_column` با `sa.Enum` **تازۀ** نوع
+    بومی PG نمی‌سازد ⇒ `CREATE TYPE tournamentbracket AS ENUM ('WINNERS','LOSERS','GRAND_FINAL')`
+    صریح و idempotent + `create_type=False` (خطای واقعی pass دومِ up/down/up بود).
+    ② SQLite `DROP COLUMN` ستونی را که در FK سطح جدول شرکت دارد رد می‌کند
+    (`unknown column "loser_next_match_id" in foreign key definition`) ⇒ downgrade با
+    `batch_alter_table(..., recreate="always")`. ③ `d4j004baseline` جدول‌های تورنمنت را از
+    `SQLModel.metadata.create_all` می‌سازد، پس روی زنجیرۀ تازه ستون و self-FK از خودِ مدل می‌آیند و
+    `add_column` بی‌اثر است؛ چرخۀ down/up روی PG آن FK را افتاد ⇒ `op.create_foreign_key` با گاردِ
+    بازتابی اضافه شد (نام FK قبل/بعد از چرخه خوانده و مقایسه شد).
+    `DOUBLE_ELIMINATION` هم دقیقاً ۱۸ کاراکتر است ⇒ همان `VARCHAR(18)` SQLite جا می‌دهد و بازسازی
+    جدول لازم نشد.
+  - **PostgreSQL واقعی** (`~/.qoder-tmp/pg_double_elim.py` با `pgserver`؛ pytest به SQLite می‌چسبد
+    پس ستون enum بومی آنجا هرگز دیده نمی‌شود): چرخۀ `upgrade head → downgrade -1 → upgrade head`
+    هر سه **exit 0**؛ مسیر کامل ۵ تیم تا قهرمان ⇒ `ROWS 11` (`(B−1)+(N−2)+1`)، `PLAYED 8` = `2N−2`،
+    `LOSSES [2,2,2,2]` (قهرمان بدون باخت)، `HALVES {'winners':3,'losers':3,'grand_final':1}`،
+    `STANDINGS [1 قهرمان / 2 نایب‌قهرمان / 3 نهاییِ بازندگان]`، `TERMINALS 1`؛ SQL خام ⇒
+    `BRACKET COLUMN TYPE ('USER-DEFINED','tournamentbracket')`، `PERSISTED 'DOUBLE_ELIMINATION'`،
+    برچسب‌ها `['SINGLE_ELIMINATION','ROUND_ROBIN','DOUBLE_ELIMINATION']`، self-FK
+    `fk_tournament_matches_loser_next_match`؛ تساوی ⇒ ۴۰۰ با «مساوی». خروجی `PG-DOUBLE-ELIM-OK`.
+  - فرانت: `pnpm exec tsc --noEmit -p tsconfig.app.json` exit **0** · `npm run lint` exit **0** ·
+    `vitest run src/pages/tournaments` → **۳۰ passed در ۲ فایل** (۲۲ جزئیات + ۸ فهرست) ·
+    رگرسیون کامل `vitest run` → **۱۴۸ passed / ۱۷ فایل** (۱۱ تست جدید دو-حذفی) ·
+    `NODE_OPTIONS=--max-old-space-size=3072 npm run build` ⇒ `✓ built in 28.57s`،
+    `dist/assets/*.map` = **۰**، chunk‌های `Tournaments-*.js` و `TournamentDetail-*.js`.
+  - گاردریل‌های CI (بازتولید محلی): جداول بدون `aria-label` **۰/۲۴** · فایل‌های دارای `scope="col"`
+    **۲۰** (آستانه ۱۸) · آیکون تازهٔ `mdi:arrow-down-bold-circle-outline` روی iconify HTTP **۲۰۰**.
+  - API قرارداد: **۲۳۷** مسیر OpenAPI (تازهای اضافه نشد — همان ۱۰ مسیر `/tournaments*`)، ولی
+    `TournamentFormat.enum` در schema اکنون سه‌عضوی است: `['single_elimination','round_robin','double_elimination']`.
+  - تست‌های UI: دو grid (`tournament-bracket` = برندگان+فینالِ بزرگ با ۳ دیدار و
+    `tournament-losers-bracket` = ۲ دیدار)، `double-elim-note` («دومین باخت» + «bracket reset»)،
+    دیالوگ/توستِ نیمه‌به‌نیمه («فقط یک باخت دارد» در برندگان، «دومین باختش … حذف» در بازندگان،
+    «برنده قهرمان می‌شود» در فینالِ بزرگ)، رد تساوی در هر دو نیمه، رده‌بندی سه‌رتبه‌ای، یادداشت
+    `2N−2` پیش از قرعه‌کشی، و اینکه **تک‌حذفی هیچ براکتِ بازندگانی نمی‌گیرد**.
+- **تصمیم‌های صادقانه (نه حدس):** **bracket reset عمداً نیست** — فینالِ بزرگ یک دیدار است و همان
+  جمله در سه جا نوشته شده (hintِ دیالوگ ساخت، یادداشت بالای براکتِ بازندگان، و تست)؛ دیدار دوم
+  بعد از قرعه‌کشی ساخته می‌شد و «تک‌منبعِ ساختار» را می‌شکست. رده‌بندی دو-حذفی فقط **سه** رتبه
+  می‌دهد (قهرمان/نایب/نهاییِ بازندگان) و رتبه‌های حذف‌شده اختراع نمی‌شود. `standingsEnabled` برای
+  دو-حذفی مثل تک‌حذفی فقط پس از `completed` باز می‌شود. تفکیک نیمه‌ها از `round.bracket` با
+  پیش‌فرض `winners` است، پس رندر تک‌حذفی و لیگ ذره‌ای عوض نشده (تستِ «تک‌حذفی براکت بازنده ندارد»
+  همین را قفل می‌کند). «حذف شد» فقط در نیمهٔ بازندگان گفته می‌شود — از خودِ داده خوانده می‌شود،
+  نه از فرضِ فرمت. **یک دامِ jsdom که تست‌ها خوردند:** MUI Modal هنگام باز بودن دیالوگ روی محتوا
+  `aria-hidden` می‌گذارد، پس دو دیالوگِ پشت‌سرهم در یک تست با `getByRole('button')` پیدا نمی‌شوند ⇒
+  هر نیمه در تست جدا رندر می‌شود.
+- **معیار:** تورنمنت دو-حذفی از ثبت‌نام تا قهرمان، با این تضمین که هیچ تیمی پس از دو باخت بازی
+  نمی‌کند. — **محقق‌شده در تست + PG واقعی** (۶۱ تست، `2N−2` دیدار، assert باخت‌ها < ۲ پیش از هر
+  نتیجه). **روی prod هنوز اجرا نشده:** مهاجرت `m0s026` باید روی سرور run شود (X6 = نیازمند تأیید
+  صریح کاربر) و دامنهٔ `api.salon.absadeghi.ir` از این ماشین resolve نمی‌شود ⇒ شواهد در سطح
+  تست واحد/jsdom + PG واقعی است، نه E2E روی سرویس زنده.
 
 ### C3 شیفت پرسنل (P020) — ✅ کد + تست (راستی‌آزمایی prod منتظر X6)
 - [x] C3.1 مدل `StaffShift` + تشخیص تعارض
@@ -791,6 +896,6 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 | X3 | تأیید پر بودن `KEYSTORE_*` در GitHub Secrets | فقط با اجرای tag-release مشخص می‌شود | کاربر/CI |
 | X4 | قرارداد درگاه پرداخت و سرویس SMS | اداری | کاربر |
 | X5 | حذف APKهای ۸۹MB از تاریخچه git | بازگشت‌ناپذیر | کاربر |
-| X6 | مستقر کردن تغییرات بک‌اند روی سرور prod | روی سرویس زنده؛ نیاز به تأیید صریح. مهاجرت‌های منتظر اجرا: `m0s021coachesessions`، `m0s022tournaments`، `m0s023staffshifts`، `m0s024teamchallenges`، `m0s025roundrobin` (زنجیرۀ تک‌سر؛ همه روی SQLite با up/down/up راستی‌آزمایی شدند، و `m0s025` علاوه بر آن روی PostgreSQL واقعی با up/down/up + خواندن برچسب‌های enum اثبات شد) | کاربر |
+| X6 | مستقر کردن تغییرات بک‌اند روی سرور prod | روی سرویس زنده؛ نیاز به تأیید صریح. مهاجرت‌های منتظر اجرا: `m0s021coachesessions`، `m0s022tournaments`، `m0s023staffshifts`، `m0s024teamchallenges`، `m0s025roundrobin`، `m0s026doubleelim` (زنجیرۀ تک‌سر؛ همه روی SQLite با up/down/up راستی‌آزمایی شدند، و `m0s025` و `m0s026` علاوه بر آن روی PostgreSQL واقعی با up/down/up + خواندن برچسب‌های enum و نوع بومی `tournamentbracket` اثبات شد) | کاربر |
 | X7 | دادهٔ تاریخی ۱۲ ماهه برای ML قیمت | ذاتاً زمان‌بر | — |
 | X8 | عدد‌های بازاریابی صفحهٔ اصلی (`HeroSection.tsx:15-20`: +۱۲٬۰۰۰ بازیکن، +۵۰ زمین، +۳۰۰ مسابقه، ۴.۸) و شمارنده‌های `StatsSection` ساختگی‌اند؛ endpoint واقعی وجود ندارد | یا از سرور باید بیاید یا از صفحه برود — تصمیم محصول | کاربر |

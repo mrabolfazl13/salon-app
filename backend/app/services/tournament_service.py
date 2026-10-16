@@ -20,7 +20,7 @@ from typing import Dict, List, Optional, Tuple
 
 from app.models.team import TeamMemberStatus
 from app.models.tournament import (
-    MatchStatus, Tournament, TournamentFormat, TournamentMatch,
+    MatchStatus, Tournament, TournamentBracket, TournamentFormat, TournamentMatch,
     TournamentParticipant, TournamentParticipantStatus, TournamentRound,
     TournamentStatus,
 )
@@ -124,6 +124,77 @@ def seed_order(size: int) -> List[int]:
         out.append(size + 1 - seed)
     return out
 
+
+# ─────────────────────── دو-حذفی: برنامهٔ براکت بازندگان ───────────────────────
+
+# خوراکِ یک دیدار: («b»، شمارهٔ مرحله، position) با b ∈ {w=برندگان، l=بازندگان}
+Feeder = Tuple[str, int, int]
+
+# برچسبِ براکت‌ها فارسی است، چون مستقیم در ستون‌های UI خوانده می‌شود
+BRACKET_WINNERS_LABEL = "براکت برندگان"
+BRACKET_LOSERS_LABEL = "براکت بازندگان"
+GRAND_FINAL_LABEL = "نهاییِ بزرگ"
+
+
+def _interleave(survivors: List[Feeder], fresh: List[Feeder]) -> List[Feeder]:
+    """بازمانده‌ها و بازنده‌های تازه را در هم می‌آمیزد: [s1, f1, s2, f2, …].
+
+    چرا در هم (نه دو بلوک پشت هم): تیمی که از قبل در براکتِ بازندگان است باید با
+    تازه‌وارد دیدار کند؛ اگر دو بلوک بمانند، دو بازمانده با هم می‌افتند و یک
+    تازه‌وارد بی‌رقیب می‌ماند ⇒ تعداد خوراکی‌ها در مرحله حفظ نمی‌شود.
+    """
+    out: List[Feeder] = []
+    for index in range(max(len(survivors), len(fresh))):
+        if index < len(survivors):
+            out.append(survivors[index])
+        if index < len(fresh):
+            out.append(fresh[index])
+    return out
+
+
+def losers_bracket_plan(wb_losers_per_round: List[List[int]
+                                          ]) -> Tuple[List[List[Tuple[Feeder, Feeder]]],
+                                                      Optional[Feeder]]:
+    """برنامهٔ براکت بازندگان، فقط از **شمارشِ** بازنده‌های هر مرحلهٔ برندگان.
+
+    ورودی: برای هر مرحلهٔ براکت برندگان (مرتب، از دور اول تا فینال)، فهرست
+    position‌های دیدارهایی که «بازنده دارند». دیدار bye بازنده ندارد و در لیست
+    نمی‌آید — همین تنها جایی است که bye وارد محاسبه می‌شود.
+    خروجی: (مرحله‌های بازندگان، خوراکِ باقی‌مانده برای فینالِ بزرگ).
+
+    قاعدهٔ ساخت و دلیلی که تست‌ها همین را می‌سنجند:
+    - بعد از هر مرحلهٔ برندگان دقیقاً یک مرحلهٔ بازندگان ساخته می‌شود
+      (خوراک‌ها با `_interleave` در هم می‌آیند) ⇒ هیچ تیمی در یک مرحله دو دیدار ندارد؛
+    - تعداد فرد ⇒ آخرِ لیست یک مرحله «استراحت» می‌کند و به مرحلهٔ بعد می‌رود.
+      این شاخه لازم است چون تعداد تیم توانِ دو نیست (byeها هم همین‌جا اثر می‌گذارند)؛
+    - پس از فینالِ برندگان، مرحله‌ها تا ماندنِ یک تیم تکرار می‌شوند.
+    خاصیتِ اصلی (تست‌شده برای N=2..۱۶): تعداد دیدارهای براکت بازندگان
+    = (تعداد خوراکی‌ها − ۱) و جمع کل دیدارها = ۲N−۲؛ هر خوراک دقیقاً یک بار
+    «مصرف» می‌شود و فقط خوراکِ نهایی بی‌مصرف می‌ماند (چون به فینالِ بزرگ می‌رود).
+    """
+    survivors: List[Feeder] = []
+    rounds: List[List[Tuple[Feeder, Feeder]]] = []
+
+    def play(pool: List[Feeder]) -> List[Feeder]:
+        if len(pool) < 2:
+            return pool  # یک تیم منتظرِ مرحلهٔ بعد (استراحتِ درونِ براکت بازندگان)
+        pairs = [(pool[index], pool[index + 1]) for index in range(0, len(pool) - 1, 2)]
+        rounds.append(pairs)
+        winners = [("l", len(rounds), index + 1) for index in range(len(pairs))]
+        carry = [pool[-1]] if len(pool) % 2 else []
+        return winners + carry
+
+    for round_index, positions in enumerate(wb_losers_per_round, start=1):
+        fresh = [("w", round_index, position) for position in positions]
+        survivors = play(_interleave(survivors, fresh))
+
+    while len(survivors) > 1:
+        survivors = play(survivors)
+
+    return rounds, (survivors[0] if survivors else None)
+
+
+# ─────────────────────────── برچسب مرحله‌ها ───────────────────────────
 
 def round_name(matches_in_round: int, number: int) -> str:
     if matches_in_round == 1:
@@ -261,6 +332,10 @@ def draw_bracket(uow: UnitOfWork, actor: User, tournament_id: int) -> Tournament
     count = len(teams_by_seed)
     size = bracket_size(count)
 
+    if tournament.format == TournamentFormat.DOUBLE_ELIMINATION:
+        _draw_double_elimination(uow, tournament, teams_by_seed, size)
+        return tournament
+
     rounds = _create_rounds(uow, tournament_id, size)
     matches = _create_matches(uow, tournament_id, rounds, teams_by_seed, size)
     _link_feeders(uow, rounds, matches)
@@ -289,6 +364,95 @@ def _draw_round_robin(uow: UnitOfWork, tournament: Tournament,
     _mark_drawn(uow, tournament)
 
 
+def _draw_double_elimination(uow: UnitOfWork, tournament: Tournament,
+                             teams_by_seed: Dict[int, int], size: int) -> None:
+    """دو-حذفی: درخت برندگان + براکتِ بازندگانِ همان waves + یک فینالِ بزرگ.
+
+    همه‌چیز در **همین لحظه** (قرعه‌کشی) ساخته می‌شود و دیدارهای بازندگان `PENDING`
+    می‌مانند: شکلِ براکت فقط به *شمارشِ* بازنده‌ها وابسته است، و آن شمارش از
+    byeها (که همین‌جا روشن‌اند) و توانِ دو بودنِ `size` تعیین می‌شود — نه از نتایج.
+    پس «براکت از لحظهٔ قرعه‌کشی کامل و خواناست» که در تک‌حذفی برقرار است، اینجا هم
+    برقرار می‌ماند و پیشروی بازنده هم مثل برنده با `*_next_match_id` encode شده است.
+    """
+    wb_rounds = _create_rounds(
+        uow, tournament.id, size, bracket=TournamentBracket.WINNERS,
+        namer=lambda matches, number: f"{BRACKET_WINNERS_LABEL} – "
+                                      f"{round_name(matches, number)}")
+    wb_matches = _create_matches(uow, tournament.id, wb_rounds, teams_by_seed, size)
+    _link_feeders(uow, wb_rounds, wb_matches)
+    _resolve_byes(uow, wb_matches)
+
+    # bye بازنده ندارد؛ همهٔ مراحل بعدی حتماً دو تیم دارند، پس فقط دور اول غربال می‌شود
+    first_round = [m for m in wb_matches if m.round_id == wb_rounds[0].id]
+    losers_per_round: List[List[int]] = [
+        sorted(m.position for m in first_round if m.status != MatchStatus.BYE)]
+    for rnd in wb_rounds[1:]:
+        losers_per_round.append(sorted(m.position for m in wb_matches
+                                       if m.round_id == rnd.id))
+
+    plan, lb_winner = losers_bracket_plan(losers_per_round)
+    wb_by_round = {r.number: sorted([m for m in wb_matches if m.round_id == r.id],
+                                    key=lambda m: m.position) for r in wb_rounds}
+    lb_rows: Dict[Tuple[int, int], TournamentMatch] = {}
+    for lb_number, pairs in enumerate(plan, start=1):
+        rnd = uow.tournament_rounds.create(TournamentRound(
+            tournament_id=tournament.id, number=len(wb_rounds) + lb_number,
+            name=_losers_round_name(len(pairs), lb_number),
+            bracket=TournamentBracket.LOSERS))
+        for position, (feeder_a, feeder_b) in enumerate(pairs, start=1):
+            match = uow.tournament_matches.create(TournamentMatch(
+                tournament_id=tournament.id, round_id=rnd.id, position=position))
+            lb_rows[(lb_number, position)] = match
+            _wire(uow, feeder_a, match, "a", wb_by_round, lb_rows)
+            _wire(uow, feeder_b, match, "b", wb_by_round, lb_rows)
+
+    gf_round = uow.tournament_rounds.create(TournamentRound(
+        tournament_id=tournament.id, number=len(wb_rounds) + len(plan) + 1,
+        name=GRAND_FINAL_LABEL, bracket=TournamentBracket.GRAND_FINAL))
+    grand_final = uow.tournament_matches.create(TournamentMatch(
+        tournament_id=tournament.id, round_id=gf_round.id, position=1))
+    # فینالِ براکت برندگان «فینال تورنمنت» نیست: برنده‌اش به فینالِ بزرگ می‌رود و
+    # بازنده‌اش به براکتِ بازندگان می‌افتد — تنها جایی که هر دو لینک روی یک دیدار است.
+    wb_final = wb_by_round[wb_rounds[-1].number][0]
+    _set_target(uow, wb_final, "winner", grand_final, "a")
+    if lb_winner is not None:
+        _wire(uow, lb_winner, grand_final, "b", wb_by_round, lb_rows)
+
+    _mark_drawn(uow, tournament)
+
+
+def _wire(uow: UnitOfWork, feeder: Feeder, target: TournamentMatch, slot: str,
+          wb_by_round: Dict[int, List[TournamentMatch]],
+          lb_rows: Dict[Tuple[int, int], TournamentMatch]) -> None:
+    """یک خوراکِ براکت بازندگان را به دیدار مقصد وصل می‌کند.
+
+    خوراک یا «بازندۀ دیدارِ (w، مرحله، position)» است ⇒ لینکِ `loser` روی آن دیدار،
+    یا «برندۀ دیدارِ (l، مرحله، position)» ⇒ لینکِ `winner` (همان `next_match_id`
+    که تک‌حذفی هم دارد). دو نوع لینک روی یک جدول، نه دو جدول: یک دیدار در دو-حذفی
+    می‌تواند همزمان برنده‌ای به بالا و بازنده‌ای به پایین داشته باشد.
+    """
+    kind, round_number, position = feeder
+    source = (wb_by_round[round_number][position - 1] if kind == "w"
+              else lb_rows[(round_number, position)])
+    _set_target(uow, source, "loser" if kind == "w" else "winner", target, slot)
+
+
+def _set_target(uow: UnitOfWork, source: TournamentMatch, outcome: str,
+                target: TournamentMatch, slot: str) -> None:
+    """یک لینکِ پیشروی روی `source` می‌نشیند: «winner» → `next_match_id`، «loser» → `loser_next_match_id`.
+
+    نام ستونِ برنده `next_match_id` است (نه `winner_next_match_id`)، چون تک‌حذفی فقط
+    همین را داشت؛ پس اینجا باید نگاشت صریح باشد، نه `f"{outcome}_next_…"` که برای
+    «winner» نامی می‌سازد که روی مدل وجود ندارد.
+    """
+    match_attr = "next_match_id" if outcome == "winner" else "loser_next_match_id"
+    slot_attr = "next_slot" if outcome == "winner" else "loser_next_slot"
+    setattr(source, match_attr, target.id)
+    setattr(source, slot_attr, slot)
+    uow.session.add(source)
+    uow.session.flush()
+
+
 def _mark_drawn(uow: UnitOfWork, tournament: Tournament) -> None:
     tournament.status = TournamentStatus.DRAWN
     tournament.drawn_at = _utcnow()
@@ -302,15 +466,30 @@ def _teams_by_seed(rows: List[TournamentParticipant]) -> Dict[int, int]:
     return {i + 1: r.team_id for i, r in enumerate(ordered)}
 
 
-def _create_rounds(uow: UnitOfWork, tournament_id: int, size: int) -> List[TournamentRound]:
+def _create_rounds(uow: UnitOfWork, tournament_id: int, size: int,
+                   bracket: TournamentBracket = TournamentBracket.WINNERS,
+                   first_number: int = 1,
+                   namer=None) -> List[TournamentRound]:
     total_rounds = int(log2(size))
     out = []
     for number in range(1, total_rounds + 1):
         matches_in_round = size // (2 ** number)
+        name = (namer(matches_in_round, number) if namer
+                else round_name(matches_in_round, number))
         out.append(uow.tournament_rounds.create(TournamentRound(
-            tournament_id=tournament_id, number=number,
-            name=round_name(matches_in_round, number))))
+            tournament_id=tournament_id, number=first_number + number - 1,
+            name=name, bracket=bracket)))
     return out
+
+
+def _losers_round_name(matches_in_round: int, index: int) -> str:
+    """نام مرحلهٔ براکت بازندگان.
+
+    «نهاییِ بازندگان» فقط وقتی گذاشته می‌شود که دیدارِ آخرِ این نیمه باشد؛ آن را
+    `_draw_double_elimination` بازنویسی می‌کند، پس اینجا فقط شمارهٔ فارسی می‌ماند.
+    """
+    return f"{BRACKET_LOSERS_LABEL} {_fa_digits(index)}"
+
 
 
 def _create_matches(uow: UnitOfWork, tournament_id: int,
@@ -389,6 +568,18 @@ def _refresh_readiness(uow: UnitOfWork, match: TournamentMatch) -> None:
         uow.session.flush()
 
 
+def _feed(uow: UnitOfWork, target: TournamentMatch, slot: str, team_id: int) -> None:
+    """یک تیم را در خانهٔ مشخصِ دیدار مقصد می‌نشاند و آماده‌سازیِ دیدار را می‌خواند."""
+    if getattr(target, f"team_{slot}_id") is not None:
+        raise ValueError("خانهٔ مقصد در براکت قبلاً پُر شده است.")
+    if team_id in (target.team_a_id, target.team_b_id):
+        raise ValueError("یک تیم نمی‌تواند در دو خانهٔ همان دیدار باشد.")
+    setattr(target, f"team_{slot}_id", team_id)
+    uow.session.add(target)
+    uow.session.flush()
+    _refresh_readiness(uow, target)
+
+
 def _advance(uow: UnitOfWork, match: TournamentMatch, winner_team_id: int) -> bool:
     """برنده را به دیدار بعد می‌فرستد. False ⇒ این دیدار فینال بود (تورنمنت تمام شد)."""
     if not match.next_match_id:
@@ -396,15 +587,22 @@ def _advance(uow: UnitOfWork, match: TournamentMatch, winner_team_id: int) -> bo
     target = uow.tournament_matches.get_by_id(match.next_match_id)
     if not target:
         raise ValueError("ساختار براکت آسیب دیده است؛ دیدار بعدی یافت نشد.")
-    if getattr(target, f"team_{match.next_slot}_id") is not None:
-        raise ValueError("خانهٔ مقصد در براکت قبلاً پُر شده است.")
-    if winner_team_id in (target.team_a_id, target.team_b_id):
-        raise ValueError("یک تیم نمی‌تواند در دو خانهٔ همان دیدار باشد.")
-    setattr(target, f"team_{match.next_slot}_id", winner_team_id)
-    uow.session.add(target)
-    uow.session.flush()
-    _refresh_readiness(uow, target)
+    _feed(uow, target, match.next_slot, winner_team_id)
     return True
+
+
+def _advance_loser(uow: UnitOfWork, match: TournamentMatch, loser_team_id: int) -> None:
+    """بازنده را به براکتِ بازندگان می‌فرستد (فقط دو-حذفی).
+
+    `loser_next_match_id = None` یعنی همین باخت، باختِ دوم بود و تیم حذف است؛
+    پس این بی‌عملی «خطا» نیست، خودِ معنای دو-حذفی است.
+    """
+    if not match.loser_next_match_id:
+        return
+    target = uow.tournament_matches.get_by_id(match.loser_next_match_id)
+    if not target:
+        raise ValueError("ساختار براکت آسیب دیده است؛ دیدار بازندگان یافت نشد.")
+    _feed(uow, target, match.loser_next_slot, loser_team_id)
 
 
 def record_result(uow: UnitOfWork, actor: User, match_id: int,
@@ -423,7 +621,7 @@ def record_result(uow: UnitOfWork, actor: User, match_id: int,
         raise ValueError("هر دو تیم این دیدار مشخص نیستند.")
     is_league = tournament.format == TournamentFormat.ROUND_ROBIN
     if score_a == score_b and not is_league:
-        raise ValueError("نتیجهٔ مساوی در تورنمنت تک‌حذفی ثبت نمی‌شود؛ برنده باید مشخص باشد.")
+        raise ValueError("نتیجهٔ مساوی در تورنمنت حذفی ثبت نمی‌شود؛ برنده باید مشخص باشد.")
 
     winner = None if score_a == score_b else (
         match.team_a_id if score_a > score_b else match.team_b_id)
@@ -445,6 +643,10 @@ def record_result(uow: UnitOfWork, actor: User, match_id: int,
         _settle_league(uow, tournament)
     else:
         reached_final = _advance(uow, match, winner)
+        # در تک‌حذفی `loser_next_match_id` هیچ‌وقت ست نشده است ⇒ این خط بی‌اثر است
+        # و در دو-حذفی همان «افتادن به براکتِ بازندگان» است.
+        loser = match.team_b_id if winner == match.team_a_id else match.team_a_id
+        _advance_loser(uow, match, loser)
         if not reached_final:
             tournament.status = TournamentStatus.COMPLETED
             tournament.winner_team_id = winner
@@ -528,6 +730,7 @@ def bracket(uow: UnitOfWork, tournament_id: int) -> dict:
         week = [(m["team_a_id"], m["team_b_id"]) for m in by_round.get(r.id, [])]
         bye = bye_of_week(all_teams, week) if is_league else None
         rounds_out.append({"id": r.id, "number": r.number, "name": r.name,
+                           "bracket": r.bracket.value,
                            "matches": by_round.get(r.id, []),
                            "bye_team_id": bye,
                            "bye_team_name": names.get(bye) if bye else None})
@@ -556,6 +759,8 @@ def match_out(match: TournamentMatch, names: Dict[int, str]) -> dict:
         "winner_team_id": match.winner_team_id,
         "next_match_id": match.next_match_id,
         "next_slot": match.next_slot,
+        "loser_next_match_id": match.loser_next_match_id,
+        "loser_next_slot": match.loser_next_slot,
         "played_at": match.played_at,
     }
 
@@ -661,6 +866,49 @@ def _league_table(uow: UnitOfWork, tournament_id: int) -> List[dict]:
     return out
 
 
+def _loser_of(match: TournamentMatch) -> Optional[int]:
+    if not match.winner_team_id:
+        return None
+    return match.team_b_id if match.winner_team_id == match.team_a_id else match.team_a_id
+
+
+def _double_elim_ranks(uow: UnitOfWork, tournament_id: int) -> List[dict]:
+    """رتبه‌های دو-حذفی از خودِ براکت: ۱ قهرمان، ۲ نایب، ۳ بازندۀ فینالِ بازندگان.
+
+    چرا فقط سه رتبه: رتبهٔ چهارم و بعد از آن به دیدارهای ترضیه‌ای (consolation) نیاز
+    دارد که این برش نمی‌سازد، و ساختن عددِ ۴/۵ از تیم‌هایی که هیچ‌وقت با هم بازی
+    نکرده‌اند، رتبه‌بندیِ اختراع‌شده است. بازندۀ آخرین دیدارِ براکت بازندگان تنها
+    تیمی است که «یک باخت داشت و در آستانۀ فینالِ بزرگ حذف شد» ⇒ سومِ واقعی.
+
+    `loser_next_match_id` را برای یافتن آن دیدار نمی‌خوانم: فیدرهای فینالِ بزرگان
+    (`next_match_id`) با `bracket` مرحله پالایش می‌شوند، تا نیمهٔ بازندگان از خودِ
+    ساختارِ مرحله بیرون بیاید نه از یک لینک جانبی.
+    """
+    final = uow.tournament_matches.final_match(tournament_id)
+    if not final or final.status != MatchStatus.FINAL:
+        return []
+
+    rows: List[Tuple[int, Optional[int], str]] = [(1, final.winner_team_id, "قهرمان")]
+    runner_up = _loser_of(final)
+    if runner_up:
+        rows.append((2, runner_up, "نایب‌قهرمان"))
+    for feeder in uow.tournament_matches.feeders_of(final.id):
+        rnd = uow.tournament_rounds.get_by_id(feeder.round_id)
+        if not rnd or rnd.bracket != TournamentBracket.LOSERS:
+            continue
+        bronze = _loser_of(feeder)
+        if bronze:
+            rows.append((3, bronze, "نهاییِ بازندگان"))
+
+    names: Dict[int, str] = {}
+    for _, team_id, _label in rows:
+        if team_id and team_id not in names:
+            team = uow.teams.get_by_id(team_id)
+            names[team_id] = team.name if team else f"تیم #{team_id}"
+    return [{"rank": rank, "team_id": team_id, "team_name": names.get(team_id),
+             "label": label} for rank, team_id, label in rows]
+
+
 def standings(uow: UnitOfWork, tournament_id: int) -> List[dict]:
     """رتبه‌بندی؛ فرمت تعیین می‌کند از جدول لیگ بیاید یا از خودِ براکت.
 
@@ -670,6 +918,8 @@ def standings(uow: UnitOfWork, tournament_id: int) -> List[dict]:
     tournament = get_tournament(uow, tournament_id)
     if tournament.format == TournamentFormat.ROUND_ROBIN:
         return _league_table(uow, tournament_id)
+    if tournament.format == TournamentFormat.DOUBLE_ELIMINATION:
+        return _double_elim_ranks(uow, tournament_id)
 
     final = uow.tournament_matches.final_match(tournament_id)
     if not final:

@@ -13,12 +13,25 @@
   SQLite DDL آن‌ها `VARCHAR(n)` + CHECK و روی PostgreSQL نوع native است، و در هر دو
   مقدار persist‌شده نامِ عضو است: 'FINAL' نه 'final'). server_default در مهاجرت هم
   بزرگ‌نویس است، وگرنه پیش‌فرض DB با چیزی که ORM می‌خواند نمی‌خواند.
-- فرمت‌ها: `SINGLE_ELIMINATION` و `ROUND_ROBIN`. برخلاف ادعای قبلی این فایل، افزودن
-  عضو تازه **مهاجرت لازم دارد** (اندازه‌گیری شد): روی PostgreSQL نوع `tournamentformat`
-  native است و باید `ALTER TYPE … ADD VALUE` بخورد؛ روی SQLite ستون `VARCHAR(18)` **بدون
-  CHECK** است (DDLِ ساختۀ مهاجرت دیده شد) پس آنجا no-op است. کرقتد بودن نام برچسب هم
-  از همان‌جا می‌آید: ۱۸ کاراکترِ `SINGLE_ELIMINATION` طول ستون SQLite را قفل کرده است.
-  `DOUBLE_ELIMINATION` در این برش پیاده نشده (به ستون «کدام براکت» و منطق reset نیاز دارد).
+- فرمت‌ها: `SINGLE_ELIMINATION`، `ROUND_ROBIN` و `DOUBLE_ELIMINATION`. برخلاف ادعای قبلی
+  این فایل، افزودن عضو تازه **مهاجرت لازم دارد** (اندازه‌گیری شد): روی PostgreSQL نوع
+  `tournamentformat` native است و باید `ALTER TYPE … ADD VALUE` بخورد؛ روی SQLite ستون
+  `VARCHAR(18)` **بدون CHECK** است (DDLِ ساختۀ مهاجرت دیده شد) پس آنجا no-op است.
+  کرقتد بودن نام برچسب هم از همان‌جا می‌آید: ۱۸ کاراکترِ `SINGLE_ELIMINATION` طول ستون
+  SQLite را قفل کرده است — و `DOUBLE_ELIMINATION` هم دقیقاً ۱۸ کاراکتر است، پس افزودنش
+  هیچ بازسازی جدولی لازم ندارد (اگر ۱۹ حرفی بود، ستون `VARCHAR(18)` تنگ می‌شد).
+- دو-حذفی سه چیز تازه خواست، نه منطقِ جدا از براکت: ستون `bracket` روی مرحله (تک‌حذفی
+  همه‌اش `WINNERS` است)، و `loser_next_match_id`/`loser_next_slot` روی دیدار — چون در
+  دو-حذفی «بازنده به کجا می‌رود» هم یک پیشرویِ ذخیره‌شده است، نه محاسبهٔ لحظه‌ای.
+  هر دو خود‌مرجع‌اند؛ اندازه‌گیری شد که `ALTER TABLE … ADD COLUMN x INTEGER
+  REFERENCES tournament_matches(id)` روی SQLite کار می‌کند (شاخۀ `PRAGMA foreign_keys`
+  روشن و خاموش هر دو پذیرفتند و ارجاعِ بد را هم رد می‌کنند) ⇒ برخلاف ادعای m0s022 برای
+  `next_match_id`، لینکِ بازنده لازم نبود در همان create_table ساخته شود. **برگشتش
+  ولی نشدنی است:** همان ستون با `DROP COLUMN` رد می‌شود («unknown column … in foreign
+  key definition»)، پس downgrade در m0s026 جدول را با batch بازسازی می‌کند.
+- **بدون bracket reset:** فینالِ بزرگ یک دیدار است (نه «بازیِ دوباره اگر بازندۀ
+  براکتِ بازندگان برد»). دلیل: دیدار دوم بعد از قرعه‌کشی ساخته می‌شد و این
+  «تک‌منبعِ ساختار» را می‌شکست؛ به‌جایش در UI صریح نوشته می‌شود.
 - تاریخ‌ها همیشه tz-aware (SQLModel `UTCDateTime` با naive مقدار می‌سوزد).
 """
 from datetime import datetime, timezone
@@ -48,6 +61,24 @@ class TournamentStatus(str, Enum):
 class TournamentFormat(str, Enum):
     SINGLE_ELIMINATION = "single_elimination"
     ROUND_ROBIN = "round_robin"
+    DOUBLE_ELIMINATION = "double_elimination"
+
+
+class TournamentBracket(str, Enum):
+    """«کدام نیمۀ براکت» — برای دو-حذفی لازم شد (تک‌حذفی همه را WINNERS دارد).
+
+    شمارهٔ مرحله در کل براکت پیوسته است (۱..R)، پس `order_by(number)` های موجود
+    دست‌نخورده می‌مانند و این ستون فقط گفتارِ رندر را می‌گوید.
+
+    مثل بقیۀ enum‌ها با **NAME** عضو persist می‌شود و `.value` کوچک فقط در payload
+    دیده می‌شود. اندازه‌گیری شد که `ALTER TABLE … ADD COLUMN` با نوع enum روی SQLite
+    بدون هیچ CHECK می‌نشیند (`VARCHAR(11) DEFAULT 'WINNERS' NOT NULL`)، برخلاف حدسِ
+    اولِ خودم؛ پس مهاجرت لازم نیست جدول را بازسازی کند و `create_all` آزمون‌ها همان
+    DDL را می‌سازد.
+    """
+    WINNERS = "winners"
+    LOSERS = "losers"
+    GRAND_FINAL = "grand_final"
 
 
 class TournamentParticipantStatus(str, Enum):
@@ -131,6 +162,10 @@ class TournamentRound(SQLModel, table=True):
     tournament_id: int = Field(foreign_key="tournaments.id", index=True)
     number: int = Field(ge=1, description="شمارهٔ مرحله از پایین (۱ = دور اول)")
     name: str = Field(max_length=60, description="برچسب فارسی: یک‌چهارم نهایی، نهایی و…")
+    bracket: TournamentBracket = Field(
+        default=TournamentBracket.WINNERS,
+        description="دو-حذفی: برندگان/بازندگان/نهاییِ بزرگ — "
+                    "شمارهٔ مرحله در کل براکت پیوسته است، پس این ستون فقط گروه‌بندی رندر است")
 
     tournament: Optional[Tournament] = Relationship(back_populates="rounds")
 
@@ -159,6 +194,12 @@ class TournamentMatch(SQLModel, table=True):
     # پیشروی برنده — تک‌منبع تنظیم «برنده به کجا می‌رود»
     next_match_id: Optional[int] = Field(default=None, foreign_key="tournament_matches.id")
     next_slot: Optional[str] = Field(default=None, max_length=1, description="'a' یا 'b'")
+
+    # پیشروی بازنده — فقط دو-حذفی (تک‌حذفی: باخت = خروج، پس None)
+    # FK عمداً nullable+default NULL است: SQLite ستون REFERENCES را فقط با
+    # پیش‌فرضِ NULL می‌پذیرد (m0s026 روی همان ماشین راستی‌آزمایی شد).
+    loser_next_match_id: Optional[int] = Field(default=None, foreign_key="tournament_matches.id")
+    loser_next_slot: Optional[str] = Field(default=None, max_length=1)
 
     played_at: Optional[datetime] = Field(default=None)
     created_at: datetime = Field(default_factory=_utcnow)

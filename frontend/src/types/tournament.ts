@@ -2,8 +2,9 @@
 // تایپ‌های تورنمنت — آینهٔ پاسخ‌های snake_case بک‌اند (app/api/v1/tournament.py + tournament_service)
 
 export type TournamentStatus = 'draft' | 'registration' | 'drawn' | 'in_progress' | 'completed' | 'cancelled'
-export type TournamentFormat = 'single_elimination' | 'round_robin'
+export type TournamentFormat = 'single_elimination' | 'round_robin' | 'double_elimination'
 export type MatchStatus = 'pending' | 'ready' | 'live' | 'final' | 'bye'
+export type TournamentBracketHalf = 'winners' | 'losers' | 'grand_final'
 export type TournamentParticipantStatus = 'registered' | 'withdrawn'
 
 export interface Tournament {
@@ -39,6 +40,9 @@ export interface TournamentMatch {
   winner_team_id?: number | null
   next_match_id?: number | null
   next_slot?: string | null
+  // در دو-حذفی «بازنده به کجا می‌افتد» هم ذخیره شده است (براکتِ بازندگان)
+  loser_next_match_id?: number | null
+  loser_next_slot?: string | null
   played_at?: string | null
 }
 
@@ -46,6 +50,8 @@ export interface TournamentRound {
   id: number
   number: number
   name: string
+  // نیمهٔ براکت: تک‌حذفی همه را 'winners' دارد؛ دو-حذفی 'losers' و 'grand_final' هم دارد
+  bracket?: TournamentBracketHalf
   matches: TournamentMatch[]
   // در لیگِ تیم‌فرد، یک تیم در هر هفته استراحت می‌کند؛ بک‌اند آن را از خودِ برنامهٔ هفته می‌خواند
   bye_team_id?: number | null
