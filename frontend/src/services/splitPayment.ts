@@ -11,7 +11,9 @@ export interface SplitPayment {
   amount: number
   currency: string
   method: 'EQUAL' | 'CUSTOM' | 'PERCENTAGE'
-  status: 'PENDING' | 'ACTIVE' | 'COMPLETED' | 'CANCELLED'
+  // همان enum بک‌اند (SplitPaymentStatus) — «ACTIVE» هیچ‌جا تولید نمی‌شود و
+  // PARTIAL/EXPIRED وضعیت‌های واقعیِ همین مسیرند
+  status: 'PENDING' | 'PARTIAL' | 'COMPLETED' | 'CANCELLED' | 'EXPIRED'
   deadline: string | null
   created_by: number
   created_at: string

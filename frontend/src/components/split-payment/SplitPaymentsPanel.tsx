@@ -2,12 +2,13 @@
 // پنل مدیریت پرداخت‌های اشتراکی تیم — لیست، وضعیت و جزئیات
 
 import React, { useState } from 'react'
-import { Box, Typography, Paper, Chip, IconButton, Tooltip, Alert } from '@mui/material'
+import { Box, Typography, Paper, Chip, IconButton, Tooltip, Alert, LinearProgress } from '@mui/material'
 import { Icon } from '@iconify/react'
 
 import { Button } from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
 import { useToast } from '@/hooks/useToast'
+import { useAuthStore } from '@/store/authStore'
 import { splitPaymentService } from '@/services/splitPayment'
 import type { Team } from '@/types/team'
 import type { TeamMember } from '@/types/team'
@@ -21,16 +22,18 @@ interface Props {
 
 const STATUS_COLORS = {
   PENDING: '#f59e0b',
-  ACTIVE: '#3b82f6',
+  PARTIAL: '#4f46e5',
   COMPLETED: '#10b981',
   CANCELLED: '#ef4444',
+  EXPIRED: '#64748b',
 }
 
 const STATUS_LABELS = {
   PENDING: 'در انتظار',
-  ACTIVE: 'فعال',
+  PARTIAL: 'نیمه‌پرداخت',
   COMPLETED: 'تکمیل‌شده',
   CANCELLED: 'لغوشده',
+  EXPIRED: 'مهلت گذشته',
 }
 
 const METHOD_LABELS = {
@@ -41,11 +44,13 @@ const METHOD_LABELS = {
 
 const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
   const toast = useToast()
+  const me = useAuthStore((s) => s.user)
   const [payments, setPayments] = useState<any[]>([])
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [selectedPayment, setSelectedPayment] = useState<any | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
+  const [paying, setPaying] = useState(false)
 
   const loadPayments = async () => {
     setLoading(true)
@@ -81,6 +86,26 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
   const getUserName = (userId: number) => {
     const member = members.find((m) => m.user_id === userId)
     return member?.full_name || `کاربر ${userId}`
+  }
+
+  // سهمِ پرداخت‌نشدهٔ خودِ کاربر — تنها کسی که سرور اجازهٔ پرداختش را می‌دهد
+  const myShare = selectedPayment?.shares?.find(
+    (s: any) => s.user_id === me?.id && s.status !== 'PAID'
+  )
+
+  const handlePayShare = async () => {
+    if (!selectedPayment || !myShare) return
+    setPaying(true)
+    try {
+      await splitPaymentService.payShare(selectedPayment.id, myShare.id, {})
+      toast.success('سهم شما پرداخت شد')
+      await handleViewDetails(selectedPayment.id)
+      loadPayments()
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'پرداخت سهم ناموفق بود.')
+    } finally {
+      setPaying(false)
+    }
   }
 
   return (
@@ -243,6 +268,36 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                 />
               </Box>
             </Paper>
+
+            {/* Progress — سرور total_paid/remaining را می‌فرستد؛ قبلاً هیچ‌جا نشان داده نمی‌شد */}
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+              <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+                {`${Number(selectedPayment.total_paid ?? 0).toLocaleString('fa-IR')} پرداخت‌شده از ${Number(selectedPayment.amount).toLocaleString('fa-IR')} ریال`}
+              </Typography>
+              {Number(selectedPayment.remaining ?? 0) > 0 && (
+                <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#b45309' }}>
+                  {`باقی‌مانده: ${Number(selectedPayment.remaining).toLocaleString('fa-IR')} ریال`}
+                </Typography>
+              )}
+            </Box>
+            <LinearProgress
+              variant="determinate"
+              value={selectedPayment.amount
+                ? Math.min(100, (Number(selectedPayment.total_paid ?? 0) / Number(selectedPayment.amount)) * 100)
+                : 0}
+              sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0' }}
+            />
+            {myShare && (
+              <Button
+                size="sm"
+                variant="gradient"
+                icon="mdi:credit-card-outline"
+                loading={paying}
+                onClick={handlePayShare}
+              >
+                {`پرداخت سهم من (${Number(myShare.amount).toLocaleString('fa-IR')} ریال)`}
+              </Button>
+            )}
 
             {/* Shares */}
             <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', mt: 1 }}>سهم اعضا:</Typography>
