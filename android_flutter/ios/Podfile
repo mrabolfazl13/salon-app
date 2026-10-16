@@ -1,0 +1,77 @@
+# Podfile — android_flutter/ios
+#
+# این فایل عمداً check in شده، نه تولیدِ خودکارِ `flutter build ios`.
+# شاهد (لاگ job «Flutter iOS IPA» از run راند ۹، build فلاتر 3.47.7 stable):
+#   Failed to build iOS app
+#   Lexical or Preprocessor Issue (Xcode): Include of non-modular header inside
+#     framework module 'firebase_messaging.FLTFirebaseMessagingPlugin':
+#     'ios/Pods/Headers/Public/Firebase/Firebase.h'
+#   firebase_messaging-14.9.4/ios/Classes/FLTFirebaseMessagingPlugin.h:11:8
+# یعنی هدرِ public پادِ `Firebase` داخل ماژولِ framework پادِ `firebase_messaging`
+# به‌صورت non-modular import می‌شود و clang آن را **خطا** می‌گیرد.
+#
+# دو اهرم، هر دو روی هم (چرا که راستی‌آزمایی فقط روی رانر macOS ممکن است و هر تلاش
+# یک چرخۀ کامل CI است):
+#  1. `use_modular_headers!` ⇒ برای همهٔ پادها modulemap می‌سازد، پس import های
+#     زاویه‌دار (`<Firebase/Firebase.h>`) به module می‌چسبند و خطا از ریشه برداشته
+#     می‌شود. این همان توصیهٔ رسمی Firebase برای پروژه‌های فلاتر است.
+#  2. `CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES = YES` ⇒ هر import
+#     non-modular باقی‌مانده (از پادهای قدیمی‌ترِ Firebase) به اخطار تبدیل می‌شود
+#     و build نمی‌سوزد.
+#
+# متن فایل پایه = قالب خود SDK (`packages/flutter_tools/templates/cocoapods/Podfile-ios`
+# در فلاتر 3.47) تا وقتی Podfile در repo نیست همان قالب در CI ساخته می‌شد؛ فقط دو بند
+# بالا اضافه شده‌اند. `platform` عمداً باز گذاشته شده تا نسخهٔ minimum را خود فلاتر
+# (`flutter_ios_podfile_setup`) از `Runner.xcodeproj` بخواند و با `IPHONEOS_DEPLOYMENT_TARGET = 15.0`
+# این پروژه در تناقض نیفتد.
+#
+# یادداشت: اخطار «The following plugins do not support Swift Package Manager for ios»
+# علتِ شکست **نیست** — فقط می‌گوید این پادها هنوز مسیر CocoaPods را می‌روند.
+
+# Uncomment this line to define a global platform for your project
+# platform :ios, '15.0'
+
+# CocoaPods analytics sends network stats synchronously affecting flutter build latency.
+ENV['COCOAPODS_DISABLE_STATS'] = 'true'
+
+project 'Runner', {
+  'Debug' => :debug,
+  'Profile' => :release,
+  'Release' => :release,
+}
+
+def flutter_root
+  generated_xcode_build_settings_path = File.expand_path(File.join('..', 'Flutter', 'Generated.xcconfig'), __FILE__)
+  unless File.exist?(generated_xcode_build_settings_path)
+    raise "#{generated_xcode_build_settings_path} must exist. If you're running pod install manually, make sure flutter pub get is executed first"
+  end
+
+  File.foreach(generated_xcode_build_settings_path) do |line|
+    matches = line.match(/FLUTTER_ROOT\=(.*)/)
+    return matches[1].strip if matches
+  end
+  raise "FLUTTER_ROOT not found in #{generated_xcode_build_settings_path}. Try deleting Generated.xcconfig, then run flutter pub get"
+end
+
+require File.expand_path(File.join('packages', 'flutter_tools', 'bin', 'podhelper'), flutter_root)
+
+flutter_ios_podfile_setup
+
+target 'Runner' do
+  use_frameworks!
+  use_modular_headers!
+
+  flutter_install_all_ios_pods File.dirname(File.realpath(__FILE__))
+  target 'RunnerTests' do
+    inherit! :search_paths
+  end
+end
+
+post_install do |installer|
+  installer.pods_project.targets.each do |target|
+    flutter_additional_ios_build_settings(target)
+    target.build_configurations.each do |config|
+      config.build_settings['CLANG_ALLOW_NON_MODULAR_INCLUDES_IN_FRAMEWORK_MODULES'] = 'YES'
+    end
+  end
+end
