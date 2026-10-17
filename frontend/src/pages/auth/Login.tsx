@@ -192,14 +192,15 @@ const Login: React.FC = () => {
               <TextField
                 {...register('phone')}
                 placeholder="09xxxxxxxxx"
-                aria-label="شماره تلفن همراه"
-                inputMode="tel"
                 autoComplete="tel"
                 autoFocus
                 error={Boolean(errors.phone)}
                 helperText={errors.phone?.message}
                 sx={fieldSx}
                 slotProps={{
+                  // aria-label/inputMode روی ریشۀ TextField نشانه‌های input نیستند:
+                  // روی divوالد می‌نشینند و نامِ قابل‌دسترسِ فیلد خالی می‌ماند
+                  htmlInput: { 'aria-label': 'شماره تلفن همراه', inputMode: 'tel' },
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">
@@ -214,12 +215,12 @@ const Login: React.FC = () => {
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
                 placeholder="رمز عبور"
-                aria-label="رمز عبور"
                 autoComplete="current-password"
                 error={Boolean(errors.password)}
                 helperText={errors.password?.message}
                 sx={fieldSx}
                 slotProps={{
+                  htmlInput: { 'aria-label': 'رمز عبور' },
                   input: {
                     startAdornment: (
                       <InputAdornment position="start">

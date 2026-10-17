@@ -207,12 +207,12 @@ jobs:
   e2e-tests:
     runs-on: ubuntu-latest
     needs: lint-and-build
-    # سه تست از specهای e2e نشستِ احراز هویت‌شده می‌خواهند (تب‌های /bookings پشت
-    # ProtectedRoute، متن hero «همین حالا سانس رزرو کن» فقط برای کاربر لاگین‌شده،
-    # و سلکتور [style*="grid"] که MUI آن را کلاسی تولید می‌کند نه inline).
-    # تا مشخص شدن fixture حساب تستی یا بازنویسی آن سه ادعا، این شغل هشدار می‌دهد
-    # ولی گیت تایپ‌چک/بیلد را نمی‌شکند.
-    continue-on-error: true
+    # سه ادعای نشسته-محور بازنویسی شدند (تب‌های /bookings → رفتار ProtectedRoute،
+    # hero → هر دو حالت مهمان/کاربر، [style*="grid"] → هندسۀ ستون‌های کارت) و
+    # باقی شکست‌ها یا بدهیِ spec بود یا یک باگ واقعی محصول (نامِ قابل‌دسترسِ
+    # inputها). ادامهٔ continue-on-error یعنی همان دروازۀ ساعت‌ها-قرمز-بی‌صدا،
+    # پس گیت سخت شد؛ دلیل هر شکست از results.json به annotation ترجمه می‌شود.
+    continue-on-error: false
     defaults:
       run:
         working-directory: frontend
@@ -240,13 +240,22 @@ jobs:
 
       # dev server خودِ vite در /api/v1 را به بک‌اند پروکسی می‌کند، پس درخواست‌ها
       # same-origin می‌مانند و CORS کلاینت دخیل نیست (فقط GETهای آتش‌نشانی)
+      # --project=chromium: پروژهٔ `edge` فقط برای اجرای لوکال است (دانلود Chromium
+      # روی ماشین‌های این تیم مسدود است) و نباید در CI دو برابر اجرا شود
       - name: Run E2E tests
-        run: pnpm exec playwright test
+        run: pnpm exec playwright test --project=chromium
         env:
           CI: true
           BASE_URL: http://localhost:3001
           VITE_API_URL: /api/v1
           VITE_PROXY_TARGET: http://2.189.255.225
+
+      # متن لاگ و zipِ artifact با این توکن خواندنی نیستند؛ تنها کانال قابل‌خواندن
+      # annotation است، پس نتایج json همان‌جا ترجمه می‌شود (وگرنه این شغل ساعت‌ها
+      # قرمز می‌ماند و فقط «exit code 1» دیده می‌شد)
+      - name: Report E2E failures as annotations
+        if: always()
+        run: node scripts/e2e-annotations.mjs
 
       - name: Upload test results
         if: always()

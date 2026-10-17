@@ -32,5 +32,9 @@ yarn-error.log*
 .env
 .env.local
 .env.*.local
+
+# Playwright (خروجی تولیدشده؛ در CI به‌جای commit به‌صورت artifact بارگذاری می‌شود)
+playwright-report/
+test-results/
 # CI step logs (written by the desktop jobs inside the workspace)
 ci-logs/

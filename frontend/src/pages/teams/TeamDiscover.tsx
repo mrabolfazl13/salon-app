@@ -161,12 +161,11 @@ const TeamDiscover: React.FC = () => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
         <TextField
           placeholder="جستجوی نام تیم..."
-          aria-label="جستجوی نام تیم"
           size="small"
           fullWidth
           value={search}
           onChange={(e) => { setSearch(e.target.value); setPage(1) }}
-          slotProps={{ input: { startAdornment: <Icon icon="mdi:magnify" style={{ width: 18, height: 18, color: '#64748b', marginLeft: 8 }} /> } }}
+          slotProps={{ input: { startAdornment: <Icon icon="mdi:magnify" style={{ width: 18, height: 18, color: '#64748b', marginLeft: 8 }} /> }, htmlInput: { 'aria-label': 'جستجوی نام تیم' } }}
           sx={{ maxWidth: 420, '& .MuiOutlinedInput-root': { borderRadius: '999px' } }}
         />
         <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>

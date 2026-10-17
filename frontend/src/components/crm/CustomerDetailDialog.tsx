@@ -180,7 +180,7 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
                   <TextField
                     size="small"
                     placeholder="افزودن برچسب..."
-                    aria-label="افزودن برچسب جدید"
+                    slotProps={{ htmlInput: { 'aria-label': 'افزودن برچسب جدید' } }}
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={(e) => {

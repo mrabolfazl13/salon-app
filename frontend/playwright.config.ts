@@ -28,8 +28,17 @@ export default defineConfig({
   retries: process.env.CI ? 2 : 0,
   /* Opt out of parallel tests on CI. */
   workers: process.env.CI ? 1 : undefined,
-  /* Reporter to use. See https://playwright.dev/docs/test-reporters */
-  reporter: 'html',
+  /* نخستین goto روی vite تازه‌ساز می‌transform است: اندازه‌گیری‌شده 30.3s timeout خورد
+     و retry آن را در 9.6s رد کرد ⇒ با 60s، سرد-شدن دیگر تست را flaky نمی‌کند. */
+  timeout: 60_000,
+  /* Reporter to use. See https://playwright.dev/docs/test-reporters
+     json لازم است چون متنِ لاگ و zipِ artifact در CI با این توکن خواندنی نیستند؛
+     اسکریپت `scripts/e2e-annotations.mjs` همان فایل را به annotation تبدیل می‌کند. */
+  reporter: [
+    ['html'],
+    ['list'],
+    ['json', { outputFile: 'playwright-report/results.json' }],
+  ],
   /* Shared settings for all the projects below. See https://playwright.dev/docs/api/class-testoptions. */
   use: {
     /* Base URL to use in actions like `await page.goto('/')`. */
@@ -47,6 +56,13 @@ export default defineConfig({
     {
       name: 'chromium',
       use: { ...devices['Desktop Chrome'] },
+    },
+
+    // روی این ماشین دانلود Chromium مسدود است، پس `--project=edge` با Edge نصب‌شده
+    // اجرا می‌شود؛ CI همان `chromium` را نگه می‌دارد (`--project=chromium`).
+    {
+      name: 'edge',
+      use: { ...devices['Desktop Edge'], channel: 'msedge' },
     },
 
     // {

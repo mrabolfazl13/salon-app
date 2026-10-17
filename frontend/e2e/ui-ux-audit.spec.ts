@@ -43,23 +43,13 @@ test.describe('UI/UX Audit - Touch Targets', () => {
     }
   })
 
-  test('tab navigation meets touch standards', async ({ page }) => {
+  test('bookings is protected: guests are sent to the login screen', async ({ page }) => {
+    // تب‌های /bookings پشت ProtectedRoute‌اند و بدون حساب تست (X1) دیدنی نیستند؛
+    // چیزی که همین حالا می‌شود سنجید همان رفتارِ سازنده است: ریدایرکت به /login.
+    // اندازه‌گیری touch targetِ تب‌ها به fixture حساب تست موکول است.
     await page.goto('/bookings')
-    
-    // Wait for tabs to appear
-    await page.waitForSelector('[role="tab"]', { timeout: 5000 })
-    
-    const tabs = page.locator('[role="tab"]')
-    const count = await tabs.count()
-    
-    for (let i = 0; i < count; i++) {
-      const tab = tabs.nth(i)
-      const box = await tab.boundingBox()
-      
-      if (box) {
-        expect(box.height).toBeGreaterThanOrEqual(48)
-      }
-    }
+    await expect(page).toHaveURL(/\/login/)
+    await expect(page.getByLabel('شماره تلفن همراه', { exact: true })).toBeVisible()
   })
 
   test('cards have adequate click area', async ({ page }) => {
@@ -98,22 +88,28 @@ test.describe('UI/UX Audit - Accessibility', () => {
     }
   })
 
-  test('form inputs have labels', async ({ page }) => {
+  test('form inputs have accessible names', async ({ page }) => {
     await page.goto('/login')
-    
-    const inputs = page.locator('input')
-    const count = await inputs.count()
-    
-    for (let i = 0; i < count; i++) {
-      const input = inputs.nth(i)
-      const ariaLabel = await input.getAttribute('aria-label')
-      const id = await input.getAttribute('id')
-      
-      if (!ariaLabel && !id) {
-        // At least one should exist
-        throw new Error(`Input ${i} has no label`)
-      }
-    }
+
+    // ادعای قبلی بی‌ادعا بود: MUI روی هر input یک `id` می‌گذارد، پس شرط
+    // «aria-label یا id» همیشه برقرار است و نامِ قابل‌دسترسِ خالی را نمی‌گرفت
+    // (همان باگی که aria-label روی ریشۀ TextField روی div می‌نشست).
+    const unnamed = await page.locator('input').evaluateAll((inputs) =>
+      inputs
+        .filter((el) => {
+          const labelledBy = el.getAttribute('aria-labelledby')
+          const byLabelledBy = labelledBy
+            ? labelledBy.split(' ').some((ref) => (document.getElementById(ref)?.textContent ?? '').trim())
+            : false
+          const hasName =
+            Boolean((el.getAttribute('aria-label') ?? '').trim()) ||
+            byLabelledBy ||
+            (el.labels?.length ?? 0) > 0
+          return !hasName && el.type !== 'hidden'
+        })
+        .map((el) => el.type + '/' + el.id),
+    )
+    expect(unnamed).toEqual([])
   })
 
   test('keyboard navigation works', async ({ page }) => {
@@ -143,61 +139,79 @@ test.describe('UI/UX Audit - Responsive Design', () => {
     expect(scrollWidth).toBeLessThanOrEqual(clientWidth + 1)
   })
 
-  test('tablet viewport (768px) uses grid layout', async ({ page }) => {
+  test('tablet viewport (768px) uses a multi-column layout', async ({ page }) => {
     await page.setViewportSize({ width: 768, height: 1024 })
     await page.goto('/venues')
-    
-    // Wait for content
-    await page.waitForSelector('[data-testid="venue-card"]', { timeout: 10000 })
-    
-    // Should show multiple columns
-    const grid = page.locator('[style*="grid"]')
-    await expect(grid.first()).toBeVisible()
+
+    await page.waitForSelector('[data-testid="venue-card"]', { timeout: 15000 })
+
+    // MUI گرید را با کلاس می‌سازد، نه inline style ⇒ `[style*="grid"]` هرگز
+    // نمی‌خورد؛ ادعای واقعی «چندستونه» است، پس از روی هندسۀ کارت‌ها سنجیده می‌شود
+    const columns = await page.locator('[data-testid="venue-card"]').evaluateAll((cards) =>
+      new Set(cards.slice(0, 6).map((c) => Math.round(c.getBoundingClientRect().left))).size)
+    expect(columns).toBeGreaterThanOrEqual(2)
   })
 
-  test('desktop viewport (1440px) shows full layout', async ({ page }) => {
+  test('desktop viewport (1440px) shows the hero call to action', async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 })
     await page.goto('/')
-    
-    // Hero section should be visible
-    const hero = page.locator('text=همین حالا سانس رزرو کن')
-    await expect(hero).toBeVisible()
+
+    // متن hero به حالت احراز هویت وابسته است: «همین حالا سانس رزرو کن» برای کاربر
+    // لاگین‌شده و «همین حالا رایگان شروع کن» برای مهمان؛ تستِ قبلی فقط نصِ اول را
+    // می‌خواست و در CI (همیشه بی‌login) می‌بازد
+    const heroCta = page.locator('text=/همین حالا (سانس رزرو کن|رایگان شروع کن)/')
+    await expect(heroCta.first()).toBeVisible()
   })
 })
 
 test.describe('UI/UX Audit - Loading States', () => {
   test('shows loading skeleton while fetching venues', async ({ page }) => {
     await page.goto('/venues')
-    
-    // Should show either skeleton or content
-    const hasSkeleton = await page.locator('.MuiSkeleton-root').count()
-    const hasContent = await page.locator('[data-testid="venue-card"]').count()
-    
-    expect(hasSkeleton > 0 || hasContent > 0).toBeTruthy()
+
+    // بلافاصله بعد از goto هنوز نه skeleton نشسته و نه کارت (query تازه راه افتاده)،
+    // پس `.count()` روی صفر می‌شد؛ ادعا باید تا ظهورِ یکی از دو حالت صبر کند
+    await expect
+      .poll(async () =>
+        (await page.locator('.MuiSkeleton-root').count()) +
+        (await page.locator('[data-testid="venue-card"]').count()), { timeout: 15000 })
+      .toBeGreaterThan(0)
   })
 
-  test('empty state displays when no data', async ({ page }) => {
+  test('unauthenticated bookings asks the user to sign in', async ({ page }) => {
     await page.goto('/bookings')
-    
-    // If not authenticated, should show empty state or login prompt
-    const emptyState = page.locator('text=رزرویی یافت نشد')
-    const loginPrompt = page.locator('text=وارد شوید')
-    
-    const hasEmpty = await emptyState.count()
-    const hasLogin = await loginPrompt.count()
-    
-    expect(hasEmpty > 0 || hasLogin > 0).toBeTruthy()
+
+    // ProtectedRoute مهمان را به /login می‌فرستد (نه empty state در /bookings)؛
+    // «وارد شوید» هم هیچ‌جا در متن این صفحه نبود، پس ادعا روی رفتارِ واقعی نشست
+    await expect(page).toHaveURL(/\/login/)
+    await expect(page.getByLabel('شماره تلفن همراه', { exact: true })).toBeVisible()
   })
 })
 
 test.describe('UI/UX Audit - Error Handling', () => {
-  test('shows error message on network failure', async ({ page }) => {
-    // This would require mocking - skip for now
-    test.skip()
+  // این دو قبلاً `test.skip()` بی‌محتوا بودند («needs mocking»). mock فقط لایۀ
+  // شبکه است (page.route)؛ صفحه، store و مسیر retry همان کدِ واقعیِ اپ‌اند
+  test('shows the venues error state when the request fails', async ({ page }) => {
+    await page.route('**/api/v1/venues**', (route) => route.abort('failed'))
+    await page.goto('/venues')
+    await expect(page.getByText('خطا در دریافت سالن‌ها')).toBeVisible()
+    await expect(page.getByRole('button', { name: 'تلاش مجدد' })).toBeVisible()
   })
 
-  test('retry button works after error', async ({ page }) => {
-    // This would require mocking - skip for now
-    test.skip()
+  test('retry asks the server again and renders the venues', async ({ page }) => {
+    let venueRequests = 0
+    await page.route('**/api/v1/venues**', async (route) => {
+      venueRequests += 1
+      if (venueRequests === 1) {
+        await route.abort('failed')
+        return
+      }
+      await route.continue()
+    })
+    await page.goto('/venues')
+    const retry = page.getByRole('button', { name: 'تلاش مجدد' })
+    await expect(retry).toBeVisible()
+    await retry.click()
+    await expect(page.locator('[data-testid="venue-card"]').first()).toBeVisible({ timeout: 20000 })
+    expect(venueRequests).toBeGreaterThanOrEqual(2)
   })
 })

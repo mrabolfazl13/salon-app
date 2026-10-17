@@ -2622,11 +2622,13 @@ const ManagerDashboard: React.FC = () => {
               <TextField
                 size="small"
                 placeholder="مثلاً: پارکینگ، دوش، رختکن..."
-                aria-label="افزودن امکان جدید"
                 value={newAmenity}
                 onChange={(e) => setNewAmenity(e.target.value)}
                 onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); addAmenity() } }}
-                slotProps={{ input: { sx: { borderRadius: '10px' } } }}
+                slotProps={{
+                  htmlInput: { 'aria-label': 'افزودن امکان جدید' },
+                  input: { sx: { borderRadius: '10px' } },
+                }}
               />
               <Button
                 onClick={addAmenity}

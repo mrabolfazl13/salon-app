@@ -177,9 +177,13 @@ const Navbar: React.FC<NavbarProps> = () => {
 
           {/* دکمه‌های ناوبری — فقط دسکتاپ؛ موبایل با نوار پایین + منوی آواتار.
               جعبه ناو فقط خودش اسکرول افقی می‌شود (minWidth:0 + overflow) تا
-              هرگز عرض سند را از viewport عبور ندهد — ریشه H_OVERFLOW ممیزی UI */}
+              هرگز عرض سند را از viewport عبور ندهد — ریشه H_OVERFLOW ممیزی UI.
+              نامِ landmark جدا از نوار پایین («ناوبری اصلی») است، وگرنه کاربر
+              نوارِ خواننده دو ناوبری هم‌نام در DOM می‌بیند. */}
           {isAuthenticated && (
             <Box
+              component="nav"
+              aria-label="ناوبری بخش‌ها"
               sx={{
                 display: { xs: 'none', md: 'flex' },
                 gap: 0.25,

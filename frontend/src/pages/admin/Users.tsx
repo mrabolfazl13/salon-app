@@ -146,7 +146,9 @@ const Users: React.FC = () => {
             <InputBase
               sx={{ flex: 1, fontSize: '0.875rem', direction: 'rtl' }}
               placeholder="جستجوی نام یا شماره موبایل..."
-              aria-label="جستجوی کاربران"
+              // aria-label روی ریشۀ InputBase روی divوالد می‌نشیند؛ نامِ قابل‌دسترس
+              // باید روی خودِ input بنشیند
+              slotProps={{ input: { 'aria-label': 'جستجوی کاربران' } }}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />

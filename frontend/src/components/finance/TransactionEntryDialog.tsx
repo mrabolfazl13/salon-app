@@ -285,7 +285,7 @@ const TransactionEntryDialog: React.FC<{
                   fullWidth
                   size="small"
                   placeholder="مثلاً: هزینه برق"
-                  aria-label="نام دسته‌بندی جدید"
+                  slotProps={{ htmlInput: { 'aria-label': 'نام دسته‌بندی جدید' } }}
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
                   sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}

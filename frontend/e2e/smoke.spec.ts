@@ -20,22 +20,35 @@ test.describe('Futsal Booking System - Smoke Tests', () => {
     await expect(venueCards.first()).toBeVisible({ timeout: 10000 })
   })
 
-  test('login page renders form', async ({ page }) => {
+  test('login page renders the phone+password form', async ({ page }) => {
+    // ورودِ این سامانه شماره تلفن + رمز است (نه ایمیل)؛ `input[type=email]` هرگز
+    // در DOM نبود، پس این تست از روز اول ادعای سازندهٔ دیگری را می‌سنجید.
+    // getByRole نامِ قابل‌دسترسِ واقعی را می‌سنجد — نه فقط وجود اتریبیوت:
+    // aria-label روی ریشۀ TextField روی div می‌نشست و input بی‌نام می‌ماند.
     await page.goto('/login')
-    const emailInput = page.locator('input[type="email"], input[name*="email" i], input[placeholder*="ایمیل" i]')
-    await expect(emailInput).toBeVisible()
-    const passwordInput = page.locator('input[type="password"]')
+    const phoneInput = page.getByLabel('شماره تلفن همراه', { exact: true })
+    await expect(phoneInput).toBeVisible()
+    await expect(phoneInput).toHaveAttribute('placeholder', /09/)
+    await expect(phoneInput).toHaveAttribute('inputmode', 'tel')
+    const passwordInput = page.getByLabel('رمز عبور', { exact: true })
     await expect(passwordInput).toBeVisible()
+    await expect(passwordInput).toHaveAttribute('type', 'password')
   })
 
   test('navigation menu is accessible', async ({ page }) => {
     await page.goto('/')
-    // Check for main navigation elements
-    const nav = page.locator('nav, [role="navigation"]')
-    await expect(nav).toBeVisible()
-    // Check for home link
+    // سربرگ (landmark اصلی صفحۀ بیرونی) و لینک صفحۀ اصلی در هر دو بریک‌پوینت باید دیده شود
+    const header = page.locator('header')
+    await expect(header).toBeVisible()
     const homeLink = page.locator('a[href="/"], a:has-text("خانه")')
     await expect(homeLink.first()).toBeVisible()
+
+    // ناوبری اصلی روی موبایل «نوار پایین» است و روی دسکتاپ ردیف دکمه‌های هدر
+    // (display:none/md:flex)؛ ادعای «nav دیدنی در ۱۲۸۰px» برای کاربر مهمان غلط بود،
+    // پس landmark در بریک‌پوینت خودش سنجیده می‌شود
+    await page.setViewportSize({ width: 375, height: 667 })
+    const nav = page.locator('nav[aria-label="ناوبری اصلی"]')
+    await expect(nav).toBeVisible()
   })
 
   test('responsive layout on mobile viewport', async ({ page }) => {
@@ -49,9 +62,12 @@ test.describe('Futsal Booking System - Smoke Tests', () => {
   })
 
   test('error page shows 404 for invalid route', async ({ page }) => {
+    // این تست عمداً بی‌ادعا بود: `expect(statusCode).toBeDefined()` روی یک Promise
+    // همیشه درست است و هیچ‌چیزی دربارهٔ صفحۀ ۴۰۴ نمی‌سنجید. حالا رفتارِ واقعی
+    // مسیرِ ناشناخته (catch-all در App.tsx) سنجیده می‌شود.
     await page.goto('/this-route-does-not-exist')
-    // Should show some error state or redirect
-    const statusCode = page.request.get('/this-route-does-not-exist').then(r => r.status())
-    expect(statusCode).toBeDefined()
+    await expect(page.locator('h1')).toContainText('صفحه مورد نظر یافت نشد')
+    await expect(page.locator('button:has-text("صفحه اصلی"), a[href="/"]')).toBeVisible()
+    await expect(page.locator('a[href="/venues"]')).toBeVisible()
   })
 })
