@@ -2846,8 +2846,65 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
   سرور و سرجمعِ سمتِ SQL است.
 - **گره‌های بازِ این راند (صادقانه):** **C25.1–C25.4** (`total` بیرونِ snapshot، هزینهٔ
   deep-pagination و سرجمعِ بی‌کشِ هر صفحه، نبودِ گیتِ «`uses_count` = `stats.active_count`»، نبودِ
-  deep-linkِ صافی/صفحه)؛ **C24.3** (ممیزیِ «چه کسی لغو کرد»)، **C24.4** (بی‌صدا خوردنِ `False`)،
-  **C22.2** (سهمِ سالن از کوپن سراسری)، **C23.1–C23.3**، **C11.6.1**. بیرونی‌ها: X1، X4، X6، X9.
+  deep-linkِ صافی/صفحه)؛ **C22.2** (سهمِ سالن از کوپن سراسری)، **C23.1–C23.3**، **C11.6.1**. بیرونی‌ها: X1، X4، X6، X9.
+
+### C26 مصرفِ لغوشده می‌گوید «چه کسی، از کدام مسیر» — راند ۲۹ ✅ C24.3/C24.4 بسته شد
+
+> تا راند ۲۸ ردیفِ `RELEASED` فقط زمان را داشت (`released_at`) و نمی‌گفت مدیری که رزرو معلق را رد کرد،
+> خودِ مشتری که پیش از تأیید لغو کرد، یا جاروبِ Celery سه روز بعد سوخت. همچنین هر دو فراخوانندهٔ
+> `release_*` مقدارِ bool برگشتی را نادیده می‌گرفتند (هیچ لاگ/متریک). این راند دو ستونِ nullable جدید
+> روی `coupon_redemptions` اضافه کرد و خطاهای بی‌صدا را warning تبدیل کرد.
+
+- [x] **مدل:** `ReleaseVia` (`app/models/coupon.py:50`) با هفت مسیرِ ship‌شده: `PENDING_REJECTED`,
+  `PENDING_CANCELLED`, `PENDING_EXPIRED`, `CONFIRM_SLOT_LOST`, `CONFIRM_ALREADY_BOOKED`,
+  `CONFIRM_CONTRACT_SLOT`, `BOOKING_CANCELLED`. دو ستون روی `CouponRedemption`: `released_by`
+  (`:86`, FK → users.id, nullable) و `released_via` (`:87`, VARCHAR(32), nullable).
+- [x] **ممیزی در همان UPDATE نگهبان‌دار:** `mark_released` (`app/repositories/coupon_repository.py:258`)
+  یک statement واحد `UPDATE … WHERE id=? AND status='ACTIVE'` می‌زند که همزمان
+  `status/released_at/released_by/released_via` را می‌نویسد. اگر دو لغوی همزمان برسند، برنده همه را
+  می‌نویسد و بازنده rowcount=0 می‌گیرد — پس «چه کسی» هرگز توسط عاملِ دوم بازنویسی نمی‌شود.
+- [x] **فهرستِ API نامِ عامل را نشان می‌دهد:** `list_for_coupon` (`:138`) با outerjoin دوم (alias
+  `releaser`) چهارتایی `(red, phone, full_name, releaser.full_name)` برمی‌گرداند. API endpoint
+  (`app/api/v1/coupons.py:198-207`) آن را در `CouponRedemptionResponse.from_row` می‌پیچد و فیلدهای
+  `released_by`/`released_by_name`/`released_via` را در پاسخ JSON می‌گذارد.
+- [x] **خطاها دیگر بی‌صدا نیستند:** `release_by_id` (`app/services/coupon_service.py:132`) برای دو
+  حالت refusal warning می‌زند («does not exist» / «already RELEASED»)؛ `release_for_booking` وقتی
+  ردیفی نیست سکوت می‌کند (رزرو بی‌کد یعنی هیچ مصرفی نبوده). جاروبِ انقضا
+  (`app/tasks/pending_booking_tasks.py:30`) خطای احتمالیِ release را `logger.warning` می‌کند به‌جای pass.
+- [x] **ثابت شد confirm_pending تراکنش را کمیت نمی‌کرد:** وقتی دفاعی fire می‌کند (سانس BOOKED نیست)
+  `release_pending_promotions` اجرا می‌شود ولی HTTPException قبل از `uow.commit()` بالا می‌آید ⇒ flip
+  رول‌بک می‌شد. API handler (`app/api/v1/bookings.py:115`) حالا exception را catch می‌کند، commit
+  می‌زند، و re-raise می‌کند.
+- [x] **مهاجرت m0s030:** `released_by` INTEGER nullable + FK explicit روی PG (با `_fk_columns` guard)،
+  `released_via` VARCHAR(32). Idempotent vs create_all؛ downgrade روی SQLite با `batch_alter_table(recreate="always")`.
+- [x] **۱۴ تست جدید** (`tests/test_coupon_redemption_release_audit.py`): actor/via per path, expiry
+  sweep with None actor, CONFIRM_SLOT_LOST defense, double-cancel doesn't rewrite audit, single-statement
+  witness, no-second-statement witness, caplog for both refusals, silent coupon-free cancel, sweep error
+  logging, API exposes releaser name/via, deleted releaser shows row with None name, stats/paging unaffected.
+- [x] **رگرسیون کامل بک‌اند:** **۷۸۸ passed در 70.51s** (= ۷۷۸ + ۱۰ تازه)؛ ruff clean.
+
+### E19 بازسنجی راند ۲۹ (ممیزیِ آزادسازیِ کوپن — بک‌اند + مهاجرت + فرانت)
+
+| گیت | عددِ این راند | نسبت به راند ۲۸ |
+|---|---|---|
+| `tests/test_coupon_redemption_release_audit.py` (فایلِ تازه، ۱۴ تست) | **۱۴ passed در 1.11s** | ↑ — راندِ قبل این فایل وجود نداشت |
+| خانوادۀ کوپن (۵ فایل + فایلِ تازه) | **۷۰ passed در ~5s** | ↑ (راند ۲۸: ۵۶ + ۱۴) |
+| رگرسیون کامل بک‌اند (pinned `sqlmodel 0.0.42`) | **۷۸۸ passed در 70.51s** (= ۷۷۸ + ۱۰) | ↑ |
+| `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` | بی‌تغییر |
+| اسکنِ CJK در فایل‌های لمس‌شده | **صفر** | بی‌تغییر |
+| فرانت: `tsc --noEmit -p tsconfig.app.json` / `eslint src --quiet` | **۰ / ۰** | بی‌تغییر (سبز) |
+| فرانت: `vitest run` | **۱۹۳ passed در ۲۲ فایل** | بی‌تغییر |
+| فرانت: `vite build` (`--max-old-space-size=3072`) | **موفق در 22.05s** | ↓ سریع‌تر از راند ۲۸ (26s) |
+| مهاجرت m0s030: upgrade head / downgrade base | **exit ۰ هر دو طرف** | ↑ — الگوی m0s026/m0s029 تکرار شد |
+
+- **سطح اعداد:** بک‌اند **unit/SQLite** (رفتار از مسیر API + شکلِ statement + کدهای HTTP + caplog)؛
+  فرانت **vitest/jsdom** (نه پیکسلِ واقعی). هیچ عددی از prod گزارش نشده.
+- **ادعای باطل‌شدۀ این راند:** «ردیفِ RELEASED کافی است چون `released_at` زمان را دارد» — زمانِ سرور
+  نمی‌گوید «کدام دکمه زده شد». دوم: «False را نادیده گرفتن بی‌ضرر است چون release idempotent است» —
+  وقتی ظرفیت برنگردد، مدیر نمی‌فهمد چرا سقفِ فردی پر مانده. سوم: «confirm_pending وقتی دفاع fire می‌کند
+  کارش تمام است» — بدون commit، flip کوپن رول‌بک می‌شود و ردیف ACTIVE می‌ماند.
+- **گره‌های بازِ این راند (صادقانه):** **C25.1–C25.4** (همان‌هایی که راند ۲۸ ثبت کرد)؛ **C22.2**
+  (سهمِ سالن از کوپن سراسری)، **C23.1–C23.3**، **C11.6.1**. بیرونی‌ها: X1، X4، X6، X9.
 
 ---
 
