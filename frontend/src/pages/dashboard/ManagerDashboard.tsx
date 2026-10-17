@@ -228,6 +228,8 @@ const ManagerDashboard: React.FC = () => {
   const [venuePurchases, setVenuePurchases] = useState<MembershipPurchase[]>([])
   const [purchasesLoading, setPurchasesLoading] = useState(false)
   const [consumeId, setConsumeId] = useState<number | null>(null)
+  const [refundConfirm, setRefundConfirm] = useState<MembershipPurchase | null>(null)
+  const [refundId, setRefundId] = useState<number | null>(null)
   const [bookingDateRange, setBookingDateRange] = useState(() => {
     const today = new Date()
     const weekLater = new Date(today)
@@ -544,6 +546,20 @@ const ManagerDashboard: React.FC = () => {
       toast.error(error?.response?.data?.detail || 'خطا در کسر جلسه')
     } finally {
       setConsumeId(null)
+    }
+  }
+
+  const handleRefundPurchase = async (purchase: MembershipPurchase) => {
+    setRefundId(purchase.id)
+    try {
+      const updated = await membershipService.refundPurchase(purchase.id)
+      toast.success('بازگشت وجه ثبت شد — ردیفِ برگشت در دفتر کل مالی دیده می‌شود')
+      setVenuePurchases((prev) => prev.map((p) => (p.id === purchase.id ? updated : p)))
+      setRefundConfirm(null)
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'خطا در بازگشت وجه')
+    } finally {
+      setRefundId(null)
     }
   }
 
@@ -2378,6 +2394,12 @@ const ManagerDashboard: React.FC = () => {
                                 p.status === 'paid' &&
                                 (p.plan_type === 'session' || p.plan_type === 'sessions_pack') &&
                                 (p.sessions_remaining ?? 0) > 0
+                              const statusMeta = {
+                                paid: { label: 'پرداخت شده', bg: 'rgba(5,150,105,0.1)', color: '#059669' },
+                                pending: { label: 'در انتظار', bg: 'rgba(245,158,11,0.1)', color: '#d97706' },
+                                refunded: { label: 'بازگشت وجه شده', bg: 'rgba(71,85,105,0.12)', color: '#475569' },
+                                cancelled: { label: 'لغو شده', bg: 'rgba(239,68,68,0.1)', color: '#ef4444' },
+                              }[p.status]
                               return (
                                 <TableRow key={p.id} sx={{ '&:hover': { bgcolor: 'rgba(37,99,235,0.02)' } }}>
                                   <TableCell>
@@ -2392,20 +2414,15 @@ const ManagerDashboard: React.FC = () => {
                                   </TableCell>
                                   <TableCell>
                                     <Chip
-                                      label={p.status === 'paid' ? 'پرداخت شده' : p.status === 'pending' ? 'در انتظار' : 'لغو شده'}
+                                      label={statusMeta.label}
                                       size="small"
                                       sx={{
                                         borderRadius: '8px',
                                         fontWeight: 600,
                                         fontSize: '0.75rem',
                                         height: 24,
-                                        bgcolor:
-                                          p.status === 'paid'
-                                            ? 'rgba(5,150,105,0.1)'
-                                            : p.status === 'pending'
-                                              ? 'rgba(245,158,11,0.1)'
-                                              : 'rgba(239,68,68,0.1)',
-                                        color: p.status === 'paid' ? '#059669' : p.status === 'pending' ? '#d97706' : '#ef4444',
+                                        bgcolor: statusMeta.bg,
+                                        color: statusMeta.color,
                                       }}
                                     />
                                   </TableCell>
@@ -2417,25 +2434,46 @@ const ManagerDashboard: React.FC = () => {
                                     </Typography>
                                   </TableCell>
                                   <TableCell>
-                                    {canConsume ? (
-                                      <Button
-                                        size="small"
-                                        variant="contained"
-                                        disabled={consumeId === p.id}
-                                        onClick={() => handleConsume(p.id)}
-                                        sx={{
-                                          borderRadius: '8px',
-                                          textTransform: 'none',
-                                          fontWeight: 600,
-                                          background: 'linear-gradient(135deg, #059669, #10b981)',
-                                          '&:hover': { background: 'linear-gradient(135deg, #047857, #059669)' },
-                                        }}
-                                      >
-                                        {consumeId === p.id ? <CircularProgress size={16} sx={{ color: 'white' }} /> : 'کسر جلسه'}
-                                      </Button>
-                                    ) : (
-                                      <Typography variant="caption" color="text.secondary">—</Typography>
-                                    )}
+                                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+                                      {canConsume && (
+                                        <Button
+                                          size="small"
+                                          variant="contained"
+                                          disabled={consumeId === p.id}
+                                          onClick={() => handleConsume(p.id)}
+                                          sx={{
+                                            borderRadius: '8px',
+                                            textTransform: 'none',
+                                            fontWeight: 600,
+                                            background: 'linear-gradient(135deg, #059669, #10b981)',
+                                            '&:hover': { background: 'linear-gradient(135deg, #047857, #059669)' },
+                                          }}
+                                        >
+                                          {consumeId === p.id ? <CircularProgress size={16} sx={{ color: 'white' }} /> : 'کسر جلسه'}
+                                        </Button>
+                                      )}
+                                      {p.status === 'paid' && (
+                                        <Button
+                                          size="small"
+                                          variant="outlined"
+                                          disabled={refundId === p.id}
+                                          onClick={() => setRefundConfirm(p)}
+                                          sx={{
+                                            borderRadius: '8px',
+                                            textTransform: 'none',
+                                            fontWeight: 600,
+                                            color: '#dc2626',
+                                            borderColor: 'rgba(220,38,38,0.45)',
+                                            '&:hover': { borderColor: '#dc2626', bgcolor: 'rgba(220,38,38,0.06)' },
+                                          }}
+                                        >
+                                          {refundId === p.id ? <CircularProgress size={16} /> : 'بازگشت وجه'}
+                                        </Button>
+                                      )}
+                                      {!canConsume && p.status !== 'paid' && (
+                                        <Typography variant="caption" color="text.secondary">—</Typography>
+                                      )}
+                                    </Box>
                                   </TableCell>
                                 </TableRow>
                               )
@@ -2496,6 +2534,23 @@ const ManagerDashboard: React.FC = () => {
         variant="destructive"
         loading={slotActionBusy === (blockConfirmSlot?.id ?? -1)}
         onConfirm={() => { if (blockConfirmSlot) void handleBlockSlot(blockConfirmSlot) }}
+      />
+
+      {/* بازگشت وجه اشتراک — عملِ ویرانگر: تأیید لازم است */}
+      <ConfirmModal
+        open={Boolean(refundConfirm)}
+        onOpenChange={(v) => { if (!v && refundId === null) setRefundConfirm(null) }}
+        title="بازگشت وجه این اشتراک؟"
+        description={
+          refundConfirm
+            ? `فاکتور «${refundConfirm.plan_title ?? '—'}» به مبلغ ${formatPrice(refundConfirm.amount)} برگشت می‌خورد. اعتبار و جلسات باقی‌مانده صفر می‌شود و ردیفِ «برگشت وجه» در دفتر کل مالی ثبت می‌گردد؛ ردیفِ درآمدِ اصلی پاک نمی‌شود.`
+            : ''
+        }
+        confirmText="بازگشت وجه"
+        cancelText="انصراف"
+        variant="destructive"
+        loading={refundId === (refundConfirm?.id ?? -1)}
+        onConfirm={() => { if (refundConfirm) void handleRefundPurchase(refundConfirm) }}
       />
 
       {/* اقدام گروهی روی رزروهای در انتظار تأیید — حلقه‌ی endpointهای تکی */}

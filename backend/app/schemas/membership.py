@@ -50,6 +50,11 @@ class MembershipPayRequest(BaseModel):
     year: Optional[int] = Field(default=None, ge=1300, le=1500)
 
 
+class MembershipRefundRequest(BaseModel):
+    reason: Optional[str] = Field(default=None, max_length=200,
+                                  description="دلیل بازگشت وجه، در شرحِ ردیفِ دفتر کل ثبت می‌شود")
+
+
 class MembershipPurchaseResponse(BaseModel):
     id: int
     plan_id: int

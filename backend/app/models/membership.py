@@ -21,6 +21,10 @@ class PurchaseStatus(str, Enum):
     PENDING = "pending"
     PAID = "paid"
     CANCELLED = "cancelled"
+    # «بازگشت وجه» یک وضعیتِ جدید است، نه تغییرِ ردیفِ درآمد: ردیفِ دفتر کل append-only
+    # می‌ماند و یک ردیف refund/expense کنارش می‌نشیند (قراردادِ C7 در رزرو).
+    # ستون `status` به‌صورت VARCHAR(20) ذخیره می‌شود، پس این مقدار مهاجرت نمی‌خواهد.
+    REFUNDED = "refunded"
 
 
 class MembershipPlan(SQLModel, table=True):

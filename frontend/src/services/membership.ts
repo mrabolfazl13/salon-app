@@ -65,6 +65,13 @@ export const membershipService = {
     return data
   },
 
+  refundPurchase: async (purchaseId: number, reason?: string): Promise<MembershipPurchase> => {
+    const { data } = await apiClient.post(`/memberships/purchases/${purchaseId}/refund`, {
+      reason: reason?.trim() || null,
+    })
+    return data
+  },
+
   getVenuePurchases: async (venueId: number): Promise<MembershipPurchase[]> => {
     const { data } = await apiClient.get(`/memberships/venue/${venueId}/purchases`)
     return data

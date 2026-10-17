@@ -2,7 +2,7 @@
 // تایپ‌های سیستم اشتراک باشگاه‌های بدنسازی — آینه‌ی پاسخ‌های snake_case بک‌اند (schemas/membership.py)
 
 export type PlanType = 'session' | 'sessions_pack' | 'monthly'
-export type PurchaseStatus = 'pending' | 'paid' | 'cancelled'
+export type PurchaseStatus = 'pending' | 'paid' | 'cancelled' | 'refunded'
 
 export interface MembershipPlan {
   id: number

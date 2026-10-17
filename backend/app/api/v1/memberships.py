@@ -34,6 +34,7 @@ from app.schemas.membership import (
     MembershipPlanUpdate,
     MembershipPurchaseCreate,
     MembershipPurchaseResponse,
+    MembershipRefundRequest,
 )
 from app.utils.auth import get_current_manager, get_current_user, get_optional_user
 
@@ -304,6 +305,61 @@ def pay_purchase(
             source_type=TransactionSourceType.MEMBERSHIP_PURCHASE,
             source_id=purchase.id,
             description=f"خرید اشتراک «{plan.title}»",
+            created_by=current_user.id,
+            cleared_at=now,
+        ))
+    session.commit()
+    session.refresh(purchase)
+    return _purchase_response(purchase)
+
+
+@router.post("/purchases/{purchase_id}/refund", response_model=MembershipPurchaseResponse)
+def refund_purchase(
+    purchase_id: int,
+    data: MembershipRefundRequest,
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_manager),
+):
+    """بازگشت وجه اشتراک — فقط مدیر همان سالن.
+
+    قراردادِ دفتر کل همان رزرو است (C7): ردیفِ درآمد **حذف یا دستکاری نمی‌شود**،
+    یک ردیف `refund/expense` به همان مبلغ کنارش می‌نشیند. اعتبار هم لغو می‌شود
+    (`sessions_remaining = 0`) و `/consume` خودش فقط `paid` را می‌پذیرد.
+    """
+    purchase = session.get(MembershipPurchase, purchase_id)
+    if not purchase:
+        raise HTTPException(status_code=404, detail="فاکتور یافت نشد")
+    _ensure_venue_manager(session, purchase.venue_id, current_user)
+    if purchase.status != PurchaseStatus.PAID:
+        raise HTTPException(
+            status_code=400,
+            detail=f"فقط فاکتور پرداخت‌شده قابل بازگشت وجه است "
+                   f"(وضعیت فعلی: {purchase.status.value})")
+
+    plan = session.get(MembershipPlan, purchase.plan_id)
+    now = datetime.now(timezone.utc)
+    purchase.status = PurchaseStatus.REFUNDED
+    if purchase.sessions_remaining is not None:
+        purchase.sessions_remaining = 0
+    session.add(purchase)
+
+    ledger_key = f"membership-refund:{purchase.id}"
+    if not session.exec(select(FinancialTransaction).where(
+            FinancialTransaction.idempotency_key == ledger_key)).first():
+        reason = f" — {data.reason}" if data.reason else ""
+        session.add(FinancialTransaction(
+            idempotency_key=ledger_key,
+            type=TransactionType.REFUND,
+            direction=TransactionDirection.EXPENSE,
+            amount=purchase.amount,
+            method=TransactionMethod.GATEWAY,
+            status=TransactionStatus.CLEARED,
+            counterparty=purchase.user_id,
+            counterparty_type=CounterpartyType.USER,
+            venue_id=purchase.venue_id,
+            source_type=TransactionSourceType.MEMBERSHIP_PURCHASE,
+            source_id=purchase.id,
+            description=f"بازگشت وجه اشتراک «{plan.title if plan else purchase.plan_id}»{reason}",
             created_by=current_user.id,
             cleared_at=now,
         ))

@@ -66,6 +66,7 @@ const Dashboard: React.FC = () => {
   const purchaseStatusChip = (p: MembershipPurchase): { label: string; color: 'success' | 'warning' | 'default' } => {
     if (p.status === 'paid') return { label: 'فعال', color: 'success' }
     if (p.status === 'pending') return { label: 'در انتظار پرداخت', color: 'warning' }
+    if (p.status === 'refunded') return { label: 'بازگشت وجه شده', color: 'default' }
     return { label: 'لغو شده', color: 'default' }
   }
 
