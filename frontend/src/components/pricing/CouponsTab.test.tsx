@@ -60,6 +60,8 @@ const redemption = (over: Partial<import('@/services/coupons').CouponRedemption>
   user_full_name: 'مشتری یکم',
   booking_id: null,
   amount_discounted: 50000,
+  status: 'ACTIVE' as const,
+  released_at: null,
   created_at: '2026-10-07T10:20:00Z',
   ...over,
 })
@@ -104,7 +106,42 @@ describe('CouponsTab — فهرست مصرف کد (C13.3.2)', () => {
   it('sums the discount of the listed redemptions', async () => {
     renderTab()
     fireEvent.click(await screen.findByRole('button', { name: 'مصرف‌ها' }))
-    expect(await screen.findByText(/مجموع تخفیفِ این فهرست: ۱۰۰٬۰۰۰ ریال/)).toBeInTheDocument()
+    expect(await screen.findByText(/مجموع تخفیفِ مصرف‌های زنده: ۱۰۰٬۰۰۰ ریال/)).toBeInTheDocument()
+  })
+
+  it('ردیفِ لغوشده را از تاریخچه حذف نمی‌کند؛ برچسبش می‌کند', async () => {
+    redemptions.mockResolvedValue([
+      redemption(),
+      redemption({
+        id: 902, user_full_name: 'مشتری سوم', user_phone: '09351112233',
+        status: 'RELEASED', released_at: '2026-10-08T09:00:00Z', booking_id: 77,
+      }),
+    ])
+    renderTab()
+    fireEvent.click(await screen.findByRole('button', { name: 'مصرف‌ها' }))
+    expect(await screen.findByText('مشتری سوم')).toBeInTheDocument()
+    expect(screen.getByText('لغوشده')).toBeInTheDocument()
+    // ردیف ناپدید نشده ⇒ هر دو مبلغ در جدول‌اند
+    expect(screen.getAllByText('۵۰٬۰۰۰ ریال').length).toBe(2)
+    expect(screen.getByText(/رزرو ۷۷/)).toBeInTheDocument()
+  })
+
+  it('مجموعِ تخفیف فقط ردیف‌های زنده را می‌شمارد', async () => {
+    redemptions.mockResolvedValue([
+      redemption(),
+      redemption({ id: 903, status: 'RELEASED', released_at: '2026-10-08T09:00:00Z' }),
+    ])
+    renderTab()
+    fireEvent.click(await screen.findByRole('button', { name: 'مصرف‌ها' }))
+    expect(await screen.findByText(/مجموع تخفیفِ مصرف‌های زنده: ۵۰٬۰۰۰ ریال · ۱ مورد لغو شده/))
+      .toBeInTheDocument()
+  })
+
+  it('توضیح پایینِ جدول دیگر «ردیفش از این فهرست می‌رود» نیست', async () => {
+    renderTab()
+    fireEvent.click(await screen.findByRole('button', { name: 'مصرف‌ها' }))
+    expect(await screen.findByText(/با برچسب\s*«لغوشده» در همین تاریخچه می‌ماند/)).toBeInTheDocument()
+    expect(screen.queryByText(/ردیفش از این فهرست می‌رود/)).not.toBeInTheDocument()
   })
 
   it('says so when nobody used the code yet', async () => {

@@ -3,7 +3,8 @@
 
 چرخه: validate در compute_booking_price → reserve هنگام ساخت رزرو معلق
 (Redis) → connect به booking در تأیید نهایی → release در رد/انقضاء/لغو
-(uses_count کم و ردیف redemption حذف می‌شود تا کد نسوزد).
+(uses_count کم و ردیف redemption به `RELEASED` می‌رود تا کد نسوزد و تاریخچۀ
+مصرف هم گم نشود — گرهٔ C22.1، راند ۲۷).
 """
 from datetime import datetime, timezone
 from typing import Optional, Tuple
@@ -126,13 +127,22 @@ class CouponService:
 
     @staticmethod
     def release_by_id(session: Session, redemption_id: int) -> bool:
+        """مصرف را آزاد می‌کند، بی‌آنکه ردیف را بسوزاند (گرهٔ C22.1، راند ۲۷).
+
+        **ترتیب بارِ اثبات است:** اول flipِ نگهبان‌دارِ خودِ ردیف و بعد برگرداندنِ
+        ظرفیت. اگر برعکس بود، لغوِ دوباره‌ی یک رزرو (دو مسیرِ همزمان) `uses_count` را
+        یکی *زیرِ* مقدارِ واقعی می‌برد؛ حالا درخواستِ دوم روی `rowcount = 0` رد می‌شود
+        و هیچ شمارنده‌ای تکان نمی‌خورد. تا این راند `session.delete(red)` بود و همان
+        حذف، هم تاریخچۀ مصرف را از بین می‌برد و هم «ردیف هست؟» را تنها سدِ دوباره‌لغو
+        می‌کرد.
+        """
         red_repo = CouponRedemptionRepository(session)
         red = red_repo.get_by_id(redemption_id)
         if not red:
             return False
+        if not red_repo.mark_released(redemption_id):
+            return False
         CouponRepository(session).release_capacity(red.coupon_id)
-        session.delete(red)
-        session.flush()
         return True
 
     @staticmethod

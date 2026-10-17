@@ -41,6 +41,12 @@ class Coupon(SQLModel, table=True):
     updated_at: datetime = Field(default_factory=_utcnow)
 
 
+class RedemptionStatus(str, Enum):
+    """وضعیتِ ردیفِ مصرف — تا راند ۲۷ لغو یعنی **حذفِ ردیف** (گرهٔ C22.1)."""
+    ACTIVE = "ACTIVE"        # مصرفِ زنده (رزرو معلق یا تأییدشده)
+    RELEASED = "RELEASED"    # لغو/رد شده؛ ردیف می‌ماند تا تاریخچه کامل بماند
+
+
 class CouponRedemption(SQLModel, table=True):
     """ردیف مصرف کوپن — با booking_id=null یعنی رزرو معلقِ در انتظار تأیید."""
     __tablename__ = "coupon_redemptions"
@@ -50,4 +56,11 @@ class CouponRedemption(SQLModel, table=True):
     user_id: int = Field(foreign_key="users.id", index=True)
     booking_id: Optional[int] = Field(default=None, foreign_key="bookings.id", index=True)
     amount_discounted: int = Field(default=0)
+    status: RedemptionStatus = Field(
+        default=RedemptionStatus.ACTIVE,
+        # همان server_defaultِ مهاجرت (m0s029): مسیری که ستون را نمی‌شناسد — مثل
+        # INSERT خام — نباید با «NOT NULL بدون مقدار» بشکند.
+        sa_column_kwargs={"server_default": "ACTIVE"},
+    )
+    released_at: Optional[datetime] = Field(default=None)
     created_at: datetime = Field(default_factory=_utcnow)

@@ -31,7 +31,11 @@ class CouponUpdate(BaseModel):
 
 
 class CouponRedemptionResponse(BaseModel):
-    """یک ردیف مصرف — «چه کسی، کِی، چقدر تخفیف گرفت» (گرهٔ C13.3.2)."""
+    """یک ردیف مصرف — «چه کسی، کِی، چقدر تخفیف گرفت» (گرهٔ C13.3.2).
+
+    `status` از راند ۲۷ همراه می‌آید: `ACTIVE` یعنی مصرفِ زنده، `RELEASED` یعنی
+    لغو شده ولی ردیف برای تاریخچه مانده (گرهٔ C22.1).
+    """
     id: int
     coupon_id: int
     user_id: int
@@ -39,6 +43,8 @@ class CouponRedemptionResponse(BaseModel):
     user_full_name: Optional[str] = None
     booking_id: Optional[int] = None
     amount_discounted: int
+    status: str
+    released_at: Optional[datetime] = None
     created_at: datetime
 
     @classmethod
@@ -48,6 +54,8 @@ class CouponRedemptionResponse(BaseModel):
             id=red.id, coupon_id=red.coupon_id, user_id=red.user_id,
             user_phone=phone, user_full_name=full_name,
             booking_id=red.booking_id, amount_discounted=red.amount_discounted,
+            status=str(red.status.value if hasattr(red.status, "value") else red.status),
+            released_at=red.released_at,
             created_at=red.created_at,
         )
 

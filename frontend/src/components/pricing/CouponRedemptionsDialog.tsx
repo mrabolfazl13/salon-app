@@ -1,7 +1,8 @@
 // frontend/src/components/pricing/CouponRedemptionsDialog.tsx
 // «چه کسی این کد را مصرف کرده؟» — ردیف‌های مصرف تا راند ۲۵ نوشته می‌شدند ولی
 // هیچ‌جا خوانده نمی‌شدند (گرهٔ C13.3.2): مدیر فقط شمارندۀ `uses_count` را می‌دید.
-// سطح: مصرف‌های *جاری* — رزروِ پرداخت‌نشده‌ای که لغو شود ردیفش حذف می‌شود.
+// راند ۲۷ (C22.1): لغوِ رزروِ پرداخت‌نشده ردیف را از بین نمی‌برد؛ ردیف با
+// `status: 'RELEASED'` می‌ماند، پس این فهرست تاریخچۀ کامل است و «لغوشده» برچسب دارد.
 
 import React from 'react'
 import {
@@ -39,7 +40,11 @@ const PAGE_LIMIT = 200
 const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => {
   const query = useCouponRedemptions(open ? coupon : null)
   const rows = query.data ?? []
-  const totalDiscounted = rows.reduce((sum, r) => sum + r.amount_discounted, 0)
+  const released = rows.filter((r) => r.status === 'RELEASED')
+  // مجموعِ تخفیف فقط مصرف‌های زنده را می‌شمارد؛ ردیفِ لغوشده تاریخچه است نه پولِ رفته
+  const totalDiscounted = rows
+    .filter((r) => r.status === 'ACTIVE')
+    .reduce((sum, r) => sum + r.amount_discounted, 0)
 
   return (
     <Dialog
@@ -58,7 +63,9 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.secondary' }}>
             {coupon ? `سقف ${coupon.max_uses == null ? 'نامحدود' : toPersianDigits(coupon.max_uses)} مصرف · ` : ''}
-            مجموع تخفیفِ این فهرست: {formatRial(totalDiscounted)}
+            مجموع تخفیفِ مصرف‌های زنده: {formatRial(totalDiscounted)}
+            {released.length > 0 &&
+              ` · ${toPersianDigits(released.length)} مورد لغو شده`}
           </Typography>
         </Box>
         <IconButton onClick={onClose} size="small" aria-label="بستن" sx={{ alignSelf: 'flex-start' }}>
@@ -96,8 +103,16 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
                 </TableRow>
               </TableHead>
               <TableBody>
-                {rows.map((r) => (
-                  <TableRow key={r.id} sx={{ '&:hover': { bgcolor: 'rgba(219,39,119,0.03)' } }}>
+                {rows.map((r) => {
+                  const releasedRow = r.status === 'RELEASED'
+                  return (
+                  <TableRow
+                    key={r.id}
+                    sx={{
+                      bgcolor: releasedRow ? 'rgba(100,116,139,0.05)' : undefined,
+                      '&:hover': { bgcolor: 'rgba(219,39,119,0.03)' },
+                    }}
+                  >
                     <TableCell>
                       <Typography variant="body2" sx={{ fontWeight: 700 }}>
                         {r.user_full_name || '—'}
@@ -112,28 +127,47 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
                     </TableCell>
                     <TableCell>{formatJalaliDateTime(r.created_at)}</TableCell>
                     <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 800, color: '#db2777' }}>
+                      <Typography
+                        variant="body2"
+                        sx={{
+                          fontWeight: 800,
+                          color: releasedRow ? 'text.secondary' : '#db2777',
+                          textDecoration: releasedRow ? 'line-through' : undefined,
+                        }}
+                      >
                         {formatRial(r.amount_discounted)}
                       </Typography>
                     </TableCell>
                     <TableCell>
-                      {r.booking_id == null ? (
-                        <Chip
-                          size="small"
-                          label="در انتظار تأیید"
-                          sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309' }}
-                        />
-                      ) : (
-                        <Chip
-                          size="small"
-                          icon={<Icon icon="mdi:clipboard-check-outline" />}
-                          label={`رزرو ${toPersianDigits(r.booking_id)}`}
-                          sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }}
-                        />
-                      )}
+                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+                        {r.booking_id == null ? (
+                          <Chip
+                            size="small"
+                            label="در انتظار تأیید"
+                            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309' }}
+                          />
+                        ) : (
+                          <Chip
+                            size="small"
+                            icon={<Icon icon="mdi:clipboard-check-outline" />}
+                            label={`رزرو ${toPersianDigits(r.booking_id)}`}
+                            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }}
+                          />
+                        )}
+                        {releasedRow && (
+                          <Chip
+                            size="small"
+                            icon={<Icon icon="mdi:bookmark-off-outline" />}
+                            label="لغوشده"
+                            title={r.released_at ? `لغو در ${formatJalaliDateTime(r.released_at)}` : undefined}
+                            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(100,116,139,0.14)', color: '#475569' }}
+                          />
+                        )}
+                      </Box>
                     </TableCell>
                   </TableRow>
-                ))}
+                  )
+                })}
               </TableBody>
             </Table>
           </TableContainer>
@@ -145,8 +179,9 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
           </Typography>
         )}
         <Typography variant="caption" sx={{ display: 'block', mt: rows.length ? 1.5 : 0, color: 'text.secondary' }}>
-          رزروی که پیش از پرداخت لغو شود آزاد می‌گردد و ردیفش از این فهرست می‌رود؛ مصرفِ
-          پرداخت‌شده باقی می‌ماند.
+          رزروی که پیش از پرداخت لغو شود ظرفیت کد را برمی‌گرداند، اما ردیفش با برچسب
+          «لغوشده» در همین تاریخچه می‌ماند و در مجموعِ تخفیف شمرده نمی‌شود. مصرفِ
+          پرداخت‌شده هرگز لغوشده نمی‌شود.
         </Typography>
       </DialogContent>
 

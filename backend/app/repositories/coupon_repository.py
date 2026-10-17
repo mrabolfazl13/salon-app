@@ -4,7 +4,7 @@ from sqlalchemy import insert, literal
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from app.models.coupon import Coupon, CouponRedemption
+from app.models.coupon import Coupon, CouponRedemption, RedemptionStatus
 from app.models.user import User
 from app.repositories.base import BaseRepository
 
@@ -38,9 +38,15 @@ class CouponRepository(BaseRepository[Coupon]):
         return list(self.session.exec(stmt.order_by(Coupon.id.desc())).all())
 
     def user_redemption_count(self, coupon_id: int, user_id: int) -> int:
+        """شمارشِ مصرفِ **زنده** — ردیفِ RELEASED دیگر جایی در سقفِ فردی ندارد.
+
+        از راند ۲۷ لغو دیگر ردیف را حذف نمی‌کند (C22.1)، پس اگر این شرط نباشد
+        مصرفِ لغوشده برای همیشه سهمِ کاربرِ `per_user_limit` را پر نگه می‌دارد.
+        """
         stmt = select(func.count()).select_from(CouponRedemption).where(
             CouponRedemption.coupon_id == coupon_id,
             CouponRedemption.user_id == user_id,
+            CouponRedemption.status == RedemptionStatus.ACTIVE,
         )
         return int(self.session.exec(stmt).one())
 
@@ -159,19 +165,25 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
         نال است)، پس idِ ردیف تازه با `max(id)` خوانده می‌شود — و این درست است چون
         `reserve` قبلِ این INSERT ردیفِ کوپن را قفل کرده، یعنی هیچ نویسندۀ دیگری
         نمی‌تواند هم‌زمان ردیفِ مصرفِ همین کوپن بسازد.
+
+        شمارشِ `used` فقط ردیف‌های `ACTIVE` را می‌شمارد (راند ۲۷): لغوِ یک مصرف دیگر
+        ردیف را حذف نمی‌کند، پس بدونِ این شرط سهمِ `per_user_limit` کاربر برای همیشه
+        پر می‌ماند و معناهای شمارنده نسبت به راند ۲۴ عوض می‌شد.
         """
         table = CouponRedemption.__table__
         used = (
             select(func.count()).select_from(table)
-            .where(table.c.coupon_id == coupon_id, table.c.user_id == user_id)
+            .where(table.c.coupon_id == coupon_id, table.c.user_id == user_id,
+                   table.c.status == RedemptionStatus.ACTIVE)
             .scalar_subquery()
         )
         result = self.session.execute(
             insert(table).from_select(
                 [table.c.coupon_id, table.c.user_id,
-                 table.c.amount_discounted, table.c.created_at],
+                 table.c.amount_discounted, table.c.status, table.c.created_at],
                 select(literal(coupon_id), literal(user_id),
                        literal(amount_discounted),
+                       literal(RedemptionStatus.ACTIVE),
                        literal(datetime.now(timezone.utc)))
                 .where(used < per_user_limit),
             )
@@ -184,3 +196,27 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
                    CouponRedemption.user_id == user_id)
         ).one()
         return self.get_by_id(int(newest))
+
+    def mark_released(self, redemption_id: int, now: Optional[datetime] = None) -> bool:
+        """مصرف را با نگهبانِ statement به `RELEASED` تبدیل می‌کند؛ ردیف می‌ماند.
+
+        `WHERE id = ? AND status = 'ACTIVE'` ⇒ لغوِ دوباره (دو مسیرِ همزمانِ لغوِ یک
+        رزرو) rowcount صفر می‌گیرد، پس شمارندۀ `uses_count` یک ظرفیت را **یک بار**
+        برمی‌گرداند. تا راند ۲۷ اینجا `session.delete(red)` بود و همان حذف، هم
+        تاریخچه را می‌سوزاند (C22.1) و هم read-checkِ «ردیف هست؟» را تنها سدِ دوباره‌لغو
+        می‌کرد.
+        """
+        ts = now or datetime.now(timezone.utc)
+        table = CouponRedemption.__table__
+        rowcount = self.session.execute(
+            table.update()
+            .where(table.c.id == redemption_id,
+                   table.c.status == RedemptionStatus.ACTIVE)
+            .values(status=RedemptionStatus.RELEASED, released_at=ts)
+        ).rowcount
+        if rowcount == 0:
+            return False
+        red = self.get_by_id(redemption_id)
+        if red is not None:
+            self.session.refresh(red)   # identity map بعد از Core update همگام نیست
+        return True

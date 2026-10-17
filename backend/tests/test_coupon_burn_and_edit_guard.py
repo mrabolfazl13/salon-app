@@ -13,7 +13,7 @@ from sqlmodel import Session, select
 
 import app.services.pending_booking_service as pbs_module
 import app.utils.rate_limit as rate_limit_module
-from app.models.coupon import Coupon, CouponRedemption
+from app.models.coupon import Coupon, CouponRedemption, RedemptionStatus
 from app.models.slot import Slot, SlotStatus
 from app.models.user import User, UserRole
 from app.models.venue import Venue, VenuePaymentMode
@@ -133,7 +133,13 @@ def test_cancel_of_unpaid_booking_still_releases_coupon(client, fake_redis):
 
     assert client.delete(f"/api/v1/bookings/{bid}", headers=auth(a["u"])).status_code == 200
     with _fresh() as s:
-        assert s.exec(select(CouponRedemption)).first() is None
+        # راند ۲۷ (C22.1): ردیفِ آزادشده حذف نمی‌شود، «لغوشده» می‌شود
+        assert s.exec(select(CouponRedemption)
+                      .where(CouponRedemption.status == RedemptionStatus.RELEASED)
+                      ).first() is not None
+        assert s.exec(select(CouponRedemption)
+                      .where(CouponRedemption.status == RedemptionStatus.ACTIVE)
+                      ).first() is None
         assert s.exec(select(Coupon)).first().uses_count == 0
 
     r = client.post("/api/v1/bookings/", json={"slot_id": s2, "discount_code": "FREE1"},

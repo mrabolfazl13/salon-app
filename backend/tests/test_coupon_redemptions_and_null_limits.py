@@ -193,10 +193,13 @@ def test_the_list_is_newest_first_and_paged(client, fake_redis):
     assert [r["user_phone"] for r in tail] == [a["custs"][0]]
 
 
-def test_a_cancelled_unpaid_booking_leaves_the_list(client, fake_redis):
-    """ردیفِ آزادشده حذف می‌شود ⇒ فهرست «مصرفِ جاری» است و با `uses_count` می‌خواند.
+def test_a_cancelled_unpaid_booking_stays_in_the_list_as_history(client, fake_redis):
+    """راند ۲۷ (C22.1): ردیفِ آزادشده حذف نمی‌شود ⇒ فهرست تاریخچۀ کامل است.
 
-    تاریخچۀ لغوشده اینجا نگه داشته نمی‌شود — نقصِ ممیزیِ ثبت‌شده، نه رفتارِ تصادفی.
+    پیش از این راند همین تست `== []` و `_rows() == []` را می‌خواست؛ یعنی لغوِ یک
+    رزروِ پرداخت‌نشده ردیفِ مصرف را از تاریخ می‌انداخت. حالا ردیف می‌ماند،
+    `status` روی `RELEASED` است و ظرفیت برگشته ⇒ `uses_count` با **شمارِ
+    ردیف‌های ACTIVE** می‌خواند، نه با شمارِ همهٔ ردیف‌ها.
     """
     a = _setup("807")
     cid = _mk_coupon(client, a["mgr_a"], "GONE1", a["venue_a"]).json()["id"]
@@ -206,10 +209,29 @@ def test_a_cancelled_unpaid_booking_leaves_the_list(client, fake_redis):
     assert client.delete(f"/api/v1/bookings/{bid}",
                          headers=auth(a["custs"][0])).status_code == 200
 
-    assert _redemptions(client, a["mgr_a"], cid).json() == []
+    rows = _redemptions(client, a["mgr_a"], cid).json()
+    assert [r["status"] for r in rows] == ["RELEASED"]
+    assert rows[0]["released_at"] is not None
+    assert rows[0]["booking_id"] == bid        # «کجا مصرف شد» هم گم نمی‌شود
     with Session(test_engine) as s:
         assert s.get(Coupon, cid).uses_count == 0
-    assert _rows() == []
+    assert len(_rows()) == 1                   # ردیف فیزیکی حذف نشده است
+
+
+def test_a_released_row_does_not_block_a_second_use(client, fake_redis):
+    """معنای «ACTIVE-only»: پس از لغو، همان کاربر دوباره جا دارد."""
+    a = _setup("818")
+    cid = _mk_coupon(client, a["mgr_a"], "AGAIN1", a["venue_a"]).json()["id"]
+    pending = _book(client, a["custs"][0], a["slots_a"][0], "AGAIN1").json()["id"]
+    bid = client.post(f"/api/v1/bookings/pending/{pending}/confirm",
+                      headers=auth(a["mgr_a"])).json()["id"]
+    assert client.delete(f"/api/v1/bookings/{bid}",
+                         headers=auth(a["custs"][0])).status_code == 200
+
+    second = _book(client, a["custs"][0], a["slots_a"][1], "AGAIN1")
+    assert second.status_code == 200, second.text
+    assert [r["status"] for r in _redemptions(client, a["mgr_a"], cid).json()] == \
+        ["ACTIVE", "RELEASED"]                 # تازه‌ترین اول
 
 
 def test_a_paid_and_cancelled_booking_stays_visible(client, fake_redis):

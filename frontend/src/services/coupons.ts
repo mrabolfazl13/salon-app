@@ -53,6 +53,9 @@ export interface CouponRedemption {
   /** null یعنی رزروِ معلق هنوز تأیید نشده است */
   booking_id: number | null
   amount_discounted: number
+  /** RELEASED یعنی رزرو پیش از پرداخت لغو شد؛ ردیف برای تاریخچه می‌ماند (C22.1) */
+  status: 'ACTIVE' | 'RELEASED'
+  released_at: string | null
   created_at: string
 }
 

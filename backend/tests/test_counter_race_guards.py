@@ -257,9 +257,10 @@ def test_the_per_user_guard_lives_inside_the_redemption_insert(client, fake_redi
     assert len(idx_insert) == 1, [st for st in low if "coupon_redemptions" in st]
     st = low[idx_insert[0]]
     assert st.startswith("insert into coupon_redemptions (coupon_id, user_id, "
-                         "amount_discounted, created_at) select")
+                         "amount_discounted, status, created_at) select")
     assert "where (select count(*) as count_1 from coupon_redemptions" in st
-    assert ") < ?" in st                         # سقف داخل WHERE، نه در Python
+    # راند ۲۷: شمارش فقط ردیف‌های ACTIVE را می‌بیند ⇒ لغو، سقفِ فردی را پر نگه نمی‌دارد
+    assert "and coupon_redemptions.status = ?) < ?" in st
     idx_update = [i for i, st in enumerate(low) if st.startswith("update coupons")]
     assert len(idx_update) == 1
     # ترتیب بارِ اثبات است: UPDATE ردیفِ کوپن را قفل می‌کند؛ شمارش باید بعدش باشد.

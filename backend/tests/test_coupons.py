@@ -10,7 +10,7 @@ import app.services.pending_booking_service as pbs_module
 import app.tasks.pending_booking_tasks as tasks_module
 import app.utils.rate_limit as rate_limit_module
 from app.models.booking import Booking, BookingStatus
-from app.models.coupon import Coupon, CouponRedemption
+from app.models.coupon import Coupon, CouponRedemption, RedemptionStatus
 from app.models.payment import BookingPaymentStatus
 from app.models.slot import Slot, SlotStatus
 from app.models.transaction import FinancialTransaction, TransactionType
@@ -235,9 +235,11 @@ def test_cancel_pending_releases_coupon(client, fake_redis):
     pid = r.json()["id"]
     assert client.delete(f"/api/v1/bookings/pending/{pid}", headers=auth(a["u"])).status_code == 200
     with _fresh() as s:
-        assert s.exec(select(CouponRedemption)).first() is None
+        red = s.exec(select(CouponRedemption)).one()
+        assert red.status == RedemptionStatus.RELEASED
+        assert red.released_at is not None
         assert s.exec(select(Coupon)).first().uses_count == 0
-    # دوباره قابل مصرف
+    # دوباره قابل مصرف (ردیفِ لغوشده در شمارشِ سقفِ فردی نمی‌آید)
     r = client.post("/api/v1/bookings/", json={"slot_id": sid2, "discount_code": "REL1"},
                     headers=auth(a["u"]))
     assert r.status_code == 200
@@ -255,7 +257,9 @@ def test_cancel_confirmed_booking_releases_coupon(client, fake_redis):
     r = client.delete(f"/api/v1/bookings/{conf}", headers=auth(a["u"]))
     assert r.status_code == 200, r.text
     with _fresh() as s:
-        assert s.exec(select(CouponRedemption)).first() is None
+        red = s.exec(select(CouponRedemption)).one()
+        assert red.status == RedemptionStatus.RELEASED
+        assert red.booking_id == conf          # ردیفِ تاریخ هنوز به رزرو وصل است
         assert s.exec(select(Coupon)).first().uses_count == 0
         b = s.get(Booking, conf)
         assert b.status == BookingStatus.CANCELLED
@@ -277,7 +281,9 @@ def test_expiry_task_releases_coupon(client, fake_redis):
     assert out["released"] == 1
     with _fresh() as s:
         assert s.exec(select(Slot).where(Slot.id == sid)).first().status == SlotStatus.AVAILABLE
-        assert s.exec(select(CouponRedemption)).first() is None
+        red = s.exec(select(CouponRedemption)).one()
+        assert red.status == RedemptionStatus.RELEASED
+        assert red.released_at is not None
         assert s.exec(select(Coupon)).first().uses_count == 0
 
 
