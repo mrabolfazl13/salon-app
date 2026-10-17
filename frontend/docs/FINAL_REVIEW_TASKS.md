@@ -2388,6 +2388,11 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
   این فهرست «تاریخچۀ کامل» نیست)، **C22.2** (کوپنِ سراسری برای مدیرِ سالن فهرست نمی‌شود —
   تصمیمِ محصول، ثبت‌شده)، **C22.3** (`uses_count` با شمارشِ ردیف‌ها هم‌اکنون برابر است ولی
   هیچ گیتِ دوره‌ایِ مغایرت ندارد). دست‌نخورده‌های قبلی هم باقی‌اند: C11.6.1 و C11.6.2.
+- **CIِ راند ۲۵ (`008a632`) — شاهدِ همین راند:** همان ۲۳ check با همان توزیع ⇒ **۲۰ success،
+  ۲ skipped (`Create GitHub Release` و `Flutter Android Release APK/AAB (Signed)`، هر دو tag-gated)،
+  ۱ failure (`Workers Builds: salon-app` = X9)**. سبزها شامل `Backend Tests`، `unit-tests`،
+  `Frontend Tests`، `e2e-tests` و `Security Scan` هستند ⇒ route خواندنیِ تازه و `clear_fields`
+  هیچ گیتِ CI را نشکستند و ناوکلِ سبزِ راندهای ۲۲–۲۴ بی‌تغییر ماند.
 
 ---
 
