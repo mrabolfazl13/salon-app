@@ -1345,6 +1345,9 @@ workflow سبز خوانده می‌شد در حالی که خودِ job قرم�
   3. هر ۲۰ spec مهمان‌محور است؛ هیچflowِ احراز-هویتی (رزرو، پرداخت، کنسول مدیر) در e2e پوشش ندارد — تا X1.
   4. چهار spec به داده‌های واقعیِ `/api/v1/venues` وابسته‌اند؛ اگر runner گیتب به `2.189.255.225` نرسد
      می‌بازند و این با X9/X4 قاطی می‌شود — دقیقاً برای همین annotation گذاشته شد تا از روی پیام قضاوت شود.
+     **این گره با شاهدِ CI باز شد**: روی `06429e47` همان سوئیت سبز شد ⇒ runner به آن IP می‌رسد.
+     نکتۀ صداقت: سبز شدن با بک‌اندِ prod یعنی این تست‌ها با داده‌های واقعیِ در حال تغییر می‌خورند؛
+     اگر someday دیتای prod خالی/کند شود، این gate هم می‌شکند و باید به fixture محلی برگردند.
   5. `trace: on-first-retry` و `workers: CI?1` بی‌تغییر ماند؛ یعنی ردیابیِ شکستِ CI همچنان فقط در
      artifact است که با این توکن خوانده نمی‌شود.
 - **معیار (شاهد، ۲۰۲۶-۱۰-۱۷، سطح local):**
@@ -1357,6 +1360,9 @@ workflow سبز خوانده می‌شد در حالی که خودِ job قرم�
   | سوئیت واحد فرانت (۴ دسته × ۵ فایل) | **۱۶۷ passed / ۰ failed** در ۲۰ فایل (= ۱۶۴ راند ۱۸ + ۳ نگهبانِ جدید) |
   | `pnpm run lint` + eslint روی `e2e/` و تستِ جدید | پاک |
   | خروجیِ emitter | `::notice title=E2E summary::20 spec؛ expected=20 unexpected=0 flaky=0 skipped=0` |
+  | **شاهدِ CI** روی `06429e47` (run 38991027403، workflow «Web Tests») | job `e2e-tests` ⇒ **completed / success**؛ هر ۱۳ step سبز، از جمله «Run E2E tests» و «Report E2E failures as annotations» — و این بار `continue-on-error: false` بود، پس سبز واقعاً سبز است |
+  | دسترسیِ runner به بک‌اند prod | ثابت شد: همان سوئیتِ وابسته به `/api/v1/venues` روی runner سبز شد ⇒ نگرانیِ گرهٔ ۴ از این راند رفع است (runner به `2.189.255.225` می‌رسد) |
+  | خواندنِ annotationها با این توکن | **۴۰۴** — `/repos/…/check-runs/{id}/annotations` باز نشد؛ یعنی کانالِ annotation برای آدمِ UI هست و این agent همچنان فقط stepهای job را می‌بیند |
 - **E2 این راند (اجرا نشد):** `vite build` (هیچ ورودیِ build عوض نشد، فقط یک `slotProps` و دو spec)،
   بک‌اند و Flutter (دست‌نخورده)؛ و آزمون روی دستگاه Android.
 
@@ -1722,6 +1728,7 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 | سوئیت واحد فرانت (۴ دسته × ۵ فایل، `NODE_OPTIONS=--max-old-space-size=3072`) | **۱۶۷ passed / ۰ failed** در ۲۰ فایل | +۳ = فایلِ جدید `src/lib/fieldAccessibleName.test.tsx`؛ ۱۶۴ راند ۱۸ دست‌نخورده ماند |
 | `pnpm run lint` (همان `eslint src --ext ts,tsx --quiet`) | پاک | بی‌تغییر؛ `e2e/` و تستِ جدید هم جدا lint شدند |
 | `scripts/e2e-annotations.mjs` روی `results.json` | `20 spec؛ expected=20 unexpected=0 flaky=0 skipped=0` | کانالِ تازه — پیش از این هیچ راهِ خواندنی برای دلیلِ شکست نبود |
+| **شاهدِ CI** (surface = CI، ۲۰۲۶-۱۰-۱۷): run 38991027403، SHA `06429e47` | job `e2e-tests` ⇒ **completed/success**، هر ۱۳ step سبز (شامل «Run E2E tests» و «Report E2E failures as annotations»)؛ `lint-and-build`، `Frontend Tests`، `Security Scan`، `Backend Tests`، `React Web Build`، `unit-tests`، `Performance Test`، `Mobile Tests` ⇒ سبز؛ تنها قرمز = `Workers Builds: salon-app` (X9، بیرونی) | **اولین سبزِ واقعیِ این gate از `0598992`** — با `continue-on-error: false`؛ و چون سوئیت به بک‌اندِ prod خورد، runner به `2.189.255.225` می‌رسد |
 
 - **E2 این راند (چه اجرا نشد):** `vite build` (نه کانفیگ بیلد دست خورد و نه bundle)، بک‌اند (صفر فایل
   تغییر کرد) و Flutter. شش فایل `src/**` که عوض شدند فقط attribute/slot جابه‌جا کردند؛ رگرسیونشان در
