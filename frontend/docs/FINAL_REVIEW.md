@@ -177,7 +177,8 @@ ruff ⇒ `All checks passed!` · OpenAPI ⇒ **۲۳۸** (endpoint تازه‌ا�
 نکتۀ صداقت: C13.1 روی `mock` gateway اثبات شد؛ توالیِ webhookِ درگاه واقعی همان شرط را می‌زند ولی
 شاهدِ زنده‌اش تا X4/X6 نداریم. سه گرهٔ ثبت‌شدۀ این راند (قفل‌نداشتن `max_uses`/`per_user_limit` —
 هر دو نصفه‌اش بسته شد: ظرفیت در راند ۲۳ با C20 و سقفِ فردی در راند ۲۴ با C21؛ فهرست‌نشدنِ
-مصرف‌ها، `BookingRepository.cancel_booking` بی‌caller):
+مصرف‌ها هم در راند ۲۵ بسته شد (C22: `GET /coupons/{id}/redemptions` + دیالوگ «مصرف‌ها» برای مدیر)
+، `BookingRepository.cancel_booking` بی‌caller):
 `FINAL_REVIEW_TASKS.md` → C13.
 
 **گیت‌های راند ۱۷ (مغایرگیریِ دفتر کل ↔ درگاه، بازبینی #۴ — اندازه‌گیری‌شده ۲۰۲۶-۱۰-۱۷):**
@@ -355,6 +356,24 @@ rowcount `{'A': 1, 'B': 0}` و شمارندهٔ صفر؛ و `INSERT` ممیزی 
 ۱ failure (`Workers Builds: salon-app` = X9)** — `Backend Tests` و `unit-tests` و `Security Scan`
 سبز، پس نگهبانِ INSERTِ جدید هیچ تستِ CIرا نشکست.
 جزئیات: `FINAL_REVIEW_TASKS.md` → C21/E14.
+
+**گیت‌های راند ۲۵ (دیدِ مصرفِ کوپن + بی‌سقفِ نوشتنی = C13.3.2 + C21.2 — اندازه‌گیری‌شده ۲۰۲۶-۱۰-۱۷، سطح unit + فرانت + PostgreSQL واقعی):**
+فایلِ تازه ⇒ **۱۵ passed در 1.57s** · با سه سورسِ رفع‌شده برگردانده‌شده به HEAD ⇒ **۱۴ failed،
+۱ passed** (و آن یک سبزِ جعلی بود: `404` از **نبودِ route** هم می‌آید، پس تست با `detail` تقویت شد) ·
+`test_counter_race_guards.py` ⇒ **۱۲ passed** با کوپنِ بی‌سقفِ ساختنی‌از-API · شش فایل کوپن +
+پرداخت اشتراکی ⇒ **۶۴ passed** (= ۴۹ + ۱۵) · رگرسیون کامل بک‌اند ⇒ **۷۳۳ passed در 66.98s**
+(= ۷۱۸ + ۱۵) · `ruff --select E9,F82` ⇒ `All checks passed!` · OpenAPI ⇒ **۲۴۱ / ۲۸۳** (+۱ path و
++۱ operation: `GET /api/v1/coupons/{coupon_id}/redemptions`) · اسکنِ CJK ⇒ صفر · فرانت ⇒ **tsc ۰،
+eslint ۰، vitest ۱۸۱ passed در ۲۲ فایل** (= ۱۷۳ + ۸) و `vite build` موفق ·
+**شاهدِ PostgreSQL (`~/.qoder-tmp/pg_read25.py`، لاگ `pg_read25.txt`، exit 0 و دو بار یکسان):**
+اسکیمای `alembic upgrade head` و خودِ repositoryهای ship‌شده؛ INSERT با `per_user_limit=None`
+روی PG هم **۱** می‌نویسد (پس C21.2 هرگز SQLite-only نبود)، `clear_fields` همان ستون را NULL می‌کند
+و object ORM بعدش همگام است، بی‌سقفِ نوشتنی واقعاً رزروهای بی‌پایان می‌دهد، و `list_for_coupon`
+ردیف‌ها را با LEFT JOIN + ترتیبِ جدیدترین-اول + paging برمی‌گرداند.
+**سه گرهٔ تازه ثبت شد (بدون رفع):** ردیفِ مصرفِ لغو-پرداخت‌نشده **حذف** می‌شود پس این فهرست
+تاریخچۀ کامل نیست (C22.1)؛ کوپنِ سراسری به مدیرِ سالن نشان داده نمی‌شود تا مشتریِ سالنِ دیگر لو
+نرود — تصمیمِ محصول (C22.2)؛ و هیچ گیتِ دوره‌ایِ «`uses_count` = شمارِ ردیف‌ها» وجود ندارد (C22.3).
+جزئیات: `FINAL_REVIEW_TASKS.md` → C22/E15.
 
 **درصد تکمیل هسته:** با توجه به فیچرهای ساخته‌شده از زمان نگارش نسخهٔ ۱.۰ (پرداخت تقسیم‌شده،
 قیمت‌گذاری قوانین‌محور، اتوماسیون اعلان، لیگ/بازی، تیم، CRM پایه، باشگاه وفاداری، چک‌این،
