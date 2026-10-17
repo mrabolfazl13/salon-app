@@ -8,7 +8,7 @@ class MembershipPlanCreate(BaseModel):
     venue_id: int
     title: str = Field(..., max_length=100, description="عنوان پلن، مثلاً «ماهانه» یا «پک ۱۰ جلسه»")
     plan_type: str = Field(default="session", description="session | sessions_pack | monthly")
-    price: int = Field(..., gt=0, description="قیمت به تومان")
+    price: int = Field(..., gt=0, description="قیمت به ریال")
     sessions_count: Optional[int] = Field(default=None, ge=1, le=200)
     duration_days: Optional[int] = Field(default=None, ge=1, le=3650)
     description: Optional[str] = Field(default=None, max_length=300)

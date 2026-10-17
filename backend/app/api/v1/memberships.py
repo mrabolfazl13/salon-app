@@ -82,6 +82,24 @@ def _get_plan_or_404(s: Session, plan_id: int) -> MembershipPlan:
     return plan
 
 
+def _ensure_plan_shape_valid(plan_type: PlanType, sessions_count: Optional[int],
+                             duration_days: Optional[int]) -> None:
+    """نگهبانِ جفتِ (نوع، مقدار) روی **مقادیرِ نهایی** — نه فقط فیلدهای ارسالیِ `PUT`.
+
+    بی‌این، `{"sessions_count": null}` پک ۱۰جلسه‌ای را به یک جلسه فرو می‌داد.
+    """
+    if plan_type == PlanType.SESSIONS_PACK and not sessions_count:
+        raise HTTPException(
+            status_code=400,
+            detail="برای پک جلسه‌ای، sessions_count الزامی است (حذفش باعث می‌شود "
+                   "خریدار فقط یک جلسه بگیرد)")
+    if plan_type == PlanType.MONTHLY and not duration_days:
+        raise HTTPException(
+            status_code=400,
+            detail="برای پلن ماهانه، duration_days الزامی است (حذفش اعتبار را به ۳۰ روز "
+                   "ثابت برمی‌گرداند)")
+
+
 def _ensure_venue_manager(s: Session, venue_id: int, user: User) -> Venue:
     venue = s.get(Venue, venue_id)
     if not venue:
@@ -119,10 +137,7 @@ def create_plan(
     _ensure_venue_manager(session, data.venue_id, current_user)
 
     plan_type = PlanType(data.plan_type)
-    if plan_type == PlanType.SESSIONS_PACK and not data.sessions_count:
-        raise HTTPException(status_code=400, detail="برای پک جلسه‌ای، sessions_count الزامی است")
-    if plan_type == PlanType.MONTHLY and not data.duration_days:
-        raise HTTPException(status_code=400, detail="برای پلن ماهانه، duration_days الزامی است")
+    _ensure_plan_shape_valid(plan_type, data.sessions_count, data.duration_days)
 
     plan = MembershipPlan(
         venue_id=data.venue_id,
@@ -149,6 +164,10 @@ def update_plan(
     plan = _get_plan_or_404(session, plan_id)
     _ensure_venue_manager(session, plan.venue_id, current_user)
     updates = data.model_dump(exclude_unset=True)
+    _ensure_plan_shape_valid(
+        plan.plan_type,
+        updates.get("sessions_count", plan.sessions_count),
+        updates.get("duration_days", plan.duration_days))
     for k, v in updates.items():
         setattr(plan, k, v)
     session.add(plan)
@@ -216,12 +235,12 @@ def pay_purchase(
 
     card = _normalize_digits(data.card_number)
     if len(card) != 16 or not card.isdigit():
-        purchase.status = PurchaseStatus.CANCELLED
-        session.add(purchase)
-        session.commit()
+        # اعتبارسنجیِ ناموفق نباید وضعیتِ فاکتور را عوض کند — قبلاً CANCELLED می‌شد و
+        # همان فاکتورِ «لغو» بعداً قابل پرداخت بود، پس لغو هیچ معنایی نداشت.
         raise HTTPException(status_code=400, detail="شماره کارت نامعتبر است (۱۶ رقم)")
 
     plan = _get_plan_or_404(session, purchase.plan_id)
+    _ensure_plan_shape_valid(plan.plan_type, plan.sessions_count, plan.duration_days)
     now = datetime.now(timezone.utc)
     purchase.status = PurchaseStatus.PAID
     purchase.transaction_id = secrets.token_hex(8).upper()
@@ -229,9 +248,11 @@ def pay_purchase(
     purchase.paid_at = now
     purchase.starts_at = now
     if plan.plan_type in (PlanType.SESSION, PlanType.SESSIONS_PACK):
-        purchase.sessions_remaining = plan.sessions_count or 1
-    elif plan.plan_type == PlanType.MONTHLY:
-        purchase.expires_at = now + timedelta(days=plan.duration_days or 30)
+        # SESSION یعنی یک جلسه؛ SESSIONS_PACK عددِ خودش را می‌گیرد (بی‌`or 1`)
+        purchase.sessions_remaining = (plan.sessions_count
+                                       if plan.plan_type == PlanType.SESSIONS_PACK else 1)
+    else:
+        purchase.expires_at = now + timedelta(days=plan.duration_days)
     session.add(purchase)
 
     # دفتر کل: درآمد خرید اشتراک (append-only، idempotency با شناسه فاکتور)

@@ -287,7 +287,12 @@ def test_dashboard_numbers_come_from_real_rows(client, actors):
 
 def test_dashboard_upcoming_excludes_past(client, actors):
     coach_h = auth(actors["coach"].phone)
-    _create(client, actors["coach"], actors["client"].phone, _today_at(1))
+    # دیروزِ ساعت ۱، نه «امروز ساعت ۱»: `_today_at(1)` بین ۰۰:۰۰ و ۰۱:۰۰ UTC
+    # (که رانرهای UTC دقیقاً در همین پنجره‌اند) به‌آینده تبدیل می‌شد و تست
+    # ناپایدار می‌شد — شاهد: این تست روی 2026-10-17T00:22Z شکست.
+    past = (datetime.now(timezone.utc) - timedelta(days=1)).replace(
+        hour=1, minute=0, second=0, microsecond=0)
+    _create(client, actors["coach"], actors["client"].phone, past)
     future = datetime.now(timezone.utc) + timedelta(days=2)
     _create(client, actors["coach"], actors["client"].phone, future)
     d = client.get(f"{BASE}/dashboard", headers=coach_h).json()

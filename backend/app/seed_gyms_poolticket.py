@@ -519,10 +519,17 @@ def _find_manager(session: Session) -> User:
 
 
 def _seed_session_plan(session: Session, venue: Venue, price_rial: int) -> None:
-    """ایجاد پلن «جلسه‌ای» از قیمت واقعی منبع (ریال → تومان). idempotent."""
+    """ایجاد پلن «جلسه‌ای» از قیمت واقعی منبع. idempotent.
+
+    واحدِ همۀ ستون‌های پول در این ریپو ریال است (`transaction.py:96` «مثبت به ریال»،
+    `lib/utils.ts:10` که قیمت را «ریال» چاپ می‌کند، و همین اسکریپت که در توضیحِ سالن
+    «قیمت جلسه (ریال): …» را می‌نویسد). نسخۀ قبل `// 10` می‌کرد و تومان می‌گذاشت،
+    پس یک جلسه روی صفحۀ سالن ۱٬۴۰۰٬۰۰۰ ریال و در کارتِ پلن ۱۴۰٬۰۰۰ ریال دیده می‌شد
+    و فاکتور هم به همان یک‌دهم صادر و در دفتر کل ثبت می‌شد.
+    """
     if not price_rial:
         return
-    price_toman = int(price_rial) // 10
+    price_rial = int(price_rial)
     existing = session.exec(
         select(MembershipPlan).where(
             MembershipPlan.venue_id == venue.id,
@@ -536,7 +543,7 @@ def _seed_session_plan(session: Session, venue: Venue, price_rial: int) -> None:
             venue_id=venue.id,
             title="جلسه‌ای",
             plan_type=PlanType.SESSION,
-            price=price_toman,
+            price=price_rial,
             sessions_count=1,
             description="قیمت هر جلسه طبق منبع poolticket.org",
             is_active=True,
