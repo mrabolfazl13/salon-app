@@ -311,7 +311,9 @@ rowcount `{'A': 1, 'B': 0}` و شمارندهٔ صفر؛ و `INSERT` ممیزی 
 `All checks passed!` · OpenAPI ⇒ **۲۴۰ path / ۲۸۲ operation** (بی‌تغییر؛ endpoint تازه‌ای اضافه نشد) ·
 اسکنِ CJK روی چهار فایل ⇒ صفر · **فرانت در این راند دست‌نخورده** ⇒ tsc/eslint/vitest/build اجرا
 نشدند (عددِ مرجع همان E12: ۱۷۳ passed / صفر خطا) · شاهدِ CIِ راند ۲۲ روی `1b065a9` ⇒ ۲۳ check:
-**۲۰ success، ۲ skipped، ۱ failure** و آن یکی همان `Workers Builds` (X9) است.
+**۲۰ success، ۲ skipped، ۱ failure** و آن یکی همان `Workers Builds` (X9) است · شاهدِ CIِ خودِ این راند
+روی `034576a` ⇒ همان ۲۳ check با همان توزیع (**۲۰ success، ۲ skippedِ tag-gated، ۱ failureِ X9**) —
+یعنی `unit-tests` و `Backend Tests` به نگهبان‌های SQLیِ تازه واکنش بد نشان ندادند.
 **شاهدِ PostgreSQL (`~/.qoder-tmp/pg_race23.py`، لاگ‌های `pg_race23_before/after.txt`، exit 0):**
 اسکیما با `alembic upgrade head` و **خودِ توابعِ مسیر** صدا زده شدند (`CouponService.reserve`،
 `await pay_share(...)`)؛ تنها تزریق `Barrier` + `sleep(0.5)` روی `SELECT … WHERE id = …` بود.

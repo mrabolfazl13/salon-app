@@ -2154,13 +2154,17 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
   و همین شاهد، رفعِ اولِ خودم را هم شکست: `CASE` بدونِ `cast` روی PG با `DatatypeMismatch` رد می‌شد
   در حالی که ۷۱۳ تست SQLite سبز بودند (C20).
 - **E2 این راند (چه اجرا نشد):** هیچ چیزِ فرانتی (چیزی عوض نشد)، Playwright، آزمون روی دستگاه،
-  Flutter، و CI برای SHA این راند — بعد از push تماشا می‌شود.
+  و Flutter.
 - **سطح اعداد:** بک‌اند **unit/SQLite** (رفتار + شکلِ statement) و یک شاهدِ **real-PG** همزمانی.
   هیچ‌کدام روی `api.salon.absadeghi.ir` دیده نشده (X6)؛ روی prodِ فعلی هم کوپنِ `max_uses=1` هنوز
   بیش از ظرفیت فروش می‌رود و دو پرداختِ همزمانِ اشتراکی هنوز یکی را گم می‌کند.
 - **CIِ راند ۲۲ (`1b065a9`) — شاهدِ ثبت‌شده برای این جدول:** ۲۳ check ⇒ **۲۰ success، ۲ skipped،
   ۱ failure**. skippedها هر دو tag-gated بودند (Android release و GitHub Release)؛ تنها قرمز
   `Workers Builds: salon-app` است که بیرون از انبار می‌سوزد و همان X9 باقی می‌ماند.
+- **CIِ راند ۲۳ (`034576a`) — شاهدِ همین راند:** همان ۲۳ check با همان توزیع ⇒ **۲۰ success،
+  ۲ skipped (`Create GitHub Release` و `Flutter Android Release APK/AAB (Signed)`، هر دو tag-gated)،
+  ۱ failure (`Workers Builds: salon-app` = X9)**. یعنی نه `unit-tests` و نه `Backend Tests` به
+  نگهبان‌های SQLیِ جدید واکنش بد نشان ندادند و ناوکلِ سبزِ راند ۲۲ بی‌تغییر ماند.
 
 ---
 
