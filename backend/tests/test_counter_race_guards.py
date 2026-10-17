@@ -1,19 +1,23 @@
 # backend/tests/test_counter_race_guards.py
-"""دو شمارندۀ پولی که «بخوان-و-بنویس» بودند و حالا CAS‌اند (راند ۲۳).
+"""سه شمارندۀ «بخوان-و-بنویس» که نگهبان‌شان داخل SQL است (راندهای ۲۳ و ۲۴).
 
 C11.6.3 — `pay_share` در `split_payments.py` مبلغ کل را با `sp.paid_amount += share.amount`
 جلو می‌برد؛ دو پرداختِ همزمان یکی را گم می‌کرد (و در مسیرِ هم‌سهمی، یک سهم دو بار شمرده
 می‌شد). C13.3.1 — `bump_uses` هم `uses_count` را روی آبجکتِ در-حافظه زیاد می‌کرد، پس دو
-رزروِ موازیِ یک کدِ `max_uses=1` می‌توانستند هر دو از چکِ Python رد شوند.
+رزروِ موازیِ یک کدِ `max_uses=1` می‌توانستند هر دو از چکِ Python رد شوند؛ و نصفِ دومِ همان
+گره، `per_user_limit`، که تا راند ۲۴ فقط در Python چک می‌شد.
 
-هر دو نگهبان حالا داخل خودِ SQL هستند. سطح این فایل unit/SQLite است (شکلِ statement و
-رفتار); همزمانیِ واقعی روی PostgreSQL در `~/.qoder-tmp/pg_race23.py` سنجیده می‌شود، چون
-`tests/conftest.py:104` هر تراکنش SQLite را با `BEGIN IMMEDIATE` می‌بندد.
+هر سه نگهبان حالا داخل خودِ SQL هستند. سطح این فایل unit/SQLite است (شکلِ statement و
+رفتار); همزمانیِ واقعی روی PostgreSQL در `~/.qoder-tmp/pg_race23.py` و
+`~/.qoder-tmp/pg_race24.py` سنجیده می‌شود، چون `tests/conftest.py:104` هر تراکنش SQLite را
+با `BEGIN IMMEDIATE` می‌بندد.
 """
 from datetime import date, timedelta
 from datetime import time as dtime
 
 import pytest
+import sqlalchemy as sa
+from fastapi import HTTPException
 from sqlalchemy import event
 from sqlmodel import Session, select
 
@@ -25,6 +29,7 @@ from app.models.split_payment import ShareStatus, TeamSplitPayment, SplitPayment
 from app.models.user import User, UserRole
 from app.models.venue import Venue, VenuePaymentMode
 from app.repositories.coupon_repository import CouponRepository
+from app.services.coupon_service import CouponService
 
 from conftest import test_engine
 from helpers import auth, FakeRedis
@@ -234,3 +239,103 @@ def test_status_completes_when_sql_finds_no_unpaid_share(client, seed):
             assert sp.paid_amount == 100_000 * (i + 1)
             expect = "COMPLETED" if i == 2 else "PARTIAL"
             assert sp.status.value == expect, (i, sp.status)
+
+
+# ─────────────── ۳) سقفِ فردیِ کوپن (نصفِ دومِ C13.3.1) ───────────────
+
+def test_the_per_user_guard_lives_inside_the_redemption_insert(client, fake_redis):
+    """شمارشِ فردی و نوشتنِ ردیف یک statementاند، و بعد از قفلِ ردیفِ کوپن اجرا می‌شوند."""
+    a = _coupon_setup("621", users=1)
+    assert _mk_coupon(client, a["mgr"], "LIM1", a["venue"],
+                      max_uses=None, per_user_limit=1).status_code == 200
+
+    resp, captured = _with_capture(
+        lambda: _book(client, a["custs"][0], a["slots"][0], "LIM1"))
+    assert resp.status_code == 200, resp.text
+    low = [" ".join(st.split()).lower() for st in captured]
+
+    idx_insert = [i for i, st in enumerate(low) if st.startswith("insert into coupon_redemptions")]
+    assert len(idx_insert) == 1, [st for st in low if "coupon_redemptions" in st]
+    st = low[idx_insert[0]]
+    assert st.startswith("insert into coupon_redemptions (coupon_id, user_id, "
+                         "amount_discounted, created_at) select")
+    assert "where (select count(*) as count_1 from coupon_redemptions" in st
+    assert ") < ?" in st                         # سقف داخل WHERE، نه در Python
+    idx_update = [i for i, st in enumerate(low) if st.startswith("update coupons")]
+    assert len(idx_update) == 1
+    # ترتیب بارِ اثبات است: UPDATE ردیفِ کوپن را قفل می‌کند؛ شمارش باید بعدش باشد.
+    assert idx_update[0] < idx_insert[0], (idx_update, idx_insert)
+
+
+def test_reserve_itself_refuses_a_second_use_by_the_same_user(client, fake_redis):
+    """خودِ `reserve` نگهبان است (بدونِ validate): یک ردیف، و ظرفیتِ پس‌داده‌شده نسوزد."""
+    a = _coupon_setup("622", users=1)
+    assert _mk_coupon(client, a["mgr"], "TWICE", a["venue"],
+                      max_uses=5, per_user_limit=1).status_code == 200
+    with Session(test_engine) as s:
+        uid = s.exec(select(User).where(User.phone == a["custs"][0])).one().id
+        first = CouponService.reserve(s, s.exec(select(Coupon)).first(), uid, 50_000)
+        s.commit()
+        assert first.id is not None and first.booking_id is None
+
+        with pytest.raises(HTTPException) as x:
+            CouponService.reserve(s, s.exec(select(Coupon)).first(), uid, 50_000)
+        assert x.value.status_code == 400
+        assert "سقف" in x.value.detail
+        s.commit()
+
+        assert s.exec(select(Coupon)).first().uses_count == 1   # جبرانِ ظرفیت در SQL
+        assert len(s.exec(select(CouponRedemption)).all()) == 1
+
+
+def test_a_two_use_allowance_stops_at_two(client, fake_redis):
+    a = _coupon_setup("623", users=1)
+    assert _mk_coupon(client, a["mgr"], "PAIR", a["venue"],
+                      max_uses=None, per_user_limit=2).status_code == 200
+    with Session(test_engine) as s:
+        uid = s.exec(select(User).where(User.phone == a["custs"][0])).one().id
+        for _ in range(2):
+            CouponService.reserve(s, s.exec(select(Coupon)).first(), uid, 30_000)
+            s.commit()
+        with pytest.raises(HTTPException):
+            CouponService.reserve(s, s.exec(select(Coupon)).first(), uid, 30_000)
+        s.commit()
+        assert len(s.exec(select(CouponRedemption)).all()) == 2
+        assert s.exec(select(Coupon)).first().uses_count == 2
+
+
+def test_another_user_is_not_blocked_by_my_exhausted_allowance(client, fake_redis):
+    """سقف فردی نباید کل کوپن را ببندد؛ کاربرِ دوم سرِ جای خود درست می‌کند."""
+    a = _coupon_setup("624", users=2)
+    assert _mk_coupon(client, a["mgr"], "EACH", a["venue"],
+                      max_uses=5, per_user_limit=1).status_code == 200
+    assert _book(client, a["custs"][0], a["slots"][0], "EACH").status_code == 200
+    second = _book(client, a["custs"][1], a["slots"][1], "EACH")
+    assert second.status_code == 200, second.text
+    with Session(test_engine) as s:
+        assert s.exec(select(Coupon)).first().uses_count == 2
+        assert len(s.exec(select(CouponRedemption)).all()) == 2
+
+
+def test_a_row_without_a_per_user_allowance_still_burns_every_use(client, fake_redis):
+    """شاخۀ بی‌سقف (`per_user_limit` تهی) دست‌نخورده ماند؛ نگهبان آن را نبندد.
+
+    این حالت از endpoint ساختنی نیست: `BaseRepository.update:71` مقدار None را رد می‌کند
+    و INSERT هم پیش‌فرضِ ستون (۱) را می‌گذارد ⇒ ردیف را با Core UPDATE صفر می‌کنیم تا
+    همان شاخهٔ کد مستقیم سنجیده شود (گرهٔ C21.2).
+    """
+    a = _coupon_setup("625", users=1)
+    assert _mk_coupon(client, a["mgr"], "FREE", a["venue"], max_uses=None).status_code == 200
+    with Session(test_engine) as s:
+        uid = s.exec(select(User).where(User.phone == a["custs"][0])).one().id
+        s.execute(sa.update(Coupon.__table__)
+                  .where(Coupon.__table__.c.code == "FREE")
+                  .values(per_user_limit=None))
+        s.commit()
+        c = s.exec(select(Coupon).where(Coupon.code == "FREE")).one()
+        assert c.per_user_limit is None
+        for _ in range(2):
+            CouponService.reserve(s, c, uid, 20_000)
+            s.commit()
+        assert len(s.exec(select(CouponRedemption)).all()) == 2
+        assert s.exec(select(Coupon).where(Coupon.code == "FREE")).one().uses_count == 2

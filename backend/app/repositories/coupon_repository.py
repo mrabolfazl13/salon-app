@@ -1,5 +1,6 @@
 # backend/app/repositories/coupon_repository.py
 from sqlmodel import Session, select, func, or_
+from sqlalchemy import insert, literal
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -99,3 +100,42 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
             return []
         stmt = select(CouponRedemption).where(CouponRedemption.id.in_(ids))
         return list(self.session.exec(stmt).all())
+
+    def insert_within_user_limit(self, coupon_id: int, user_id: int,
+                                 amount_discounted: int, per_user_limit: int
+                                 ) -> Optional[CouponRedemption]:
+        """یک ردیف مصرف، با نگهبانِ سقفِ فردی داخل خودِ INSERT.
+
+        `INSERT … SELECT … WHERE (SELECT count(*) …) < limit` ⇒ وقتی سهمِ کاربر پر
+        شده rowcount صفر است و هیچ ردیفی نوشته نمی‌شود؛ «خواندنِ شمارش» و «نوشتنِ
+        ردیف» دیگر دو statement جدا نیستند (نصفِ بازِ گرهٔ C13.3.1).
+
+        `from_select` همان `lastrowid` همیشگی را برنمی‌گرداند (`inserted_primary_key`
+        نال است)، پس idِ ردیف تازه با `max(id)` خوانده می‌شود — و این درست است چون
+        `reserve` قبلِ این INSERT ردیفِ کوپن را قفل کرده، یعنی هیچ نویسندۀ دیگری
+        نمی‌تواند هم‌زمان ردیفِ مصرفِ همین کوپن بسازد.
+        """
+        table = CouponRedemption.__table__
+        used = (
+            select(func.count()).select_from(table)
+            .where(table.c.coupon_id == coupon_id, table.c.user_id == user_id)
+            .scalar_subquery()
+        )
+        result = self.session.execute(
+            insert(table).from_select(
+                [table.c.coupon_id, table.c.user_id,
+                 table.c.amount_discounted, table.c.created_at],
+                select(literal(coupon_id), literal(user_id),
+                       literal(amount_discounted),
+                       literal(datetime.now(timezone.utc)))
+                .where(used < per_user_limit),
+            )
+        )
+        if result.rowcount == 0:
+            return None
+        newest = self.session.exec(
+            select(func.max(CouponRedemption.id))
+            .where(CouponRedemption.coupon_id == coupon_id,
+                   CouponRedemption.user_id == user_id)
+        ).one()
+        return self.get_by_id(int(newest))

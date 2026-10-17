@@ -56,6 +56,7 @@ class CouponService:
             raise HTTPException(status_code=400, detail="کد تخفیف منقضی شده است")
         if coupon.max_uses is not None and coupon.uses_count >= coupon.max_uses:
             raise HTTPException(status_code=400, detail="ظرفیت استفاده از این کد تخفیف تکمیل شده است")
+        # پیامِ زودهنگام؛ نگهبانِ واقعی داخل INSERTِ `reserve` است (چکِ این‌جا قفل ندارد).
         if coupon.per_user_limit:
             used = repo.user_redemption_count(coupon.id, user_id)
             if used >= coupon.per_user_limit:
@@ -87,10 +88,29 @@ class CouponService:
         نگهبانِ `max_uses` داخل خودِ UPDATE است (`try_consume_capacity`)؛ چکِ Pythonی
         `uses_count >= max_uses` در `validate_and_compute` فقط پیامِ زودهنگام می‌دهد و
         به‌تنهایی جلوی دو رزروِ موازی را نمی‌گیرد.
+
+        **ترتیب اینجا بارِ اثبات است:** اول ظرفیت و بعد شمارشِ فردی. همان `UPDATE coupons`
+        ردیف کوپن را تا commit تراکنش قفل می‌کند، پس رزروی که همزمان رسیده روی همان
+        UPDATE می‌ایستد و وقتی آزاد می‌شود، شمارشِ `coupon_redemptions` مصرفِ اول را
+        می‌بیند. اگر شمارش اول می‌آمد، دو رزروِ یک کاربر روی `per_user_limit=1` هر دو
+        «صفر» می‌دیدند و هر دو ردیف می‌ساختند (نصفِ دومِ گرهٔ C13.3.1).
         """
-        if not CouponRepository(session).try_consume_capacity(coupon.id):
+        repo = CouponRepository(session)
+        if not repo.try_consume_capacity(coupon.id):
             raise HTTPException(status_code=400, detail="ظرفیت استفاده از این کد تخفیف تکمیل شده است")
-        return CouponRedemptionRepository(session).create({
+        red_repo = CouponRedemptionRepository(session)
+        if coupon.per_user_limit:
+            redemption = red_repo.insert_within_user_limit(
+                coupon.id, user_id, amount_discounted, coupon.per_user_limit)
+            if redemption is None:
+                # ظرفیتی که همین‌جا گرفتیم پس داده می‌شود؛ فراخوانِ بیرون از UnitOfWork
+                # هم نباید با یک صندلیِ سوخته و بی‌مصرف بماند.
+                repo.release_capacity(coupon.id)
+                raise HTTPException(
+                    status_code=400,
+                    detail="سقف استفاده از این کد تخفیف برای شما پر شده است")
+            return redemption
+        return red_repo.create({
             "coupon_id": coupon.id,
             "user_id": user_id,
             "booking_id": None,
