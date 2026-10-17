@@ -1252,7 +1252,8 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   در این فایل باقی است؛ هیچ‌کدام از آن‌ها «گذشته/آینده» را ادعا نمی‌کنند — فقط می‌شمارند — پس
   دست‌نخورده ماند.)
 - [x] C15.5 ⚠️ ثبت شد، رفع نشد (هشت گره؛ همۀ عدد‌ها از کد/اندازۀ همین راند) ⇒ **وضعیتِ ۲۰۲۶-۱۰-۱۷
-  بعد از راند ۲۱: پنج تا رفع/تصحیح شد (۱ → C18 و ۲، ۵، ۷، ۸ → C17) و سه تا باقی است (۳، ۴، ۶):**
+  بعد از راند ۲۲: شش تا رفع/تصحیح شد (۱ → C18، ۳ → C19 و ۲، ۵، ۷، ۸ → C17) و دو تا باقی است
+  (۴ = دادهٔ سیدر، ۶ = قراردادِ درگاه/X4):**
   1. ~~**بازگشتِ وجه برای اشتراک وجود ندارد:** `PurchaseStatus` فقط `PENDING/PAID/CANCELLED` است و
      هیچ مسیری از `PAID` به بیرون نیست ⇒ ردیفِ درآمدِ دفتر کل تا ابد می‌ماند. (همان اصلِ C7 که
      برای رزرو رعایت شده.)~~ ⇒ **رفع شد در راند ۲۱ (C18):** `PurchaseStatus.REFUNDED` +
@@ -1262,9 +1263,12 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
      می‌کند، پس `membership_purchase` در `GET /finance/revenue/by-source` شمرده می‌شود. آنچه درست
      بود: **مغایرگیریِ درگاه** اشتراک را نمی‌بیند، چون آن مسیر روی `BookingPayment.id` join
      می‌کند و اشتراک ردیفِ درگاهی ندارد (C14) — طراحی، نه نقصِ خواندن.
-  3. **`consume_session` هم race است هم بی‌ممیزی:** `sessions_remaining -= 1` read-modify-write و
+  3. ~~**`consume_session` هم race است هم بی‌ممیزی:** `sessions_remaining -= 1` read-modify-write و
      هیچ رویدادِ audit («چه کسی، کِی») ثبت نمی‌شود؛ روی این ماشین falsify نمی‌شود
-     (`tests/conftest.py:104` ⇒ `BEGIN IMMEDIATE`) — هم‌خانوادۀ C13.3.1.
+     (`tests/conftest.py:104` ⇒ `BEGIN IMMEDIATE`) — هم‌خانوادۀ C13.3.1.~~ ⇒ **رفع شد در راند ۲۲
+     (C19):** `MembershipSessionEvent` + مهاجرتِ `m0s028memberevents` و `UPDATE` شرطیِ
+     تنها-کوئری؛ ادعای «روی این ماشین falsify نمی‌شود» هم با pgserver (PostgreSQL واقعی) باطل شد —
+     race روی MVCC بازتولید و بسته شد.
   4. **داده‌ای که سیدر ساخته تصحیح نمی‌شود:** `_seed_session_plan` idempotent است
      (`if existing: return`) ⇒ ردیف‌هایِ از قبل کاشته‌شده همان ۱۰×ِ کم می‌مانند. قبل از X6 باید
      بررسی شود که سیدر روی prod اجرا شده باشد یا نه (اصلاحِ داده ×۱۰ لازم است).
@@ -1430,15 +1434,16 @@ workflow سبز خوانده می‌شد در حالی که خودِ job قرم�
   است و از `apiClient` با هدر Bearer استفاده می‌کند؛ در Flutter هم تنها فراخوانیِ `getPlans`
   (`venue_detail_page.dart:71`) مقدارِ پیش‌فرض `false` را می‌فرستد، پس مسیرِ مهمان بسته نمی‌شود.
 - **E2 این راند (اجرا نشد):** `vite build` و Playwright (فرانت دست‌نخورده)، آزمون روی دستگاه، و
-  PostgreSQL واقعی — همان محدودیتِ همزمانیِ `tests/conftest.py:104` (`BEGIN IMMEDIATE`) کهrace را
-  در C15.5.3 باقی می‌گذارد.
+  PostgreSQL واقعی — همان محدودیتِ همزمانیِ `tests/conftest.py:104` (`BEGIN IMMEDIATE`) که race را
+  در C15.5.3 باقی می‌گذارد. **(بعد از راند ۲۲: با pgserver شکسته شد و آن گره در C19 بسته شد.)**
 - **گره‌های بازِ این راند (صادقانه):**
   1. نگهبانِ `include_inactive` روی **سطح unit/SQLite** سنجیده شد؛ روی prod با `APP_ENV=production`
      همان کد است ولی هیچ‌کدام از این پاسخ‌ها روی بک‌اندِ واقعیِ deployed دیده نشده (X6).
   2. ۴۰۳ برای «مدیرِ سالنِ دیگر» پیامِ عمومی دارد؛ جزئیاتِ دسترسی را لو نمی‌دهد ولی هنوز
      «وجودِ پلنِ غیرفعال در آن venue» را از طریقِ زمانِ پاسخ نمی‌پوشاند.
   3. `pay_purchase` هنوز `cvv/expiry` را نمی‌خواند و `transaction_id` ساختگی است (C15.5.6، تا X4).
-  4. بازگشتِ وجهِ اشتراک و ممیزیِ `consume_session` (C15.5.1/.3) فیچر/اسکیما می‌خواهند، نه فقط کد.
+  4. ~~بازگشتِ وجهِ اشتراک و ممیزیِ `consume_session` (C15.5.1/.3) فیچر/اسکیما می‌خواهند، نه فقط کد~~
+     ⇒ بسته شد: بازگشت وجه در راند ۲۱ (**C18**)، ممیزی + اتمی‌بودن در راند ۲۲ (**C19**).
   5. دادهٔ کاشته‌شدهٔ سیدر هنوز ×۱۰ اصلاح نشده (C15.5.4) — کد درست شد، ردیف‌ها نه.
 
 ---
@@ -1509,9 +1514,66 @@ workflow سبز خوانده می‌شد در حالی که خودِ job قرم�
      تا آن زمانِ ردیفِ ledger فقط سندِ حسابداری است.
   2. پاسخ‌ها روی **unit/SQLite** سنجیده شده‌اند؛ بک‌اندِ deployed این مسیر را ندارد تا X6 انجام شود.
   3. Flutter هیچ رابطۀ بازگشت وجه‌ای ندارد (هم‌خانوادۀ فیچر ۲۱/waitlist) — این راند فقط وب.
-  4. ممیزیِ «چه کسی، کِی» برای `consume_session` هنوز نیست (C15.5.3؛ مدلِ audit وجود ندارد ⇒ migration).
+  4. ~~ممیزیِ «چه کسی، کِی» برای `consume_session` هنوز نیست (C15.5.3؛ مدلِ audit وجود ندارد ⇒
+     migration)~~ ⇒ بسته شد در راند ۲۲ (**C19**): `membership_session_events` + `m0s028memberevents`.
   5. اگر faksal/اشتراک **ساخته‌شده پیش از این مسیر** بازگشت بخواهد، باید دستی زده شود؛ هیچ داده‌ای
      در این راند تغییر نکرد.
+
+### C19 ممیزیِ «چه کسی، کِی» روی اشتراک + اتمی‌کردنِ کسر جلسه (بازبینی #4، مالی) — راند ۲۲ ✅ یک اسکیما + یک ادعای باطل
+
+گرهٔ C15.5.3 (ثبت‌شده در راند ۱۸): «`consume_session` هم race است هم بی‌ممیزی: `sessions_remaining -= 1`
+read-modify-write و هیچ رویدادِ audit ثبت نمی‌شود؛ روی این ماشین falsify نمی‌شود
+(`tests/conftest.py:104` ⇒ `BEGIN IMMEDIATE`).»
+
+- **ادعای دومِ گره باطل شد (قبل از رفع، نه بعد از آن):** «falsify نمی‌شود» فقط برای **SQLite** درست بود.
+  با pgserver یک PostgreSQL واقعی بالا آمد و race با دو نخ + `threading.Barrier` + `sleep(0.6)` بین
+  «خواندن» و «نوشتن» بازتولید شد (`~/.qoder-tmp/pg_consume22.py`، لاگ `pg_consume22_out.txt`):
+  پلنِ **پاکتِ ۱جلسه‌ای** با کدِ قدیم (`SELECT` سپس `UPDATE … SET sessions_remaining = :v`) ⇒
+  **هر دو نخ ۱ را خواندند** و هر دو موفق شدند، شمارنده صفر شد، **یک جلسهٔ رایگان هدیه داده شد**
+  (lost update). با `UPDATE … WHERE status='PAID' AND sessions_remaining > 0` ⇒
+  rowcountهای `{'A': 1, 'B': 0}`، دقیقاً یک بُرد و شمارندهٔ صفر. یعنی نقصِ واقعی روی MVCC اثبات شد،
+  نه فقط روی کاغذ.
+- **رفعِ شمارنده (بدونِ `SELECT … FOR UPDATE`):** یک `UPDATE` شرطیِ تنها-کوئری روی
+  `MembershipPurchase.__table__` (`backend/app/api/v1/memberships.py:428-440`) + `result.rowcount == 0`
+  ⇒ ۴۰۰ «جلسات این اشتراک تمام شده است». سپس `session.refresh()`، چون identity map بعد از Core update
+  همگام نیست. نگهبان داخل **SQL** است نه Python، پس مستقل از dialect کار می‌کند؛ شاهدِ شکلِ
+  statement روی SQLite: `WHERE … sessions_remaining > ?` با پارامترِ `0` داخل همان UPDATE.
+- **رفعِ ممیزی (اسکیما):** `SessionEventType` (`backend/app/models/membership.py:30`) با
+  `CONSUMED`/`REFUNDED` و جدولِ append-only `membership_session_events` (`:77`): `purchase_id`،
+  `venue_id`، `actor_id` (nullable، FK به `users`)، `event_type`، `sessions_remaining_after`،
+  `amount` (فقط برای بازگشت وجه)، `detail` (دلیلِ بازگشت) و `created_at`. هر اقدامِ موفق یک ردیف
+  می‌گذارد (`:444-450` برای کسر، `:370-378` داخل همان نگهبانِ `idempotency_key` برای بازگشت وجه)؛
+  اقدامِ **مسدودشده** (۴۰۰/۴۰۳) هیچ ردیفی نمی‌گذارد — تاریخچه پُر از تلاش‌های بی‌نتیجه نمی‌شود.
+- **مهاجرت:** `backend/migrations/versions/m0s028_membership_session_audit.py`
+  (`m0s028memberevents` ← `m0s027reconreports`). روی PG یک enumِ native `sessioneventtype` می‌سازد،
+  چهار `INDEXED` و سه FK با نام؛ downgrade فقط در همان تراکنشِ خودش: `DROP INDEX`ها، `DROP TABLE`،
+  و `DROP TYPE IF EXISTS sessioneventtype`. واگراییِ ثبت‌شدۀ dialect: مدل روی SQLite
+  `event_type VARCHAR(8)` می‌سازد (نامِ enum)، روی PG enumِ native — همان شکلی که C14 هم داشت، پس
+  تستِ SQLite جای migration را نمی‌گیرد و **prod نیازمند `alembic upgrade head` است (X6)**.
+  شاهدِ PG: `upgrade head` → `downgrade -1` → `upgrade head` هر سه `exit 0`،
+  enum = `['CONSUMED','REFUNDED']`، ایندکس‌ها = `actor_id`/`event_type`/`purchase_id`/`venue_id` + pkey.
+- **خواندنِ تاریخچه:** `GET /memberships/purchases/{purchase_id}/events`
+  (`backend/app/api/v1/memberships.py:456-483`) — فقط مدیرِ **همان** سالن (`_ensure_venue_manager`؛
+  مدیرِ سالنِ دیگر ۴۰۳، مشتری ۴۰۳، بی‌توکن ۴۰۱)، `limit` ۱..۵۰۰ (پیش‌فرض ۱۰۰)، تازه‌ترین اول.
+  `actor_name` در پاسخ هست تا UI عددِ خامِ FK را نشان ندهد، و با **یک** `SELECT users.id, full_name
+  WHERE id IN (…)` پر می‌شود، نه به‌ازای هر ردیف: شاهد = دو ردیف و چهار ردیف هر دو **یک** کوئریِ نام.
+- **فرانت (قابل‌کشف شدن، نه فقط endpoint):** `MembershipSessionEvent` (`frontend/src/types/membership.ts:61`)،
+  `membershipService.getPurchaseEvents` (`frontend/src/services/membership.ts:81`)، و در جدول
+  «خریدهای کاربران» دکمۀ **تاریخچه** روی هر ردیف (`frontend/src/pages/dashboard/ManagerDashboard.tsx:2486-2500`)
+  که دیالوگِ `aria-label="تاریخچۀ اشتراک"` (`:2585` به بعد) را باز می‌کند: چیپِ «کسر جلسه»/«بازگشت وجه»،
+  تاریخ و ساعتِ فارسی، «عامل: …»، «باقی‌مانده: …»، مبلغ و دلیل. **شاخۀ `—` (بدونِ اقدام) حذف شد**،
+  چون حالا هر ردیفی یک کنشِ خواندنی دارد؛ حالتِ خالی صریح می‌گوید «هنوز اقدامی ثبت نشده است».
+- **تست‌ها:** ۸ تست در `tests/test_membership_session_audit.py` (سطح unit/SQLite): سه کسر ⇒ ردیف‌های
+  `[۲،۱،۰]` با یک عامل؛ ترتیبِ تازه‌ترین-اول + `actor_name`؛ بازگشت وجه با `amount=900000` و دلیل؛
+  اقدامِ مسدودشده ⇒ **صفر** ردیف؛ شاهدِ شکلِ statement (دو UPDATE، نگهبانِ `> 0`، یک ردیفِ ممیزی برای
+  بُردِ اول و هیچ‌کدام برای ۴۰۰ دوم)؛ پنج تلاش روی پاکتِ ۲جلسه‌ای ⇒ **۲** بُرد، **۲** ردیف، شمارندهٔ صفر
+  (هرگز منفی نمی‌شود)؛ دسترسی به تاریخچه (۴۰۳/۴۰۳/۴۰۱/۴۰۴)؛ و نگهبانِ N+1 برای نامِ عامل.
+  **شاهدِ قبل‌و‌بعد:** با `app/api/v1/memberships.py` برگردانده‌شده به HEAD ⇒ **۷ failed، ۱ passed**
+  (آن یک پاسِ باقی‌مانده تستِ *منفی* «اقدامِ مسدودشده ردیف نمی‌گذارد» است، که بی‌کد هم درست است) ⇒
+  بعد از رفع **۸ passed**.
+- **حقایقی که «رفع شد» ادعا نمی‌شوند:** ردیف‌هایِ قبل از `m0s028` قابل backfill نیستند (هیچ‌جا ثبت
+  نمی‌شدند)؛ موبایل (Flutter) این endpoint را صدا نمی‌زند و تاریخچه ندارد؛ و پولِ بازگشت‌وجه هنوز
+  درگاهی نیست (X4 — همان C15.5.6).
 
 ---
 
@@ -1940,6 +2002,41 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 - **سطح اعداد:** همه‌چیز **unit** است (TestClient/SQLite برای بک‌اند، vitest/jsdom برای فرانت). هیچ‌کدام
   از ۴۰۳/۴۰۰/۲۰۰های این راند روی `api.salon.absadeghi.ir` دیده نشده (X6) و هیچ پولی از درگاه پس نگرفته
   شده (X4) — ردیفِ `refund` یک سندِ حسابداری است، نه حرکتِ واقعیِ وجه.
+
+---
+
+### E12 بازسنجی راند ۲۲ (ممیزی و اتمی‌بودنِ کسر جلسه — بک‌اند + فرانت وب + PostgreSQL واقعی)
+
+| گیت | نتیجه (۲۰۲۶-۱۰-۱۷) | تغییر نسبت به راند ۲۱ |
+|---|---|---|
+| `pytest tests/test_membership_session_audit.py` | **۸ passed در 0.87s** (pinned) | فایلِ جدیدِ این راند |
+| همان ۸ با `app/api/v1/memberships.py` برگردانده‌شده به HEAD | **۷ failed، ۱ passed** | آن یکِ باقی‌مانده تستِ *منفی* است («اقدامِ مسدودشده ردیف نمی‌گذارد») که بی‌کد هم درست است |
+| چهار فایل تستِ اشتراک با هم | **۳۲ passed در 2.09s** | = ۸ این راند + ۷ راند ۲۱ + ۷ راند ۲۰ + ۱۰ راند ۱۸ |
+| `pytest` (رگرسیون کامل بک‌اند) | **۷۰۶ passed در 75.39s** | = ۶۹۸ + ۸؛ صفر رگرسیون |
+| `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` | بی‌تغییر |
+| `app.openapi()['paths']` | **۲۴۰ / ۲۸۲ operation** | +۱ path و +۱ operation (endpointِ تاریخچه) نسبت به ۲۳۹/۲۸۱ |
+| `pnpm exec tsc --noEmit` | **صفر خطا** | ورودیِ جدید: ۴ فایل فرانت |
+| `pnpm exec eslint` روی ۴ فایل تغییرکرده | **۰ error، ۲۱ warning** (`no-explicit-any`، الگوی خودِ فایل) | بی‌بدهیِ تازه |
+| سوئیت واحد فرانت (۵ دسته × ۵ فایل، heap 3072) | **۱۷۳ passed / ۰ failed** در ۲۱ فایل | = ۱۷۱ + ۲ تستِ جدیدِ `membership.test.ts` |
+| `pnpm run build` (vite) | **exit 0 در 27.96s** | بی‌تغییرِ معنادار در آرایشِ chunkها |
+| اسکنِ CJK در ده فایلِ لمس‌شده | **صفر فایل** | بی‌تغییر |
+| شاهدِ CIِ راند ۲۱ (`d8abd84`) | ۲۳ check ⇒ **۲۰ success، ۲ skipped، ۱ failure** | تنها قرمز `Workers Builds: salon-app` (X9)؛ skippedها tag-gated (Android release + GitHub Release) |
+
+- **شاهدِ PostgreSQL واقعی (`~/.qoder-tmp/pg_consume22.py`، لاگ `pg_consume22_out.txt`، exit 0):**
+  `upgrade head` ⇒ `downgrade -1` ⇒ `upgrade head` هر سه `exit 0` · enumِ native =
+  `['CONSUMED','REFUNDED']` و `event_type sql type = sessioneventtype` · ایندکس‌ها =
+  `purchase_id`/`venue_id`/`actor_id`/`event_type` + pkey · پاکتِ **۱جلسه‌ای** با دو نخِ همزمان:
+  کدِ **قدیم** `{'A': 1, 'B': 1}` خواند و هر دو بُرد ⇒ یک جلسه گم شد (lost update)؛ کدِ **جدید**
+  rowcount `{'A': 1, 'B': 0}`، شمارنده صفر · `INSERT` ممیزی روی PG با ORM ⇒ ۱ ردیف با
+  `event_type = CONSUMED` (نه `1` و نه رشتهٔ فارسی).
+- **E2 این راند (چه اجرا نشد):** Playwright (دکمۀ «تاریخچه» و دیالوگ در E2E نسنجیده شد — حسابِ تستِ X1
+  نیست)، آزمون روی دستگاه، و Flutter (هیچ رابطی به این endpoint ندارد). CI برای SHA این راند بعد از
+  push تماشا می‌شود.
+- **سطح اعداد:** بک‌اند **unit/SQLite** + یک شاهدِ **real-PG** همزمانی؛ فرانت **vitest/jsdom** + build.
+  هیچ‌کدام از این پاسخ‌ها روی `api.salon.absadeghi.ir` دیده نشده (X6) و `m0s028` هنوز روی prod اجرا
+  نشده ⇒ جدولِ تاریخچه روی prod خالی است و از لحظۀ deploy پر می‌شود.
+- **دربارۀ «۷ failed، ۱ passed»:** برعکسِ راند ۲۱ (که همه ۴۰۴ می‌گرفتند چون مسیر نبود) اینجا endpoint
+  هست ولی ردیفِ ممیزی و نگهبانِ SQL نیستند ⇒ تست‌ها **رفتار** را می‌گیرند، نه وجودِ مسیر را.
 
 ---
 
