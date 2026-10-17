@@ -1019,10 +1019,14 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   2. `CANCELLED` هنوز هیچ مسیرِ رسیدنی ندارد (نه endpoint ابطال، نه job انقضا) ⇒ `EXPIRED` هم
      برچسب گرفت ولی سرور هنوز هیچ‌گاه تولیدش نمی‌کند. ابطالِ پرداختِ اشتراکی تصمیمِ محصولی دارد:
      وقتی یک عضو پرداخته، «لغو» یعنی تکلیفِ پولِ او چه شود — و بازگشت وجه بدون درگاه (X4) معنا ندارد.
-  3. `sp.paid_amount += share.amount` read-modify-write است و هیچ قفل ردیفی ندارد؛ روی PostgreSQL
+  3. ~~`sp.paid_amount += share.amount` read-modify-write است و هیچ قفل ردیفی ندارد؛ روی PostgreSQL
      واقعیِ prod می‌تواند پرداختِ همزمانِ دو عضو یکی را گم کند. **روی این ماشین قابل falsify کردن
      نیست** (`tests/conftest.py:104` هر تراکنش را `BEGIN IMMEDIATE` می‌کند و SQLite serialize می‌شود)؛
-     پس فقط به‌عنوان ریسک ثبت شده، نه باگ اثبات‌شده — تست همزمانی واقعی جایش در CI با PG است.
+     پس فقط به‌عنوان ریسک ثبت شده، نه باگ اثبات‌شده — تست همزمانی واقعی جایش در CI با PG است.~~
+     ⇒ **رفع شد در راند ۲۳ (C20):** تبدیلِ سهم با `UPDATE … WHERE status != 'PAID'` و جلوبردنِ
+     شمارندۀ کل با `SET paid_amount = paid_amount + ?` در همان statement؛ ادعای «روی این ماشین
+     falsify نمی‌شود» هم با pgserver باطل شد — دو پرداختِ همزمانِ ۱۰۰٬۰۰۰ریالی روی PG دقیقاً
+     **۱۰۰٬۰۰۰** جا گذاشت (باید ۲۰۰٬۰۰۰ می‌شد).
 - **شاهدِ قبل‑و‑بعد:** بک‌اند `tests/test_split_payment_settlement.py` (۷ تست) پیش از رفع ⇒
   **۶ failed، ۱ passed** (تستِ مرجع EQUAL سبز بود و همین تفاوت، منشأ نقص را تأیید می‌کرد)؛ فرانت
   `SplitPaymentsPanel.test.tsx` (۶ تست) پیش از رفع ⇒ **۶ failed** و پیام‌های شکست دقیقاً همان
@@ -1079,11 +1083,14 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   فیلدهای ارسالی. UI از قبل `val > 100` را رد می‌کرد (`CouponDialog.tsx:93`) — حالا سرور هم رد
   می‌کند، همان درسی که راند ۱۴ از اعتبارسنجی کارتِ فقط-UI گرفت.
 - [x] C13.3 ⚠️ ثبت شد، رفع نشد (دو گره):
-  1. **ظرفیت‌ها قفل ندارند:** `validate_and_compute()` می‌خواند `uses_count` و `per_user_limit` را،
+  1. ~~**ظرفیت‌ها قفل ندارند:** `validate_and_compute()` می‌خواند `uses_count` و `per_user_limit` را،
      بعد `reserve()` دوباره همان `coupon`ِ در-حافظه را چک و `bump_uses()` می‌کند
      (`coupon_repository.py:42-51` read-modify-write). دو رزروِ موازیِ یک کدِ `max_uses=1` می‌توانند
      هر دو از validate رد شوند. **روی این ماشین falsify نمی‌شود** (`tests/conftest.py:104` ⇒
-     `BEGIN IMMEDIATE`؛ همان دلیلِ C11.6.3) ⇒ جایش تست همزمانی روی PostgreSQL در CI است.
+     `BEGIN IMMEDIATE`؛ همان دلیلِ C11.6.3) ⇒ جایش تست همزمانی روی PostgreSQL در CI است.~~
+     ⇒ **رفع شد در راند ۲۳ (C20)** برای `max_uses` (نگهبان داخل WHERE خودِ UPDATE، با شاهدِ PG:
+     دو رزروِ همزمان ⇒ یک ردیف مصرف و `uses_count = 1`). **`per_user_limit` هنوز قفل ندارد** —
+     چکِ آن در Python است (`coupon_service.py:59-64`) و گره‌اش باز ثبت می‌شود.
   2. **ردیف مصرف هیچ‌جا فهرست نمی‌شود:** نه endpoint `GET /coupons/{id}/redemptions`، نه در
      `CouponResponse`؛ مدیر فقط `uses_count` را می‌بیند. با C13.1 together یعنی «چه کسی و چقدر
      تخفیف گرفت» عملاً قابل ممیزی نیست — یک فیچر است نه باگ، و چون تصمیم UI دارد اینجا ثبت شد.
@@ -1577,6 +1584,87 @@ read-modify-write و هیچ رویدادِ audit ثبت نمی‌شود؛ روی
 
 ---
 
+### C20 دو شمارندۀ «بخوان-و-بنویس» پولی: ظرفیت کوپن و مجموعِ پرداخت اشتراکی (بازبینی #4، مالی) — راند ۲۳ ✅ دو ادعای باطل + یک باگِ فقط-PG که همین شاهد گرفت
+
+دو گره از راندهای ۱۵ و ۱۶ با یک شکلِ خرابی و یک بهانه:
+**C11.6.3** — `pay_share` مبلغ کل را با `sp.paid_amount += share.amount` (روی آبجکتِ در حافظه) جلو
+می‌برد و وضعیت را از `list`ِ Python می‌ساخت؛ **C13.3.1** — `CouponService.reserve` همان
+`coupon.uses_count`ِ در-حافظه را چک و `bump_uses()` با نوشتنِ مقدارِ literal زیاد می‌کرد.
+هر دو نوشته بودند: **«روی این ماشین falsify نمی‌شود»**، چون `tests/conftest.py:104` تراکنش SQLite را
+`BEGIN IMMEDIATE` می‌کند.
+
+- **هر دو ادعا باطل شد (قبل از رفع، با کدِ HEAD):** pgserver یک PostgreSQL واقعی با MVCCِ prod داد
+  (`~/.qoder-tmp/pg_race23.py`، لاگ `pg_race23_before.txt`، exit 0؛ اسکیما با `alembic upgrade head`
+  نه `create_all`). تنها تزریق، یک `threading.Barrier` + `sleep(0.5)` روی `SELECT … FROM coupons /
+  team_split_payments WHERE id = …` بود تا فاصلۀ «خواندیم و هنوز ننوشتیم» باز بماند — خودِ کدِ مسیر
+  صدا زده شد (`CouponService.reserve`, `await pay_share(...)` با Session و User واقعی):
+
+  | صحنه (روی PG، کدِ HEAD) | نتیجه |
+  |---|---|
+  | کوپن `max_uses=1`، دو `reserve` همزمان | **`{'A': 'OK', 'B': 'OK'}`** ⇒ ۲ ردیف مصرف برای ظرفیتِ ۱ و `uses_count = 1` (یکی هیچ‌وقت شمرده نشد): هم **فروش‌بیش‌ازظرفیت** هم **شمارندهٔ کم‌شمارده** |
+  | سه سهمِ ۱۰۰٬۰۰۰ریالی، دو سهمِ متفاوت همزمان | هر دو ۲۰۰، دو سهم `PAID`، دو ردیف ممیزی، ولی **`paid_amount = 100٬۰۰۰`** (باید ۲۰۰٬۰۰۰) ⇒ یک پرداختِ ۱۰۰٬۰۰۰ریالی گم شد |
+  | یک سهم، دو درخواستِ همزمان | **هر دو ۲۰۰ گرفتند** و **۲ ردیف ممیزی** برای یک سهم ثبت شد (دربارۀ پولی که یک‌بار جابه‌جا شد) |
+
+- **رفع (CAS داخل SQL، همان اصطلاح راند ۲۲):**
+  - `CouponRepository.try_consume_capacity()` (`backend/app/repositories/coupon_repository.py:42`) و
+    `release_capacity()` (`:69`) — `UPDATE coupons SET uses_count = uses_count ± 1 WHERE id = :id`
+    به‌همراه نگهبانِ `(max_uses IS NULL OR uses_count < max_uses)` / `uses_count > 0` در همان
+    statement، و `rowcount` ملاک است. `bump_uses()` حذف شد (بعد از این بازنویسی caller نداشت) —
+    کفِ صفر هم دیگر در Python (`max(0, …)`) نیست، در SQL است.
+  - `CouponService.reserve()` (`backend/app/services/coupon_service.py:91`) اول ظرفیت را می‌گیرد و
+    اگر نگهبان رد کرد همان ۴۰۰ همیشگی («ظرفیت استفاده از این کد تخفیف تکمیل شده است») را می‌دهد؛
+    `release_by_id()` (`:113`) از `release_capacity` استفاده می‌کند. چکِ `validate_and_compute:57`
+    نگه داشته شد (پیامِ زودهنگام)، ولی دیگر تنها نگهبان نیست.
+  - `pay_share` (`backend/app/api/v1/split_payments.py:337-376`): تبدیلِ سهم با
+    `UPDATE split_payment_shares SET status='PAID' … WHERE id = :sid AND split_payment_id = :pid AND
+    status != 'PAID'` (باخت ⇒ ۴۰۰ «این سهم قبلاً پرداخت شده است»؛ پیام و معنای قبلی حفظ شد، و سهم
+    `REFUNDED`/`OVERDUE` مثلِ قبل قابل پرداخت است)، سپس **یک** `UPDATE team_split_payments SET
+    paid_amount = paid_amount + :amt, status = CASE WHEN (زیرکوئریِ شمارشِ پرداختی‌نشده) = 0 THEN
+    COMPLETED ELSE PARTIAL END`. جمعِ کل و وضعیت دیگر از خوانشِ قبلی نمی‌آیند.
+- **چرا CAS و نه `SELECT … FOR UPDATE`:** قراردادِ خودِ انبار (`base.py:37 with_for_update`) روی PG
+  کار می‌کند — و همین دلیلِ سومِ انتخاب است: شمارندۀ سومِ همین خانواده، `via_token.uses_count += 1`
+  در `game_service.py:411`، **از قبل** داخل `get_by_token(…, with_lock=True)`
+  (`game_repository.py:252-256`) قفل ردیف دارد، پس در همین راند بررسی و بی‌نیاز ثبت شد. اما
+  `FOR UPDATE` روی SQLite که تست‌ها روی آن می‌دوند **هیچ کاری نیست** ⇒ نگهبانِ انتخابی باید روی هر
+  دو dialect معنا داشته باشد؛ `rowcount` دارد.
+- **باگِ فقط-PG که همین شاهد گرفت (رفعِ اولِ من ناقص بود):** نسخه‌ِ اولِ `pay_share` مقدارِ `CASE` را
+  بدونِ cast می‌نوشت. ۷۱۳ تست SQLite سبز بودند، ولی روی PG هر دو پرداخت با
+  `psycopg2.errors.DatatypeMismatch: column "status" is of type splitpaymentstatus but expression is
+  of type text` مردند (ستون `status` روی PG enum بومی است، نه VARCHAR؛ راند ۲۲ همین واگرایی را برای
+  `event_type` ثبت کرده بود). رفع: `.cast(sp_table.c.status.type)`
+  (`split_payments.py:370-374`) و یک نگهبانِ **شکلِ statement** در تستِ SQLite
+  (`assert "cast(case" in st`) تا این باگِ فقط-PG حداقل در diff دیدنی بماند.
+- **بعد از رفع، همان سه صحنه روی همان PG (لاگ `pg_race23_after.txt`):** کوپن ⇒
+  `{'B': 'OK', 'A': '400: ظرفیت …'}`، ۱ ردیف مصرف، `uses_count = 1`؛ دو سهمِ متفاوت ⇒ هر دو ۲۰۰،
+  **`paid_amount = 200٬۰۰۰`**، `status = PARTIAL` (سومِ پرداخت‌نشده)؛ یک سهمِ دوبار ⇒
+  `{'A': 'OK', 'B': '400: این سهم قبلاً پرداخت شده است'}`، ۱ ردیف ممیزی، `paid_amount = 100٬۰۰۰`.
+  هر سه صحنه: «ممیزی با سهم‌های پرداخت‌شده» و «`paid_amount = ۱۰۰٬۰۰۰ × سهمِ PAID`» ⇒ True.
+- **تست‌ها (سطح unit/SQLite):** ۷ تست در `tests/test_counter_race_guards.py` — نگهبانِ `max_uses`
+  داخل WHERE خودِ UPDATE (شکلِ statement، یک UPDATE روی `coupons`)؛ دو رزرو روی `max_uses=1` ⇒ دومی
+  ۴۰۰ «ظرفیت» و شمارنده ۱ با یک ردیف مصرف؛ کوپنِ بی‌سقف (`max_uses IS NULL`) مثلِ قبل می‌سوزد
+  (`uses_count = 2`)؛ `release_capacity` هفت بار ⇒ یک True و شش False و شمارنده هرگز زیر صفر نمی‌رود؛
+  شکلِ UPDATEهای `pay_share` (یک UPDATE روی `team_split_payments` با `paid_amount + ?` و
+  `cast(case`، یک UPDATE روی سهم با `status != ?`)؛ پرداختِ دوبارِ یک سهم ⇒ ۴۰۰ و ۱۰۰٬۰۰۰ نه ۲۰۰٬۰۰۰؛
+  و پرداختِ پلکانیِ هر سه سهم ⇒ `PARTIAL، PARTIAL، COMPLETED` با جمعِ `۱۰۰/۲۰۰/۳۰۰ هزار`.
+  **شاهدِ قبل‌و‌بعد:** سه فایلِ رفع‌شده برگردانده‌شده به HEAD ⇒ **۳ failed، ۴ passed**
+  (`set uses_count=?, …` بدون نگهبان؛ `AttributeError: no try_consume_capacity`؛ دو UPDATE با
+  `SET paid_amount=?`) و چهار تستِ رفتاری **سبز ماندند** — دقیقاً همان چیزی که ادعای
+  «falsify نمی‌شود» را توضیح می‌داد؛ بعد از رفع **۷ passed**.
+- **حقایقی که «رفع شد» ادعا نمی‌شوند:**
+  1. **`per_user_limit` هنوز قفل ندارد:** چکِ آن در Python است (`coupon_service.py:59-64`،
+     شمارشِ ردیف‌های redemption) ⇒ دو رزروِ همزمانِ **یک کاربر** روی سقفِ فردی هنوز می‌تواند هر دو
+     رد کند. نگهبانِ SQLی این یکی `INSERT … WHERE (SELECT count(*) …) < limit` می‌خواهد و در همین
+     راند انجام نشد (گرهٔ بازِ C13.3.1 باقی می‌ماند).
+  2. `pay_share` همچنان هیچ ردیفی در دفتر کل نمی‌سازد (C11.6.1؛ `payment_id` نوشته نمی‌شود) و
+     `CANCELLED`/`EXPIRED` هنوز مسیرِ تولیدی ندارند (C11.6.2) — این راند فقط «شمارنده درست شمرده
+     شود» را رفع می‌کند، نه «آن شمارنده چه معنایی دارد» را.
+  3. هیچ‌کدام روی `api.salon.absadeghi.ir` دیده نشده (X6)؛ prod هنوز کدِ قدیم را دارد، پس
+     فروش‌بیش‌ازظرفیتِ کوپن و گم‌شدنِ پرداختِ همزمان **امروز روی prod فعال است**.
+  4. صحنه‌های PG با دو نخِ واقعی و یک sleep تزریقی ساخته شدند؛ مدتِ sleep عددِ همین ماشین است، نه
+     تضمینِ نرخِ وقوعِ race در prod.
+
+---
+
 ## Track D — UI/دسترس‌پذیری/موبایل (P015، P016)
 
 > **وضعیت ۲۰۲۶-۱۰-۱۶: کل Track D بسته شد** — هم با شمارش گرپی روی ۲۲۸ فایل `src/**.tsx` و هم با
@@ -2037,6 +2125,42 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
   نشده ⇒ جدولِ تاریخچه روی prod خالی است و از لحظۀ deploy پر می‌شود.
 - **دربارۀ «۷ failed، ۱ passed»:** برعکسِ راند ۲۱ (که همه ۴۰۴ می‌گرفتند چون مسیر نبود) اینجا endpoint
   هست ولی ردیفِ ممیزی و نگهبانِ SQL نیستند ⇒ تست‌ها **رفتار** را می‌گیرند، نه وجودِ مسیر را.
+
+---
+
+### E13 بازسنجی راند ۲۳ (دو شمارندۀ پولی — بک‌اند تنها + PostgreSQL واقعی)
+
+| گیت | نتیجه (۲۰۲۶-۱۰-۱۷) | تغییر نسبت به راند ۲۲ |
+|---|---|---|
+| `pytest tests/test_counter_race_guards.py` | **۷ passed در 1.00s** (pinned) | فایلِ جدیدِ این راند |
+| همان ۷ با سه فایلِ رفع‌شده برگردانده‌شده به HEAD | **۳ failed، ۴ passed** | چهارِ باقی‌مانده **رفتاری**‌اند و روی SQLite سبز می‌مانند — همان بهانۀ «falsify نمی‌شود» که این راند باطل شد |
+| `pytest tests/test_counter_race_guards.py tests/test_coupons.py tests/test_coupon_burn_and_edit_guard.py tests/test_split_payments.py tests/test_split_payment_settlement.py` | **۴۴ passed در 3.99s** | کوپن + پرداخت اشتراکی، همه با هم |
+| `pytest` (رگرسیون کامل بک‌اند) | **۷۱۳ passed در 66.53s** | = ۷۰۶ + ۷؛ صفر رگرسیون |
+| `ruff check app/ tests/ migrations/ --select E9,F82` | `All checks passed!` | بی‌تغییر |
+| `app.openapi()['paths']` | **۲۴۰ / ۲۸۲ operation** | **بی‌تغییر** — endpoint تازه‌ای اضافه نشد (برعکس راند ۲۲) |
+| اسکنِ CJK در چهار فایلِ لمس‌شده | **صفر فایل** | بی‌تغییر |
+| فرانت (tsc / eslint / vitest / vite build) | **اجرا نشد** | در این راند هیچ فایل فرانتی تغییر نکرد؛ عددِ مرجع همان E12 است (۱۷۳ passed / ۰ خطا) |
+
+- **شاهدِ PostgreSQL واقعی (`~/.qoder-tmp/pg_race23.py`، لاگ‌های `pg_race23_before.txt` و
+  `pg_race23_after.txt`، هر دو exit 0):** اسکیما با `alembic upgrade head` روی pgserver، داده‌های
+  واقعیِ `users/venues/coupons/team_split_payments/split_payment_shares`، و **خودِ کدِ مسیر** صدا
+  زده شد (`CouponService.reserve`، `await pay_share(...)`)؛ تنها تزریق `Barrier` + `sleep(0.5)` روی
+  `SELECT … WHERE id = …` بود.
+  | صحنه | HEAD (قبل از رفع) | بعد از رفع |
+  |---|---|---|
+  | کوپن `max_uses=1`، دو `reserve` | `{'A': OK, 'B': OK}`، مصرف‌ها **۲**، `uses_count` **۱** | `{'B': OK, 'A': 400 «ظرفیت…»}`، مصرف‌ها **۱**، `uses_count` **۱** |
+  | دو سهمِ ۱۰۰٬۰۰۰ریالیِ متفاوت، همزمان | هر دو OK، سهم‌های PAID **۲**، ممیزی **۲**، `paid_amount` **۱۰۰٬۰۰۰** | هر دو OK، PAID **۲**، ممیزی **۲**، `paid_amount` **۲۰۰٬۰۰۰** |
+  | یک سهم، دو درخواستِ همزمان | هر دو OK، PAID **۱**، ممیزی **۲**، `paid_amount` ۱۰۰٬۰۰۰ | `{'A': OK, 'B': 400 «قبلاً…»}`، PAID **۱**، ممیزی **۱**، `paid_amount` ۱۰۰٬۰۰۰ |
+  و همین شاهد، رفعِ اولِ خودم را هم شکست: `CASE` بدونِ `cast` روی PG با `DatatypeMismatch` رد می‌شد
+  در حالی که ۷۱۳ تست SQLite سبز بودند (C20).
+- **E2 این راند (چه اجرا نشد):** هیچ چیزِ فرانتی (چیزی عوض نشد)، Playwright، آزمون روی دستگاه،
+  Flutter، و CI برای SHA این راند — بعد از push تماشا می‌شود.
+- **سطح اعداد:** بک‌اند **unit/SQLite** (رفتار + شکلِ statement) و یک شاهدِ **real-PG** همزمانی.
+  هیچ‌کدام روی `api.salon.absadeghi.ir` دیده نشده (X6)؛ روی prodِ فعلی هم کوپنِ `max_uses=1` هنوز
+  بیش از ظرفیت فروش می‌رود و دو پرداختِ همزمانِ اشتراکی هنوز یکی را گم می‌کند.
+- **CIِ راند ۲۲ (`1b065a9`) — شاهدِ ثبت‌شده برای این جدول:** ۲۳ check ⇒ **۲۰ success، ۲ skipped،
+  ۱ failure**. skippedها هر دو tag-gated بودند (Android release و GitHub Release)؛ تنها قرمز
+  `Workers Builds: salon-app` است که بیرون از انبار می‌سوزد و همان X9 باقی می‌ماند.
 
 ---
 
