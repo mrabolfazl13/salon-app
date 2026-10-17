@@ -27,7 +27,8 @@ export interface SplitPaymentShare {
   user_id: number
   amount: number
   percentage: number | null
-  status: 'PENDING' | 'PAID' | 'REFUNDED'
+  // OVERDUE را sweep راند ۲۶ تولید می‌کند (گرهٔ C11.6.2؛ قبل از آن فقط PENDING/PAID بودند)
+  status: 'PENDING' | 'PAID' | 'REFUNDED' | 'OVERDUE'
   paid_at: string | null
   created_at: string
   user_name?: string
@@ -89,6 +90,13 @@ export const splitPaymentService = {
     const response = await apiClient.get(`/split-payments/team/${teamId}`, {
       params: { limit, offset }
     })
+    return response.data
+  },
+
+  // ─────────────────────────── ابطال (فقط تا پیش از هر پرداخت) ───────────────────────────
+
+  cancel: async (splitPaymentId: number, note?: string): Promise<SplitPaymentDetail> => {
+    const response = await apiClient.post(`/split-payments/${splitPaymentId}/cancel`, note ? { note } : {})
     return response.data
   },
 }

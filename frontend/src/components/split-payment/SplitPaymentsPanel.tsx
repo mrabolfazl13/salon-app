@@ -7,6 +7,7 @@ import { Icon } from '@iconify/react'
 
 import { Button } from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
+import ConfirmModal from '@/components/modals/ConfirmModal'
 import { useToast } from '@/hooks/useToast'
 import { useAuthStore } from '@/store/authStore'
 import { splitPaymentService } from '@/services/splitPayment'
@@ -42,6 +43,25 @@ const METHOD_LABELS = {
   PERCENTAGE: 'درصدی',
 }
 
+// OVERDUE را تسکِ بک‌اند (mark-overdue-split-payments) می‌سازد؛ تا راند ۲۶ هرگز
+// تولید نمی‌شد و برای همین در این نقشه نبود (گرهٔ C11.6.2).
+const SHARE_LABELS: Record<string, string> = {
+  PENDING: 'در انتظار',
+  PAID: 'پرداخت‌شده',
+  OVERDUE: 'از مهلت گذشته',
+  REFUNDED: 'بازگشت داده‌شده',
+}
+
+const SHARE_COLORS: Record<string, string> = {
+  PENDING: '#f59e0b',
+  PAID: '#10b981',
+  OVERDUE: '#b45309',
+  REFUNDED: '#64748b',
+}
+
+// فقط همین حالت‌ها لغو‌شدنی‌اند (با شرط «پولی گرفته نشده» در سرور)
+const CANCELLABLE = ['PENDING', 'PARTIAL', 'EXPIRED']
+
 const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
   const toast = useToast()
   const me = useAuthStore((s) => s.user)
@@ -51,6 +71,8 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
   const [selectedPayment, setSelectedPayment] = useState<any | null>(null)
   const [showCreateDialog, setShowCreateDialog] = useState(false)
   const [paying, setPaying] = useState(false)
+  const [showCancelConfirm, setShowCancelConfirm] = useState(false)
+  const [cancelling, setCancelling] = useState(false)
 
   const loadPayments = async () => {
     setLoading(true)
@@ -105,6 +127,30 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
       toast.error(err.response?.data?.detail || 'پرداخت سهم ناموفق بود.')
     } finally {
       setPaying(false)
+    }
+  }
+
+  // لغو فقط برای سازنده (یا سرپرست سیستم) و فقط تا وقتی هیچ سهمی پرداخت نشده —
+  // سرور همین را نگهبان می‌کند؛ دکمه برای نداشتنِ کلیکِ بی‌نتیجه نمایش داده می‌شود.
+  const canCancel =
+    !!selectedPayment &&
+    CANCELLABLE.includes(selectedPayment.status) &&
+    Number(selectedPayment.total_paid ?? 0) === 0 &&
+    (selectedPayment.created_by === me?.id || me?.role === 'super_admin')
+
+  const handleCancel = async () => {
+    if (!selectedPayment) return
+    setCancelling(true)
+    try {
+      await splitPaymentService.cancel(selectedPayment.id)
+      toast.success('پرداخت اشتراکی لغو شد')
+      setShowCancelConfirm(false)
+      setSelectedPayment(null)
+      loadPayments()
+    } catch (err: any) {
+      toast.error(err.response?.data?.detail || 'لغو پرداخت ناموفق بود.')
+    } finally {
+      setCancelling(false)
     }
   }
 
@@ -298,6 +344,16 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                 {`پرداخت سهم من (${Number(myShare.amount).toLocaleString('fa-IR')} ریال)`}
               </Button>
             )}
+            {canCancel && (
+              <Button
+                size="sm"
+                variant="outline"
+                icon="mdi:close-circle-outline"
+                onClick={() => setShowCancelConfirm(true)}
+              >
+                لغو این پرداخت
+              </Button>
+            )}
 
             {/* Shares */}
             <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', mt: 1 }}>سهم اعضا:</Typography>
@@ -325,13 +381,13 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                     </Typography>
                   </Box>
                   <Chip
-                    label={share.status === 'PAID' ? 'پرداخت‌شده' : 'در انتظار'}
+                    label={SHARE_LABELS[share.status] ?? 'در انتظار'}
                     size="small"
                     sx={{
                       height: 24,
                       fontSize: '0.75rem',
                       fontWeight: 700,
-                      bgcolor: share.status === 'PAID' ? '#10b981' : '#f59e0b',
+                      bgcolor: SHARE_COLORS[share.status] ?? '#f59e0b',
                       color: '#fff',
                     }}
                   />
@@ -341,6 +397,23 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
           </Box>
         </Dialog>
       )}
+
+      {/* تأییدِ لغو — عملِ قابل‌بازگشت نیست (سهم‌ها دیگر پذیرفته نمی‌شوند) */}
+      <ConfirmModal
+        open={showCancelConfirm}
+        onOpenChange={(o) => !o && setShowCancelConfirm(false)}
+        title="لغو پرداخت اشتراکی"
+        description={
+          selectedPayment
+            ? `پرداخت #${selectedPayment.id} لغو می‌شود و دیگر سهمی روی آن ثبت نمی‌شود. ` +
+              'اگر عضو پولی پرداخته باشد، سرور لغو را رد می‌کند (بازگشت وجه هنوز مسیر ندارد).'
+            : ''
+        }
+        confirmText="لغو پرداخت"
+        variant="destructive"
+        loading={cancelling}
+        onConfirm={handleCancel}
+      />
 
       {/* Create Split Payment Dialog */}
       {members.length > 0 && (

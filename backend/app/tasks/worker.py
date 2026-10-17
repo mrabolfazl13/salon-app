@@ -23,6 +23,7 @@ celery_app.conf.update(
         'app.tasks.competition_tasks',
         'app.tasks.contract_tasks',
         'app.tasks.team_dues_tasks',
+        'app.tasks.split_payment_tasks',
         'app.tasks.crm_tasks',
         'app.tasks.reconciliation_tasks',
         'app.tasks.backup_tasks',
@@ -70,6 +71,12 @@ celery_app.conf.update(
         "apply-team-dues-late-fees": {
             "task": "app.tasks.apply_team_dues_late_fees",
             "schedule": crontab(hour=1, minute=45),
+        },
+        # هر ساعت سهمِ پرداخت‌نشدهٔ گذشته از مهلت را OVERDUE و پرداخت اشتراکیِ
+        # ناقص را EXPIRED کن (راند ۲۶: تا پیش از این هیچ کدی EXPIRED نمی‌ساخت)
+        "mark-overdue-split-payments": {
+            "task": "app.tasks.mark_overdue_split_payments",
+            "schedule": crontab(minute=20),  # hourly
         },
         # هر روز ساعت ۳:۳۰ رزروهای تمام‌شده را کامل کن و امتیاز وفاداری بده
         "complete-past-bookings": {

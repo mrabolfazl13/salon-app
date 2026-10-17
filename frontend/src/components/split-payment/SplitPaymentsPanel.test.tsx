@@ -14,12 +14,14 @@ import { useAuthStore } from '@/store/authStore'
 const listByTeam = vi.fn()
 const getById = vi.fn()
 const payShare = vi.fn()
+const cancel = vi.fn()
 
 vi.mock('@/services/splitPayment', () => ({
   splitPaymentService: {
     listByTeam: (...a: unknown[]) => listByTeam(...(a as [])),
     getById: (...a: unknown[]) => getById(...(a as [])),
     payShare: (...a: unknown[]) => payShare(...(a as [])),
+    cancel: (...a: unknown[]) => cancel(...(a as [])),
     create: vi.fn(),
   },
 }))
@@ -148,5 +150,76 @@ describe('SplitPaymentsPanel — پرداخت سهم', () => {
     fireEvent.click(await screen.findByRole('button', { name: /پرداخت سهم من/ }))
 
     await waitFor(() => expect(toastError).toHaveBeenCalledWith('سهم قبلاً پرداخت شده است'))
+  })
+})
+
+// راند ۲۶ (گرهٔ C11.6.2): سه برچسبِ CANCELLED/EXPIRED/OVERDUE تا پیش از این راند فقط در enum
+// بودند و هیچ کدِ تولیدی نداشتند ⇒ sweepِ بک‌اند آن‌ها را می‌سازد و اینجا UI باید آن‌ها را
+// نشان دهد؛ و لغوِ پرداختِ بی‌پول هم endpoint و دکمهٔ تأییددار شد.
+describe('SplitPaymentsPanel — مهلت‌گذشتگی و لغو', () => {
+  it('سهمِ OVERDUE را با برچسبِ خودش نشان می‌دهد (نه «در انتظار») و چیپِ والد EXPIRED را هم دارد', async () => {
+    listByTeam.mockResolvedValue({ items: [payment({ status: 'EXPIRED' })], total: 1 })
+    getById.mockResolvedValue(detail({
+      status: 'EXPIRED',
+      shares: detail().shares.map((s) => (s.status === 'PAID' ? s : { ...s, status: 'OVERDUE' })),
+    }))
+    renderPanel()
+    fireEvent.click(await screen.findByRole('button', { name: /مشاهده جزئیات پرداخت #41/ }))
+    expect(await screen.findAllByText('از مهلت گذشته')).toHaveLength(2)
+    expect(document.body.textContent).not.toContain('undefined')
+  })
+
+  it('سازنده تا پیش از آمدنِ پول دکمهٔ لغو دارد و تأییدش سرور را صدا می‌زند و فهرست را تازه می‌کند', async () => {
+    listByTeam.mockResolvedValue({ items: [payment({ status: 'PENDING', created_by: 2 })], total: 1 })
+    getById.mockResolvedValue(detail({
+      status: 'PENDING', created_by: 2, total_paid: 0, remaining: 100000,
+      shares: detail().shares.map((s) => ({ ...s, status: 'PENDING', paid_at: null })),
+    }))
+    cancel.mockResolvedValue(payment({ status: 'CANCELLED', created_by: 2 }))
+
+    renderPanel()
+    fireEvent.click(await screen.findByRole('button', { name: /مشاهده جزئیات پرداخت #41/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /لغو این پرداخت/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'لغو پرداخت' }))
+
+    await waitFor(() => expect(cancel).toHaveBeenCalledWith(41))
+    await waitFor(() => expect(toastSuccess).toHaveBeenCalledWith('پرداخت اشتراکی لغو شد'))
+    await waitFor(() => expect(listByTeam).toHaveBeenCalledTimes(2))
+  })
+
+  it('عضوِ غیرسازنده دکمهٔ لغو نمی‌بیند', async () => {
+    //BeforeEach: کاربر ۲، سازنده ۱ ⇒ فقط پرداختِ سهم، نه لغوِ کل
+    renderPanel()
+    fireEvent.click(await screen.findByRole('button', { name: /مشاهده جزئیات پرداخت #41/ }))
+    expect(await screen.findByRole('button', { name: /پرداخت سهم من/ })).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /لغو این پرداخت/ })).not.toBeInTheDocument()
+  })
+
+  it('وقتی پولی آمده دکمهٔ لغو پنهاست (سرور هم آن را رد می‌کند)', async () => {
+    getById.mockResolvedValue(detail({ status: 'PARTIAL', created_by: 2 }))
+    renderPanel()
+    fireEvent.click(await screen.findByRole('button', { name: /مشاهده جزئیات پرداخت #41/ }))
+    expect(await screen.findByText(new RegExp(fmt(33400)))).toBeInTheDocument()
+    expect(screen.queryByRole('button', { name: /لغو این پرداخت/ })).not.toBeInTheDocument()
+  })
+
+  it('ردِ سرورِ لغو را فارسی در toast نشان می‌دهد و دیالوگ را نمی‌بندد', async () => {
+    getById.mockResolvedValue(detail({ status: 'PENDING', created_by: 2, total_paid: 0 }))
+    cancel.mockRejectedValue({
+      response: { data: { detail: 'این پرداخت اشتراکی سهمِ پرداخت‌شده دارد؛ ابطالش بازگشت وجه می‌خواهد' } },
+    })
+    renderPanel()
+    fireEvent.click(await screen.findByRole('button', { name: /مشاهده جزئیات پرداخت #41/ }))
+    fireEvent.click(await screen.findByRole('button', { name: /لغو این پرداخت/ }))
+    fireEvent.click(await screen.findByRole('button', { name: 'لغو پرداخت' }))
+
+    await waitFor(() =>
+      expect(toastError).toHaveBeenCalledWith(
+        'این پرداخت اشتراکی سهمِ پرداخت‌شده دارد؛ ابطالش بازگشت وجه می‌خواهد'))
+    expect(toastSuccess).not.toHaveBeenCalled()
+    // دیالوگِ تأیید باز می‌ماند تا کاربر فرصت اصلاح داشته باشد (MUI آن را روی
+    // دیالوگِ جزئیات می‌گذارد و دیالوگِ زیرین را aria-hidden می‌کند)
+    expect(screen.getByText('لغو پرداخت اشتراکی')).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'لغو پرداخت' })).toBeInTheDocument()
   })
 })

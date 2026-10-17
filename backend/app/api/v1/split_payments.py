@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
-from sqlalchemy import case
+from sqlalchemy import case, exists
 from sqlmodel import Session, select, func
 
 from app.database import get_session
@@ -16,7 +16,8 @@ from app.models.split_payment import (
 )
 from app.models.team import Team, TeamMember, TeamMemberStatus
 from app.models.game import Game
-from app.models.user import User
+from app.models.user import User, UserRole
+from app.services.split_payment_service import cancel_split_payment
 from app.utils.auth import get_current_user
 from pydantic import BaseModel, Field
 
@@ -53,6 +54,23 @@ class PayShareIn(BaseModel):
     payment_method: Optional[str] = None
     transaction_ref: Optional[str] = None
     note: Optional[str] = Field(default=None, max_length=500)
+
+
+class CancelSplitPaymentIn(BaseModel):
+    note: Optional[str] = Field(default=None, max_length=500)
+
+
+# پیام‌هایِ نتیجهٔ لغو — HTTP مالِ این جدول است، منطقِ نگهبان در سرویس
+_CANCEL_MESSAGES = {
+    "missing": "پرداخت اشتراکی یافت نشد",
+    "already_cancelled": "این پرداخت اشتراکی از قبل لغو شده است",
+    "completed": "پرداخت اشتراکی تکمیل‌شده را نمی‌توان لغو کرد",
+    "has_paid_share": (
+        "این پرداخت اشتراکی سهمِ پرداخت‌شده دارد؛ ابطالش بازگشت وجه می‌خواهد و "
+        "مسیرِ بازگشت وجهِ درگاه هنوز ساخته نشده است"
+    ),
+    "not_cancellable": "این پرداخت اشتراکی در حالتِ فعلی لغو‌شدنی نیست",
+}
 
 
 # ─────────────────────────── Helpers ───────────────────────────
@@ -327,6 +345,7 @@ async def pay_share(
 
     now = datetime.now(timezone.utc)
     share_table = SplitPaymentShare.__table__
+    sp_table = TeamSplitPayment.__table__
     values = {"status": ShareStatus.PAID, "paid_at": now, "updated_at": now}
     if payload and payload.note:
         values["note"] = payload.note
@@ -334,17 +353,30 @@ async def pay_share(
     # دو «بخوان-و-بنویس» روی هم می‌توانند یک سهم را دو بار بشمارند یا یک پرداختِ
     # همزمان را گم کنند (گرهٔ C11.6.3)؛ این UPDATE هم تبدیلِ سهم را می‌بندد و هم
     # شمارندۀ کل را با حسابِ خودِ SQL جلو می‌برد.
+    # نگهبانِ سوم (راند ۲۶): پدرِ CANCELLED دیگر سهمِ پرداختی نمی‌گیرد — شرط
+    # داخلِ statement نشسته تا «لغو شدنِ» همزمان از پنجرۀ خواندن رد نشود.
+    not_cancelled = exists(
+        select(sp_table.c.id)
+        .where(sp_table.c.id == payment_id,
+               sp_table.c.status != SplitPaymentStatus.CANCELLED)
+    )
     result = session.execute(
         share_table.update()
         .where(
             share_table.c.id == share_id,
             share_table.c.split_payment_id == payment_id,
             share_table.c.status != ShareStatus.PAID,
+            not_cancelled,
         )
         .values(**values)
     )
     if result.rowcount == 0:
-        raise HTTPException(status_code=400, detail="این سهم قبلاً پرداخت شده است")
+        session.refresh(share)
+        if share.status == ShareStatus.PAID:
+            raise HTTPException(status_code=400, detail="این سهم قبلاً پرداخت شده است")
+        raise HTTPException(
+            status_code=400,
+            detail="این پرداخت اشتراکی لغو شده است و دیگر سهمی روی آن ثبت نمی‌شود")
 
     pending_shares = (
         select(func.count())
@@ -355,10 +387,13 @@ async def pay_share(
         )
         .scalar_subquery()
     )
-    sp_table = TeamSplitPayment.__table__
-    session.execute(
+    parent_updated = session.execute(
         sp_table.update()
-        .where(sp_table.c.id == payment_id)
+        # اگر دقیقاً همین لحظه کسی پرداخت را لغو کند، این UPDATE ردیف را لمس
+        # نمی‌کند؛ سهمِ پرداختیِ زیرِ ردیفِ CANCELLED گم نشود ⇒ کل درخواست برگشت
+        # می‌خورد و کاربر پیامِ واضح می‌گیرد (نگهبانِ C11.6.2، شاهدِ PG).
+        .where(sp_table.c.id == payment_id,
+               sp_table.c.status != SplitPaymentStatus.CANCELLED)
         .values(
             paid_amount=sp_table.c.paid_amount + share.amount,
             updated_at=now,
@@ -372,7 +407,12 @@ async def pay_share(
                 else_=SplitPaymentStatus.PARTIAL,
             ).cast(sp_table.c.status.type),
         )
-    )
+    ).rowcount
+    if parent_updated == 0:
+        session.rollback()
+        raise HTTPException(
+            status_code=409,
+            detail="این پرداخت اشتراکی همزمان لغو شد؛ پرداخت ثبت نشد، دوباره تلاش کنید")
 
     session.add(SplitPaymentAuditEvent(
         split_payment_id=payment_id,
@@ -387,3 +427,43 @@ async def pay_share(
 
     names = _user_names(session, sp.id)
     return _serialize_share(share, names.get(share.user_id))
+
+
+@router.post("/{payment_id}/cancel")
+async def cancel_split_payment_endpoint(
+    payment_id: int,
+    payload: Optional[CancelSplitPaymentIn] = Body(default=None),
+    current_user: User = Depends(get_current_user),
+    session: Session = Depends(get_session),
+):
+    """ابطالِ پرداخت اشتراکی — فقط تا وقتی هیچ سهمی پرداخت نشده (گرهٔ C11.6.2).
+
+    سهمِ پرداخت‌شده یعنی پولِ گرفته‌شده، و ابطالِ چنین ردیفی بازگشت وجه می‌خواهد؛
+    بازگشت وجهِ درگاه (X4) هنوز در دسترس نیست، پس این حالت عمداً ۴۰۰ می‌گیرد به‌جای
+    اینکه ردیفِ CANCELLED روی پولِ واقعی بگذارد.
+    """
+    sp = session.get(TeamSplitPayment, payment_id)
+    if not sp:
+        raise HTTPException(status_code=404, detail="پرداخت اشتراکی یافت نشد")
+    if sp.created_by != current_user.id and current_user.role != UserRole.SUPER_ADMIN:
+        raise HTTPException(
+            status_code=403,
+            detail="فقط سازندۀ این پرداخت اشتراکی یا سرپرست سیستم می‌تواند آن را لغو کند")
+
+    result = cancel_split_payment(
+        session, payment_id,
+        actor_id=current_user.id,
+        actor_phone=current_user.phone,
+        note=payload.note if payload else None,
+    )
+    if result != "cancelled":
+        raise HTTPException(status_code=400, detail=_CANCEL_MESSAGES[result])
+
+    session.refresh(sp)
+    names = _user_names(session, sp.id)
+    shares = session.exec(
+        select(SplitPaymentShare)
+        .where(SplitPaymentShare.split_payment_id == sp.id)
+        .order_by(SplitPaymentShare.id)
+    ).all()
+    return _serialize_payment(sp, [_serialize_share(s, names.get(s.user_id)) for s in shares])
