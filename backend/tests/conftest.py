@@ -45,7 +45,7 @@ from app.models.notification import Notification
 from app.models.contract import Contract, ContractSlot, ContractPayment, ContractAuditEvent
 from app.models.transaction import FinancialTransaction, ExpenseCategory
 from app.models.payment import BookingPayment
-from app.models.membership import MembershipPlan, MembershipPurchase
+from app.models.membership import MembershipPlan, MembershipPurchase, MembershipSessionEvent
 from app.models.holiday import Holiday
 from app.models.pricing_rule import PricingRule
 from app.models.coupon import Coupon, CouponRedemption
@@ -152,7 +152,7 @@ _TABLES_CLEAN_ORDER = [
     PricingRule, Holiday,
     ReconciliationReport,
     FinancialTransaction, ExpenseCategory,
-    MembershipPurchase, MembershipPlan, BookingPayment,
+    MembershipSessionEvent, MembershipPurchase, MembershipPlan, BookingPayment,
     GamePayment, GameWaitlist, GameInviteLink, GameInvitation,
     GameJoinRequest, GameParticipant, Game,
     ContractAuditEvent, ContractPayment, ContractSlot,

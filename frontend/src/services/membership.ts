@@ -7,6 +7,7 @@ import type {
   MembershipPlanCreate,
   MembershipPlanUpdate,
   MembershipPurchase,
+  MembershipSessionEvent,
 } from '@/types/membership'
 
 export interface CardPayData {
@@ -74,6 +75,11 @@ export const membershipService = {
 
   getVenuePurchases: async (venueId: number): Promise<MembershipPurchase[]> => {
     const { data } = await apiClient.get(`/memberships/venue/${venueId}/purchases`)
+    return data
+  },
+
+  getPurchaseEvents: async (purchaseId: number): Promise<MembershipSessionEvent[]> => {
+    const { data } = await apiClient.get(`/memberships/purchases/${purchaseId}/events`)
     return data
   },
 }

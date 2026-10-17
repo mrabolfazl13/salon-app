@@ -55,6 +55,22 @@ export interface MembershipPurchase {
   paid_at: string | null
 }
 
+export type SessionEventType = 'consumed' | 'refunded'
+
+// ردیفِ ممیزیِ «چه کسی، کِی» — فقط مدیرِ همان سالن می‌تواند بخواندش
+export interface MembershipSessionEvent {
+  id: number
+  purchase_id: number
+  venue_id: number
+  actor_id: number | null
+  actor_name: string | null
+  event_type: SessionEventType
+  sessions_remaining_after: number | null
+  amount: number | null
+  detail: string | null
+  created_at: string
+}
+
 export const PLAN_TYPE_LABEL: Record<PlanType, string> = {
   session: 'جلسه‌ای',
   sessions_pack: 'پک جلسه‌ای',

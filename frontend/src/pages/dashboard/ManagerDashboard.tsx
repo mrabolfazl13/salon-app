@@ -48,7 +48,7 @@ import { ReceiptReviewDialog, InPersonCollectDialog } from '@/components/booking
 import SlotWeekGrid from '@/components/manager/SlotWeekGrid'
 import { uploadService } from '@/services/upload'
 import { membershipService } from '@/services/membership'
-import { PLAN_TYPE_LABEL, type MembershipPlan, type MembershipPurchase, type PlanType } from '@/types/membership'
+import { PLAN_TYPE_LABEL, type MembershipPlan, type MembershipPurchase, type MembershipSessionEvent, type PlanType } from '@/types/membership'
 import {
   formatPrice,
   getPaymentModeLabel,
@@ -230,6 +230,9 @@ const ManagerDashboard: React.FC = () => {
   const [consumeId, setConsumeId] = useState<number | null>(null)
   const [refundConfirm, setRefundConfirm] = useState<MembershipPurchase | null>(null)
   const [refundId, setRefundId] = useState<number | null>(null)
+  const [eventsFor, setEventsFor] = useState<MembershipPurchase | null>(null)
+  const [purchaseEvents, setPurchaseEvents] = useState<MembershipSessionEvent[]>([])
+  const [eventsLoading, setEventsLoading] = useState(false)
   const [bookingDateRange, setBookingDateRange] = useState(() => {
     const today = new Date()
     const weekLater = new Date(today)
@@ -560,6 +563,20 @@ const ManagerDashboard: React.FC = () => {
       toast.error(error?.response?.data?.detail || 'خطا در بازگشت وجه')
     } finally {
       setRefundId(null)
+    }
+  }
+
+  const openPurchaseEvents = async (purchase: MembershipPurchase) => {
+    setEventsFor(purchase)
+    setPurchaseEvents([])
+    setEventsLoading(true)
+    try {
+      setPurchaseEvents(await membershipService.getPurchaseEvents(purchase.id))
+    } catch (error: any) {
+      toast.error(error?.response?.data?.detail || 'خطا در بارگذاری تاریخچه')
+      setEventsFor(null)
+    } finally {
+      setEventsLoading(false)
     }
   }
 
@@ -2470,9 +2487,20 @@ const ManagerDashboard: React.FC = () => {
                                           {refundId === p.id ? <CircularProgress size={16} /> : 'بازگشت وجه'}
                                         </Button>
                                       )}
-                                      {!canConsume && p.status !== 'paid' && (
-                                        <Typography variant="caption" color="text.secondary">—</Typography>
-                                      )}
+                                      <Button
+                                        size="small"
+                                        variant="text"
+                                        onClick={() => void openPurchaseEvents(p)}
+                                        sx={{
+                                          borderRadius: '8px',
+                                          textTransform: 'none',
+                                          fontWeight: 600,
+                                          color: 'text.secondary',
+                                          '&:hover': { bgcolor: 'rgba(15,23,42,0.06)' },
+                                        }}
+                                      >
+                                        تاریخچه
+                                      </Button>
                                     </Box>
                                   </TableCell>
                                 </TableRow>
@@ -2552,6 +2580,78 @@ const ManagerDashboard: React.FC = () => {
         loading={refundId === (refundConfirm?.id ?? -1)}
         onConfirm={() => { if (refundConfirm) void handleRefundPurchase(refundConfirm) }}
       />
+
+      {/* تاریخچۀ «چه کسی، کِی» یک اشتراک — ممیزیِ کسر جلسه و بازگشت وجه */}
+      <Dialog
+        aria-label="تاریخچۀ اشتراک"
+        open={Boolean(eventsFor)}
+        onClose={() => !eventsLoading && setEventsFor(null)}
+        maxWidth="sm"
+        fullWidth
+        slotProps={{ paper: { sx: { borderRadius: '20px', overflow: 'hidden' } } }}
+      >
+        <DialogContent sx={{ pt: 3 }}>
+          <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>تاریخچۀ اشتراک</Typography>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            {eventsFor?.plan_title ?? '—'} — هر کسر جلسه و هر بازگشت وجه با نامِ عامل و زمان ثبت می‌شود.
+          </Typography>
+          {eventsLoading ? (
+            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 3 }}>
+              <CircularProgress size={18} />
+              <Typography variant="body2" color="text.secondary">در حال بارگذاری…</Typography>
+            </Box>
+          ) : purchaseEvents.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ py: 3 }}>
+              هنوز اقدامی روی این اشتراک ثبت نشده است.
+            </Typography>
+          ) : (
+            <Box>
+              {purchaseEvents.map((ev) => (
+                <Box key={ev.id} sx={{ py: 1.5, borderTop: '1px solid rgba(15,23,42,0.08)' }}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                    <Chip
+                      label={ev.event_type === 'refunded' ? 'بازگشت وجه' : 'کسر جلسه'}
+                      size="small"
+                      sx={{
+                        borderRadius: '8px',
+                        fontWeight: 600,
+                        fontSize: '0.75rem',
+                        bgcolor: ev.event_type === 'refunded' ? 'rgba(71,85,105,0.12)' : 'rgba(5,150,105,0.12)',
+                        color: ev.event_type === 'refunded' ? '#475569' : '#047857',
+                      }}
+                    />
+                    <Typography variant="body2">
+                      {new Date(ev.created_at).toLocaleDateString('fa-IR')}
+                      {' · '}
+                      {new Date(ev.created_at).toLocaleTimeString('fa-IR', { hour: '2-digit', minute: '2-digit' })}
+                    </Typography>
+                  </Box>
+                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                    {`عامل: ${ev.actor_name ?? '—'}`}
+                    {ev.sessions_remaining_after != null
+                      ? ` · باقی‌مانده: ${new Intl.NumberFormat('fa-IR').format(ev.sessions_remaining_after)}`
+                      : ''}
+                    {ev.amount != null ? ` · مبلغ: ${formatPrice(ev.amount)}` : ''}
+                  </Typography>
+                  {ev.detail && (
+                    <Typography variant="caption" sx={{ display: 'block', mt: 0.25 }}>
+                      {`دلیل: ${ev.detail}`}
+                    </Typography>
+                  )}
+                </Box>
+              ))}
+            </Box>
+          )}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, pb: 2 }}>
+          <Button
+            onClick={() => setEventsFor(null)}
+            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '10px' }}
+          >
+            بستن
+          </Button>
+        </DialogActions>
+      </Dialog>
 
       {/* اقدام گروهی روی رزروهای در انتظار تأیید — حلقه‌ی endpointهای تکی */}
       <ConfirmModal

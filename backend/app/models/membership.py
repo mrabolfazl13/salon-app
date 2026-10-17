@@ -27,6 +27,13 @@ class PurchaseStatus(str, Enum):
     REFUNDED = "refunded"
 
 
+class SessionEventType(str, Enum):
+    """نوعِ رویدادِ ممیزی — «چه کسی، کِی» برای شمارشِ جلسات و بازگشت وجه."""
+
+    CONSUMED = "consumed"
+    REFUNDED = "refunded"
+
+
 class MembershipPlan(SQLModel, table=True):
     __tablename__ = "membership_plans"
 
@@ -65,3 +72,25 @@ class MembershipPurchase(SQLModel, table=True):
     plan: "MembershipPlan" = Relationship(back_populates="purchases")
     user: "User" = Relationship()
     venue: "Venue" = Relationship()
+
+
+class MembershipSessionEvent(SQLModel, table=True):
+    """ممیزیِ کسر جلسه و بازگشت وجه (گرهٔ C15.5.3).
+
+    ستونِ `sessions_remaining` تنها با یک read-modify-write عوض می‌شد و هیچ‌جا ثبت
+    نمی‌شد «چه کسی و کِی» — پس اختلاسِ جلسه قابل اثبات نبود. این جدول append-only است:
+    یک ردیف به‌ازای هر اقدام، با actor و شمارندۀ بعد از اقدام.
+    """
+
+    __tablename__ = "membership_session_events"
+
+    id: Optional[int] = Field(default=None, primary_key=True)
+    purchase_id: int = Field(foreign_key="membership_purchases.id", index=True)
+    venue_id: int = Field(foreign_key="venues.id", index=True)
+    actor_id: Optional[int] = Field(default=None, foreign_key="users.id", index=True)
+    event_type: SessionEventType = Field(index=True)
+    sessions_remaining_after: Optional[int] = Field(
+        default=None, description="ارزشِ شمارنده بعد از این اقدام (برای بازگشت وجه: 0)")
+    amount: Optional[int] = Field(default=None, description="ریال — فقط برای بازگشت وجه")
+    detail: Optional[str] = Field(default=None, max_length=200)
+    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))

@@ -75,3 +75,21 @@ class MembershipPurchaseResponse(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class MembershipSessionEventResponse(BaseModel):
+    """یک ردیفِ ممیزیِ «چه کسی، کِی» روی اشتراک (C15.5.3)."""
+
+    id: int
+    purchase_id: int
+    venue_id: int
+    actor_id: Optional[int] = None
+    actor_name: Optional[str] = None
+    event_type: str
+    sessions_remaining_after: Optional[int] = None
+    amount: Optional[int] = None
+    detail: Optional[str] = None
+    created_at: datetime
+
+    class Config:
+        from_attributes = True

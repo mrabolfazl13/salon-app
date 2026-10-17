@@ -6,15 +6,17 @@ from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import joinedload
-from sqlmodel import Session, select
+from sqlmodel import Session, col, select
 
 from app.database import get_session
 from app.utils.utc import as_utc
 from app.models.membership import (
     MembershipPlan,
     MembershipPurchase,
+    MembershipSessionEvent,
     PlanType,
     PurchaseStatus,
+    SessionEventType,
 )
 from app.models.user import User
 from app.models.venue import Venue
@@ -35,6 +37,7 @@ from app.schemas.membership import (
     MembershipPurchaseCreate,
     MembershipPurchaseResponse,
     MembershipRefundRequest,
+    MembershipSessionEventResponse,
 )
 from app.utils.auth import get_current_manager, get_current_user, get_optional_user
 
@@ -363,6 +366,17 @@ def refund_purchase(
             created_by=current_user.id,
             cleared_at=now,
         ))
+        # ممیزی در همان قفلِ idempotency: اگر دو بار صدا زده شد، نه ردیفِ دفتر کل
+        # دوتایی می‌شود نه ردیفِ تاریخچة «چه کسی بازگشت زد».
+        session.add(MembershipSessionEvent(
+            purchase_id=purchase.id,
+            venue_id=purchase.venue_id,
+            actor_id=current_user.id,
+            event_type=SessionEventType.REFUNDED,
+            sessions_remaining_after=purchase.sessions_remaining,
+            amount=purchase.amount,
+            detail=data.reason,
+        ))
     session.commit()
     session.refresh(purchase)
     return _purchase_response(purchase)
@@ -393,7 +407,13 @@ def consume_session(
     session: Session = Depends(get_session),
     current_user: User = Depends(get_current_manager),
 ):
-    """کسر یک جلسه از اشتراک (توسط مدیر سالن هنگام ورود کاربر)"""
+    """کسر یک جلسه از اشتراک (توسط مدیر سالن هنگام ورود کاربر).
+
+    شمارنده با یک **UPDATE شرطی** در SQL کم می‌شود، نه read-modify-write روی آبجکتِ
+    Python؛ `rowcount` می‌گوید این درخواست برنده شده یا شمارنده از قبل تمام بوده.
+    دو درخواستِ همزمان روی آخرین جلسه ⇒ یکی ۲۰۰ و دیگری ۴۰۰، و عدد هرگز منفی نمی‌شود
+    (گرهٔ C15.5.3). ممیزی هم در همان تراکنش نوشته می‌شود.
+    """
     purchase = session.get(MembershipPurchase, purchase_id)
     if not purchase:
         raise HTTPException(status_code=404, detail="اشتراک یافت نشد")
@@ -404,14 +424,67 @@ def consume_session(
         raise HTTPException(status_code=400, detail="این اشتراک جلسه‌ای نیست (ماهانه است)")
     if purchase.expires_at and as_utc(purchase.expires_at) < datetime.now(timezone.utc):
         raise HTTPException(status_code=400, detail="اعتبار اشتراک به پایان رسیده است")
-    if purchase.sessions_remaining <= 0:
+
+    table = MembershipPurchase.__table__
+    result = session.execute(
+        table.update()
+        .where(
+            table.c.id == purchase_id,
+            table.c.status == PurchaseStatus.PAID,
+            table.c.sessions_remaining > 0,
+        )
+        .values(sessions_remaining=table.c.sessions_remaining - 1)
+    )
+    if result.rowcount == 0:
         raise HTTPException(status_code=400, detail="جلسات این اشتراک تمام شده است")
-    purchase.sessions_remaining -= 1
-    session.add(purchase)
+
+    # ارزشِ قطعیِ شمارنده از همین تراکنش خوانده می‌شود، نه از آبجکتِ کهنه — وگرنه
+    # ردیفِ ممیزی عددی را می‌نویسد که واقعاً در دیتابیس نیست.
+    session.refresh(purchase)
+    session.add(MembershipSessionEvent(
+        purchase_id=purchase.id,
+        venue_id=purchase.venue_id,
+        actor_id=current_user.id,
+        event_type=SessionEventType.CONSUMED,
+        sessions_remaining_after=purchase.sessions_remaining,
+    ))
     session.commit()
     session.refresh(purchase)
     return _purchase_response(purchase)
 
+
+@router.get("/purchases/{purchase_id}/events", response_model=List[MembershipSessionEventResponse])
+def purchase_events(
+    purchase_id: int,
+    limit: int = Query(100, ge=1, le=500),
+    session: Session = Depends(get_session),
+    current_user: User = Depends(get_current_manager),
+):
+    """تاریخچۀ «چه کسی، کِی» یک اشتراک — فقط مدیرِ همان سالن."""
+    purchase = session.get(MembershipPurchase, purchase_id)
+    if not purchase:
+        raise HTTPException(status_code=404, detail="اشتراک یافت نشد")
+    _ensure_venue_manager(session, purchase.venue_id, current_user)
+    stmt = (
+        select(MembershipSessionEvent)
+        .where(MembershipSessionEvent.purchase_id == purchase_id)
+        .order_by(col(MembershipSessionEvent.id).desc())
+        .limit(limit)
+    )
+    events = list(session.exec(stmt).all())
+    actor_ids = {e.actor_id for e in events if e.actor_id}
+    names = {}
+    if actor_ids:
+        rows = session.exec(
+            select(User.id, User.full_name).where(col(User.id).in_(actor_ids))
+        ).all()
+        names = {row[0]: row[1] for row in rows}
+    items = []
+    for e in events:
+        item = MembershipSessionEventResponse.model_validate(e)
+        item.actor_name = names.get(e.actor_id)
+        items.append(item)
+    return items
 
 @router.get("/venue/{venue_id}/purchases", response_model=List[MembershipPurchaseResponse])
 def venue_purchases(
