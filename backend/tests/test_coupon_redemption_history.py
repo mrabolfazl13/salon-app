@@ -152,12 +152,12 @@ def test_the_api_row_carries_the_status_and_release_time(client, fake_redis):
     cid = _mk_coupon(client, a["mgr"], "HIST2", a["venue"]).json()["id"]
     pid = _book(client, a["cust"], a["slots"][0], "HIST2").json()["id"]
 
-    fresh = client.get(f"{COUPONS}{cid}/redemptions", headers=auth(a["mgr"])).json()
+    fresh = client.get(f"{COUPONS}{cid}/redemptions", headers=auth(a["mgr"])).json()["items"]
     assert [r["status"] for r in fresh] == ["ACTIVE"]
     assert fresh[0]["released_at"] is None
 
     client.delete(f"/api/v1/bookings/pending/{pid}", headers=auth(a["cust"]))
-    kept = client.get(f"{COUPONS}{cid}/redemptions", headers=auth(a["mgr"])).json()
+    kept = client.get(f"{COUPONS}{cid}/redemptions", headers=auth(a["mgr"])).json()["items"]
     assert [r["status"] for r in kept] == ["RELEASED"]
     assert kept[0]["released_at"] is not None
 
@@ -268,7 +268,7 @@ def test_two_lifetimes_after_two_cancels(client, fake_redis):
         pid = _book(client, a["cust"], a["slots"][i], "TWOLIFE").json()["id"]
         assert client.delete(f"/api/v1/bookings/pending/{pid}",
                              headers=auth(a["cust"])).status_code == 200
-    rows = client.get(f"{COUPONS}{cid}/redemptions", headers=auth(a["mgr"])).json()
+    rows = client.get(f"{COUPONS}{cid}/redemptions", headers=auth(a["mgr"])).json()["items"]
     assert [r["status"] for r in rows] == ["RELEASED", "RELEASED"]
     assert _uses() == 0
     # و حالا که سقفِ فردی خالی است، بارِ سوم هم جا دارد
@@ -311,7 +311,7 @@ def test_release_does_not_touch_the_paid_booking_path(client, fake_redis):
 
     assert _row()["status"] == RedemptionStatus.ACTIVE
     assert _uses() == 1
-    rows = client.get(f"{COUPONS}{cid}/redemptions", headers=auth(a["mgr"])).json()
+    rows = client.get(f"{COUPONS}{cid}/redemptions", headers=auth(a["mgr"])).json()["items"]
     assert [r["status"] for r in rows] == ["ACTIVE"]
 
 

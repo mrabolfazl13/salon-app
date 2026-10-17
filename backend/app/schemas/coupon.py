@@ -1,7 +1,7 @@
 # backend/app/schemas/coupon.py
 from pydantic import BaseModel, Field
 from datetime import datetime
-from typing import Optional
+from typing import List, Optional
 
 from app.models.coupon import CouponType
 
@@ -58,6 +58,34 @@ class CouponRedemptionResponse(BaseModel):
             released_at=red.released_at,
             created_at=red.created_at,
         )
+
+
+class CouponRedemptionStats(BaseModel):
+    """سرجمعِ مصرف‌های یک کوپن، تفکیک‌شده به زنده و برگشتی (گرهٔ C24.2).
+
+    این عددها **روی کلِ کوپن**اند نه روی صفحۀ جاری — همان چیزی که UIِ راند ۲۵/۲۷
+    نمی‌توانست بگوید («مجموع تخفیفِ این فهرست» فقط ۲۰۰ ردیفِ اول بود).
+    """
+    total_count: int
+    active_count: int
+    active_discount: int
+    released_count: int
+    released_discount: int
+
+
+class CouponRedemptionPage(BaseModel):
+    """یک صفحۀ مصرف + سرجمعش (C22.3/C24.1): `total` به «ادامه» گفتنِ UI کمک می‌کند.
+
+    پاسخِ آرایه‌ایِ راند ۲۵ هیچ راهی برای فهمیدنِ «چند ردیف مانده» نداشت؛ UI یا باید
+    ۲۰۰ تا را یک‌جا می‌گرفت یا حدس می‌زد. `items` همان `CouponRedemptionResponse` است و
+    `total` با صافیِ `status` می‌خواند، پس «۴ زنده از ۹۰۰» دو عددِ متفاوت نیستند.
+    """
+    items: List[CouponRedemptionResponse]
+    total: int
+    limit: int
+    offset: int
+    status: Optional[str] = None
+    stats: CouponRedemptionStats
 
 
 class CouponResponse(BaseModel):

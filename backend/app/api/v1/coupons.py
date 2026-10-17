@@ -5,10 +5,11 @@ from typing import List, Optional
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 
 from app.unit_of_work import get_unit_of_work, UnitOfWork
-from app.models.coupon import CouponType
+from app.models.coupon import CouponType, RedemptionStatus
 from app.models.user import User, UserRole
 from app.schemas.coupon import (
     CouponCreate,
+    CouponRedemptionPage,
     CouponRedemptionResponse,
     CouponResponse,
     CouponUpdate,
@@ -151,22 +152,27 @@ def update_coupon(
     return CouponResponse.from_model(coupon)
 
 
-@router.get("/{coupon_id}/redemptions", response_model=List[CouponRedemptionResponse])
+@router.get("/{coupon_id}/redemptions", response_model=CouponRedemptionPage)
 def list_coupon_redemptions(
     coupon_id: int,
     request: Request,
-    limit: int = Query(200, ge=1, le=500),
+    limit: int = Query(50, ge=1, le=500),
     offset: int = Query(0, ge=0),
+    status: Optional[str] = Query(None),
     uow: UnitOfWork = Depends(get_unit_of_work),
     current_user: User = Depends(get_current_user),
 ):
-    """مصرف‌های جاریِ یک کد: چه کسی، کِی، چقدر تخفیف گرفت و روی کدام رزرو.
+    """یک صفحۀ مصرفِ یک کد، با سرجمعِ زنده/برگشتی: چه کسی، کِی، چقدر، روی کدام رزرو.
 
     گرهٔ C13.3.2 همین بود: ردیف‌های `coupon_redemptions` نوشته می‌شدند ولی هیچ‌جا
-    خوانده نمی‌شدند. دو نکته که فهرست را درست می‌خواند:
-      - ردیفِ آزادشده (لغو/رد) حذف می‌شود، پس این فهرست با `uses_count` می‌خواند و
-        تاریخچۀ لغوشده را نشان نمی‌دهد.
+    خوانده نمی‌شدند. سه نکته که فهرست را درست می‌خواند:
+      - ردیفِ لغوشده **حذف نمی‌شود**؛ با `status = 'RELEASED'` در تاریخچه می‌ماند
+        (راند ۲۷) و با همین صافی از صفحه بیرون می‌رود (راند ۲۸، C22.3/C24.1).
       - `booking_id=null` یعنی رزروِ معلقِ هنوز تأیید نشده.
+      - `stats` روی **کلِ کوپن** جمع می‌شود، نه روی صفحه — وگرنه «مجموع تخفیف» عددِ
+        ۵۰ ردیفِ اول بود (گرهٔ C24.2).
+    `status` فقط `ACTIVE` یا `RELEASED` است؛ مقدارِ بیرونِ این دو ۴۰۰ می‌گیرد تا یک
+    تایپو («live»، «Done») صفحۀ خالیِ بی‌دلیل نسازد.
     کوپنِ سراسری فقط برای سرپرست سیستم: مصرف‌های آن مشتریهای همهٔ سالن‌هاست و
     نمایشش به مدیر یک سالن، اطلاعات رقیب لو می‌دهد.
     """
@@ -181,8 +187,23 @@ def list_coupon_redemptions(
     else:
         ensure_venue_permission(uow, current_user, coupon.venue_id,
                                 [Perm.COUPON_MANAGE], request)
-    rows = uow.coupon_redemptions.list_for_coupon(coupon_id, limit=limit, offset=offset)
-    return [CouponRedemptionResponse.from_row(r, phone, name) for r, phone, name in rows]
+    wanted = None
+    if status is not None:
+        try:
+            wanted = RedemptionStatus(status)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="وضعیت مصرف فقط ACTIVE یا RELEASED می‌تواند باشد") from None
+    rows = uow.coupon_redemptions.list_for_coupon(
+        coupon_id, limit=limit, offset=offset, status=wanted)
+    return CouponRedemptionPage(
+        items=[CouponRedemptionResponse.from_row(r, phone, name) for r, phone, name in rows],
+        total=uow.coupon_redemptions.count_for_coupon(coupon_id, status=wanted),
+        limit=limit, offset=offset,
+        status=(wanted.value if wanted is not None else None),
+        stats=uow.coupon_redemptions.stats_for_coupon(coupon_id),
+    )
 
 
 @router.delete("/{coupon_id}")

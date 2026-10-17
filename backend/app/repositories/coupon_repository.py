@@ -1,6 +1,6 @@
 # backend/app/repositories/coupon_repository.py
 from sqlmodel import Session, select, func, or_
-from sqlalchemy import insert, literal
+from sqlalchemy import case, insert, literal
 from datetime import datetime, timezone
 from typing import List, Optional
 
@@ -134,13 +134,17 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
         stmt = select(CouponRedemption).where(CouponRedemption.id.in_(ids))
         return list(self.session.exec(stmt).all())
 
-    def list_for_coupon(self, coupon_id: int, limit: int = 200, offset: int = 0
-                        ) -> List[tuple]:
-        """ردیف‌های مصرفِ یک کوپن، به‌همراه اسم و شمارهٔ کاربر (سابقاً هیچ‌جا فهرست نمی‌شد — C13.3.2).
+    def list_for_coupon(self, coupon_id: int, limit: int = 200, offset: int = 0,
+                        status: Optional[RedemptionStatus] = None) -> List[tuple]:
+        """یک صفحۀ ردیفِ مصرفِ یک کوپن، به‌همراه اسم و شمارهٔ کاربر (سابقاً هیچ‌جا فهرست نمی‌شد — C13.3.2).
 
         `outerjoin` چون کاربر می‌تواند حذف شده باشد؛ ردیفِ مصرفِ مالی نباید با حذفِ
         کاربر ناپدید شود. ترتیب از تازه به کهنه و `id` به‌عنوان tie-break، تا `offset`
         روی یک صفحه پایدار بماند.
+
+        `status` یک صافیِ **سمتِ سرور** است (گرهٔ C24.1/C22.3): تا راند ۲۷ UI فقط ۲۰۰
+        ردیفِ اول را می‌گرفت و «فقط زنده‌ها» را با `filter` روی *همان صفحه* در JS
+        در می‌آورد، یعنی «چهار ردیفِ زنده از ۹۰۰ مصرف» عددِ صفحه بود نه عددِ کوپن.
         """
         stmt = (
             select(CouponRedemption, User.phone, User.full_name)
@@ -150,7 +154,52 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
             .offset(offset)
             .limit(limit)
         )
+        if status is not None:
+            stmt = stmt.where(CouponRedemption.status == status)
         return [(row[0], row[1], row[2]) for row in self.session.exec(stmt).all()]
+
+    def count_for_coupon(self, coupon_id: int,
+                         status: Optional[RedemptionStatus] = None) -> int:
+        """شمارِ ردیف‌های مصرفِ یک کوپن (با همان صافیِ `list_for_coupon`).
+
+        جدا از `stats_for_coupon` است چون `total` باید دقیقاً با صافیِ انتخاب‌شده
+        بخواند؛ شمارشِ کلِ کوپن در آن جمع نمی‌آید.
+        """
+        stmt = select(func.count()).select_from(CouponRedemption).where(
+            CouponRedemption.coupon_id == coupon_id)
+        if status is not None:
+            stmt = stmt.where(CouponRedemption.status == status)
+        return int(self.session.exec(stmt).one())
+
+    def stats_for_coupon(self, coupon_id: int) -> dict:
+        """«چقدر تخفیف زنده است و چقدر برگشته» — یک SELECT، جمع‌های شرطی داخل SQL.
+
+        گرهٔ C24.2: لغوِ یک مصرف از راند ۲۷ ردیف را نگه می‌دارد، پس مبلغِ
+        `amount_discounted` آن در هیچ جمعی شمرده نمی‌شد و مدیر نمی‌توانست بپرسد
+        «این کد چند تخفیف گرفت و چندتااش برگشت». دو نکته:
+          - جمع‌ها **condition-aggregate**اند، نه دو کوئری: یک سفرِ شبکه و یک لحظۀ
+            خوانشِ واحد، وگرنه صفحۀ اول و سرجمع از دو زمانِ متفاوت می‌آیند.
+          - هیچ‌جا روی یک صفحۀ JS جمع نمی‌شوند؛ `coalesce` هم برای این است که کوپنِ
+            بی‌مصرف صفر بدهد نه `NULL`.
+        """
+        table = CouponRedemption.__table__
+        live = table.c.status == RedemptionStatus.ACTIVE
+        row = self.session.execute(
+            select(
+                func.count(),
+                func.coalesce(func.sum(case((live, 1), else_=0)), 0),
+                func.coalesce(func.sum(case((live, table.c.amount_discounted), else_=0)), 0),
+                func.coalesce(func.sum(case((live, 0), else_=1)), 0),
+                func.coalesce(func.sum(case((live, 0), else_=table.c.amount_discounted)), 0),
+            ).select_from(table).where(table.c.coupon_id == coupon_id)
+        ).one()
+        return {
+            "total_count": int(row[0]),
+            "active_count": int(row[1]),
+            "active_discount": int(row[2]),
+            "released_count": int(row[3]),
+            "released_discount": int(row[4]),
+        }
 
     def insert_within_user_limit(self, coupon_id: int, user_id: int,
                                  amount_discounted: int, per_user_limit: int

@@ -2,7 +2,7 @@
 // هوک‌های TanStack Query بخش قیمت‌گذاری مدیر: قوانین، پیش‌نمایش، قیمت پایه،
 // کدهای تخفیف و مناسبت‌ها — الگوی style/useFinance.ts.
 
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
 
 import {
   pricingService,
@@ -18,6 +18,7 @@ import {
   type Coupon,
   type CouponCreatePayload,
   type CouponUpdatePayload,
+  type RedemptionPageParams,
 } from '@/services/coupons'
 import {
   holidayService,
@@ -32,7 +33,8 @@ export const pricingRuleKeys = {
 export const couponKeys = {
   all: ['coupons'] as const,
   list: (venueId: number | null) => ['coupons', 'list', venueId] as const,
-  redemptions: (couponId: number) => ['coupons', 'redemptions', couponId] as const,
+  redemptions: (couponId: number, params?: RedemptionPageParams) =>
+    ['coupons', 'redemptions', couponId, params ?? null] as const,
 }
 
 export const holidayKeys = {
@@ -177,12 +179,20 @@ export function useDisableCoupon() {
   })
 }
 
-/** مصرف‌های یک کد — تا راند ۲۵ اصلاً خوانده نمی‌شد (گرهٔ C13.3.2). */
-export function useCouponRedemptions(coupon: Coupon | null) {
+/**
+ * صفحۀ مصرف‌های یک کد — تا راند ۲۵ اصلاً خوانده نمی‌شد (C13.3.2)، و تا راند ۲۸
+ * یک تکه‌ی ۲۰۰ تایی بود که «چند ردیف مانده» را نمی‌گفت (C22.3/C24.1).
+ */
+export function useCouponRedemptions(
+  coupon: Coupon | null,
+  params: RedemptionPageParams = {},
+) {
   return useQuery({
-    queryKey: couponKeys.redemptions(coupon?.id ?? 0),
-    queryFn: () => (coupon ? couponService.redemptions(coupon.id) : []),
+    queryKey: couponKeys.redemptions(coupon?.id ?? 0, params),
+    queryFn: () => couponService.redemptions(coupon?.id ?? 0, params),
     enabled: coupon != null,
+    // صفحۀ بعدی/صافیِ تازه صفحه‌ی جاری را بی‌مکث جایگزین می‌کند
+    placeholderData: keepPreviousData,
   })
 }
 

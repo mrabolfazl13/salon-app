@@ -119,7 +119,7 @@ def test_the_list_names_who_used_the_code_and_for_how_much(client, fake_redis):
 
     r = _redemptions(client, a["mgr_a"], cid)
     assert r.status_code == 200, r.text
-    rows = r.json()
+    rows = r.json()["items"]
     assert len(rows) == 1
     row = rows[0]
     assert row["user_phone"] == a["custs"][0]
@@ -139,7 +139,7 @@ def test_confirming_the_booking_links_the_row_to_it(client, fake_redis):
                        headers=auth(a["mgr_a"]))
     assert conf.status_code == 200, conf.text
 
-    row = _redemptions(client, a["mgr_a"], cid).json()[0]
+    row = _redemptions(client, a["mgr_a"], cid).json()["items"][0]
     assert row["booking_id"] == conf.json()["id"]
 
 
@@ -153,7 +153,7 @@ def test_only_the_manager_of_the_coupon_venue_gets_the_list(client, fake_redis):
     plain = _redemptions(client, a["custs"][1], cid)
     assert plain.status_code == 403, plain.text
     # و مدیرِ خودش باید برنده شود — یعنی ۴۰۳ از نگهبان می‌آید نه از مسیر شکسته
-    assert len(_redemptions(client, a["mgr_a"], cid).json()) == 1
+    assert len(_redemptions(client, a["mgr_a"], cid).json()["items"]) == 1
 
 
 def test_a_missing_coupon_is_404_not_an_empty_list(client, fake_redis):
@@ -172,7 +172,7 @@ def test_a_global_coupon_is_only_for_the_super_admin(client, fake_redis):
     as_manager = _redemptions(client, a["mgr_a"], cid)
     assert as_manager.status_code == 403, as_manager.text
     assert "سراسری" in as_manager.json()["detail"]
-    rows = _redemptions(client, a["sup"], cid).json()
+    rows = _redemptions(client, a["sup"], cid).json()["items"]
     assert [r["user_phone"] for r in rows] == [a["custs"][0]]
 
 
@@ -183,13 +183,13 @@ def test_the_list_is_newest_first_and_paged(client, fake_redis):
     for i, phone in enumerate(a["custs"]):
         assert _book(client, phone, a["slots_a"][i], "PAGE1").status_code == 200
 
-    full = _redemptions(client, a["mgr_a"], cid).json()
+    full = _redemptions(client, a["mgr_a"], cid).json()["items"]
     assert [r["user_phone"] for r in full] == a["custs"][::-1]  # تازه‌ترین اول
     assert [r["id"] for r in full] == sorted(
         (r["id"] for r in full), reverse=True)
-    page = _redemptions(client, a["mgr_a"], cid, limit=2).json()
+    page = _redemptions(client, a["mgr_a"], cid, limit=2).json()["items"]
     assert [r["user_phone"] for r in page] == a["custs"][2:0:-1]
-    tail = _redemptions(client, a["mgr_a"], cid, limit=1, offset=2).json()
+    tail = _redemptions(client, a["mgr_a"], cid, limit=1, offset=2).json()["items"]
     assert [r["user_phone"] for r in tail] == [a["custs"][0]]
 
 
@@ -209,7 +209,7 @@ def test_a_cancelled_unpaid_booking_stays_in_the_list_as_history(client, fake_re
     assert client.delete(f"/api/v1/bookings/{bid}",
                          headers=auth(a["custs"][0])).status_code == 200
 
-    rows = _redemptions(client, a["mgr_a"], cid).json()
+    rows = _redemptions(client, a["mgr_a"], cid).json()["items"]
     assert [r["status"] for r in rows] == ["RELEASED"]
     assert rows[0]["released_at"] is not None
     assert rows[0]["booking_id"] == bid        # «کجا مصرف شد» هم گم نمی‌شود
@@ -230,7 +230,7 @@ def test_a_released_row_does_not_block_a_second_use(client, fake_redis):
 
     second = _book(client, a["custs"][0], a["slots_a"][1], "AGAIN1")
     assert second.status_code == 200, second.text
-    assert [r["status"] for r in _redemptions(client, a["mgr_a"], cid).json()] == \
+    assert [r["status"] for r in _redemptions(client, a["mgr_a"], cid).json()["items"]] == \
         ["ACTIVE", "RELEASED"]                 # تازه‌ترین اول
 
 
@@ -251,7 +251,7 @@ def test_a_paid_and_cancelled_booking_stays_visible(client, fake_redis):
     assert client.delete(f"/api/v1/bookings/{bid}",
                          headers=auth(a["custs"][0])).status_code == 200
 
-    rows = _redemptions(client, a["mgr_a"], cid).json()
+    rows = _redemptions(client, a["mgr_a"], cid).json()["items"]
     assert [r["booking_id"] for r in rows] == [bid]
     assert rows[0]["amount_discounted"] == 50_000
 

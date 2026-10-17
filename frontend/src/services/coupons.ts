@@ -59,6 +59,34 @@ export interface CouponRedemption {
   created_at: string
 }
 
+export type RedemptionStatus = 'ACTIVE' | 'RELEASED'
+
+/** سرجمعِ کوپن — روی *کلِ ردیف‌ها* حساب می‌شود، نه فقط صفحۀ جاری (C24.2). */
+export interface CouponRedemptionStats {
+  total_count: number
+  active_count: number
+  active_discount: number
+  released_count: number
+  released_discount: number
+}
+
+/** صفحۀ مصرف: `items` یک صفحه است و `total` شمارِ کلِ ردیف‌ها (C22.3). */
+export interface CouponRedemptionPage {
+  items: CouponRedemption[]
+  total: number
+  limit: number
+  offset: number
+  status: RedemptionStatus | null
+  stats: CouponRedemptionStats
+}
+
+export interface RedemptionPageParams {
+  limit?: number
+  offset?: number
+  /** بی‌ مقدار یعنی «همه»؛ صافی در خودِ SQL اعمال می‌شود (C24.1). */
+  status?: RedemptionStatus
+}
+
 export const couponService = {
   list: async (venueId?: number | null): Promise<Coupon[]> => {
     const response = await apiClient.get('/coupons/', {
@@ -83,10 +111,16 @@ export const couponService = {
     return response.data
   },
 
-  /** مصرف‌های جاری یک کد: چه کسی، کِی، چقدر تخفیف (مصرف‌های لغوشده حذف می‌شوند) */
-  redemptions: async (couponId: number, limit = 200): Promise<CouponRedemption[]> => {
+  /**
+   * صفحۀ مصرف‌های یک کد: چه کسی، کِی، چقدر تخفیف — با صافیِ `status` در سمتِ سرور
+   * و `total`/`stats` که کلِ کوپن را می‌پایند نه فقط این صفحه را.
+   */
+  redemptions: async (
+    couponId: number,
+    params: RedemptionPageParams = {},
+  ): Promise<CouponRedemptionPage> => {
     const response = await apiClient.get(`/coupons/${couponId}/redemptions`, {
-      params: { limit },
+      params,
     })
     return response.data
   },
