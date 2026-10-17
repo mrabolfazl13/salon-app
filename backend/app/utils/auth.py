@@ -120,3 +120,23 @@ async def get_current_manager(current_user: User = Depends(get_current_user)) ->
     if current_user.role not in ["venue_manager", "club_admin", "super_admin"]:
         raise HTTPException(status_code=403, detail="Manager access required")
     return current_user
+
+
+optional_security = HTTPBearer(auto_error=False)
+
+
+async def get_optional_user(
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(optional_security),
+    session: Session = Depends(get_session),
+) -> Optional[User]:
+    """کاربر جاری اگر هدرِ Bearer معتبر بود، وگرنه None — برای مسیرهای عمومی.
+
+    برای همان‌جاست که یک endpoint عمومی می‌تواند پارامترِ «مدیریتی» مثل
+    `include_inactive` را نگه دارد بدون اینکه مهمان را 401 کند.
+    """
+    if not credentials:
+        return None
+    user = get_user_by_token(credentials.credentials, session)
+    if user and user.is_active:
+        return user
+    return None

@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Depends, HTTPException, Query
+from sqlalchemy.orm import joinedload
 from sqlmodel import Session, select
 
 from app.database import get_session
@@ -34,7 +35,7 @@ from app.schemas.membership import (
     MembershipPurchaseCreate,
     MembershipPurchaseResponse,
 )
-from app.utils.auth import get_current_manager, get_current_user
+from app.utils.auth import get_current_manager, get_current_user, get_optional_user
 
 router = APIRouter(prefix="/memberships", tags=["Memberships"])
 
@@ -50,11 +51,15 @@ def _plan_response(p: MembershipPlan) -> MembershipPlanResponse:
     return MembershipPlanResponse.model_validate(p)
 
 
-def _purchase_response(
-    s: Session, p: MembershipPurchase
-) -> MembershipPurchaseResponse:
-    plan = s.get(MembershipPlan, p.plan_id)
-    venue = s.get(Venue, p.venue_id)
+def _purchase_response(p: MembershipPurchase) -> MembershipPurchaseResponse:
+    """پاسخ فاکتور.
+
+    `plan`/`venue` روی **relationship** خوانده می‌شوند نه `s.get`: `s.get` نتیجه‌اش
+    را نگه نمی‌دارد، پس identity map (که weak است) ردیفِ بعدی دوباره SELECT می‌زند.
+    در endpointهای لیستی هم `joinedload` باعث می‌شود اصلاً SELECT جدا زده نشود.
+    """
+    plan = p.plan
+    venue = p.venue
     return MembershipPurchaseResponse(
         id=p.id,
         plan_id=p.plan_id,
@@ -109,6 +114,24 @@ def _ensure_venue_manager(s: Session, venue_id: int, user: User) -> Venue:
     return venue
 
 
+def _ensure_inactive_visible(user: Optional[User], venue: Optional[Venue]) -> None:
+    """فقط مدیرِ همان سالن (یا super_admin) می‌تواند پلن‌های غیرفعال را ببیند."""
+    if user is None:
+        raise HTTPException(
+            status_code=403,
+            detail="برای دیدن پلن‌های غیرفعال باید وارد شوید (پارامتر include_inactive)")
+    if user.role == "super_admin":
+        return
+    if user.role not in ("venue_manager", "club_admin"):
+        raise HTTPException(status_code=403, detail="فقط مدیر این سالن مجاز است")
+    if venue is None:
+        raise HTTPException(
+            status_code=403,
+            detail="برای دیدن پلن‌های غیرفعال، venue_id الزامی است")
+    if venue.manager_id != user.id:
+        raise HTTPException(status_code=403, detail="فقط مدیر این سالن مجاز است")
+
+
 # ---------- Plans ----------
 
 @router.get("/plans", response_model=List[MembershipPlanResponse])
@@ -116,8 +139,13 @@ def list_plans(
     venue_id: Optional[int] = Query(None),
     include_inactive: bool = Query(False),
     session: Session = Depends(get_session),
+    current_user: Optional[User] = Depends(get_optional_user),
 ):
     """لیست پلن‌های اشتراک (عمومی — فقط فعال‌ها مگر مدیر)"""
+    if include_inactive:
+        _ensure_inactive_visible(
+            current_user,
+            session.get(Venue, venue_id) if venue_id is not None else None)
     stmt = select(MembershipPlan)
     if venue_id is not None:
         stmt = stmt.where(MembershipPlan.venue_id == venue_id)
@@ -214,7 +242,7 @@ def create_purchase(
     session.add(purchase)
     session.commit()
     session.refresh(purchase)
-    return _purchase_response(session, purchase)
+    return _purchase_response(purchase)
 
 
 @router.post("/purchases/{purchase_id}/pay", response_model=MembershipPurchaseResponse)
@@ -240,6 +268,10 @@ def pay_purchase(
         raise HTTPException(status_code=400, detail="شماره کارت نامعتبر است (۱۶ رقم)")
 
     plan = _get_plan_or_404(session, purchase.plan_id)
+    # فاکتور می‌تواند ساعت‌ها PENDING بماند؛ در این فاصله مدیر پلن را غیرفعال کرده باشد،
+    # پرداختِ فعال باید همان ردِ create_purchase را بدهد، وگرنه پلنِ «عمر کرده» فروش می‌رود.
+    if not plan.is_active:
+        raise HTTPException(status_code=400, detail="این پلن غیرفعال است")
     _ensure_plan_shape_valid(plan.plan_type, plan.sessions_count, plan.duration_days)
     now = datetime.now(timezone.utc)
     purchase.status = PurchaseStatus.PAID
@@ -277,7 +309,7 @@ def pay_purchase(
         ))
     session.commit()
     session.refresh(purchase)
-    return _purchase_response(session, purchase)
+    return _purchase_response(purchase)
 
 
 @router.get("/my", response_model=List[MembershipPurchaseResponse])
@@ -290,12 +322,13 @@ def my_purchases(
     """اشتراک‌های کاربر جاری"""
     stmt = (
         select(MembershipPurchase)
+        .options(joinedload(MembershipPurchase.plan), joinedload(MembershipPurchase.venue))
         .where(MembershipPurchase.user_id == current_user.id)
         .order_by(MembershipPurchase.created_at.desc())
         .offset(offset)
         .limit(limit)
     )
-    return [_purchase_response(session, p) for p in session.exec(stmt).all()]
+    return [_purchase_response(p) for p in session.exec(stmt).all()]
 
 
 @router.post("/purchases/{purchase_id}/consume", response_model=MembershipPurchaseResponse)
@@ -321,7 +354,7 @@ def consume_session(
     session.add(purchase)
     session.commit()
     session.refresh(purchase)
-    return _purchase_response(session, purchase)
+    return _purchase_response(purchase)
 
 
 @router.get("/venue/{venue_id}/purchases", response_model=List[MembershipPurchaseResponse])
@@ -335,8 +368,9 @@ def venue_purchases(
     _ensure_venue_manager(session, venue_id, current_user)
     stmt = (
         select(MembershipPurchase)
+        .options(joinedload(MembershipPurchase.plan), joinedload(MembershipPurchase.venue))
         .where(MembershipPurchase.venue_id == venue_id)
         .order_by(MembershipPurchase.created_at.desc())
         .limit(limit)
     )
-    return [_purchase_response(session, p) for p in session.exec(stmt).all()]
+    return [_purchase_response(p) for p in session.exec(stmt).all()]

@@ -10,12 +10,7 @@ from datetime import date, time
 from typing import Optional, List
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
-from jose import JWTError, jwt
-from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from sqlmodel import Session, select
 
-from app.config import settings
-from app.database import get_session
 from app.unit_of_work import UnitOfWork, get_unit_of_work
 from app.models.user import User
 from app.models.game import GameStatus, ParticipantRole
@@ -31,31 +26,10 @@ from app.services.game_service import GameService
 
 router = APIRouter(prefix="/games", tags=["Games"])
 
-_optional_bearer = HTTPBearer(auto_error=False)
-
-
-async def get_optional_user(
-    credentials: Optional[HTTPAuthorizationCredentials] = Depends(_optional_bearer),
-    session: Session = Depends(get_session),
-) -> Optional[User]:
-    """کاربر جاری را اگر توکن معتبر بود برمی‌گرداند؛ وگرنه None (برای مسیرهای عمومی)."""
-    if not credentials:
-        return None
-    try:
-        payload = jwt.decode(credentials.credentials, settings.JWT_SECRET,
-                             algorithms=[settings.JWT_ALGORITHM])
-        phone: str = payload.get("sub")
-        if phone is None:
-            return None
-        user = session.exec(select(User).where(User.phone == phone)).first()
-        if user and user.is_active:
-            return user
-    except JWTError:
-        return None
-    return None
-
-
-from app.utils.auth import get_current_user  # noqa: E402
+# `get_optional_user` در app.utils.auth تعریف است و اینجا فقط import می‌شود:
+# conftest همین نام را از این ماژول import و override می‌کند، پس اگر دو نسخه
+# از تابع وجود داشته باشد، override به مسیرهای دیگر (مثل /memberships/plans) نمی‌رسد.
+from app.utils.auth import get_current_user, get_optional_user  # noqa: E402
 
 
 # ─────────────────────────── ساخت / لیست ───────────────────────────
