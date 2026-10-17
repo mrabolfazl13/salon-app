@@ -82,17 +82,20 @@ class CouponService:
     @staticmethod
     def reserve(session: Session, coupon: Coupon, user_id: int,
                 amount_discounted: int) -> CouponRedemption:
-        """ثبت مصرف — uses_count increment + ردیف redemption (booking=null تا تأیید)."""
-        if coupon.max_uses is not None and coupon.uses_count >= coupon.max_uses:
+        """ثبت مصرف — یک ظرفیت با CAS + ردیف redemption (booking=null تا تأیید).
+
+        نگهبانِ `max_uses` داخل خودِ UPDATE است (`try_consume_capacity`)؛ چکِ Pythonی
+        `uses_count >= max_uses` در `validate_and_compute` فقط پیامِ زودهنگام می‌دهد و
+        به‌تنهایی جلوی دو رزروِ موازی را نمی‌گیرد.
+        """
+        if not CouponRepository(session).try_consume_capacity(coupon.id):
             raise HTTPException(status_code=400, detail="ظرفیت استفاده از این کد تخفیف تکمیل شده است")
-        redemption = CouponRedemptionRepository(session).create({
+        return CouponRedemptionRepository(session).create({
             "coupon_id": coupon.id,
             "user_id": user_id,
             "booking_id": None,
             "amount_discounted": amount_discounted,
         })
-        CouponRepository(session).bump_uses(coupon.id, +1)
-        return redemption
 
     @staticmethod
     def connect_to_booking(session: Session, redemption_id: int, booking_id: int):
@@ -107,7 +110,7 @@ class CouponService:
         red = red_repo.get_by_id(redemption_id)
         if not red:
             return False
-        CouponRepository(session).bump_uses(red.coupon_id, -1)
+        CouponRepository(session).release_capacity(red.coupon_id)
         session.delete(red)
         session.flush()
         return True

@@ -6,6 +6,7 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from sqlalchemy import case
 from sqlmodel import Session, select, func
 
 from app.database import get_session
@@ -324,24 +325,54 @@ async def pay_share(
     if share.user_id != current_user.id:
         raise HTTPException(status_code=403, detail="فقط سهم خودتان را می‌توانید بپردازید")
 
-    if share.status == ShareStatus.PAID:
+    now = datetime.now(timezone.utc)
+    share_table = SplitPaymentShare.__table__
+    values = {"status": ShareStatus.PAID, "paid_at": now, "updated_at": now}
+    if payload and payload.note:
+        values["note"] = payload.note
+
+    # دو «بخوان-و-بنویس» روی هم می‌توانند یک سهم را دو بار بشمارند یا یک پرداختِ
+    # همزمان را گم کنند (گرهٔ C11.6.3)؛ این UPDATE هم تبدیلِ سهم را می‌بندد و هم
+    # شمارندۀ کل را با حسابِ خودِ SQL جلو می‌برد.
+    result = session.execute(
+        share_table.update()
+        .where(
+            share_table.c.id == share_id,
+            share_table.c.split_payment_id == payment_id,
+            share_table.c.status != ShareStatus.PAID,
+        )
+        .values(**values)
+    )
+    if result.rowcount == 0:
         raise HTTPException(status_code=400, detail="این سهم قبلاً پرداخت شده است")
 
-    share.status = ShareStatus.PAID
-    share.paid_at = datetime.now(timezone.utc)
-    if payload and payload.note:
-        share.note = payload.note
-
-    sp.paid_amount += share.amount
-    sp.updated_at = datetime.now(timezone.utc)
-
-    all_shares = session.exec(
-        select(SplitPaymentShare).where(SplitPaymentShare.split_payment_id == payment_id)
-    ).all()
-    if all(s.status == ShareStatus.PAID for s in all_shares):
-        sp.status = SplitPaymentStatus.COMPLETED
-    elif any(s.status == ShareStatus.PAID for s in all_shares):
-        sp.status = SplitPaymentStatus.PARTIAL
+    pending_shares = (
+        select(func.count())
+        .select_from(share_table)
+        .where(
+            share_table.c.split_payment_id == payment_id,
+            share_table.c.status != ShareStatus.PAID,
+        )
+        .scalar_subquery()
+    )
+    sp_table = TeamSplitPayment.__table__
+    session.execute(
+        sp_table.update()
+        .where(sp_table.c.id == payment_id)
+        .values(
+            paid_amount=sp_table.c.paid_amount + share.amount,
+            updated_at=now,
+            # سهمِ همین درخواست تازه PAID شد، پس «همه پرداختند» یا «بعضی» — حالت سوم
+            # مثلِ کدِ قدیمی دیگر ممکن نیست؛ `status` هم در همان statement نوشته می‌شود.
+            # `cast` لازم است: ستون روی PostgreSQL enum بومی است و CASE بدون آن،
+            # عبارتِ text می‌دهد و PG با `DatatypeMismatch` رد می‌کند (SQLite آن را
+            # نمی‌سنجد، برای همین این فقط روی شاهدِ PG دیده شد).
+            status=case(
+                (pending_shares == 0, SplitPaymentStatus.COMPLETED),
+                else_=SplitPaymentStatus.PARTIAL,
+            ).cast(sp_table.c.status.type),
+        )
+    )
 
     session.add(SplitPaymentAuditEvent(
         split_payment_id=payment_id,

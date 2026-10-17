@@ -39,16 +39,50 @@ class CouponRepository(BaseRepository[Coupon]):
         )
         return int(self.session.exec(stmt).one())
 
-    def bump_uses(self, coupon_id: int, delta: int = 1) -> Optional[Coupon]:
-        """تغییر uses_count؛ کف صفر رعایت می‌شود (آزادسازی بیش‌ازحد ممکن نکند)."""
+    def try_consume_capacity(self, coupon_id: int) -> bool:
+        """یک ظرفیت را با compare-and-set می‌گیرد.
+
+        `uses_count < max_uses` داخل خودِ UPDATE است، نه در Python، پس دو رزروِ موازیِ
+        یک کدِ `max_uses=1` نمی‌توانند هر دو بالا بیایند (گرهٔ C13.3.1). rowcount هر
+        dialectی را درست می‌گوید؛ `SELECT … FOR UPDATE` روی SQLite هیچ کاری نیست.
+        """
+        table = Coupon.__table__
+        result = self.session.execute(
+            table.update()
+            .where(
+                table.c.id == coupon_id,
+                or_(table.c.max_uses.is_(None),
+                    table.c.uses_count < table.c.max_uses),
+            )
+            .values(
+                uses_count=table.c.uses_count + 1,
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+        if result.rowcount == 0:
+            return False
         coupon = self.get_by_id(coupon_id)
-        if coupon is None:
-            return None
-        coupon.uses_count = max(0, coupon.uses_count + delta)
-        coupon.updated_at = datetime.now(timezone.utc)
-        self.session.add(coupon)
-        self.session.flush()
-        return coupon
+        if coupon is not None:
+            self.session.refresh(coupon)   # identity map بعد از Core update همگام نیست
+        return True
+
+    def release_capacity(self, coupon_id: int) -> bool:
+        """یک ظرفیت را برمی‌گرداند، هرگز زیر صفر نمی‌رود (نگهبان داخل SQL)."""
+        table = Coupon.__table__
+        result = self.session.execute(
+            table.update()
+            .where(table.c.id == coupon_id, table.c.uses_count > 0)
+            .values(
+                uses_count=table.c.uses_count - 1,
+                updated_at=datetime.now(timezone.utc),
+            )
+        )
+        if result.rowcount == 0:
+            return False
+        coupon = self.get_by_id(coupon_id)
+        if coupon is not None:
+            self.session.refresh(coupon)
+        return True
 
 
 class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
