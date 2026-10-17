@@ -16,7 +16,6 @@ from datetime import date, timedelta
 from datetime import time as dtime
 
 import pytest
-import sqlalchemy as sa
 from fastapi import HTTPException
 from sqlalchemy import event
 from sqlmodel import Session, select
@@ -320,20 +319,17 @@ def test_another_user_is_not_blocked_by_my_exhausted_allowance(client, fake_redi
 def test_a_row_without_a_per_user_allowance_still_burns_every_use(client, fake_redis):
     """شاخۀ بی‌سقف (`per_user_limit` تهی) دست‌نخورده ماند؛ نگهبان آن را نبندد.
 
-    این حالت از endpoint ساختنی نیست: `BaseRepository.update:71` مقدار None را رد می‌کند
-    و INSERT هم پیش‌فرضِ ستون (۱) را می‌گذارد ⇒ ردیف را با Core UPDATE صفر می‌کنیم تا
-    همان شاخهٔ کد مستقیم سنجیده شود (گرهٔ C21.2).
+    پیش از راند ۲۵ این ردیف را با Core UPDATE صفر می‌کردیم، چون «بی‌سقف» از API نوشتنی
+    نبود (گرهٔ C21.2). حالا `POST` با `per_user_limit: null` همان ردیف را NULL می‌سازد،
+    پس همان ستونِ API سنجیده می‌شود.
     """
     a = _coupon_setup("625", users=1)
-    assert _mk_coupon(client, a["mgr"], "FREE", a["venue"], max_uses=None).status_code == 200
+    assert _mk_coupon(client, a["mgr"], "FREE", a["venue"], max_uses=None,
+                      per_user_limit=None).status_code == 200
     with Session(test_engine) as s:
         uid = s.exec(select(User).where(User.phone == a["custs"][0])).one().id
-        s.execute(sa.update(Coupon.__table__)
-                  .where(Coupon.__table__.c.code == "FREE")
-                  .values(per_user_limit=None))
-        s.commit()
         c = s.exec(select(Coupon).where(Coupon.code == "FREE")).one()
-        assert c.per_user_limit is None
+        assert c.per_user_limit is None, "کد از API بی‌سقف نشد"
         for _ in range(2):
             CouponService.reserve(s, c, uid, 20_000)
             s.commit()

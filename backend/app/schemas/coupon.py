@@ -30,6 +30,28 @@ class CouponUpdate(BaseModel):
     is_active: Optional[bool] = None
 
 
+class CouponRedemptionResponse(BaseModel):
+    """یک ردیف مصرف — «چه کسی، کِی، چقدر تخفیف گرفت» (گرهٔ C13.3.2)."""
+    id: int
+    coupon_id: int
+    user_id: int
+    user_phone: Optional[str] = None
+    user_full_name: Optional[str] = None
+    booking_id: Optional[int] = None
+    amount_discounted: int
+    created_at: datetime
+
+    @classmethod
+    def from_row(cls, red, phone: Optional[str], full_name: Optional[str]
+                 ) -> "CouponRedemptionResponse":
+        return cls(
+            id=red.id, coupon_id=red.coupon_id, user_id=red.user_id,
+            user_phone=phone, user_full_name=full_name,
+            booking_id=red.booking_id, amount_discounted=red.amount_discounted,
+            created_at=red.created_at,
+        )
+
+
 class CouponResponse(BaseModel):
     id: int
     code: str

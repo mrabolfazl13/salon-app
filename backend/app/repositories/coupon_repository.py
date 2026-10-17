@@ -5,7 +5,11 @@ from datetime import datetime, timezone
 from typing import List, Optional
 
 from app.models.coupon import Coupon, CouponRedemption
+from app.models.user import User
 from app.repositories.base import BaseRepository
+
+NULLABLE_COUPON_FIELDS = ("max_uses", "per_user_limit", "min_booking_amount",
+                          "valid_from", "valid_until")
 
 
 def normalize_code(code: str) -> str:
@@ -39,6 +43,29 @@ class CouponRepository(BaseRepository[Coupon]):
             CouponRedemption.user_id == user_id,
         )
         return int(self.session.exec(stmt).one())
+
+    def clear_fields(self, coupon_id: int, names: List[str]) -> Optional[Coupon]:
+        """فیلدهای انتخابی را روی NULL می‌نویسد — «بی‌سقف» از مسیر ORM نوشتنی نیست.
+
+        دو سد جدا جلوی این کار را گرفته بودند (گرهٔ C21.2): `BaseRepository.update`
+        مقدار `None` را رد می‌کند، و روی INSERT خودِ SQLAlchemy مقدار پیش‌فرضِ ستون
+        (`per_user_limit=1`) را به‌جای NULL می‌گذارد. پس تنها راهِ درستِ نوشتن، یک
+        UPDATE در سطح ستون است. اسم‌های خارج از فهرستِ مجاز خطا می‌دهند تا یک تایپو
+        به «صفرِ بی‌صدا» تبدیل نشود.
+        """
+        bad = [n for n in names if n not in NULLABLE_COUPON_FIELDS]
+        if bad:
+            raise ValueError(f"این فیلدها برای NULL کردن مجاز نیستند: {bad}")
+        if not names:
+            return self.get_by_id(coupon_id)
+        table = Coupon.__table__
+        values = {table.c[n]: None for n in names}
+        values[table.c.updated_at] = datetime.now(timezone.utc)
+        self.session.execute(table.update().where(table.c.id == coupon_id).values(values))
+        coupon = self.get_by_id(coupon_id)
+        if coupon is not None:
+            self.session.refresh(coupon)   # identity map بعد از Core update همگام نیست
+        return coupon
 
     def try_consume_capacity(self, coupon_id: int) -> bool:
         """یک ظرفیت را با compare-and-set می‌گیرد.
@@ -100,6 +127,24 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
             return []
         stmt = select(CouponRedemption).where(CouponRedemption.id.in_(ids))
         return list(self.session.exec(stmt).all())
+
+    def list_for_coupon(self, coupon_id: int, limit: int = 200, offset: int = 0
+                        ) -> List[tuple]:
+        """ردیف‌های مصرفِ یک کوپن، به‌همراه اسم و شمارهٔ کاربر (سابقاً هیچ‌جا فهرست نمی‌شد — C13.3.2).
+
+        `outerjoin` چون کاربر می‌تواند حذف شده باشد؛ ردیفِ مصرفِ مالی نباید با حذفِ
+        کاربر ناپدید شود. ترتیب از تازه به کهنه و `id` به‌عنوان tie-break، تا `offset`
+        روی یک صفحه پایدار بماند.
+        """
+        stmt = (
+            select(CouponRedemption, User.phone, User.full_name)
+            .outerjoin(User, User.id == CouponRedemption.user_id)
+            .where(CouponRedemption.coupon_id == coupon_id)
+            .order_by(CouponRedemption.created_at.desc(), CouponRedemption.id.desc())
+            .offset(offset)
+            .limit(limit)
+        )
+        return [(row[0], row[1], row[2]) for row in self.session.exec(stmt).all()]
 
     def insert_within_user_limit(self, coupon_id: int, user_id: int,
                                  amount_discounted: int, per_user_limit: int

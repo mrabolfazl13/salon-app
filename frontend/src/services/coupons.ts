@@ -44,6 +44,18 @@ export interface CouponUpdatePayload {
   is_active?: boolean
 }
 
+export interface CouponRedemption {
+  id: number
+  coupon_id: number
+  user_id: number
+  user_phone: string | null
+  user_full_name: string | null
+  /** null یعنی رزروِ معلق هنوز تأیید نشده است */
+  booking_id: number | null
+  amount_discounted: number
+  created_at: string
+}
+
 export const couponService = {
   list: async (venueId?: number | null): Promise<Coupon[]> => {
     const response = await apiClient.get('/coupons/', {
@@ -65,6 +77,14 @@ export const couponService = {
   /** حذف نرم — بک‌اند فقط غیرفعال می‌کند (ردیف مصرف‌شده برای ممیزی می‌ماند) */
   disable: async (couponId: number) => {
     const response = await apiClient.delete(`/coupons/${couponId}`)
+    return response.data
+  },
+
+  /** مصرف‌های جاری یک کد: چه کسی، کِی، چقدر تخفیف (مصرف‌های لغوشده حذف می‌شوند) */
+  redemptions: async (couponId: number, limit = 200): Promise<CouponRedemption[]> => {
+    const response = await apiClient.get(`/coupons/${couponId}/redemptions`, {
+      params: { limit },
+    })
     return response.data
   },
 }

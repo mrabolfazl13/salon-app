@@ -15,6 +15,7 @@ import {
 
 import {
   couponService,
+  type Coupon,
   type CouponCreatePayload,
   type CouponUpdatePayload,
 } from '@/services/coupons'
@@ -31,6 +32,7 @@ export const pricingRuleKeys = {
 export const couponKeys = {
   all: ['coupons'] as const,
   list: (venueId: number | null) => ['coupons', 'list', venueId] as const,
+  redemptions: (couponId: number) => ['coupons', 'redemptions', couponId] as const,
 }
 
 export const holidayKeys = {
@@ -172,6 +174,15 @@ export function useDisableCoupon() {
   return useMutation({
     mutationFn: (couponId: number) => couponService.disable(couponId),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: couponKeys.all }),
+  })
+}
+
+/** مصرف‌های یک کد — تا راند ۲۵ اصلاً خوانده نمی‌شد (گرهٔ C13.3.2). */
+export function useCouponRedemptions(coupon: Coupon | null) {
+  return useQuery({
+    queryKey: couponKeys.redemptions(coupon?.id ?? 0),
+    queryFn: () => (coupon ? couponService.redemptions(coupon.id) : []),
+    enabled: coupon != null,
   })
 }
 

@@ -1,5 +1,6 @@
 // frontend/src/components/pricing/CouponsTab.tsx
-// کدهای تخفیف — CRUD با دامنه سالن/سراسری و نمایش شمارنده مصرف (uses_count).
+// کدهای تخفیف — CRUD با دامنه سالن/سراسری، نمایش شمارنده مصرف (uses_count)
+// و بازکردنِ خودِ ردیف‌های مصرف («چه کسی این کد را مصرف کرده»).
 
 import React, { useState } from 'react'
 import {
@@ -26,6 +27,7 @@ import { useAuthStore } from '@/store/authStore'
 import { useCoupons, useCreateCoupon, useDisableCoupon, useUpdateCoupon } from '@/hooks/usePricing'
 import type { Coupon, CouponCreatePayload, CouponUpdatePayload } from '@/services/coupons'
 import CouponDialog from './CouponDialog'
+import CouponRedemptionsDialog from './CouponRedemptionsDialog'
 import type { FinanceVenue } from '@/hooks/useFinance'
 
 interface Props {
@@ -56,6 +58,7 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
   const [dialogOpen, setDialogOpen] = useState(false)
   const [editing, setEditing] = useState<Coupon | null>(null)
   const [disableTarget, setDisableTarget] = useState<Coupon | null>(null)
+  const [redemptionsFor, setRedemptionsFor] = useState<Coupon | null>(null)
 
   const couponsQuery = useCoupons(venueId)
   const createCoupon = useCreateCoupon()
@@ -162,6 +165,14 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                       ) : (
                         <Typography variant="caption" sx={{ color: 'text.secondary' }}>هر کاربر نامحدود</Typography>
                       )}
+                      <Button
+                        size="small"
+                        onClick={() => setRedemptionsFor(c)}
+                        sx={{ textTransform: 'none', fontWeight: 600, px: 0, minWidth: 0, justifyContent: 'flex-start' }}
+                        startIcon={<Icon icon="mdi:account-clock-outline" className="h-4 w-4" />}
+                      >
+                        مصرف‌ها
+                      </Button>
                     </TableCell>
                     <TableCell>
                       {(c.valid_from || c.valid_until) ? (
@@ -220,6 +231,12 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
         }}
         onCreate={(p) => submit(null, p, null)}
         onUpdate={(couponId, p) => submit(couponId, null, p)}
+      />
+
+      <CouponRedemptionsDialog
+        open={redemptionsFor != null}
+        coupon={redemptionsFor}
+        onClose={() => setRedemptionsFor(null)}
       />
 
       <ConfirmModal
