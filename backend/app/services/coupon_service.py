@@ -6,16 +6,19 @@
 (uses_count کم و ردیف redemption به `RELEASED` می‌رود تا کد نسوزد و تاریخچۀ
 مصرف هم گم نشود — گرهٔ C22.1، راند ۲۷).
 """
+import logging
 from datetime import datetime, timezone
 from typing import Optional, Tuple
 
 from fastapi import HTTPException
 from sqlmodel import Session
 
-from app.models.coupon import Coupon, CouponRedemption, CouponType
+from app.models.coupon import Coupon, CouponRedemption, CouponType, ReleaseVia
 from app.repositories.coupon_repository import (
     CouponRedemptionRepository, CouponRepository, normalize_code,  # noqa: F401
 )
+
+logger = logging.getLogger(__name__)
 
 
 def _utcnow() -> datetime:
@@ -126,7 +129,9 @@ class CouponService:
             red_repo.update(red.id, {"booking_id": booking_id})
 
     @staticmethod
-    def release_by_id(session: Session, redemption_id: int) -> bool:
+    def release_by_id(session: Session, redemption_id: int,
+                      actor_id: Optional[int] = None,
+                      via: Optional[ReleaseVia] = None) -> bool:
         """مصرف را آزاد می‌کند، بی‌آنکه ردیف را بسوزاند (گرهٔ C22.1، راند ۲۷).
 
         **ترتیب بارِ اثبات است:** اول flipِ نگهبان‌دارِ خودِ ردیف و بعد برگرداندنِ
@@ -135,19 +140,33 @@ class CouponService:
         و هیچ شمارنده‌ای تکان نمی‌خورد. تا این راند `session.delete(red)` بود و همان
         حذف، هم تاریخچۀ مصرف را از بین می‌برد و هم «ردیف هست؟» را تنها سدِ دوباره‌لغو
         می‌کرد.
+
+        **گرهٔ C24.4:** رد شدنِ این flip («ردیف نیست» / «قبلاً آزاد شده») تا راند ۲۹
+        بی‌صدا می‌ماند و برای «چرا ظرفیت برنگشت؟» هیچ چیزی نبود. اینجا تنها جایی است
+        که معنیِ `False` معلوم است (فراخواننده‌ها فقط bool می‌بینند)، پس warning همین‌جا
+        نوشته می‌شود — با تفکیکِ دو حالت، چون یکی بدیستیِ داده است و دیگری مسابقۀ
+        بی‌ضرر. `release_for_booking` وقتی ردیفی برای رزرو نیست **لاگ نمی‌زند**: رزروِ
+        بی‌کد یعنی هیچ مصرفی برای آزادکردن وجود نداشته، نه خطا.
         """
         red_repo = CouponRedemptionRepository(session)
         red = red_repo.get_by_id(redemption_id)
         if not red:
+            logger.warning("coupon release refused: redemption %s does not exist (via=%s)",
+                           redemption_id, via.value if via else None)
             return False
-        if not red_repo.mark_released(redemption_id):
+        if not red_repo.mark_released(redemption_id, actor_id=actor_id, via=via):
+            logger.warning(
+                "coupon release refused: redemption %s already RELEASED (coupon %s, via=%s)",
+                redemption_id, red.coupon_id, via.value if via else None)
             return False
         CouponRepository(session).release_capacity(red.coupon_id)
         return True
 
     @staticmethod
-    def release_for_booking(session: Session, booking_id: int) -> bool:
+    def release_for_booking(session: Session, booking_id: int,
+                            actor_id: Optional[int] = None,
+                            via: Optional[ReleaseVia] = None) -> bool:
         red = CouponRedemptionRepository(session).get_by_booking(booking_id)
         if not red:
             return False
-        return CouponService.release_by_id(session, red.id)
+        return CouponService.release_by_id(session, red.id, actor_id=actor_id, via=via)

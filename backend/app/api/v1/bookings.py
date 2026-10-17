@@ -14,6 +14,7 @@ from app.utils.rate_limit import booking_rate_limit
 from app.models.user import User, UserRole
 from app.models.venue import Venue
 from app.models.slot import SlotStatus
+from app.models.coupon import ReleaseVia
 from app.services.notification_service import notification_service
 from app.models.payment import BookingPaymentStatus
 
@@ -111,7 +112,13 @@ async def confirm_pending_booking(
     ensure_venue_permission(uow, current_user, pending["venue_id"],
                             [Perm.BOOKING_CONFIRM], request)
 
-    booking = BookingService.confirm_pending(uow, pending)
+    try:
+        booking = BookingService.confirm_pending(uow, pending, actor_id=current_user.id)
+    except HTTPException:
+        # دفاع‌های confirm ممکن است کوپن را آزاد کنند؛ اگر تراکنش کمیت نشود،
+        # flipِ نگهبان‌دار و برگرداندنِ ظرفیت رول‌بک می‌شوند (گرهٔ C24.3).
+        uow.commit()
+        raise
     uow.commit()
 
     slot = uow.slots.get_by_id(pending["slot_id"])
@@ -152,7 +159,8 @@ async def reject_pending_booking(
         # سانس قرارداد پس از رد شدن دوباره RESERVED می‌شود، نه AVAILABLE
         restore = SlotStatus.RESERVED if slot.is_contract_slot else SlotStatus.AVAILABLE
         uow.slots.update(slot.id, {"status": restore})
-    BookingService.release_pending_promotions(uow, pending)
+    BookingService.release_pending_promotions(
+        uow, pending, actor_id=current_user.id, via=ReleaseVia.PENDING_REJECTED)
     uow.commit()
 
     venue = uow.venues.get_by_id(pending["venue_id"])
@@ -180,7 +188,8 @@ async def cancel_pending_booking(
     if slot and slot.status == SlotStatus.BOOKED:
         restore = SlotStatus.RESERVED if slot.is_contract_slot else SlotStatus.AVAILABLE
         uow.slots.update(slot.id, {"status": restore})
-    BookingService.release_pending_promotions(uow, pending)
+    BookingService.release_pending_promotions(
+        uow, pending, actor_id=current_user.id, via=ReleaseVia.PENDING_CANCELLED)
     uow.commit()
 
     await notification_service.notify_booking_cancelled(current_user.id, {})

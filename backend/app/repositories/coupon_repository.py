@@ -1,10 +1,11 @@
 # backend/app/repositories/coupon_repository.py
 from sqlmodel import Session, select, func, or_
 from sqlalchemy import case, insert, literal
+from sqlalchemy.orm import aliased
 from datetime import datetime, timezone
 from typing import List, Optional
 
-from app.models.coupon import Coupon, CouponRedemption, RedemptionStatus
+from app.models.coupon import Coupon, CouponRedemption, RedemptionStatus, ReleaseVia
 from app.models.user import User
 from app.repositories.base import BaseRepository
 
@@ -145,10 +146,18 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
         `status` یک صافیِ **سمتِ سرور** است (گرهٔ C24.1/C22.3): تا راند ۲۷ UI فقط ۲۰۰
         ردیفِ اول را می‌گرفت و «فقط زنده‌ها» را با `filter` روی *همان صفحه* در JS
         در می‌آورد، یعنی «چهار ردیفِ زنده از ۹۰۰ مصرف» عددِ صفحه بود نه عددِ کوپن.
+
+        JOIN دوم (با alias) فقط برای نامِ **عاملِ لغو** است (گرهٔ C24.3) و باز `outer`
+        باقی می‌ماند: ردیفی که جاروبِ انقضا آزادش کرده (`released_by IS NULL`) نباید
+        از تاریخچه بیرون برود، و ردیفِ زنده هم هیچ‌وقت نباید با این join صفحۀ کمتری
+        بگیرد.
         """
+        redeemer = User
+        releaser = aliased(User)
         stmt = (
-            select(CouponRedemption, User.phone, User.full_name)
-            .outerjoin(User, User.id == CouponRedemption.user_id)
+            select(CouponRedemption, redeemer.phone, redeemer.full_name, releaser.full_name)
+            .outerjoin(redeemer, redeemer.id == CouponRedemption.user_id)
+            .outerjoin(releaser, releaser.id == CouponRedemption.released_by)
             .where(CouponRedemption.coupon_id == coupon_id)
             .order_by(CouponRedemption.created_at.desc(), CouponRedemption.id.desc())
             .offset(offset)
@@ -156,7 +165,7 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
         )
         if status is not None:
             stmt = stmt.where(CouponRedemption.status == status)
-        return [(row[0], row[1], row[2]) for row in self.session.exec(stmt).all()]
+        return [(row[0], row[1], row[2], row[3]) for row in self.session.exec(stmt).all()]
 
     def count_for_coupon(self, coupon_id: int,
                          status: Optional[RedemptionStatus] = None) -> int:
@@ -246,7 +255,9 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
         ).one()
         return self.get_by_id(int(newest))
 
-    def mark_released(self, redemption_id: int, now: Optional[datetime] = None) -> bool:
+    def mark_released(self, redemption_id: int, now: Optional[datetime] = None,
+                      actor_id: Optional[int] = None,
+                      via: Optional[ReleaseVia] = None) -> bool:
         """مصرف را با نگهبانِ statement به `RELEASED` تبدیل می‌کند؛ ردیف می‌ماند.
 
         `WHERE id = ? AND status = 'ACTIVE'` ⇒ لغوِ دوباره (دو مسیرِ همزمانِ لغوِ یک
@@ -254,6 +265,11 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
         برمی‌گرداند. تا راند ۲۷ اینجا `session.delete(red)` بود و همان حذف، هم
         تاریخچه را می‌سوزاند (C22.1) و هم read-checkِ «ردیف هست؟» را تنها سدِ دوباره‌لغو
         می‌کرد.
+
+        راند ۲۹ (گرهٔ C24.3): همان UPDATEِ نگهبان‌دار `released_by` و `released_via` را
+        هم می‌نویسد — عمدتاً **در همان statement**، چون اگر ممیزی در UPDATEِ دوم یا در
+        ORM می‌نشست، دو لغوی همزمان می‌توانست «چه کسی» را با آخرینِ عامل بنویسد؛ این‌طور
+        ردیفی که flip را برنده شده یکی‌بار و کامل می‌نویسد و بازنده هیچ‌چیز نمی‌نویسد.
         """
         ts = now or datetime.now(timezone.utc)
         table = CouponRedemption.__table__
@@ -261,7 +277,9 @@ class CouponRedemptionRepository(BaseRepository[CouponRedemption]):
             table.update()
             .where(table.c.id == redemption_id,
                    table.c.status == RedemptionStatus.ACTIVE)
-            .values(status=RedemptionStatus.RELEASED, released_at=ts)
+            .values(status=RedemptionStatus.RELEASED, released_at=ts,
+                    released_by=actor_id,
+                    released_via=(via.value if via is not None else None))
         ).rowcount
         if rowcount == 0:
             return False

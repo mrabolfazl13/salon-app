@@ -47,6 +47,23 @@ class RedemptionStatus(str, Enum):
     RELEASED = "RELEASED"    # لغو/رد شده؛ ردیف می‌ماند تا تاریخچه کامل بماند
 
 
+class ReleaseVia(str, Enum):
+    """از کدام مسیرِ کد آزاد شد — گرهٔ C24.3: «لغو شد» بدونِ «چه کسی از کدام دکمه».
+
+    هفت مسیرِ واقعیِ ship‌شده (grep روی `release_by_id`/`release_pending_promotions`):
+    ردِ مدیر، لغوِ خودِ کاربر از رزرو معلق، جاروبِ انقضا (بی‌عامل)، سه دفاعِ
+    `confirm_pending` و لغوِ رزروِ قطعی. اسم‌ها در DB به‌صورت varchar ذخیره می‌شوند،
+    نه native enum — ارزششان در *خواندنِ* تاریخچه است نه در شمارش.
+    """
+    PENDING_REJECTED = "PENDING_REJECTED"              # مدیر/کارکنان رزرو معلق را رد کرد
+    PENDING_CANCELLED = "PENDING_CANCELLED"            # خودِ کاربر پیش از تأیید لغو کرد
+    PENDING_EXPIRED = "PENDING_EXPIRED"                # جاروبِ تسک (actor = None)
+    CONFIRM_SLOT_LOST = "CONFIRM_SLOT_LOST"            # سانس دیگر نگه داشته نشده بود
+    CONFIRM_ALREADY_BOOKED = "CONFIRM_ALREADY_BOOKED"  # روی آن سانس رزرو قطعی هست
+    CONFIRM_CONTRACT_SLOT = "CONFIRM_CONTRACT_SLOT"    # سانسِ قراردادِ فعال
+    BOOKING_CANCELLED = "BOOKING_CANCELLED"            # لغوِ رزروِ قطعی (بدون پرداخت موفق)
+
+
 class CouponRedemption(SQLModel, table=True):
     """ردیف مصرف کوپن — با booking_id=null یعنی رزرو معلقِ در انتظار تأیید."""
     __tablename__ = "coupon_redemptions"
@@ -63,4 +80,9 @@ class CouponRedemption(SQLModel, table=True):
         sa_column_kwargs={"server_default": "ACTIVE"},
     )
     released_at: Optional[datetime] = Field(default=None)
+    # گرهٔ C24.3: `released_at` زمانِ سرور است و نمی‌گوید «مديرِ X از دکمهٔ رد».
+    # `released_by` Nullable است چون جاروبِ انقضا عاملِ انسانی ندارد (None ≠ مجهولِ
+    # مشکوک؛ با `released_via = PENDING_EXPIRED` خوانده می‌شود).
+    released_by: Optional[int] = Field(default=None, foreign_key="users.id")
+    released_via: Optional[str] = Field(default=None, max_length=32)
     created_at: datetime = Field(default_factory=_utcnow)

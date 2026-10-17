@@ -35,6 +35,9 @@ class CouponRedemptionResponse(BaseModel):
 
     `status` از راند ۲۷ همراه می‌آید: `ACTIVE` یعنی مصرفِ زنده، `RELEASED` یعنی
     لغو شده ولی ردیف برای تاریخچه مانده (گرهٔ C22.1).
+    `released_by`/`released_by_name`/`released_via` از راند ۲۹ همان سؤال را کامل
+    می‌کنند (گرهٔ C24.3): «کدام عامل، از کدام مسیرِ کد». `released_by = None` با
+    `released_via = PENDING_EXPIRED` یعنی جاروبِ تسک — خودکار، نه گم‌شده.
     """
     id: int
     coupon_id: int
@@ -45,17 +48,23 @@ class CouponRedemptionResponse(BaseModel):
     amount_discounted: int
     status: str
     released_at: Optional[datetime] = None
+    released_by: Optional[int] = None
+    released_by_name: Optional[str] = None
+    released_via: Optional[str] = None
     created_at: datetime
 
     @classmethod
-    def from_row(cls, red, phone: Optional[str], full_name: Optional[str]
-                 ) -> "CouponRedemptionResponse":
+    def from_row(cls, red, phone: Optional[str], full_name: Optional[str],
+                 released_by_name: Optional[str] = None) -> "CouponRedemptionResponse":
         return cls(
             id=red.id, coupon_id=red.coupon_id, user_id=red.user_id,
             user_phone=phone, user_full_name=full_name,
             booking_id=red.booking_id, amount_discounted=red.amount_discounted,
             status=str(red.status.value if hasattr(red.status, "value") else red.status),
             released_at=red.released_at,
+            released_by=red.released_by, released_by_name=released_by_name,
+            released_via=(red.released_via.value if hasattr(red.released_via, "value")
+                          else red.released_via),
             created_at=red.created_at,
         )
 

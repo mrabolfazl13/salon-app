@@ -198,7 +198,8 @@ def list_coupon_redemptions(
     rows = uow.coupon_redemptions.list_for_coupon(
         coupon_id, limit=limit, offset=offset, status=wanted)
     return CouponRedemptionPage(
-        items=[CouponRedemptionResponse.from_row(r, phone, name) for r, phone, name in rows],
+        items=[CouponRedemptionResponse.from_row(r, phone, name, releaser)
+               for r, phone, name, releaser in rows],
         total=uow.coupon_redemptions.count_for_coupon(coupon_id, status=wanted),
         limit=limit, offset=offset,
         status=(wanted.value if wanted is not None else None),

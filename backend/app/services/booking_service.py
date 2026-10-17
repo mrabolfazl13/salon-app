@@ -6,10 +6,11 @@ from app.models.slot import SlotStatus
 from app.models.booking import BookingStatus, ReceiptStatus
 from app.models.venue import VenuePaymentMode
 from app.models.contract import ContractStatus
+from app.models.coupon import ReleaseVia
 from app.services.coupon_service import CouponService
 from app.services.loyalty_service import LoyaltyService
 from app.services.pricing_service import PricingService
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Optional
 
 
 if TYPE_CHECKING:  # فقط برای type-check؛ در runtime اجرا نمی‌شود
@@ -113,14 +114,25 @@ class BookingService:
         return pending
 
     @staticmethod
-    def release_pending_promotions(uow: UnitOfWork, pending: dict) -> None:
-        """آزادسازی کوپن رزرومعلقِ رد/انقضا/لغوشده — کد نسوزد."""
+    def release_pending_promotions(uow: UnitOfWork, pending: dict, *,
+                                   actor_id: Optional[int] = None,
+                                   via: ReleaseVia) -> bool:
+        """آزادسازی کوپن رزرومعلقِ رد/انقضا/لغوشده — کد نسوزد (گرهٔ C24.3/C24.4).
+
+        `via` **اجباریِ** keyword-only است: شش مسیرِ ship‌شده این تابع را صدا می‌زنند
+        (ردِ مدیر، لغوِ کاربر، سه دفاعِ confirm، و جاروبِ انقضا) و تاریخچه باید بگوید
+        کدام‌شان بوده — «لغوشده، از جایی نامعلوم» دقیقاً همان گرهٔ C24.3 بود.
+        `actor_id` برای جاروبِ تسک None است (عاملِ انسانی ندارد) و همین با `via`
+        خوانده می‌شود.
+        """
         rid = pending.get("coupon_redemption_id")
-        if rid:
-            CouponService.release_by_id(uow.session, rid)
+        if not rid:
+            return False
+        return CouponService.release_by_id(uow.session, rid, actor_id=actor_id, via=via)
 
     @staticmethod
-    def confirm_pending(uow: UnitOfWork, pending: dict) -> "Booking":
+    def confirm_pending(uow: UnitOfWork, pending: dict,
+                        actor_id: Optional[int] = None) -> "Booking":
         """تبدیل رزرو معلق به رزرو قطعی در دیتابیس (فقط توسط مدیر سالن)"""
         from app.services.pending_booking_service import pending_booking_service
 
@@ -132,19 +144,22 @@ class BookingService:
         if slot.status != SlotStatus.BOOKED:
             # سانس دیگر در حالت رزرو نیست (مثلا‌ آزاد شده) — رکورد معلق را پاک کن
             pending_booking_service.remove(pending["id"])
-            BookingService.release_pending_promotions(uow, pending)
+            BookingService.release_pending_promotions(
+                uow, pending, actor_id=actor_id, via=ReleaseVia.CONFIRM_SLOT_LOST)
             raise HTTPException(status_code=400, detail="Slot is no longer held for this booking")
 
         existing = uow.bookings.get_by_slot_with_lock(pending["slot_id"])
         if existing:
             pending_booking_service.remove(pending["id"])
-            BookingService.release_pending_promotions(uow, pending)
+            BookingService.release_pending_promotions(
+                uow, pending, actor_id=actor_id, via=ReleaseVia.CONFIRM_ALREADY_BOOKED)
             raise HTTPException(status_code=400, detail="Slot already has a confirmed booking")
 
         # دفاع در عمق: تأیید نهایی روی سانس قرارداد فعال مجاز نیست
         if slot.is_contract_slot and BookingService._contract_is_active(uow, slot):
             pending_booking_service.remove(pending["id"])
-            BookingService.release_pending_promotions(uow, pending)
+            BookingService.release_pending_promotions(
+                uow, pending, actor_id=actor_id, via=ReleaseVia.CONFIRM_CONTRACT_SLOT)
             raise HTTPException(
                 status_code=400,
                 detail="این سانس بخشی از یک قرارداد فعال است و امکان رزرو آن وجود ندارد",
@@ -218,7 +233,8 @@ class BookingService:
         # وگرنه چرخۀ «رزرو ← پرداخت ← لغوِ با بازگشت وجه» یک کدِ یک‌بارمصرف را
         # بی‌نهایت بار دوباره قابل مصرف می‌کند و ردیف ممیزی‌اش هم حذف می‌شود.
         if uow.payments.get_paid_for_booking(booking_id) is None:
-            CouponService.release_for_booking(uow.session, booking_id)
+            CouponService.release_for_booking(
+                uow.session, booking_id, actor_id=user_id, via=ReleaseVia.BOOKING_CANCELLED)
         if cancelled:
             LoyaltyService.refund_for_booking(uow.session, cancelled)
 
