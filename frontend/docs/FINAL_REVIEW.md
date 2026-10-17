@@ -403,6 +403,10 @@ vitest ۱۸۶ passed در ۲۲ فایل** (= ۱۸۱ + ۵) و `vite build` موف
 دیرهنگام نوسانِ وضعیت دارد (C23.2)؛ و نه لغو و نه معوق‌شدن هیچ اعلانی نمی‌فرستند (C23.3).
 **worker/beatِ تازه هنوز روی `api.salon.absadeghi.ir` بالا نیامده (X6)** ⇒ تا پیش از استقرار،
 `EXPIRED` روی prod تولید نمی‌شود. جزئیات: `FINAL_REVIEW_TASKS.md` → C23/E16.
+**CIِ این راند (`8225a60`):** **۲۱ check-run ⇒ ۱۸ success، ۲ skippedِ tag-gated، ۱ failure
+(`Workers Builds: salon-app` = X9)** — دو checkِ `lint`/`test` (workflow مسیر-محور) روی این commit
+ساخته نشدند، پس ۲۱ تعدادِ واقعی است نه ۲۳؛ `Backend Tests`، `unit-tests`، `Frontend Tests`،
+`e2e-tests` و `Security Scan` سبز ⇒ route لغو و تسکِ معوق‌سنج هیچ گیت CI را نشکستند.
 
 **درصد تکمیل هسته:** با توجه به فیچرهای ساخته‌شده از زمان نگارش نسخهٔ ۱.۰ (پرداخت تقسیم‌شده،
 قیمت‌گذاری قوانین‌محور، اتوماسیون اعلان، لیگ/بازی، تیم، CRM پایه، باشگاه وفاداری، چک‌این،

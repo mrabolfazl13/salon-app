@@ -2501,6 +2501,13 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
 | `SplitPaymentsPanel.test.tsx` با HEAD (سرویس/پنلِ برگردانده‌شده) | **۳ failed، ۸ passed** | دو تستِ منفی «سبزِ بی‌مصرف» (دکمه‌ای نبود که ندیده شود) |
 | فرانت: `vite build` (`--max-old-space-size=3072`) | **موفق در 27.34s** | بی‌تغییر |
 
+- **CIِ راند ۲۶ (`8225a60`) — شاهدِ همین راند:** از API (`…/commits/{sha}/check-runs`) ⇒ **۲۱
+  check-run: ۱۸ success، ۲ skippedِ tag-gated، ۱ failure** (`Workers Builds: salon-app` = X9).
+  دو checkِ `lint` و `test` که در راند ۲۵ دیده شدند (بیست‌وسه) روی این commit **ساخته نشدند** —
+  workflow آن‌ها path-filtered است و این راند فقط `backend/` + `docs/` را لمس کرد؛ پس ۲۱ تعدادِ
+  واقعیِ این راند است، نه ۲۳. `Backend Tests`، `unit-tests`، `Frontend Tests`، `e2e-tests`،
+  `Mobile Tests`، `Security Scan`، `Performance Test`، `Quality Report` و همهٔ buildها سبز ⇒ route
+  `POST /split-payments/{id}/cancel` و تسکِ `mark-overdue-split-payments` هیچ گیت CI را نشکستند.
 - **شاهدِ PostgreSQL (`~/.qoder-tmp/pg_split26.py`؛ لاگ `pg_split26.txt`، exit ۰، شش صحنه):**
   اسکیمای `alembic upgrade head` + خودِ `expire_overdue` / `cancel_split_payment` /
   coroutineِ `pay_share`؛ (۱) `pg_enum` تأیید می‌کند `OVERDUE`/`EXPIRED`/`CANCELLED` در **native
