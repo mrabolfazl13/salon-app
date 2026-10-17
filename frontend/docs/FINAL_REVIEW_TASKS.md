@@ -1252,10 +1252,11 @@ enum نه مقدارش)، و crash job بکاپ (`os` بدون import).
   در این فایل باقی است؛ هیچ‌کدام از آن‌ها «گذشته/آینده» را ادعا نمی‌کنند — فقط می‌شمارند — پس
   دست‌نخورده ماند.)
 - [x] C15.5 ⚠️ ثبت شد، رفع نشد (هشت گره؛ همۀ عدد‌ها از کد/اندازۀ همین راند) ⇒ **وضعیتِ ۲۰۲۶-۱۰-۱۷
-  بعد از راند ۲۰: چهار تا رفع/تصحیح شد (۲، ۵، ۷، ۸ → C17) و چهار تا باقی است (۱، ۳، ۴، ۶):**
-  1. **بازگشتِ وجه برای اشتراک وجود ندارد:** `PurchaseStatus` فقط `PENDING/PAID/CANCELLED` است و
+  بعد از راند ۲۱: پنج تا رفع/تصحیح شد (۱ → C18 و ۲، ۵، ۷، ۸ → C17) و سه تا باقی است (۳، ۴، ۶):**
+  1. ~~**بازگشتِ وجه برای اشتراک وجود ندارد:** `PurchaseStatus` فقط `PENDING/PAID/CANCELLED` است و
      هیچ مسیری از `PAID` به بیرون نیست ⇒ ردیفِ درآمدِ دفتر کل تا ابد می‌ماند. (همان اصلِ C7 که
-     برای رزرو رعایت شده.)
+     برای رزرو رعایت شده.)~~ ⇒ **رفع شد در راند ۲۱ (C18):** `PurchaseStatus.REFUNDED` +
+     `POST /memberships/purchases/{id}/refund` که ردیفِ `refund/expense` می‌نویسد و اعتبار را صفر می‌کند.
   2. ~~**درآمدِ اشتراک هیچ‌جا خوانده نمی‌شود**~~ ⇒ **ادعای غلط؛ در راند ۲۰ تصحیح و با تست قفل شد
      (C17.4):** `TransactionRepository.revenue_by_source` عمومی است و روی `source_type` گروه‌بندی
      می‌کند، پس `membership_purchase` در `GET /finance/revenue/by-source` شمرده می‌شود. آنچه درست
@@ -1439,6 +1440,78 @@ workflow سبز خوانده می‌شد در حالی که خودِ job قرم�
   3. `pay_purchase` هنوز `cvv/expiry` را نمی‌خواند و `transaction_id` ساختگی است (C15.5.6، تا X4).
   4. بازگشتِ وجهِ اشتراک و ممیزیِ `consume_session` (C15.5.1/.3) فیچر/اسکیما می‌خواهند، نه فقط کد.
   5. دادهٔ کاشته‌شدهٔ سیدر هنوز ×۱۰ اصلاح نشده (C15.5.4) — کد درست شد، ردیف‌ها نه.
+
+---
+
+### C18 بازگشت وجه اشتراک: راهِ خروج از `PAID` (بازبینی #4، مالی) — راند ۲۱ ✅ یک فیچر + یک فرضیهٔ باطل
+
+گرهٔ C15.5.1 (ثبت‌شده در راند ۱۸): «`PurchaseStatus` فقط `PENDING/PAID/CANCELLED` است و هیچ مسیری از
+`PAID` به بیرون نیست ⇒ ردیفِ درآمدِ دفتر کل تا ابد می‌ماند.» مدیر فقط می‌توانست فاکتورِ **پرداخت‌نشده**
+را لغو کند؛ اشتراکِ پرداخت‌شده‌ای که مشتری منصرف شده بود، در کنسول مالی به‌عنوان درآمد باقی می‌ماند و
+اعتبارش هم پابرجا می‌ماند.
+
+- **قرارداد (همان C7 که برای رزرو رعایت شده):** ردیفِ درآمد **append-only** است و پاک نمی‌شود؛
+  در کنارش یک ردیف `TransactionType.REFUND` / `direction=EXPENSE` با `idempotency_key` می‌نشیند.
+  `POST /memberships/purchases/{purchase_id}/refund` (`backend/app/api/v1/memberships.py:316-368`)
+  ⇒ فقط `PAID` (غیره ۴۰۰ با ذکرِ وضعیتِ فعلی)، فقط مدیرِ **همان** سالن (`_ensure_venue_manager`،
+  مشتری ⇒ ۴۰۳)، `sessions_remaining` صفر (برای پلنِ ماهانه که `None` است دست‌نخورده می‌ماند)،
+  و کلیدِ `membership-refund:{purchase.id}` ⇒ دو ردیفِ برگشت برای یک فاکتور ساخته نمی‌شود.
+- **بدونِ migration (چرا):** ستونِ `status` در `migrations/versions/c3i003membership.py:69`
+  `sa.VARCHAR(length=20)` است نه enumِ Postgres ⇒ `REFUNDED = "refunded"` (۸ کاراکتر) در همان
+  عرض جا می‌شود؛ تست روی SQLite هم همین مسیرِ رشته‌ای را می‌رود. پس این فیچر روی prod بی‌`upgrade`
+  قابل نصب است (برخلاف C14 که جدول خواست).
+- **فرضیه‌ای که قبل از نوشتن کد باطل شد:** اگر `ReconciliationService` ردیفِ دفتر کلِ اشتراک را با
+  `BookingPayment.id` اشتباه می‌گرفت، `source_id`های هم‌پوشان مغایرتِ جعلی می‌ساختند. کد خوانده شد:
+  `backend/app/services/reconciliation_service.py:52` و ۷۸ هر دو
+  `source_type == BOOKING_PAYMENT` را فیلتر می‌کنند ⇒ **تعارضی نیست**؛ اشتراک عمداً در مغایرگیریِ
+  درگاه نیست (ردیفِ درگاهی ندارد). هیچ کدی این‌سر تغییر نکرد.
+- **فرانت (قابل‌کشف شدنِ فیچر، نه فقط endpoint):**
+  - `membershipService.refundPurchase(id, reason?)` (`frontend/src/services/membership.ts:68`) —
+    `reason` پاک‌سازی و در صورتِ خالی `null` فرستاده می‌شود (ستونِ سرور `max_length=200`).
+  - `PurchaseStatus` ⇒ `'refunded'` اضافه شد (`frontend/src/types/membership.ts:5`).
+  - جدول «خریدهای کاربران»: دکمۀ **بازگشت وجه** فقط برای ردیفِ `paid`، با `ConfirmModal`
+    `variant="destructive"` که مبلغ + «اعتبار صفر می‌شود» + «ردیفِ درآمد پاک نمی‌شود» را می‌گوید
+    (`frontend/src/pages/dashboard/ManagerDashboard.tsx:2538-2553`)، و چیپِ وضعیتِ
+    چهارشاخه (`statusMeta`، همان‌جا خط ۲۳۹۷) — رنگِ خاکستریِ `#475569` روی پس‌زمینهٔ روشن، متن‌دار
+    (نه رنگ‌تنها).
+  - **باگِ نمایشی که همین‌جا رفع شد:** داشبوردِ مشتری (`purchaseStatusChip`) هر وضعیتِ غیرِ
+    `paid/pending` را «لغو شده» می‌خواند ⇒ فاکتورِ بازگشت‌وجه‌شده به مشتری «لغو شده» نشان داده
+    می‌شد، درحالی‌که پولش برگشته. حالا `refunded` برچسبِ «بازگشت وجه شده» دارد
+    (`frontend/src/pages/dashboard/Dashboard.tsx:69`).
+- **تست‌ها:** ۷ تست در `tests/test_membership_refund.py` (سطح unit/SQLite) — ردیفِ برگشت به همان
+  ریالِ درآمد و ردیفِ درآمد دست‌نخورده + `sessions_remaining=0` + `idempotency_key` + متنِ دلیل در
+  توضیح؛ برگشتِ دوم ⇒ ۴۰۰ و **یک** ردیفِ refund؛ فاکتور `PENDING` ⇒ ۴۰۰ و **صفر** ردیفِ مالی؛
+  مدیرِ سالنِ دیگر ⇒ ۴۰۳ و دیتابیس دست‌نخورده؛ مشتری ⇒ ۴۰۳؛ `consume` بعد از refund ⇒ ۴۰۰؛
+  ردیفِ برگشت در `GET /finance/transactions?type=refund&source_type=membership_purchase` دیده می‌شود
+  و `revenue/by-source` همچنان `income=1٬۴۰۰٬۰۰۰` و `count=1` می‌دهد (برگشت، درآمدِ ناخالص را تخریب
+  نمی‌کند). ۴ تست در `src/services/membership.test.ts` (قراردادِ مسیر/بدنه + `reason` خالی ⇒ `null`
+  + مسیرِ `consume` دست‌نخورده).
+- **معیار (شاهد، ۲۰۲۶-۱۰-۱۷، استک pinned `sqlmodel 0.0.42`):**
+  | گیت | نتیجه |
+  |---|---|
+  | `pytest tests/test_membership_refund.py` بعد از رفع | **۷ passed در 0.80s** |
+  | شاهدِ پیش از رفع (`app/` برگردانده‌شده، تست‌ها ثابت) | **۷ failed** — همه `404 Not Found` روی `post(…/refund)` ⇒ مسیر اصلاً وجود نداشت |
+  | رگرسیون کامل بک‌اند | **۶۹۸ passed در 63.49s** (= ۶۹۱ راند ۲۰ + ۷) |
+  | `ruff --select E9,F82` | `All checks passed!` |
+  | `app.openapi()['paths']` | **۲۳۹ / ۲۸۱ operation** (از ۲۳۸/۲۸۰ ⇒ دقیقاً یک مسیر و یک عملیات: همان refund) |
+  | `pnpm exec tsc --noEmit` (دروازۀ CI) | **صفر خطا** |
+  | eslint روی ۴ فایل تغییرکرده | **۰ error، ۲۱ warning** — همه `no-explicit-any` و همۀ‌شان در HEAD از قبل بودند (الگوی فایل) |
+  | سوئیت واحد فرانت (۵ دسته × ۵ فایل) | **۱۷۱ passed / ۰ failed** در ۲۱ فایل (= ۱۶۷ راند ۲۰ + ۴) |
+  | `pnpm run build` (vite، با heap 3072) | **exit 0، built in 38.87s**؛ chunkِ `ManagerDashboard` ⇒ **78.18 kB / 19.71 kB gzip** (رشدِ این راند در همان chunk) |
+  | سه فایل تستِ اشتراک با هم | **۲۴ passed در 1.66s** (۷ refund + ۷ راند ۲۰ + ۱۰ راند ۱۸) |
+  | اسکنِ CJK/توکِنِ سرگردان در دو سندِ فارسی | پاک — `grep -P` با رنجِ U+4E00–U+9FFF ⇒ صفر خطوط (تنها تطبیق، خودِ همین سطرِ توضیحی بود که رنج را نقل می‌کند، و آن هم به شکلِ نامنظر نوشته شد) |
+  | **شاهدِ CI راند ۲۰** (`60c59dc`) | ۲۰ check: **e2e-tests، unit-tests، Backend/Frontend/Mobile Tests، lint، Build Verification، Security Scan، Flutter iOS، Tauri iOS/macOS/Windows/Linux، Tauri Android (Signed)** ⇒ completed/success؛ Flutter Android Release ⇒ skipped (tag-gated)؛ تنها قرمز: «Workers Builds: salon-app» (X9) |
+- **این راند اجرا نشد (E2):** Playwright (نه حساب تستِ آماده X1 ⇒ دکمهٔ جدیدِ «بازگشت وجه» در E2E پوشش
+  داده نشده)، آزمون روی دستگاه، و PostgreSQL واقعی. `vite build` **اجرا شد و سبز بود** (بالا).
+- **گره‌های بازِ این راند (صادقانه):**
+  1. **این «بازگشت وجه» دفتری است، نه درگاهی:** هیچ فراخوانیِ `ZarinPal/NextPay refund` انجام نمی‌شود؛
+     پول از حسابِ درگاه بیرون نمی‌رود تا قراردادِ درگاه در دست باشد (X4 — همان گرهٔ C15.5.6).
+     تا آن زمانِ ردیفِ ledger فقط سندِ حسابداری است.
+  2. پاسخ‌ها روی **unit/SQLite** سنجیده شده‌اند؛ بک‌اندِ deployed این مسیر را ندارد تا X6 انجام شود.
+  3. Flutter هیچ رابطۀ بازگشت وجه‌ای ندارد (هم‌خانوادۀ فیچر ۲۱/waitlist) — این راند فقط وب.
+  4. ممیزیِ «چه کسی، کِی» برای `consume_session` هنوز نیست (C15.5.3؛ مدلِ audit وجود ندارد ⇒ migration).
+  5. اگر faksal/اشتراک **ساخته‌شده پیش از این مسیر** بازگشت بخواهد، باید دستی زده شود؛ هیچ داده‌ای
+     در این راند تغییر نکرد.
 
 ---
 
@@ -1842,6 +1915,31 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
   دلیل در تست، برابریِ `four == one` ادعا شده نه «کمتر از آستانه».
 - **حقایقی که «رفع شد» ادعا نمی‌شوند:** بازگشتِ وجهِ اشتراک، race/ممیزیِ `consume_session`،
   اصلاحِ دادهٔ ×۱۰ سیدر، و `cvv/expiry` + `transaction_id` ساختگی (C15.5.1/.3/.4/.6).
+
+---
+
+### E11 بازسنجی راند ۲۱ (بازگشت وجه اشتراک — بک‌اند + فرانت وب)
+
+| گیت | نتیجه (۲۰۲۶-۱۰-۱۷) | تغییر نسبت به راند ۲۰ |
+|---|---|---|
+| `pytest tests/test_membership_refund.py` | **۷ passed در 0.80s** (pinned) | فایلِ جدیدِ این راند |
+| همان ۷ تست با `app/` برگردانده‌شده (تست ثابت) | **۷ failed** — همۀ `post(…/refund)` ⇒ `404` | شاهدِ «قبلِ رفع»: مسیر اصلاً وجود نداشت، نه اینکه رفتارِ غلطی داشت |
+| `pytest` (رگرسیون کامل بک‌اند) | **۶۹۸ passed در 63.49s** | = ۶۹۱ + ۷؛ صفر رگرسیون |
+| `ruff check app --select E9,F82` | `All checks passed!` | بی‌تغییر |
+| `app.openapi()['paths']` | **۲۳۹ / ۲۸۱ operation** | دقیقاً +۱ path و +۱ operation (همان refund) — نخستین باری که این گیت در این برنامه جابه‌جا شد |
+| `pnpm exec tsc --noEmit` | **صفر خطا** | ورودیِ جدید: ۴ فایل فرانت |
+| `pnpm exec eslint` روی ۴ فایل تغییرکرده | **۰ error، ۲۱ warning** (همه `no-explicit-any`، همه از قبل در HEAD) | بی‌بدهیِ lintِ تازه |
+| سوئیت واحد فرانت (۵ دسته × ۵ فایل، heap 3072) | **۱۷۱ passed / ۰ failed** در ۲۱ فایل | = ۱۶۷ + ۴ تستِ جدیدِ `membership.test.ts` |
+| `pnpm run build` (vite) | **exit 0 در 38.87s**، `ManagerDashboard` chunk ⇒ 78.18 kB / 19.71 kB gzip | نخستین گیتِ باندلِ این راند؛ سه فایل اشتراکِ بک‌اند با هم ⇒ **۲۴ passed** |
+| اسکنِ CJK در دو سند | صفر خطوط | بی‌تغییر |
+| شاهدِ CIِ راند ۲۰ (`60c59dc`) | ۱۹ از ۲۰ check سبز (e2e/unit/backend/frontend/mobile/lint/Flutter iOS/Tauri ×۵)، قرمز فقط «Workers Builds»؛ Android Release skipped (tag-gated) | برای نخستین بار سه build تauriِ ویندوز/لینوکس/اندرویدِ signed هم سبز بودند |
+
+- **E2 این راند (چه اجرا نشد):** Playwright (حساب تستِ X1 نیست ⇒ دکمهٔ «بازگشت وجه» در E2E نسنجیده
+  شد)، آزمون روی دستگاه، و PostgreSQL واقعی. `vite build` و `tsc` و eslint و سوئیت واحد **همه اجرا و
+  سبز شدند** (جدولِ بالا).
+- **سطح اعداد:** همه‌چیز **unit** است (TestClient/SQLite برای بک‌اند، vitest/jsdom برای فرانت). هیچ‌کدام
+  از ۴۰۳/۴۰۰/۲۰۰های این راند روی `api.salon.absadeghi.ir` دیده نشده (X6) و هیچ پولی از درگاه پس نگرفته
+  شده (X4) — ردیفِ `refund` یک سندِ حسابداری است، نه حرکتِ واقعیِ وجه.
 
 ---
 
