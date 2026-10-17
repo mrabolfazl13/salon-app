@@ -2259,8 +2259,12 @@ CI روی هر SHA اخیر قرمز بود (نه فقط تغییرات من). �
   `SELECT count(*) … coupon_redemptions`. قبل از رفع: `per_user_limit=1` با دو رزرو ⇒ **۲ ردیفِ
   مصرف برای یک کاربر**؛ `per_user_limit=2` با سه رزرو ⇒ **۳ ردیف**. بعد از رفع: ۱ و ۲، با
   `uses_count` برابرِ شمارِ ردیف‌ها (جبرانِ ظرفیت) و صحنۀ کنترلِ دو‌کاربره دست‌نخورده.
-- **E2 این راند:** هیچ چیزِ فرانتی، Playwright، آزمون روی دستگاه، Flutter. CI برای SHA این راند
-  بعد از push تماشا و اینجا ثبت می‌شود.
+- **E2 این راند:** هیچ چیزِ فرانتی، Playwright، آزمون روی دستگاه، Flutter.
+- **CIِ راند ۲۴ (`43ee572`) — شاهدِ همین راند:** همان ۲۳ check با همان توزیع ⇒ **۲۰ success،
+  ۲ skipped (`Create GitHub Release` و `Flutter Android Release APK/AAB (Signed)`، هر دو tag-gated)،
+  ۱ failure (`Workers Builds: salon-app` = X9)**. `Backend Tests`، `unit-tests` و `Security Scan`
+  هر سه سبز ⇒ نگهبانِ INSERTِ جدید و جبرانِ ظرفیت هیچ تستِ CIرا نشکست؛ ناوکلِ سبزِ راندهای ۲۲/۲۳
+  بی‌تغییر ماند.
 - **سطح اعداد:** بک‌اند **unit/SQLite** (شکلِ statement + ترتیبِ statement‌ها + رفتار) و یک
   شاهدِ **real-PG** همزمانی. روی `api.salon.absadeghi.ir` دیده نشده (X6) ⇒ امروز همان «یک کاربر
   دو بار با سقفِ یک» روی prod ممکن است.

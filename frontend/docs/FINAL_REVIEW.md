@@ -351,6 +351,9 @@ rowcount `{'A': 1, 'B': 0}` و شمارندهٔ صفر؛ و `INSERT` ممیزی 
 `try_consume_capacity` است، و نگهبانِ داخل INSERT پنجرۀ «دو statement» را می‌بندد.
 **یک گرهٔ تازه دیده شد (ثبت، بدون رفع):** «بی‌سقف بودنِ فردی» از API نوشتنی نیست — INSERT با None
 پیش‌فرضِ ستون (۱) را می‌نویسد و `BaseRepository.update:71` مقدار None را رد می‌کند (C21.2).
+**CIِ این راند (`43ee572`):** همان ۲۳ check ⇒ **۲۰ success، ۲ skipped (هر دو tag-gated)،
+۱ failure (`Workers Builds: salon-app` = X9)** — `Backend Tests` و `unit-tests` و `Security Scan`
+سبز، پس نگهبانِ INSERTِ جدید هیچ تستِ CIرا نشکست.
 جزئیات: `FINAL_REVIEW_TASKS.md` → C21/E14.
 
 **درصد تکمیل هسته:** با توجه به فیچرهای ساخته‌شده از زمان نگارش نسخهٔ ۱.۰ (پرداخت تقسیم‌شده،
