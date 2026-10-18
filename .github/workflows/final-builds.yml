@@ -97,9 +97,6 @@ jobs:
         with:
           distribution: temurin
           java-version: '17'
-      - uses: android-actions/setup-android@v3
-        with:
-          packages: ''
       - name: Install Android SDK components
         run: |
           sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
@@ -114,12 +111,9 @@ jobs:
       - name: Initialize Tauri Android project
         working-directory: frontend
         run: pnpm exec tauri android init
-      - name: Build APKs for supported ABIs
+      - name: Build APK and AAB for supported ABIs
         working-directory: frontend
-        run: pnpm exec tauri android build --apk
-      - name: Build Android App Bundle
-        working-directory: frontend
-        run: pnpm exec tauri android build --aab
+        run: pnpm exec tauri android build --apk --aab
       - name: Upload Android outputs
         uses: actions/upload-artifact@v4
         with:
