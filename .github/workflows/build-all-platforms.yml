@@ -306,6 +306,7 @@ jobs:
           path: frontend/src-tauri/gen/android/app/build/outputs/bundle/**/*.aab
 
   tauri-ios:
+    if: false # CI release targets are Web, Windows and Android.
     name: Tauri iOS IPA (Unsigned)
     runs-on: macos-latest
     steps:
@@ -421,6 +422,7 @@ jobs:
             frontend/src-tauri/target/release/bundle/nsis/*.exe
 
   tauri-linux:
+    if: false # CI release targets are Web, Windows and Android.
     name: Tauri Linux deb/AppImage
     runs-on: ubuntu-latest
     steps:
@@ -472,6 +474,7 @@ jobs:
             frontend/src-tauri/target/release/bundle/appimage/*.AppImage
 
   tauri-macos:
+    if: false # CI release targets are Web, Windows and Android.
     name: Tauri macOS DMG
     runs-on: macos-latest
     steps:
@@ -563,10 +566,7 @@ jobs:
     runs-on: ubuntu-latest
     needs:
       - tauri-android
-      - tauri-ios
       - tauri-windows
-      - tauri-linux
-      - tauri-macos
       - react-web
     # Release whatever artifacts exist even when an unrelated job (e.g. iOS)
     # failed — only the Android release build is required.
@@ -607,22 +607,16 @@ jobs:
             ### 📱 Mobile (Tauri)
             - **Android APK**: `tauri-android.apk/`
             - **Android AAB**: `tauri-android.aab/`
-            - **iOS IPA** (unsigned): `tauri-ios.ipa/`
 
             ### 💻 Desktop (Tauri)
             - **Windows MSI/EXE**: `tauri-windows/`
-            - **Linux DEB/AppImage**: `tauri-linux/`
-            - **macOS DMG**: `tauri-macos/`
 
             ### 🌐 Web (React)
             - Production build: `react-web-dist/`
           files: |
             artifacts/tauri-android.apk/**
             artifacts/tauri-android.aab/**
-            artifacts/tauri-ios.ipa/**
             artifacts/tauri-windows/**
-            artifacts/tauri-linux/**
-            artifacts/tauri-macos/**
           draft: false
           prerelease: false
         env:
