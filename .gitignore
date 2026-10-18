@@ -79,3 +79,7 @@ key.properties
 
 # Generated bundle-size reports (monitoring output, not source)
 frontend/monitoring/reports/
+
+# Large local build artifacts (kept on disk, out of the repo / Cloudflare deploy scope)
+frontend/*.apk
+frontend/*.aab

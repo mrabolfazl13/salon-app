@@ -1,6 +1,8 @@
-# راهنمای تنظیم وابستگی‌های خارجی - Phase 27
+# راهنمای تنظیم وابستگی‌های خارجی
 
-این راهنما شامل مراحل دقیق برای تنظیم ۴ وابستگی خارجی باقی‌مانده است که برای تکمیل نهایی فیچرها لازم هستند.
+این راهنما شامل مراحل دقیق برای تنظیم وابستگی‌های خارجی است که برای تکمیل نهایی فیچرها لازم هستند.
+
+> **معماری فعلی:** محصول = Web (React) + Tauri Android + Tauri Windows. Flutter کاملاً از مسیر محصول، تست و CI حذف شده است.
 
 ---
 
@@ -14,24 +16,27 @@
 4. Google Analytics را **غیرفعال** کنید (اختیاری)
 5. روی **"Create project"** کلیک کنید
 
-### مرحله ۲: ثبت اپلیکیشن Android
+### مرحله ۲: ثبت اپلیکیشن Android (Tauri)
 
 1. در داشبورد Firebase، روی آیکون **Android** کلیک کنید
-2. **Package name** را وارد کنید:
+2. **Package name** را وارد کنید — باید با `identifier` در
+   `frontend/src-tauri/tauri.conf.json` و `applicationId` در
+   `frontend/src-tauri/gen/android/app/build.gradle.kts` مطابقت داشته باشد
+   (پس از `pnpm tauri android init` تولید و ثبت می‌شود):
    ```
-   com.salon.futsal.booking
+   com.alex.tauri-app
    ```
-   > ⚠️ این باید با `applicationId` در `android_flutter/android/app/build.gradle.kts` مطابقت داشته باشد
-3. **App nickname**: `Salon Futsal - Android`
+3. **App nickname**: `Salon - Android`
 4. روی **"Register app"** کلیک کنید
 
 ### مرحله ۳: دانلود google-services.json
 
 1. فایل `google-services.json` دانلود می‌شود
-2. آن را در مسیر زیر قرار دهید:
+2. آن را در مسیر پروژه اندروید Tauri قرار دهید:
    ```
-   android_flutter/android/app/google-services.json
+   frontend/src-tauri/gen/android/app/google-services.json
    ```
+   > توجه: `gen/` gitignore است و با `tauri android init` بازتولید می‌شود؛ نگهداری این فایل در جای امن خارج از git.
 
 ### مرحله ۴: فعال‌سازی Firebase Cloud Messaging (FCM)
 
@@ -51,74 +56,68 @@
 
 ### مرحله ۶: تست FCM
 
-```bash
-cd android_flutter
-flutter run
-```
+اپ Tauri Android را روی دستگاه نصب کنید (راهنمای ساخت: `ANDROID_BUILD.md`):
 
-در اپ، توکن FCM لاگ می‌شود:
-```
-I/flutter (xxxxx): FCM Token: <TOKEN_HERE>
+```bash
+cd frontend
+pnpm tauri android build --apk
+# نصب خروجی APK روی دستگاه و ثبت توکن از پنل پروفایل/اعلان‌ها
 ```
 
 ---
 
-## 🔐 ۲. Keystore برای امضای APK Release
+## 🔐 ۲. Keystore برای امضای APK Release (Tauri Android)
 
 ### مرحله ۱: ساخت Keystore
 
 ```bash
-# در پوشه android_flutter/android
-cd android_flutter/android
+cd frontend/src-tauri/gen/android/app
 
 # ساخت keystore با الگوریتم RSA 2048-bit
 keytool -genkey -v \
-  -keystore salon-release-key.jks \
+  -keystore release-keystore.jks \
   -keyalg RSA \
   -keysize 2048 \
   -validity 10000 \
   -alias salon-app \
   -storepass YOUR_STORE_PASSWORD \
   -keypass YOUR_KEY_PASSWORD \
-  -dname "CN=Salon Futsal, OU=Mobile, O=SalonApp, L=Tehran, ST=Tehran, C=IR"
+  -dname "CN=Salon, OU=Mobile, O=SalonApp, L=Tehran, ST=Tehran, C=IR"
 ```
 
-> ⚠️ **رمزها را جایی امن ذخیره کنید** - بعداً به آنها نیاز دارید
+> ⚠️ **رمزها را جایی امن ذخیره کنید** - بعداً به آنها نیاز دارید. Keystore هرگز commit نمی‌شود.
 
 ### مرحله ۲: ایجاد key.properties
 
-فایل `android_flutter/android/key.properties` بسازید:
+فایل `frontend/src-tauri/gen/android/app/key.properties` بسازید:
 
 ```properties
 storePassword=YOUR_STORE_PASSWORD
 keyPassword=YOUR_KEY_PASSWORD
 keyAlias=salon-app
-storeFile=salon-release-key.jks
+storeFile=release-keystore.jks
 ```
+
+CI با یک gradle init script (`tauri-signing.gradle` در `build-all-platforms.yml`) همین
+`key.properties` را به buildType release وصل می‌کند؛ فرمت فایل باید دقیقاً همین باشد.
 
 ### مرحله ۳: اضافه کردن به .gitignore
 
-مطمئن شوید این خطوط در `android_flutter/.gitignore` وجود دارند:
+`frontend/src-tauri/gen/` کل مسیرش gitignore است (تأیید کنید):
 
 ```gitignore
-# Keystore files
-*.jks
-*.keystore
-key.properties
-
-# Build outputs
-build/
-app/release/
+# Tauri Android generated project + signing material
+frontend/src-tauri/gen/
 ```
 
 ### مرحله ۴: تبدیل Keystore به Base64 برای GitHub Secrets
 
 ```bash
 # تبدیل فایل به base64
-base64 -w 0 salon-release-key.jks > salon-release-key.jks.b64
+base64 -w 0 release-keystore.jks > keystore-base64.txt
 
-# محتوای فایل b64 را کپی کنید
-cat salon-release-key.jks.b64
+# محتوای فایل را کپی کنید
+cat keystore-base64.txt
 ```
 
 ### مرحله ۵: اضافه کردن Secrets به GitHub
@@ -127,7 +126,7 @@ cat salon-release-key.jks.b64
 
 | Secret Name | Value |
 |------------|-------|
-| `KEYSTORE_BASE64` | محتوای فایل `.b64` از مرحله قبل |
+| `KEYSTORE_BASE64` | محتوای فایل base64 از مرحله قبل |
 | `KEYSTORE_PASSWORD` | رمز keystore (YOUR_STORE_PASSWORD) |
 | `KEY_PASSWORD` | رمز key (YOUR_KEY_PASSWORD) |
 | `KEY_ALIAS` | `salon-app` |
@@ -135,18 +134,25 @@ cat salon-release-key.jks.b64
 ### مرحله ۶: تست Build Signed APK
 
 ```bash
-cd android_flutter
+cd frontend
 
-# Build release APK
-flutter build apk --release
+# Build release APK + AAB
+pnpm tauri android build --apk --aab
 
 # خروجی باید در این مسیر باشد:
-ls -lh build/app/outputs/flutter-apk/app-release.apk
+ls -lh src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
 ```
 
-APK باید بدون خطا ساخته شود و قابل نصب باشد.
+راستی‌آزمایی امضا:
+
+```bash
+apksigner verify --print-certs src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk
+```
+
+APK باید بدون خطا ساخته شود، امضا داشته باشد و قابل نصب باشد.
 
 ---
+
 
 ## 📧 ۳. SMS Provider Credentials (برای OTP Login)
 
@@ -394,17 +400,17 @@ cd ~/backend
 docker compose up -d
 ```
 
-### مرحله ۸: به‌روزرسانی Flutter App
+### مرحله ۸: به‌روزرسانی کلاینت‌ها (Web + Tauri)
 
-فایل `android_flutter/lib/config/app_config.dart`:
+`VITE_API_URL` و `VITE_DOMAIN` را در محیط build فرانت (یا CI secrets) ست کنید و بیلد بگیرید:
 
-```dart
-class AppConfig {
-  static const String baseUrl = 'https://api.yourdomain.com';
-  static const String wsUrl = 'wss://api.yourdomain.com/ws';
-  static const String minioUrl = 'https://cdn.yourdomain.com';
-}
+```bash
+cd frontend
+pnpm build
 ```
+
+اپ اندروید از همان backend استفاده می‌کند؛ `API_BASE` در `frontend/src-tauri` از همان
+`VITE_*` مقادیر build می‌خواند (راهنمای کامل: `ANDROID_BUILD.md`).
 
 ### مرحله ۹: تست نهایی
 
@@ -431,7 +437,7 @@ curl -I https://cdn.yourdomain.com
 
 بعد از انجام تمام مراحل بالا، این موارد را چک کنید:
 
-- [ ] Firebase FCM token در لاگ Flutter نمایش داده می‌شود
+- [ ] Firebase FCM token در اپ Tauri Android ثبت می‌شود
 - [ ] APK signed ساخته می‌شود و روی گوشی نصب می‌شود
 - [ ] پیامک OTP ارسال می‌شود (تست با شماره واقعی)
 - [ ] HTTPS برای تمام سابدامین‌ها کار می‌کند
@@ -446,7 +452,7 @@ curl -I https://cdn.yourdomain.com
 ### مشکل: Firebase token نمی‌آید
 ```bash
 # چک کنید google-services.json درست باشد
-cat android_flutter/android/app/google-services.json | grep package_name
+cat frontend/src-tauri/gen/android/app/google-services.json | grep package_name
 
 # باید با applicationId در build.gradle.kts مطابقت داشته باشد
 ```

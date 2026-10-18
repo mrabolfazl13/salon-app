@@ -1,12 +1,21 @@
-# Futsal Booking System - نسخه پایدار (v1.0.0)
+# Salon — سیستم رزرو سالن فوتسال (Web + Tauri Windows + Tauri Android)
 
-سیستم هوشمند رزرو سالن فوتسال با قابلیت رقابت قیمت و قراردادهای بلندمدت
+سیستم هوشمند رزرو سالن فوتسال با قابلیت رقابت قیمت و قراردادهای بلندمدت.
+
+**معماری نهایی:** همهٔ خروجی‌ها از یک هستهٔ React (`frontend/`) ساخته می‌شوند:
+- 🌐 **Web** — Vite build (`frontend/dist`)
+- 💻 **Tauri Windows** — MSI/NSIS (`frontend/src-tauri`)
+- 🤖 **Tauri Android** — APK/AAB (`frontend/src-tauri`)
+
+Flutter از محصول، توسعه، تست و CI/CD به‌طور کامل حذف شده است. راهنمای ساخت: `ANDROID_BUILD.md` | وضعیت پروژه: `AGENT_BUILD_STATE.md`
 
 ## 🚀 شروع سریع
 
 ### پیش‌نیازها
-- Docker و Docker Compose
-- Node.js 18+ (برای توسعه فرانت‌اند)
+- Docker و Docker Compose (بک‌اند)
+- Node.js 20+ و pnpm 10+ (فرانت‌اند)
+- Rust stable (بیلد Tauri)
+- JDK 17 + Android SDK/NDK (بیلد اندروید)
 
 ### راه‌اندازی سریع
 
@@ -29,8 +38,17 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 
 # 5. شروع فرانت‌اند (در ترمینال جداگانه)
 cd ../frontend
-npm install
-npm run dev
+pnpm install --frozen-lockfile
+pnpm dev
+```
+
+### بیلد خروجی‌ها
+
+```bash
+cd frontend
+pnpm build                    # Web -> dist/
+pnpm tauri build              # Tauri Windows -> src-tauri/target/release/bundle/
+pnpm tauri android build --apk --aab   # Tauri Android
 ```
 
 ## 🔑 اطلاعات ورود پیش‌فرض
@@ -89,11 +107,14 @@ futsal-booking-system/
 │   │   ├── repositories/      # Data Repositories
 │   │   ├── schemas/           # Pydantic Schemas
 │   │   ├── services/          # Business Logic
+│   │   ├── tasks/             # Celery Tasks
 │   │   ├── utils/             # Utilities
 │   │   └── database.py        # Database Config
+│   ├── migrations/            # Alembic Migrations
+│   ├── tests/                 # pytest Suite
 │   ├── requirements.txt       # Python Dependencies
 │   └── Dockerfile
-├── frontend/                   # React Frontend
+├── frontend/                   # React Core (Web + Tauri)
 │   ├── src/
 │   │   ├── api/               # API Client
 │   │   ├── components/        # React Components
@@ -102,9 +123,11 @@ futsal-booking-system/
 │   │   ├── store/             # Zustand Stores
 │   │   ├── types/             # TypeScript Types
 │   │   └── lib/               # Utilities
+│   ├── src-tauri/             # Tauri 2 (Windows + Android)
+│   ├── e2e/                   # Playwright
 │   └── package.json
+├── .github/workflows/          # CI: Web / Tauri Windows / Tauri Android
 ├── scripts/                    # Utility Scripts
-│   └── setup_db.py            # Database Setup
 ├── docker-compose.yml          # Docker Configuration
 └── .env                        # Environment Variables
 ```

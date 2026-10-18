@@ -29,29 +29,43 @@ Write-Host "📦 Repository: $repo" -ForegroundColor Green
 Write-Host ""
 
 # Read keystore base64 content
-$keystoreB64File = "android_flutter/keystore-base64.txt"
+# Tauri Android signing: keystore is NOT stored in git. Keep it next to the
+# generated android project (frontend/src-tauri/gen/android/app/) or anywhere
+# local — only the base64 of the file goes into GitHub Secrets.
+$keystoreB64File = "frontend/src-tauri/gen/android/app/keystore-base64.txt"
 
 if (-not (Test-Path $keystoreB64File)) {
     Write-Host "⚠️  Generating base64 encoding from keystore..." -ForegroundColor Yellow
-    $keystoreBytes = [System.IO.File]::ReadAllBytes("android_flutter/release-keystore.jks")
+    $keystoreBytes = [System.IO.File]::ReadAllBytes("frontend/src-tauri/gen/android/app/release-keystore.jks")
     $base64String = [Convert]::ToBase64String($keystoreBytes)
     $base64String | Set-Content -Path $keystoreB64File -Encoding UTF8
 }
 
 $keystoreBase64 = Get-Content $keystoreB64File -Raw
 
+# Read signing credentials from the environment — never hardcode them here.
+# KEYSTORE_PASSWORD / KEY_PASSWORD / KEY_ALIAS must be exported before running.
+$keystorePassword = $env:KEYSTORE_PASSWORD
+$keyPassword      = $env:KEY_PASSWORD
+$keyAlias         = $env:KEY_ALIAS
+
+if (-not $keystorePassword -or -not $keyPassword -or -not $keyAlias) {
+    Write-Host "❌ Set KEYSTORE_PASSWORD, KEY_PASSWORD and KEY_ALIAS in the environment first." -ForegroundColor Red
+    exit 1
+}
+
 # Set secrets
 Write-Host "🔑 Adding KEYSTORE_BASE64 secret..." -ForegroundColor Cyan
 $keystoreBase64 | gh secret set KEYSTORE_BASE64
 
 Write-Host "🔑 Adding KEYSTORE_PASSWORD secret..." -ForegroundColor Cyan
-"SalonApp2026!" | gh secret set KEYSTORE_PASSWORD
+$keystorePassword | gh secret set KEYSTORE_PASSWORD
 
 Write-Host "🔑 Adding KEY_PASSWORD secret..." -ForegroundColor Cyan
-"SalonApp2026!" | gh secret set KEY_PASSWORD
+$keyPassword | gh secret set KEY_PASSWORD
 
 Write-Host "🔑 Adding KEY_ALIAS secret..." -ForegroundColor Cyan
-"salon-app-key" | gh secret set KEY_ALIAS
+$keyAlias | gh secret set KEY_ALIAS
 
 Write-Host ""
 Write-Host "✅ All secrets added successfully!" -ForegroundColor Green

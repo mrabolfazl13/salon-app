@@ -5,6 +5,21 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.7.0] - 2026-10-18
+
+### 🗑️ Removed — Flutter is gone from the product
+- Flutter fully removed from development, tests, CI/CD and release paths. The product now ships exactly three outputs from one React core: **Web**, **Tauri Windows**, **Tauri Android**.
+- Deleted Flutter projects and artifacts from the repo (history preserved in git): `android_flutter/`, `lib/`, `ios/`, `web/`, `android/`, `build/` (tracked outputs), root `test/`, `pubspec.yaml`, `pubspec.lock`, `.metadata`, `.flutter-plugins-dependencies`, `futsal_booking_flutter.iml`, root `analysis_options.yaml`.
+- Deleted Flutter-only CI workflows: `android-emulator-test.yml`, `test-build.yml` and `.github/scripts/run-emulator-tests.sh`.
+- `build-all-platforms.yml` rebuilt: only `tauri-android`, `tauri-windows`, `react-web` (+ tag-only `create-release`). The release gate now requires **Tauri Android and Tauri Windows** to succeed (previously gated on `flutter-android-release`). Release assets no longer include any Flutter binary.
+- `quality-gates.yml`: `mobile-tests` (Flutter analyze) job removed; `build-verify` no longer builds a Flutter debug APK; `quality-report` needs updated.
+
+### 🔧 Changed
+- `scripts/setup-github-secrets.ps1/.sh`: keystore paths now point at `frontend/src-tauri/gen/android/app/` (Tauri Android) and signing passwords are read from the environment instead of being hardcoded in the script.
+- `.gitignore`: large local APK/AAB artifacts under `frontend/` are ignored; the two stale tracked APKs (`Salon-v0.2.0-arm64.apk`, `Salon-v1.1.0-universal.apk` — they were also breaking Cloudflare Workers deploys with "Asset too large") are removed from the git index while staying on disk.
+- `ANDROID_BUILD.md` rewritten as the authoritative Tauri Android + Tauri Windows build guide (Flutter commands removed).
+- `DEPLOYMENT_GUIDE.md` Firebase/keystore/deploy steps re-pointed to the Tauri Android project.
+
 ## [v1.6.1] - 2026-10-12
 
 ### 🐛 Fixed

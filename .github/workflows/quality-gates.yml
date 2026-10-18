@@ -138,36 +138,6 @@ jobs:
         working-directory: ./frontend
         run: pnpm exec tsc --noEmit -p tsconfig.app.json
 
-  # Mobile Tests
-  mobile-tests:
-    name: Mobile Tests
-    runs-on: ubuntu-latest
-    
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x'
-          channel: stable
-          
-      - name: Get dependencies
-        working-directory: ./android_flutter
-        run: flutter pub get
-        
-      - name: Analyze code
-        working-directory: ./android_flutter
-        run: flutter analyze --no-fatal-infos --no-fatal-warnings 2>&1 | tee analyze.log; exit ${PIPESTATUS[0]}
-
-      - name: Surface analyzer issues
-        if: failure()
-        working-directory: ./android_flutter
-        run: |
-          grep -inE "error|warning" analyze.log | tail -25 | cut -c1-220 | while IFS= read -r l; do echo "::error::$l"; done
-          tail -3 analyze.log | cut -c1-220 | while IFS= read -r l; do echo "::error::SUMMARY $l"; done
-          true
-
   # Security Scan
   security-scan:
     name: Security Scan
@@ -248,23 +218,11 @@ jobs:
           pnpm install --frozen-lockfile
           pnpm run build
 
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.x'
-          channel: stable
-
-      - name: Verify mobile build (debug)
-        working-directory: ./android_flutter
-        run: |
-          flutter pub get
-          flutter build apk --debug
-
   # Report Results
   quality-report:
     name: Quality Report
     runs-on: ubuntu-latest
-    needs: [backend-tests, frontend-tests, mobile-tests, security-scan, build-verify]
+    needs: [backend-tests, frontend-tests, security-scan, build-verify]
     if: always()
     
     steps:
@@ -272,13 +230,11 @@ jobs:
         run: |
           echo "Backend: ${{ needs.backend-tests.result }}"
           echo "Frontend: ${{ needs.frontend-tests.result }}"
-          echo "Mobile: ${{ needs.mobile-tests.result }}"
           echo "Security: ${{ needs.security-scan.result }}"
           echo "Build: ${{ needs.build-verify.result }}"
           
           if [[ "${{ needs.backend-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.frontend-tests.result }}" != "success" ]] || \
-             [[ "${{ needs.mobile-tests.result }}" != "success" ]]; then
+             [[ "${{ needs.frontend-tests.result }}" != "success" ]]; then
             echo "Quality gates failed!"
             exit 1
           fi

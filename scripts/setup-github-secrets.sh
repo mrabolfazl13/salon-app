@@ -27,8 +27,11 @@ echo "📦 Repository: $REPO"
 echo ""
 
 # Read keystore base64 content
-KEYSTORE_FILE="android_flutter/release-keystore.jks"
-KEYSTORE_B64_FILE="android_flutter/keystore-base64.txt"
+# Tauri Android signing: keystore is NOT stored in git. Keep it next to the
+# generated android project (frontend/src-tauri/gen/android/app/) or anywhere
+# local — only the base64 of the file goes into GitHub Secrets.
+KEYSTORE_FILE="frontend/src-tauri/gen/android/app/release-keystore.jks"
+KEYSTORE_B64_FILE="frontend/src-tauri/gen/android/app/keystore-base64.txt"
 
 if [ ! -f "$KEYSTORE_B64_FILE" ]; then
     echo "⚠️  Generating base64 encoding from keystore..."
@@ -37,18 +40,24 @@ fi
 
 KEYSTORE_BASE64=$(cat "$KEYSTORE_B64_FILE")
 
+# Read signing credentials from the environment — never hardcode them here.
+if [ -z "$KEYSTORE_PASSWORD" ] || [ -z "$KEY_PASSWORD" ] || [ -z "$KEY_ALIAS" ]; then
+    echo "❌ Export KEYSTORE_PASSWORD, KEY_PASSWORD and KEY_ALIAS first."
+    exit 1
+fi
+
 # Set secrets
 echo "🔑 Adding KEYSTORE_BASE64 secret..."
 echo "$KEYSTORE_BASE64" | gh secret set KEYSTORE_BASE64
 
 echo "🔑 Adding KEYSTORE_PASSWORD secret..."
-echo "SalonApp2026!" | gh secret set KEYSTORE_PASSWORD
+echo "$KEYSTORE_PASSWORD" | gh secret set KEYSTORE_PASSWORD
 
 echo "🔑 Adding KEY_PASSWORD secret..."
-echo "SalonApp2026!" | gh secret set KEY_PASSWORD
+echo "$KEY_PASSWORD" | gh secret set KEY_PASSWORD
 
 echo "🔑 Adding KEY_ALIAS secret..."
-echo "salon-app-key" | gh secret set KEY_ALIAS
+echo "$KEY_ALIAS" | gh secret set KEY_ALIAS
 
 echo ""
 echo "✅ All secrets added successfully!"

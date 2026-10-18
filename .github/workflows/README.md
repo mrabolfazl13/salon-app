@@ -2,140 +2,106 @@
 
 ## Overview
 
-This project uses a comprehensive GitHub Actions workflow that builds **all platforms** from three frameworks:
+The product ships from **one shared React core** (`frontend/`) and builds **three paths only**:
 
-### 📱 Flutter Mobile
-- ✅ Android Debug APK (on every push)
-- ✅ Android Release APK + AAB (on tags only, signed)
-- ✅ iOS IPA (unsigned for distribution)
+### 🌐 Web (React + Vite)
+- ✅ Type check + production build (on every push/PR)
 
-### 💻 Tauri Desktop
-- ✅ Windows MSI + NSIS installer
-- ✅ Linux DEB + AppImage
-- ✅ macOS DMG
+### 🤖 Tauri Android
+- ✅ APK + AAB (on every push/PR; signed when `KEYSTORE_BASE64` secrets exist)
 
-### 🌐 React Web
-- ✅ Production build with type checking
-- ✅ Optimized bundle output
+### 💻 Tauri Windows
+- ✅ MSI + NSIS installer (on every push/PR)
+
+**Flutter is fully removed** from the product, tests and CI. The Android app is Tauri
+Android (`frontend/src-tauri`), not Flutter.
+
+## Workflow Files
+
+| File | Purpose |
+|------|---------|
+| `build-all-platforms.yml` | Builds Web, Tauri Android, Tauri Windows; creates GitHub Releases on `v*` tags |
+| `web-tests.yml` | Frontend lint, type check, unit tests (vitest), build + bundle budget |
+| `backend-tests.yml` | Backend pytest suite with PostgreSQL + Redis services |
+| `quality-gates.yml` | Cross-cutting gates: backend tests, frontend tests, security scan, build verify |
+
+The old Flutter-era workflows (`android-emulator-test.yml`, `test-build.yml`) were
+removed together with the Flutter code.
 
 ## Workflow Triggers
 
-The workflow runs on:
-- **Push to master**: Builds debug versions and web
-- **Git tags (v*)**: Builds all release versions and creates GitHub Release
+- **Push to master / PRs**: Web build, Tauri Android APK/AAB, Tauri Windows installers
+- **Git tags (v\*)**: same builds + GitHub Release with all artifacts attached
 
-## Required Secrets
+## Required Secrets (Android signing)
 
-For **signed Android builds**, add these secrets in GitHub Settings → Secrets:
+| Secret Name | Description |
+|-------------|-------------|
+| `KEYSTORE_BASE64` | Base64-encoded JKS keystore file |
+| `KEYSTORE_PASSWORD` | Keystore password |
+| `KEY_PASSWORD` | Key password |
+| `KEY_ALIAS` | Key alias name |
 
-| Secret Name | Description | Example |
-|-------------|-------------|---------|
-| `KEYSTORE_BASE64` | Base64-encoded JKS keystore file | Generate with: `base64 -i release-keystore.jks` |
-| `KEYSTORE_PASSWORD` | Keystore password | `your_keystore_password` |
-| `KEY_PASSWORD` | Key alias password | `your_key_password` |
-| `KEY_ALIAS` | Key alias name | `my-key-alias` |
+Without these secrets the Tauri Android job builds **unsigned** artifacts and prints a
+warning instead of failing.
 
 ### How to Generate Keystore Base64
 
 ```bash
 # On macOS/Linux
-base64 -i android_flutter/release-keystore.jks | pbcopy  # macOS
-base64 -i android_flutter/release-keystore.jks | xclip   # Linux
+base64 -i release-keystore.jks | pbcopy  # macOS
+base64 -i release-keystore.jks | xclip   # Linux
 
 # On Windows (PowerShell)
-[Convert]::ToBase64String([IO.File]::ReadAllBytes("android_flutter\release-keystore.jks")) | Set-Clipboard
+[Convert]::ToBase64String([IO.File]::ReadAllBytes("release-keystore.jks")) | Set-Clipboard
 ```
 
 ## Build Outputs
 
 ### Artifacts (available for 90 days)
 
-After each run, you can download:
-
-#### Flutter
-- `flutter-android-debug.apk` - Debug APK for testing
-- `flutter-android-release.apk` - Signed release APK
-- `flutter-android-release.aab` - Google Play Store bundle
-- `flutter-ios.ipa` - iOS app package
-
-#### Tauri
-- `tauri-windows/` - Contains .msi and .exe files
-- `tauri-linux/` - Contains .deb and .AppImage files
-- `tauri-macos/` - Contains .dmg file
-
-#### React
+- `tauri-android.apk` - Tauri Android APKs (universal + per-ABI)
+- `tauri-android.aab` - Tauri Android App Bundle (Play Store)
+- `tauri-windows/` - Contains .msi and .exe installers
 - `react-web-dist/` - Production-ready static files
 
 ### GitHub Release (on tags only)
 
 When you create a tag like `v1.2.0`, the workflow will:
-1. Build all platforms
-2. Create a GitHub Release with changelog from CHANGELOG.md
-3. Attach all binaries as release assets
-
-## Local Testing
-
-You can test the workflow locally using [act](https://github.com/nektos/act):
-
-```bash
-# Test specific job
-act -j flutter-android-debug
-
-# Test release creation (simulate tag)
-act -j create-release --env GITHUB_REF=refs/tags/v1.2.0
-```
+1. Build Web, Tauri Android and Tauri Windows
+2. Require both Tauri Android **and** Tauri Windows to succeed before releasing
+3. Create a GitHub Release with changelog from CHANGELOG.md
+4. Attach all binaries as release assets
 
 ## Build Matrix Summary
 
 | Platform | Framework | Runner | Trigger | Output |
 |----------|-----------|--------|---------|--------|
-| Android Debug | Flutter | ubuntu-latest | Push | APK |
-| Android Release | Flutter | ubuntu-latest | Tag | APK + AAB (signed) |
-| iOS | Flutter | macos-latest | Tag | IPA |
-| Android | Tauri | ubuntu-latest | Push + Tag | APK + AAB (signed) |
-| iOS | Tauri | macos-latest | Push + Tag | IPA (unsigned) |
-| Windows | Tauri | windows-latest | Push | MSI + EXE |
-| Linux | Tauri | ubuntu-latest | Push | DEB + AppImage |
-| macOS | Tauri | macos-latest | Push | DMG |
-| Web | React | ubuntu-latest | Push | Static files |
+| Android | Tauri | ubuntu-latest | Push + Tag | APK + AAB (signed when secrets exist) |
+| Windows | Tauri | windows-latest | Push + Tag | MSI + EXE |
+| Web | React + Vite | ubuntu-latest | Push + Tag | Static files |
 
 ## Optimization Features
 
 - **Caching**: Rust dependencies cached across runs
 - **Parallel builds**: All platforms build simultaneously
-- **Conditional execution**: Release builds only on tags
 - **Dependency management**: pnpm for faster installs
 - **Artifact retention**: 90-day default for downloads
 
 ## Troubleshooting
 
-### Flutter build fails
-- Check `pubspec.yaml` syntax
-- Ensure all dependencies are available
-- Verify Flutter version compatibility
-
 ### Tauri build fails
 - Install Rust toolchain: `rustup install stable`
-- Check system dependencies (Linux): libwebkit2gtk, etc.
 - Verify Node.js version >= 18
+- Android: make sure `NDK_HOME` resolves (CI installs NDK via ANDROID_HOME)
 
 ### Signing fails
 - Verify keystore base64 encoding
 - Check passwords match keystore setup
-- Ensure key.properties format is correct
+- The gradle init script in `build-all-platforms.yml` wires `key.properties` into the
+  generated `gen/android` project on CI
 
 ### Release not created
 - Tag must match pattern: `v*` (e.g., v1.2.0)
-- All build jobs must succeed
+- Tauri Android **and** Tauri Windows jobs must both succeed
 - GITHUB_TOKEN must have write permissions
-
-## Next Steps
-
-1. Add repository secrets for Android signing
-2. Create a test tag: `git tag v1.2.1 && git push origin v1.2.1`
-3. Monitor Actions tab for build progress
-4. Download artifacts or check GitHub Releases
-
----
-
-**Note:** This workflow replaces the old separate workflows. The old files (`flutter-build.yml`, `test-build.yml`) can be archived or removed.
