@@ -32,17 +32,37 @@ Flutter به‌طور کامل از محصول، توسعه، تست، CI/CD و 
 | backend: `python -m pytest tests -q` | **792 passed, 54 warnings در 132.10s** (تنها DeprecationWarningهای sqlmodel `session.query`) |
 | frontend: `tsc --noEmit -p tsconfig.app.json` | exit 0 |
 | frontend: `vitest run` | **193 passed / 22 فایل** در ~70s |
-| frontend: `pnpm tauri build` (ویندوز، همین دستگاه) | ⏳ در حال اجرا — نتیجه در ادامه ثبت می‌شود |
-| Tauri Android build محلی | ⏳ نوبت بعدی (NDK 27 + هر ۴ هدف Rust روی دستگاه نصب است؛ `ANDROID_HOME=G:\SDK`) |
+| frontend: `pnpm tauri build` (ویندوز، همین دستگاه) | ✅ موفق — `Salon_1.2.0_x64_en-US.msi` (6,676,480 B، SHA-256 `79FF9FA8…A693`) + `Salon_1.2.0_x64-setup.exe` NSIS (4,962,027 B، SHA-256 `88A1A0C6…2ED`) + `tauri-app.exe` (16,456,704 B) در `frontend/src-tauri/target/release/bundle/` |
+| Tauri Android release build (arm64) | ✅ **موفق — APK نصب و اجرا شد**. جزئیات کامل در بخش «بیلد اندروید arm64» پایین |
+| `pnpm tauri android dev` (گوشی `AYAV6R3C11007538`) | ❌ رها شد (به درخواست کاربر) — سه ران: دیسک پر (`os error 112`)، فلاش ناپایدار (`os error 3`)، و ران سوم روی `CARGO_TARGET_DIR=G:` کامپایل کامل شد (`Finished dev profile in 18m 40s`) اما CLI در «Opening Android Studio» خطا داد (`os error -2147024894` — Android Studio نصب نیست). درس‌ها: `--device` در CLI وجود ندارد (positional است)؛ انتخاب تعاملی دستگاه در شل غیرتعاملی حلقه می‌زند |
+
+### ✅ بیلد اندروید arm64 (شواهد کامل)
+
+| مورد | مقدار |
+|---|---|
+| فرمان | `pnpm tauri android build --target aarch64 --apk` (release، فقط arm64) |
+| APK | `frontend/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk` |
+| اندازه | **20,733,370 B (~20.7MB)** |
+| SHA-256 | `D913317D844BA21D85302012447D3C5C6F89B8A0063D11FBB49618122148A260` |
+| ABI داخل APK | فقط `lib/arm64-v8a/libtauri_app_lib.so` (تأیید با `tar -tf`) |
+| بسته/نسخه | `com.alex.tauri_app`، versionName `1.2.0`، versionCode `1002000`، minSdk 24 / targetSdk 36 |
+| امضا | `apksigner verify --print-certs` → exit 0؛ `CN=Salon App, OU=Dev, O=Salon, L=Qom, ST=Qom, C=IR` (signing این ریپو؛ keystore عرضهٔ GitHub هنوز تنظیم نیست) |
+| زمان بیلد | Rust release: `5m 35s` (سپس `2m 07s` در بازخوانی gradle بیلد) + vite build ~52s |
+| نصب روی گوشی | `adb install -r …` → **Success** |
+| اجرا | `monkey -p com.alex.tauri_app -c LAUNCHER 1` → `topResumedActivity=com.alex.tauri_app/.MainActivity` (visible, fullscreen) |
+| تأیید بصری | اسکرین‌شات واقعی از گوشی: صفحهٔ فرود فارسی/RTL + نویگیشن پایین (`C:\Users\Alex\AppData\Local\Temp\opencode\salon_device.png`) |
+| خطاهای مسیر (غیرمهلک، ثبت‌شده) | (۱) Kotlin daemon cross-drive: `C:\Users\Alex\.cargo\…\Plugin.kt` vs `F:\…\gen\android` → gradle خودش «Compile without Kotlin daemon» را اجرا کرد و بیلد به پایان رسید (۲ بار). (۲) `os error 1117` I/O گذرا روی G: (۳) سیملینک شکستهٔ `jniLibs/x86_64` از بیلدهای قبلی — خود CLI پاکش کرد |
+
+راه‌حل‌های به‌کاررفته: بیلد روی F (به درخواست کاربر)، پراکسی `127.0.0.1:1080` برای cargo و gradle، پاکسازی فضای دیسک (آرتیفکت‌های release قدیمی Android و `target/debug` دسکتاپ).
 
 ### ⏳ در حال اجرا
 
-- `pnpm tauri build` (Tauri Windows MSI/NSIS) در پس‌زمینه.
+- هیچ بیلدی. آخرین وضعیت: APK arm64 روی گوشی `AYAV6R3C11007538` نصب و در حال اجراست.
 
 ### 📋 باقی‌مانده (گام بعدی مشخص)
 
-1. ثبت نتیجهٔ بیلد Windows + مسیر artifactها (MSI/EXE) و اندازهٔ فایل‌ها.
-2. بیلد Tauri Android محلی (`pnpm tauri android build --apk --aab`) + راستی‌آزمایی `aapt2`/`apksigner` + ثبت ABIهای واقعی خروجی.
+1. ✅ ثبت نتیجهٔ بیلد Windows + مسیر artifactها (MSI/EXE) و اندازهٔ فایل‌ها — انجام شد (ردیف مربوطه بالا).
+2. ✅ بیلد Tauri Android محلی (arm64 release APK) + راستی‌آزمایی `apksigner` + ثبت ABI واقعی خروجی + نصب و اجرا روی گوشی — انجام شد. باقی‌مانده: AAB (فقط APK گرفته شد؛ AAB برای Play Store است و ناشناس/unsigned ارزش عملی ندارد).
 3. `pnpm build` وب به‌عنوان شاهد مستقل (بخشی از `tauri build` اجرا می‌شود؛ خروجی `frontend/dist` بررسی شود).
 4. Push شاخه و دیدن اجرای واقعی GitHub Actions (بدون دسترسی push محدود است — ثبت می‌شود).
 5. ممیزی‌های بخش ۳ مأموریت (ARCHITECTURE/FEATURE_MATRIX/…) که در `frontend/docs/FINAL_REVIEW*.md` و ریشهٔ ریپو به‌صورت پراکنده وجودند — یکپارچه‌سازی در `docs/audit/` در صورت نیاز.
