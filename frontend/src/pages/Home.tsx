@@ -277,6 +277,9 @@ const Home: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: i * 0.04 }}
               whileTap={{ scale: 0.96 }}
+              /* whileTap باعث می‌شود framer-motion این div را tabIndex=0 کند؛ لینک داخلش
+                 خودش ایستگاه کیبورد است، پس اینجا -1 تا توقف تکراری ساخته نشود. */
+              tabIndex={-1}
             >
               <Box
                 component={Link}
@@ -349,6 +352,7 @@ const Home: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25, delay: i * 0.04 }}
                     whileTap={{ scale: 0.97 }}
+                    tabIndex={-1}
                     style={{ scrollSnapAlign: 'start', flex: '0 0 min(300px, 82vw)' }}
                   >
                     <Box
@@ -873,7 +877,18 @@ const Home: React.FC = () => {
             </Box>
           </Box>
 
-          <Box sx={{ bgcolor: 'background.paper', p: 1.5, maxHeight: 340, overflowY: 'auto' }}>
+          <Box
+            role="region"
+            aria-label="نتایج زنده، قابل پیمایش با کیبورد"
+            tabIndex={0}
+            sx={{
+              bgcolor: 'background.paper',
+              p: 1.5,
+              maxHeight: 340,
+              overflowY: 'auto',
+              '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
+            }}
+          >
             {loading ? (
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
                 {[1, 2, 3].map((i) => (

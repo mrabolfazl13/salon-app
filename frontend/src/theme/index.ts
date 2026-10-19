@@ -73,6 +73,18 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
   const surfaceBlur = dark ? 'rgba(11,18,32,0.85)' : 'rgba(255,255,255,0.85)'
 
   return {
+    MuiButtonBase: {
+      styleOverrides: {
+        root: {
+          '&.Mui-focusVisible': {
+            outlineWidth: '2px !important',
+            outlineStyle: 'solid !important',
+            outlineColor: `${dark ? '#93c5fd' : '#1d4ed8'} !important`,
+            outlineOffset: '2px !important',
+          },
+        },
+      },
+    },
     MuiButton: {
       styleOverrides: {
         root: {
@@ -80,6 +92,9 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
           textTransform: 'none',
           fontWeight: 600,
           padding: '10px 24px',
+          // حداقل هدف لمسی Material/HIG (۴۴px) — ممیزی موبایل F-08: دکمه‌های
+          // size="small" در جدول‌ها و فرم‌ها ۳۶ تا ۴۳px بودند.
+          minHeight: 44,
           transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
             transform: 'translateY(-1px)',
@@ -88,6 +103,10 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
             transform: 'scale(0.98)',
           },
         },
+        sizeSmall: {
+          minHeight: 44,
+          padding: '8px 14px',
+        },
         contained: {
           boxShadow: dark ? '0 4px 14px rgba(0,0,0,0.35)' : '0 4px 14px rgba(37,99,235,0.22)',
         },
@@ -95,6 +114,28 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
           borderWidth: 2,
           '&:hover': { borderWidth: 2 },
         },
+      },
+    },
+    MuiIconButton: {
+      styleOverrides: {
+        root: {
+          minHeight: 44,
+          minWidth: 44,
+        },
+        sizeSmall: {
+          // آیکن‌های ردیف جدول (تغییر نقش/حذف عضو، انتخاب تاریخ) ۱۰ تا ۲۸px بودند
+          minHeight: 44,
+          minWidth: 44,
+          padding: 10,
+        },
+      },
+    },
+    MuiToggleButton: {
+      styleOverrides: {
+        // فیلترهای گروهی (بخش‌بندی CRM، وضعیت بازی‌های مربی) ۳۵px بودند — ممیزی F-09
+        // عرض هم باید ≥۴۴ باشد: «تازه» با ۴۱px عرض، تنها با ارتفاع ۴۪ درست نمی‌شد.
+        root: { minHeight: 44, minWidth: 44, textTransform: 'none' },
+        sizeSmall: { minHeight: 44, minWidth: 44 },
       },
     },
     MuiCard: {
@@ -130,14 +171,22 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
             transition: 'all 0.25s ease',
             '&:hover fieldset': { borderColor: accent },
             '&.Mui-focused fieldset': { borderColor: accent, borderWidth: 2 },
+            /* فیلد‌های size="small" در ۴۰px می‌ماندند؛ هدف لمسی این پروژه ۴۴px است */
+            '&.MuiInputBase-sizeSmall': { minHeight: 44 },
           },
         },
       },
     },
-    MuiSelect: { styleOverrides: { root: { borderRadius: 12 } } },
+    MuiSelect: { styleOverrides: { root: { borderRadius: 12, minHeight: 44 } } },
     MuiChip: {
       styleOverrides: {
-        root: { borderRadius: radii.chip, fontWeight: 500 },
+        root: {
+          borderRadius: radii.chip,
+          fontWeight: 500,
+          // چیپ‌های برچسب‌دار ۲۴px می‌مانند؛ فقط چیپ‌های کلیک‌شدنی (فیلتر سالن‌ها،
+          // فیلتر رشته، برچسب وضعیتِ رزرو) باید هدف لمسی ۴۴px شوند — ممیزی F-09
+          '&.MuiButtonBase-root': { minHeight: 44 },
+        },
       },
     },
     MuiAvatar: { styleOverrides: { root: { borderRadius: 14 } } },

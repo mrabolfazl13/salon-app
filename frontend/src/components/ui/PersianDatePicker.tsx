@@ -55,8 +55,8 @@ const shiftMonth = (v: View, delta: number): View => {
 }
 
 const cellBase: React.CSSProperties = {
-  width: 38,
-  height: 38,
+  width: 44,
+  height: 44,
   borderRadius: '50%',
   border: 'none',
   cursor: 'pointer',
@@ -143,14 +143,13 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
               readOnly: true,
             },
             input: {
-              sx: { borderRadius: '10px' },
+              sx: { borderRadius: '10px', minHeight: 44 },
               endAdornment: !readOnly ? (
                 <IconButton
-                  size="small"
                   onClick={openPanel}
                   disabled={disabled}
                   aria-label="انتخاب تاریخ"
-                  sx={{ color: 'primary.main' }}
+                  sx={{ width: 44, height: 44, color: 'primary.main' }}
                 >
                   <Icon icon="mdi:calendar-month-outline" style={{ width: 20, height: 20 }} />
                 </IconButton>
@@ -168,15 +167,15 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
         transformOrigin={{ vertical: 'top', horizontal: 'left' }}
         slotProps={{ paper: { sx: { p: 1.5, borderRadius: '14px', direction: 'rtl' } } }}
       >
-        <Box sx={{ width: 306 }} dir="rtl">
+        <Box sx={{ width: 308 }} dir="rtl">
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
             <Box sx={{ display: 'flex' }}>
               {/* convention RTL این پروژه (DateSelector/SlotWeekGrid): «قبل» با شیولرون راست،
                   «بعد» با شیولرون چپ — چون جریان خواندن راست‌به‌چپ است */}
-              <IconButton size="small" onClick={() => setView(prevYear)} aria-label="سال قبل">
+              <IconButton onClick={() => setView(prevYear)} aria-label="سال قبل" sx={{ width: 44, height: 44 }}>
                 <Icon icon="mdi:chevron-double-right" style={{ width: 18, height: 18 }} />
               </IconButton>
-              <IconButton size="small" onClick={() => setView(shiftMonth(view, -1))} aria-label="ماه قبل">
+              <IconButton onClick={() => setView(shiftMonth(view, -1))} aria-label="ماه قبل" sx={{ width: 44, height: 44 }}>
                 <Icon icon="mdi:chevron-right" style={{ width: 18, height: 18 }} />
               </IconButton>
             </Box>
@@ -184,10 +183,10 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
               {toPersianDigits(`${jalaliMonthNames[view.jm - 1]} ${view.jy}`)}
             </Typography>
             <Box sx={{ display: 'flex' }}>
-              <IconButton size="small" onClick={() => setView(shiftMonth(view, 1))} aria-label="ماه بعد">
+              <IconButton onClick={() => setView(shiftMonth(view, 1))} aria-label="ماه بعد" sx={{ width: 44, height: 44 }}>
                 <Icon icon="mdi:chevron-left" style={{ width: 18, height: 18 }} />
               </IconButton>
-              <IconButton size="small" onClick={() => setView(nextYear)} aria-label="سال بعد">
+              <IconButton onClick={() => setView(nextYear)} aria-label="سال بعد" sx={{ width: 44, height: 44 }}>
                 <Icon icon="mdi:chevron-double-left" style={{ width: 18, height: 18 }} />
               </IconButton>
             </Box>
@@ -247,7 +246,7 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
                 setView({ jy: t.jy, jm: t.jm })
                 if (canPick(todayIso)) pick(todayIso)
               }}
-              sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.8rem' }}
+              sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', minHeight: 44 }}
             >
               امروز
             </Button>
@@ -259,7 +258,7 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
                   onChange('')
                   setOpen(false)
                 }}
-                sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.8rem' }}
+                sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', minHeight: 44 }}
               >
                 پاک کردن
               </Button>
