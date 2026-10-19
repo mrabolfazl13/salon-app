@@ -112,6 +112,10 @@ jobs:
       - name: Build APK + AAB
         working-directory: frontend
         run: pnpm tauri android build --apk --aab
+        env:
+          # اپ بومی به پروکسی هم‌مبدأ دسترسی ندارد؛ آدرس مطلق API لازم است.
+          VITE_API_URL: ${{ secrets.TAURI_API_URL || 'http://2.189.255.225/api/v1' }}
+          VITE_DOMAIN: ${{ secrets.TAURI_DOMAIN || 'http://2.189.255.225' }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -159,6 +163,9 @@ jobs:
       - name: Build Tauri app
         working-directory: frontend
         run: pnpm tauri build
+        env:
+          VITE_API_URL: ${{ secrets.TAURI_API_URL || 'http://2.189.255.225/api/v1' }}
+          VITE_DOMAIN: ${{ secrets.TAURI_DOMAIN || 'http://2.189.255.225' }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -197,10 +204,10 @@ jobs:
         working-directory: frontend
         run: pnpm build
         env:
-          # .env گیط‌ایگنور است؛ این‌ها تنها منبع env در بیلد CI‌اند.
-          # fallbackها باید همین مقادیر پروداکشن سالن باشند (نه پروژه‌های دیگر).
-          VITE_API_URL: ${{ secrets.VITE_API_URL || 'http://2.189.255.225/api/v1' }}
-          VITE_DOMAIN: ${{ secrets.VITE_DOMAIN || 'http://2.189.255.225' }}
+          # وب از همان دامنهٔ salon سرو می‌شود و nginx مسیر /api را پروکسی می‌کند؛
+          # آدرس مطلق http روی صفحهٔ https به‌خاطر mixed-content بلاک می‌شود.
+          VITE_API_URL: '/api/v1'
+          VITE_DOMAIN: ''
           VITE_APP_NAME: ${{ secrets.VITE_APP_NAME || 'سالن من' }}
           VITE_APP_VERSION: ${{ secrets.VITE_APP_VERSION || '1.4.0' }}
 

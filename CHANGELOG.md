@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.7.1] - 2026-10-19
+
+### ✨ Added — Quick access for every role
+- Login page now has a «دسترسی سریع» section with **nine demo accounts** (three per role: user, venue manager, super admin). One click fills the form and signs in with the right post-login redirect.
+- `backend/app/seed_quick_access.py` is idempotent and creates/refreshes the same nine accounts (`python -m app.seed_quick_access`); demo password `demo1234`.
+- Unit test `src/config/quickAccess.test.ts` guards group shape, unique phones and valid Iranian mobile numbers.
+
+### 🔧 Fixed
+- Web CI build now uses the same-origin `/api/v1` (and an empty `VITE_DOMAIN`); the previous absolute `http://2.189.255.225` URL was blocked as mixed content on the HTTPS site.
+- Tauri Windows/Android CI builds now receive an absolute `VITE_API_URL`/`VITE_DOMAIN`; without it the native app fell back to `http://localhost:8000`.
+- Production backend brought to alembic head `m0s030redemactor`; missing `/api/v1/notifications` list/unread-count routes now respond 200 again.
+
 ## [v1.7.0] - 2026-10-18
 
 ### 🗑️ Removed — Flutter is gone from the product

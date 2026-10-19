@@ -8,6 +8,7 @@ import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import {
   Box,
+  Button,
   TextField,
   IconButton,
   InputAdornment,
@@ -19,6 +20,7 @@ import {
 import { PrimaryButton } from '@/components/mobile'
 import { useToast } from '@/hooks/useToast'
 import { useAuthStore } from '@/store/authStore'
+import { QUICK_ACCESS_GROUPS } from '@/config/quickAccess'
 import { gradients, radii, shadows } from '@/theme'
 
 const loginSchema = z.object({
@@ -47,6 +49,7 @@ const fieldSx = {
 const Login: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [quickPending, setQuickPending] = useState<string | null>(null)
   const navigate = useNavigate()
   const { success } = useToast()
   const login = useAuthStore((state) => state.login)
@@ -55,34 +58,56 @@ const Login: React.FC = () => {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors },
   } = useForm<LoginForm>({
     resolver: zodResolver(loginSchema),
   })
+
+  const redirectByRole = () => {
+    const user = useAuthStore.getState().user
+    if (user?.role === 'coach') {
+      navigate('/coach')
+    } else if (
+      user?.role === 'venue_manager' ||
+      user?.role === 'club_admin' ||
+      user?.role === 'super_admin'
+    ) {
+      navigate('/manager-dashboard')
+    } else {
+      navigate('/venues')
+    }
+  }
 
   const onSubmit = async (data: LoginForm) => {
     setError(null)
     try {
       await login(data.phone, data.password)
       success('ورود موفقیت‌آمیز!')
-
-      // Redirect based on role
-      const user = useAuthStore.getState().user
-      if (user?.role === 'coach') {
-        navigate('/coach')
-      } else if (
-        user?.role === 'venue_manager' ||
-        user?.role === 'club_admin' ||
-        user?.role === 'super_admin'
-      ) {
-        navigate('/manager-dashboard')
-      } else {
-        navigate('/venues')
-      }
+      redirectByRole()
     } catch (err: any) {
       // فقط بازخورد درون‌صفحه (جلوگیری از نمایش دوجانبه خطا)
       const message = err.response?.data?.detail || 'شماره موبایل یا رمز عبور اشتباه است.'
       setError(message)
+    }
+  }
+
+  const quickLogin = async (phone: string, password: string) => {
+    if (isLoading || quickPending) return
+    setError(null)
+    setQuickPending(phone)
+    // فیلدها را هم پر می‌کنیم تا کاربر ببیند با چه حسابی وارد شد
+    setValue('phone', phone)
+    setValue('password', password)
+    try {
+      await login(phone, password)
+      success('ورود موفقیت‌آمیز!')
+      redirectByRole()
+    } catch (err: any) {
+      const message = err.response?.data?.detail || 'ورود سریع ناموفق بود؛ دوباره تلاش کنید.'
+      setError(message)
+    } finally {
+      setQuickPending(null)
     }
   }
 
@@ -277,6 +302,86 @@ const Login: React.FC = () => {
             </Box>
           </form>
         </Paper>
+
+        <Box component="section" aria-labelledby="quick-access-title" sx={{ mt: 3 }}>
+          <Box sx={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', gap: 1 }}>
+            <Typography
+              id="quick-access-title"
+              component="h2"
+              sx={{ fontWeight: 800, fontSize: '1rem', color: 'text.primary' }}
+            >
+              دسترسی سریع
+            </Typography>
+            <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+              حساب‌های نمونه
+            </Typography>
+          </Box>
+          <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', mt: 0.25, mb: 1.5 }}>
+            با یک کلیک با هر نقش وارد شوید — فقط برای آزمون و دمو.
+          </Typography>
+
+          <Box
+            sx={{
+              display: 'grid',
+              gap: 1.5,
+              gridTemplateColumns: { xs: '1fr', sm: 'repeat(3, minmax(0, 1fr))' },
+            }}
+          >
+            {QUICK_ACCESS_GROUPS.map((group) => (
+              <Paper
+                key={group.key}
+                elevation={0}
+                sx={{
+                  p: 1.25,
+                  borderRadius: `${radii.button}px`,
+                  border: '1px solid',
+                  borderColor: 'divider',
+                  bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(18,26,43,0.75)' : 'rgba(255,255,255,0.75)'),
+                }}
+              >
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 1, color: group.color }}>
+                  <Icon icon={group.icon} aria-hidden="true" style={{ width: 18, height: 18 }} />
+                  <Typography component="h3" sx={{ fontWeight: 700, fontSize: '0.82rem' }}>
+                    {group.label}
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                  {group.users.map((u) => (
+                    <Button
+                      key={u.phone}
+                      variant="outlined"
+                      size="small"
+                      fullWidth
+                      onClick={() => quickLogin(u.phone, u.password)}
+                      disabled={Boolean(quickPending) || isLoading}
+                      aria-label={`ورود سریع به‌عنوان ${u.name} — ${u.phone}`}
+                      startIcon={
+                        <Icon
+                          icon={quickPending === u.phone ? 'mdi:loading' : 'mdi:login-variant'}
+                          className={quickPending === u.phone ? 'animate-spin' : undefined}
+                          aria-hidden="true"
+                          style={{ width: 18, height: 18 }}
+                        />
+                      }
+                      sx={{
+                        minHeight: 44,
+                        justifyContent: 'flex-start',
+                        textTransform: 'none',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        color: 'text.primary',
+                        borderColor: 'divider',
+                        '&:hover': { borderColor: group.color },
+                      }}
+                    >
+                      {quickPending === u.phone ? 'در حال ورود…' : u.name}
+                    </Button>
+                  ))}
+                </Box>
+              </Paper>
+            ))}
+          </Box>
+        </Box>
 
         <Typography
           sx={{ textAlign: 'center', mt: 3, fontSize: '0.9rem', color: 'text.secondary' }}
