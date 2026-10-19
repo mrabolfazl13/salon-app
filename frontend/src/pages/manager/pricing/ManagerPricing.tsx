@@ -21,7 +21,7 @@ import {
 
 import Layout from '@/components/layout/Layout'
 import { ErrorBox } from '@/components/finance/shared'
-import { useManagedVenues, isForbiddenError } from '@/hooks/useStaffMe'
+import { useManagedVenues, useStaffPermission, isForbiddenError } from '@/hooks/useStaffMe'
 import { ForbiddenPanel } from '@/components/crm/shared'
 import PricingRulesTab from '@/components/pricing/PricingRulesTab'
 import HolidaysTab from '@/components/pricing/HolidaysTab'
@@ -42,6 +42,8 @@ const ManagerPricing: React.FC = () => {
   // دامنه ادغام‌شده مدیر + کارمند (/staff/me) — مثل کنسول مالی
   const venuesQuery = useManagedVenues()
   const venues = venuesQuery.data ?? []
+  // کارمندِ بدون کد قیمت‌گذاری: قوانین/تعطیلات/کدها شلیک نمی‌شوند (۴۰۳ + اسکلتون ماندگار — ممیزی F-04)
+  const pricingAccess = useStaffPermission(['pricing.manage', 'holiday.manage', 'coupon.manage'])
   const [venueId, setVenueId] = useState<number | null>(null)
   const selectedVenue = venueId ?? venues[0]?.id ?? null
 
@@ -101,7 +103,13 @@ const ManagerPricing: React.FC = () => {
         </Box>
 
         <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, mt: -5, position: 'relative', zIndex: 2, pb: 6 }}>
-          {venuesQuery.isPending ? (
+          {!pricingAccess.ready ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress sx={{ color: '#2563eb' }} />
+            </Box>
+          ) : !pricingAccess.allowed ? (
+            <ForbiddenPanel detail="برای قیمت‌گذاری باید مدیر سالن باشید یا در یک سالن با دسترسی pricing.manage/holiday.manage/coupon.manage انتصاب شوید." />
+          ) : venuesQuery.isPending ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
               <CircularProgress sx={{ color: '#2563eb' }} />
             </Box>

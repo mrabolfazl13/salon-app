@@ -73,18 +73,6 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
   const surfaceBlur = dark ? 'rgba(11,18,32,0.85)' : 'rgba(255,255,255,0.85)'
 
   return {
-    MuiButtonBase: {
-      styleOverrides: {
-        root: {
-          '&.Mui-focusVisible': {
-            outlineWidth: '2px !important',
-            outlineStyle: 'solid !important',
-            outlineColor: `${dark ? '#93c5fd' : '#1d4ed8'} !important`,
-            outlineOffset: '2px !important',
-          },
-        },
-      },
-    },
     MuiButton: {
       styleOverrides: {
         root: {
@@ -95,7 +83,10 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
           // حداقل هدف لمسی Material/HIG (۴۴px) — ممیزی موبایل F-08: دکمه‌های
           // size="small" در جدول‌ها و فرم‌ها ۳۶ تا ۴۳px بودند.
           minHeight: 44,
-          transition: 'all 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
+          /* «all» حلقهٔ تمرکز را هم انیمیت می‌کرد: outline-width از ۰ تا ۲px در ۲۵۰ms،
+             پسfocus ring در لحظهٔ Tab دیده نمی‌شد (WCAG 2.4.7). فهرست صریح = حلقه آنی. */
+          transition:
+            'background-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), color 0.25s cubic-bezier(0.4, 0, 0.2, 1), border-color 0.25s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.25s cubic-bezier(0.4, 0, 0.2, 1), transform 0.25s cubic-bezier(0.4, 0, 0.2, 1)',
           '&:hover': {
             transform: 'translateY(-1px)',
           },
@@ -138,6 +129,12 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
         sizeSmall: { minHeight: 44, minWidth: 44 },
       },
     },
+    MuiSwitch: {
+      styleOverrides: {
+        // تاگل‌های «قوانین قیمت‌گذاری» فقط ۲۴px ارتفاع داشتند (F-35)
+        root: { minHeight: 44, minWidth: 44 },
+      },
+    },
     MuiCard: {
       styleOverrides: {
         root: {
@@ -168,7 +165,8 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
         root: {
           '& .MuiOutlinedInput-root': {
             borderRadius: 12,
-            transition: 'all 0.25s ease',
+            /* outline عمداً در فهرست نیست تا حلقهٔ تمرکز بی‌درنگ ظاهر شود (F-28) */
+            transition: 'background-color 0.25s ease, box-shadow 0.25s ease',
             '&:hover fieldset': { borderColor: accent },
             '&.Mui-focused fieldset': { borderColor: accent, borderWidth: 2 },
             /* فیلد‌های size="small" در ۴۰px می‌ماندند؛ هدف لمسی این پروژه ۴۴px است */
@@ -218,7 +216,7 @@ function buildComponents(mode: ThemeMode): ThemeOptions['components'] {
             textTransform: 'none',
             fontWeight: 600,
             minHeight: 48,
-            transition: 'all 0.25s ease',
+            transition: 'background-color 0.25s ease, color 0.25s ease',
             '&.Mui-selected': {
               backgroundColor: accent,
               color: dark ? '#0b1220' : '#ffffff',

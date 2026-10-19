@@ -134,12 +134,13 @@ const Users: React.FC = () => {
 
       <Paper sx={{ p: 2, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, mb: 3 }}>
         <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Box sx={{
+          <Box component="label" sx={{
             display: 'flex', alignItems: 'center', gap: 1,
             px: 1.5, py: 0.75, flex: 1, minWidth: 220, minHeight: 44,
             bgcolor: 'grey.50',
             border: `1px solid ${theme.palette.divider}`,
             borderRadius: 1,
+            cursor: 'text',
             '&:focus-within': { border: `1px solid ${theme.palette.primary.main}` },
           }}>
             <Icon icon="mdi:magnify" className="h-4 w-4" style={{ color: theme.palette.text.secondary }} />
@@ -222,7 +223,7 @@ const Users: React.FC = () => {
                           onChange={(e) => changeRole(user.id, e.target.value as AdminUser['role'])}
                           aria-label={`تخصیص نقش برای ${user.full_name}`}
                           data-testid={`user-role-${user.id}`}
-                          sx={{ borderRadius: 1, fontSize: '0.8rem', minWidth: 128, minHeight: 40 }}
+                          sx={{ borderRadius: 1, fontSize: '0.8rem', minWidth: 128, minHeight: 44 }}
                         >
                           {Object.entries(roleConfig).map(([value, conf]) => (
                             <MenuItem key={value} value={value}>{conf.label}</MenuItem>

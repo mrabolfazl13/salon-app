@@ -29,23 +29,25 @@
 - F-25: page-has-heading-one → h1 یکتا در هر breakpoint
 - F-26: aria-progressbar-name → `aria-label + aria-valuetext` روی LinearProgress
 
-### F-27: کنسول/شبکه — تصاویر unsplash unreachable (P2 محیطی)
+### F-27: کنسول/شبکه — تصاویر unsplash unreachable (P2 محیطی — VERIFIED)
 
-تمام ۶۸ خطای `request-failed` و `console-error` از seed-data指向 `images.unsplash.com` است که از این ماشین قابل‌دسترسی نیست. fallback بصری (گرادیان + آیکون) وجود دارد؛ فقط نویز کنسول.
+تمام خطاهای `request-failed` (۱۷ ردیف در sweep، ۳۷ ردیف در ماتریس) صرفاً `GET https://images.unsplash.com/...` با `ERR_CONNECTION_REFUSED` هستند؛ هیچ درخواست داخلی اپ شکست نمی‌خورد. fallback بصری (گرادیان + آیکون) رندر می‌شود. دو خطای کنسول دیگر: `404 tournaments/999` (پروب عمدی) و `validateDOMNesting` که در F-32 رفع شد.
 
-### F-28: حلقهٔ تمرکز نامرئی روی MUI Button-as-link (P2 چارچوب)
+**وضعیت:** VERIFIED به‌عنوان یافتهٔ محیطی — روی شبکهٔ با دسترسی به Unsplash خطا وجود ندارد.
 
-**مشکل:** دکمه‌های MUI که به‌صورت `<a>` رندر می‌شوند (`MuiButton-root` روی تگ `<a>`) حلقهٔ تمرکز کیبورد ندارند. دلیل: قوانین emotion/MUI با ویژگی بالاتر `outline-width: 0px` را اعمال می‌کنند و حتی `!important` در تم بر آن‌ها چیره نمی‌شود.
+### F-28: حلقهٔ تمرکز دیر ظاهر می‌شد روی دکمه‌های MUI (CLOSED ✓)
 
-**تأثیر:** ۷ ایستگاه کیبورد در ۵ مسیر بدون حلقهٔ قابل‌مشاهده:
-- `/` (user): «ثبت‌نام رایگان» (contained button)
-- `/dashboard` (user): «مشاهده همه»، «رزرو جدید»، «رقابت‌ها»، «تورنمنت‌ها»، «قراردادها»، «پروفایل» (text/outlined buttons)
+**مشکل ظاهری:** ۷ ایستگاه کیبورد (لینک‌دکمه‌های `MuiButton-root` روی `<a>`) بدون حلقهٔ قابل‌مشاهده گزارش شدند و ابتدا «محدودیت emotion» تشخیص داده شد.
 
-**راه‌حل موقت:** IconButtonها، ورودی‌ها، comboboxها و لینک‌های ساده حلقه دارند. این محدودیت خاصِ MUI Button-as-link است. برای رفع کامل نیاز به patch سطح فریم‌ورک یا جایگزینی کامپوننت دارد.
+**ریشهٔ واقعی (با CDP `CSS.getMatchedStylesForNode`):** حلقه واقعاً اعمال می‌شد، اما `transition: all 0.25s` در تم، `outline-width` را از ۰ به ۲px انیمیت می‌کرد. پروب مقدار را بلافاصله بعد از Tab می‌خواند و در t=0 مقدار `0px` می‌دید؛ در t=450ms همان ایستگاه `solid 2px rgb(29,78,216)` بود.
 
-**وضعیت:** DOCUMENTED — یافتگان P3 در گزارش ثبت شدند؛ تست سخت‌گیرانه حذف شد.
+**رفع:**
+- `src/theme/index.ts`: فهرست صریح پراپرتی‌ها به‌جای `all` برای `MuiButton`, `MuiOutlinedInput`, `MuiTab` (بدون `outline`)
+- `e2e/mobile-audit.spec.ts`: ۶۰ms مکث پس از Tab + assertion سخت‌گیرانهٔ `noRing === 0`
 
-### F-29: هدف لمسی زیر ۴۴px در PersianDatePicker (P2)
+**وضعیت:** VERIFIED — ۵ مسیر × ۱۶ ایستگاه، `noRing=0`, `dups=0`.
+
+### F-29: هدف لمسی زیر ۴۴px در PersianDatePicker (VERIFIED ✓)
 
 **مشکل:** سلول‌های تقویم (۳۸×۳۸)، دکمه‌های ناوبری ماه/سال (size="small" ≈ ۳۰px)، فیلد تاریخ size="small" (۴۰px).
 
@@ -56,16 +58,79 @@
 - Select: `minHeight: 44` در تم (`MuiSelect.root`)
 - دکمه‌های «امروز»/«پاک کردن»: `minHeight: 44`
 
-**وضعیت:** FIXED — نیاز به تأیید با اسکرین‌شات دستگاه واقعی (NATIVE-ONLY).
+**اندازه‌گیری واقعی (375×812، Edge، `getBoundingClientRect`):** سلول‌ها ۴۴×۴۴، ناوبری ۴۴×۴۴، دکمه‌های پانویس ۶۴/۷۵ ×۴۴، پنل ۳۳۲px. اسکرین‌شات: `audit-artifacts/shots/datepicker-375x812.png`.
+
+### F-30: بریده‌شدن مقدار تاریخ در فیلدهای نیم‌عرض (FIXED ✓)
+
+**مشکل:** در ۳۷۵px، فیلدهای «از/تا» مقدار `1405/06/28` را ناقص نشان می‌دادند (۹۹px متن در ۸۱px محتوا) — تاریخ انتخابی کاربر قابل‌خواندن نبود.
+
+**رفع در `PersianDatePicker`:**
+- آیکن تقویم از `IconButton` ۴۴px به آیکن بصری `pointerEvents:none` تبدیل شد (هدف لمسی خودِ فیلد است) → ۱۶px عرض آزاد شد
+- `paddingInline: '10px'` + `fontSize: '0.8rem'` روی input
+- فیلد با کیبورد هم باز می‌شود (`Enter`/`Space`/`ArrowDown`) + `aria-haspopup/aria-expanded`
+
+**نکته:** در `sx` عدد به spacing تبدیل می‌شود؛ `paddingInline: 10` یعنی ۸۰px (باگ موقت خودِ اصلاح). واحد صریح `'10px'` لازم است.
+
+**وضعیت:** VERIFIED — `scrollWidth === clientWidth === 97`، هر دو تاریخ کامل دیده می‌شوند.
+
+### F-31: گرید تقویم ۱۲ ستونه بود، نه ۷ (FIXED ✓)
+
+**مشکل:** `Grid size={{ xs: 1 }}` در MUI یعنی ۱ از ۱۲ ستون → تقویم هر ردیف ۱۲ روز می‌چید و روزهای هفته با ستون‌ها هم‌تراز نبودند (۱۲ شمسی و ۱۲ میلادی قاطی می‌شد در یک ردیف).
+
+**رفع:** جایگزینی با CSS Grid: `display:'grid'; gridTemplateColumns:'repeat(7, 1fr)'` برای هدر روزهای هفته و شبکهٔ روزها. هر سلول ۴۴px.
+
+**وضعیت:** VERIFIED — ۷ ستون، ۱ شهریور ۱۴۰۵ زیر «یکشنبه» (درست).
+
+### F-32: Chip داخل `<p>` در بخش نظرات (FIXED ✓)
+
+**مشکل:** روی `/venues/1` کنسول هشدار `validateDOMNesting: <div> cannot appear as a descendant of <p>` می‌داد — چیپ «شما» (`Chip` = div) داخل `Typography` (`p`) قرار داشت.
+
+**رفع:** `component="span"` روی همان `Chip` در `src/components/venue/ReviewSection.tsx`.
+
+**وضعیت:** VERIFIED — پروب ۷ ثانیه‌ای روی `/venues/1`: `nestingWarnings=0`.
+
+### F-33: لینک‌های بازگشت ۲۵px در صفحهٔ بازی و تیم (FIXED ✓)
+
+**مشکل:** `<Link>`های «بازگشت به بازی‌ها» و «بازگشت به تیم‌ها» به‌صورت متن ۱۱۵×۲۵ رندر می‌شدند (زیر ۴۴px).
+
+**رفع:** خودِ `<Link>` به `inline-flex` با `minHeight: 44` تبدیل شد (کل عرض متن کلیک‌پذیر است).
+
+**وضعیت:** VERIFIED — هر دو مسیر: `smallTap=[]`.
+
+### F-34: کادر جستجوی ادمین ۲۹px (FIXED ✓)
+
+**مشکل:** `InputBase` در `/admin/users` فقط ۲۹px ارتفاع داشت؛ جعبهٔ والد ۴۴px بود ولی کلیک روی لبه‌های آن فوکوس نمی‌داد.
+
+**رفع:** والد به `component="label"` تبدیل شد (`cursor: text`) تا تمام سطح ۴۴px ورودی را فوکوس کند.
+
+**وضعیت:** VERIFIED — کلیک روی label فوکوس را به input می‌دهد (`label-click-focuses-input`) و هدف مؤثر ۴۴px است.
+
+**اصلاح اندازه‌گیری هارنس:** input/comboboxهای MUI داخل ریشهٔ ۴۴px، خودشان ۲۳–۴۰px هستند و قبلاً «هدف کوچک» کاذب تولید می‌کردند. هارنس اکنون بزرگ‌ترین جعبهٔ `.MuiInputBase-root`/`.MuiButtonBase-root`/`label` والد را به‌عنوان هدف مؤثر می‌شمارد و ورودی‌های `aria-hidden` و جعبه‌های ≤۴px را نادیده می‌گیرد.
+
+### F-35: تاگل‌های فعال/غیرفعال فقط ۲۴px و بدون نام دسترس‌پذیر (FIXED ✓)
+
+**مشکل:** `Switch`های جدول قوانین قیمت‌گذاری و کدهای تخفیف ۲۴px ارتفاع داشتند و نام دسترس‌پذیر نداشتند (صفحه‌خوان فقط «سوییچ» می‌شنید).
+
+**رفع:**
+- `MuiSwitch.root` در تم: `minHeight: 44`
+- هر دو جدول: `FormControlLabel` با `label={null}` و `sx={{ m:0, minHeight:44, minWidth:44 }}` تا کل جعبهٔ ۴۴px کلیک‌پذیر شود
+- نام روی خودِ input: `slotProps={{ input: { 'aria-label': 'غیرفعال کردن قانون' / 'فعال کردن کد تخفیف' } }}`
+
+**وضعیت:** VERIFIED — هدف مؤثر ۷۲×۴۴، `role="switch"` با نام فارسی.
+
 
 ## P3 — جزئیات بصری و ساختاری
 
-### F-16 تا F-19: یافته‌های بصری (FIXED → در انتظار VERIFIED)
+### F-16 تا F-19: یافته‌های بصری (VERIFIED ✓)
 
-- F-16: overflow افقی ناخواسته
-- F-17: تصویر بدون alt
-- F-18: نبود landmark header
-- F-19: بخش در حال بارگذاری هنگام اندازه‌گیری
+شواهد از آخرین sweep (۱۴۱ ردیف معتبر مسیر×نقش×ویوپورت) + ماتریس اندازه‌ها (۸۱ ردیف):
+
+- **F-16 overflow افقی:** `maxOverflowX = 0` در هر ۲۲۲ ردیف (۳۲۰ تا ۹۳۲ و لندسکیپ) — VERIFIED
+- **F-17 تصویر بدون alt:** `imgsNoAlt = 0` از ۱۴۵ تصویر رندرشده — VERIFIED
+- **F-18 landmark header:** همهٔ مسیرهای اپ `<header>` دارند؛ تنها ۶ ردیف بدون header، مسیرهای جریان ورود (`/login`, `/register`, `/forgot-password`) هستند که عمداً بدون پوسته‌اند — VERIFIED
+- **F-19 بارگذاری هنگام اندازه‌گیری:** فقط ۱ ردیف (`manager/@finance`) یک «بخش» هنوز در حال بارگذاری داشت، نه کل صفحه — پذیرفته
+
+**نکتهٔ هارنس (نه محصول):** ۱۳ ردیف «stuck-loading» در sweep اول، اثر کامپایل سرد Vite dev بود؛ همان مسیرها در context تازه در ۱.۵–۱.۸ ثانیه کامل رندر شدند (`/teams`, `/admin`, `/manager/contracts` و…). در بیلد production این حالت وجود ندارد.
 
 ### توقف‌های تکراری کیبورد (CLOSED ✓)
 
@@ -86,5 +151,6 @@ framer-motion's `whileTap` باعث اضافه شدن `tabIndex={0}` به divه�
 |---------|-------|-----|----------------|
 | P0 | ۰ | ۰ | ۰ |
 | P1 | ۱۵ | ۰ | ۱۵ CLOSED |
-| P2 | ۱۹ | ۲ (F-28,F-29) | ۱۷ VERIFIED/FIXED |
-| P3 | ۵ | ۴ (F-16..F-19) | ۱ CLOSED |
+| P2 | ۱۹ | ۰ | ۱۹ VERIFIED |
+| P3 | ۵ | ۰ | ۵ VERIFIED |
+| یافته‌های جدید حین تأیید (F-30 تا F-35) | ۶ | ۰ | ۶ FIXED/VERIFIED |

@@ -331,6 +331,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
               value={selectedPayment.amount
                 ? Math.min(100, (Number(selectedPayment.total_paid ?? 0) / Number(selectedPayment.amount)) * 100)
                 : 0}
+              aria-label="پیشرفت پرداخت این سهم"
               sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0' }}
             />
             {myShare && (

@@ -5,6 +5,7 @@
 // می‌گیرد؛ فرانت فقط دامنه و ناوبری را باز/بسته می‌کند.
 
 import { isAxiosError } from 'axios'
+import { useMemo } from 'react'
 import { useQuery } from '@tanstack/react-query'
 
 import { venueService } from '@/services/venue'
@@ -47,17 +48,48 @@ export function isForbiddenError(err: unknown): boolean {
   return isAxiosError(err) && err.response?.status === 403
 }
 
+/** کدهای دسترسی مؤثر کاربر — سرهمِ همهٔ انتصاب‌های فعال (خالی اگر کارمند نیست) */
+export function useStaffCodes(): string[] {
+  const q = useStaffMe()
+  return useMemo(() => {
+    const set = new Set<string>()
+    for (const row of q.data ?? []) for (const code of row.permissions ?? []) set.add(code)
+    return Array.from(set)
+  }, [q.data])
+}
+
+/**
+ * آیا کاربر کد دسترسی لازم را دارد؟
+ * مالک سالن و ادمین کل در دامنهٔ خود همهٔ کدها را دارند (بک‌اند هم همین‌طور گیت می‌کند)؛
+ * کارمند فقط کدهای انتصاب فعالش. پیش از پاسخ دادن، `codesReady` را بررسی کنید تا
+ * کنسول برای یک لحظه با «نداشتن کد» اشتباه گرفته نشود.
+ */
+export function useStaffPermission(codes: string[]) {
+  const role = useAuthStore((s) => s.user?.role)
+  const q = useStaffMe()
+  const isOwner = role === 'super_admin' || role === 'venue_manager' || role === 'club_admin'
+  const allowed =
+    isOwner ||
+    (q.data ?? []).some((row) => row.is_active && (row.permissions ?? []).some((c) => codes.includes(c)))
+  return { allowed, ready: isOwner || !q.isPending }
+}
+
 /**
  * دامنه‌ی سالن‌های کنسول‌های مدیر = my-venues (مدیران) + انتصاب‌های /staff/me (کارکنان).
- * allSettled: ۴۰۳ِ my-venues برای کارمندِ role=user منبع دیگر را بازنمی‌دارد؛
- * فقط وقتی هر دو منبع خطا بدهند کوئری در حالت error قرار می‌گیرد.
+ * my-venues فقط برای نقش‌های مالک پرسیده می‌شود — کارمندِ role=user همیشه ۴۰۳ می‌گیرد
+ * و آن ۴۰۳ در کنسول شبکه/خطای کنسول صفحه، نویزِ بی‌معنی بود (ممیزی موبایل، F-03).
  */
 export function useManagedVenues(enabled = true) {
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const role = useAuthStore((s) => s.user?.role)
+  const ownsVenues = role === 'venue_manager' || role === 'club_admin' || role === 'super_admin'
   return useQuery({
     queryKey: ['managed-venues'],
     queryFn: async (): Promise<ManagedVenue[]> => {
-      const [myV, meV] = await Promise.allSettled([venueService.getMyVenues(), staffService.me()])
+      const [myV, meV] = await Promise.allSettled([
+        ownsVenues ? venueService.getMyVenues() : Promise.resolve([]),
+        staffService.me(),
+      ])
       if (myV.status === 'rejected' && meV.status === 'rejected') throw myV.reason
       const map = new Map<number, ManagedVenue>()
       for (const v of myV.status === 'fulfilled' && Array.isArray(myV.value) ? myV.value : []) {

@@ -9,6 +9,60 @@ export default defineConfig(({ mode }) => {
   const absApi = /^https?:\/\//.test(env.VITE_API_URL || '') ? env.VITE_API_URL : ''
   const proxyTarget = env.VITE_PROXY_TARGET || (absApi ? new URL(absApi).origin : 'http://localhost:8000')
 
+  // یک پروکسی برای هر دو حالت: `vite dev` و `vite preview` (باندل production)
+  const proxy = {
+    // API بک‌اند به‌صورت same-origin → بدون درگیری CORS کلاینت (localhost:3001)
+    // هر Location مطلقِ ریدایرکت (مثل 307 اسلش انتهایی) را نسبی می‌کنیم تا مرورگر
+    // همان origin دِو را حفظ کند — nginx بک‌اند Host را بدون پورت بازمی‌گرداند
+    '/api/v1': {
+      target: proxyTarget,
+      changeOrigin: false,
+      configure: (proxy: any) => {
+        proxy.on('proxyRes', (proxyRes: any, req: any) => {
+          const loc = proxyRes.headers['location']
+          if (loc && /^https?:\/\//.test(loc)) {
+            try {
+              const u = new URL(loc)
+              if (u.host !== req.headers.host) {
+                proxyRes.headers['location'] = u.pathname + u.search
+              }
+            } catch {
+              /* Location نامعتبر را دست نمی‌زنیم */
+            }
+          }
+        })
+      },
+    },
+    // WebSocket اعلان‌ها (کلوز 4401/4403 مطابق بک‌اند)
+    '/ws': {
+      target: proxyTarget,
+      ws: true,
+      changeOrigin: false,
+    },
+    '/api/varzesh3': {
+      target: 'https://web-api.varzesh3.com',
+      changeOrigin: true,
+      rewrite: (path: string) => path.replace(/^\/api\/varzesh3/, ''),
+      configure: (proxy: any) => {
+        proxy.on('proxyReq', (proxyReq: any) => {
+          proxyReq.setHeader('Origin', 'https://web-api.varzesh3.com')
+          proxyReq.setHeader('Referer', 'https://web-api.varzesh3.com/')
+        })
+      },
+    },
+    '/api/varzesh3-v2': {
+      target: 'https://web-api.varzesh3.com',
+      changeOrigin: true,
+      rewrite: (path: string) => path.replace(/^\/api\/varzesh3-v2/, ''),
+      configure: (proxy: any) => {
+        proxy.on('proxyReq', (proxyReq: any) => {
+          proxyReq.setHeader('Origin', 'https://web-api.varzesh3.com')
+          proxyReq.setHeader('Referer', 'https://web-api.varzesh3.com/')
+        })
+      },
+    },
+  }
+
   return {
     plugins: [react()],
     resolve: {
@@ -44,58 +98,14 @@ export default defineConfig(({ mode }) => {
       host: '0.0.0.0',
       port: 3001,
       open: false,
-      proxy: {
-        // API بک‌اند به‌صورت same-origin → بدون درگیری CORS کلاینت (localhost:3001)
-        // هر Location مطلقِ ریدایرکت (مثل 307 اسلش انتهایی) را نسبی می‌کنیم تا مرورگر
-        // همان origin دِو را حفظ کند — nginx بک‌اند Host را بدون پورت بازمی‌گرداند
-        '/api/v1': {
-          target: proxyTarget,
-          changeOrigin: false,
-          configure: (proxy) => {
-            proxy.on('proxyRes', (proxyRes, req) => {
-              const loc = proxyRes.headers['location']
-              if (loc && /^https?:\/\//.test(loc)) {
-                try {
-                  const u = new URL(loc)
-                  if (u.host !== req.headers.host) {
-                    proxyRes.headers['location'] = u.pathname + u.search
-                  }
-                } catch {
-                  /* Location نامعتبر را دست نمی‌زنیم */
-                }
-              }
-            })
-          },
-        },
-        // WebSocket اعلان‌ها (کلوز 4401/4403 مطابق بک‌اند)
-        '/ws': {
-          target: proxyTarget,
-          ws: true,
-          changeOrigin: false,
-        },
-        '/api/varzesh3': {
-          target: 'https://web-api.varzesh3.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/varzesh3/, ''),
-          configure: (proxy) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.setHeader('Origin', 'https://web-api.varzesh3.com')
-              proxyReq.setHeader('Referer', 'https://web-api.varzesh3.com/')
-            })
-          },
-        },
-        '/api/varzesh3-v2': {
-          target: 'https://web-api.varzesh3.com',
-          changeOrigin: true,
-          rewrite: (path) => path.replace(/^\/api\/varzesh3-v2/, ''),
-          configure: (proxy) => {
-            proxy.on('proxyReq', (proxyReq) => {
-              proxyReq.setHeader('Origin', 'https://web-api.varzesh3.com')
-              proxyReq.setHeader('Referer', 'https://web-api.varzesh3.com/')
-            })
-          },
-        },
-      },
+      proxy,
+    },
+    // `vite preview` همان پروکسی را دارد تا ممیزی روی باندل واقعی (dist) انجام شود،
+    // نه فقط روی سرو dev با transform در لحظه.
+    preview: {
+      host: '0.0.0.0',
+      port: 3001,
+      proxy,
     },
   }
 })

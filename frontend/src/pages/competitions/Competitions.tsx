@@ -163,7 +163,7 @@ const Competitions: React.FC = () => {
             >
               <Icon icon="mdi:trophy-outline" className="h-12 w-12" style={{ color: '#2563eb' }} />
             </Box>
-            <Typography variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+            <Typography component="h1" variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
               رقابت قیمت
             </Typography>
             <Typography variant="body2" color="text.secondary" sx={{ mb: 4, lineHeight: 1.8 }}>

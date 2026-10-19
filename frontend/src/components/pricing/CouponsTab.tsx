@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   Chip,
+  FormControlLabel,
   Paper,
   Switch,
   Table,
@@ -186,19 +187,26 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                       )}
                     </TableCell>
                     <TableCell>
-                      <Switch
-                        size="small"
-                        checked={c.is_active}
-                        disabled={updateCoupon.isPending}
-                        onChange={(e) => {
-                          updateCoupon.mutate(
-                            { couponId: c.id, data: { is_active: e.target.checked } },
-                            {
-                              onSuccess: () => toast.success(e.target.checked ? 'کد فعال شد' : 'کد غیرفعال شد'),
-                              onError: (err) => toast.error(extractError(err, 'خطا در تغییر وضعیت')),
-                            },
-                          )
-                        }}
+                      <FormControlLabel
+                        sx={{ m: 0, minHeight: 44, minWidth: 44 }}
+                        label={null}
+                        control={
+                          <Switch
+                            size="small"
+                            checked={c.is_active}
+                            disabled={updateCoupon.isPending}
+                            slotProps={{ input: { 'aria-label': c.is_active ? 'غیرفعال کردن کد تخفیف' : 'فعال کردن کد تخفیف' } }}
+                            onChange={(e) => {
+                              updateCoupon.mutate(
+                                { couponId: c.id, data: { is_active: e.target.checked } },
+                                {
+                                  onSuccess: () => toast.success(e.target.checked ? 'کد فعال شد' : 'کد غیرفعال شد'),
+                                  onError: (err) => toast.error(extractError(err, 'خطا در تغییر وضعیت')),
+                                },
+                              )
+                            }}
+                          />
+                        }
                       />
                     </TableCell>
                     <TableCell align="center">

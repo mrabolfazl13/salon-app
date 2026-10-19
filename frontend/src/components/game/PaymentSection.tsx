@@ -10,7 +10,10 @@ import toast from 'react-hot-toast'
 
 import type { Game, GamePayment, Participant } from '@/types/game'
 import { usePayShare, usePaymentSummary, useRemindGamePayments } from '@/hooks/useGames'
+import { useAuthStore } from '@/store/authStore'
 import { formatPrice } from '@/utils/helpers'
+import { chipInk } from '@/utils/contrast'
+import { toPersianDigits } from '@/lib/jalali'
 import { Button } from '@/components/ui/Button'
 import { Shimmer } from '@/components/mobile'
 import { getGameError } from './shared'
@@ -29,7 +32,11 @@ const nameOf = (participants: Participant[], userId: number): string => {
   return p?.full_name || `کاربر ${userId.toLocaleString('fa-IR')}`
 }
 
-const PaymentRow: React.FC<{ payment: GamePayment; participants: Participant[] }> = ({ payment, participants }) => (
+const PaymentRow: React.FC<{ payment: GamePayment; participants: Participant[] }> = ({ payment, participants }) => {
+  const paid = payment.status === 'paid'
+  // «پرداخت‌شده» با #15803d روی تیغِ خودش ۴٫۴۹:۱ بود — ممیزی axe F-21
+  const ink = chipInk(paid ? '#15803d' : '#b45309', paid ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.12)')
+  return (
   <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.75 }}>
     <Box
       sx={{
@@ -55,22 +62,25 @@ const PaymentRow: React.FC<{ payment: GamePayment; participants: Participant[] }
       {formatPrice(payment.amount)}
     </Typography>
     <Chip
-      label={payment.status === 'paid' ? 'پرداخت‌شده' : 'در انتظار'}
+      label={paid ? 'پرداخت‌شده' : 'در انتظار'}
       size="small"
       sx={{
         height: 22,
         fontSize: '0.75rem',
         fontWeight: 700,
-        bgcolor: payment.status === 'paid' ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.12)',
-        color: payment.status === 'paid' ? '#15803d' : '#b45309',
+        bgcolor: paid ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.12)',
+        color: ink,
       }}
     />
   </Box>
-)
+  )
+}
 
 const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUserId, canManage = false }) => {
   const enabled = game.payment_mode !== 'free'
-  const summaryQ = usePaymentSummary(gameId, enabled)
+  // بازدیدکنندهٔ مهمان صفحهٔ بازی را می‌بیند؛ سهم‌ها فقط برای عضو است (۴۰۳/۴۰۱ ندهد)
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  const summaryQ = usePaymentSummary(gameId, enabled && isAuthenticated)
   const payShare = usePayShare(gameId)
   const remind = useRemindGamePayments(gameId)
   // ۴۲۹ (هر دقیقه یک‌بار) → غیرفعال تا ریمونت/رفرش بعدی
@@ -181,13 +191,15 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
               <Chip
                 label="سهم شما پرداخت شده ✓"
                 size="small"
-                sx={{ height: 24, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(22,163,74,0.1)', color: '#15803d' }}
+                sx={{ height: 24, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(22,163,74,0.1)', color: chipInk('#15803d', 'rgba(22,163,74,0.1)') }}
               />
             )}
           </Box>
           <LinearProgress
             variant="determinate"
             value={Math.min(progress, 100)}
+            aria-label="پیشرفت پرداخت سهم‌ها"
+            aria-valuetext={`${toPersianDigits(Math.round(Math.min(progress, 100)))}٪ پرداخت‌شده`}
             sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(245,158,11,0.15)', '& .MuiLinearProgress-bar': { bgcolor: '#16a34a', borderRadius: 3 } }}
           />
           {summary.payments.length > 0 ? (

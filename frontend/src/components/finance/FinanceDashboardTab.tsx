@@ -176,7 +176,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
   return (
     <Box>
       <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" sx={{ fontWeight: 800, mb: 2 }}>خلاصه عملکرد</Typography>
+        <Typography variant="h6" component="h2" sx={{ fontWeight: 800, mb: 2 }}>خلاصه عملکرد</Typography>
         {dashboard.isError ? (
           <ErrorBox message={extractError(dashboard.error, 'خطا در دریافت داشبورد مالی')} onRetry={() => dashboard.refetch()} />
         ) : (
@@ -199,10 +199,13 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
       <SectionCard title="فیلتر گزارش‌ها" icon="mdi:filter-variant" color="#7c3aed" dense>
         <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'center' } }}>
           <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 180 } }}>
-            <InputLabel>سالن</InputLabel>
+            {/* بدون labelId/inputId برچسب به select وصل نمی‌شود — ممیزی axe F-24 */}
+            <InputLabel id="finance-venue-label" htmlFor="finance-venue-select">سالن</InputLabel>
             <Select
               value={venueSel}
               label="سالن"
+              id="finance-venue-select"
+              labelId="finance-venue-label"
               onChange={(e) => setVenueSel(e.target.value as number | 'all')}
               sx={{ borderRadius: '10px' }}
             >
@@ -226,7 +229,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                   setFrom(isoDaysAgo(preset.days))
                   setTo(getTodayISO())
                 }}
-                sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem', minHeight: 44 }}
+                sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem', minHeight: 44, minWidth: 44 }}
                 variant={from === isoDaysAgo(preset.days) ? 'filled' : 'outlined'}
                 color="primary"
               />
@@ -240,7 +243,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
 
       {!dashboard.isError && !dashboard.isPending && kpis.length > 4 && (
         <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 1.5, color: 'text.secondary' }}>سایر شاخص‌ها</Typography>
+          <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 800, mb: 1.5, color: 'text.secondary' }}>سایر شاخص‌ها</Typography>
           <Grid container spacing={1.5}>
             {kpis.slice(4).map((k) => (
               <Grid size={{ xs: 6, sm: 4, md: 3 }} key={k.label}>
@@ -455,7 +458,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
             ) : (lowDemand.data?.length ?? 0) === 0 ? (
               <EmptyBox icon="mdi:emoticon-happy-outline" title="سانس کم‌تقاضایی یافت نشد" text="الگوی تقاضا در بازه انتخابی بالای حد آستانه است." />
             ) : (
-              <TableContainer sx={{ maxHeight: 300 }}>
+              <TableContainer role="region" aria-label="سانس‌های کم‌تقاضا، قابل پیمایش با کیبورد" tabIndex={0} sx={{ maxHeight: 300 }}>
                 <Table aria-label="سانس‌های کم‌تقاضا" size="small" stickyHeader>
                   <TableHead>
                     <TableRow>

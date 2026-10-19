@@ -22,7 +22,7 @@ import { Icon } from '@iconify/react'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
-import { useStaffMe } from '@/hooks/useStaffMe'
+import { useStaffCodes } from '@/hooks/useStaffMe'
 import { getInitials } from '@/lib/utils'
 import { gradients } from '@/theme'
 import NotificationPanel from './NotificationPanel'
@@ -52,10 +52,18 @@ const Navbar: React.FC<NavbarProps> = () => {
   const isManager =
     user?.role === 'venue_manager' || user?.role === 'club_admin' || user?.role === 'super_admin'
   const isCoach = user?.role === 'coach'
-  // کارمند انتصابی (role=user با انتساب فعال در /staff/me) — همان ناوبری کنسول‌ها
-  const staffQuery = useStaffMe()
-  const isStaff = (staffQuery.data?.length ?? 0) > 0
-  const canConsoleNav = isManager || isStaff
+  // کنسول‌ها بر پایهٔ کد دسترسی بک‌اند باز می‌شوند — مالک سالن همه، کارمند فقط کدهای
+  // انتصاب فعالش (GET /staff/me). قبلاً هر انتصابی هر پنج لینک را می‌دید و سه‌تایشان
+  // صفحهٔ پر از ۴۰۳ بود (ممیزی F-01/F-04).
+  const staffCodes = useStaffCodes()
+  const consoleLinks = [
+    { label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing', codes: ['pricing.manage'] },
+    { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance', codes: ['finance.view', 'reports.view'] },
+    { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm', codes: ['crm.view', 'customer.view_basic'] },
+    { label: 'مدیریت قراردادها', icon: 'mdi:file-document-check-outline', href: '/manager/contracts', codes: ['contract.view'] },
+    { label: 'شیفت پرسنل', icon: 'mdi:calendar-clock', href: '/manager/shifts', codes: ['staff.manage'] },
+  ].filter((item) => isManager || item.codes.some((code) => staffCodes.includes(code)))
+  const canConsoleNav = consoleLinks.length > 0
 
   const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setAnchorEl(event.currentTarget)
@@ -82,8 +90,7 @@ const Navbar: React.FC<NavbarProps> = () => {
     { label: 'رزروها', icon: 'mdi:calendar', href: '/bookings' },
     { label: 'قراردادها', icon: 'mdi:file-document', href: '/contracts' },
     ...(isAuthenticated ? [{ label: 'شگفت\u200cانگیز', icon: 'mdi:lightning-bolt', href: '/deals' }] : []),
-    ...(isManager ? [{ label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'مدیریت قراردادها', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }, { label: 'شیفت پرسنل', icon: 'mdi:calendar-clock', href: '/manager/shifts' }] : []),
-    ...(!isManager && isStaff ? [{ label: 'قیمت\u200cگذاری', icon: 'mdi:tag-percent-outline', href: '/manager/pricing' }, { label: 'امور مالی', icon: 'mdi:cash-register', href: '/finance' }, { label: 'مشتریان', icon: 'mdi:account-heart-outline', href: '/manager/crm' }, { label: 'قراردادها (مدیریت)', icon: 'mdi:file-document-check-outline', href: '/manager/contracts' }, { label: 'شیفت پرسنل', icon: 'mdi:calendar-clock', href: '/manager/shifts' }] : []),
+    ...consoleLinks.map((item) => ({ label: item.label, icon: item.icon, href: item.href })),
     ...(isCoach ? [{ label: 'پنل مربی', icon: 'mdi:school-outline', href: '/coach' }] : []),
   ]
 
@@ -98,13 +105,11 @@ const Navbar: React.FC<NavbarProps> = () => {
     { to: '/tournaments', label: 'تورنمنت\u200cها', icon: <Icon icon="mdi:trophy-outline" style={iconifyStyle} /> },
     { to: dashboardPath, label: isCoach ? 'پنل مربی' : isManager ? 'داشبورد مدیریت' : 'داشبورد', icon: <DashboardIcon sx={muiIconSx} /> },
     { to: '/deals', label: 'شگفت\u200cانگیزها', icon: <Icon icon="mdi:lightning-bolt" style={iconifyStyle} /> },
-    ...(canConsoleNav ? [
-      { to: '/manager/pricing', label: 'قیمت\u200cگذاری', icon: <Icon icon="mdi:tag-percent-outline" style={iconifyStyle} /> },
-      { to: '/finance', label: 'امور مالی', icon: <Icon icon="mdi:cash-register" style={iconifyStyle} /> },
-      { to: '/manager/crm', label: 'مشتریان', icon: <Icon icon="mdi:account-heart-outline" style={iconifyStyle} /> },
-      { to: '/manager/contracts', label: 'مدیریت قراردادها', icon: <Icon icon="mdi:file-document-check-outline" style={iconifyStyle} /> },
-      { to: '/manager/shifts', label: 'شیفت پرسنل', icon: <Icon icon="mdi:calendar-clock" style={iconifyStyle} /> },
-    ] : []),
+    ...(canConsoleNav ? consoleLinks.map((item) => ({
+      to: item.href,
+      label: item.label,
+      icon: <Icon icon={item.icon} style={iconifyStyle} />,
+    })) : []),
     ...(isManager ? [{ to: '/manager/teams', label: 'تیم\u200cهای همکار', icon: <Icon icon="mdi:handshake-outline" style={iconifyStyle} /> }] : []),
     ...(user?.role === 'super_admin' ? [{ to: '/admin', label: 'پنل ادمین', icon: <AdminPanelIcon sx={muiIconSx} /> }] : []),
   ]
@@ -240,7 +245,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                   onClick={handleMenuOpen}
                   color="inherit"
                   aria-label="منوی حساب کاربری"
-                  sx={{ p: { xs: 0.5, md: 0.75 } }}
+                  sx={{ width: 44, height: 44, flexShrink: 0 }}
                 >
                   <Avatar
                     sx={{

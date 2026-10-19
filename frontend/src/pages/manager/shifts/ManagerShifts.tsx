@@ -41,7 +41,7 @@ import {
   useCancelShift, useCreateShift, useExportShifts, useShifts, useUpdateShift,
 } from '@/hooks/useShifts'
 import type { ShiftRow, ShiftStatus } from '@/types/shift'
-import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
+import { formatJalaliDate, jalaliMonthNames, toJalali, toPersianDigits } from '@/lib/jalali'
 import { radii, shadows } from '@/theme'
 
 export const SHIFT_STATUS_LABELS: Record<ShiftStatus, string> = {
@@ -136,6 +136,16 @@ const ManagerShifts: React.FC = () => {
 
   const [dialog, setDialog] = useState<DialogState | null>(null)
   const [exportMonth, setExportMonth] = useState(monthOf(today))
+  // دوازده ماه اخیر با برچسب جلالی: `type="month"` بومی «October 2026» لاتین می‌ساخت
+  const monthChoices = useMemo(() => {
+    const [y, m] = monthOf(today).split('-').map(Number)
+    return Array.from({ length: 12 }, (_, i) => {
+      const d = new Date(y, m - 1 - i, 1)
+      const value = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      const j = toJalali(`${value}-01`)
+      return { value, label: j ? `${jalaliMonthNames[j.jm - 1]} ${toPersianDigits(j.jy)}` : value }
+    })
+  }, [today])
 
   const staffQuery = useQuery({
     queryKey: ['staff', 'for-shifts', activeVenue],
@@ -234,7 +244,7 @@ const ManagerShifts: React.FC = () => {
     <Layout userRole="venue_manager">
       <Stack spacing={2} sx={{ pt: 1, pb: 4 }}>
         <Box>
-          <Typography variant="h5" sx={{ fontWeight: 800 }}>
+          <Typography component="h1" variant="h5" sx={{ fontWeight: 800 }}>
             <Icon icon="mdi:calendar-clock" style={{ verticalAlign: 'middle', marginLeft: 6 }} />
             شیفت پرسنل
           </Typography>
@@ -263,7 +273,7 @@ const ManagerShifts: React.FC = () => {
                           data-testid={`shift-venue-${v.id}`}
                           variant={activeVenue === v.id ? 'contained' : 'outlined'}
                           onClick={() => setVenueId(v.id)}
-                          sx={{ borderRadius: '10px', minHeight: 40 }}>
+                          sx={{ borderRadius: '10px', minHeight: 44 }}>
                     {v.name}
                   </Button>
                 ))}
@@ -288,17 +298,19 @@ const ManagerShifts: React.FC = () => {
               <Divider sx={{ my: 1.25 }} />
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
                 <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  {formatJalaliDate(`${weekStart}T09:00:00`, { format: 'numeric' })}
-                  تا
-                  {formatJalaliDate(`${addDays(weekStart, 6)}T09:00:00`, { format: 'numeric' })}
+                  {`${formatJalaliDate(`${weekStart}T09:00:00`, { format: 'numeric' })} تا ${formatJalaliDate(`${addDays(weekStart, 6)}T09:00:00`, { format: 'numeric' })}`}
                 </Typography>
                 <Box sx={{ flex: 1 }} />
-                <TextField size="small" type="month" label="ماه خروجی" value={exportMonth}
+                <TextField select size="small" label="ماه خروجی" value={exportMonth}
                            onChange={(e) => setExportMonth(e.target.value)}
-                           sx={{ minWidth: 170 }} />
+                           sx={{ minWidth: 170 }}>
+                  {monthChoices.map((m) => (
+                    <MenuItem key={m.value} value={m.value}>{m.label}</MenuItem>
+                  ))}
+                </TextField>
                 <Button variant="outlined" size="small" data-testid="shift-export"
                         disabled={exportShifts.isPending || !/^\d{4}-\d{2}$/.test(exportMonth)}
-                        onClick={doExport} sx={{ borderRadius: '10px', minHeight: 40 }}>
+                        onClick={doExport} sx={{ borderRadius: '10px', minHeight: 44 }}>
                   {exportShifts.isPending ? 'در حال آماده‌سازی…' : 'خروجی CSV ماهانه'}
                 </Button>
               </Stack>
@@ -400,7 +412,7 @@ const ManagerShifts: React.FC = () => {
                                     onClick={() => openNew(person.user_id, day)}
                                     startIcon={<Icon icon="mdi:plus" style={{ width: 16, height: 16 }} />}
                                     disabled={!activeVenue}
-                                    sx={{ borderRadius: '10px', minHeight: 40, justifyContent: 'flex-start',
+                                    sx={{ borderRadius: '10px', minHeight: 44, justifyContent: 'flex-start',
                                             fontSize: '0.72rem', color: 'text.secondary' }}>
                               افزودن
                             </Button>

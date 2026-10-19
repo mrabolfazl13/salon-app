@@ -141,18 +141,30 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
               placeholder: value ? undefined : '—',
               dir: 'ltr',
               readOnly: true,
+              'aria-haspopup': 'dialog',
+              'aria-expanded': open,
+              /* بدون آیکنِ دکمه‌ای، خودِ فیلد با کیبورد هم باید تقویم را باز کند */
+              onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+                if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
+                  e.preventDefault()
+                  openPanel()
+                }
+              },
             },
             input: {
-              sx: { borderRadius: '10px', minHeight: 44 },
+              sx: {
+                borderRadius: '10px',
+                minHeight: 44,
+                /* در نیم‌عرض موبایل مقدار ۱۰ کاراکتری (1405/06/28) با پدینگ پیش‌فرض
+                   بریده می‌شد — پدینگ افقی کمتر + فونت کمی کوچک‌تر */
+                '& .MuiOutlinedInput-input': { paddingInline: '10px', fontSize: '0.8rem' },
+              },
+              /* آیکن تنها نشانهٔ بصری است؛ هدف لمسی خودِ فیلد ۴۴px است و دکمهٔ ۴۴px
+                 جداگانه فقط عرض متن را می‌خورد و تاریخ را می‌برید */
               endAdornment: !readOnly ? (
-                <IconButton
-                  onClick={openPanel}
-                  disabled={disabled}
-                  aria-label="انتخاب تاریخ"
-                  sx={{ width: 44, height: 44, color: 'primary.main' }}
-                >
+                <Box sx={{ display: 'flex', alignItems: 'center', pr: 1, pointerEvents: 'none', color: 'primary.main' }}>
                   <Icon icon="mdi:calendar-month-outline" style={{ width: 20, height: 20 }} />
-                </IconButton>
+                </Box>
               ) : undefined,
             },
           }}
@@ -192,21 +204,22 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
             </Box>
           </Box>
 
-          <Grid container sx={{ mb: 0.5 }}>
+          {/* ۷ ستون واقعی — Grid با size={{xs:1}} یک‌دوازدهم عرض می‌دهد و تقویم را
+              ۱۲ روز در هر ردیف می‌چید (روزهای هفته با ستون‌ها ناهم‌تراز می‌شد) */}
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', mb: 0.5 }}>
             {jalaliWeekdayNamesShort.map((d) => (
-              <Grid size={{ xs: 1 }} key={d}>
-                <Typography
-                  sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary', lineHeight: '28px' }}
-                >
-                  {d}
-                </Typography>
-              </Grid>
+              <Typography
+                key={d}
+                sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary', lineHeight: '28px' }}
+              >
+                {d}
+              </Typography>
             ))}
-          </Grid>
+          </Box>
 
-          <Grid container rowSpacing={0.25}>
+          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', rowGap: 2 }}>
             {Array.from({ length: firstWeekday }).map((_, i) => (
-              <Grid size={{ xs: 1 }} key={`b${i}`} />
+              <Box key={`b${i}`} />
             ))}
             {Array.from({ length: monthLen }).map((_, i) => {
               const jd = i + 1
@@ -215,7 +228,7 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
               const isToday = iso === todayIso
               const enabled = !!iso && canPick(iso)
               return (
-                <Grid size={{ xs: 1 }} key={jd} sx={{ display: 'flex', justifyContent: 'center' }}>
+                <Box key={jd} sx={{ display: 'flex', justifyContent: 'center' }}>
                   <button
                     type="button"
                     disabled={!enabled}
@@ -230,13 +243,14 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
                       boxShadow: !isSelected && isToday ? 'inset 0 0 0 1.5px #2563eb' : 'none',
                     }}
                     aria-pressed={isSelected}
+                    aria-label={iso ? formatJalaliDate(iso, { format: 'full' }) : undefined}
                   >
                     {toPersianDigits(jd)}
                   </button>
-                </Grid>
+                </Box>
               )
             })}
-          </Grid>
+          </Box>
 
           <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
             <Button

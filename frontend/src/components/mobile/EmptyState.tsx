@@ -12,10 +12,12 @@ interface Props {
   description?: string
   actionLabel?: string
   onAction?: () => void
+  /** وقتی حالت خالی، کل صفحه است ⇒ عنوان را سرفصل سطح‌یک می‌کند (ممیزی F-14) */
+  asPageHeading?: boolean
 }
 
 /** حالت خالی استاندارد — مثل «هنوز سالنی ذخیره نکرده‌اید» */
-const EmptyState: React.FC<Props> = ({ icon, title, description, actionLabel, onAction }) => {
+const EmptyState: React.FC<Props> = ({ icon, title, description, actionLabel, onAction, asPageHeading }) => {
   const dark = useTheme().palette.mode === 'dark'
   return (
     <motion.div
@@ -44,7 +46,12 @@ const EmptyState: React.FC<Props> = ({ icon, title, description, actionLabel, on
           style={{ width: 40, height: 40, color: dark ? '#fbbf24' : '#d97706' }}
         />
       </Box>
-      <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary', mb: 0.75 }}>{title}</Typography>
+      <Typography
+        component={asPageHeading ? 'h1' : 'p'}
+        sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary', mb: 0.75 }}
+      >
+        {title}
+      </Typography>
       {description && (
         <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem', lineHeight: 1.8, maxWidth: 300, mx: 'auto' }}>
           {description}

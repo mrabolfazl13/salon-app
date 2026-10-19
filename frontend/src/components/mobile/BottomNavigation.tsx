@@ -36,7 +36,9 @@ const getItemsForRole = (role: string | undefined): NavItem[] => {
 
   // مدیر سالن / کلاب
   if (role === 'venue_manager' || role === 'club_admin') {
-    return [home, { label: 'داشبورد', icon: 'view-dashboard', href: '/manager-dashboard', requiresAuth: true, roles: ['venue_manager', 'club_admin', 'super_admin'] }, competitions, { label: 'امور مالی', icon: 'cash-register', href: '/finance', requiresAuth: true }, profile]
+    // «cash-register» در MDI نسخهٔ `-outline` ندارد؛ NavIcon برای حالت فعال آن را
+    // می‌سازد ⇒ آیکنِ خالی (پیلِ بی‌محتوا روی ۳۲۰px). «wallet» هر دو حالت را دارد.
+    return [home, { label: 'داشبورد', icon: 'view-dashboard', href: '/manager-dashboard', requiresAuth: true, roles: ['venue_manager', 'club_admin', 'super_admin'] }, competitions, { label: 'امور مالی', icon: 'wallet', href: '/finance', requiresAuth: true }, profile]
   }
 
   // کاربر عادی

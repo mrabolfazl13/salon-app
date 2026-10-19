@@ -17,6 +17,7 @@ import {
 } from '@mui/material'
 import { Icon } from '@iconify/react'
 import type { Theme } from '@mui/material/styles'
+import { chipInk, readableText } from '@/utils/contrast'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
 
 // ─────────────── فرمت اعداد ریال ───────────────
@@ -173,7 +174,8 @@ export const SectionCard: React.FC<{
     <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, px: 2.5, pt: dense ? 1.5 : 2, pb: 1 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
         <Icon icon={icon} className="h-5 w-5" style={{ color }} />
-        <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>{title}</Typography>
+        {/* عنوان پنل = سرتیتر بخش (h2 زیر h1 صفحه)؛ subtitle2 به‌تنهایی <h6> می‌ساخت — ممیزی axe F-22 */}
+        <Typography variant="subtitle2" component="h2" sx={{ fontWeight: 800 }}>{title}</Typography>
       </Box>
       {action}
     </Box>
@@ -191,7 +193,10 @@ export const KpiCard: React.FC<{
   /** نود اختیاری کنار مقدار — چیپ دلتای مقایسه‌ای و... */
   end?: React.ReactNode
 }> = ({ label, value, sub, icon, color = '#2563eb', loading = false, end }) => {
+  const theme = useTheme()
   const { main: accent } = useStatusColor(color)
+  // «۰٪» با #0891b2 روی کارت سفید ۳٫۶۸:۱ بود — ممیزی axe F-21
+  const valueColor = readableText(accent, theme.palette.background.paper)
   return (
     <Card
       sx={{
@@ -201,7 +206,7 @@ export const KpiCard: React.FC<{
         height: '100%',
       }}
     >
-      <Box sx={{ p: 2, display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
+      <Box sx={{ p: 2, display: 'flex', gap: 1.5, alignItems: 'flex-start', flexWrap: 'wrap' }}>
         <Box
           sx={{
             width: 40,
@@ -226,7 +231,16 @@ export const KpiCard: React.FC<{
             <Typography
               variant="body1"
               dir="rtl"
-              sx={{ fontWeight: 800, color: accent, fontSize: '1.05rem', lineHeight: 1.5, fontVariantNumeric: 'tabular-nums' }}
+              sx={{
+                fontWeight: 800,
+                color: valueColor,
+                fontSize: '1.05rem',
+                lineHeight: 1.5,
+                fontVariantNumeric: 'tabular-nums',
+                // «۱۲,۳۴۵,۶۷۸ ریال» روی کارت ۱۵۰px (۳۲۰px، دو ستون) جای نمی‌گیرد
+                // و از لبهٔ صفحه بیرون می‌زد — ممیزی F-16
+                overflowWrap: 'anywhere',
+              }}
             >
               {value}
             </Typography>
@@ -289,8 +303,13 @@ export const statusPairOf = (
 }
 
 export const StatusChip: React.FC<{ label: string; color?: string }> = ({ label, color = '#6b7280' }) => {
+  const theme = useTheme()
   const { main: text, mapped } = useStatusColor(color)
   // رنگ‌های بدون معادل (بنفش مسابقه، خاکستری‌ها) همان‌طور می‌مانند
+  const tint = mapped ? '1f' : '18'
+  // کنتراست با خودِ زمینهٔ تیغ‌خورده سنجیده می‌شود، نه با کاغذ: «پرداخت‌شده» ۴٫۴۹ و
+  // «▼ ۳۳۷۷٪» ۴٫۰۱ بود — ممیزی axe F-21
+  const labelColor = chipInk(text, `${text}${tint}`, theme.palette.background.paper)
   return (
     <Chip
       label={label}
@@ -300,8 +319,8 @@ export const StatusChip: React.FC<{ label: string; color?: string }> = ({ label,
         fontWeight: 600,
         fontSize: '0.75rem',
         height: 22,
-        bgcolor: `${text}${mapped ? '1f' : '18'}`,
-        color: text,
+        bgcolor: `${text}${tint}`,
+        color: labelColor,
       }}
     />
   )
@@ -324,7 +343,8 @@ export const EmptyBox: React.FC<{ icon: string; title: string; text?: string }> 
     >
       <Icon icon={icon} className="h-8 w-8" style={{ color: '#2563eb' }} />
     </Box>
-    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{title}</Typography>
+    {/* داخل پنل (h2) است؛ subtitle2 به‌تنهایی <h6> می‌ساخت — axe F-22 */}
+    <Typography variant="subtitle2" component="h3" sx={{ fontWeight: 700 }}>{title}</Typography>
     {text && (
       <Typography variant="body2" sx={{ color: 'text.secondary', mt: 0.5, maxWidth: 380, mx: 'auto' }}>
         {text}

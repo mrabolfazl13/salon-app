@@ -68,6 +68,8 @@ const ContractEconomics: React.FC<{
         <LinearProgress
           variant="determinate"
           value={paidPct}
+          aria-label="پیشرفت مالی قرارداد"
+          aria-valuetext={`${toPersianDigits(paidPct)}٪ پرداخت‌شده`}
           sx={{
             height: 8,
             borderRadius: '8px',

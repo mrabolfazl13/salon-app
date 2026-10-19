@@ -7,6 +7,7 @@ import {
   Box,
   Button,
   Chip,
+  FormControlLabel,
   Switch,
   Table,
   TableBody,
@@ -185,18 +186,25 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
                     </TableCell>
                     <TableCell>{toPersianDigits(rule.priority)}</TableCell>
                     <TableCell>
-                      <Switch
-                        size="small"
-                        checked={rule.is_active}
-                        disabled={updateRule.isPending}
-                        onChange={(e) =>
-                          updateRule.mutate(
-                            { ruleId: rule.id, data: { is_active: e.target.checked } },
-                            {
-                              onSuccess: () => toast.success(e.target.checked ? 'قانون فعال شد' : 'قانون غیرفعال شد'),
-                              onError: (err) => toast.error(extractError(err, 'خطا در تغییر وضعیت')),
-                            },
-                          )
+                      <FormControlLabel
+                        sx={{ m: 0, minHeight: 44, minWidth: 44 }}
+                        label={null}
+                        control={
+                          <Switch
+                            size="small"
+                            checked={rule.is_active}
+                            disabled={updateRule.isPending}
+                            slotProps={{ input: { 'aria-label': rule.is_active ? 'غیرفعال کردن قانون' : 'فعال کردن قانون' } }}
+                            onChange={(e) =>
+                              updateRule.mutate(
+                                { ruleId: rule.id, data: { is_active: e.target.checked } },
+                                {
+                                  onSuccess: () => toast.success(e.target.checked ? 'قانون فعال شد' : 'قانون غیرفعال شد'),
+                                  onError: (err) => toast.error(extractError(err, 'خطا در تغییر وضعیت')),
+                                },
+                              )
+                            }
+                          />
                         }
                       />
                     </TableCell>

@@ -194,7 +194,7 @@ const TeamDetail: React.FC = () => {
   return (
     <Layout>
       <Box sx={{ mb: 2 }}>
-        <Link to="/teams" style={{ textDecoration: 'none' }}>
+        <Link to="/teams" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}>
           <Typography sx={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 1 }}>
             <Icon icon="mdi:arrow-right" style={{ width: 16, height: 16 }} />
             بازگشت به تیم‌ها

@@ -133,7 +133,7 @@ const MatchCard: React.FC<{
           <StatusChip label={MATCH_STATUS_LABELS[match.status]} color={MATCH_STATUS_COLORS[match.status]} />
           {canManage && (match.status === 'ready' || match.status === 'live') && (
             <Button size="small" variant="outlined" disabled={busy} onClick={onResult}
-                    sx={{ borderRadius: '10px', minHeight: 40 }}>
+                    sx={{ borderRadius: '10px', minHeight: 44 }}>
               ثبت نتیجه
             </Button>
           )}
@@ -155,7 +155,7 @@ const BracketGrid: React.FC<{
   busy: boolean
   onResult: (match: TournamentMatch) => void
 }> = ({ rounds, testId, canManage, busy, onResult }) => (
-  <Box sx={{ overflowX: 'auto', pb: 1 }}>
+  <Box sx={{ overflowX: 'auto', pb: 1 }} role="region" aria-label="براکت مسابقات، قابل پیمایش با کیبورد" tabIndex={0}>
     <Box data-testid={testId}
          sx={{
            display: 'grid', gridAutoFlow: 'column',
@@ -195,6 +195,9 @@ const TournamentDetailPage: React.FC = () => {
   const user = useAuthStore((s) => s.user)
 
   const bracketQ = useTournamentBracket(tournamentId || null)
+  // ۴۰۴ با «خطای شبکه» یکی نیست: لینک مردهٔ تورنمنت حذف‌شده را با دکمهٔ
+  // «تلاش مجدد» نباید نشان داد (ممیزی F-07 — مسیر /tournaments/999).
+  const bracketHttpStatus = (bracketQ.error as { response?: { status?: number } } | null)?.response?.status
   const bracketStatus = bracketQ.data?.tournament.status
   const bracketFormat = bracketQ.data?.tournament.format
   // جدول لیگ وسطِ راه هم معنا دارد (امتیازها از نتیجه‌های ثبت‌شده ساخته می‌شود)،
@@ -322,7 +325,7 @@ const TournamentDetailPage: React.FC = () => {
     <Layout>
       <Box sx={{ mb: 2 }}>
         <Button size="small" onClick={() => navigate('/tournaments')} startIcon={<Icon icon="mdi:arrow-right" />}
-                sx={{ minHeight: 40, px: 0 }}>
+                sx={{ minHeight: 44, px: 0 }}>
           بازگشت به تورنمنت‌ها
         </Button>
       </Box>
@@ -333,7 +336,18 @@ const TournamentDetailPage: React.FC = () => {
           {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" sx={{ height: 120, borderRadius: '16px' }} />)}
         </Box>
       ) : bracketQ.isError ? (
-        <ErrorBox message="دریافت تورنمنت ممکن نشد." onRetry={() => bracketQ.refetch()} />
+        bracketHttpStatus === 404 ? (
+          <EmptyState
+            asPageHeading
+            emoji="🏆"
+            title="این تورنمنت پیدا نشد"
+            description="یا حذف شده یا نشانی درست نیست. از فهرست تورنمنت‌ها یک جام انتخاب کن."
+            actionLabel="فهرست تورنمنت‌ها"
+            onAction={() => navigate('/tournaments')}
+          />
+        ) : (
+          <ErrorBox message="دریافت تورنمنت ممکن نشد." onRetry={() => bracketQ.refetch()} />
+        )
       ) : !tournament ? (
         <EmptyState emoji="🏆" title="تورنمنتی نیست" description="از فهرست تورنمنت‌ها یک جام انتخاب کن." />
       ) : (
@@ -425,7 +439,7 @@ const TournamentDetailPage: React.FC = () => {
 
           {!drawn && (
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>تیم‌های ثبت‌نام‌شده</Typography>
+              <Typography variant="h6" component="h2" sx={{ fontWeight: 700, mb: 1.5 }}>تیم‌های ثبت‌نام‌شده</Typography>
               {participants.length === 0 ? (
                 <Typography variant="body2" color="text.secondary">
                   هنوز تیمی ثبت‌نام نکرده است؛ کاپیتان‌ها با «ثبت تیم من» وارد می‌شوند.
@@ -460,7 +474,7 @@ const TournamentDetailPage: React.FC = () => {
                                           {
                                             onSuccess: () => toast.success('تیم از تورنمنت حذف شد'),
                                             onError: (err) => toast.error(extractError(err, 'حذف تیم ممکن نشد.')),
-                                          })} sx={{ minHeight: 40 }}>
+                                          })} sx={{ minHeight: 44 }}>
                                   حذف
                                 </Button>
                               )}
@@ -495,7 +509,7 @@ const TournamentDetailPage: React.FC = () => {
 
           {drawn && (
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
+              <Typography variant="h6" component="h2" sx={{ fontWeight: 700, mb: 1.5 }}>
                 {isLeague ? 'برنامهٔ هفته‌ها' : isDouble ? 'براکت برندگان و فینالِ بزرگ' : 'براکت'}
               </Typography>
               <BracketGrid rounds={mainRounds} testId="tournament-bracket"
@@ -503,7 +517,7 @@ const TournamentDetailPage: React.FC = () => {
 
               {isDouble && losersRounds.length > 0 && (
                 <Box sx={{ mt: 2 }}>
-                  <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
+                  <Typography variant="h6" component="h2" sx={{ fontWeight: 700, mb: 0.5 }}>
                     <Icon icon="mdi:arrow-down-bold-circle-outline" style={{ verticalAlign: 'middle', marginLeft: 6 }} />
                     براکت بازندگان
                   </Typography>
@@ -522,7 +536,7 @@ const TournamentDetailPage: React.FC = () => {
 
           {standingsEnabled && (
             <Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>
+              <Typography variant="h6" component="h2" sx={{ fontWeight: 700, mb: 1.5 }}>
                 {isLeague ? (tournament.status === 'completed' ? 'جدول نهایی' : 'جدول امتیازها') : 'رده‌بندی نهایی'}
               </Typography>
               <Box sx={{

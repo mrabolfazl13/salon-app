@@ -6,7 +6,7 @@ import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 
 const buttonVariants = cva(
-  'inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0b1220] disabled:pointer-events-none disabled:opacity-50 active:scale-95',
+  'inline-flex min-h-11 items-center justify-center gap-2 whitespace-nowrap rounded-2xl text-sm font-medium transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2 dark:focus-visible:ring-offset-[#0b1220] disabled:pointer-events-none disabled:opacity-50 active:scale-95',
   {
     variants: {
       variant: {
@@ -20,7 +20,9 @@ const buttonVariants = cva(
       },
       size: {
         default: 'h-11 px-5 py-2.5',
-        sm: 'h-9 rounded-xl px-3 text-xs',
+        // ممیزی موبایل F-08: h-9 (۳۶px) زیر حداقل هدف لمسی ۴۴px بود؛ قطری/فونت
+        // همان‌قدر جمع می‌ماند اما ارتفاع لمسی به کلاس global کم‌شده برنمی‌گردد.
+        sm: 'h-11 rounded-xl px-3 text-xs',
         lg: 'h-14 rounded-2xl px-8 text-base',
         icon: 'h-11 w-11',
       },

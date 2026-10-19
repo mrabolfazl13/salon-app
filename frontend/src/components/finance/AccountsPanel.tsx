@@ -132,7 +132,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
             </Typography>
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: 520 }}>
+          <TableContainer role="region" aria-label="حساب‌های کاربران، قابل پیمایش با کیبورد" tabIndex={0} sx={{ maxHeight: 520 }}>
             <Table aria-label="حساب‌های کاربران" size="small" stickyHeader>
               <TableHead>
                 <TableRow>

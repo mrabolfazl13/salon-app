@@ -124,7 +124,7 @@ const VenueComparisonPanel: React.FC<Props> = ({ scope }) => {
           </Box>
 
           {isDesktop ? (
-            <TableContainer sx={{ maxHeight: 360 }}>
+            <TableContainer role="region" aria-label="مقایسهٔ سالن‌ها، قابل پیمایش با کیبورد" tabIndex={0} sx={{ maxHeight: 360 }}>
               <Table aria-label="مقایسهٔ سالن‌ها" size="small" stickyHeader>
                 <TableHead>
                   <TableRow>

@@ -283,7 +283,7 @@ const BookingPaymentPanel: React.FC<Props> = ({ booking, compact = false, onChan
             size="small"
             disabled={submitting}
             onClick={() => fileRef.current?.click()}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, minHeight: 40 }}
+            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, minHeight: 44 }}
             startIcon={<Icon icon="mdi:image-plus" className="h-4 w-4" />}
           >
             {file ? 'تغییر تصویر فیش' : 'انتخاب تصویر فیش'}

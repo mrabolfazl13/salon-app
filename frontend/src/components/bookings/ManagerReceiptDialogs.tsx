@@ -206,7 +206,7 @@ export const ReceiptReviewDialog: React.FC<{
           color="error"
           disabled={Boolean(busy) || loading || Boolean(loadError)}
           onClick={handleReject}
-          sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, minHeight: 40 }}
+          sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, minHeight: 44 }}
           startIcon={busy === 'reject' ? <CircularProgress size={16} color="inherit" /> : <Icon icon="mdi:close-circle-outline" className="h-4 w-4" />}
         >
           رد فیش
@@ -219,7 +219,7 @@ export const ReceiptReviewDialog: React.FC<{
             borderRadius: '10px',
             textTransform: 'none',
             fontWeight: 700,
-            minHeight: 40,
+            minHeight: 44,
             bgcolor: '#16a34a',
             '&:hover': { bgcolor: '#15803d' },
           }}

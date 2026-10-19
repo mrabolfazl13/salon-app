@@ -81,3 +81,54 @@ Flutter به‌طور کامل از محصول، توسعه، تست، CI/CD و 
 سند قبلیِ این فایل (بازیابی بیلد Flutter، ران 37191904535، release v1.0.0 ده-asset) مربوط به
 معماری حذف‌شده است و در تاریخچهٔ git (`git show master:AGENT_BUILD_STATE.md`) محفوظ است.
 هیچ مسیر اجرایی، pipeline یا artifact تولیدکنندهٔ Flutter باقی نمانده است.
+
+---
+
+## بیلد universal اندروید (هر ۴ ABI) — 2026-10-18
+
+| شاهد | مقدار |
+|---|---|
+| فرمان | `pnpm tauri android build --apk` (بدون `--target` → همهٔ ABIها) |
+| خروجی | `frontend/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk` |
+| اندازه | **68,352,624 بایت** (۶۸.۳ مگابایت) |
+| SHA-256 | `CA791B467133C2C0F760BBAA52A11A81BCD88FCA65769285FF36640EF469D077` |
+| ABIهای داخل APK | `arm64-v8a`, `armeabi-v7a`, `x86`, `x86_64` (هر کدام یک `libtauri_app_lib.so`) |
+| امضا | `apksigner verify --print-certs` → exit 0؛ `CN=Salon App, OU=Dev, O=Salon, L=Qom, ST=Qom, C=IR` |
+| لاگ کامل | `%TEMP%\tauri-android-final.log` (پایان: `Finished 1 APK at: …universal/release/app-universal-release.apk`) |
+
+نصب روی گوشی: در این لحظه دستگاه `AYAV6R3C11007538` از `adb` خارج شد
+(`adb.exe: no devices/emulators found`؛ `adb kill-server/start-server/reconnect` هم لیست خالی داد).
+نصب مجدد با `adb install -r <apk>` به‌محض بازگشت پایدار دستگاه انجام و نتیجهٔ آن ثبت می‌شود.
+هنوز **هیچ ادعایی دربارهٔ نصب نسخهٔ universal روی گوشی زده نمی‌شود**.
+
+---
+
+## محیط ممیزی UI/UX موبایل (Sandbox محلی) — 2026-10-18
+
+هدف: تست رابط کاربری با **Backend واقعی** بدون دست‌زدن به دادهٔ تولید.
+
+| جزء | مقدار |
+|---|---|
+| DB | SQLite یک‌بارمصرف: `%TEMP%\opencode\salon-audit\audit.db` (seed از `backend/scripts/seed_full_demo.py --reset --sqlite …`) |
+| محتوا | 3 venue، 1913 slot، 20 booking، 4 قرارداد، 12 کاربر demo + 1 مربی ساخته‌شده در dev |
+| Redis | `redis://127.0.0.1:6379/0` (Redis موجود روی ویندوز/WSL؛ هاست `redis` در `.env` resolve نمی‌شود) |
+| Backend | `python -m uvicorn app.main:app --host 127.0.0.1 --port 8000` با `DATABASE_URL` و `REDIS_URL` بالا |
+| Frontend | `vite --port 3001 --strictPort`؛ فایل **جدید و gitignore-شده** `frontend/.env.development.local` → `VITE_PROXY_TARGET=http://127.0.0.1:8000` |
+| احراز هویت تست | ۵ فایل storageState در `frontend/audit-artifacts/auth/*.json` (از توکن‌های واقعی همان حساب‌ها) |
+| محدودیت نرخ | برای اجرای ممیزی، سقف‌ها با متغیر محیطی بالا رفت (`RATE_LIMIT_PER_MINUTE=100000`, `AUTH_RATE_LIMIT_PER_HOUR=1000`). رفتار واقعی محدودیت (429) جداگانه مشاهده و ثبت شد. |
+
+### شواهد RBAC (probe مستقیم API، فقط خواندن)
+
+- anon → همهٔ مسیرهای محافظت‌شده `401`.
+- `user` → `finance/*`, `crm/*`, `shifts`, `pricing/rules`, `admin/*` = `403`؛ `bookings` = `200`.
+- `staff` (role=user + انتصاب در سالن ۱) → `crm/customers`, `crm/stats`, `contracts/manager/all` = `200` **فقط برای سالن خودش**؛ برای سالن‌های ۲ و ۳ = `403` (**بدون نشتی بین‌سالنی/IDOR**).
+- `coach` → فقط `coach/dashboard` = `200`.
+- `manager` → `finance`, `crm`, `shifts`, `pricing` = `200` برای سالن‌های تحت مدیریت (سالن ۲ = `403`).
+- `super_admin` → همهٔ مسیرها `200` (به‌جز `coach/dashboard` = `403`).
+
+### ناهم‌خوانی تأییدشدهٔ UI ↔ API (ثبت‌شده، رفع در جریان)
+
+`ProtectedRoute` با `allowStaff` عملاً **هر کاربر واردشده‌ای** را به `/finance`, `/manager/pricing`,
+`/manager/shifts`, `/manager/contracts` راه می‌دهد، در حالی که Backend برای این Endpointها
+از staff/user با `403` پاسخ می‌دهد (به‌جز CRM و قراردادهای مدیریتی). جزئیات در
+`docs/mobile-audit/BUG-TRACKER.md`.

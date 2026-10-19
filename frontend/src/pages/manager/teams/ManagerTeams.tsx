@@ -141,6 +141,10 @@ const ManagerTeams: React.FC = () => {
                         border: 0,
                         p: 0,
                         m: 0,
+                        // سرستون مرتب‌شدنی هم هدف لمسی است (ممیزی F-11: ۲۴px ارتفاع)
+                        minHeight: 44,
+                        minWidth: 44,
+                        justifyContent: h.numeric ? 'flex-end' : 'flex-start',
                         background: 'none',
                         font: 'inherit',
                         color: 'inherit',

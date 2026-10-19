@@ -166,7 +166,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
             mb: 3,
           }}
         >
-          <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>
+          <Typography variant="subtitle2" component="h3" sx={{ fontWeight: 700, mb: 1.5 }}>
             {editing ? 'ویرایش نظر شما' : 'نظر خود را ثبت کنید'}
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
@@ -279,6 +279,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                         {review.user_name || 'کاربر'}
                         {review.user_id === user?.id && (
                           <Chip
+                            component="span"
                             label="شما"
                             size="small"
                             sx={{ me: 1, height: 18, fontSize: '0.75rem', bgcolor: 'rgba(37,99,235,0.1)', color: 'primary.main', fontWeight: 700 }}

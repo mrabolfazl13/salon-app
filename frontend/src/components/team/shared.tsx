@@ -2,9 +2,10 @@
 // اجزای مشترک تیم: نگاشتار خطای TEAM_* به جمله‌ی فارسی، چیپ‌ها و بج‌ها — الگوی game/shared.tsx
 
 import React from 'react'
-import { Box, Chip, LinearProgress, Typography } from '@mui/material'
+import { Box, Chip, LinearProgress, Typography, useTheme } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { isAxiosError } from 'axios'
+import { chipInk, readableText } from '@/utils/contrast'
 
 import type { TeamMemberStatus, TeamRole, TeamVisibility } from '@/types/team'
 import { TEAM_MEMBER_STATUS_LABELS, TEAM_ROLE_LABELS, TEAM_VISIBILITY_LABELS } from '@/types/team'
@@ -90,7 +91,10 @@ const VISIBILITY_META: Record<TeamVisibility, { icon: string; fg: string; bg: st
 }
 
 export const TeamVisibilityChip: React.FC<{ visibility: TeamVisibility }> = ({ visibility }) => {
+  const paper = useTheme().palette.background.paper
   const c = VISIBILITY_META[visibility] ?? VISIBILITY_META.private
+  // «عمومی» با #059669 روی تیغِ خودش ۳٫۴۸:۱ داشت — ممیزی axe F-21
+  const ink = chipInk(c.fg, c.bg, paper)
   return (
     <Chip
       size="small"
@@ -102,8 +106,8 @@ export const TeamVisibilityChip: React.FC<{ visibility: TeamVisibility }> = ({ v
         fontWeight: 600,
         fontSize: '0.75rem',
         bgcolor: c.bg,
-        color: c.fg,
-        '& .MuiChip-icon': { color: c.fg },
+        color: ink,
+        '& .MuiChip-icon': { color: ink },
         '& .MuiChip-label': { px: 1 },
       }}
     />
@@ -117,7 +121,9 @@ const ROLE_META: Record<TeamRole, { fg: string; bg: string; icon: string }> = {
 }
 
 export const TeamRoleBadge: React.FC<{ role: TeamRole }> = ({ role }) => {
+  const paper = useTheme().palette.background.paper
   const c = ROLE_META[role] ?? ROLE_META.member
+  const ink = chipInk(c.fg, c.bg, paper)
   return (
     <Box
       component="span"
@@ -129,7 +135,7 @@ export const TeamRoleBadge: React.FC<{ role: TeamRole }> = ({ role }) => {
         py: 0.25,
         borderRadius: '999px',
         bgcolor: c.bg,
-        color: c.fg,
+        color: ink,
         fontSize: '0.75rem',
         fontWeight: 700,
         whiteSpace: 'nowrap',
@@ -149,9 +155,10 @@ const MEMBER_STATUS_META: Record<TeamMemberStatus, { fg: string; icon: string }>
 }
 
 export const MemberStatusChip: React.FC<{ status: TeamMemberStatus }> = ({ status }) => {
+  const paper = useTheme().palette.background.paper
   const m = MEMBER_STATUS_META[status] ?? MEMBER_STATUS_META.active
   return (
-    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, fontSize: '0.75rem', fontWeight: 700, color: m.fg }}>
+    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, fontSize: '0.75rem', fontWeight: 700, color: readableText(m.fg, paper) }}>
       <Icon icon={m.icon} style={{ width: 13, height: 13 }} />
       {TEAM_MEMBER_STATUS_LABELS[status] ?? status}
     </Box>
@@ -171,6 +178,7 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
       : overdue
         ? { label: 'گذشته از سررسید', fg: '#dc2626', bg: 'rgba(239,68,68,0.10)' }
         : { label: 'پرداخت‌نشده', fg: '#b45309', bg: 'rgba(245,158,11,0.12)' }
+  const ink = chipInk(meta.fg, meta.bg, useTheme().palette.background.paper)
   return (
     <Chip
       size="small"
@@ -181,7 +189,7 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
         fontWeight: 700,
         fontSize: '0.75rem',
         bgcolor: meta.bg,
-        color: meta.fg,
+        color: ink,
         '& .MuiChip-label': { px: 1 },
       }}
     />
@@ -240,6 +248,8 @@ export const TeamQuotaProgress: React.FC<{
         <LinearProgress
           variant="determinate"
           value={ratio * 100}
+          aria-label="پیشرفت عضویت تیم"
+          aria-valuetext={`${toPersianDigits(memberCount)} از ${toPersianDigits(total)} عضو`}
           sx={{
             height: 5,
             borderRadius: 999,

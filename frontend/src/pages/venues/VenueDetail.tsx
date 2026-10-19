@@ -433,6 +433,9 @@ const VenueDetail: React.FC = () => {
           >
             {images.length > 0 ? (
               <Box
+                role="region"
+                aria-label="گالری تصاویر سالن، قابل پیمایش با کیبورد"
+                tabIndex={0}
                 sx={{
                   display: 'flex',
                   height: '100%',
@@ -440,6 +443,7 @@ const VenueDetail: React.FC = () => {
                   scrollSnapType: 'x mandatory',
                   scrollbarWidth: 'none',
                   '&::-webkit-scrollbar': { display: 'none' },
+                  '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
                 }}
               >
                 {images.map((img, i) => (
@@ -523,7 +527,8 @@ const VenueDetail: React.FC = () => {
 
           {/* ==================== موبایل: اطلاعات اصلی ==================== */}
           <Box sx={{ px: 2, pt: 2, pb: 26, maxWidth: 640, mx: 'auto' }}>
-            <Typography sx={{ fontWeight: 800, fontSize: '1.3rem', color: 'text.primary', lineHeight: 1.5 }}>
+            {/* روی موبایل هیرو دسکتاپ display:none است؛ بدون این h1 صفحه سرتیتر سطح یک نداشت — axe F-25 */}
+            <Typography component="h1" sx={{ fontWeight: 800, fontSize: '1.3rem', color: 'text.primary', lineHeight: 1.5 }}>
               {venue.name}
             </Typography>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 0.75, flexWrap: 'wrap' }}>

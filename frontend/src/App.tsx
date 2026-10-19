@@ -12,6 +12,7 @@ import Loading from '@/components/ui/Loading'
 import UpdateDialog from '@/components/modals/UpdateDialog'
 import { useUpdateStore } from '@/store/updateStore'
 import ProtectedRoute, { PublicRoute } from '@/components/auth/ProtectedRoute'
+import Layout from '@/components/layout/Layout'
 import { useAuthStore } from '@/store/authStore'
 import { useThemeStore } from '@/store/themeStore'
 import { useWebSocket } from '@/hooks/useWebSocket'
@@ -90,7 +91,10 @@ const NotFound: React.FC = () => {
   const navigate = useNavigate()
 
   return (
-    <Container maxWidth="sm" sx={{ py: { xs: 8, md: 12 }, textAlign: 'center' }}>
+    // پوستهٔ برنامه (هدر/ناوبری) روی ۴۰۴ هم لازم است: کاربرِ لینکِ مرده باید
+    // راه بازگشت داشته باشد و صفحه landmark کامل بماند (ممیزی F-15).
+    <Layout>
+      <Container maxWidth="sm" sx={{ py: { xs: 6, md: 10 }, textAlign: 'center' }}>
       <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
@@ -157,7 +161,8 @@ const NotFound: React.FC = () => {
           </Box>
         </Paper>
       </motion.div>
-    </Container>
+      </Container>
+    </Layout>
   )
 }
 
@@ -246,8 +251,9 @@ function AppRoutes() {
             <Route path="/manager/contracts" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerContracts /></ProtectedRoute>} />
             <Route path="/manager/contracts/:id" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerContractDetail /></ProtectedRoute>} />
             <Route path="/manager/teams" element={<ProtectedRoute requiredRole="venue_manager"><ManagerTeams /></ProtectedRoute>} />
-            {/* کنسول مشتریان/پرسنل — گیت لاگین؛ کارمندِ انتصابی (role=user) هم باز می‌کند و ۴۰۳ بک‌اند با پنل دوستانه مدیریت می‌شود */}
-            <Route path="/manager/crm" element={<ProtectedRoute><ManagerCrm /></ProtectedRoute>} />
+            {/* کنسول مشتریان/پرسنل — مدیر سالن یا کارمندِ انتصابی (کد customer.view_basic/CRM)؛
+                کاربر عادی ۴۰۳ می‌گیرد و نباید صفحه را ببیند */}
+            <Route path="/manager/crm" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerCrm /></ProtectedRoute>} />
             <Route path="/manager/checkin" element={<ProtectedRoute requiredRole="venue_manager"><ManagerCheckin /></ProtectedRoute>} />
             {/* شیفت پرسنل (P020) — گیت بک‌اند کد staff.manage است؛ کارمندِ دارای این کد هم باز می‌کند */}
             <Route path="/manager/shifts" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerShifts /></ProtectedRoute>} />

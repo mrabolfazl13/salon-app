@@ -253,7 +253,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
             </Typography>
           </Box>
         ) : (
-          <TableContainer sx={{ maxHeight: 560 }}>
+          <TableContainer role="region" aria-label="تراکنش‌های مالی، قابل پیمایش با کیبورد" tabIndex={0} sx={{ maxHeight: 560 }}>
             <Table aria-label="تراکنش‌های مالی" size="small" stickyHeader>
               <TableHead>
                 <TableRow>

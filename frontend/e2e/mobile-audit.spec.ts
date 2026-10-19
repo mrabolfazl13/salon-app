@@ -150,10 +150,29 @@ async function collectMetrics(page: Page) {
     const TAP_SELECTOR =
       'button, a[href], [role="button"], [role="combobox"], [role="menuitem"], [role="tab"], [role="switch"], [role="checkbox"], [role="radio"], [role="link"], input:not([type="hidden"]), select, textarea'
     const all = Array.from(document.querySelectorAll(TAP_SELECTOR))
+    // هدفِ واقعیِ لمس برای input/combobox درون MUI، ریشهٔ OutlinedInput/ButtonBase است
+    // (input فقط ۲۳–۴۰px ارتفاع دارد ولی کل جعبهٔ ۴۴px کلیک‌پذیر است). بدون این تصحیح،
+    // هر فرمِ سالمی «هدف کوچک» گزارش می‌شد. ورودی‌های aria-hidden (native input سلکت)
+    // و جعبه‌های ≤۴px (رادیوهای مخفی Rating) اصلاً هدف کاربر نیستند.
+    const effective = (el: Element) => {
+      let w = (el as HTMLElement).offsetWidth
+      let h = (el as HTMLElement).offsetHeight
+      let host = el.parentElement
+      while (host && host !== document.body) {
+        if (host.matches('.MuiInputBase-root, .MuiButtonBase-root, label')) {
+          w = Math.max(w, host.offsetWidth)
+          h = Math.max(h, host.offsetHeight)
+        }
+        host = host.parentElement
+      }
+      return { w, h }
+    }
     const visible = all
+      .filter((el) => el.getAttribute('aria-hidden') !== 'true')
       .map((el) => {
         const r = el.getBoundingClientRect()
         const cs = window.getComputedStyle(el)
+        const size = effective(el)
         return {
           tag: el.tagName,
           role: el.getAttribute('role') || '',
@@ -161,15 +180,15 @@ async function collectMetrics(page: Page) {
           // اندازهٔ هدف لمس از جعبهٔ چچین (layout) گرفته می‌شود: getBoundingClientRect
           // مقیاسِ میانهٔ انیمیشن framer-motion را هم لحاظ می‌کند و دکمهٔ ۴۴px را
           // ۴۲–۴۳ نشان می‌داد (ممیزی: «دریافت جایزه» در LoyaltySection).
-          w: (el as HTMLElement).offsetWidth,
-          h: (el as HTMLElement).offsetHeight,
+          w: size.w,
+          h: size.h,
           left: Math.round(r.left),
           right: Math.round(r.right),
           display: cs.display,
           visibility: cs.visibility,
         }
       })
-      .filter((x) => x.w > 0 && x.h > 0 && x.display !== 'none' && x.visibility !== 'hidden')
+      .filter((x) => x.w > 4 && x.h > 4 && x.display !== 'none' && x.visibility !== 'hidden')
 
     const isTap = (x: { tag: string; role: string }) =>
       x.tag === 'BUTTON' ||
@@ -285,19 +304,37 @@ async function auditRoute(
     await page
       .waitForFunction(() => document.querySelectorAll('.MuiSkeleton-root').length === 0, null, { timeout: 10000 })
       .catch(() => {})
+    // پروب‌های دارای حالتِ انتظار (مثلاً ۴۰۴ تورنمنت): پیش از اندازه‌گیری منتظر متن بمان،
+    // وگرنه نوسان شبکه در ۳۲۰px «یافتهٔ P1 کاذب» می‌سازد.
+    if (opts.expectText)
+      await page
+        .waitForFunction((t: string) => (document.body.innerText || '').includes(t), opts.expectText, { timeout: 15000 })
+        .catch(() => {})
     await page.waitForTimeout(500)
   } catch (e: any) {
     navError = String(e?.message || e).slice(0, 200)
   }
 
-  const metrics = await collectMetrics(page).catch(() => null)
+  let metrics = await collectMetrics(page).catch(() => null)
   const finalPath = new URL(page.url()).pathname
 
   // صفحه‌ای که حتی پس از انتظار، هنوز fallback/خالی است ⇒ اندازه‌گیری معتبر نیست.
   // نکته: «در حال بارگذاری…» می‌تواند مربوط به یک **بخش** باشد (نمودار سری‌های مالی)
   // در حالی که بقیهٔ صفحه پر است؛ اگر کل اندازه‌گیری را باطل می‌کرد، سرریز ۳۲۰px
   // کارت‌های مالی دیده نشد (ممیزی: manager/@finance@320).
-  const incomplete = !!metrics && (metrics.textLen <= 25 || (metrics.hasLoadingText && metrics.textLen < 400))
+  const isIncomplete = (m: any) => !!m && (m.textLen <= 25 || (m.hasLoadingText && m.textLen < 400))
+  let incomplete = isIncomplete(metrics)
+  if (incomplete) {
+    // Vite dev هنگام کشف وابستگی تازه یک full-reload می‌زند و بدنه لحظه‌ای خالی است؛
+    // یک بار reload دوباره، تا «stuck-loading» کاذب ثبت نشود (بیلد production ندارد).
+    await page.reload({ waitUntil: 'domcontentloaded', timeout: 30000 }).catch(() => {})
+    await page
+      .waitForFunction(() => !/در حال بارگذاری/.test(document.body.innerText || ''), null, { timeout: 20000 })
+      .catch(() => {})
+    await page.waitForTimeout(500)
+    metrics = await collectMetrics(page).catch(() => null)
+    incomplete = isIncomplete(metrics)
+  }
   const row: any = { role, route, viewport: vp.name, finalPath, navError, incomplete, metrics }
   routeRows.push(row)
 
@@ -558,6 +595,9 @@ test.describe('MOBILE AUDIT — پیمایش با کیبورد (WCAG 2.4.7)', ()
         const stops: Array<{ tag: string; name: string; ring: boolean; dup: boolean }> = []
         for (let i = 0; i < 16; i++) {
           await page.keyboard.press('Tab')
+          // حلقهٔ تمرکز باید آنی باشد، اما اگر روزی transition دیگری برگردد
+          // اندازه‌گیریِ بی‌درنگ مقدار ۰px را در میانهٔ انیمیشن می‌خواند (ریشهٔ F-28).
+          await page.waitForTimeout(60)
           const s = await activeStop(page)
           if (!s) break
           stops.push(s)
@@ -590,9 +630,9 @@ test.describe('MOBILE AUDIT — پیمایش با کیبورد (WCAG 2.4.7)', ()
     fs.writeFileSync(path.join(ART, 'audit-report-keyboard.json'), JSON.stringify({ rows, findings }, null, 2))
     const allNoRing = rows.reduce((a, r) => a + (r.noRing as number), 0)
     const allDup = rows.reduce((a, r) => a + (r.dups as number), 0)
-    // MUI Button-as-link variants (MuiButton-root on <a>) lose the focus ring due to
-    // emotion specificity — a known framework limitation. We record P3 findings but
-    // don't hard-fail. All other elements (IconButtons, inputs, plain links) pass.
+    // F-28 ریشه‌یابی شد: حلقه وجود داشت ولی transition:all آن را از ۰px باز می‌کرد و
+    // اندازه‌گیریِ بی‌درنگ همان ۰px را می‌دید. با فهرست صریح transition در تم، حلقه آنی است.
+    expect(allNoRing, 'همهٔ ایستگاه‌های کیبورد باید حلقهٔ تمرکز داشته باشند').toBe(0)
     expect(allDup, 'ظرف‌های انیمیشن نباید ایستگاه کیبورد تکراری بسازند').toBe(0)
   })
 
@@ -603,7 +643,7 @@ test.describe('MOBILE AUDIT — پیمایش با کیبورد (WCAG 2.4.7)', ()
       await page.goto('/finance', { waitUntil: 'load', timeout: 60000 }).catch(() => {})
       await page.waitForLoadState('networkidle', { timeout: 20000 }).catch(() => {})
       await page.waitForTimeout(900)
-      await page.locator('button[aria-label="انتخاب تاریخ"]').first().click()
+      await page.locator('input[aria-haspopup="dialog"]').first().click()
       await page.waitForTimeout(500)
       const paper = page.locator('.MuiPopover-paper')
       const opened = (await paper.count()) > 0

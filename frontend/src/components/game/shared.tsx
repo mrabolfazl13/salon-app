@@ -2,9 +2,10 @@
 // اجزای مشترک بازی‌ها: چیپ‌ها، نوار ظرفیت، خطایار — سبک هم‌راستا با VenueCard
 
 import React from 'react'
-import { Box, Chip, LinearProgress, Typography } from '@mui/material'
+import { Box, Chip, LinearProgress, Typography, useTheme } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { isAxiosError } from 'axios'
+import { chipInk } from '@/utils/contrast'
 
 import {
   GAME_STATUS_LABELS,
@@ -67,7 +68,10 @@ export const GameStatusChip: React.FC<{ status: GameStatus; size?: 'small' | 'me
   status,
   size = 'small',
 }) => {
+  const paper = useTheme().palette.background.paper
   const c = STATUS_COLORS[status] ?? STATUS_COLORS.draft
+  // «باز» با #059669 روی تیغِ خودش ۳٫۴۸:۱ بود — ممیزی axe F-21
+  const ink = chipInk(c.fg, c.bg, paper)
   return (
     <Chip
       size={size}
@@ -79,8 +83,8 @@ export const GameStatusChip: React.FC<{ status: GameStatus; size?: 'small' | 'me
         fontWeight: 700,
         fontSize: '0.75rem',
         bgcolor: c.bg,
-        color: c.fg,
-        '& .MuiChip-icon': { color: c.fg },
+        color: ink,
+        '& .MuiChip-icon': { color: ink },
       }}
     />
   )
@@ -92,7 +96,9 @@ export const VisibilityChip: React.FC<{ visibility: GameVisibility }> = ({ visib
     public_approval: { icon: 'mdi:shield-check-outline', fg: '#b45309', bg: 'rgba(245,158,11,0.10)' },
     private: { icon: 'mdi:lock-outline', fg: '#64748b', bg: 'rgba(100,116,139,0.10)' },
   }
+  const paper = useTheme().palette.background.paper
   const c = map[visibility]
+  const ink = chipInk(c.fg, c.bg, paper)
   return (
     <Chip
       size="small"
@@ -104,8 +110,8 @@ export const VisibilityChip: React.FC<{ visibility: GameVisibility }> = ({ visib
         fontWeight: 600,
         fontSize: '0.75rem',
         bgcolor: c.bg,
-        color: c.fg,
-        '& .MuiChip-icon': { color: c.fg },
+        color: ink,
+        '& .MuiChip-icon': { color: ink },
         '& .MuiChip-label': { px: 1 },
       }}
     />
@@ -174,6 +180,8 @@ export const CapacityBar: React.FC<{ current: number; max: number }> = ({ curren
       <LinearProgress
         variant="determinate"
         value={ratio * 100}
+        aria-label="ظرفیت شرکت‌کننده‌ها"
+        aria-valuetext={`${current.toLocaleString('fa-IR')} از ${max.toLocaleString('fa-IR')} نفر`}
         sx={{
           height: 5,
           borderRadius: 999,

@@ -271,7 +271,7 @@ const Bookings: React.FC = () => {
                         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                           <VenueThumb images={booking.venue_images} name={booking.venue_name || `سالن #${booking.slot_id}`} size={48} />
                           <Box>
-                            <Typography sx={{ fontWeight: 600 }} variant="subtitle1">
+                            <Typography sx={{ fontWeight: 600 }} variant="subtitle1" component="h2">
                               {booking.venue_name || `سالن #${booking.slot_id}`}
                             </Typography>
                             {booking.slot_date ? (

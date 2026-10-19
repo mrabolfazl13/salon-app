@@ -72,7 +72,7 @@ const UpdateDialog: React.FC = () => {
         {phase === 'checking' && (
           <>
             <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">در حال بررسی بروزرسانی…</h2>
-            <div className="py-4"><LinearProgress /></div>
+            <div className="py-4"><LinearProgress aria-label="در حال بررسی بروزرسانی" /></div>
           </>
         )}
 
@@ -119,7 +119,7 @@ const UpdateDialog: React.FC = () => {
 
             {phase === 'downloading' && (
               <div className="px-2 pb-2">
-                <LinearProgress variant="determinate" value={pct} className="rounded-full" />
+                <LinearProgress variant="determinate" value={pct} aria-label="دانلود بروزرسانی" aria-valuetext={`${Math.round(pct)}٪ دانلود شد`} className="rounded-full" />
                 <p className="text-xs text-gray-400 mt-2 tabular-nums">
                   {mb(progress.received)} از {mb(progress.total || manifest.size)}
                 </p>

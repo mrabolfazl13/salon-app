@@ -1,6 +1,7 @@
 import React, { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
+import { useStaffMe } from '@/hooks/useStaffMe'
 import { CircularProgress, Box } from '@mui/material'
 import toast from 'react-hot-toast'
 
@@ -8,12 +9,16 @@ interface ProtectedRouteProps {
   children: React.ReactNode
   requiredRole?: 'user' | 'venue_manager' | 'club_admin' | 'super_admin' | 'coach'
   /**
-   * کنسول‌های عملیاتی سالن (مالی/قیمت‌گذاری/قراردادها/CRM): برای هر کاربر
-   * لاگین‌کرده رندر می‌شود — کارمندِ انتصابی (role=user با کد دسترسی)؛ تصمیم
-   * نهایی با بک‌اند (۴۰۳) و کنسول‌ها ForbiddenPanel را تمیز نمایش می‌دهند.
+   * کنسول‌های عملیاتی سالن (مالی/قیمت‌گذاری/قراردادها/شیفت): علاوه بر مدیر سالن،
+   * **کارمندِ انتصابی** (role=user با انتصاب فعال در GET /staff/me) هم باز می‌کند.
+   * بدون انتصاب، کاربر عادی به /venues برمی‌گردد — پیش‌تر همین پرچم صرفاً
+   * «لاگین‌کرده بودن» را می‌سنجید و کاربر عادی صفحه‌ای پر از ۴۰۳ می‌دید (ممیزی F-01).
    */
   allowStaff?: boolean
 }
+
+/** بک‌اند /coach/* را با گیت سخت نقش محافظت می‌کند؛ ادمین کل هم ۴۰۳ می‌گیرد */
+const NO_SUPER_ADMIN_BYPASS: string[] = ['coach']
 
 const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   children,
@@ -23,12 +28,18 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   const { isAuthenticated, user, isLoading } = useAuthStore()
   const location = useLocation()
 
+  const role = user?.role
+  const isOwner = role === 'venue_manager' || role === 'club_admin' || role === 'super_admin'
+  const needsStaffCheck = allowStaff && isAuthenticated && !isOwner
+  const staffQuery = useStaffMe(needsStaffCheck)
+  const isAssignedStaff = needsStaffCheck && (staffQuery.data?.length ?? 0) > 0
+
   const isRoleAllowed =
     !requiredRole ||
-    allowStaff ||
-    user?.role === requiredRole ||
-    user?.role === 'super_admin' ||
-    (requiredRole === 'venue_manager' && user?.role === 'club_admin')
+    isAssignedStaff ||
+    role === requiredRole ||
+    (role === 'super_admin' && !NO_SUPER_ADMIN_BYPASS.includes(requiredRole)) ||
+    (requiredRole === 'venue_manager' && role === 'club_admin')
 
   const roleMismatch = isAuthenticated && !isRoleAllowed
 
@@ -38,13 +49,17 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
     }
   }, [roleMismatch])
 
-  if (isLoading) {
-    return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress />
-      </Box>
-    )
-  }
+  const spinner = (
+    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
+      <CircularProgress />
+    </Box>
+  )
+
+  if (isLoading) return spinner
+
+  // انتصاب کارمندی هنوز مشخص نشده ⇒ نه ریدایرکت کنیم (کارمند را بیرون می‌اندازد)
+  // نه صفحهٔ ۴۰۳ (کاربر عادی یک لحظه کنسول می‌بیند)
+  if (needsStaffCheck && staffQuery.isPending) return spinner
 
   if (!isAuthenticated) {
     return <Navigate to="/login" state={{ from: location }} replace />

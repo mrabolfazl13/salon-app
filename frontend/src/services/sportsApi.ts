@@ -99,7 +99,7 @@ export const sportsApi = {
     try {
       const response = await axios.get<Varzesh3League[]>(
         `${VARZESH3_LIVESCORE}/today`,
-        { timeout: 10000 }
+        { timeout: 5000 }
       )
 
       if (!response.data || !Array.isArray(response.data)) {
@@ -156,7 +156,9 @@ export const sportsApi = {
         finished: finished.slice(0, 8),
       }
     } catch (error) {
-      console.error('Error fetching matches:', error)
+      // مسیرِ ازپیش‌دیده: ویجت مسابقهٔ بیرونی (varzesh3) نمی‌رسد و UI حالت خالی را
+      // نشان می‌دهد؛ این «خطای برنامه» نیست، پس در level هشدار لاگ می‌شود.
+      console.warn('varzesh3: مسابقه‌ها در دسترس نبودند', (error as Error)?.message)
       return { live: [], upcoming: [], finished: [] }
     }
   },
@@ -184,7 +186,7 @@ export const sportsApi = {
     try {
       const response = await axios.get<Array<{ id: number; title: string; link: string; isLive: boolean; mediaType: number; publishedOn?: string }>>(
         `${VARZESH3_BASE}/news/most-visited`,
-        { timeout: 10000 }
+        { timeout: 5000 }
       )
 
       if (!response.data || !Array.isArray(response.data)) return []
@@ -218,7 +220,7 @@ export const sportsApi = {
     try {
       const response = await axios.get<Array<{ id: number; title: string; link: string; isLive: boolean; mediaType: number; publishedOn?: string }>>(
         `${VARZESH3_BASE}/news/latest`,
-        { timeout: 10000 }
+        { timeout: 5000 }
       )
 
       if (!response.data || !Array.isArray(response.data)) return []
@@ -242,7 +244,8 @@ export const sportsApi = {
         isLive: item.isLive,
       }))
     } catch (error) {
-      console.error('Error fetching latest news:', error)
+      // همان مسیر ازپیش‌دیدهٔ بالا: خبر بیرونی نمی‌رسد ⇒ بخش اخبار حالت خالی دارد
+      console.warn('varzesh3: آخرین اخبار در دسترس نبود', (error as Error)?.message)
       return []
     }
   },
@@ -314,7 +317,7 @@ export const sportsApi = {
         }>
       }>(
         `/api/varzesh3/v2.0/football/leagues/6/seasons/${seasonId}/standing`,
-        { timeout: 10000 }
+        { timeout: 5000 }
       )
 
       if (!response.data?.teams || !Array.isArray(response.data.teams)) {

@@ -50,9 +50,9 @@ Typographyهای بصری (`variant="subtitle1"`, `"h6"`) با `component="h2"` 
 ### ۵. حلقهٔ تمرکز سراسری
 
 - `src/styles/globals.css`: `:focus-visible, .Mui-focusVisible { outline-width: 2px !important; ... }`
-- `src/theme/index.ts`: `MuiButtonBase.root['&.Mui-focusVisible']` override برای غلبه بر قوانین emotion
+- `src/theme/index.ts`: حذف `transition: all` از `MuiButton` / `MuiOutlinedInput` / `MuiTab` — `all` باعث می‌شد `outline-width` در ۲۵۰ms از ۰ تا ۲px باز شود و حلقه در لحظهٔ Tab دیده نشود.
 
-**نتیجه:** IconButtons، ورودی‌ها، comboboxها و لینک‌های ساده حلقه دارند. MUI Button-as-link variants به‌دلیل محدودیت فریم‌ورک همچنان بدون حلقه (F-28).
+**نتیجه:** همهٔ ۷۱ ایستگاه کیبورد در ۵ مسیر حلقه دارند (`noRing=0` با assertion سخت‌گیرانه). F-28 بسته شد — محدودیت MUI نبود، اثر جانبی `transition: all` بود.
 
 ### ۶. حذف توقف‌های تکراری کیبورد
 
@@ -60,7 +60,20 @@ framer-motion's `whileTap` → `tabIndex={-1}` روی wrapper divها (Home ×2,
 
 ### ۷. اهداف لمسی PersianDatePicker
 
-سلول‌های تقویم ۳۸→۴۴px، دکمه‌های ناوبری ۴۴×۴۴، TextField input minHeight 44 (تم)، Select minHeight 44 (تم).
+سلول‌های تقویم ۳۸→۴۴px (و ۴۴×۴۴ پس از اصلاح گرید)، دکمه‌های ناوبری ۴۴×۴۴، TextField input minHeight 44 (تم)، Select minHeight 44 (تم). اندازه‌گیری واقعی در ۳۷۵×۸۱۲: سلول‌ها ۴۴×۴۴، ناوبری ۴۴×۴۴، دکمه‌های پانویس ارتفاع ۴۴.
+
+### ۸. تصحیح گرید تقویم و برچسب روزها
+
+- گرید تقویم با `Grid size={{xs:1}}` عملاً ۱۲ ستون در هر ردیف می‌چید (۷ روز هفته با ستون‌ها هم‌تراز نبود). جایگزین: CSS Grid با `repeat(7, 1fr)`.
+- هر سلول روز `aria-label` کامل (مثلاً «شنبه ۲۸ شهریور ۱۴۰۵») گرفت؛ پیش‌تر فقط عدد خوانده می‌شد.
+
+### ۹. اهداف لمسی و ساختار DOM (دور آخر)
+
+- **Chip داخل `<p>`:** چیپ «شما» در نظرات سالن `div` داخل `p` می‌ساخت (هشدار `validateDOMNesting`). با `component="span"` رفع شد — F-32.
+- **لینک بازگشت:** لینک‌های «بازگشت به بازی‌ها/تیم‌ها» ۲۵px بودند؛ خودِ لینک `inline-flex` با `minHeight: 44` شد — F-33.
+- **جستجوی ادمین:** جعبهٔ ۴۴px به `label` تبدیل شد تا کل سطح آن ورودی را فوکوس کند — F-34.
+- **اندازه‌گیری هدف مؤثر:** input/comboboxهای MUI داخل ریشهٔ ۴۴px خود ۲۳–۴۰px هستند؛ هارنس اکنون بزرگ‌ترین جعبهٔ والد (`.MuiInputBase-root`/`MuiButtonBase-root`/`label`) را هدف می‌شمارد و `aria-hidden`/≤۴px را نادیده می‌گیرد. نتیجه: `smallTap=[]` در مسیرهای نمونهٔ `/games/1`, `/teams/1`, `/admin/users`, `/finance`, `/venues/1`.
+- **تاگل‌های قیمت‌گذاری:** `Switch`های جداول ۲۴px و بی‌نام بودند؛ با `MuiSwitch.root { minHeight: 44 }` + `FormControlLabel` ۴۴px و `aria-label` فارسی روی input رفع شد — F-35.
 
 ## چک‌لیست WCAG 2.1 AA
 
@@ -69,7 +82,7 @@ framer-motion's `whileTap` → `tabIndex={-1}` روی wrapper divها (Home ×2,
 | ۱.۴.۳ Contrast (AA) | ✅ PASS | `readableText()` تضمین می‌کند ≥۴.۵:۱ |
 | ۱.۴.۱۱ Non-text Contrast | ✅ PASS | `chipInk()` برای چیپ‌ها و borderها |
 | ۲.۴.۳ Focus Order | ✅ PASS | ترتیب منطقی RTL، بدون پرش |
-| ۲.۴.۷ Focus Visible | ⚠️ PARTIAL | حلقه سراسری فعال؛ MUI Button-as-link استثنا (F-28) |
+| ۲.۴.۷ Focus Visible | ✅ PASS | حلقهٔ ۲px آبی روی همهٔ ایستگاه‌های Tab (`noRing=0` در ۵ مسیر) |
 | ۲.۴.۱ Bypass Blocks | ✅ PASS | skip-to-content link در App shell |
 | ۴.۱.۲ Name, Role, Value | ✅ PASS | aria-label روی progressbar، combobox، regionها |
 | ۱.۱.۱ Non-text Content | ✅ PASS | تمام تصاویر seed alt دارند؛ آیکون‌ها aria-hidden |
@@ -80,7 +93,7 @@ framer-motion's `whileTap` → `tabIndex={-1}` روی wrapper divها (Home ×2,
 
 | مورد | روش بررسی | وضعیت |
 |------|-----------|--------|
-| پیمایش کامل با Tab | پروب کیبورد خودکار (۱۶ توقف × ۵ مسیر) | ✅ حلقه روی اکثر عناصر؛ F-28 مستند شد |
+| پیمایش کامل با Tab | پروب کیبورد خودکار (۱۶ توقف × ۵ مسیر) | ✅ همهٔ ایستگاه‌ها حلقه دارند؛ ۰ توقف تکراری |
 | trap تمرکز در مودال | باز کردن popover تاریخ + Tab ۱۰ بار | ✅ Popover غیرمدال Tab را می‌بندد (رفتار استاندارد) |
 | خوانندهٔ صفحه (NVDA/JAWS) | تست دستی روی دستگاه واقعی | BLOCKED — بدون دستگاه فیزیکی |
 | Zoom 200% | تست دستی | NATIVE-ONLY |
@@ -99,5 +112,5 @@ framer-motion's `whileTap` → `tabIndex={-1}` روی wrapper divها (Home ×2,
 ## داده‌های خام
 
 - `audit-artifacts/axe-report.json`: ۲۲ ترکیب مسیر×نقش، همگی ۰ violation
-- `audit-artifacts/keyboard-report.json`: ۵ مسیر، ۷ no-ring (همه MUI Button-as-link), ۰ duplicate tab stop
+- `audit-artifacts/audit-report-keyboard.json`: ۵ مسیر، ۰ no-ring، ۰ duplicate tab stop (assertion سخت‌گیرانه)
 - `audit-artifacts/harness-after-a11y.log`: ۸ تست Playwright، همه passed

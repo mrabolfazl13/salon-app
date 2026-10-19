@@ -80,11 +80,12 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
               }}
               aria-pressed={active}
             >
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, opacity: active ? 0.9 : 0.6 }}>
+              {/* opacity روی متن ۱۲px کنتراست را به ۴٫۰:۱ می‌رساند (مهر = #7b7f8a) — ممیزی axe F-21 */}
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: active ? 'rgba(28,25,23,0.9)' : dark ? 'rgba(238,242,247,0.82)' : 'rgba(15,23,42,0.78)' }}>
                 {d.isToday ? 'امروز' : d.weekday}
               </Typography>
               <Typography sx={{ fontSize: '1.15rem', fontWeight: 800, lineHeight: 1.3 }}>{d.day}</Typography>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 500, opacity: active ? 0.9 : 0.55 }}>
+              <Typography sx={{ fontSize: '0.75rem', fontWeight: 500, color: active ? 'rgba(28,25,23,0.9)' : dark ? 'rgba(238,242,247,0.82)' : 'rgba(15,23,42,0.78)' }}>
                 {d.month}
               </Typography>
             </motion.button>

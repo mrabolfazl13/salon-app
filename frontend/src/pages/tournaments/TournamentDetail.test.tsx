@@ -256,8 +256,14 @@ describe('TournamentDetail — ثبت‌نام و قرعه‌کشی', () => {
     await waitFor(() => expect(registerTeam).toHaveBeenCalledWith(1, 13, null))
   })
 
-  it('خطای سرویس را با پیام فارسی روی صفحه می‌آورد', async () => {
+  it('۴۰۴ را با حالت خالیِ «پیدا نشد» نشان می‌دهد، نه خطای عمومی', async () => {
     bracket.mockRejectedValue({ isAxiosError: true, response: { status: 404, data: { detail: 'تورنمنت یافت نشد.' } } })
+    renderPage()
+    expect(await screen.findByText(/این تورنمنت پیدا نشد/)).toBeInTheDocument()
+  })
+
+  it('خطای سرویس (غیر ۴۰۴) را با پیام فارسی و دکمهٔ تلاش دوباره می‌آورد', async () => {
+    bracket.mockRejectedValue({ isAxiosError: true, response: { status: 500 } })
     renderPage()
     expect(await screen.findByText(/دریافت تورنمنت ممکن نشد/)).toBeInTheDocument()
   })

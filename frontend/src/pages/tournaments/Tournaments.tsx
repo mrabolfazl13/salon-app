@@ -128,7 +128,7 @@ const TournamentCard: React.FC<{
                       color={TOURNAMENT_STATUS_COLORS[tournament.status]} />
           {canManage && tournament.status === 'draft' && (
             <Button size="small" variant="outlined" disabled={busy} onClick={onOpen}
-                    sx={{ borderRadius: '10px', minHeight: 40 }}>
+                    sx={{ borderRadius: '10px', minHeight: 44 }}>
               بازکردن ثبت‌نام
             </Button>
           )}
@@ -138,7 +138,7 @@ const TournamentCard: React.FC<{
               : 'براکت ساخته می‌شود و دیگر قابل تغییر نیست'}>
               <span>
                 <Button size="small" variant="contained" disabled={busy || tournament.team_count < 2}
-                        onClick={onDraw} sx={{ borderRadius: '10px', minHeight: 40 }}>
+                        onClick={onDraw} sx={{ borderRadius: '10px', minHeight: 44 }}>
                   قرعه‌کشی
                 </Button>
               </span>

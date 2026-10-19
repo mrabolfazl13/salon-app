@@ -196,7 +196,8 @@ const Dashboard: React.FC = () => {
                       <Icon icon={stat.icon} className="h-4.5 w-4.5" style={{ color: stat.color }} />
                     </Box>
                   </Box>
-                  <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                  {/* مقدار KPI سرتیتر نیست؛ h6 باعث می‌شد ترتیب سرتیترها بشکند — axe F-22 */}
+                  <Typography variant="h6" component="div" sx={{ fontWeight: 800 }}>
                     {stat.value}
                   </Typography>
                 </Paper>
@@ -212,7 +213,7 @@ const Dashboard: React.FC = () => {
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                   <Icon icon="mdi:calendar-history" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
-                  <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
                     آخرین رزروها
                   </Typography>
                 </Box>
@@ -292,7 +293,7 @@ const Dashboard: React.FC = () => {
             <Paper sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, height: '100%' }}>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
                 <Icon icon="mdi:lightning-bolt" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
                   دسترسی سریع
                 </Typography>
               </Box>

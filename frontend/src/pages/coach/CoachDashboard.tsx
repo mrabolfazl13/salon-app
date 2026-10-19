@@ -145,7 +145,7 @@ const SessionRow: React.FC<{
             variant="outlined"
             disabled={busy}
             onClick={onSettle}
-            sx={{ borderRadius: '10px', minHeight: 40 }}
+            sx={{ borderRadius: '10px', minHeight: 44 }}
           >
             تسویه
           </Button>
@@ -330,7 +330,7 @@ const CoachDashboard: React.FC = () => {
               onChange={(_e, next: CoachSessionStatus | 'all') => next && setStatusFilter(next)}
               aria-label="فیلتر وضعیت جلسات"
               data-testid="coach-status-filter"
-              sx={{ mb: 1.5, flexWrap: 'wrap', gap: 0.5, '& .MuiToggleButton-root': { minHeight: 40, px: 1.5, borderRadius: '10px !important', border: '1px solid rgba(15,23,42,0.12)' } }}
+              sx={{ mb: 1.5, flexWrap: 'wrap', gap: 0.5, '& .MuiToggleButton-root': { minHeight: 44, px: 1.5, borderRadius: '10px !important', border: '1px solid rgba(15,23,42,0.12)' } }}
             >
               <ToggleButton value="all">همه</ToggleButton>
               {(Object.keys(STATUS_LABELS) as CoachSessionStatus[]).map((s) => (

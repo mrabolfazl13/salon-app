@@ -10,9 +10,9 @@
 |------|--------|--------|
 | TypeScript (`tsc --noEmit`) | ✅ PASS (exit 0) | بدون خطا |
 | ESLint | ✅ PASS (exit 0) | ۰ خطا، ۲۰۱ هشدار (از قبل موجود — `any` types) |
-| Vitest (unit) | ✅ PASS | تمام تست‌ها شامل `contrast.test.ts` (۶ مورد جدید) |
-| Playwright E2E (mobile-audit harness) | ✅ PASS | ۸ تست: login×5 + route sweep + viewport matrix |
-| Playwright keyboard tests | ✅ PASS | focus ring + tab order, open layer behavior |
+| Vitest (unit) | ✅ PASS | ۲۰۰ تست در ۲۳ فایل (شامل `contrast.test.ts`) |
+| Playwright E2E (mobile-audit harness) | ✅ PASS | ۴ تست در ۷٫۴m: route sweep + viewport matrix + ۲ تست کیبورد |
+| Playwright keyboard tests | ✅ PASS | `noRing=0` و `dups=0` در ۵ مسیر (assertion سخت‌گیرانه) |
 | Backend pytest | ⏳ PENDING | نیاز به اجرای جداگانه در محیط backend |
 
 ## تست‌های جدید اضافه‌شده
@@ -32,8 +32,14 @@
 
 | تست | موضوع | یافته‌ها | وضعیت |
 |-----|-------|----------|--------|
-| focus ring + tab order | حلقه تمرکز روی ۵ مسیر | ۷ no-ring (MUI Button-as-link), ۰ dup | ✅ (یافتگان ثبت شد) |
+| focus ring + tab order | حلقه تمرکز روی ۵ مسیر | ۰ no-ring، ۰ dup | ✅ |
 | open layer behaves | رفتار popover تاریخ با Tab/Escape | Popover غیرمدال Tab را می‌بندد | ✅ |
+
+**تغییر مهم:** تست کیبورد پیش‌تر بلافاصله بعد از Tab مقدار outline را می‌خواند و در میانهٔ `transition: all` صفر می‌دید (۷ no-ring کاذب). اکنون ۶۰ms مکث + assertion `noRing === 0`.
+
+### `TournamentDetail.test.tsx`
+
+تست خطای سرویس با ۴۰۴ به‌روزرسانی شد: ۴۰۴ → حالت خالی «این تورنمنت پیدا نشد»؛ خطای ۵۰۰ → پیام عمومی + تلاش دوباره.
 
 ## گیت‌های رگرسیون
 
@@ -41,6 +47,6 @@
 |-----|--------|-------|
 | `npx tsc --noEmit` | ✅ | exit 0 |
 | `npx eslint src` | ✅ | 0 errors |
-| `npx vitest run` | ✅ | all pass |
-| `vite build --mode development` | ✅ | built in ~45s |
-| Playwright mobile-audit | ✅ | 8 passed |
+| `npx vitest run` | ✅ | ۲۰۰/۲۰۰ pass |
+| `vite build` | ✅ | production، `built in 58.84s` |
+| Playwright mobile-audit | ✅ | `4 passed (7.4m)` — route sweep ۱۵۴ ردیف + viewport matrix ۸۱ ردیف + keyboard (`noRing=0`, `dups=0`) |

@@ -17,7 +17,7 @@ import {
 } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { ErrorBox } from '@/components/finance/shared'
-import { useManagedVenues, isForbiddenError } from '@/hooks/useStaffMe'
+import { useManagedVenues, useStaffPermission, isForbiddenError } from '@/hooks/useStaffMe'
 import { ForbiddenPanel } from '@/components/crm/shared'
 import type { FinanceVenue } from '@/hooks/useFinance'
 import FinanceDashboardTab from '@/components/finance/FinanceDashboardTab'
@@ -38,6 +38,9 @@ const FinanceConsole: React.FC = () => {
   // دامنه ادغام‌شده: سالن‌های مدیر + انتصاب‌های کارکنان (/staff/me)
   const venuesQuery = useManagedVenues()
   const venues: FinanceVenue[] = venuesQuery.data ?? []
+  // کارمندِ بدون کد مالی: کوئری‌های مالی شلیک نمی‌شوند — پیش‌تر پنج ۴۰۳ و اسکلتون ماندگار
+  // («در حال بارگذاری...» روی صفحه می‌ماند) نتیجهٔ همین باز شدن بی‌دسترسی بود (ممیزی F-04)
+  const financeAccess = useStaffPermission(['finance.view', 'reports.view'])
 
   const changeTab = (value: TabKey) => {
     setTab(value)
@@ -96,7 +99,15 @@ const FinanceConsole: React.FC = () => {
         </Box>
 
         <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 1.5, sm: 2, md: 4 }, mt: -5, position: 'relative', zIndex: 2, pb: 10 }}>
-          {venuesQuery.isPending ? (
+          {!financeAccess.ready ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
+              <CircularProgress sx={{ color: '#2563eb' }} />
+            </Box>
+          ) : !financeAccess.allowed ? (
+            <Box sx={{ bgcolor: 'rgba(255,255,255,0.94)', borderRadius: '18px', p: 2, border: '1px solid rgba(0,0,0,0.05)' }}>
+              <ForbiddenPanel detail="دسترسی مالی برای حساب شما در هیچ سالنی باز نشده است؛ مدیر سالن می‌تواند در بخش «پرسنل» کد «مشاهده امور مالی» را به شما بدهد." />
+            </Box>
+          ) : venuesQuery.isPending ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
               <CircularProgress sx={{ color: '#2563eb' }} />
             </Box>
@@ -131,9 +142,9 @@ const FinanceConsole: React.FC = () => {
                     <Tabs
                       value={tab}
                       onChange={(_, v) => changeTab(v)}
-                      variant="scrollable"
-                      scrollButtons={false}
-                      allowScrollButtonsMobile
+                      // سه تب = fullWidth؛ با «scrollable» تب سوم («حساب‌ها») روی ۳۲۰px
+                      // بیرون از لبه می‌ماند و هیچ نشانهٔ اسکرولی هم نداشت (ممیزی F-17)
+                      variant="fullWidth"
                       sx={{
                         '& .MuiTabs-flexContainer': { gap: 0.5 },
                         '& .MuiTabs-indicator': { display: 'none' },
@@ -142,8 +153,8 @@ const FinanceConsole: React.FC = () => {
                           fontWeight: 700,
                           fontSize: '0.82rem',
                           minHeight: 48,
-                          minWidth: 'auto',
-                          px: 2,
+                          minWidth: 0,
+                          px: 1,
                           borderRadius: '12px',
                           ms: 0,
                           color: '#64748b',
