@@ -27,7 +27,9 @@ test.describe('Futsal Booking System - Smoke Tests', () => {
     // aria-label روی ریشۀ TextField روی div می‌نشست و input بی‌نام می‌ماند.
     await page.goto('/login')
     const phoneInput = page.getByLabel('شماره تلفن همراه', { exact: true })
-    await expect(phoneInput).toBeVisible()
+    // اولین بار که chunkِ lazy صفحۀ ورود دیده می‌شود، vite آن را تازه transform می‌کند
+    // و پیش‌فرض ۵ ثانیه کوتاه است (صفحه در Suspense «در حال بارگذاری...» می‌ماند).
+    await expect(phoneInput).toBeVisible({ timeout: 20_000 })
     await expect(phoneInput).toHaveAttribute('placeholder', /09/)
     await expect(phoneInput).toHaveAttribute('inputmode', 'tel')
     const passwordInput = page.getByLabel('رمز عبور', { exact: true })
@@ -67,7 +69,10 @@ test.describe('Futsal Booking System - Smoke Tests', () => {
     // مسیرِ ناشناخته (catch-all در App.tsx) سنجیده می‌شود.
     await page.goto('/this-route-does-not-exist')
     await expect(page.locator('h1')).toContainText('صفحه مورد نظر یافت نشد')
-    await expect(page.locator('button:has-text("صفحه اصلی"), a[href="/"]')).toBeVisible()
-    await expect(page.locator('a[href="/venues"]')).toBeVisible()
+    // صفحهٔ ۴۰۴ اکنون داخل پوستهٔ برنامه رندر می‌شود (هدر/ناوبری)؛ پس لینک خانه
+    // چند بار در DOM هست و locator عمومی به strict-mode می‌خورد (F-15).
+    await expect(page.getByRole('button', { name: 'صفحه اصلی' })).toBeVisible()
+    await expect(page.locator('a[href="/"][data-discover="true"]').first()).toBeVisible()
+    await expect(page.locator('a[href="/venues"]').first()).toBeVisible()
   })
 })
