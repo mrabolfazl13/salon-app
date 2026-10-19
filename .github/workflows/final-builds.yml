@@ -1,0 +1,121 @@
+name: Salon App - Final Builds
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: salon-final-builds-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-checks:
+    name: Frontend checks and production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    defaults:
+      run:
+        working-directory: frontend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+      - name: Lint
+        run: pnpm run lint
+      - name: Test
+        run: pnpm run test
+      - name: Production build
+        run: pnpm run build
+      - name: Upload web build
+        uses: actions/upload-artifact@v4
+        with:
+          name: salon-web-${{ github.sha }}
+          path: frontend/dist/
+          if-no-files-found: error
+          retention-days: 14
+
+  windows-desktop:
+    name: Windows desktop installer
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Install Rust
+        uses: dtolnay/rust-toolchain@stable
+      - name: Build Tauri desktop bundles
+        working-directory: frontend
+        run: pnpm exec tauri build
+      - name: Upload Windows installers
+        uses: actions/upload-artifact@v4
+        with:
+          name: salon-windows-${{ github.sha }}
+          path: |
+            frontend/src-tauri/target/release/bundle/**
+          if-no-files-found: error
+          retention-days: 14
+
+  android:
+    name: Android APK and AAB
+    runs-on: ubuntu-latest
+    timeout-minutes: 75
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.9.0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+          cache-dependency-path: frontend/pnpm-lock.yaml
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Install Android SDK components
+        run: |
+          sdkmanager "platform-tools" "platforms;android-35" "build-tools;35.0.0" "ndk;27.0.12077973"
+          echo "ANDROID_NDK_HOME=$ANDROID_HOME/ndk/27.0.12077973" >> "$GITHUB_ENV"
+      - name: Install Rust Android targets
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android,armv7-linux-androideabi,i686-linux-android,x86_64-linux-android
+      - name: Install frontend dependencies
+        working-directory: frontend
+        run: pnpm install --frozen-lockfile
+      - name: Initialize Tauri Android project
+        working-directory: frontend
+        run: pnpm exec tauri android init
+      - name: Build APK and AAB for supported ABIs
+        working-directory: frontend
+        run: pnpm exec tauri android build --apk --aab
+      - name: Upload Android outputs
+        uses: actions/upload-artifact@v4
+        with:
+          name: salon-android-${{ github.sha }}
+          path: |
+            frontend/src-tauri/gen/android/app/build/outputs/**/*.apk
+            frontend/src-tauri/gen/android/app/build/outputs/**/*.aab
+          if-no-files-found: error
+          retention-days: 14
