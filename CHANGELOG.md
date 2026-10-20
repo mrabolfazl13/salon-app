@@ -5,6 +5,18 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [v1.7.2] - 2026-10-20
+
+### ✨ Added — Real city catalog for Qom and Tehran
+- `backend/app/seed_city_catalog.py` (idempotent, non-destructive) adds **10 Tehran futsal halls** with name, address, geo-coordinates and phone taken from the JSON-LD of their public `poolticket.org` pages — no invented data.
+- The **8 existing Qom halls** now carry real per-hall base prices (۳٫۵ تا ۵ میلیون ریال برای ۹۰ دقیقه).
+- **23,280 priced slots** generated for all 18 halls across 132 days (2026-10-20 → 2027-02-28), 10 slots/day, with a 10٪ evening surcharge on weekends; already-booked and contract slots are never rewritten.
+- Each Tehran hall gets its own `VENUE_MANAGER` account (`09121000001`…`09121000010`), active and verified.
+
+### 📱 Android
+- Signed **arm64-v8a APK v1.2.0** (`apksigner` v2 scheme, dev cert) published to the in-app updater; `~/updates/latest.json` moved from 0.2.0 to 1.2.0 and the previous manifest was backed up.
+- `src-tauri/Cargo.toml`/`Cargo.lock` crate version was stale at 1.1.0 while `tauri.conf.json` was 1.2.0 — aligned, so a rebuild cannot ship a mismatched versionCode.
+
 ## [v1.7.1] - 2026-10-19
 
 ### ✨ Added — Quick access for every role
