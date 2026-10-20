@@ -162,11 +162,11 @@ framer-motion's `whileTap` باعث اضافه شدن `tabIndex={0}` به divه�
 - **F-40 — آیکون دلار روی مبلغ ریالی (FIXED ✓):** کارت «درآمد (بازه انتخابی)» داشبورد مدیر و ردیف قیمت سالن با `mdi:currency-usd` رندر می‌شدند. به `mdi:cash-multiple` تغییر کرد. فایل: `src/pages/dashboard/ManagerDashboard.tsx`.
 - **F-41 — پنل ادمین: ارقام لاتین + آیکون ناقص (FIXED ✓):** KPIها `20`/`3` را با ارقام لاتین و برخلاف کل اپ نشان می‌دادند و آیکون `mdi:shield-question-outline` در مجموعهٔ MDI وجود ندارد و به‌صورت مربع خالی دیده می‌شد. اکنون `toPersianDigits` و آیکون `mdi:clipboard-clock-outline`. فایل: `src/pages/admin/AdminDashboard.tsx`.
 - **F-42 — شکستن مبلغ بزرگ در کاشی KPI (FIXED ✓):** «درآمد این ماه» منفی (`−۱۹۵٬۰۳۵٬۸۳۴ ریال`) در ستون ۱۶۷px روی سه خط می‌شکست. `formatRialCompact` اضافه شد (میلیون/میلیارد ریال) و مقدار کامل در `title` می‌ماند؛ `KpiCard` پراپ `title` گرفت. فایل‌ها: `src/components/finance/shared.tsx`, `src/components/finance/FinanceDashboardTab.tsx`.
-- **F-43 — شات سفید `/manager/crm` (OPEN — نیازمند تأیید روی دستگاه/CI):** در شات‌های ۳۲۰ و ۳۷۵ این مسیر کاملاً سفید است، ولی DOM کامل است (`h1=مشتریان و پرسنل`، ۳۹۷ گره، `textLen=906`، بدون خطای کنسول) و hit-test روی محتوا می‌افتد. حتی `body{background:red}` هم در شات دیده نشد ⇒ رستر صفحه در این سندباکس خالی می‌شود، نه اینکه محتوا وجود نداشته باشد؛ `overflowX` گزارش‌شده هم ناشی از نوار ناوبری پارک‌شدهٔ RTL است (`scrollWidth=781`). به‌دلیل سقف رم میزبان (۸GB)، بایسکت‌کردن بیشتر انجام نشد؛ باید در CI/دستگاه واقعی یک شات تازه گرفته شود. تا آن زمان در جدول صفحه‌به‌صفحه «❌ BLOCKED» است.
+- **F-43 — شات سفید `/manager/crm` (FIXED ✓):** در شات‌های ۳۲۰ و ۳۷۵ صفحه کاملاً سفید بود، ولی DOM کامل و بدون خطا. علت ریشه‌ای: کارت‌های موبایل مشتری داخل `<Box component="button">` هستند و کروم محتوای دکمه را با عرض max-content می‌چیند؛ بلوک داخلی ۷۳۶px می‌شد و سند را به ۷۸۱px می‌برد. در RTL همین سرریز، ناحیهٔ مرئی/رستر را جابه‌جا می‌کرد (به همین دلیل حتی `body{background:red}` هم دیده نمی‌شد). با `overflow: 'hidden'` روی کارت، `scrollWidth` از ۷۸۱ به ۳۷۵ برگشت و شات‌های ۳۲۰/۳۷۵ کامل رندر شدند (sweep: 2 passed). فایل: `src/components/crm/CustomersTab.tsx`.
 - **F-44 — ۵۰۰ روی `/bookings/pending/my` بدون Redis (FIXED ✓):** سرویس رزروهای معلق تمام‌وابسته به Redis است و در سندباکس (بدون Redis) خطای اتصال به ۵۰۰ تبدیل می‌شد؛ صفحهٔ `/bookings` مدیر با پیام خطا می‌افتاد. `_list` اکنون `redis.RedisError` را می‌گیرد و `[]` برمی‌گرداند (بدون Redis هیچ رکورد معلقی وجود ندارد). تأیید: پاسخ ۲۰۰ `[]` با توکن manager. فایل: `backend/app/services/pending_booking_service.py`.
 - **تکراری‌شدن توست «دسترسی…» (پذیرفته — فقط dev):** `ProtectedRoute` یک منبع دارد؛ دوبار دیده‌شدن در شات‌ها اثر اجرای دوبارهٔ effect در React StrictMode (dev) است و در build تولیدی تک‌بار است.
 
-**وضعیت:** F-40…F-42 و F-44 FIXED (tsc/lint/build پاک)؛ F-43 OPEN.
+**وضعیت:** F-40…F-44 همه FIXED (tsc/lint/build پاک).
 
 
 ## خلاصه دسته‌بندی
@@ -179,4 +179,4 @@ framer-motion's `whileTap` باعث اضافه شدن `tabIndex={0}` به divه�
 | P3 | ۵ | ۰ | ۵ VERIFIED |
 | یافته‌های جدید حین تأیید (F-30 تا F-35) | ۶ | ۰ | ۶ FIXED/VERIFIED |
 | یافته‌های هارنس (F-36 تا F-39) | ۴ | ۰ | ۴ FIXED |
-| یافته‌های شیت‌های بصری (F-40 تا F-44) | ۵ | ۱ (F-43) | ۴ FIXED |
+| یافته‌های شیت‌های بصری (F-40 تا F-44) | ۵ | ۰ | ۵ FIXED |

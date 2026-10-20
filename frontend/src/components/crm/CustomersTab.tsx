@@ -265,6 +265,9 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                 sx={{
                   position: 'relative', p: 2, borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.92)',
                   border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 16px rgba(15,23,42,0.04)',
+                  // محتوای <button> را کروم با عرض max-content می‌چیند و بدون برش، سند را
+                  // تا ۷۸۱px پهن می‌کند؛ در RTL همین باعث خالی‌رندر شدن کل صفحه می‌شد.
+                  overflow: 'hidden',
                   '&:active': { transform: 'scale(0.98)' },
                 }}
               >

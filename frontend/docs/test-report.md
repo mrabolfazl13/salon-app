@@ -10,10 +10,11 @@
 |---|-------|-------|-------------|
 | 1 | `npx tsc --noEmit` | ✅ exit 0 | بدون خطای تایپ |
 | 2 | `npx eslint src` | ✅ exit 0 | ۰ خطا، ۲۰۳ هشدار `no-explicit-any` (از قبل) |
-| 3 | `npx vitest run` | ✅ exit 0 | **۲۰۳ تست / ۲۴ فایل / ۵۵٫۴s** |
-| 4 | `node --max-old-space-size=3072 node_modules/vite/bin/vite.js build` | ✅ exit 0 | `built in 1m 3s` |
+| 3 | `npx vitest run` | ✅ exit 0 | **۲۰۳ تست / ۲۴ فایل / ۱۹٫۲s** (فایل‌ها کش‌شده) |
+| 4 | `node --max-old-space-size=3072 node_modules/vite/bin/vite.js build` | ✅ exit 0 | پس از یک OOM کوتاه محیطی، `built in 40.28s` |
 | 5 | Playwright `mobile-audit.spec.ts` (manager، بدون sweep) | ✅ exit 0 | **۵ passed، ۱ skipped، ۶٫۵m** |
 | 6 | `GET /api/v1/bookings/pending/my` با توکن manager | ✅ 200 `[]` | پس از fail-open بدون Redis (قبلاً 500) |
+| 7 | sweep تک‌مسیرهٔ `/manager/crm` (manager؛ ۳۲۰/۳۷۵) | ✅ 2 passed | پس از رفع F-43؛ `scrollWidth` ۷۸۱→۳۷۵ |
 
 ## ۲. پوشش Playwright در این دور
 

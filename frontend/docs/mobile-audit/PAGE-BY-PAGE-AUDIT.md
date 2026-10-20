@@ -26,7 +26,7 @@
 | `/manager/pricing` | manager | [📸](../../audit-artifacts/shots/manager___manager_pricing__375x812.png) | ✅ | ✅ | 0 | 0 | — | ✅ AUDITED |
 | `/manager/shifts` | manager | [📸](../../audit-artifacts/shots/manager___manager_shifts__375x812.png) | ✅ | ✅ | 0 | 0 | — | ✅ AUDITED |
 | `/manager/contracts` | manager | [📸](../../audit-artifacts/shots/manager___manager_contracts__375x812.png) | ✅ | ✅ | 0 | 0 | — | ✅ AUDITED |
-| `/manager/crm` | manager | [📸](../../audit-artifacts/shots/manager___manager_crm__375x812.png) | ✅ | ✅ | 0 | 0 | — | ❌ BLOCKED (F-43 شات سفید) |
+| `/manager/crm` | manager | [📸](../../audit-artifacts/shots/manager___manager_crm__375x812.png) | ✅ | ✅ | 0 | 0 | — | ✅ AUDITED |
 | `/teams/1` | user | [📸](../../audit-artifacts/shots/user___teams_1__375x812.png) | ✅ | ✅ | 0 | 0 | — | ✅ AUDITED |
 | `/tournaments/2` | user | [📸](../../audit-artifacts/shots/user___tournaments_2__375x812.png) | ✅ | ✅ | 0 | 0 | — | ✅ AUDITED |
 | `/games/1` | user | [📸](../../audit-artifacts/shots/user___games_1__375x812.png) | ✅ | ✅ | 0 | 0 | — | ✅ AUDITED |
