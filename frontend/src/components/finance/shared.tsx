@@ -35,6 +35,17 @@ export function formatRial(n: number | null | undefined, withUnit = true): strin
   return s === '—' ? s : withUnit ? `${s} ریال` : s
 }
 
+/** مبلغ فشرده برای کاشی‌های KPI باریک: «۱۹۵ میلیون ریال»؛ مقدار کامل در tooltip می‌آید */
+export function formatRialCompact(n: number | null | undefined): string {
+  if (n === null || n === undefined || Number.isNaN(n)) return '—'
+  const abs = Math.abs(n)
+  const sign = n < 0 ? '−' : ''
+  const faDecimal = (v: number, digits: number) => toPersianDigits(v.toFixed(digits)).replace('.', '٫')
+  if (abs >= 1_000_000_000) return `${sign}${faDecimal(abs / 1_000_000_000, abs >= 10_000_000_000 ? 0 : 1)} میلیارد ریال`
+  if (abs >= 10_000_000) return `${sign}${faDecimal(abs / 1_000_000, 0)} میلیون ریال`
+  return formatRial(n)
+}
+
 /** تیک فشرده محور Y: ۱۲٫۵م (میلیون) / ۳۵۰هزار */
 export function shortRialAxis(v: number | string): string {
   const n = Number(v)
@@ -190,9 +201,11 @@ export const KpiCard: React.FC<{
   icon: string
   color?: string
   loading?: boolean
+  /** مقدار کامل وقتی نمایش فشرده است (tooltip) */
+  title?: string
   /** نود اختیاری کنار مقدار — چیپ دلتای مقایسه‌ای و... */
   end?: React.ReactNode
-}> = ({ label, value, sub, icon, color = '#2563eb', loading = false, end }) => {
+}> = ({ label, value, sub, icon, color = '#2563eb', loading = false, title, end }) => {
   const theme = useTheme()
   const { main: accent } = useStatusColor(color)
   // «۰٪» با #0891b2 روی کارت سفید ۳٫۶۸:۱ بود — ممیزی axe F-21
@@ -231,6 +244,7 @@ export const KpiCard: React.FC<{
             <Typography
               variant="body1"
               dir="rtl"
+              title={title}
               sx={{
                 fontWeight: 800,
                 color: valueColor,

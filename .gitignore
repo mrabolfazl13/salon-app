@@ -83,3 +83,6 @@ frontend/monitoring/reports/
 # Large local build artifacts (kept on disk, out of the repo / Cloudflare deploy scope)
 frontend/*.apk
 frontend/*.aab
+
+# Local pgserver data dir (sandbox)
+backend/.pgdata/

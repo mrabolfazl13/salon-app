@@ -817,7 +817,7 @@ const ManagerDashboard: React.FC = () => {
     {
       label: 'درآمد (بازه انتخابی)',
       value: formatPrice(totalRevenue),
-      icon: 'mdi:currency-usd',
+      icon: 'mdi:cash-multiple',
       gradient: 'linear-gradient(135deg, #d97706, #f59e0b)',
       lightBg: 'rgba(217,119,6,0.08)',
       color: '#d97706',
@@ -1433,7 +1433,7 @@ const ManagerDashboard: React.FC = () => {
                                         </Typography>
                                       </Box>
                                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                        <Icon icon="mdi:currency-usd" className="h-4 w-4" style={{ color: '#9ca3af' }} />
+                                        <Icon icon="mdi:cash-multiple" className="h-4 w-4" style={{ color: '#9ca3af' }} />
                                         <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
                                           {formatPrice(venue.price)}
                                         </Typography>

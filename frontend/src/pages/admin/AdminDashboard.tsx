@@ -10,6 +10,7 @@ import Layout from '@/components/layout/Layout'
 import { adminService } from '@/services/admin'
 import type { UserStats, VenueStats, AdminUser } from '@/services/admin'
 import { formatDate, getInitials } from '@/lib/utils'
+import { toPersianDigits } from '@/lib/jalali'
 import toast from 'react-hot-toast'
 
 const roleConfig: Record<string, { label: string; color: 'default' | 'info' | 'secondary' | 'warning' | 'success' }> = {
@@ -92,7 +93,7 @@ const AdminDashboard: React.FC = () => {
     { label: 'کل کاربران', value: userStats?.total_users, icon: 'mdi:account-group', gradient: 'linear-gradient(135deg, #2563eb, #1d4ed8)' },
     { label: 'کاربران فعال', value: userStats?.active_users, icon: 'mdi:account-check', gradient: 'linear-gradient(135deg, #16a34a, #15803d)' },
     { label: 'کل سالن‌ها', value: venueStats?.total_venues, icon: 'mdi:stadium', gradient: 'linear-gradient(135deg, #7c3aed, #6d28d9)' },
-    { label: 'در انتظار تایید', value: venueStats?.pending_venues, icon: 'mdi:shield-question-outline', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
+    { label: 'در انتظار تایید', value: venueStats?.pending_venues, icon: 'mdi:clipboard-clock-outline', gradient: 'linear-gradient(135deg, #f59e0b, #d97706)' },
   ]
 
   const recentUsers = [...users]
@@ -141,7 +142,7 @@ const AdminDashboard: React.FC = () => {
                     <Box>
                       <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>{stat.label}</Typography>
                       <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                        {stat.value ?? 0}
+                        {stat.value == null ? '۰' : toPersianDigits(stat.value)}
                       </Typography>
                     </Box>
                     <Box sx={{
@@ -167,7 +168,7 @@ const AdminDashboard: React.FC = () => {
             <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
               مدیران سالن در انتظار تایید
             </Typography>
-            <Chip label={pendingManagers.length} size="small" color="warning" sx={{ borderRadius: '8px' }} />
+            <Chip label={toPersianDigits(pendingManagers.length)} size="small" color="warning" sx={{ borderRadius: '8px' }} />
           </Box>
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
             {pendingManagers.map((m) => (

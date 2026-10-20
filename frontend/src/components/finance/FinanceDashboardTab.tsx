@@ -59,6 +59,7 @@ import {
   faNum,
   formatPct,
   formatRial,
+  formatRialCompact,
   jalaliDayLabel,
   labelOf,
   shortRialAxis,
@@ -122,23 +123,23 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
     return { up: pct >= 0, label: `${pct >= 0 ? '▲' : '▼'} ${toPersianDigits(Math.abs(Math.round(pct)))}٪` }
   })()
 
-  interface Kpi { label: string; value: string; icon: string; color: string; sub?: string; end?: React.ReactNode }
+  interface Kpi { label: string; value: string; icon: string; color: string; sub?: string; title?: string; end?: React.ReactNode }
   const kpis: Kpi[] = d
     ? [
-        { label: 'درآمد امروز', value: formatRial(d.today_revenue), icon: 'mdi:cash-fast', color: '#059669' },
+        { label: 'درآمد امروز', value: formatRialCompact(d.today_revenue), title: formatRial(d.today_revenue), icon: 'mdi:cash-fast', color: '#059669' },
         {
           label: 'درآمد این ماه',
-          value: formatRial(d.month_revenue),
+          value: formatRialCompact(d.month_revenue), title: formatRial(d.month_revenue),
           icon: 'mdi:calendar-month',
           color: '#2563eb',
           end: monthDelta ? (
             <StatusChip label={monthDelta.label} color={monthDelta.up ? '#059669' : '#dc2626'} />
           ) : undefined,
         },
-        { label: 'دریافتی امروز', value: formatRial(d.today_received), icon: 'mdi:bank-plus', color: '#7c3aed' },
-        { label: 'مطالبات باز', value: formatRial(d.open_receivables), icon: 'mdi:hand-back-right', color: '#dc2626' },
-        { label: 'هزینه‌ها (بازه)', value: formatRial(d.expenses), icon: 'mdi:cash-minus', color: '#d97706' },
-        { label: 'سود ناخالص (بازه)', value: formatRial(d.gross_profit), icon: 'mdi:trending-up', color: d.gross_profit >= 0 ? '#059669' : '#dc2626' },
+        { label: 'دریافتی امروز', value: formatRialCompact(d.today_received), title: formatRial(d.today_received), icon: 'mdi:bank-plus', color: '#7c3aed' },
+        { label: 'مطالبات باز', value: formatRialCompact(d.open_receivables), title: formatRial(d.open_receivables), icon: 'mdi:hand-back-right', color: '#dc2626' },
+        { label: 'هزینه‌ها (بازه)', value: formatRialCompact(d.expenses), title: formatRial(d.expenses), icon: 'mdi:cash-minus', color: '#d97706' },
+        { label: 'سود ناخالص (بازه)', value: formatRialCompact(d.gross_profit), title: formatRial(d.gross_profit), icon: 'mdi:trending-up', color: d.gross_profit >= 0 ? '#059669' : '#dc2626' },
         { label: 'اشغال امروز', value: formatPct(d.occupancy_today), sub: `${faNum(d.bookings_today)} رزرو امروز`, icon: 'mdi:gauge', color: '#0891b2' },
         { label: 'انقضای قراردادها (۱۴ روز)', value: `${toPersianDigits(d.contracts_expiring_soon)} قرارداد`, sub: `قراردادهای فعال: ${toPersianDigits(d.active_contracts)}`, icon: 'mdi:file-clock-outline', color: '#db2777' },
         { label: 'رزروهای امروز', value: toPersianDigits(d.bookings_today), sub: `لغوشده: ${toPersianDigits(d.cancelled_bookings)}`, icon: 'mdi:calendar-check', color: '#2563eb' },
@@ -188,7 +189,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                 </Grid>
               ) : (
                 <Grid size={{ xs: 6, md: 3 }} key={k.label}>
-                  <KpiCard label={k.label} value={k.value} sub={k.sub} icon={k.icon} color={k.color} end={k.end} />
+                  <KpiCard label={k.label} value={k.value} sub={k.sub} title={k.title} icon={k.icon} color={k.color} end={k.end} />
                 </Grid>
               ),
             )}
@@ -247,7 +248,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
           <Grid container spacing={1.5}>
             {kpis.slice(4).map((k) => (
               <Grid size={{ xs: 6, sm: 4, md: 3 }} key={k.label}>
-                <KpiCard label={k.label} value={k.value} sub={k.sub} icon={k.icon} color={k.color} end={k.end} />
+                <KpiCard label={k.label} value={k.value} sub={k.sub} title={k.title} icon={k.icon} color={k.color} end={k.end} />
               </Grid>
             ))}
           </Grid>

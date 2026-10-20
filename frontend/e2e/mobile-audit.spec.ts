@@ -30,6 +30,27 @@ const ART = path.resolve(process.cwd(), 'audit-artifacts')
 const SHOTS = path.join(ART, 'shots')
 const AUTH = path.join(ART, 'auth')
 
+/**
+ * بک‌اند مقصد و حساب‌ها — دو بک‌اند واقعی وجود دارد و حساب‌هایشان یکی نیست
+ * (هیچ‌کدام mock نیست):
+ *
+ *  1) سندباکس محلی — پروکسی vite به `VITE_PROXY_TARGET` (`.env.development.local`
+ *     آن را روی 127.0.0.1:8000 می‌اندازد). ACCOUNTS پایین مال همین است؛ هر پنج نقش
+ *     حساب دارد ⇒ پوشش STAFF/COACH. Redis محلی نیست ⇒ سقف درخواست کار نمی‌کند
+ *     (backend/app/utils/rate_limit.py fail-open) و sweep کامل بی‌مزاحمت اجرا می‌شود.
+ *  2) Production (`http://2.189.255.225`) — دادهٔ منتشرشده (۵۰ سالن، سانس قیمت‌دار).
+ *     حساب‌هایش: کاربر `09000000111`، مدیر سالن `09121000001` (Manager123!، مالک یک
+ *     سالن تهرانی با سانس)، مدیر کل `09000000311` با رمز `demo1234` — همان «دسترسی
+ *     سریع» صفحهٔ ورود (src/config/quickAccess.ts). هیچ کاربر STAFF/COACH ندارد و
+ *     سقف‌هایش سخت است: ۱۰ ورود در ساعت و ۶۰ درخواست API در دقیقه به‌ازای IP.
+ *     برای همین sweep کامل آنجا نه ممکن است نه بی‌آزار (بار روی سرویس واقعی).
+ *
+ * health و دادهٔ پروداکشن جدا از این harness سنجیده می‌شود (تأیید ۲۰۲۶-۱۰-۲۰:
+ * /api/v1/venues=۵۰، سانس‌های قیمت‌دار تا ۲۰۲۷-۰۲-۲۸، /updates/latest.json=۲۰۰).
+ * با `BASE_URL` (همان که newContextForRole می‌خواند) + حساب‌های پروداکشن می‌توان
+ * نمونه‌برداری نقطه‌ای گرفت؛ آنجا نقشی که حساب ندارد با یافتهٔ `role-unavailable`
+ * حذف می‌شود، نه ردیف کاذب.
+ */
 type RoleName = 'guest' | 'user' | 'staff' | 'coach' | 'manager' | 'super_admin'
 
 const ACCOUNTS: Record<Exclude<RoleName, 'guest'>, { phone: string; password: string }> = {
@@ -39,6 +60,28 @@ const ACCOUNTS: Record<Exclude<RoleName, 'guest'>, { phone: string; password: st
   manager: { phone: '09121000001', password: 'manager123' },
   super_admin: { phone: '09120000001', password: 'admin123' },
 }
+
+/**
+ * فاصلهٔ بین ناوبری‌ها تا سقف درخواست بک‌اند (در صورت فعال بودن) خورده نشود؛
+ * ۴۲۹ در findings با kind=rate-limited برچسب می‌خورد تا با باگ UI اشتباه نشود.
+ */
+const ROUTE_GAP_MS = Number(process.env.MOBILE_AUDIT_GAP_MS ?? 1200)
+
+/**
+ * اجرای تکه‌ای (MOBILE_AUDIT_ROLES=guest,user): این ماشین با RAM کم نمی‌تواند
+ * یک sweep شش‌نقشی را یک‌جا نگه دارد (اجرای ۲۰۲۶-۱۰-۲۰ با مرگ مرورگر قطع شد).
+ * هر تکه ردیف‌های خودش را به فایل گزارش اضافه می‌کند و ردیف نقش‌های دیگر را
+ * دست‌نخورده نگه می‌دارد؛ اجرای بدون این متغیر همچنان کل فایل را از نو می‌سازد.
+ */
+const ROLE_FILTER = (process.env.MOBILE_AUDIT_ROLES || '')
+  .split(',')
+  .map((x) => x.trim())
+  .filter(Boolean) as RoleName[]
+const ACTIVE = (r: RoleName) => ROLE_FILTER.length === 0 || ROLE_FILTER.includes(r)
+
+/** تکه‌کردن مسیرها برای ماشین‌های کم‌حافظه: MOBILE_AUDIT_ROUTES="/a,/b" */
+const ROUTE_FILTER = (process.env.MOBILE_AUDIT_ROUTES || '').split(',').map((x) => x.trim()).filter(Boolean)
+const ROUTE_ACTIVE = (p: string) => ROUTE_FILTER.length === 0 || ROUTE_FILTER.includes(p)
 
 /** Routeهای واقعی استخراج‌شده از src/App.tsx */
 const ROUTES: Array<{
@@ -140,10 +183,71 @@ function record(f: Finding) {
   findings.push(f)
 }
 
+/**
+ * مهلت برای هر مرحله‌ای که Playwright آن را با timeout نمی‌پوشاند
+ * (evaluate/screenshot/scrollTo timeout پیش‌فرض ندارند).
+ * بدون این، یک ردیف می‌تواند بی‌خطا کل sweep را بخواباند — در اجرای
+ * ۲۰۲۶-۱۰-۲۰ ردیف guest/@games/1 هفت دقیقه بی‌حرکت ماند (همان مسیر به‌تنهایی
+ * در ۱٫۶ ثانیه رندر می‌شد ⇒ علت، تراکم state صفحهٔ مشترک است نه خودِ route).
+ * با مهلت، مرحله برچسب‌دار شکست می‌خورد، یافته ثبت می‌شود و پیمایش ادامه می‌کند.
+ */
+async function withDeadline<T>(p: Promise<T>, ms: number, label: string): Promise<T> {
+  let timer: any
+  try {
+    return await Promise.race([
+      p,
+      new Promise<never>((_, rej) => {
+        timer = setTimeout(() => rej(new Error(`step-timeout:${label}`)), ms)
+      }),
+    ])
+  } finally {
+    clearTimeout(timer)
+  }
+}
+
 /** جمع‌آوری متریک‌های صفحه — همه مقادیر از DOM واقعی */
 async function collectMetrics(page: Page) {
-  return page.evaluate(() => {
+  return withDeadline(page.evaluate(() => {
     const vw = window.innerWidth
+    /**
+     * نام قابل‌دسترس طبق الگوریتم ARIA (سایه‌ی WAI-ACCNAME)، نه فقط aria-label.
+     * نسخهٔ اول فقط aria-label/innerText/placeholder را می‌دید؛ ورودی‌های برچسب‌خوردهٔ
+     * MUI که نامشان از `<label for>` می‌آید «بی‌برچسب» گزارش می‌شدند (۴ یافتهٔ کاذب
+     * در /finance، /manager/pricing و /profile — ممیزی ۲۰۲۶-۱۰-۲۰).
+     */
+    const accName = (el: Element): string => {
+      const t = el as HTMLElement
+      const by = el.getAttribute('aria-labelledby')
+      if (by) {
+        const txt = by
+          .split(/\s+/)
+          .map((id) => document.getElementById(id)?.textContent || '')
+          .join(' ')
+          .trim()
+        if (txt) return txt
+      }
+      const aria = el.getAttribute('aria-label')
+      if (aria && aria.trim()) return aria.trim()
+      const id = el.getAttribute('id')
+      if (id && id.length < 200) {
+        const forEl = document.querySelector(`label[for="${id.replace(/"/g, '')}"]`)
+        const txt = (forEl?.textContent || '').trim()
+        if (txt) return txt
+      }
+      const wrapping = el.closest('label')
+      const wrapTxt = (wrapping?.textContent || '').trim()
+      if (wrapTxt) return wrapTxt
+      const own = (t.innerText || t.textContent || '').trim()
+      if (own) return own
+      for (const attr of ['placeholder', 'title', 'alt']) {
+        const v = el.getAttribute(attr)
+        if (v && v.trim()) return v.trim()
+      }
+      const value = (el as HTMLInputElement).value
+      const type = (el.getAttribute('type') || '').toLowerCase()
+      if (typeof value === 'string' && value.trim() && ['button', 'submit', 'reset'].includes(type)) return value.trim()
+      return ''
+    }
     // هدف لمس = هر چیزی که کاربر با انگشت/کیبورد فعال می‌کند. combobox و readonly input
     // عمداً اضافه شدند: نسخهٔ اول فقط BUTTON را می‌دید و Select کوچک (۴۰px) در /finance
     // از چنگال ممیزی در رفته بود (پروب کیبورد، ۲۰۲۶-۱۰-۱۹).
@@ -176,7 +280,7 @@ async function collectMetrics(page: Page) {
         return {
           tag: el.tagName,
           role: el.getAttribute('role') || '',
-          label: (el.getAttribute('aria-label') || (el as HTMLElement).innerText || el.getAttribute('placeholder') || '').trim().slice(0, 50),
+          label: accName(el).slice(0, 50),
           // اندازهٔ هدف لمس از جعبهٔ چچین (layout) گرفته می‌شود: getBoundingClientRect
           // مقیاسِ میانهٔ انیمیشن framer-motion را هم لحاظ می‌کند و دکمهٔ ۴۴px را
           // ۴۲–۴۳ نشان می‌داد (ممیزی: «دریافت جایزه» در LoyaltySection).
@@ -227,7 +331,7 @@ async function collectMetrics(page: Page) {
       hasLoadingText: /در حال بارگذاری|بارگذاری\.\.\./.test(document.body.innerText || ''),
       buttonsWithMinHeightBelow44: smallTap.length,
     }
-  })
+  }), 25_000, 'collectMetrics')
 }
 
 /** ورود واقعی از UI و ذخیره storageState */
@@ -237,7 +341,20 @@ async function loginViaUi(page: Page, role: Exclude<RoleName, 'guest'>) {
   await page.locator('input[autocomplete="tel"]').fill(acc.phone)
   await page.locator('input[autocomplete="current-password"]').fill(acc.password)
   await page.locator('button[type="submit"]').click()
-  await page.waitForFunction(() => !!window.localStorage.getItem('auth-token'), null, { timeout: 20000 })
+  // یا توکن می‌آید، یا پیام خطای خود صفحه (۴۰۱ رمز نادرست / ۴۲۹ سقف ورود).
+  // race می‌کنیم تا مسیر موفق ۱۵ ثانیه معطل نشود.
+  const ok = await Promise.race([
+    page.waitForFunction(() => !!window.localStorage.getItem('auth-token'), null, { timeout: 25000 }).then(() => true),
+    page
+      .waitForFunction(() => !!document.querySelector('[role="alert"], .MuiAlert-message'), null, { timeout: 25000 })
+      .then(() => false),
+  ]).catch(() => false)
+  if (!ok) {
+    const msg = await page
+      .evaluate(() => (document.querySelector('[role="alert"], .MuiAlert-message')?.textContent || '').trim().slice(0, 120))
+      .catch(() => '')
+    throw new Error(msg ? `صفحهٔ ورود خطا داد: ${msg}` : 'پس از ۲۵ ثانیه auth-token ست نشد')
+  }
   await page.waitForLoadState('networkidle').catch(() => {})
   return page.evaluate(() => ({
     token: window.localStorage.getItem('auth-token') ? 'present' : 'missing',
@@ -251,7 +368,9 @@ async function newContextForRole(browser: any, role: RoleName): Promise<{ contex
   const context = await browser.newContext({
     baseURL: process.env.BASE_URL || 'http://localhost:3001',
     viewport: { width: 375, height: 812 },
-    deviceScaleFactor: 2,
+    // ۲× برای این ماشین (~۱ گیگ RAM آزاد) رندرر را می‌کشت (worker code=134 در
+    // اجرای ۲۰۲۶-۱۰-۲۰)؛ ۱× برای مرور بصری ۳۷۵×۸۱۲ کافی است.
+    deviceScaleFactor: 1,
     isMobile: true,
     hasTouch: true,
   })
@@ -290,8 +409,38 @@ async function auditRoute(
   page.on('requestfailed', onRequestFailed)
   page.on('response', onResponse)
 
-  await page.setViewportSize({ width: vp.width, height: vp.height })
+  // اگر اندازه‌گیری به مهلت بخورد (صفحهٔ قفل‌شده) باید دیده شود، نه اینکه ردیف
+  // بی‌متریک به‌طور خاموش از کنار یافته‌های ساختاری رد شود.
+  let stepTimeouts: string[] = []
+  // setViewportSize هم مهلت ندارد؛ روی رندرر قفل‌شده (تجربهٔ /venues/1) اجرای
+  // کل chunk را بی‌پایان می‌خواباند. اگر جابه‌جایی viewport نشد، این ردیف را
+  // ناتمام ثبت می‌کنیم تا حلقهٔ بیرونی context را بازسازی کند.
+  const resized = await withDeadline(
+    page.setViewportSize({ width: vp.width, height: vp.height }),
+    10_000,
+    'setViewport'
+  )
+    .then(() => true)
+    .catch((e: any) => {
+      stepTimeouts.push(String(e?.message || e))
+      return false
+    })
   let navError: string | null = null
+  if (!resized) {
+    routeRows.push({ role, route, viewport: vp.name, finalPath: page.url(), navError: 'setViewport-timeout', incomplete: true, metrics: null, stepTimeouts })
+    record({
+      severity: 'P2',
+      kind: 'page-unresponsive',
+      role,
+      route,
+      viewport: vp.name,
+      detail: 'تغییر اندازهٔ viewport به مهلت خورد — رندرر قفل شده؛ این مسیر باید تک‌تنها دوباره گرفته شود',
+    })
+    page.off('console', onConsole)
+    page.off('requestfailed', onRequestFailed)
+    page.off('response', onResponse)
+    return
+  }
   try {
     await page.goto(route, { waitUntil: 'domcontentloaded', timeout: 30000 })
     // انتظار تا پایان fallback تعلیق (Suspense): «در حال بارگذاری...»
@@ -315,7 +464,12 @@ async function auditRoute(
     navError = String(e?.message || e).slice(0, 200)
   }
 
-  let metrics = await collectMetrics(page).catch(() => null)
+  // اگر اندازه‌گیری به مهلت بخورد (صفحهٔ قفل‌شده) باید دیده شود، نه اینکه ردیف
+  // بی‌متریک به‌طور خاموش از کنار یافته‌های ساختاری رد شود.
+  let metrics = await collectMetrics(page).catch((e: any) => {
+    stepTimeouts.push(String(e?.message || e))
+    return null
+  })
   const finalPath = new URL(page.url()).pathname
 
   // صفحه‌ای که حتی پس از انتظار، هنوز fallback/خالی است ⇒ اندازه‌گیری معتبر نیست.
@@ -323,7 +477,7 @@ async function auditRoute(
   // در حالی که بقیهٔ صفحه پر است؛ اگر کل اندازه‌گیری را باطل می‌کرد، سرریز ۳۲۰px
   // کارت‌های مالی دیده نشد (ممیزی: manager/@finance@320).
   const isIncomplete = (m: any) => !!m && (m.textLen <= 25 || (m.hasLoadingText && m.textLen < 400))
-  let incomplete = isIncomplete(metrics)
+  let incomplete = !metrics || isIncomplete(metrics)
   if (incomplete) {
     // Vite dev هنگام کشف وابستگی تازه یک full-reload می‌زند و بدنه لحظه‌ای خالی است؛
     // یک بار reload دوباره، تا «stuck-loading» کاذب ثبت نشود (بیلد production ندارد).
@@ -332,13 +486,25 @@ async function auditRoute(
       .waitForFunction(() => !/در حال بارگذاری/.test(document.body.innerText || ''), null, { timeout: 20000 })
       .catch(() => {})
     await page.waitForTimeout(500)
-    metrics = await collectMetrics(page).catch(() => null)
-    incomplete = isIncomplete(metrics)
+    metrics = await collectMetrics(page).catch((e: any) => {
+      stepTimeouts.push(String(e?.message || e))
+      return null
+    })
+    incomplete = !metrics || isIncomplete(metrics)
   }
-  const row: any = { role, route, viewport: vp.name, finalPath, navError, incomplete, metrics }
+  const row: any = { role, route, viewport: vp.name, finalPath, navError, incomplete, metrics, stepTimeouts }
   routeRows.push(row)
 
   if (navError) record({ severity: 'P1', kind: 'navigation-error', role, route, viewport: vp.name, detail: navError })
+  if (stepTimeouts.length || !metrics)
+    record({
+      severity: 'P2',
+      kind: 'page-unresponsive',
+      role,
+      route,
+      viewport: vp.name,
+      detail: `اندازه‌گیری DOM به مهلت خورد (${stepTimeouts.join(' | ') || 'metrics=null'}) — صفحه پس از پیمایش‌های پیشین در همان context قفل شده؛ این مسیر باید تک‌تنها دوباره گرفته شود`,
+    })
   if (incomplete)
     record({
       severity: 'P2',
@@ -389,14 +555,27 @@ async function auditRoute(
   }
   // پروب‌های عمدی (مثل نشانیِ تورنمنت حذف‌شده) کد ۴xx «درست» می‌گیرند؛ آن‌ها را
   // در ردیف P1 نمی‌شماریم، ولی اگر متن حالتِ انتظار نرود باید P1 شود.
+  // ۴۲۹ هم استثناست: روی پروداکشن سقف سراسری ۶۰ درخواست/دقیقه به‌ازای IP وجود دارد
+  // و sweep می‌تواند آن را بخورد؛ آن را P3 «rate-limited» می‌نویسیم تا با باگ UI اشتباه نشود.
   const expected = new Set(opts.expectStatuses || [])
-  const unexpected = badStatuses.filter((s) => !expected.has(Number(s.slice(0, 3))))
+  const limited = badStatuses.filter((s) => s.startsWith('429'))
+  const unexpected = badStatuses.filter((s) => !expected.has(Number(s.slice(0, 3))) && !s.startsWith('429'))
   const expectedSeen = badStatuses.filter((s) => expected.has(Number(s.slice(0, 3))))
   if (expectedSeen.length)
     record({ severity: 'P3', kind: 'expected-http-error', role, route, viewport: vp.name, detail: expectedSeen.slice(0, 3).join(' | ') })
+  if (limited.length)
+    record({
+      severity: 'P3',
+      kind: 'rate-limited',
+      role,
+      route,
+      viewport: vp.name,
+      detail: `${limited.length} پاسخ ۴۲۹ (سقف درخواست بک‌اند، نه باگ UI) ⇒ این ردیف را با فاصلهٔ بیشتر دوباره بگیرید: ${limited.slice(0, 3).join(' | ')}`,
+    })
   if (unexpected.length) record({ severity: 'P1', kind: 'http-error', role, route, viewport: vp.name, detail: unexpected.slice(0, 6).join(' | ') })
   if (opts.expectText) {
-    const text = (await page.evaluate(() => document.body.innerText).catch(() => '')) || ''
+    const text =
+      (await withDeadline(page.evaluate(() => document.body.innerText), 15_000, 'expectText').catch(() => '')) || ''
     if (!text.includes(opts.expectText))
       record({
         severity: 'P1',
@@ -409,13 +588,13 @@ async function auditRoute(
   }
   if (opts.screenshot !== false) {
     const base = `${role}__${route.replace(/\W+/g, '_') || 'root'}__${vp.name}`
-    await page.screenshot({ path: path.join(SHOTS, `${base}.png`), fullPage: false }).catch(() => {})
+    await withDeadline(page.screenshot({ path: path.join(SHOTS, `${base}.png`), fullPage: false }), 30_000, 'screenshot').catch(() => {})
     // پردهٔ دوم: محتوای پایین صفحه (براکت تورنمنت، جدول‌ها، فرم‌ها) در ممیزی بصری
     // دیده نشد اگر فقط viewport اول عکس شود.
-    await page.evaluate((h: number) => window.scrollTo(0, h), vp.height).catch(() => {})
+    await withDeadline(page.evaluate((h: number) => window.scrollTo(0, h), vp.height), 10_000, 'scrollDown').catch(() => {})
     await page.waitForTimeout(250)
-    await page.screenshot({ path: path.join(SHOTS, `${base}__p2.png`), fullPage: false }).catch(() => {})
-    await page.evaluate(() => window.scrollTo(0, 0)).catch(() => {})
+    await withDeadline(page.screenshot({ path: path.join(SHOTS, `${base}__p2.png`), fullPage: false }), 30_000, 'screenshot-p2').catch(() => {})
+    await withDeadline(page.evaluate(() => window.scrollTo(0, 0)), 10_000, 'scrollUp').catch(() => {})
   }
   if (failedRequests.length)
     record({ severity: 'P2', kind: 'request-failed', role, route, viewport: vp.name, detail: failedRequests.slice(0, 5).join(' | ') })
@@ -433,15 +612,39 @@ async function auditRoute(
 
 test.describe.configure({ mode: 'serial' })
 
+/** نقش‌هایی که در بک‌اند مقصد حساب فعال ندارند ⇒ از sweep حذف می‌شوند */
+const unavailable = new Set<RoleName>()
+
 test.beforeAll(() => {
   fs.mkdirSync(SHOTS, { recursive: true })
+  // auth/*.json توکن‌های اجرای‌های پیشین است (JWT یک‌روزه). اگر بماند، نقشی که
+  // این بار ورودش شکست خورده با توکن منقضی «احراز هویت‌شده» به‌نظر می‌رسد و
+  // ردیف‌هایش به‌جای خطای ورود، حالت خالی/ریدایرکت نشان می‌دهد ⇒ شواهد گمراه‌کننده.
+  fs.rmSync(AUTH, { recursive: true, force: true })
   fs.mkdirSync(AUTH, { recursive: true })
 })
 
 test.describe('MOBILE AUDIT — ورود نقش‌ها از UI', () => {
-  for (const role of ['user', 'staff', 'coach', 'manager', 'super_admin'] as Exclude<RoleName, 'guest'>[]) {
+  for (const role of (['user', 'staff', 'coach', 'manager', 'super_admin'] as Exclude<RoleName, 'guest'>[]).filter(ACTIVE)) {
     test(`login as ${role}`, async ({ page, browser }) => {
-      const info = await loginViaUi(page, role)
+      let info: Awaited<ReturnType<typeof loginViaUi>>
+      try {
+        info = await loginViaUi(page, role)
+      } catch (e: any) {
+        // حساب این نقش در بک‌اند مقصد وجود ندارد (مثلاً STAFF/COACH در پروداکشن) یا
+        // سقف ورود خورده است. تست را نمی‌شکنیم (حالت serial بقیه را حذف می‌کرد)؛
+        // نقش را علامت می‌زنیم تا sweep آن را رد کند و یافتهٔ شفاف ثبت شود.
+        unavailable.add(role)
+        record({
+          severity: 'P3',
+          kind: 'role-unavailable',
+          role,
+          route: '/login',
+          viewport: '375x812',
+          detail: `ورود ${role} ممکن نشد ⇒ همهٔ ردیف‌های این نقش از sweep حذف شد: ${String(e?.message || e).slice(0, 160)}`,
+        })
+        return
+      }
       expect(info.token).toBe('present')
       const ctx = await browser.newContext({ viewport: { width: 375, height: 812 } })
       await ctx.addInitScript(
@@ -472,33 +675,85 @@ test.describe('MOBILE AUDIT — ورود نقش‌ها از UI', () => {
 
 test.describe('MOBILE AUDIT — پیمایش Routeها (۳۲۰ و ۳۷۵)', () => {
   test('route sweep', async ({ browser }) => {
-    test.setTimeout(45 * 60 * 1000)
-    const contexts: Record<string, { context: BrowserContext; page: Page }> = {}
-    const roles: RoleName[] = ['guest', 'user', 'staff', 'coach', 'manager', 'super_admin']
-    try {
-      for (const role of roles) contexts[role] = await newContextForRole(browser, role)
-      for (const r of ROUTES) {
-        for (const role of r.roles) {
-          if (!contexts[role]) continue
-          for (const vp of VIEWPORTS) {
-            await auditRoute(contexts[role].page, role, r.p, vp, {
-              expectStatuses: r.expectStatuses,
-              expectText: r.expectText,
-            })
-          }
+    test.skip(process.env.MOBILE_AUDIT_SKIP_SWEEP === '1', 'در اجرای تست‌های نقش‌محور، sweep جداگانه اجرا می‌شود')
+    test.setTimeout(60 * 60 * 1000)
+    const roles: RoleName[] = (['guest', 'user', 'staff', 'coach', 'manager', 'super_admin'] as RoleName[]).filter(ACTIVE)
+    // حلقهٔ بیرونی = نقش، نه مسیر: شش context هم‌زمان ≈ شش رندرر Chromium و این
+    // ماشین با ~۱ گیگ RAM آزاد (اجرای ۲۰۲۶-۱۰-۲۰) وسط sweep می‌خوابد.
+    // با یک context زنده، هر نقش که تمام شد بسته می‌شود و ردیف‌ها همان‌جا روی دیسک
+    // می‌نویسند؛ پس اگر اجرا قطع شود، تا آن نقطه شواهد از دست نمی‌رود.
+    const REPORT = path.join(ART, 'audit-report-routes.json')
+    // در اجرای تکه‌ای، ردیف/یافتهٔ نقش‌های دیگر از فایل قبلی حفظ می‌شود
+    const flush = () => {
+      let prior: any = { findings: [], rows: [] }
+      if (ROLE_FILTER.length && fs.existsSync(REPORT)) {
+        try {
+          prior = JSON.parse(fs.readFileSync(REPORT, 'utf8'))
+        } catch {
+          prior = { findings: [], rows: [] }
         }
       }
-    } finally {
-      for (const k of Object.keys(contexts)) await contexts[k].context.close().catch(() => {})
+      // ردیف‌های نقش‌های دیگر + مسیرهای خارج از تکهٔ جاری دست‌نخورده می‌مانند
+      const keepRows = (prior.rows || []).filter(
+        (r: any) => !roles.includes(r.role) || (ROUTE_FILTER.length > 0 && !ROUTE_ACTIVE(r.route))
+      )
+      const keepFindings = (prior.findings || []).filter(
+        (f: any) => !roles.includes(f.role) || (ROUTE_FILTER.length > 0 && !ROUTE_ACTIVE(f.route))
+      )
+      fs.writeFileSync(REPORT, JSON.stringify({ findings: [...keepFindings, ...findings], rows: [...keepRows, ...routeRows] }, null, 2))
     }
-    fs.mkdirSync(ART, { recursive: true })
-    fs.writeFileSync(path.join(ART, 'audit-report-routes.json'), JSON.stringify({ findings, rows: routeRows }, null, 2))
+    for (const role of roles) {
+      if (unavailable.has(role)) continue
+      let handle = await newContextForRole(browser, role)
+      try {
+        for (const r of ROUTES) {
+          if (!r.roles.includes(role)) continue
+          if (!ROUTE_ACTIVE(r.p)) continue
+          for (const vp of VIEWPORTS) {
+            const args = { expectStatuses: r.expectStatuses, expectText: r.expectText }
+            let row: any = null
+            try {
+              row = await auditRoute(handle.page, role, r.p, vp, args)
+            } catch (e: any) {
+              // مرگ مرورگر/context وسط مسیر: با context تازه یک بار دیگر
+              record({
+                severity: 'P1',
+                kind: 'harness-browser-crash',
+                role,
+                route: r.p,
+                viewport: vp.name,
+                detail: `مرورگر/صفحه از دست رفت و ردیف نیمه‌کاره ماند: ${String(e?.message || e).slice(0, 160)}`,
+              })
+              await handle.context.close().catch(() => {})
+              handle = await newContextForRole(browser, role)
+              row = await auditRoute(handle.page, role, r.p, vp, args).catch(() => null)
+            }
+            if (!row) continue
+            if (ROUTE_GAP_MS > 0) await handle.page.waitForTimeout(ROUTE_GAP_MS).catch(() => {})
+            // یک رندرر قفل‌شده، ردیف‌های بعدی همان نقش را هم می‌خواباند؛ context را
+            // عوض می‌کنیم (localStorage از auth/*.json دوباره تزریق می‌شود).
+            if (row?.stepTimeouts?.length) {
+              await handle.context.close().catch(() => {})
+              handle = await newContextForRole(browser, role)
+            }
+          }
+          flush()
+        }
+      } finally {
+        await handle.context.close().catch(() => {})
+      }
+      flush()
+    }
+    flush()
     expect(routeRows.length).toBeGreaterThan(0)
   })
 })
 
 test.describe('MOBILE AUDIT — ماتریس کامل اندازه‌ها برای صفحات کلیدی', () => {
   test('viewport matrix', async ({ browser }) => {
+    test.skip(!ACTIVE('manager'), 'فقط در تکهٔ manager اجرا می‌شود')
+    test.skip(ROUTE_FILTER.length > 0, 'در اجرای تکه‌ای مسیرها، تست‌های نقش‌محور جدا اجرا می‌شوند')
+    test.skip(unavailable.has('manager'), 'حساب manager در این بک‌اند در دسترس نبود')
     test.setTimeout(30 * 60 * 1000)
     const { context, page } = await newContextForRole(browser, 'manager')
     const local: any[] = []
@@ -508,6 +763,7 @@ test.describe('MOBILE AUDIT — ماتریس کامل اندازه‌ها برا
           // اسکرین‌شات داخل auditRoute گرفته می‌شود (نام فایل با نقش+viewport)
           const row = await auditRoute(page, 'manager', r, vp)
           local.push(row)
+          if (ROUTE_GAP_MS > 0) await page.waitForTimeout(ROUTE_GAP_MS)
         }
       }
     } finally {
@@ -519,20 +775,27 @@ test.describe('MOBILE AUDIT — ماتریس کامل اندازه‌ها برا
 
 test.describe('MOBILE AUDIT — کنترل دسترسی نقش‌ها (نگهبان سمت کلاینت)', () => {
   test('role guard behaviour', async ({ browser }) => {
+    test.skip(!ACTIVE('manager'), 'فقط در تکهٔ manager اجرا می‌شود')
+    test.skip(ROUTE_FILTER.length > 0, 'در اجرای تکه‌ای مسیرها، تست‌های نقش‌محور جدا اجرا می‌شوند')
     test.setTimeout(10 * 60 * 1000)
     const checks: Array<{ role: RoleName; route: string; finalPath: string; redirected: boolean }> = []
-    const cases: Array<{ role: RoleName; route: string }> = [
+    const allCases: Array<{ role: RoleName; route: string }> = [
       { role: 'guest', route: '/dashboard' },
       { role: 'user', route: '/manager-dashboard' },
       { role: 'user', route: '/admin' },
       { role: 'user', route: '/coach' },
       { role: 'coach', route: '/admin' },
+      { role: 'manager', route: '/coach' },
       { role: 'manager', route: '/admin' },
       { role: 'super_admin', route: '/admin' },
       { role: 'super_admin', route: '/coach' },
       { role: 'staff', route: '/finance' },
+      { role: 'manager', route: '/finance' },
       { role: 'user', route: '/finance' },
     ]
+    // نقشی که حسابش در بک‌اند مقصد نیست با storageState خالی = مهمان ⇒ ریدایرکت را
+    // «نگهبان رد کرد» تفسیر می‌کرد؛ آن مورد را اصلاً اجرا نمی‌کنیم.
+    const cases = allCases.filter((c) => !unavailable.has(c.role))
     for (const c of cases) {
       const { context, page } = await newContextForRole(browser, c.role)
       try {
@@ -576,15 +839,18 @@ test.describe('MOBILE AUDIT — پیمایش با کیبورد (WCAG 2.4.7)', ()
     })
 
   test('focus ring + tab order', async ({ browser }) => {
+    test.skip(!ACTIVE('manager'), 'فقط در تکهٔ manager اجرا می‌شود')
+    test.skip(ROUTE_FILTER.length > 0, 'در اجرای تکه‌ای مسیرها، تست‌های نقش‌محور جدا اجرا می‌شوند')
     test.setTimeout(10 * 60 * 1000)
     const rows: Array<Record<string, unknown>> = []
-    const cases: Array<{ role: RoleName; route: string }> = [
+    const allCases: Array<{ role: RoleName; route: string }> = [
       { role: 'user', route: '/' },
       { role: 'user', route: '/venues/1' },
       { role: 'user', route: '/dashboard' },
       { role: 'manager', route: '/finance' },
       { role: 'guest', route: '/login' },
     ]
+    const cases = allCases.filter((c) => !unavailable.has(c.role))
     for (const c of cases) {
       const { context, page } = await newContextForRole(browser, c.role)
       try {
@@ -637,6 +903,9 @@ test.describe('MOBILE AUDIT — پیمایش با کیبورد (WCAG 2.4.7)', ()
   })
 
   test('open layer behaves with the keyboard', async ({ browser }) => {
+    test.skip(!ACTIVE('manager'), 'فقط در تکهٔ manager اجرا می‌شود')
+    test.skip(ROUTE_FILTER.length > 0, 'در اجرای تکه‌ای مسیرها، تست‌های نقش‌محور جدا اجرا می‌شوند')
+    test.skip(unavailable.has('manager'), 'حساب manager در این بک‌اند در دسترس نبود')
     const { context, page } = await newContextForRole(browser, 'manager')
     let closedByEscape = false
     try {

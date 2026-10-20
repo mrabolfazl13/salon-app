@@ -16,7 +16,7 @@
 4. **Harness opt-in**: تست‌های mobile-audit با `MOBILE_AUDIT=1` فعال می‌شوند تا CI را درگیر نکنند.
 
 ### ریسک‌های باقی‌مانده
-- **F-28 (MUI Button-as-link focus ring)**: محدودیت فریم‌ورک — نیاز به patch سطح پایین یا جایگزینی کامپوننت.
+- **F-28 (MUI Button-as-link focus ring)**: رفع شد (CLOSED) — قانون سراسری + override تم؛ شاهد در `BUG-TRACKER.md`.
 - **اعداد عملکرد localhost**: TTFB و LCP در production واقعی کندتر خواهند بود.
 - **بدون تأیید دستگاه فیزیکی**: Touch targets و screen reader behavior فقط شبیه‌سازی شده‌اند.
 

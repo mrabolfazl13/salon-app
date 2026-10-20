@@ -42,13 +42,33 @@ class ConnectionManager:
             await self.redis_client.close()
             
     async def start_listening(self):
-        """شروع گوش‌دادن به کانال‌های Redis."""
+        """شروع گوش‌دادن به کانال‌های Redis.
+
+        اگر Redis در دسترس نباشد، سرور باید بالا بیاید و pub/sub غیرفعال بماند
+        (مثل rate-limit که fail-open است)؛ در غیر این صورت یک وابستگی جانبی
+        کل API را از کار می‌اندازد.
+        """
         await self.connect_redis()
-        self.pubsub = self.redis_client.pubsub()
-        await self.pubsub.subscribe("websocket:users", "websocket:managers", "websocket:admins")
-        
+        try:
+            self.pubsub = self.redis_client.pubsub()
+            await self.pubsub.subscribe("websocket:users", "websocket:managers", "websocket:admins")
+        except Exception as e:
+            print(f"Redis unavailable - WebSocket pub/sub disabled ({e})")
+            self.pubsub = None
+            self.redis_client = None
+            return
+
         # تسک پس‌زمینه برای دریافت پیام‌ها
         self._listen_task = asyncio.create_task(self._listen_for_messages())
+
+    async def _publish(self, channel: str, payload: dict):
+        """انتشار امن؛ نبود/قطع Redis نباید مسیر درخواست را بشکند."""
+        if not self.redis_client:
+            return
+        try:
+            await self.redis_client.publish(channel, json.dumps(payload))
+        except Exception as e:
+            print(f"Redis publish failed ({channel}): {e}")
         
     async def _listen_for_messages(self):
         """دریافت پیام‌های pub/sub و ارسال به کاربران متصل."""
@@ -105,9 +125,9 @@ class ConnectionManager:
             
             # اطلاع‌رسانی به Redis که این کاربر آنلاین است
             if self.redis_client:
-                await self.redis_client.publish(
+                await self._publish(
                     f"websocket:user:{user_id}",
-                    json.dumps({"event": "connected", "room": room})
+                    {"event": "connected", "room": room}
                 )
 
     def disconnect(self, websocket: WebSocket, user_id: Optional[int] = None):
@@ -120,23 +140,23 @@ class ConnectionManager:
     async def broadcast_to_role(self, role: str, message: dict):
         """ارسال پیام به تمام کاربران یک نقش از طریق Redis."""
         if self.redis_client:
-            await self.redis_client.publish(
+            await self._publish(
                 f"websocket:{role}",
-                json.dumps({
+                {
                     "target_type": role,
                     "payload": message
-                })
+                }
             )
 
     async def broadcast_to_all(self, message: dict):
         """ارسال پیام به تمام کاربران از طریق Redis."""
         if self.redis_client:
-            await self.redis_client.publish(
+            await self._publish(
                 "websocket:all",
-                json.dumps({
+                {
                     "target_type": "all",
                     "payload": message
-                })
+                }
             )
 
     async def send_to_user(self, user_id: int, message: dict):
@@ -164,12 +184,12 @@ class ConnectionManager:
         
         # اگر کاربر به این worker نیست، از Redis pub/sub استفاده کن
         if self.redis_client:
-            await self.redis_client.publish(
+            await self._publish(
                 "websocket:users",
-                json.dumps({
+                {
                     "target_type": user_id,
                     "payload": message
-                })
+                }
             )
 
 

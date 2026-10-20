@@ -101,12 +101,18 @@ class PendingBookingService:
         return self._list(_user_key(user_id))
 
     def _list(self, index_key: str) -> list[dict]:
-        pids = _get_redis().smembers(index_key)
-        records = []
-        for pid in pids:
-            rec = self.get(pid)
-            if rec:
-                records.append(rec)
+        # بدون Redis هیچ رکورد معلقی وجود ندارد (TTL همه‌چیز را در همان Redis نگه می‌دارد)؛
+        # خطای اتصال نباید صفحهٔ رزروها را با 500 بشکند.
+        try:
+            pids = _get_redis().smembers(index_key)
+            records = []
+            for pid in pids:
+                rec = self.get(pid)
+                if rec:
+                    records.append(rec)
+        except redis.RedisError as e:
+            print(f"Redis unavailable - pending bookings list disabled ({e})")
+            return []
         records.sort(key=lambda x: x.get("booked_at", ""), reverse=True)
         return records
 
