@@ -1,10 +1,8 @@
 import React from 'react'
 import { Link, useLocation } from 'react-router-dom'
-import { Box, useTheme } from '@mui/material'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { useAuthStore } from '@/store/authStore'
-import { shadows, shadowsDark } from '@/theme'
 
 interface NavItem {
   label: string
@@ -65,8 +63,6 @@ const isActive = (pathname: string, href: string) =>
 const BottomNavigation: React.FC = () => {
   const { pathname } = useLocation()
   const { user, isAuthenticated } = useAuthStore()
-  const muiTheme = useTheme()
-  const dark = muiTheme.palette.mode === 'dark'
   const role = user?.role
 
   if (HIDDEN_PREFIXES.some((p) => pathname === p || pathname.startsWith(p + '/'))) return null
@@ -82,24 +78,11 @@ const BottomNavigation: React.FC = () => {
   })
 
   return (
-    <Box
-      component="nav"
+    <nav
       aria-label="ناوبری اصلی"
-      sx={{
-        position: 'fixed',
-        bottom: 0,
-        insetInline: 0,
-        zIndex: 60,
-        display: { xs: 'block', md: 'none' },
-        bgcolor: dark ? 'rgba(11,18,32,0.94)' : 'rgba(255,255,255,0.94)',
-        backdropFilter: 'blur(16px)',
-        borderTop: '1px solid',
-        borderColor: 'divider',
-        boxShadow: dark ? shadowsDark.nav : shadows.nav,
-        pb: 'env(safe-area-inset-bottom)',
-      }}
+      className="fixed inset-x-0 bottom-0 z-[60] border-t border-border bg-background/95 pb-safe backdrop-blur-xl shadow-[0_-4px_20px_rgba(15,23,42,0.06)] md:hidden dark:shadow-[0_-4px_20px_rgba(0,0,0,0.45)]"
     >
-      <Box sx={{ display: 'flex', height: 62 }}>
+      <div className="flex h-[62px]">
         {filteredItems.map((item) => {
           const active = isActive(pathname, item.href)
           const to = item.requiresAuth && !isAuthenticated ? '/login' : item.href
@@ -107,51 +90,45 @@ const BottomNavigation: React.FC = () => {
             <Link
               key={item.href}
               to={to}
-              style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 3, textDecoration: 'none', minWidth: 44 }}
+              className="flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-[3px] no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               aria-current={active ? 'page' : undefined}
             >
-              <NavIcon active={active} icon={item.icon} dark={dark} />
-              <Box
-                component="span"
-                sx={{
-                  fontSize: '0.75rem',
-                  fontWeight: active ? 700 : 500,
-                  color: active ? (dark ? '#fbbf24' : '#b45309') : (dark ? '#8b98ab' : '#64748b'),
-                  transition: 'color 0.2s ease',
-                }}
+              <NavIcon active={active} icon={item.icon} />
+              <span
+                className={
+                  active
+                    ? 'text-xs font-bold text-amber-700 dark:text-amber-400'
+                    : 'text-xs font-medium text-slate-500 dark:text-slate-400'
+                }
               >
                 {item.label}
-              </Box>
+              </span>
             </Link>
           )
         })}
-      </Box>
-    </Box>
+      </div>
+    </nav>
   )
 }
 
 /** آیکون با پس‌زمینه pill کهربایی در حالت فعال */
-const NavIcon: React.FC<{ active: boolean; icon: string; dark: boolean }> = ({ active, icon, dark }) => (
+const NavIcon: React.FC<{ active: boolean; icon: string }> = ({ active, icon }) => (
   <motion.span
     animate={{ scale: active ? 1 : 0.96 }}
     transition={{ duration: 0.2 }}
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      width: 46,
-      height: 30,
-      borderRadius: 999,
-      background: active
-        ? dark
-          ? 'linear-gradient(135deg, rgba(251,191,36,0.18), rgba(249,115,22,0.18))'
-          : 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(249,115,22,0.16))'
-        : 'transparent',
-    }}
+    className={
+      active
+        ? 'flex h-[30px] w-[46px] items-center justify-center rounded-full bg-gradient-to-br from-amber-500/15 to-orange-500/15 dark:from-amber-400/20 dark:to-orange-400/20'
+        : 'flex h-[30px] w-[46px] items-center justify-center rounded-full'
+    }
   >
     <Icon
       icon={`mdi:${icon.endsWith('-outline') || !active ? icon : icon + '-outline'}`}
-      style={{ width: 22, height: 22, color: active ? (dark ? '#fbbf24' : '#d97706') : (dark ? '#5b6879' : '#64748b') }}
+      className={
+        active
+          ? 'h-[22px] w-[22px] text-amber-600 dark:text-amber-400'
+          : 'h-[22px] w-[22px] text-slate-500 dark:text-slate-400'
+      }
     />
   </motion.span>
 )

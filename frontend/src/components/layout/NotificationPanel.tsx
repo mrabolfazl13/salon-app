@@ -1,19 +1,11 @@
 import React, { useEffect, useState } from 'react'
-import {
-  IconButton,
-  Badge,
-  Popover,
-  Box,
-  Typography,
-  Button,
-  Paper,
-} from '@mui/material'
-import { NotificationsNone as BellIcon } from '@mui/icons-material'
+import { Bell, CloudAlert, BellOff } from 'lucide-react'
 import { Icon } from '@iconify/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { useNavigate } from 'react-router-dom'
 import { useNotificationStore } from '@/store/notificationStore'
 import type { NotificationItem } from '@/services/notification'
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadcn/popover'
 
 const typeIcons: Record<string, { icon: string; color: string }> = {
   booking_confirmed: { icon: 'mdi:check-circle', color: '#16a34a' },
@@ -66,7 +58,7 @@ function timeAgo(iso: string): string {
 }
 
 const NotificationPanel: React.FC = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
+  const [open, setOpen] = useState(false)
   const navigate = useNavigate()
   const { notifications, unreadCount, loading, fetchError, fetchNotifications, fetchUnreadCount, markAsRead, markAllAsRead } =
     useNotificationStore()
@@ -76,11 +68,9 @@ const NotificationPanel: React.FC = () => {
     fetchUnreadCount()
   }, [fetchUnreadCount])
 
-  const open = Boolean(anchorEl)
-
-  const handleOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-    fetchNotifications()
+  const handleOpenChange = (next: boolean) => {
+    setOpen(next)
+    if (next) fetchNotifications()
   }
 
   const handleClickItem = (n: NotificationItem) => {
@@ -88,94 +78,78 @@ const NotificationPanel: React.FC = () => {
     // Deep-link به صفحه بازی برای اعلان‌های بازی
     const gameId = n.data?.game_id
     if (typeof gameId === 'number') {
-      setAnchorEl(null)
+      setOpen(false)
       navigate(`/games/${gameId}`)
       return
     }
     // Deep-link به صفحه تیم برای اعلان‌های تیم/حصه (data.team_id)
     const teamId = n.data?.team_id
     if (typeof teamId === 'number') {
-      setAnchorEl(null)
+      setOpen(false)
       navigate(`/teams/${teamId}`)
     }
   }
 
   return (
-    <>
-      <motion.div whileHover={{ scale: 1.08 }} whileTap={{ scale: 0.95 }} tabIndex={-1}>
-        <IconButton
-          onClick={handleOpen}
-          color="inherit"
+    <Popover open={open} onOpenChange={handleOpenChange}>
+      <PopoverTrigger asChild>
+        <motion.button
+          type="button"
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
           aria-label={unreadCount > 0 ? `اعلان‌ها، ${unreadCount} خوانده‌نشده` : 'اعلان‌ها'}
-          sx={{
-            width: 44,
-            height: 44,
-            color: '#0f172a',
-            bgcolor: 'background.paper',
-            border: '1px solid rgba(15,23,42,0.08)',
-            boxShadow: '0 1px 3px rgba(15,23,42,0.06)',
-            '&:hover': { bgcolor: 'rgba(37,99,235,0.08)' },
-          }}
+          className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Badge badgeContent={unreadCount} color="error">
-            <BellIcon />
-          </Badge>
-        </IconButton>
-      </motion.div>
-
-      <Popover
-        open={open}
-        anchorEl={anchorEl}
-        onClose={() => setAnchorEl(null)}
-        anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-        transformOrigin={{ horizontal: 'left', vertical: 'top' }}
-        slotProps={{
-          paper: {
-            sx: {
-              borderRadius: '16px',
-              boxShadow: '0 8px 32px rgba(0,0,0,0.12)',
-              mt: 1,
-              width: 380,
-              maxWidth: 'calc(100vw - 32px)',
-            },
-          },
-        }}
-      >
-        <Box sx={{ px: 2, py: 1.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid', borderColor: 'divider' }}>
-          <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
-            اعلان‌ها {unreadCount > 0 && `(${unreadCount} خوانده‌نشده)`}
-          </Typography>
+          <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
-            <Button size="small" onClick={markAllAsRead} sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
-              خواندن همه
-            </Button>
+            <span
+              className="absolute -end-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold leading-none text-white"
+              aria-hidden="true"
+            >
+              {unreadCount > 99 ? '99+' : unreadCount}
+            </span>
           )}
-        </Box>
+        </motion.button>
+      </PopoverTrigger>
 
-        <Box sx={{ maxHeight: 420, overflowY: 'auto' }} role="log" aria-busy={loading} aria-live="polite">
+      <PopoverContent className="w-[380px] max-w-[calc(100vw-32px)] overflow-hidden p-0">
+        <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
+          <h2 className="text-sm font-bold">
+            اعلان‌ها {unreadCount > 0 && `(${unreadCount} خوانده‌نشده)`}
+          </h2>
+          {unreadCount > 0 && (
+            <button
+              type="button"
+              onClick={markAllAsRead}
+              className="min-h-11 rounded-lg px-2 text-xs font-semibold text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              خواندن همه
+            </button>
+          )}
+        </div>
+
+        <div className="max-h-[420px] overflow-y-auto" role="log" aria-busy={loading} aria-live="polite">
           {loading && notifications.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4 }} role="status">
-              <Typography variant="body2" color="text.secondary">
-                در حال بارگذاری...
-              </Typography>
-            </Box>
+            <p className="py-8 text-center text-sm text-muted-foreground" role="status">
+              در حال بارگذاری...
+            </p>
           ) : fetchError && notifications.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 5 }}>
-              <Icon icon="mdi:cloud-alert-outline" className="h-10 w-10" style={{ color: '#ef4444' }} />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                دریافت اعلان‌ها ممکن نشد
-              </Typography>
-              <Button size="small" onClick={fetchNotifications} sx={{ mt: 1, textTransform: 'none' }}>
+            <div className="py-10 text-center">
+              <CloudAlert className="mx-auto h-10 w-10 text-red-500" aria-hidden="true" />
+              <p className="mt-2 text-sm text-muted-foreground">دریافت اعلان‌ها ممکن نشد</p>
+              <button
+                type="button"
+                onClick={fetchNotifications}
+                className="mt-2 min-h-11 rounded-lg px-3 text-sm font-semibold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
                 تلاش مجدد
-              </Button>
-            </Box>
+              </button>
+            </div>
           ) : notifications.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 5 }}>
-              <Icon icon="mdi:bell-off-outline" className="h-10 w-10" style={{ color: '#9ca3af' }} />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                اعلانی وجود ندارد
-              </Typography>
-            </Box>
+            <div className="py-10 text-center">
+              <BellOff className="mx-auto h-10 w-10 text-muted-foreground" aria-hidden="true" />
+              <p className="mt-2 text-sm text-muted-foreground">اعلانی وجود ندارد</p>
+            </div>
           ) : (
             <AnimatePresence initial={false}>
               {notifications.map((n) => {
@@ -199,83 +173,52 @@ const NotificationPanel: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     exit={{ opacity: 0 }}
                   >
-                    <Paper
-                      component="button"
+                    <button
                       type="button"
-                      elevation={0}
                       onClick={() => handleClickItem(n)}
                       aria-label={`${n.title}${n.is_read ? '' : ' — خوانده نشده'}`}
-                      sx={{
-                        p: 1.5,
-                        px: 2,
-                        borderBottom: '1px solid',
-                        borderColor: 'divider',
-                        cursor: 'pointer',
-                        bgcolor: n.is_read ? 'transparent' : 'rgba(37,99,235,0.05)',
-                        '&:hover': { bgcolor: 'rgba(0,0,0,0.03)' },
-                        '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: -3 },
-                        display: 'flex',
-                        gap: 1.5,
-                        alignItems: 'flex-start',
-                        // Paper به‌عنوان <button>: عرض کامل + بازتنظیم پیش‌فرض‌های مرورگر
-                        width: '100%',
-                        textAlign: 'inherit',
-                        fontFamily: 'inherit',
-                        appearance: 'none',
-                        WebkitTapHighlightColor: 'transparent',
-                      }}
+                      className={
+                        n.is_read
+                          ? 'flex w-full items-start gap-3 border-b border-border px-4 py-3 text-start transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
+                          : 'flex w-full items-start gap-3 border-b border-border bg-primary/5 px-4 py-3 text-start transition-colors hover:bg-muted/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring'
+                      }
                     >
-                      <Box
-                        sx={{
-                          width: 34,
-                          height: 34,
-                          borderRadius: '10px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          flexShrink: 0,
-                          bgcolor: `${t.color}18`,
-                        }}
+                      <span
+                        className="flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px]"
+                        style={{ backgroundColor: `${t.color}18` }}
                       >
-                        <Icon icon={t.icon} style={{ color: t.color, fontSize: 18 }} />
-                      </Box>
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: n.is_read ? 500 : 700 }}>
-                          {n.title}
-                        </Typography>
-                        <Typography
-                          variant="caption"
-                          color="text.secondary"
-                          sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                        <Icon icon={t.icon} style={{ color: t.color, fontSize: 18 }} aria-hidden="true" />
+                      </span>
+                      <span className="min-w-0 flex-1">
+                        <span
+                          className={
+                            n.is_read ? 'block text-sm font-medium' : 'block text-sm font-bold'
+                          }
                         >
+                          {n.title}
+                        </span>
+                        <span className="block truncate text-xs text-muted-foreground">
                           {n.message}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mt: 0.25 }}>
+                        </span>
+                        <span className="mt-0.5 block text-xs text-muted-foreground/70">
                           {timeAgo(n.created_at)}
-                        </Typography>
-                      </Box>
+                        </span>
+                      </span>
                       {!n.is_read && (
-                        <Box
+                        <span
                           aria-hidden="true"
-                          sx={{
-                            width: 8,
-                            height: 8,
-                            borderRadius: '50%',
-                            bgcolor: 'primary.main',
-                            mt: 1,
-                            flexShrink: 0,
-                          }}
+                          className="mt-1 h-2 w-2 shrink-0 rounded-full bg-primary"
                         />
                       )}
-                    </Paper>
+                    </button>
                   </motion.div>
                 )
               })}
             </AnimatePresence>
           )}
-        </Box>
-      </Popover>
-    </>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }
 
