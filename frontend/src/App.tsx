@@ -2,12 +2,13 @@
 import React, { Suspense, lazy, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Link, useNavigate, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider, Box, Container, Button, Typography, Paper, CircularProgress } from '@mui/material'
+import { ThemeProvider } from '@mui/material'
 import CssBaseline from '@mui/material/CssBaseline'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { Toaster } from 'react-hot-toast'
 import { getTheme } from '@/theme'
+import { Button } from '@/components/ui/shadcn/button'
 import Loading from '@/components/ui/Loading'
 import UpdateDialog from '@/components/modals/UpdateDialog'
 import { useUpdateStore } from '@/store/updateStore'
@@ -94,74 +95,36 @@ const NotFound: React.FC = () => {
     // پوستهٔ برنامه (هدر/ناوبری) روی ۴۰۴ هم لازم است: کاربرِ لینکِ مرده باید
     // راه بازگشت داشته باشد و صفحه landmark کامل بماند (ممیزی F-15).
     <Layout>
-      <Container maxWidth="sm" sx={{ py: { xs: 6, md: 10 }, textAlign: 'center' }}>
-      <motion.div
-        initial={{ opacity: 0, scale: 0.9 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.4 }}
-      >
-        <Paper
-          sx={{
-            p: { xs: 4, md: 6 },
-            borderRadius: '24px',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
+      <div className="mx-auto max-w-xl py-8 text-center md:py-14">
+        <motion.div
+          initial={{ opacity: 0, scale: 0.9 }}
+          animate={{ opacity: 1, scale: 1 }}
+          transition={{ duration: 0.4 }}
         >
-          <Box
-            sx={{
-              width: 80,
-              height: 80,
-              mx: 'auto',
-              mb: 3,
-              borderRadius: '20px',
-              background: 'linear-gradient(135deg, rgba(245,158,11,0.14), rgba(37,99,235,0.14))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
-            <Icon icon="mdi:compass-off-outline" className="h-10 w-10" style={{ color: '#f59e0b' }} />
-          </Box>
-          <Typography variant="h3" component="p" sx={{ fontWeight: 800, mb: 1 }}>
-            ۴۰۴
-          </Typography>
-          <Typography variant="h6" component="h1" sx={{ fontWeight: 600, mb: 1 }}>
-            صفحه مورد نظر یافت نشد
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mb: 4, lineHeight: 1.8 }}>
-            ممکن است صفحه حذف شده باشد یا آدرس اشتباهی وارد کرده‌اید.
-          </Typography>
-          <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', flexWrap: 'wrap' }}>
-            <Button
-              variant="contained"
-              onClick={() => navigate('/')}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                minHeight: 44,
-                px: 3,
-                py: 1.2,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              }}
-              startIcon={<Icon icon="mdi:home" />}
-            >
-              صفحه اصلی
-            </Button>
-            <Button
-              component={Link}
-              to="/venues"
-              variant="outlined"
-              sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, minHeight: 44, px: 3, py: 1.2 }}
-              startIcon={<Icon icon="mdi:store" />}
-            >
-              مشاهده سالن‌ها
-            </Button>
-          </Box>
-        </Paper>
-      </motion.div>
-      </Container>
+          <div className="rounded-3xl border border-border bg-card p-8 md:p-12">
+            <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-[20px] bg-gradient-to-br from-amber-500/15 to-blue-500/15">
+              <Icon icon="mdi:compass-off-outline" className="h-10 w-10" style={{ color: '#f59e0b' }} />
+            </div>
+            <p className="mb-1 text-3xl font-extrabold text-foreground">۴۰۴</p>
+            <h1 className="mb-1 text-lg font-semibold text-foreground">صفحه مورد نظر یافت نشد</h1>
+            <p className="mb-8 text-sm leading-relaxed text-muted-foreground">
+              ممکن است صفحه حذف شده باشد یا آدرس اشتباهی وارد کرده‌اید.
+            </p>
+            <div className="flex flex-wrap justify-center gap-3">
+              <Button variant="primary" onClick={() => navigate('/')}>
+                <Icon icon="mdi:home" className="h-5 w-5" />
+                صفحه اصلی
+              </Button>
+              <Button asChild variant="outline">
+                <Link to="/venues">
+                  <Icon icon="mdi:store" className="h-5 w-5" />
+                  مشاهده سالن‌ها
+                </Link>
+              </Button>
+            </div>
+          </div>
+        </motion.div>
+      </div>
     </Layout>
   )
 }
@@ -182,9 +145,9 @@ const AuthInitializer: React.FC<{ children: React.ReactNode }> = ({ children }) 
 
   if (!hasInitialized) {
     return (
-      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-        <CircularProgress />
-      </Box>
+      <div className="flex min-h-screen items-center justify-center bg-background" aria-busy="true">
+        <span className="h-9 w-9 animate-spin rounded-full border-[3px] border-muted border-t-brand" />
+      </div>
     )
   }
 

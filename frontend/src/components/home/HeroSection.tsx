@@ -1,10 +1,9 @@
 import React, { useState, useEffect } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
-import { gradients, radii } from '@/theme'
 import { useAuthStore } from '@/store/authStore'
+import { Button } from '@/components/ui/shadcn/button'
 
 interface StatsItem {
   icon: string
@@ -63,89 +62,27 @@ export const HeroSection: React.FC = () => {
   }, [])
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        overflow: 'hidden',
-        borderRadius: `${radii.card}px`,
-        background: gradients.primary,
-        color: '#fff',
-        px: { xs: 2, sm: 3, md: 4 },
-        py: { xs: 4, sm: 5, md: 6 },
-        mb: 4,
-        boxShadow: '0 20px 60px rgba(15,23,42,0.4)',
-      }}
-    >
+    <section className="relative mb-4 overflow-hidden rounded-2xl bg-gradient-to-bl from-slate-900 via-blue-900 to-blue-700 px-4 py-8 text-white shadow-[0_20px_60px_rgba(15,23,42,0.4)] sm:px-6 sm:py-10 md:px-8 md:py-12">
       {/* پس‌زمینه متحرک */}
-      <Box
-        sx={{
-          position: 'absolute',
-          top: -80,
-          insetInlineStart: -80,
-          width: 250,
-          height: 250,
-          borderRadius: '50%',
-          bgcolor: 'rgba(255,255,255,0.08)',
-          animation: 'float 6s ease-in-out infinite',
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          bottom: -60,
-          insetInlineEnd: -60,
-          width: 200,
-          height: 200,
-          borderRadius: '50%',
-          border: '3px dashed rgba(255,255,255,0.1)',
-          animation: 'spin 20s linear infinite',
-        }}
-      />
-      <Box
-        sx={{
-          position: 'absolute',
-          top: '50%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: 300,
-          height: 300,
-          borderRadius: '50%',
-          bgcolor: 'rgba(245,158,11,0.06)',
-          filter: 'blur(60px)',
-        }}
-      />
+      <div className="pointer-events-none absolute -start-20 -top-20 h-[250px] w-[250px] animate-float rounded-full bg-white/[0.08]" />
+      <div className="pointer-events-none absolute -bottom-16 -end-16 h-[200px] w-[200px] rounded-full border-[3px] border-dashed border-white/10 [animation:spin_20s_linear_infinite]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/[0.06] blur-[60px]" />
 
       {/* محتوای اصلی */}
-      <Box sx={{ position: 'relative', zIndex: 1 }}>
+      <div className="relative z-10">
         {/* عنوان اصلی */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <Typography
-            component="h1" variant="h3"
-            sx={{
-              fontWeight: 900,
-              fontSize: { xs: '1.8rem', sm: '2.2rem', md: '2.8rem' },
-              lineHeight: 1.3,
-              mb: 2,
-              textAlign: 'center',
-            }}
-          >
+          <h1 className="mb-4 text-balance text-center text-[1.8rem] font-black leading-[1.3] sm:text-[2.2rem] md:text-[2.8rem]">
             فوتسال رو{' '}
-            <Box
-              component="span"
-              sx={{
-                background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-              }}
-            >
+            <span className="bg-gradient-to-br from-amber-300 to-amber-500 bg-clip-text text-transparent">
               حرفه‌ای‌تر
-            </Box>{' '}
+            </span>{' '}
             تجربه کن
-          </Typography>
+          </h1>
         </motion.div>
 
         {/* زیرعنوان */}
@@ -154,21 +91,11 @@ export const HeroSection: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <Typography
-            sx={{
-              fontSize: { xs: '0.95rem', sm: '1.05rem' },
-              color: 'rgba(255,255,255,0.9)',
-              textAlign: 'center',
-              maxWidth: 600,
-              mx: 'auto',
-              mb: 3,
-              lineHeight: 1.8,
-            }}
-          >
+          <p className="mx-auto mb-6 max-w-[600px] text-balance text-center text-[0.95rem] leading-[1.8] text-white/90 sm:text-[1.05rem]">
             بهترین زمین‌ها، راحت‌ترین رزرو، هیجان‌انگیزترین بازی‌ها
-            <br />
+            <br className="hidden sm:block" />
             همین حالا شروع کن و به هزاران بازیکن بپیوند
-          </Typography>
+          </p>
         </motion.div>
 
         {/* دکمه‌های CTA */}
@@ -176,55 +103,21 @@ export const HeroSection: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          style={{
-            display: 'flex',
-            gap: 12,
-            justifyContent: 'center',
-            flexWrap: 'wrap',
-            marginBottom: 32,
-          }}
+          className="mb-8 flex flex-wrap justify-center gap-3"
         >
           <Button
             onClick={() => navigate('/venues')}
-            sx={{
-              background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-              color: '#1c1917',
-              fontWeight: 800,
-              fontSize: '0.95rem',
-              px: 3.5,
-              py: 1.2,
-              borderRadius: '12px',
-              boxShadow: '0 8px 24px rgba(251,191,36,0.35)',
-              textTransform: 'none',
-              '&:hover': {
-                transform: 'translateY(-2px)',
-                boxShadow: '0 12px 32px rgba(251,191,36,0.45)',
-              },
-              transition: 'all 0.3s ease',
-            }}
-            startIcon={<Icon icon="mdi:soccer" style={{ width: 20, height: 20 }} />}
+            className="h-12 bg-gradient-to-br from-amber-300 to-amber-500 px-6 text-[0.95rem] font-extrabold text-stone-900 shadow-[0_8px_24px_rgba(251,191,36,0.35)] hover:shadow-[0_12px_32px_rgba(251,191,36,0.45)]"
           >
+            <Icon icon="mdi:soccer" style={{ width: 20, height: 20 }} />
             مشاهده زمین‌ها
           </Button>
           <Button
             onClick={() => navigate(secondaryCta.to)}
-            variant="outlined"
-            sx={{
-              borderColor: 'rgba(255,255,255,0.5)',
-              color: '#fff',
-              fontWeight: 700,
-              fontSize: '0.95rem',
-              px: 3.5,
-              py: 1.2,
-              borderRadius: '12px',
-              textTransform: 'none',
-              '&:hover': {
-                borderColor: '#fff',
-                bgcolor: 'rgba(255,255,255,0.1)',
-              },
-            }}
-            startIcon={<Icon icon={secondaryCta.icon} style={{ width: 20, height: 20 }} />}
+            variant="outline"
+            className="h-12 border-white/50 bg-transparent px-6 text-[0.95rem] font-bold text-white hover:border-white hover:bg-white/10 hover:text-white"
           >
+            <Icon icon={secondaryCta.icon} style={{ width: 20, height: 20 }} />
             {secondaryCta.label}
           </Button>
         </motion.div>
@@ -234,55 +127,26 @@ export const HeroSection: React.FC = () => {
           key={currentFeature}
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -20 }}
           transition={{ duration: 0.4 }}
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 12,
-            marginBottom: 32,
-            padding: '12px 20px',
-            background: 'rgba(255,255,255,0.1)',
-            borderRadius: '12px',
-            backdropFilter: 'blur(10px)',
-          }}
+          className="mb-8 flex items-center justify-center gap-3 rounded-xl bg-white/10 px-5 py-3 backdrop-blur-md"
         >
-          <Box
-            sx={{
-              width: 40,
-              height: 40,
-              borderRadius: '10px',
-              background: FEATURES[currentFeature].gradient,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
+          <span
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
+            style={{ background: FEATURES[currentFeature].gradient }}
           >
             <Icon
               icon={FEATURES[currentFeature].icon}
               style={{ width: 22, height: 22, color: '#fff' }}
             />
-          </Box>
-          <Box>
-            <Typography sx={{ fontWeight: 800, fontSize: '0.9rem' }}>
-              {FEATURES[currentFeature].title}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
-              {FEATURES[currentFeature].desc}
-            </Typography>
-          </Box>
+          </span>
+          <div>
+            <p className="text-sm font-extrabold">{FEATURES[currentFeature].title}</p>
+            <p className="text-xs text-white/80">{FEATURES[currentFeature].desc}</p>
+          </div>
         </motion.div>
 
         {/* آمار اجتماعی */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: 2,
-            mt: 3,
-          }}
-        >
+        <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
           {STATS.map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -290,70 +154,22 @@ export const HeroSection: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
-              <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  p: 1.5,
-                  borderRadius: '12px',
-                  background: 'rgba(255,255,255,0.08)',
-                  backdropFilter: 'blur(10px)',
-                  border: '1px solid rgba(255,255,255,0.12)',
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 42,
-                    height: 42,
-                    borderRadius: '10px',
-                    background: `${stat.color}20`,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
+              <div className="flex items-center gap-3 rounded-xl border border-white/[0.12] bg-white/[0.08] p-3 backdrop-blur-md">
+                <span
+                  className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px]"
+                  style={{ backgroundColor: `${stat.color}20` }}
                 >
-                  <Icon
-                    icon={stat.icon}
-                    style={{ width: 22, height: 22, color: stat.color }}
-                  />
-                </Box>
-                <Box>
-                  <Typography
-                    sx={{
-                      fontWeight: 900,
-                      fontSize: '1.1rem',
-                      fontVariantNumeric: 'tabular-nums',
-                    }}
-                  >
-                    {stat.value}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      fontSize: '0.75rem',
-                      color: 'rgba(255,255,255,0.85)',
-                    }}
-                  >
-                    {stat.label}
-                  </Typography>
-                </Box>
-              </Box>
+                  <Icon icon={stat.icon} style={{ width: 22, height: 22, color: stat.color }} />
+                </span>
+                <div>
+                  <p className="text-[1.1rem] font-black tabular-nums">{stat.value}</p>
+                  <p className="text-xs text-white/85">{stat.label}</p>
+                </div>
+              </div>
             </motion.div>
           ))}
-        </Box>
-      </Box>
-
-      {/* استایل انیمیشن‌ها */}
-      <style>{`
-        @keyframes float {
-          0%, 100% { transform: translateY(0px); }
-          50% { transform: translateY(-20px); }
-        }
-        @keyframes spin {
-          from { transform: rotate(0deg); }
-          to { transform: rotate(360deg); }
-        }
-      `}</style>
-    </Box>
+        </div>
+      </div>
+    </section>
   )
 }

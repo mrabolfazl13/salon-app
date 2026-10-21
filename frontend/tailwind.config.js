@@ -1,3 +1,5 @@
+import animate from 'tailwindcss-animate'
+
 // tailwind.config.js
 /** @type {import('tailwindcss').Config} */
 export default {
@@ -12,6 +14,32 @@ export default {
         sans: ['Vazirmatn', 'system-ui', 'sans-serif'],
       },
       colors: {
+        /* ─── توکن‌های معنایی shadcn/ui ───────────────────────────────
+           HSL سه‌گانه تا مودیفایر شفافیت (bg-card/80) کار کند.
+           مقادیر در styles/globals.css برای روشن/تیره تعریف شده‌اند. */
+        background: 'hsl(var(--background) / <alpha-value>)',
+        foreground: 'hsl(var(--foreground) / <alpha-value>)',
+        card: {
+          DEFAULT: 'hsl(var(--card) / <alpha-value>)',
+          foreground: 'hsl(var(--card-foreground) / <alpha-value>)',
+        },
+        popover: {
+          DEFAULT: 'hsl(var(--popover) / <alpha-value>)',
+          foreground: 'hsl(var(--popover-foreground) / <alpha-value>)',
+        },
+        muted: {
+          DEFAULT: 'hsl(var(--muted) / <alpha-value>)',
+          foreground: 'hsl(var(--muted-foreground) / <alpha-value>)',
+        },
+        accent: {
+          DEFAULT: 'hsl(var(--accent) / <alpha-value>)',
+          foreground: 'hsl(var(--accent-foreground) / <alpha-value>)',
+        },
+        border: 'hsl(var(--border) / <alpha-value>)',
+        input: 'hsl(var(--input) / <alpha-value>)',
+        ring: 'hsl(var(--ring) / <alpha-value>)',
+        brand: 'hsl(var(--brand) / <alpha-value>)',
+        'brand-foreground': 'hsl(var(--brand-foreground) / <alpha-value>)',
         primary: {
           DEFAULT: '#2563eb',
           50: '#eff6ff',
@@ -48,17 +76,15 @@ export default {
           soft: '#121a2b',
           line: '#223049',
         },
-        background: '#ffffff',
-        foreground: '#111827',
-        muted: {
-          foreground: '#6b7280',
-        },
-        input: '#e5e7eb',
-        ring: '#2563eb',
         destructive: {
           DEFAULT: '#ef4444',
           foreground: '#fef2f2',
         },
+      },
+      borderRadius: {
+        lg: 'var(--radius)',
+        md: 'calc(var(--radius) - 4px)',
+        sm: 'calc(var(--radius) - 6px)',
       },
       animation: {
         'float': 'float 6s ease-in-out infinite',
@@ -82,5 +108,5 @@ export default {
       },
     },
   },
-  plugins: [],
+  plugins: [animate],
 }

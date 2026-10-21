@@ -1,32 +1,22 @@
-﻿import React, { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
-import {
-  AppBar,
-  Toolbar,
-  Typography,
-  IconButton,
-  Avatar,
-  Menu,
-  MenuItem,
-  Box,
-  Button,
-  Divider,
-} from '@mui/material'
-import {
-  Person as PersonIcon,
-  Logout as LogoutIcon,
-  Dashboard as DashboardIcon,
-  AdminPanelSettings as AdminPanelIcon,
-} from '@mui/icons-material'
+import React from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
 import { motion } from 'framer-motion'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import { useStaffCodes } from '@/hooks/useStaffMe'
-import { getInitials } from '@/lib/utils'
-import { gradients } from '@/theme'
+import { getInitials, cn } from '@/lib/utils'
 import NotificationPanel from './NotificationPanel'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import { Button } from '@/components/ui/shadcn/button'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/shadcn/dropdown-menu'
 
 const roleLabels: Record<string, string> = {
   user: 'کاربر',
@@ -41,12 +31,9 @@ interface NavbarProps {
   onMenuClick?: () => void
 }
 
-const muiIconSx = { me: 1, fontSize: 20 }
-const iconifyStyle = { marginLeft: 8, fontSize: 18 }
-
 const Navbar: React.FC<NavbarProps> = () => {
-  const [anchorEl, setAnchorEl] = useState<null | HTMLElement>(null)
   const navigate = useNavigate()
+  const { pathname } = useLocation()
   const { user, isAuthenticated, logout } = useAuthStore()
 
   const isManager =
@@ -65,16 +52,7 @@ const Navbar: React.FC<NavbarProps> = () => {
   ].filter((item) => isManager || item.codes.some((code) => staffCodes.includes(code)))
   const canConsoleNav = consoleLinks.length > 0
 
-  const handleMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setAnchorEl(event.currentTarget)
-  }
-
-  const handleMenuClose = () => {
-    setAnchorEl(null)
-  }
-
   const handleLogout = () => {
-    handleMenuClose()
     useNotificationStore.getState().reset()
     logout()
     navigate('/')
@@ -98,260 +76,128 @@ const Navbar: React.FC<NavbarProps> = () => {
 
   // آیتم‌های منوی آواتار — در همه اندازه‌ها (موبایل + دسکتاپ) در دسترس
   const menuItems = [
-    { to: '/profile', label: 'پروفایل', icon: <PersonIcon sx={muiIconSx} /> },
-    { to: '/teams', label: 'تیم\u200cها', icon: <Icon icon="mdi:account-group" style={iconifyStyle} /> },
-    { to: '/games', label: 'بازی\u200cها', icon: <Icon icon="mdi:gamepad-variant" style={iconifyStyle} /> },
-    { to: '/competitions', label: 'رقابت\u200cها', icon: <Icon icon="mdi:trophy" style={iconifyStyle} /> },
-    { to: '/tournaments', label: 'تورنمنت\u200cها', icon: <Icon icon="mdi:trophy-outline" style={iconifyStyle} /> },
-    { to: dashboardPath, label: isCoach ? 'پنل مربی' : isManager ? 'داشبورد مدیریت' : 'داشبورد', icon: <DashboardIcon sx={muiIconSx} /> },
-    { to: '/deals', label: 'شگفت\u200cانگیزها', icon: <Icon icon="mdi:lightning-bolt" style={iconifyStyle} /> },
-    ...(canConsoleNav ? consoleLinks.map((item) => ({
-      to: item.href,
-      label: item.label,
-      icon: <Icon icon={item.icon} style={iconifyStyle} />,
-    })) : []),
-    ...(isManager ? [{ to: '/manager/teams', label: 'تیم\u200cهای همکار', icon: <Icon icon="mdi:handshake-outline" style={iconifyStyle} /> }] : []),
-    ...(user?.role === 'super_admin' ? [{ to: '/admin', label: 'پنل ادمین', icon: <AdminPanelIcon sx={muiIconSx} /> }] : []),
+    { to: '/profile', label: 'پروفایل', icon: 'mdi:account-outline' },
+    { to: '/teams', label: 'تیم\u200cها', icon: 'mdi:account-group' },
+    { to: '/games', label: 'بازی\u200cها', icon: 'mdi:gamepad-variant' },
+    { to: '/competitions', label: 'رقابت\u200cها', icon: 'mdi:trophy' },
+    { to: '/tournaments', label: 'تورنمنت\u200cها', icon: 'mdi:trophy-outline' },
+    { to: dashboardPath, label: isCoach ? 'پنل مربی' : isManager ? 'داشبورد مدیریت' : 'داشبورد', icon: 'mdi:view-dashboard-outline' },
+    { to: '/deals', label: 'شگفت\u200cانگیزها', icon: 'mdi:lightning-bolt' },
+    ...(canConsoleNav ? consoleLinks.map((item) => ({ to: item.href, label: item.label, icon: item.icon })) : []),
+    ...(isManager ? [{ to: '/manager/teams', label: 'تیم\u200cهای همکار', icon: 'mdi:handshake-outline' }] : []),
+    ...(user?.role === 'super_admin' ? [{ to: '/admin', label: 'پنل ادمین', icon: 'mdi:shield-account-outline' }] : []),
   ]
 
+  const isActive = (href: string) =>
+    href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)
+
   return (
-    <motion.div
-      initial={{ y: -100 }}
+    <motion.header
+      initial={{ y: -80 }}
       animate={{ y: 0 }}
-      transition={{ duration: 0.5, type: 'spring', stiffness: 100 }}
+      transition={{ duration: 0.45, type: 'spring', stiffness: 100 }}
+      className="sticky top-0 z-40 border-b border-border bg-background/85 pt-safe backdrop-blur-xl supports-[backdrop-filter]:bg-background/70"
     >
-      <AppBar
-        position="sticky"
-        elevation={0}
-        sx={{
-          background: (t) =>
-            t.palette.mode === 'dark' ? 'rgba(11,18,32,0.82)' : 'rgba(255,255,255,0.82)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid',
-          borderColor: 'divider',
-          color: 'text.primary',
-          pt: 'env(safe-area-inset-top)',
-        }}
-      >
-        <Toolbar>
-          <Link
-            to="/"
-            className="flex items-center gap-2 no-underline"
-            style={{ minHeight: 44, minWidth: 44 }}
-            aria-label="صفحه اصلی فوتسال"
+      <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-1.5 px-4 sm:px-6 lg:px-8">
+        <Link
+          to="/"
+          aria-label="صفحه اصلی فوتسال"
+          className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_4px_14px_rgba(245,158,11,0.3)]">
+            <Icon icon="mdi:soccer" className="h-6 w-6" style={{ color: '#1c1917' }} />
+          </span>
+          <span className="hidden bg-gradient-to-bl from-amber-700 to-orange-700 bg-clip-text text-lg font-extrabold text-transparent sm:block">
+            فوتسال
+          </span>
+        </Link>
+
+        <div className="flex-1" />
+
+        {/* دکمه‌های ناوبری — فقط دسکتاپ؛ موبایل با نوار پایین + منوی آواتار.
+            جعبه ناو فقط خودش اسکرول افقی می‌شود تا هرگز عرض سند را از viewport
+            عبور ندهد — ریشه H_OVERFLOW ممیزی UI. */}
+        {isAuthenticated && (
+          <nav
+            aria-label="ناوبری بخش‌ها"
+            className="hidden min-w-0 flex-[0_1_auto] items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex"
           >
-            <Box
-              sx={{
-                width: 40,
-                height: 40,
-                background: gradients.brandEnergy,
-                borderRadius: '12px',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                flexShrink: 0,
-                boxShadow: '0 4px 14px rgba(245,158,11,0.3)',
-              }}
-            >
-              <Icon icon="mdi:soccer" className="h-6 w-6" style={{ color: '#1c1917' }} />
-            </Box>
-            <Typography
-              variant="h6"
-              // واژه‌نشان داخل nav نباید سرفصل باشد: هم outline را شلوغ می‌کند و هم
-              // «heading-order» را می‌شکند (H6 پیش از H1 صفحه)
-              component="span"
-              sx={{
-                fontWeight: 800,
-                background: 'linear-gradient(135deg, #b45309, #c2410c)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                display: { xs: 'none', sm: 'block' },
-              }}
-            >
-              فوتسال
-            </Typography>
-          </Link>
+            {navItems.map((item) => (
+              <Link
+                key={item.href}
+                to={item.href}
+                aria-current={isActive(item.href) ? 'page' : undefined}
+                className={cn(
+                  'inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  isActive(item.href)
+                    ? 'bg-accent text-accent-foreground'
+                    : 'text-foreground/80 hover:bg-muted hover:text-foreground'
+                )}
+              >
+                <Icon icon={item.icon} className="h-5 w-5" />
+                {item.label}
+              </Link>
+            ))}
+          </nav>
+        )}
 
-          <Box sx={{ flexGrow: 1 }} />
+        <ThemeToggle />
 
-          {/* کلید حالت روشن/تاریک */}
-          <ThemeToggle />
+        {/* زنگ اعلان — در همه اندازه‌ها (موبایل + دسکتاپ) دیده می‌شود */}
+        {isAuthenticated && <NotificationPanel />}
 
-          {/* زنگ اعلان — در همه اندازه‌ها (موبایل + دسکتاپ) دیده می‌شود */}
-          {isAuthenticated && <NotificationPanel />}
+        {isAuthenticated ? (
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <button
+                type="button"
+                aria-label="منوی حساب کاربری"
+                className="ms-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-xs font-extrabold text-stone-900 transition-transform hover:scale-105">
+                  {user?.fullName ? getInitials(user.fullName) : <Icon icon="mdi:account" className="h-5 w-5" />}
+                </span>
+              </button>
+            </DropdownMenuTrigger>
 
-          {/* دکمه‌های ناوبری — فقط دسکتاپ؛ موبایل با نوار پایین + منوی آواتار.
-              جعبه ناو فقط خودش اسکرول افقی می‌شود (minWidth:0 + overflow) تا
-              هرگز عرض سند را از viewport عبور ندهد — ریشه H_OVERFLOW ممیزی UI.
-              نامِ landmark جدا از نوار پایین («ناوبری اصلی») است، وگرنه کاربر
-              نوارِ خواننده دو ناوبری هم‌نام در DOM می‌بیند. */}
-          {isAuthenticated && (
-            <Box
-              component="nav"
-              aria-label="ناوبری بخش‌ها"
-              sx={{
-                display: { xs: 'none', md: 'flex' },
-                gap: 0.25,
-                alignItems: 'center',
-                minWidth: 0,
-                flex: '0 1 auto',
-                overflowX: 'auto',
-                scrollbarWidth: 'none',
-                overscrollBehaviorX: 'contain',
-                '&::-webkit-scrollbar': { display: 'none' },
-              }}
-            >
-              {navItems.map((item) => (
-                <Button
-                  key={item.href}
-                  component={Link}
-                  to={item.href}
-                  color="inherit"
-                  sx={{
-                    borderRadius: '10px',
-                    textTransform: 'none',
-                    fontWeight: 500,
-                    px: 1,
-                    flexShrink: 0,
-                    whiteSpace: 'nowrap',
-                    '&:hover': {
-                      background: (t) =>
-                        t.palette.mode === 'dark'
-                          ? 'rgba(251,191,36,0.1)'
-                          : 'rgba(245,158,11,0.09)',
-                    },
-                  }}
-                  startIcon={<Icon icon={item.icon} />}
-                >
-                  {item.label}
-                </Button>
+            <DropdownMenuContent align="end" className="max-h-[calc(100dvh-5rem)] w-60 overflow-y-auto">
+              <DropdownMenuLabel className="px-3 py-2">
+                <span className="block text-sm font-bold text-foreground">{user?.fullName || 'کاربر'}</span>
+                <span className="block text-xs font-normal text-muted-foreground">
+                  {user ? roleLabels[user.role] || user.role : ''}
+                </span>
+              </DropdownMenuLabel>
+              <DropdownMenuSeparator />
+              {menuItems.map((item) => (
+                <DropdownMenuItem key={item.to} asChild>
+                  <Link to={item.to} className="w-full">
+                    <Icon icon={item.icon} className="h-5 w-5 text-muted-foreground" />
+                    <span>{item.label}</span>
+                  </Link>
+                </DropdownMenuItem>
               ))}
-            </Box>
-          )}
-
-          {/* بلوک حساب کاربری — در همه بریک‌پوینت‌ها (روی موبایل هم آواتار + خروج + بخش‌های فرعی) */}
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 0.5,
-              ms: { xs: 0.5, md: 1 },
-              flexShrink: 0,
-            }}
-          >
-            {isAuthenticated ? (
-              <>
-                <IconButton
-                  onClick={handleMenuOpen}
-                  color="inherit"
-                  aria-label="منوی حساب کاربری"
-                  sx={{ width: 44, height: 44, flexShrink: 0 }}
-                >
-                  <Avatar
-                    sx={{
-                      width: { xs: 32, md: 36 },
-                      height: { xs: 32, md: 36 },
-                      background: gradients.brandEnergy,
-                      color: '#1c1917',
-                      fontSize: '0.8rem',
-                      fontWeight: 800,
-                      transition: 'all 0.3s',
-                      '&:hover': {
-                        transform: 'scale(1.05)',
-                      },
-                    }}
-                  >
-                    {user?.fullName ? getInitials(user.fullName) : <PersonIcon fontSize="small" />}
-                  </Avatar>
-                </IconButton>
-
-                <Menu
-                  anchorEl={anchorEl}
-                  open={Boolean(anchorEl)}
-                  onClose={handleMenuClose}
-                  transformOrigin={{ horizontal: 'left', vertical: 'top' }}
-                  anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
-                  sx={{
-                    '& .MuiPaper-root': {
-                      borderRadius: '16px',
-                      minWidth: 220,
-                      maxWidth: 'calc(100vw - 24px)',
-                      maxHeight: 'calc(100vh - 80px)',
-                      overflowY: 'auto',
-                      boxShadow: (t) =>
-                        t.palette.mode === 'dark'
-                          ? '0 4px 20px rgba(0,0,0,0.5)'
-                          : '0 4px 20px rgba(15,23,42,0.1)',
-                      mt: 1,
-                    },
-                  }}
-                >
-                  <Box sx={{ px: 2, py: 1.5 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                      {user?.fullName || 'کاربر'}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
-                      {user ? roleLabels[user.role] || user.role : ''}
-                    </Typography>
-                  </Box>
-                  <Divider />
-                  {menuItems.map((item) => (
-                    <MenuItem
-                      key={item.to}
-                      component={Link}
-                      to={item.to}
-                      onClick={handleMenuClose}
-                      sx={{ borderRadius: '10px', mx: 0.5, textTransform: 'none' }}
-                    >
-                      {item.icon} {item.label}
-                    </MenuItem>
-                  ))}
-                  <Divider />
-                  <MenuItem
-                    onClick={handleLogout}
-                    sx={{ color: 'error.main', borderRadius: '10px', mx: 0.5, fontWeight: 700, '&:hover': { bgcolor: 'rgba(220,38,38,0.06)' } }}
-                  >
-                    <LogoutIcon sx={muiIconSx} /> خروج
-                  </MenuItem>
-                </Menu>
-              </>
-            ) : (
-              <>
-                <Button
-                  component={Link}
-                  to="/login"
-                  color="inherit"
-                  sx={{ borderRadius: '10px', textTransform: 'none', minHeight: 44, px: { xs: 1, md: 2 } }}
-                >
-                  ورود
-                </Button>
-                <Button
-                  component={Link}
-                  to="/register"
-                  variant="contained"
-                  sx={{
-                    borderRadius: '10px',
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    minHeight: 44,
-                    px: { xs: 1.5, md: 2 },
-                    background: gradients.brandEnergy,
-                    color: '#1c1917',
-                    boxShadow: '0 4px 14px rgba(245,158,11,0.3)',
-                    '&:hover': {
-                      background: gradients.brandEnergy,
-                      filter: 'brightness(1.05)',
-                    },
-                  }}
-                >
-                  ثبت‌نام
-                </Button>
-              </>
-            )}
-          </Box>
-        </Toolbar>
-      </AppBar>
-    </motion.div>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                onSelect={handleLogout}
+                className="font-bold text-red-600 focus:bg-red-50 focus:text-red-700 dark:text-red-400 dark:focus:bg-red-500/10"
+              >
+                <Icon icon="mdi:logout" className="h-5 w-5" />
+                <span>خروج</span>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        ) : (
+          <div className="flex shrink-0 items-center gap-1">
+            <Button asChild variant="ghost" size="sm">
+              <Link to="/login">ورود</Link>
+            </Button>
+            <Button asChild size="sm" className="px-4 font-bold">
+              <Link to="/register">ثبت‌نام</Link>
+            </Button>
+          </div>
+        )}
+      </div>
+    </motion.header>
   )
 }
 

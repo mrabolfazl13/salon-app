@@ -12,6 +12,24 @@
     --app-line: rgba(15, 23, 42, 0.06);
     --app-focus-ring: #1d4ed8;
     color-scheme: light;
+
+    /* توکن‌های shadcn/ui (HSL سه‌گانه) — نگاشت‌شده از پالت برند */
+    --background: 220 20% 97%;
+    --foreground: 222 47% 11%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
+    --accent: 48 96% 89%;
+    --accent-foreground: 24 10% 10%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
+    --ring: 221 83% 53%;
+    --brand: 38 92% 50%;
+    --brand-foreground: 24 10% 10%;
+    --radius: 0.875rem;
   }
 
   .dark {
@@ -22,6 +40,22 @@
     --app-line: rgba(255, 255, 255, 0.08);
     --app-focus-ring: #93c5fd;
     color-scheme: dark;
+
+    --background: 220 49% 8%;
+    --foreground: 210 40% 96%;
+    --card: 220 41% 12%;
+    --card-foreground: 210 40% 96%;
+    --popover: 220 41% 12%;
+    --popover-foreground: 210 40% 96%;
+    --muted: 217 33% 17%;
+    --muted-foreground: 215 20% 65%;
+    --accent: 217 33% 17%;
+    --accent-foreground: 48 96% 89%;
+    --border: 217 39% 21%;
+    --input: 217 39% 21%;
+    --ring: 213 97% 87%;
+    --brand: 38 92% 50%;
+    --brand-foreground: 24 10% 10%;
   }
 
   * {

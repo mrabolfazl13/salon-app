@@ -1,41 +1,34 @@
 import React from 'react'
-import { IconButton } from '@mui/material'
-import type { SxProps, Theme } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { useThemeStore } from '@/store/themeStore'
+import { cn } from '@/lib/utils'
 
 interface Props {
   size?: number
-  sx?: SxProps<Theme>
+  className?: string
 }
 
-/** کلید تعویض حالت روشن/تاریک */
-const ThemeToggle: React.FC<Props> = ({ size = 20, sx }) => {
+/** کلید تعویض حالت روشن/تاریک — نسخهٔ shadcn (بدون MUI) */
+const ThemeToggle: React.FC<Props> = ({ size = 20, className }) => {
   const mode = useThemeStore((s) => s.mode)
   const toggle = useThemeStore((s) => s.toggle)
   const dark = mode === 'dark'
 
   return (
-    <IconButton
+    <button
+      type="button"
       onClick={toggle}
       aria-label={dark ? 'فعال‌سازی حالت روشن' : 'فعال‌سازی حالت تاریک'}
-      sx={{
-        width: 44,
-        height: 44,
-        minWidth: 44,
-        minHeight: 44,
-        color: 'inherit',
-        borderRadius: '12px',
-        transition: 'background-color 0.2s ease',
-        '&:hover': { bgcolor: dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.05)' },
-        ...sx,
-      }}
+      className={cn(
+        'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        className
+      )}
     >
       <Icon
         icon={dark ? 'mdi:weather-sunny' : 'mdi:weather-night'}
         style={{ width: size, height: size, color: dark ? '#fbbf24' : '#f59e0b' }}
       />
-    </IconButton>
+    </button>
   )
 }
 

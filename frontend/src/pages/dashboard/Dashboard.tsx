@@ -2,24 +2,17 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Grid,
-  Typography,
-  Button,
-  Paper,
-  Chip,
-  useTheme,
-  Container,
-  Skeleton,
-  Alert,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { useAuthStore } from '@/store/authStore'
 import { bookingService } from '@/services/booking'
 import { membershipService } from '@/services/membership'
 import { PLAN_TYPE_LABEL, type MembershipPurchase } from '@/types/membership'
-import { formatPrice, formatDate, formatDateTime, getStatusLabel, getMuiStatusColor } from '@/lib/utils'
+import { formatPrice, formatDate, formatDateTime, getStatusLabel } from '@/lib/utils'
+import { Button } from '@/components/ui/shadcn/button'
+import { Card } from '@/components/ui/shadcn/card'
+import { Badge } from '@/components/ui/shadcn/badge'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
 
 interface ApiBooking {
   id: number
@@ -35,8 +28,14 @@ interface ApiBooking {
   duration?: number
 }
 
+const statusVariant = (status: string): 'success' | 'default' | 'destructive' | 'primary' => {
+  if (status === 'confirmed') return 'success'
+  if (status === 'completed') return 'primary'
+  if (status === 'cancelled') return 'destructive'
+  return 'default'
+}
+
 const Dashboard: React.FC = () => {
-  const theme = useTheme()
   const user = useAuthStore((state) => state.user)
 
   const [bookings, setBookings] = useState<ApiBooking[]>([])
@@ -68,11 +67,13 @@ const Dashboard: React.FC = () => {
       .catch(() => setPurchases([]))
   }, [])
 
-  const purchaseStatusChip = (p: MembershipPurchase): { label: string; color: 'success' | 'warning' | 'default' } => {
-    if (p.status === 'paid') return { label: 'فعال', color: 'success' }
-    if (p.status === 'pending') return { label: 'در انتظار پرداخت', color: 'warning' }
-    if (p.status === 'refunded') return { label: 'بازگشت وجه شده', color: 'default' }
-    return { label: 'لغو شده', color: 'default' }
+  const purchaseStatusChip = (
+    p: MembershipPurchase
+  ): { label: string; variant: 'success' | 'default' | 'muted' } => {
+    if (p.status === 'paid') return { label: 'فعال', variant: 'success' }
+    if (p.status === 'pending') return { label: 'در انتظار پرداخت', variant: 'default' }
+    if (p.status === 'refunded') return { label: 'بازگشت وجه شده', variant: 'muted' }
+    return { label: 'لغو شده', variant: 'muted' }
   }
 
   const activeCount = bookings.filter(
@@ -84,30 +85,10 @@ const Dashboard: React.FC = () => {
     .reduce((sum, b) => sum + (b.payment_amount || 0), 0)
 
   const stats = [
-    {
-      title: 'کل رزروها',
-      value: new Intl.NumberFormat('fa-IR').format(bookings.length),
-      icon: 'mdi:calendar-check',
-      color: theme.palette.primary.main,
-    },
-    {
-      title: 'رزروهای فعال',
-      value: new Intl.NumberFormat('fa-IR').format(activeCount),
-      icon: 'mdi:calendar-clock',
-      color: '#10b981',
-    },
-    {
-      title: 'جمع پرداختی',
-      value: formatPrice(totalSpent),
-      icon: 'mdi:wallet-outline',
-      color: '#8b5cf6',
-    },
-    {
-      title: 'رزرو لغو شده',
-      value: new Intl.NumberFormat('fa-IR').format(cancelledCount),
-      icon: 'mdi:calendar-remove',
-      color: '#f59e0b',
-    },
+    { title: 'کل رزروها', value: new Intl.NumberFormat('fa-IR').format(bookings.length), icon: 'mdi:calendar-check', color: '#2563eb' },
+    { title: 'رزروهای فعال', value: new Intl.NumberFormat('fa-IR').format(activeCount), icon: 'mdi:calendar-clock', color: '#10b981' },
+    { title: 'جمع پرداختی', value: formatPrice(totalSpent), icon: 'mdi:wallet-outline', color: '#8b5cf6' },
+    { title: 'رزرو لغو شده', value: new Intl.NumberFormat('fa-IR').format(cancelledCount), icon: 'mdi:calendar-remove', color: '#f59e0b' },
   ]
 
   const quickActions = [
@@ -125,278 +106,208 @@ const Dashboard: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-          <Skeleton aria-hidden="true" variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
-          <Grid container spacing={2} sx={{ mb: 3 }}>
+        <div className="space-y-3 py-1">
+          <Skeleton className="h-12 w-full" />
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {[1, 2, 3, 4].map((i) => (
-              <Grid size={{ xs: 6, md: 3 }} key={i}>
-                <Skeleton aria-hidden="true" variant="rounded" height={120} sx={{ borderRadius: 2 }} />
-              </Grid>
+              <Skeleton key={i} className="h-[120px]" />
             ))}
-          </Grid>
-          <Skeleton aria-hidden="true" variant="rounded" height={300} sx={{ borderRadius: 2 }} />
-        </Container>
+          </div>
+          <Skeleton className="h-[300px]" />
+        </div>
       </Layout>
     )
   }
 
   return (
     <Layout>
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-        {/* Header */}
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, flexWrap: 'wrap', gap: 2 }}>
-          <Box>
-            <Typography component="h1" variant="h5" sx={{ fontWeight: 700 }}>
-              سلام{user?.fullName ? `، ${user.fullName.split(' ')[0]}` : ''} 👋
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-              به داشبورد سیستم رزرو سالن فوتسال خوش آمدید
-            </Typography>
-          </Box>
-          <Button
-            variant="contained"
-            component={Link}
-            to="/venues"
-            startIcon={<Icon icon="mdi:plus" />}
-            sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, px: 2.5 }}
-          >
+      {/* Header */}
+      <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-xl font-bold text-foreground">
+            سلام{user?.fullName ? `، ${user.fullName.split(' ')[0]}` : ''} 👋
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            به داشبورد سیستم رزرو سالن فوتسال خوش آمدید
+          </p>
+        </div>
+        <Button asChild size="sm" variant="primary" className="px-4">
+          <Link to="/venues">
+            <Icon icon="mdi:plus" className="h-5 w-5" />
             رزرو جدید
-          </Button>
-        </Box>
+          </Link>
+        </Button>
+      </div>
 
-        {error && (
-          <Alert
-            severity="error"
-            sx={{ borderRadius: 2, mb: 3 }}
-            action={
-              <Button color="inherit" size="small" onClick={fetchBookings}>
-                تلاش دوباره
-              </Button>
-            }
+      {error && (
+        <Alert variant="destructive" className="mb-4">
+          <Icon icon="mdi:alert-circle-outline" aria-hidden="true" />
+          <AlertDescription className="flex flex-1 flex-wrap items-center justify-between gap-2">
+            <span>در دریافت اطلاعات خطایی رخ داد.</span>
+            <Button variant="ghost" size="sm" onClick={fetchBookings} className="text-red-700 dark:text-red-300">
+              تلاش دوباره
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      {/* Stats */}
+      <div className="mb-4 grid grid-cols-2 gap-3 md:grid-cols-4">
+        {stats.map((stat, index) => (
+          <motion.div
+            key={stat.title}
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: index * 0.06 }}
+            className="h-full"
           >
-            در دریافت اطلاعات خطایی رخ داد.
-          </Alert>
-        )}
-
-        {/* Stats */}
-        <Grid container spacing={2} sx={{ mb: 3 }}>
-          {stats.map((stat, index) => (
-            <Grid size={{ xs: 6, md: 3 }} key={index}>
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3, delay: index * 0.06 }}
-                style={{ height: '100%' }}
-              >
-                <Paper sx={{ p: 2.5, border: `1px solid ${theme.palette.divider}`, height: '100%', display: 'flex', flexDirection: 'column' }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
-                    <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
-                      {stat.title}
-                    </Typography>
-                    <Box sx={{
-                      width: 36, height: 36,
-                      bgcolor: `${stat.color}10`,
-                      borderRadius: 1,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <Icon icon={stat.icon} className="h-4.5 w-4.5" style={{ color: stat.color }} />
-                    </Box>
-                  </Box>
-                  {/* مقدار KPI سرتیتر نیست؛ h6 باعث می‌شد ترتیب سرتیترها بشکند — axe F-22 */}
-                  <Typography variant="h6" component="div" sx={{ fontWeight: 800, mt: 'auto' }}>
-                    {stat.value}
-                  </Typography>
-                </Paper>
-              </motion.div>
-            </Grid>
-          ))}
-        </Grid>
-
-        <Grid container spacing={2}>
-          {/* Recent Bookings */}
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Paper sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, height: '100%' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <Icon icon="mdi:calendar-history" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
-                  <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
-                    آخرین رزروها
-                  </Typography>
-                </Box>
-                <Button
-                  component={Link}
-                  to="/bookings"
-                  size="small"
-                  sx={{ textTransform: 'none', fontWeight: 600, color: 'primary.main' }}
+            <Card className="flex h-full flex-col p-4">
+              <div className="mb-3 flex items-start justify-between gap-2">
+                <span className="text-xs font-medium text-muted-foreground">{stat.title}</span>
+                <span
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
+                  style={{ backgroundColor: `${stat.color}18` }}
                 >
-                  مشاهده همه
-                </Button>
-              </Box>
+                  <Icon icon={stat.icon} className="h-[18px] w-[18px]" style={{ color: stat.color }} />
+                </span>
+              </div>
+              {/* مقدار KPI سرتیتر نیست؛ h6 در MUI ترتیب سرتیترها را می‌شکست — axe F-22 */}
+              <div className="mt-auto text-lg font-extrabold text-foreground" dir="rtl">
+                {stat.value}
+              </div>
+            </Card>
+          </motion.div>
+        ))}
+      </div>
 
-              {recentBookings.length === 0 ? (
-                <Box sx={{ textAlign: 'center', py: 5 }}>
-                  <Icon icon="mdi:calendar-remove-outline" className="h-8 w-8" style={{ color: 'rgba(0,0,0,0.2)' }} />
-                  <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                    هنوز رزروی ندارید
-                  </Typography>
-                </Box>
-              ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {recentBookings.map((b) => (
-                    <Box
-                      key={b.id}
-                      component={Link}
-                      to={`/bookings/${b.id}`}
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        p: 1.5,
-                        borderRadius: 1.5,
-                        bgcolor: 'rgba(0,0,0,0.02)',
-                        cursor: 'pointer',
-                        // لینک: بدون زیرخط/رنگ آبی، ارتفاع لمسی و حلقهٔ فوکوس برای کیبورد
-                        textDecoration: 'none',
-                        color: 'inherit',
-                        minHeight: 44,
-                        transition: 'background 0.2s',
-                        '&:hover': { bgcolor: 'rgba(37,99,235,0.05)' },
-                        '&:focus-visible': {
-                          outline: '3px solid',
-                          outlineColor: 'primary.main',
-                          outlineOffset: 2,
-                        },
-                      }}
-                    >
-                      <Box sx={{ minWidth: 0, flex: 1 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
-                          {b.venue_name || `رزرو #${b.id}`}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" component="div" noWrap>
-                          {b.slot_date
-                            ? `${formatDate(b.slot_date)} — ${b.start_time ? String(b.start_time).slice(0, 5) : ''}`
-                            : `ثبت: ${formatDateTime(b.booked_at)}`}
-                        </Typography>
-                        <Typography variant="caption" sx={{ fontWeight: 700, display: { xs: 'block', sm: 'none' } }}>
-                          {formatPrice(b.payment_amount)}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'block' }, whiteSpace: 'nowrap' }}>
-                          {formatPrice(b.payment_amount)}
-                        </Typography>
-                        <Chip
-                          label={getStatusLabel(b.status)}
-                          color={getMuiStatusColor(b.status) as any}
-                          size="small"
-                          sx={{ borderRadius: '8px' }}
-                        />
-                      </Box>
-                    </Box>
-                  ))}
-                </Box>
-              )}
-            </Paper>
-          </Grid>
+      <div className="grid gap-4 md:grid-cols-12">
+        {/* Recent Bookings */}
+        <Card className="p-4 md:col-span-8">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Icon icon="mdi:calendar-history" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
+              <h2 className="text-base font-bold text-foreground">آخرین رزروها</h2>
+            </div>
+            <Link
+              to="/bookings"
+              className="inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"
+            >
+              مشاهده همه
+            </Link>
+          </div>
 
-          {/* Quick Actions */}
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Paper sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, height: '100%' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-                <Icon icon="mdi:lightning-bolt" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
-                <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700 }}>
-                  دسترسی سریع
-                </Typography>
-              </Box>
-              <Grid container spacing={1.5}>
-                {quickActions.map((action, index) => (
-                  <Grid size={{ xs: 6 }} key={index}>
-                    <Button
-                      component={Link}
-                      to={action.href}
-                      variant="outlined"
-                      fullWidth
-                      sx={{
-                        borderRadius: 1,
-                        textTransform: 'none',
-                        py: 1.25,
-                        justifyContent: 'center',
-                        fontWeight: 600,
-                        fontSize: '0.85rem',
-                        '&:hover': { bgcolor: `${theme.palette.primary.main}05` },
-                      }}
-                      startIcon={<Icon icon={action.icon} />}
-                    >
-                      {action.label}
-                    </Button>
-                  </Grid>
-                ))}
-              </Grid>
-            </Paper>
-          </Grid>
-        </Grid>
+          {recentBookings.length === 0 ? (
+            <div className="py-10 text-center">
+              <Icon icon="mdi:calendar-remove-outline" className="mx-auto h-8 w-8 text-muted-foreground/40" />
+              <p className="mt-2 text-sm text-muted-foreground">هنوز رزروی ندارید</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              {recentBookings.map((b) => (
+                <Link
+                  key={b.id}
+                  to={`/bookings/${b.id}`}
+                  className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/50 p-3 text-inherit no-underline transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-blue-500/10"
+                >
+                  <div className="min-w-0 flex-1">
+                    <p className="truncate text-sm font-semibold text-foreground">
+                      {b.venue_name || `رزرو #${b.id}`}
+                    </p>
+                    <p className="truncate text-xs text-muted-foreground">
+                      {b.slot_date
+                        ? `${formatDate(b.slot_date)} — ${b.start_time ? String(b.start_time).slice(0, 5) : ''}`
+                        : `ثبت: ${formatDateTime(b.booked_at)}`}
+                    </p>
+                    <p className="text-xs font-bold text-foreground sm:hidden">
+                      {formatPrice(b.payment_amount)}
+                    </p>
+                  </div>
+                  <div className="flex shrink-0 items-center gap-3">
+                    <span className="hidden whitespace-nowrap text-sm font-bold text-foreground sm:block">
+                      {formatPrice(b.payment_amount)}
+                    </span>
+                    <Badge variant={statusVariant(b.status)}>{getStatusLabel(b.status)}</Badge>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          )}
+        </Card>
 
-        {/* اشتراک‌های من — باشگاه‌های بدنسازی */}
-        {purchases.length > 0 && (
-          <Paper sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, mt: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <Icon icon="mdi:card-account-details-star" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                اشتراک‌های من
-              </Typography>
-            </Box>
-            <Grid container spacing={1.5}>
-              {purchases.slice(0, 6).map((p) => {
-                const chip = purchaseStatusChip(p)
-                return (
-                  <Grid size={{ xs: 12, sm: 6, md: 4 }} key={p.id}>
-                    <Box
-                      sx={{
-                        p: 2,
-                        borderRadius: 1.5,
-                        border: `1px solid ${theme.palette.divider}`,
-                        bgcolor: 'rgba(0,0,0,0.02)',
-                        height: '100%',
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 1 }}>
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 700 }} noWrap>
-                            {p.plan_title}
-                          </Typography>
-                          <Typography variant="caption" color="text.secondary" noWrap component="div">
-                            {p.venue_name} · {p.plan_type ? PLAN_TYPE_LABEL[p.plan_type] : ''}
-                          </Typography>
-                        </Box>
-                        <Chip label={chip.label} color={chip.color} size="small" sx={{ borderRadius: '8px', flexShrink: 0 }} />
-                      </Box>
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 1.5 }}>
-                        <Typography variant="caption" color="text.secondary">
-                          {p.status === 'paid' && p.plan_type === 'monthly' && p.expires_at
-                            ? `اعتبار تا ${new Date(p.expires_at).toLocaleDateString('fa-IR')}`
-                            : p.status === 'paid' && p.sessions_remaining != null
-                              ? `${new Intl.NumberFormat('fa-IR').format(p.sessions_remaining)} جلسه باقی‌مانده`
-                              : formatPrice(p.amount)}
-                        </Typography>
-                        {p.status === 'pending' && (
-                          <Button
-                            size="small"
-                            component={Link}
-                            to={`/venues/${p.venue_id}`}
-                            sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.main' }}
-                          >
-                            پرداخت
-                          </Button>
-                        )}
-                      </Box>
-                    </Box>
-                  </Grid>
-                )
-              })}
-            </Grid>
-          </Paper>
-        )}
-      </Container>
+        {/* Quick Actions */}
+        <Card className="p-4 md:col-span-4">
+          <div className="mb-4 flex items-center gap-2">
+            <Icon icon="mdi:lightning-bolt" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
+            <h2 className="text-base font-bold text-foreground">دسترسی سریع</h2>
+          </div>
+          <div className="grid grid-cols-2 gap-2.5">
+            {quickActions.map((action) => (
+              <Button
+                key={action.href}
+                asChild
+                variant="outline"
+                size="sm"
+                className="justify-center text-[0.8rem]"
+              >
+                <Link to={action.href}>
+                  <Icon icon={action.icon} className="h-[18px] w-[18px]" />
+                  {action.label}
+                </Link>
+              </Button>
+            ))}
+          </div>
+        </Card>
+      </div>
+
+      {/* اشتراک‌های من — باشگاه‌های بدنسازی */}
+      {purchases.length > 0 && (
+        <Card className="mt-4 p-4">
+          <div className="mb-4 flex items-center gap-2">
+            <Icon
+              icon="mdi:card-account-details-star"
+              className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400"
+            />
+            <h2 className="text-base font-bold text-foreground">اشتراک‌های من</h2>
+          </div>
+          <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
+            {purchases.slice(0, 6).map((p) => {
+              const chip = purchaseStatusChip(p)
+              return (
+                <div key={p.id} className="rounded-xl border border-border bg-muted/40 p-3.5">
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <p className="truncate text-sm font-bold text-foreground">{p.plan_title}</p>
+                      <p className="truncate text-xs text-muted-foreground">
+                        {p.venue_name} · {p.plan_type ? PLAN_TYPE_LABEL[p.plan_type] : ''}
+                      </p>
+                    </div>
+                    <Badge variant={chip.variant} className="shrink-0">
+                      {chip.label}
+                    </Badge>
+                  </div>
+                  <div className="mt-3 flex items-center justify-between gap-2">
+                    <span className="text-xs text-muted-foreground">
+                      {p.status === 'paid' && p.plan_type === 'monthly' && p.expires_at
+                        ? `اعتبار تا ${new Date(p.expires_at).toLocaleDateString('fa-IR')}`
+                        : p.status === 'paid' && p.sessions_remaining != null
+                          ? `${new Intl.NumberFormat('fa-IR').format(p.sessions_remaining)} جلسه باقی‌مانده`
+                          : formatPrice(p.amount)}
+                    </span>
+                    {p.status === 'pending' && (
+                      <Link
+                        to={`/venues/${p.venue_id}`}
+                        className="inline-flex min-h-11 items-center text-sm font-bold text-blue-600 hover:underline dark:text-blue-400"
+                      >
+                        پرداخت
+                      </Link>
+                    )}
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </Card>
+      )}
     </Layout>
   )
 }
