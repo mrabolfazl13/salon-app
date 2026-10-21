@@ -2,12 +2,20 @@
 // دعوت مستقیم به تیم — با شماره موبایل (کاربر ثبت‌نام‌شده) یا شناسه کاربری
 
 import React, { useState } from 'react'
-import { Box, MenuItem, TextField, Typography } from '@mui/material'
 
 import { useInviteTeamMember } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
 import type { TeamInvitePayload } from '@/types/team'
 import { getTeamError } from './shared'
 
@@ -69,72 +77,81 @@ const TeamInviteDialog: React.FC<Props> = ({ teamId, open, onClose }) => {
 
   return (
     <Dialog open={open} onClose={onClose} title="دعوت به تیم" maxWidth="xs">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+      <div className="flex flex-col gap-4 pt-1">
+        <p className="text-xs text-muted-foreground">
           دعوت فقط برای کاربران ثبت‌نام‌شده ارسال می‌شود؛ پس از ارسال، دعوت در صفحه «تیم‌ها»ی مخاطب نمایش داده می‌شود.
-        </Typography>
-        <TextField
-          select
-          label="دعوت از طریق"
-          size="small"
-          value={byPhone ? 'phone' : 'user_id'}
-          onChange={(e) => {
-            setByPhone(e.target.value === 'phone')
-            setFieldError('')
-          }}
-        >
-          <MenuItem value="phone">شماره موبایل</MenuItem>
-          <MenuItem value="user_id">شناسه کاربری</MenuItem>
-        </TextField>
+        </p>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="invite-channel">دعوت از طریق</Label>
+          <Select
+            value={byPhone ? 'phone' : 'user_id'}
+            onValueChange={(v) => {
+              setByPhone(v === 'phone')
+              setFieldError('')
+            }}
+          >
+            <SelectTrigger id="invite-channel">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="phone">شماره موبایل</SelectItem>
+              <SelectItem value="user_id">شناسه کاربری</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
         {byPhone ? (
-          <TextField
-            label="موبایل مخاطب"
-            size="small"
-            fullWidth
-            slotProps={{ htmlInput: { dir: 'ltr', maxLength: 11 } }}
-            value={phone}
-            error={!!fieldError && byPhone}
-            helperText={fieldError && byPhone ? fieldError : undefined}
-            onChange={(e) => {
-              setPhone(e.target.value.replace(/\D/g, ''))
-              setFieldError('')
-            }}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="invite-phone">موبایل مخاطب</Label>
+            <Input
+              id="invite-phone"
+              dir="ltr"
+              inputMode="tel"
+              maxLength={11}
+              value={phone}
+              error={fieldError && byPhone ? fieldError : undefined}
+              onChange={(e) => {
+                setPhone(e.target.value.replace(/\D/g, ''))
+                setFieldError('')
+              }}
+            />
+          </div>
         ) : (
-          <TextField
-            label="شناسه کاربر"
-            size="small"
-            type="number"
-            fullWidth
-            value={userId}
-            error={!!fieldError && !byPhone}
-            helperText={fieldError && !byPhone ? fieldError : undefined}
-            onChange={(e) => {
-              setUserId(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))
-              setFieldError('')
-            }}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="invite-user-id">شناسه کاربر</Label>
+            <Input
+              id="invite-user-id"
+              type="number"
+              value={userId}
+              error={fieldError && !byPhone ? fieldError : undefined}
+              onChange={(e) => {
+                setUserId(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))
+                setFieldError('')
+              }}
+            />
+          </div>
         )}
-        <TextField
-          select
-          label="اعتبار دعوت"
-          size="small"
-          value={expiresInDays}
-          onChange={(e) => setExpiresInDays(Number(e.target.value))}
-        >
-          {EXPIRY_OPTIONS.map((o) => (
-            <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
-          ))}
-        </TextField>
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="invite-expiry">اعتبار دعوت</Label>
+          <Select value={String(expiresInDays)} onValueChange={(v) => setExpiresInDays(Number(v))}>
+            <SelectTrigger id="invite-expiry">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {EXPIRY_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={String(o.value)}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={invite.isPending}>
             انصراف
           </Button>
           <Button variant="gradient" onClick={handleInvite} loading={invite.isPending} icon="mdi:email-fast-outline">
             ارسال دعوت
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }

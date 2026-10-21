@@ -135,7 +135,11 @@ describe('PricingInsightsTab — نقشهٔ اشغال', () => {
   it('refetches with the window the manager picks', async () => {
     renderTab()
     await screen.findByTestId('insight-cell-0-18')
-    fireEvent.mouseDown(screen.getByRole('combobox', { name: /پنجرهٔ تاریخچه/ }))
+    // Radix Select با pointerdown باز می‌شود (نه mousedown که میراث MUI بود)
+    fireEvent.pointerDown(
+      screen.getByRole('combobox', { name: /پنجرهٔ تاریخچه/ }),
+      { button: 0, pointerType: 'mouse' },
+    )
     fireEvent.click(await screen.findByRole('option', { name: '۳۰ روز اخیر' }))
     await waitFor(() => expect(occupancy).toHaveBeenLastCalledWith(3, 30))
   })

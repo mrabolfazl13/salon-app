@@ -4,7 +4,6 @@
 
 import React, { useState } from 'react'
 import { isAxiosError } from 'axios'
-import { Box, Typography, Chip, LinearProgress, Divider, Tooltip } from '@mui/material'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 
@@ -14,7 +13,11 @@ import { useAuthStore } from '@/store/authStore'
 import { formatPrice } from '@/utils/helpers'
 import { chipInk } from '@/utils/contrast'
 import { toPersianDigits } from '@/lib/jalali'
+import { cn } from '@/lib/utils'
 import { Button } from '@/components/ui/Button'
+import { Progress } from '@/components/ui/shadcn/progress'
+import { Separator } from '@/components/ui/shadcn/separator'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 import { Shimmer } from '@/components/mobile'
 import { getGameError } from './shared'
 
@@ -37,42 +40,31 @@ const PaymentRow: React.FC<{ payment: GamePayment; participants: Participant[] }
   // «پرداخت‌شده» با #15803d روی تیغِ خودش ۴٫۴۹:۱ بود — ممیزی axe F-21
   const ink = chipInk(paid ? '#15803d' : '#b45309', paid ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.12)')
   return (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, py: 0.75 }}>
-    <Box
-      sx={{
-        width: 30,
-        height: 30,
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        bgcolor: payment.status === 'paid' ? 'rgba(22,163,74,0.12)' : 'rgba(245,158,11,0.14)',
-        color: payment.status === 'paid' ? '#16a34a' : '#b45309',
-      }}
-    >
-      <Icon icon={payment.status === 'paid' ? 'mdi:check-bold' : 'mdi:clock-outline'} style={{ width: 16, height: 16 }} />
-    </Box>
-    <Box sx={{ minWidth: 0, flex: 1 }}>
-      <Typography sx={{ fontSize: '0.82rem', fontWeight: 700, color: '#0f172a' }} noWrap>
-        {nameOf(participants, payment.user_id)}
-      </Typography>
-    </Box>
-    <Typography sx={{ fontSize: '0.78rem', color: '#475569', fontVariantNumeric: 'tabular-nums' }}>
-      {formatPrice(payment.amount)}
-    </Typography>
-    <Chip
-      label={paid ? 'پرداخت‌شده' : 'در انتظار'}
-      size="small"
-      sx={{
-        height: 22,
-        fontSize: '0.75rem',
-        fontWeight: 700,
-        bgcolor: paid ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.12)',
-        color: ink,
-      }}
-    />
-  </Box>
+    <div className="flex items-center gap-2.5 py-1.5">
+      <div
+        className={cn(
+          'flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full',
+          paid
+            ? 'bg-emerald-600/[0.12] text-emerald-600 dark:text-emerald-400'
+            : 'bg-amber-500/[0.14] text-amber-700 dark:text-amber-400'
+        )}
+      >
+        <Icon icon={paid ? 'mdi:check-bold' : 'mdi:clock-outline'} style={{ width: 16, height: 16 }} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <p className="truncate text-[0.82rem] font-bold text-foreground">{nameOf(participants, payment.user_id)}</p>
+      </div>
+      <span className="text-[0.78rem] tabular-nums text-slate-600 dark:text-slate-300">{formatPrice(payment.amount)}</span>
+      <span
+        className="inline-flex h-[22px] items-center rounded-full px-2 text-xs font-bold"
+        style={{
+          backgroundColor: paid ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.12)',
+          color: ink,
+        }}
+      >
+        {paid ? 'پرداخت‌شده' : 'در انتظار'}
+      </span>
+    </div>
   )
 }
 
@@ -89,22 +81,22 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
   // حالت رایگان
   if (game.payment_mode === 'free') {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'success.main' }}>
+      <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
         <Icon icon="mdi:gift-outline" style={{ width: 18, height: 18 }} />
-        <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>این بازی رایگان است.</Typography>
-      </Box>
+        <p className="text-[0.85rem] font-bold">این بازی رایگان است.</p>
+      </div>
     )
   }
 
   // برگزارکننده پرداخت می‌کند — فقط اطلاع‌رسانی
   if (game.payment_mode === 'organizer_pays') {
     return (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#475569' }}>
+      <div className="flex items-center gap-2 text-slate-600 dark:text-slate-300">
         <Icon icon="mdi:account-cash-outline" style={{ width: 18, height: 18 }} />
-        <Typography sx={{ fontSize: '0.85rem' }}>
+        <p className="text-[0.85rem]">
           هزینه زمین ({formatPrice(game.total_price ?? 0)}) بر عهده برگزارکننده است و بازیکنان سهمی پرداخت نمی‌کنند.
-        </Typography>
-      </Box>
+        </p>
+      </div>
     )
   }
 
@@ -144,42 +136,45 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <div className="flex flex-col gap-3">
       {summaryQ.isLoading ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <div className="flex flex-col gap-2">
           {[1, 2].map((i) => (
-            <Shimmer key={i} variant="rounded" sx={{ height: 40 }} />
+            <Shimmer key={i} variant="rounded" height={40} className="w-full" />
           ))}
-        </Box>
+        </div>
       ) : summaryQ.isError ? (
-        <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>نمایش وضعیت پرداخت ممکن نیست.</Typography>
+        <p className="text-[0.85rem] text-muted-foreground">نمایش وضعیت پرداخت ممکن نیست.</p>
       ) : summary ? (
         <>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Chip
-                label={`سهم هر نفر: ${formatPrice(summary.price_per_player ?? game.price_per_player ?? 0)}`}
-                size="small"
-                sx={{ height: 24, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(37,99,235,0.08)', color: '#1d4ed8' }}
-              />
-              <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-6 items-center rounded-full bg-blue-600/[0.08] px-2 text-xs font-extrabold text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
+                {`سهم هر نفر: ${formatPrice(summary.price_per_player ?? game.price_per_player ?? 0)}`}
+              </span>
+              <p className="text-xs text-muted-foreground">
                 {`${paidCount.toLocaleString('fa-IR')} پرداخت‌شده از ${total.toLocaleString('fa-IR')}`}
-              </Typography>
-            </Box>
+              </p>
+            </div>
             {canManage && summary && unpaidCount > 0 && (
-              <Tooltip title={remindLocked ? 'هر دقیقه فقط یک یادآوری قابل ارسال است' : `${unpaidCount.toLocaleString('fa-IR')} بازیکن بدهکار`}>
-                <span>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    icon="mdi:bell-alert-outline"
-                    loading={remind.isPending}
-                    disabled={remindLocked}
-                    onClick={handleRemind}
-                  >
-                    یادآوری پرداخت
-                  </Button>
-                </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      icon="mdi:bell-alert-outline"
+                      loading={remind.isPending}
+                      disabled={remindLocked}
+                      onClick={handleRemind}
+                    >
+                      یادآوری پرداخت
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {remindLocked ? 'هر دقیقه فقط یک یادآوری قابل ارسال است' : `${unpaidCount.toLocaleString('fa-IR')} بازیکن بدهکار`}
+                </TooltipContent>
               </Tooltip>
             )}
             {canPay && (
@@ -188,37 +183,37 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
               </Button>
             )}
             {!canPay && myPayment?.status === 'paid' && (
-              <Chip
-                label="سهم شما پرداخت شده ✓"
-                size="small"
-                sx={{ height: 24, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(22,163,74,0.1)', color: chipInk('#15803d', 'rgba(22,163,74,0.1)') }}
-              />
+              <span
+                className="inline-flex h-6 items-center rounded-full px-2 text-xs font-extrabold"
+                style={{ backgroundColor: 'rgba(22,163,74,0.1)', color: chipInk('#15803d', 'rgba(22,163,74,0.1)') }}
+              >
+                سهم شما پرداخت شده ✓
+              </span>
             )}
-          </Box>
-          <LinearProgress
-            variant="determinate"
+          </div>
+          <Progress
             value={Math.min(progress, 100)}
             aria-label="پیشرفت پرداخت سهم‌ها"
             aria-valuetext={`${toPersianDigits(Math.round(Math.min(progress, 100)))}٪ پرداخت‌شده`}
-            sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(245,158,11,0.15)', '& .MuiLinearProgress-bar': { bgcolor: '#16a34a', borderRadius: 3 } }}
+            className="h-1.5 bg-amber-500/15 [&>div]:bg-emerald-600 [&>div]:rounded-full"
           />
           {summary.payments.length > 0 ? (
             <>
-              <Divider />
-              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Separator />
+              <div className="flex flex-col">
                 {summary.payments.map((p) => (
                   <PaymentRow key={p.id} payment={p} participants={participants} />
                 ))}
-              </Box>
+              </div>
             </>
           ) : (
-            <Typography sx={{ fontSize: '0.78rem', color: '#64748b' }}>
+            <p className="text-[0.78rem] text-muted-foreground">
               هنوز سهمی ثبت نشده است — با پیوستن بازیکنان، سهم‌ها ساخته می‌شوند.
-            </Typography>
+            </p>
           )}
         </>
       ) : null}
-    </Box>
+    </div>
   )
 }
 

@@ -1,14 +1,16 @@
 // frontend/src/components/game/InviteUserDialog.tsx
 // دعوت مستقیم کاربر به بازی — با شناسه‌ی کاربری (جستجوی کاربر در دسترس عموم نیست)
 
-import React, { useState } from 'react'
-import { Box, Typography, TextField, MenuItem } from '@mui/material'
+import React, { useId, useState } from 'react'
 import { Icon } from '@iconify/react'
 
 import { useGameInvitations, useInviteUser } from '@/hooks/useGames'
 import { useToast } from '@/hooks/useToast'
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/shadcn/select'
 import { formatGameDateTime, getGameError } from './shared'
 
 interface Props {
@@ -32,6 +34,8 @@ const InviteUserDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
 
   const [userId, setUserId] = useState<number | ''>('')
   const [expiresInDays, setExpiresInDays] = useState<number>(7)
+  const userIdInputId = useId()
+  const expiryLabelId = useId()
 
   const handleInvite = () => {
     if (!userId || userId <= 0) {
@@ -52,59 +56,68 @@ const InviteUserDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
 
   return (
     <Dialog open={open} onClose={onClose} title="دعوت مستقیم بازیکن" maxWidth="xs">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+      <div className="flex flex-col gap-4 pt-1">
+        <p className="text-xs text-muted-foreground">
           شناسه‌ی کاربری مخاطب را وارد کنید؛ پس از ارسال، دعوت در بخش «دعوت‌نامه‌های من» برای او نمایش داده می‌شود.
-        </Typography>
-        <TextField
-          label="شناسه کاربر"
-          size="small"
-          type="number"
-          required
-          fullWidth
-          value={userId}
-          onChange={(e) => setUserId(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
-        />
-        <TextField
-          select
-          label="اعتبار دعوت"
-          size="small"
-          value={expiresInDays}
-          onChange={(e) => setExpiresInDays(Number(e.target.value))}
-        >
-          {EXPIRY_OPTIONS.map((o) => (
-            <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
-          ))}
-        </TextField>
+        </p>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={userIdInputId}>
+            شناسه کاربر <span className="text-red-600">*</span>
+          </Label>
+          <Input
+            id={userIdInputId}
+            type="number"
+            inputMode="numeric"
+            min={1}
+            required
+            value={userId}
+            onChange={(e) => setUserId(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label id={expiryLabelId}>اعتبار دعوت</Label>
+          <Select value={String(expiresInDays)} onValueChange={(v) => setExpiresInDays(Number(v))}>
+            <SelectTrigger aria-labelledby={expiryLabelId} className="h-11">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {EXPIRY_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={String(o.value)}>
+                  {o.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
         {pending.length > 0 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-            <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b' }}>
+          <div className="flex flex-col gap-1.5">
+            <p className="text-xs font-bold text-muted-foreground">
               دعوت‌های در انتظار پاسخ ({pending.length.toLocaleString('fa-IR')})
-            </Typography>
+            </p>
             {pending.map((inv) => (
-              <Box key={inv.id} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+              <div key={inv.id} className="flex items-center gap-2">
                 <Icon icon="mdi:email-clock-outline" style={{ color: '#b45309', fontSize: 16 }} />
-                <Typography sx={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: 600 }}>
+                <p className="text-[0.78rem] font-semibold text-foreground">
                   {inv.invited_user_name || `کاربر #${inv.invited_user_id}`}
-                </Typography>
+                </p>
                 {inv.expires_at && (
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+                  <p className="text-xs text-muted-foreground">
                     {formatGameDateTime(inv.expires_at.slice(0, 10), inv.expires_at.slice(11, 16))}
-                  </Typography>
+                  </p>
                 )}
-              </Box>
+              </div>
             ))}
-          </Box>
+          </div>
         )}
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+        <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={invite.isPending}>
             انصراف
           </Button>
           <Button variant="gradient" onClick={handleInvite} loading={invite.isPending} icon="mdi:email-fast-outline">
             ارسال دعوت
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }

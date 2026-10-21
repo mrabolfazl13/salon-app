@@ -2,15 +2,6 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Paper,
-  Typography,
-  Chip,
-  Button,
-  useTheme,
-  CircularProgress,
-} from '@mui/material'
 import { MapContainer, TileLayer, Marker, Popup, useMap } from 'react-leaflet'
 import L from 'leaflet'
 import 'leaflet/dist/leaflet.css'
@@ -18,6 +9,8 @@ import 'leaflet/dist/leaflet.css'
 import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
+import { Button } from '@/components/ui/shadcn/button'
+import { cn } from '@/lib/utils'
 
 // Fix Leaflet marker icons in React
 // @ts-ignore
@@ -96,7 +89,6 @@ const VenueMap: React.FC<VenueMapProps> = ({
   height = 400,
   onVenueClick,
 }) => {
-  const theme = useTheme()
   const [isLoading, setIsLoading] = useState(true)
   const [, setMapReady] = useState(false)
 
@@ -147,27 +139,18 @@ const VenueMap: React.FC<VenueMapProps> = ({
       transition={{ duration: 0.4 }}
       style={{ height: '100%' }}
     >
-      <Paper
-        sx={{
-          borderRadius: '16px',
-          overflow: 'hidden',
-          height: height,
-          position: 'relative',
-          boxShadow: '0 4px 24px rgba(0,0,0,0.04)',
-          border: `1px solid ${theme.palette.divider}`,
-        }}
+      <div
+        className="relative overflow-hidden rounded-2xl border border-border shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
+        style={{ height }}
       >
         {isLoading ? (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              height: '100%',
-            }}
-          >
-            <CircularProgress />
-          </Box>
+          <div className="flex h-full items-center justify-center">
+            <span
+              className="h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-blue-600 dark:border-slate-600 dark:border-t-blue-400"
+              role="status"
+              aria-label="در حال بارگذاری"
+            />
+          </div>
         ) : (
           <>
             <MapContainer
@@ -194,123 +177,74 @@ const VenueMap: React.FC<VenueMapProps> = ({
                   }}
                 >
                   <Popup>
-                    <Box sx={{ minWidth: 220, p: 1, direction: 'rtl' }}>
-                      <Typography sx={{ fontWeight: 600 }} variant="subtitle1">
+                    <div className="min-w-[220px] p-2" style={{ direction: 'rtl' }}>
+                      <p className="text-base font-semibold">
                         {venue.name}
-                      </Typography>
+                      </p>
                       {venue.address && (
-                        <Typography sx={{ display: 'block', my: 0.5 }} variant="caption" color="text.secondary">
-                          <Icon icon="mdi:map-marker" className="h-3 w-3 inline" />
+                        <p className="my-1 flex items-start gap-1 text-xs text-muted-foreground">
+                          <Icon icon="mdi:map-marker" className="mt-0.5 h-3 w-3 shrink-0" />
                           {venue.address}
-                        </Typography>
+                        </p>
                       )}
                       {venue.price != null && venue.price > 0 && (
-                        <Typography variant="body2" sx={{ fontWeight: 500, mt: 0.5 }}>
+                        <p className="mt-1 text-sm font-medium">
                           {new Intl.NumberFormat('fa-IR').format(venue.price)} ریال
-                        </Typography>
+                        </p>
                       )}
-                      <Chip
-                        label={venue.isVerified ? 'تایید شده' : 'در انتظار تایید'}
-                        color={venue.isVerified ? 'success' : 'warning'}
-                        size="small"
-                        sx={{ mt: 0.5 }}
-                      />
+                      <span
+                        className={cn(
+                          'mt-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                          venue.isVerified
+                            ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
+                            : 'bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-300',
+                        )}
+                      >
+                        {venue.isVerified ? 'تایید شده' : 'در انتظار تایید'}
+                      </span>
                       {onVenueClick && (
                         <Button
-                          fullWidth
-                          size="small"
+                          type="button"
+                          variant="primary"
+                          size="sm"
                           onClick={() => onVenueClick(venue)}
-                          sx={{
-                            mt: 1,
-                            borderRadius: '8px',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                            color: 'white',
-                          }}
+                          className="mt-2 w-full rounded-lg font-semibold"
                         >
                           مشاهده سالن
                         </Button>
                       )}
-                    </Box>
+                    </div>
                   </Popup>
                 </Marker>
               ))}
             </MapContainer>
 
             {/* Legend — مطابق رنگ مارکرها (وضعیت تأیید سالن) */}
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: 16,
-                insetInlineStart: 16,
-                bgcolor: 'background.paper',
-                borderRadius: '12px',
-                p: 1.5,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 0.5,
-                zIndex: 1000,
-              }}
-            >
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    bgcolor: '#22c55e',
-                    border: '2px solid white',
-                    boxShadow: '0 2px 6px rgba(34,197,94,0.4)',
-                  }}
-                />
-                <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
+            <div className="absolute bottom-4 start-4 z-[1000] flex flex-col gap-1 rounded-xl bg-card p-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full border-2 border-white bg-[#22c55e] shadow-[0_2px_6px_rgba(34,197,94,0.4)]" />
+                <span className="text-xs">
                   تأیید شده
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box
-                  sx={{
-                    width: 12,
-                    height: 12,
-                    borderRadius: '50%',
-                    bgcolor: '#f59e0b',
-                    border: '2px solid white',
-                    boxShadow: '0 2px 6px rgba(245,158,11,0.4)',
-                  }}
-                />
-                <Typography variant="caption" sx={{ fontSize: '0.75rem' }}>
+                </span>
+              </div>
+              <div className="flex items-center gap-2">
+                <span className="h-3 w-3 rounded-full border-2 border-white bg-[#f59e0b] shadow-[0_2px_6px_rgba(245,158,11,0.4)]" />
+                <span className="text-xs">
                   در انتظار تایید
-                </Typography>
-              </Box>
-            </Box>
+                </span>
+              </div>
+            </div>
 
             {/* Venue count badge */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 16,
-                insetInlineStart: 16,
-                bgcolor: 'background.paper',
-                borderRadius: '12px',
-                px: 2,
-                py: 1,
-                boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-                zIndex: 1000,
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1,
-              }}
-            >
-              <Icon icon="mdi:map-marker" className="h-4 w-4" style={{ color: theme.palette.primary.main }} />
-              <Typography sx={{ fontWeight: 600 }} variant="caption">
+            <div className="absolute top-4 start-4 z-[1000] flex items-center gap-2 rounded-xl bg-card px-4 py-2 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
+              <Icon icon="mdi:map-marker" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <span className="text-xs font-semibold">
                 {venues.length} سالن
-              </Typography>
-            </Box>
+              </span>
+            </div>
           </>
         )}
-      </Paper>
+      </div>
     </motion.div>
   )
 }

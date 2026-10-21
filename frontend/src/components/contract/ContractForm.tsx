@@ -10,25 +10,8 @@ import { Controller, useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Paper,
-  Typography,
-  Button,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Alert,
-  CircularProgress,
-  TextField,
-  Grid,
-  Chip,
-  FormControlLabel,
-  Switch,
-} from '@mui/material'
 import PersianDatePicker from '@/components/ui/PersianDatePicker'
-import { countContractSessions } from '@/lib/utils'
+import { cn, countContractSessions } from '@/lib/utils'
 import { useCreateContract } from '@/hooks/useContracts'
 import {
   extractError,
@@ -38,6 +21,19 @@ import {
   RECURRENCE_LABELS,
   toPersianDigits,
 } from '@/components/contract/shared'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Switch } from '@/components/ui/shadcn/switch'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
 import type { ContractCreatePayload } from '@/services/contract'
 import toast from 'react-hot-toast'
 
@@ -128,6 +124,9 @@ interface ContractFormProps {
   onError?: (msg: string) => void
 }
 
+const helperCls = 'mt-1.5 text-xs text-muted-foreground'
+const helperErrCls = 'mt-1.5 text-xs text-red-600 dark:text-red-400'
+
 const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError }) => {
   const [serverError, setServerError] = useState<string | null>(null)
   const mutation = useCreateContract()
@@ -206,41 +205,64 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
   }
 
   return (
-    <Paper sx={{ p: { xs: 2.5, md: 4 }, borderRadius: '16px' }}>
-      <Typography variant="h6" sx={{ fontWeight: 600, mb: 1 }}>
+    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm md:p-8">
+      <h2 className="mb-1 text-lg font-extrabold text-foreground">
         ثبت درخواست قرارداد بلندمدت
-      </Typography>
-      <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+      </h2>
+      <p className="mb-6 text-sm text-muted-foreground">
         درخواست شما در وضعیت «در انتظار تأیید» برای مدیر سالن ارسال می‌شود؛ سانس‌ها از همین لحظه رزرو می‌مانند
-      </Typography>
+      </p>
 
       {serverError && (
-        <Alert severity="error" sx={{ mb: 2.5, borderRadius: '12px' }} onClose={() => setServerError(null)}>
-          {serverError}
+        <Alert variant="destructive" className="mb-5">
+          <AlertDescription className="flex items-center justify-between gap-2">
+            <span>{serverError}</span>
+            <button
+              type="button"
+              onClick={() => setServerError(null)}
+              aria-label="بستن"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
+            >
+              <Icon icon="mdi:close" className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </AlertDescription>
         </Alert>
       )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container spacing={2.5}>
-          <Grid size={{ xs: 12 }}>
-            <FormControl fullWidth error={Boolean(errors.venueId)}>
-              <InputLabel>انتخاب سالن</InputLabel>
-              <Select
-                {...register('venueId', { valueAsNumber: true })}
-                label="انتخاب سالن"
-                sx={{ borderRadius: '10px' }}
-              >
-                {venues.map((venue) => (
-                  <MenuItem key={venue.id} value={venue.id}>{venue.name}</MenuItem>
-                ))}
-              </Select>
-              {errors.venueId && (
-                <Typography variant="caption" color="error">{errors.venueId.message}</Typography>
+        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="contract-venue">انتخاب سالن</Label>
+            <Controller
+              name="venueId"
+              control={control}
+              render={({ field }) => (
+                <Select
+                  value={field.value != null ? String(field.value) : undefined}
+                  onValueChange={(v) => field.onChange(Number(v))}
+                >
+                  <SelectTrigger
+                    id="contract-venue"
+                    aria-invalid={errors.venueId ? true : undefined}
+                    className={cn('h-11', errors.venueId && 'border-red-500')}
+                    onBlur={field.onBlur}
+                  >
+                    <SelectValue placeholder="انتخاب سالن" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {venues.map((venue) => (
+                      <SelectItem key={venue.id} value={String(venue.id)}>{venue.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               )}
-            </FormControl>
-          </Grid>
+            />
+            {errors.venueId && (
+              <p className="text-xs text-red-600 dark:text-red-400">{errors.venueId.message}</p>
+            )}
+          </div>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <div>
             <Controller
               name="startDate"
               control={control}
@@ -255,9 +277,9 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
                 />
               )}
             />
-          </Grid>
+          </div>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
+          <div>
             <Controller
               name="endDate"
               control={control}
@@ -272,13 +294,13 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
                 />
               )}
             />
-          </Grid>
+          </div>
 
-          <Grid size={{ xs: 12 }}>
-            <Typography variant="body2" sx={{ fontWeight: 600, mb: 1 }}>روز هفته سانس‌ها</Typography>
-            <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1 }}>
+          <div className="sm:col-span-2">
+            <p className="mb-1 text-sm font-semibold text-foreground">روز هفته سانس‌ها</p>
+            <p className="mb-2 block text-xs text-muted-foreground">
               حداکثر ۳ روز انتخاب کنید — اولین روز، روز اصلی قرارداد است
-            </Typography>
+            </p>
             <Controller
               name="dayOrder"
               control={control}
@@ -294,183 +316,195 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
                   }
                 }
                 return (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                  <div className="flex flex-wrap gap-2">
                     {pyDayNames.map((name, idx) => {
                       const pos = selected.indexOf(idx)
                       return (
-                        <Chip
+                        <button
                           key={name}
-                          label={pos >= 0 ? `${name} (${toPersianDigits(pos === 0 ? 'اصلی' : pos + 1)})` : name}
+                          type="button"
                           onClick={() => toggle(idx)}
-                          color={pos >= 0 ? 'primary' : 'default'}
-                          variant={pos >= 0 ? 'filled' : 'outlined'}
-                          sx={{ borderRadius: '10px', fontWeight: 600 }}
-                        />
+                          aria-pressed={pos >= 0}
+                          className={cn(
+                            'inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                            pos >= 0
+                              ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-500'
+                              : 'border-border bg-card text-foreground hover:bg-muted',
+                          )}
+                        >
+                          {pos >= 0 ? `${name} (${toPersianDigits(pos === 0 ? 'اصلی' : pos + 1)})` : name}
+                        </button>
                       )
                     })}
-                  </Box>
+                  </div>
                 )
               }}
             />
             {errors.dayOrder && (
-              <Typography variant="caption" color="error">{errors.dayOrder.message}</Typography>
+              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{errors.dayOrder.message}</p>
             )}
-          </Grid>
+          </div>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
+          <div className="space-y-1.5">
+            <Label htmlFor="contract-start-time">ساعت شروع</Label>
+            <Input
+              id="contract-start-time"
               {...register('startTime')}
               type="time"
-              label="ساعت شروع"
-              fullWidth
-              slotProps={{ inputLabel: { shrink: true } }}
-              error={Boolean(errors.startTime)}
-              helperText={errors.startTime?.message}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              className={errors.startTime ? 'h-11 border-red-500' : 'h-11'}
             />
-          </Grid>
+            <p className={errors.startTime ? helperErrCls : helperCls}>{errors.startTime?.message}</p>
+          </div>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
+          <div className="space-y-1.5">
+            <Label htmlFor="contract-end-time">ساعت پایان (اختیاری)</Label>
+            <Input
+              id="contract-end-time"
               {...register('endTime')}
               type="time"
-              label="ساعت پایان (اختیاری)"
-              fullWidth
-              slotProps={{ inputLabel: { shrink: true } }}
-              error={Boolean(errors.endTime)}
-              helperText={errors.endTime?.message || 'پیش‌فرض ۹۰ دقیقه'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              className={errors.endTime ? 'h-11 border-red-500' : 'h-11'}
             />
-          </Grid>
+            <p className={errors.endTime ? helperErrCls : helperCls}>
+              {errors.endTime?.message || 'پیش‌فرض ۹۰ دقیقه'}
+            </p>
+          </div>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <FormControl fullWidth>
-              <InputLabel>نوع تکرار</InputLabel>
-              <Select {...register('recurrence')} label="نوع تکرار" sx={{ borderRadius: '10px' }}>
-                {Object.entries(RECURRENCE_LABELS).map(([v, label]) => (
-                  <MenuItem key={v} value={v}>{label}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-          </Grid>
+          <div className="space-y-1.5">
+            <Label htmlFor="contract-recurrence">نوع تکرار</Label>
+            <Controller
+              name="recurrence"
+              control={control}
+              render={({ field }) => (
+                <Select value={field.value} onValueChange={field.onChange}>
+                  <SelectTrigger id="contract-recurrence" className="h-11">
+                    <SelectValue placeholder="نوع تکرار" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {Object.entries(RECURRENCE_LABELS).map(([v, label]) => (
+                      <SelectItem key={v} value={v}>{label}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              )}
+            />
+          </div>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
+          <div className="space-y-1.5">
+            <Label htmlFor="contract-price">قیمت پیشنهادی هر جلسه (ریال)</Label>
+            <Input
+              id="contract-price"
               {...register('discountedPrice')}
-              label="قیمت پیشنهادی هر جلسه (ریال)"
-              fullWidth
-              error={Boolean(errors.discountedPrice)}
-              helperText={errors.discountedPrice?.message || 'پیشنهاد شما؛ باید کمتر از قیمت اصلی سانس باشد'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              className={errors.discountedPrice ? 'h-11 border-red-500' : 'h-11'}
             />
-          </Grid>
+            <p className={errors.discountedPrice ? helperErrCls : helperCls}>
+              {errors.discountedPrice?.message || 'پیشنهاد شما؛ باید کمتر از قیمت اصلی سانس باشد'}
+            </p>
+          </div>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
+          <div className="space-y-1.5">
+            <Label htmlFor="contract-down-payment">پیش‌پرداخت (ریال — اختیاری)</Label>
+            <Input
+              id="contract-down-payment"
               {...register('downPayment')}
-              label="پیش‌پرداخت (ریال — اختیاری)"
-              fullWidth
-              error={Boolean(errors.downPayment)}
-              helperText={errors.downPayment?.message}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              className={errors.downPayment ? 'h-11 border-red-500' : 'h-11'}
             />
-          </Grid>
+            <p className={errors.downPayment ? helperErrCls : helperCls}>{errors.downPayment?.message}</p>
+          </div>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
+          <div className="space-y-1.5">
+            <Label htmlFor="contract-due-day">روز سررسید اقساط در ماه (۱ تا ۲۸)</Label>
+            <Input
+              id="contract-due-day"
               {...register('dueDayOfMonth')}
-              label="روز سررسید اقساط در ماه (۱ تا ۲۸)"
-              fullWidth
-              error={Boolean(errors.dueDayOfMonth)}
-              helperText={errors.dueDayOfMonth?.message || 'اختیاری — پیش‌فرض ماهانه'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              className={errors.dueDayOfMonth ? 'h-11 border-red-500' : 'h-11'}
             />
-          </Grid>
+            <p className={errors.dueDayOfMonth ? helperErrCls : helperCls}>
+              {errors.dueDayOfMonth?.message || 'اختیاری — پیش‌فرض ماهانه'}
+            </p>
+          </div>
 
-          <Grid size={{ xs: 12, sm: 6 }}>
-            <TextField
+          <div className="space-y-1.5">
+            <Label htmlFor="contract-installments">تعداد قسط مورد نظر (اختیاری)</Label>
+            <Input
+              id="contract-installments"
               {...register('desiredInstallments')}
-              label="تعداد قسط مورد نظر (اختیاری)"
-              fullWidth
-              error={Boolean(errors.desiredInstallments)}
-              helperText={errors.desiredInstallments?.message || 'به‌صورت پیشنهاد در توضیحات به مدیر ارسال می‌شود'}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              className={errors.desiredInstallments ? 'h-11 border-red-500' : 'h-11'}
             />
-          </Grid>
+            <p className={errors.desiredInstallments ? helperErrCls : helperCls}>
+              {errors.desiredInstallments?.message || 'به‌صورت پیشنهاد در توضیحات به مدیر ارسال می‌شود'}
+            </p>
+          </div>
 
-          <Grid size={{ xs: 12 }}>
+          <div className="sm:col-span-2">
             <Controller
               name="autoRenew"
               control={control}
               render={({ field }) => (
-                <FormControlLabel
-                  control={<Switch checked={field.value} onChange={(e) => field.onChange(e.target.checked)} />}
-                  label="تمدید خودکار پس از پایان دوره"
-                />
+                <div className="flex items-center gap-2">
+                  <Switch
+                    id="contract-auto-renew"
+                    checked={field.value}
+                    onCheckedChange={field.onChange}
+                  />
+                  <Label htmlFor="contract-auto-renew" className="font-normal">
+                    تمدید خودکار پس از پایان دوره
+                  </Label>
+                </div>
               )}
             />
-          </Grid>
+          </div>
 
-          <Grid size={{ xs: 12 }}>
-            <TextField
+          <div className="space-y-1.5 sm:col-span-2">
+            <Label htmlFor="contract-description">توضیحات (اختیاری)</Label>
+            <Textarea
+              id="contract-description"
               {...register('description')}
-              label="توضیحات (اختیاری)"
-              fullWidth
-              multiline
-              minRows={2}
-              error={Boolean(errors.description)}
-              helperText={errors.description?.message}
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+              rows={2}
+              className={errors.description ? 'min-h-[72px] border-red-500' : 'min-h-[72px]'}
             />
-          </Grid>
+            <p className={errors.description ? helperErrCls : helperCls}>{errors.description?.message}</p>
+          </div>
 
           {totalInfo.count > 0 && (
-            <Grid size={{ xs: 12 }}>
-              <Alert
-                severity="info"
-                sx={{
-                  borderRadius: '10px',
-                  '& .MuiAlert-message': { width: '100%' },
-                }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Typography variant="body2">
-                    {`تعداد جلسات: ${toPersianDigits(totalInfo.count)} جلسه — جمع کل (محاسبه سمت سرور): `}
-                  </Typography>
-                  <Typography sx={{ fontWeight: 700 }} variant="h6" color="primary">
-                    {formatRial(totalInfo.total)}
-                  </Typography>
-                </Box>
+            <div className="sm:col-span-2">
+              <Alert variant="info" className="rounded-xl">
+                <AlertDescription className="w-full">
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm">
+                      {`تعداد جلسات: ${toPersianDigits(totalInfo.count)} جلسه — جمع کل (محاسبه سمت سرور): `}
+                    </p>
+                    <h3 className="text-lg font-bold text-primary">
+                      {formatRial(totalInfo.total)}
+                    </h3>
+                  </div>
+                </AlertDescription>
               </Alert>
-            </Grid>
+            </div>
           )}
 
-          <Grid size={{ xs: 12 }}>
+          <div className="sm:col-span-2">
             <Button
               type="submit"
-              variant="contained"
-              fullWidth
+              variant="primary"
               disabled={mutation.isPending}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                py: 1.5,
-              }}
+              className="w-full rounded-xl py-3.5"
             >
               {mutation.isPending ? (
-                <CircularProgress size={24} className="text-white" />
+                <span
+                  aria-hidden="true"
+                  className="h-6 w-6 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                />
               ) : (
                 <>
-                  <Icon icon="mdi:check" className="h-5 w-5 ml-2" />
+                  <Icon icon="mdi:check" className="h-5 w-5" aria-hidden="true" />
                   ثبت درخواست قرارداد
                 </>
               )}
             </Button>
-          </Grid>
-        </Grid>
+          </div>
+        </div>
       </form>
-    </Paper>
+    </div>
   )
 }
 

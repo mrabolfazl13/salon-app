@@ -3,29 +3,25 @@
 // اگر سانس‌ها چند سالن را پوشش دهند، به تفکیک سالن منتشر می‌شود (هر فراخوان یک venue_id).
 
 import React, { useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 
 import { extractError, faNum } from '@/components/finance/shared'
 import { toPersianDigits } from '@/lib/jalali'
+import { cn } from '@/lib/utils'
 import { dealService } from '@/services/deals'
 import { parseIntFa } from '@/components/pricing/shared'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/shadcn/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
 
 export interface PublishSlot {
   id: number
@@ -116,57 +112,127 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
   }
 
   return (
-    <Dialog aria-label="انتشار سانس تخفیف‌دار" open={open} onClose={busy ? undefined : close} maxWidth="xs" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px', overflow: 'hidden' } } }}>
-      <Box sx={{ background: 'linear-gradient(135deg, #f59e0b, #ef4444)', px: 3, py: 2.5 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Icon icon="mdi:lightning-bolt" className="h-5 w-5" />
-          عرضه به‌عنوان تخفیف‌دار
-        </Typography>
-      </Box>
-      <DialogContent sx={{ pt: '24px !important', display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          {toPersianDigits(slots.length)} سانس انتخابی — قیمت نهایی توسط سرور کنترل می‌شود و حتماً باید ارزان‌تر از قیمت مصوب قوانین باشد.
-          به کاربرانِ «علاقه‌مندی + اشتراک تخفیف» همان سالن اعلان می‌رود.
-        </Typography>
-        {grouped.length > 1 && (
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-            {grouped.map(([vid, ss]) => (
-              <Chip key={vid} size="small" label={`${venueNameOf(vid)} — ${toPersianDigits(ss.length)} سانس`} sx={{ borderRadius: '8px', fontSize: '0.75rem' }} />
-            ))}
-          </Box>
-        )}
+    <Dialog open={open} onOpenChange={(o) => { if (!o) close() }}>
+      <DialogContent
+        aria-label="انتشار سانس تخفیف‌دار"
+        className="gap-0 overflow-hidden p-0 sm:max-w-[444px] [&>button]:text-white/90 [&>button:hover]:bg-white/15 [&>button:hover]:text-white"
+      >
+        <div className="bg-gradient-to-br from-amber-500 to-red-500 px-6 py-5">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 pe-10 text-lg font-bold text-white">
+              <Icon icon="mdi:lightning-bolt" className="h-5 w-5" />
+              عرضه به‌عنوان تخفیف‌دار
+            </DialogTitle>
+          </DialogHeader>
+        </div>
+        <div className="flex flex-col gap-4 px-6 pt-6">
+          <p className="text-sm text-muted-foreground">
+            {toPersianDigits(slots.length)} سانس انتخابی — قیمت نهایی توسط سرور کنترل می‌شود و حتماً باید ارزان‌تر از قیمت مصوب قوانین باشد.
+            به کاربرانِ «علاقه‌مندی + اشتراک تخفیف» همان سالن اعلان می‌رود.
+          </p>
+          {grouped.length > 1 && (
+            <div className="flex flex-wrap gap-1.5">
+              {grouped.map(([vid, ss]) => (
+                <span key={vid} className="inline-flex items-center rounded-lg border border-border px-2 py-0.5 text-xs font-semibold text-foreground">
+                  {`${venueNameOf(vid)} — ${toPersianDigits(ss.length)} سانس`}
+                </span>
+              ))}
+            </div>
+          )}
 
-        <ToggleButtonGroup value={mode} exclusive onChange={(_, v) => v && setMode(v as 'percent' | 'price')} size="small" fullWidth sx={{ '& .MuiToggleButton-root': { textTransform: 'none', fontWeight: 700, borderRadius: '10px !important' } }}>
-          <ToggleButton value="percent">درصد تخفیف</ToggleButton>
-          <ToggleButton value="price">قیمت نهایی (ریال)</ToggleButton>
-        </ToggleButtonGroup>
+          <div role="group" aria-label="نحوه تعیین تخفیف" className="flex gap-2">
+            <button
+              type="button"
+              aria-pressed={mode === 'percent'}
+              onClick={() => setMode('percent')}
+              className={cn(
+                'min-h-11 flex-1 rounded-[10px] border px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                mode === 'percent'
+                  ? 'border-blue-600 bg-blue-600 text-white'
+                  : 'border-border bg-card text-foreground hover:bg-muted'
+              )}
+            >
+              درصد تخفیف
+            </button>
+            <button
+              type="button"
+              aria-pressed={mode === 'price'}
+              onClick={() => setMode('price')}
+              className={cn(
+                'min-h-11 flex-1 rounded-[10px] border px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                mode === 'price'
+                  ? 'border-blue-600 bg-blue-600 text-white'
+                  : 'border-border bg-card text-foreground hover:bg-muted'
+              )}
+            >
+              قیمت نهایی (ریال)
+            </button>
+          </div>
 
-        {mode === 'percent' ? (
-          <TextField label="درصد تخفیف (۱ تا ۹۹)" value={percent} onChange={(e) => setPercent(e.target.value)} size="small" inputMode="numeric" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }} />
-        ) : (
-          <TextField label="قیمت نهایی سانس (ریال)" value={price} onChange={(e) => setPrice(e.target.value)} size="small" inputMode="numeric" helperText="یک قیمت برای همه سانس‌های انتخابی؛ سانس‌های گران‌تر که این قیمت از آنها بیشتر باشد رد می‌شوند" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }} />
-        )}
+          {mode === 'percent' ? (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="deal-publish-percent">درصد تخفیف (۱ تا ۹۹)</Label>
+              <Input
+                id="deal-publish-percent"
+                inputMode="numeric"
+                className="h-11 rounded-[10px]"
+                value={percent}
+                onChange={(e) => setPercent(e.target.value)}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="deal-publish-price">قیمت نهایی سانس (ریال)</Label>
+              <Input
+                id="deal-publish-price"
+                inputMode="numeric"
+                className="h-11 rounded-[10px]"
+                value={price}
+                onChange={(e) => setPrice(e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                یک قیمت برای همه سانس‌های انتخابی؛ سانس‌های گران‌تر که این قیمت از آنها بیشتر باشد رد می‌شوند
+              </p>
+            </div>
+          )}
 
-        <FormControl size="small" fullWidth>
-          <InputLabel id="dp-expiry-label">اعتبار تخفیف</InputLabel>
-          <Select labelId="dp-expiry-label" label="اعتبار تخفیف" value={expiry} onChange={(e) => setExpiry(e.target.value)} sx={{ borderRadius: '10px' }}>
-            {EXPIRY_OPTIONS.map((m) => (
-              <MenuItem key={m} value={String(m)}>
-                {m >= 1440 ? `${faNum(m / 1440)} روز` : m >= 60 ? `${faNum(m / 60)} ساعت` : `${faNum(m)} دقیقه`}
-              </MenuItem>
-            ))}
-            <MenuItem value="">بدون مهلت (تا شروع سانس)</MenuItem>
-          </Select>
-        </FormControl>
+          <div className="flex flex-col gap-1.5">
+            <Label id="dp-expiry-label">اعتبار تخفیف</Label>
+            <Select
+              value={expiry === '' ? 'none' : expiry}
+              onValueChange={(v) => setExpiry(v === 'none' ? '' : v)}
+            >
+              <SelectTrigger aria-labelledby="dp-expiry-label" className="h-11 rounded-[10px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EXPIRY_OPTIONS.map((m) => (
+                  <SelectItem key={m} value={String(m)}>
+                    {m >= 1440 ? `${faNum(m / 1440)} روز` : m >= 60 ? `${faNum(m / 60)} ساعت` : `${faNum(m)} دقیقه`}
+                  </SelectItem>
+                ))}
+                <SelectItem value="none">بدون مهلت (تا شروع سانس)</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
 
-        {localError && <Typography variant="body2" role="alert" sx={{ color: 'error.main', fontWeight: 700 }}>{localError}</Typography>}
+          {localError && (
+            <p role="alert" className="text-sm font-bold text-red-600 dark:text-red-400">{localError}</p>
+          )}
+        </div>
+        <DialogFooter className="gap-2 px-6 pb-6 pt-4">
+          <Button variant="outline" onClick={close} disabled={busy} className="rounded-[10px]">
+            انصراف
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={busy || slots.length === 0}
+            className="rounded-[10px] font-extrabold"
+          >
+            {busy ? 'در حال انتشار…' : 'انتشار 🔥'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-        <Button onClick={close} disabled={busy} variant="outlined" sx={{ borderRadius: '10px', textTransform: 'none' }}>انصراف</Button>
-        <Button onClick={submit} variant="contained" disabled={busy || slots.length === 0} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg, #f59e0b, #ef4444)' }}>
-          {busy ? 'در حال انتشار…' : 'انتشار 🔥'}
-        </Button>
-      </DialogActions>
     </Dialog>
   )
 }

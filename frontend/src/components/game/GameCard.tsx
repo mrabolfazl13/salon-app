@@ -4,12 +4,10 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Card, CardContent, Typography, Box, Chip } from '@mui/material'
 import { Link } from 'react-router-dom'
 
 import type { Game } from '@/types/game'
 import { PAYMENT_MODE_LABELS } from '@/types/game'
-import { radii, shadows } from '@/theme'
 import { SPORT_NAME_FA } from '@/components/team/shared'
 import { CapacityBar, GameStatusChip, SkillChip, VisibilityChip, formatGameDateTime } from './shared'
 
@@ -49,182 +47,100 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
       transition={{ duration: 0.25, ease: 'easeOut' }}
       style={{ height: '100%' }}
     >
-      <Card
-        component={Link}
+      <Link
         to={href}
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          textDecoration: 'none',
-          color: 'inherit',
-          borderRadius: `${radii.card}px`,
-          overflow: 'hidden',
-          border: '1px solid rgba(15,23,42,0.06)',
-          boxShadow: shadows.card,
-          transition: 'box-shadow 0.25s ease, border-color 0.25s ease',
-          '&:hover': {
-            boxShadow: shadows.cardHover,
-            borderColor: 'rgba(37,99,235,0.25)',
-          },
-        }}
+        className="flex h-full flex-col overflow-hidden rounded-[20px] border border-border bg-card text-inherit no-underline shadow-[0_1px_3px_rgba(15,23,42,0.05),0_8px_24px_rgba(15,23,42,0.05)] transition-[box-shadow,border-color] duration-200 hover:border-blue-600/25 hover:shadow-[0_4px_12px_rgba(15,23,42,0.07),0_16px_40px_rgba(15,23,42,0.09)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:shadow-[0_1px_3px_rgba(0,0,0,0.4),0_8px_24px_rgba(0,0,0,0.3)]"
       >
-        <CardContent sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.25, flex: 1 }}>
+        <div className="flex flex-1 flex-col gap-2.5 p-4">
           {/* هدر: ایموجی ورزش + نام + وضعیت */}
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, minWidth: 0 }}>
-            <Box
+          <div className="flex min-w-0 items-start gap-2.5">
+            <div
               role="img"
               aria-label={SPORT_NAME_FA[game.sport] ?? game.sport}
-              sx={{
-                width: 44,
-                height: 44,
-                flexShrink: 0,
-                borderRadius: `${radii.chip}px`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '1.4rem',
-                background: 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))',
-              }}
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-blue-600/[0.08] to-violet-600/[0.08] text-[1.4rem]"
             >
               {SPORT_EMOJI[game.sport] ?? '⚽'}
-            </Box>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Typography
-                variant="subtitle1"
-                sx={{ fontWeight: 800, fontSize: '0.98rem', lineHeight: 1.4, color: '#0f172a' }}
-                noWrap
-              >
+            </div>
+            <div className="min-w-0 flex-1">
+              <h3 className="truncate text-[0.98rem] font-extrabold leading-snug text-foreground">
                 {game.name}
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+              </h3>
+              <div className="flex min-w-0 items-center gap-2">
                 <Icon icon="mdi:map-marker-outline" style={{ width: 15, height: 15, color: '#2563eb', flexShrink: 0 }} />
-                <Typography
-                  variant="body2"
-                  sx={{ fontSize: '0.78rem', color: '#64748b', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                >
+                <span className="truncate text-[0.78rem] text-muted-foreground">
                   {game.venue_name ?? '—'}
-                </Typography>
-              </Box>
-            </Box>
-            <Box sx={{ flexShrink: 0 }}>
+                </span>
+              </div>
+            </div>
+            <div className="shrink-0">
               <GameStatusChip status={game.status} />
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           {/* زمان + ظرفیت */}
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.6, minWidth: 0 }}>
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex min-w-0 items-center gap-1.5">
               <Icon icon="mdi:clock-outline" style={{ width: 15, height: 15, color: '#64748b', flexShrink: 0 }} />
-              <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: '#334155', whiteSpace: 'nowrap' }}>
+              <span className="whitespace-nowrap text-[0.8rem] font-semibold text-slate-700 dark:text-slate-300">
                 {formatGameDateTime(game.slot_date, game.start_time)}
-              </Typography>
+              </span>
               {game.distance_km != null && (
-                <Chip
-                  size="small"
-                  label={`${game.distance_km.toLocaleString('fa-IR')} کیلومتر`}
-                  sx={{
-                    height: 22,
-                    borderRadius: '999px',
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    bgcolor: 'rgba(124,58,237,0.08)',
-                    color: '#7c3aed',
-                    '& .MuiChip-label': { px: 0.9 },
-                  }}
-                />
+                <span className="inline-flex h-[22px] items-center rounded-full bg-violet-600/[0.08] px-2 text-xs font-bold text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                  {`${game.distance_km.toLocaleString('fa-IR')} کیلومتر`}
+                </span>
               )}
-            </Box>
+            </div>
             <CapacityBar current={game.current_players} max={game.max_players} />
-          </Box>
+          </div>
 
           {/* چیپ‌ها: سطح + حریم خصوصی + پرداخت */}
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+          <div className="flex flex-wrap gap-1">
             <SkillChip level={game.skill_level} />
             <VisibilityChip visibility={game.visibility} />
-            <Chip
-              size="small"
-              label={PAYMENT_MODE_LABELS[game.payment_mode] ?? game.payment_mode}
-              sx={{
-                height: 24,
-                borderRadius: '999px',
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                bgcolor: 'rgba(15,23,42,0.05)',
-                color: '#64748b',
-                '& .MuiChip-label': { px: 1 },
-              }}
-            />
-          </Box>
+            <span className="inline-flex h-6 items-center rounded-full bg-slate-900/[0.05] px-2 text-xs font-semibold text-muted-foreground dark:bg-white/[0.07]">
+              {PAYMENT_MODE_LABELS[game.payment_mode] ?? game.payment_mode}
+            </span>
+          </div>
 
           {/* فوتر: قیمت + جای خالی / وضعیت من */}
-          <Box
-            sx={{
-              mt: 'auto',
-              pt: 1.25,
-              borderTop: '1px solid rgba(15,23,42,0.06)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1,
-            }}
-          >
-            <Box sx={{ minWidth: 0 }}>
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-2.5">
+            <div className="min-w-0">
               {game.payment_mode === 'free' || game.price_per_player == null ? (
-                <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: 'success.main' }}>رایگان</Typography>
+                <p className="text-[0.85rem] font-extrabold text-emerald-600 dark:text-emerald-400">رایگان</p>
               ) : (
-                <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5 }}>
-                  <Typography
-                    component="span"
-                    dir="rtl"
-                    sx={{ fontSize: '1rem', fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}
-                  >
+                <div className="inline-flex items-baseline gap-1">
+                  <span dir="rtl" className="text-base font-extrabold tabular-nums text-foreground">
                     {game.price_per_player.toLocaleString('fa-IR')}
-                  </Typography>
-                  <Typography component="span" sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
-                    ریال / نفر
-                  </Typography>
-                </Box>
+                  </span>
+                  <span className="text-xs text-muted-foreground">ریال / نفر</span>
+                </div>
               )}
-            </Box>
+            </div>
             {myBadge ? (
-              <Box
-                sx={{
-                  px: 1.25,
-                  py: 0.5,
-                  borderRadius: '999px',
-                  bgcolor: myBadge.bg,
-                  color: myBadge.fg,
-                  fontSize: '0.75rem',
-                  fontWeight: 800,
-                  whiteSpace: 'nowrap',
-                }}
+              <span
+                className="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-extrabold"
+                style={{ backgroundColor: myBadge.bg, color: myBadge.fg }}
               >
                 {myBadge.label}
-              </Box>
+              </span>
             ) : game.my_waitlist_position ? (
-              <Box
-                sx={{
-                  px: 1.25,
-                  py: 0.5,
-                  borderRadius: '999px',
-                  bgcolor: 'rgba(245,158,11,0.14)',
-                  color: 'warning.main',
-                  fontSize: '0.75rem',
-                  fontWeight: 800,
-                  whiteSpace: 'nowrap',
-                }}
-              >
+              <span className="whitespace-nowrap rounded-full bg-amber-500/[0.14] px-2.5 py-1 text-xs font-extrabold text-amber-600 dark:text-amber-400">
                 {`رتبه انتظار ${game.my_waitlist_position.toLocaleString('fa-IR')}`}
-              </Box>
+              </span>
             ) : (
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: (th) => (remaining > 0 ? th.palette.success.main : th.palette.warning.main), whiteSpace: 'nowrap' }}>
+              <p
+                className={
+                  remaining > 0
+                    ? 'whitespace-nowrap text-xs font-bold text-emerald-600 dark:text-emerald-400'
+                    : 'whitespace-nowrap text-xs font-bold text-amber-600 dark:text-amber-400'
+                }
+              >
                 {remaining > 0 ? `${remaining.toLocaleString('fa-IR')} جای خالی` : 'تکمیل — لیست انتظار'}
-              </Typography>
+              </p>
             )}
-          </Box>
-        </CardContent>
-      </Card>
+          </div>
+        </div>
+      </Link>
     </motion.div>
   )
 }

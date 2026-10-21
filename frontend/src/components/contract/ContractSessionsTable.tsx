@@ -5,18 +5,6 @@
 // - مدیر: «جابه‌جایی» و «استثنا/لغو» فقط برای سانس آینده‌ی قابل‌تغییر
 
 import React from 'react'
-import {
-  Box,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
 import {
@@ -26,6 +14,16 @@ import {
   SessionStatusChip,
   StatusChip,
 } from '@/components/contract/shared'
+import { Button } from '@/components/ui/shadcn/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 import type { ContractSessionData } from '@/services/contract'
 
 interface ContractSessionsTableProps {
@@ -38,9 +36,6 @@ interface ContractSessionsTableProps {
   onReschedule?: (session: ContractSessionData) => void
 }
 
-const cellHead = { fontWeight: 700, fontSize: '0.76rem', whiteSpace: 'nowrap' as const }
-const cellBody = { fontSize: '0.82rem' }
-
 const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
   sessions,
   mode,
@@ -51,9 +46,9 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
 }) => {
   if (sessions.length === 0) {
     return (
-      <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+      <p className="py-4 text-center text-sm text-muted-foreground">
         هنوز سانسی برای این قرارداد ثبت نشده است.
-      </Typography>
+      </p>
     )
   }
 
@@ -61,134 +56,137 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
     effectiveSession(a).date < effectiveSession(b).date ? -1 : 1)
 
   return (
-    <TableContainer sx={{ overflowX: 'auto' }}>
-      <Table aria-label="سانس‌های قرارداد" size="small" sx={{ minWidth: 620 }}>
-        <TableHead>
-          <TableRow>
-            <TableCell scope="col" sx={cellHead}>تاریخ سانس</TableCell>
-            <TableCell scope="col" sx={cellHead}>ساعت</TableCell>
-            <TableCell scope="col" sx={cellHead}>مدت</TableCell>
-            <TableCell scope="col" sx={cellHead}>وضعیت</TableCell>
-            <TableCell scope="col" sx={cellHead}>یادداشت</TableCell>
-            {mode === 'manager' && <TableCell scope="col" align="left" sx={cellHead}>عملکرد</TableCell>}
-            {mode === 'user' && <TableCell scope="col" align="left" sx={cellHead}>درخواست</TableCell>}
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sorted.map((cs) => {
-            const eff = effectiveSession(cs)
-            const moved = !!cs.rescheduled_date
-            const mutable = isSessionMutable(cs)
-            const future = isSessionFuture(cs)
-            return (
-              <TableRow key={cs.id} sx={{ opacity: cs.status === 'excluded' ? 0.55 : 1 }}>
-                <TableCell sx={{ ...cellBody, whiteSpace: 'nowrap' }}>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25 }}>
-                    <Typography variant="body2" sx={{ fontWeight: 700, fontSize: '0.82rem' }}>
-                      {formatJalaliDate(cs.session_date)}
-                      {moved && <Typography component="span" variant="caption" color="text.disabled"> (اصلی)</Typography>}
-                    </Typography>
-                    {moved && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Icon icon="mdi:arrow-conditional-right" className="h-3.5 w-3.5" style={{ color: '#d97706' }} />
-                        <Typography variant="caption" sx={{ fontWeight: 700, color: 'warning.main' }}>
-                          جدید: {formatJalaliDate(eff.date)}
-                        </Typography>
-                      </Box>
-                    )}
-                  </Box>
-                </TableCell>
-                <TableCell sx={{ ...cellBody, whiteSpace: 'nowrap' }} dir="ltr">
-                  {moved ? (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                      <Typography variant="caption" color="text.disabled" sx={{ textDecoration: 'line-through' }}>
-                        {cs.start_time?.slice(0, 5)}
-                      </Typography>
-                      <Typography sx={{ fontWeight: 700, color: 'warning.main', fontSize: '0.82rem' }}>
-                        {(cs.rescheduled_time || '').slice(0, 5)}
-                      </Typography>
-                    </Box>
-                  ) : (
-                    toPersianDigits((cs.start_time || '').slice(0, 5))
+    <Table aria-label="سانس‌های قرارداد" className="min-w-[620px] text-[0.82rem]">
+      <TableHeader>
+        <TableRow>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">تاریخ سانس</TableHead>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">ساعت</TableHead>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">مدت</TableHead>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">وضعیت</TableHead>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">یادداشت</TableHead>
+          {mode === 'manager' && (
+            <TableHead scope="col" className="whitespace-nowrap text-end text-[0.76rem] font-bold">عملکرد</TableHead>
+          )}
+          {mode === 'user' && (
+            <TableHead scope="col" className="whitespace-nowrap text-end text-[0.76rem] font-bold">درخواست</TableHead>
+          )}
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {sorted.map((cs) => {
+          const eff = effectiveSession(cs)
+          const moved = !!cs.rescheduled_date
+          const mutable = isSessionMutable(cs)
+          const future = isSessionFuture(cs)
+          return (
+            <TableRow key={cs.id} className={cs.status === 'excluded' ? 'opacity-[0.55]' : undefined}>
+              <TableCell className="whitespace-nowrap">
+                <div className="flex flex-col gap-0.5">
+                  <p className="text-[0.82rem] font-bold">
+                    {formatJalaliDate(cs.session_date)}
+                    {moved && <span className="text-xs font-normal text-muted-foreground"> (اصلی)</span>}
+                  </p>
+                  {moved && (
+                    <div className="flex items-center gap-1">
+                      <Icon icon="mdi:arrow-conditional-right" className="h-3.5 w-3.5" style={{ color: '#d97706' }} />
+                      <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                        جدید: {formatJalaliDate(eff.date)}
+                      </span>
+                    </div>
                   )}
-                </TableCell>
-                <TableCell sx={{ ...cellBody, whiteSpace: 'nowrap' }}>
-                  {toPersianDigits(cs.duration)} دقیقه
-                </TableCell>
-                <TableCell>
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, alignItems: 'flex-start' }}>
-                    <SessionStatusChip status={cs.status} />
-                    {future && !mutable && cs.status !== 'completed' && <StatusChip label="گذشته" color="#64748b" />}
-                  </Box>
-                </TableCell>
-                <TableCell sx={{ ...cellBody, maxWidth: 220 }}>
-                  {cs.exclusion_reason ? (
-                    <Tooltip title={cs.exclusion_reason}>
-                      <Typography variant="caption" color="error.main">استثنا: {cs.exclusion_reason}</Typography>
-                    </Tooltip>
-                  ) : cs.cancel_requested ? (
-                    <StatusChip label="درخواست لغو ثبت شده" color="#d97706" />
-                  ) : (
-                    <Typography variant="caption" color="text.disabled">—</Typography>
-                  )}
-                </TableCell>
-                <TableCell align="left" sx={{ whiteSpace: 'nowrap' }}>
-                  {mode === 'manager' && (
-                    <>
-                      {mutable && (
-                        <>
-                          <Button
-                            size="small"
-                            variant="outlined"
-                            disabled={busySessionId === cs.id}
-                            onClick={() => onReschedule?.(cs)}
-                            sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem' }}
-                          >
-                            جابه‌جایی
-                          </Button>
-                          <Button
-                            size="small"
-                            color="error"
-                            variant="text"
-                            disabled={busySessionId === cs.id}
-                            onClick={() => onExclude?.(cs)}
-                            sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem', ms: 0.5 }}
-                          >
-                            استثنا/لغو
-                          </Button>
-                        </>
-                      )}
-                      {!mutable && <Typography variant="caption" color="text.disabled">—</Typography>}
-                    </>
-                  )}
-                  {mode === 'user' && (
-                    <>
-                      {mutable && !cs.cancel_requested && (
+                </div>
+              </TableCell>
+              <TableCell className="whitespace-nowrap" dir="ltr">
+                {moved ? (
+                  <div className="flex flex-col items-start">
+                    <span className="text-xs text-muted-foreground line-through">
+                      {cs.start_time?.slice(0, 5)}
+                    </span>
+                    <span className="text-[0.82rem] font-bold text-amber-700 dark:text-amber-300">
+                      {(cs.rescheduled_time || '').slice(0, 5)}
+                    </span>
+                  </div>
+                ) : (
+                  toPersianDigits((cs.start_time || '').slice(0, 5))
+                )}
+              </TableCell>
+              <TableCell className="whitespace-nowrap">
+                {toPersianDigits(cs.duration)} دقیقه
+              </TableCell>
+              <TableCell>
+                <div className="flex flex-col items-start gap-1">
+                  <SessionStatusChip status={cs.status} />
+                  {future && !mutable && cs.status !== 'completed' && <StatusChip label="گذشته" color="#64748b" />}
+                </div>
+              </TableCell>
+              <TableCell className="max-w-[220px]">
+                {cs.exclusion_reason ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-xs text-red-600 dark:text-red-400">استثنا: {cs.exclusion_reason}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{cs.exclusion_reason}</TooltipContent>
+                  </Tooltip>
+                ) : cs.cancel_requested ? (
+                  <StatusChip label="درخواست لغو ثبت شده" color="#d97706" />
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="whitespace-nowrap text-end">
+                {mode === 'manager' && (
+                  <>
+                    {mutable && (
+                      <>
                         <Button
-                          size="small"
-                          variant="outlined"
-                          color="warning"
+                          size="sm"
+                          variant="outline"
                           disabled={busySessionId === cs.id}
-                          onClick={() => onRequestCancel?.(cs)}
-                          sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem' }}
+                          onClick={() => onReschedule?.(cs)}
+                          className="text-xs font-semibold"
                         >
-                          درخواست حذف سانس
+                          جابه‌جایی
                         </Button>
-                      )}
-                      {(!mutable || cs.cancel_requested) && (
-                        <Typography variant="caption" color="text.disabled">
-                          {cs.cancel_requested ? 'در انتظار اقدام مدیر' : '—'}
-                        </Typography>
-                      )}
-                    </>
-                  )}
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          disabled={busySessionId === cs.id}
+                          onClick={() => onExclude?.(cs)}
+                          className="ms-1 text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                        >
+                          استثنا/لغو
+                        </Button>
+                      </>
+                    )}
+                    {!mutable && <span className="text-xs text-muted-foreground">—</span>}
+                  </>
+                )}
+                {mode === 'user' && (
+                  <>
+                    {mutable && !cs.cancel_requested && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        disabled={busySessionId === cs.id}
+                        onClick={() => onRequestCancel?.(cs)}
+                        className="text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-500/10"
+                      >
+                        درخواست حذف سانس
+                      </Button>
+                    )}
+                    {(!mutable || cs.cancel_requested) && (
+                      <span className="text-xs text-muted-foreground">
+                        {cs.cancel_requested ? 'در انتظار اقدام مدیر' : '—'}
+                      </span>
+                    )}
+                  </>
+                )}
+              </TableCell>
+            </TableRow>
+          )
+        })}
+      </TableBody>
+    </Table>
   )
 }
 

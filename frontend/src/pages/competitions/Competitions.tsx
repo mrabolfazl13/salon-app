@@ -2,27 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Chip,
-  Button,
-  TextField,
-  MenuItem,
-  FormControl,
-  InputLabel,
-  Select,
-  Skeleton,
-  Alert,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  CircularProgress,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { useAuthStore } from '@/store/authStore'
 import { venueService } from '@/services/venue'
@@ -31,15 +10,26 @@ import type { Slot } from '@/services/slot'
 import { competitionService } from '@/services/competition'
 import { formatPrice } from '@/lib/utils'
 import PersianDatePicker from '@/components/ui/PersianDatePicker'
+import Dialog from '@/components/ui/Dialog'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Badge } from '@/components/ui/shadcn/badge'
+import { Button } from '@/components/ui/shadcn/button'
+import { Card, CardContent } from '@/components/ui/shadcn/card'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/shadcn/select'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
 import toast from 'react-hot-toast'
 
-const slotStatusConfig: Record<string, { label: string; color: 'success' | 'warning' | 'error' | 'info' | 'default' | 'secondary' }> = {
-  available: { label: 'آزاد', color: 'success' },
-  booked: { label: 'رزرو شده', color: 'error' },
-  blocked: { label: 'مسدود', color: 'default' },
-  in_competition: { label: 'در حال رقابت', color: 'warning' },
-  reserved: { label: 'رزرو قرارداد', color: 'secondary' },
-  unknown: { label: 'نامشخص', color: 'default' },
+type SlotBadgeVariant = 'default' | 'primary' | 'success' | 'destructive' | 'outline' | 'muted'
+
+const slotStatusConfig: Record<string, { label: string; variant: SlotBadgeVariant }> = {
+  available: { label: 'آزاد', variant: 'success' },
+  booked: { label: 'رزرو شده', variant: 'destructive' },
+  blocked: { label: 'مسدود', variant: 'muted' },
+  in_competition: { label: 'در حال رقابت', variant: 'default' },
+  reserved: { label: 'رزرو قرارداد', variant: 'primary' },
+  unknown: { label: 'نامشخص', variant: 'muted' },
 }
 
 const Competitions: React.FC = () => {
@@ -147,47 +137,31 @@ const Competitions: React.FC = () => {
   if (!isManager) {
     return (
       <Layout>
-        <Box sx={{ py: 6, textAlign: 'center', maxWidth: 560, mx: 'auto' }}>
+        <div className="mx-auto max-w-[560px] py-12 text-center">
           <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <Box
-              sx={{
-                width: 96, height: 96, borderRadius: '50%',
-                bgcolor: 'rgba(37,99,235,0.08)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                mx: 'auto', mb: 3,
-              }}
-            >
-              <Icon icon="mdi:trophy-outline" className="h-12 w-12" style={{ color: '#2563eb' }} />
-            </Box>
-            <Typography component="h1" variant="h5" sx={{ fontWeight: 700, mb: 1 }}>
+            <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-600/10">
+              <Icon icon="mdi:trophy-outline" className="h-12 w-12 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+            </div>
+            <h1 className="mb-2 text-xl font-bold text-foreground">
               رقابت قیمت
-            </Typography>
-            <Typography variant="body2" color="text.secondary" sx={{ mb: 4, lineHeight: 1.8 }}>
+            </h1>
+            <p className="mb-8 text-sm leading-[1.8] text-muted-foreground">
               مدیران سالن برای سانس‌های آزادشان رقابت قیمت راه‌اندازی می‌کنند. شما می‌توانید در
               صفحهٔ هر سالن، سانس‌های «در حال رقابت» را با برچسب «رقابت با بقیه» پیدا کنید و
               پیشنهاد قیمت کمتری ثبت کنید؛ در پایان رقابت، کمترین پیشنهاد برنده می‌شود.
-            </Typography>
-            <Button
-              component={Link}
-              to="/venues"
-              variant="contained"
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                px: 4,
-                py: 1.5,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              }}
-            >
-              <Icon icon="mdi:store-search" className="h-5 w-5 ml-2" />
-              مشاهده سالن‌ها
+            </p>
+            <Button asChild variant="primary" size="lg">
+              <Link to="/venues">
+                <Icon icon="mdi:store-search" className="h-5 w-5" aria-hidden="true" />
+                مشاهده سالن‌ها
+              </Link>
             </Button>
           </motion.div>
-        </Box>
+        </div>
       </Layout>
     )
   }
@@ -195,240 +169,229 @@ const Competitions: React.FC = () => {
   // ===== حالت مدیر =====
   return (
     <Layout>
-      <Box sx={{ py: 3 }}>
+      <div className="py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography component="h1" variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
+          <h1 className="mb-1 text-2xl font-bold text-foreground md:text-3xl">
             رقابت قیمت
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 3 }}>
+          </h1>
+          <p className="mb-6 text-muted-foreground">
             برای سانس‌های آزاد سالن خود رقابت قیمت راه‌اندازی کنید
-          </Typography>
+          </p>
         </motion.div>
 
-        <Alert severity="info" sx={{ borderRadius: '16px', mb: 3 }}>
-          رقابت ۲۴ ساعت ادامه دارد و در پایان آن، کمترین قیمت پیشنهادی برنده می‌شود و قیمت سانس
-          به همان میزان تنظیم خواهد شد.
+        <Alert variant="info" className="mb-6 rounded-2xl">
+          <Icon icon="mdi:information-outline" aria-hidden="true" />
+          <AlertDescription>
+            رقابت ۲۴ ساعت ادامه دارد و در پایان آن، کمترین قیمت پیشنهادی برنده می‌شود و قیمت سانس
+            به همان میزان تنظیم خواهد شد.
+          </AlertDescription>
         </Alert>
 
         {/* Controls */}
-        <Card sx={{ borderRadius: '16px', mb: 3 }}>
-          <CardContent>
-            <Grid container spacing={2} sx={{ alignItems: 'center' }}>
-              <Grid size={{  xs: 12, sm: 6  }}>
+        <Card className="mb-6">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-12">
+              <div className="sm:col-span-6">
                 {loadingVenues ? (
-                  <Skeleton aria-hidden="true" variant="rounded" height={56} sx={{ borderRadius: '10px' }} />
+                  <Skeleton aria-hidden="true" className="h-14 rounded-[10px]" />
                 ) : venues.length === 0 ? (
-                  <Alert severity="warning" sx={{ borderRadius: '10px' }}>
-                    هنوز سالنی ندارید. ابتدا از پنل مدیریت سالن‌ها سالن خود را ایجاد کنید.
+                  <Alert variant="warning" className="rounded-[10px]">
+                    <Icon icon="mdi:alert-outline" aria-hidden="true" />
+                    <AlertDescription>
+                      هنوز سالنی ندارید. ابتدا از پنل مدیریت سالن‌ها سالن خود را ایجاد کنید.
+                    </AlertDescription>
                   </Alert>
                 ) : (
-                  <FormControl fullWidth>
-                    <InputLabel>سالن</InputLabel>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="competition-venue">سالن</Label>
                     <Select
-                      label="سالن"
-                      value={venueId}
-                      onChange={(e) => setVenueId(e.target.value as number)}
-                      sx={{ borderRadius: '10px' }}
+                      value={venueId === '' ? undefined : String(venueId)}
+                      onValueChange={(v) => setVenueId(Number(v))}
                     >
-                      {venues.map((v) => (
-                        <MenuItem key={v.id} value={v.id}>
-                          {v.name}
-                        </MenuItem>
-                      ))}
+                      <SelectTrigger id="competition-venue" className="rounded-[10px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {venues.map((v) => (
+                          <SelectItem key={v.id} value={String(v.id)}>
+                            {v.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
-                  </FormControl>
+                  </div>
                 )}
-              </Grid>
-              <Grid size={{  xs: 12, sm: 4  }}>
+              </div>
+              <div className="sm:col-span-4">
                 <PersianDatePicker
                   label="تاریخ"
                   value={date}
                   onChange={setDate}
                 />
-              </Grid>
-              <Grid size={{  xs: 12, sm: 2  }}>
+              </div>
+              <div className="sm:col-span-2">
                 <Button
-                  variant="outlined"
+                  variant="outline"
                   onClick={fetchSlots}
                   disabled={loadingSlots || !venueId}
-                  fullWidth
-                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, py: 1.2 }}
-                  startIcon={<Icon icon="mdi:refresh" />}
+                  className="w-full rounded-[10px]"
                 >
+                  <Icon icon="mdi:refresh" className="h-5 w-5" aria-hidden="true" />
                   {loadingSlots ? 'در حال...' : 'به‌روزرسانی'}
                 </Button>
-              </Grid>
-            </Grid>
+              </div>
+            </div>
           </CardContent>
         </Card>
 
         {/* Slots */}
         {loadingSlots ? (
-          <Grid container spacing={2}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <Grid size={{  xs: 12, sm: 6, md: 4  }} key={i}>
-                <Skeleton aria-hidden="true" variant="rounded" height={190} sx={{ borderRadius: '16px' }} />
-              </Grid>
+              <Skeleton key={i} aria-hidden="true" className="h-[190px] rounded-2xl" />
             ))}
-          </Grid>
+          </div>
         ) : slots.length === 0 ? (
-          <Card sx={{ borderRadius: '16px', textAlign: 'center', py: 6 }}>
-            <CardContent>
+          <Card className="py-6 text-center">
+            <CardContent className="px-4 text-center">
               <Icon
                 icon="mdi:calendar-clock-outline"
-                className="h-10 w-10"
-                style={{ color: 'rgba(0,0,0,0.2)' }}
+                className="h-10 w-10 text-muted-foreground/50"
+                aria-hidden="true"
               />
-              <Typography variant="h6" sx={{ fontWeight: 600, mt: 2, mb: 1 }}>
+              <h2 className="mb-1 mt-4 text-lg font-semibold text-foreground">
                 سانسی برای این تاریخ ثبت نشده است
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
+              </h2>
+              <p className="text-sm text-muted-foreground">
                 از پنل مدیریت سالن‌ها، سانس‌های روز مورد نظر را تولید کنید
-              </Typography>
+              </p>
             </CardContent>
           </Card>
         ) : (
-          <Grid container spacing={2}>
+          <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {slots.map((slot, index) => {
               const conf = slotStatusConfig[slot.status] ?? slotStatusConfig.unknown
               return (
-                <Grid size={{  xs: 12, sm: 6, md: 4  }} key={slot.id}>
-                  <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.3, delay: index * 0.05 }}
-                  >
-                    <Card sx={{ borderRadius: '16px', height: '100%', border: '1px solid rgba(0,0,0,0.06)' }}>
-                      <CardContent>
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                          <Typography sx={{ fontWeight: 700 }} variant="h6">
-                            {slot.start_time} - {slotEndTime(slot)}
-                          </Typography>
-                          <Chip label={conf.label} color={conf.color} size="small" sx={{ borderRadius: '8px' }} />
-                        </Box>
+                <motion.div
+                  key={slot.id}
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.3, delay: index * 0.05 }}
+                >
+                  <Card className="h-full rounded-2xl">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between gap-2">
+                        <h3 className="text-lg font-bold text-foreground">
+                          {slot.start_time} - {slotEndTime(slot)}
+                        </h3>
+                        <Badge variant={conf.variant} className="rounded-lg">{conf.label}</Badge>
+                      </div>
 
-                        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                          مدت: {slot.duration} دقیقه
-                        </Typography>
+                      <p className="mb-4 text-sm text-muted-foreground">
+                        مدت: {slot.duration} دقیقه
+                      </p>
 
-                        <Box sx={{ mb: 2 }}>
-                          <Typography variant="caption" color="text.secondary">
-                            قیمت فعلی سانس
-                          </Typography>
-                          <Typography sx={{ fontWeight: 700 }} variant="h6" color="primary">
-                            {formatPrice(slot.current_price)}
-                          </Typography>
-                        </Box>
+                      <div className="mb-4">
+                        <p className="text-xs text-muted-foreground">
+                          قیمت فعلی سانس
+                        </p>
+                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                          {formatPrice(slot.current_price)}
+                        </p>
+                      </div>
 
-                        {slot.status === 'in_competition' && (
-                          <Box
-                            sx={{
-                              mb: 2,
-                              p: 1.5,
-                              bgcolor: 'rgba(245,158,11,0.08)',
-                              borderRadius: '10px',
-                              display: 'flex',
-                              justifyContent: 'space-between',
-                              alignItems: 'center',
-                            }}
-                          >
-                            <Typography variant="caption" color="text.secondary">
-                              بهترین پیشنهاد
-                            </Typography>
-                            <Typography sx={{ fontWeight: 700 }} variant="body2" color="warning.main">
-                              {bestBids[slot.id] != null
-                                ? formatPrice(bestBids[slot.id] as number)
-                                : 'هنوز پیشنهادی ثبت نشده'}
-                            </Typography>
-                          </Box>
-                        )}
+                      {slot.status === 'in_competition' && (
+                        <div className="mb-4 flex items-center justify-between rounded-[10px] bg-amber-500/10 p-3">
+                          <p className="text-xs text-muted-foreground">
+                            بهترین پیشنهاد
+                          </p>
+                          <p className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                            {bestBids[slot.id] != null
+                              ? formatPrice(bestBids[slot.id] as number)
+                              : 'هنوز پیشنهادی ثبت نشده'}
+                          </p>
+                        </div>
+                      )}
 
-                        <Button
-                          variant="contained"
-                          fullWidth
-                          disabled={slot.status !== 'available'}
-                          onClick={() => openStartDialog(slot)}
-                          sx={{
-                            borderRadius: '10px',
-                            textTransform: 'none',
-                            background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                          }}
-                        >
-                          <Icon icon="mdi:gavel" className="h-4 w-4 ml-2" />
-                          شروع رقابت
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  </motion.div>
-                </Grid>
+                      <Button
+                        variant="primary"
+                        disabled={slot.status !== 'available'}
+                        onClick={() => openStartDialog(slot)}
+                        className="w-full rounded-[10px]"
+                      >
+                        <Icon icon="mdi:gavel" className="h-4 w-4" aria-hidden="true" />
+                        شروع رقابت
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </motion.div>
               )
             })}
-          </Grid>
+          </div>
         )}
-      </Box>
+      </div>
 
       {/* Start Competition Dialog */}
       <Dialog
         open={Boolean(startTarget)}
-        onClose={() => !starting && setStartTarget(null)}
-        aria-label="شروع رقابت قیمت"
+        onClose={() => { if (!starting) setStartTarget(null) }}
         maxWidth="xs"
-        fullWidth
-        sx={{ '& .MuiDialog-paper': { borderRadius: '20px' } }}
+        title="شروع رقابت قیمت"
+        actions={
+          <>
+            <Button
+              variant="outline"
+              onClick={() => setStartTarget(null)}
+              disabled={starting}
+              className="flex-1 rounded-[10px]"
+            >
+              انصراف
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleStart}
+              disabled={starting}
+              className="flex-1 rounded-[10px]"
+            >
+              {starting ? (
+                <span
+                  className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                  role="status"
+                  aria-label="در حال بارگذاری"
+                />
+              ) : 'شروع رقابت'}
+            </Button>
+          </>
+        }
       >
         {startTarget && (
-          <>
-            <DialogTitle sx={{ textAlign: 'center', fontWeight: 700, pb: 1 }}>
-              شروع رقابت قیمت
-            </DialogTitle>
-            <DialogContent>
-              <Box sx={{ textAlign: 'center', mb: 3 }}>
-                <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>
-                  سانس {startTarget.start_time} - {slotEndTime(startTarget)}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
-                  قیمت فعلی: {formatPrice(startTarget.current_price)}
-                </Typography>
-              </Box>
-              <TextField
+          <div>
+            <div className="mb-6 text-center">
+              <p className="mb-1 text-sm text-muted-foreground">
+                سانس {startTarget.start_time} - {slotEndTime(startTarget)}
+              </p>
+              <p className="text-sm text-muted-foreground">
+                قیمت فعلی: {formatPrice(startTarget.current_price)}
+              </p>
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="competition-offer-price">قیمت پیشنهادی (ریال)</Label>
+              <Input
+                id="competition-offer-price"
                 type="number"
-                label="قیمت پیشنهادی (ریال)"
+                min={1000}
+                step={1000}
                 value={offerPrice}
                 onChange={(e) => setOfferPrice(Number(e.target.value))}
-                fullWidth
-                slotProps={{ htmlInput: { min: 1000, step: 1000 } }}
-                helperText="هرچه قیمت پیشنهادی کمتر باشد، شانس برنده شدن بیشتر است"
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                className="rounded-[10px]"
               />
-            </DialogContent>
-            <DialogActions sx={{ px: 3, pb: 2, gap: 1 }}>
-              <Button
-                variant="outlined"
-                onClick={() => setStartTarget(null)}
-                disabled={starting}
-                sx={{ borderRadius: '10px', textTransform: 'none', flex: 1 }}
-              >
-                انصراف
-              </Button>
-              <Button
-                variant="contained"
-                onClick={handleStart}
-                disabled={starting}
-                sx={{
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  flex: 1,
-                  background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                }}
-              >
-                {starting ? <CircularProgress size={22} sx={{ color: 'white' }} /> : 'شروع رقابت'}
-              </Button>
-            </DialogActions>
-          </>
+              <p className="text-xs text-muted-foreground">هرچه قیمت پیشنهادی کمتر باشد، شانس برنده شدن بیشتر است</p>
+            </div>
+          </div>
         )}
       </Dialog>
     </Layout>

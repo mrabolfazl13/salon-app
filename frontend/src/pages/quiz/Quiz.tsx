@@ -4,12 +4,12 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useMutation, useQuery } from '@tanstack/react-query'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Button, CircularProgress, Alert } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { Shimmer } from '@/components/mobile'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
 import { quizService, type QuizAnswerResult } from '@/services/quiz'
 import { toPersianDigits } from '@/lib/jalali'
-import { gradients, shadows } from '@/theme'
+import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
 const Quiz: React.FC = () => {
@@ -49,67 +49,48 @@ const Quiz: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ py: 3, maxWidth: 720, mx: 'auto' }}>
+      <div className="mx-auto max-w-[720px] py-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <Typography component="h1" variant="h4" sx={{ fontWeight: 800 }}>
-            چالش ورزشی هفته
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5, mb: 3 }}>
+          <h1 className="text-2xl font-extrabold text-foreground">چالش ورزشی هفته</h1>
+          <p className="mb-6 mt-1 text-sm text-muted-foreground">
             به ۳ سؤال اطلاعات ورزشی پاسخ بده و امتیاز وفاداری بگیر. هر هفته سؤال‌های تازه.
-          </Typography>
+          </p>
         </motion.div>
 
         {/* کارت وضعیت هفته */}
-        <Box
-          sx={{
-            borderRadius: '16px',
-            p: 2.5,
-            mb: 3,
-            background: gradients.brandEnergy,
-            color: '#1c1917',
-            boxShadow: '0 10px 30px rgba(245,158,11,0.25)',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            gap: 2,
-          }}
-        >
-          <Box>
-            <Typography variant="caption" sx={{ fontWeight: 700, opacity: 0.75 }}>
+        <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-amber-300 via-amber-400 to-orange-500 p-5 text-stone-900 shadow-[0_10px_30px_rgba(245,158,11,0.25)]">
+          <div>
+            <p className="text-xs font-bold opacity-75">
               {weekQuery.data ? `هفته ${toPersianDigits(weekQuery.data.week_tag)}` : 'این هفته'}
-            </Typography>
-            <Typography variant="h5" sx={{ fontWeight: 900 }}>
+            </p>
+            <p className="text-xl font-black">
               {toPersianDigits(weekPoints)} امتیاز گرفتی
-            </Typography>
-          </Box>
-          <Box sx={{ textAlign: 'right' }}>
-            <Typography variant="caption" sx={{ display: 'block', fontWeight: 700, opacity: 0.75 }}>
-              هر پاسخ درست
-            </Typography>
-            <Typography sx={{ fontWeight: 900 }}>
-              +{toPersianDigits(weekQuery.data?.points_per_correct ?? 10)} امتیاز
-            </Typography>
-          </Box>
-        </Box>
+            </p>
+          </div>
+          <div className="text-end">
+            <p className="block text-xs font-bold opacity-75">هر پاسخ درست</p>
+            <p className="font-black">+{toPersianDigits(weekQuery.data?.points_per_correct ?? 10)} امتیاز</p>
+          </div>
+        </div>
 
         {weekQuery.isPending && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Shimmer variant="rounded" sx={{ height: 150, borderRadius: '16px' }} />
-            <Shimmer variant="rounded" sx={{ height: 150, borderRadius: '16px' }} />
-          </Box>
+          <div className="flex flex-col gap-4">
+            <Shimmer variant="rounded" className="h-[150px] rounded-2xl" />
+            <Shimmer variant="rounded" className="h-[150px] rounded-2xl" />
+          </div>
         )}
         {weekQuery.isError && (
-          <Alert severity="warning" sx={{ borderRadius: '12px', mb: 2 }}>
-            دریافت سؤال‌ها ممکن نشد — با بارگذاری مجدد تلاش کنید.
+          <Alert variant="warning" className="mb-4 rounded-xl">
+            <AlertDescription>دریافت سؤال‌ها ممکن نشد — با بارگذاری مجدد تلاش کنید.</AlertDescription>
           </Alert>
         )}
         {weekQuery.isSuccess && questions.length === 0 && (
-          <Box sx={{ textAlign: 'center', py: 6, border: '1px dashed', borderColor: 'divider', borderRadius: '16px' }}>
-            <Icon icon="mdi:help-box-outline" style={{ width: 44, height: 44, color: '#64748b' }} />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
+          <div className="rounded-2xl border border-dashed border-border py-12 text-center">
+            <Icon icon="mdi:help-box-outline" aria-hidden="true" className="mx-auto h-11 w-11 text-muted-foreground" />
+            <p className="mt-3 text-sm text-muted-foreground">
               هنوز سؤالی برای این هفته ثبت نشده — هفتهٔ بعد سر بزن!
-            </Typography>
-          </Box>
+            </p>
+          </div>
         )}
 
         {questions.map((q, qi) => {
@@ -123,142 +104,91 @@ const Quiz: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.3, delay: qi * 0.06 }}
             >
-              <Box
-                sx={{
-                  p: 2.5,
-                  mb: 2.5,
-                  borderRadius: '16px',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  bgcolor: 'background.paper',
-                  boxShadow: shadows.card,
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25, mb: 2 }}>
-                  <Box
-                    sx={{
-                      width: 30,
-                      height: 30,
-                      borderRadius: '10px',
-                      flexShrink: 0,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      background: gradients.brandEnergy,
-                      color: '#1c1917',
-                      fontWeight: 900,
-                      fontSize: '0.9rem',
-                    }}
-                  >
+              <div className="mb-5 rounded-2xl border border-border bg-card p-5 shadow-sm">
+                <div className="mb-4 flex items-start gap-2.5">
+                  <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-amber-300 to-orange-500 text-[0.9rem] font-black text-stone-900">
                     {toPersianDigits(qi + 1)}
-                  </Box>
-                  <Typography sx={{ fontWeight: 700, lineHeight: 1.7 }}>{q.text}</Typography>
-                </Box>
+                  </span>
+                  <p className="font-bold leading-[1.7] text-foreground">{q.text}</p>
+                </div>
 
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                <div className="flex flex-col gap-2">
                   {q.options.map((opt, oi) => {
                     const picked = mine?.picked === oi
-                    const isCorrectChoice = mine && mine.result.correct_index === oi
+                    const isCorrectChoice = Boolean(mine && mine.result.correct_index === oi)
                     const disabled = Boolean(mine) || answeredByServer || isBusy
-                    let sx: any = {
-                      justifyContent: 'flex-start',
-                      minHeight: 48,
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      borderColor: 'divider',
-                      color: 'text.primary',
-                      '&:hover': disabled ? {} : { borderColor: '#f59e0b', bgcolor: 'rgba(245,158,11,0.06)' },
-                    }
-                    if (isCorrectChoice) {
-                      sx = {
-                        ...sx,
-                        bgcolor: 'success.main',
-                        borderColor: 'success.main',
-                        color: 'success.contrastText',
-                        fontWeight: 800,
-                      }
-                    } else if (picked && mine && !mine.result.correct) {
-                      sx = {
-                        ...sx,
-                        bgcolor: 'error.main',
-                        borderColor: 'error.main',
-                        color: 'error.contrastText',
-                        fontWeight: 800,
-                      }
-                    }
                     return (
-                      <Button
+                      <button
                         key={oi}
-                        variant="outlined"
+                        type="button"
                         disabled={disabled}
                         onClick={() => answerMut.mutate({ questionId: q.id, answerIndex: oi })}
-                        startIcon={
-                          isBusy && picked ? <CircularProgress size={16} /> :
-                          isCorrectChoice ? <Icon icon="mdi:check-circle" style={{ width: 18, height: 18 }} /> :
-                          picked ? <Icon icon="mdi:close-circle" style={{ width: 18, height: 18 }} /> : undefined
-                        }
-                        sx={sx}
+                        className={cn(
+                          'inline-flex min-h-12 items-center justify-start gap-2 rounded-xl border px-4 text-start text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default',
+                          isCorrectChoice
+                            ? 'border-emerald-600 bg-emerald-600 font-extrabold text-white'
+                            : picked && mine && !mine.result.correct
+                              ? 'border-red-600 bg-red-600 font-extrabold text-white'
+                              : 'border-border text-foreground enabled:hover:border-amber-500 enabled:hover:bg-amber-500/5'
+                        )}
                       >
+                        {isBusy && picked ? (
+                          <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال ثبت" />
+                        ) : isCorrectChoice ? (
+                          <Icon icon="mdi:check-circle" aria-hidden="true" className="h-[18px] w-[18px]" />
+                        ) : picked ? (
+                          <Icon icon="mdi:close-circle" aria-hidden="true" className="h-[18px] w-[18px]" />
+                        ) : null}
                         {opt}
-                      </Button>
+                      </button>
                     )
                   })}
-                </Box>
+                </div>
 
                 {mine && (
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      mt: 1.5,
-                      fontWeight: 700,
-                      color: mine.result.points_awarded > 0 ? '#059669' : mine.result.correct ? '#059669' : '#dc2626',
-                    }}
+                  <p
+                    className={cn(
+                      'mt-3 text-sm font-bold',
+                      mine.result.points_awarded > 0 || mine.result.correct
+                        ? 'text-emerald-600 dark:text-emerald-400'
+                        : 'text-red-600 dark:text-red-400'
+                    )}
                   >
                     {mine.result.points_awarded > 0
                       ? `درست! ${toPersianDigits(mine.result.points_awarded)} امتیاز گرفتی — موجودی: ${toPersianDigits(mine.result.balance)}`
                       : mine.result.correct
                         ? 'درست بود (بدون امتیاز جدید)'
                         : `اشتباه — پاسخ درست: ${q.options[mine.result.correct_index]}`}
-                  </Typography>
+                  </p>
                 )}
                 {answeredByServer && (
-                  <Typography variant="caption" sx={{ mt: 1, display: 'block', color: 'text.secondary', fontWeight: 600 }}>
+                  <p className="mt-2 block text-xs font-semibold text-muted-foreground">
                     این هفته به این سؤال پاسخ داده‌ای.
-                  </Typography>
+                  </p>
                 )}
-              </Box>
+              </div>
             </motion.div>
           )
         })}
 
         {weekQuery.isSuccess && questions.length > 0 && allDone && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-            <Box
-              sx={{
-                p: 2.5,
-                borderRadius: '16px',
-                textAlign: 'center',
-                border: '1px solid rgba(245,158,11,0.45)',
-                bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.08)' : 'rgba(255,247,237,0.8)'),
-              }}
-            >
-              <Icon icon="mdi:trophy" style={{ width: 36, height: 36, color: '#f59e0b' }} />
-              <Typography sx={{ fontWeight: 800, mt: 1 }}>
+            <div className="rounded-2xl border border-amber-500/45 bg-orange-50/80 p-5 text-center dark:bg-amber-400/10">
+              <Icon icon="mdi:trophy" aria-hidden="true" className="mx-auto h-9 w-9 text-amber-500" />
+              <p className="mt-2 font-extrabold text-foreground">
                 چالش این هفته کامل شد — {toPersianDigits(weekPoints)} امتیاز
-              </Typography>
-              <Button
-                component={Link}
+              </p>
+              <Link
                 to="/profile"
-                sx={{ mt: 1.5, fontWeight: 800, color: 'warning.main', textTransform: 'none' }}
-                endIcon={<Icon icon="mdi:arrow-left" />}
+                className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl px-3 font-extrabold text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
               >
                 مشاهده امتیازها در پروفایل
-              </Button>
-            </Box>
+                <Icon icon="mdi:arrow-left" aria-hidden="true" className="h-5 w-5" />
+              </Link>
+            </div>
           </motion.div>
         )}
-      </Box>
+      </div>
     </Layout>
   )
 }

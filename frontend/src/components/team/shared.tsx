@@ -2,14 +2,15 @@
 // اجزای مشترک تیم: نگاشتار خطای TEAM_* به جمله‌ی فارسی، چیپ‌ها و بج‌ها — الگوی game/shared.tsx
 
 import React from 'react'
-import { Box, Chip, LinearProgress, Typography, useTheme } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { isAxiosError } from 'axios'
 import { chipInk, readableText } from '@/utils/contrast'
+import { cn } from '@/lib/utils'
 
 import type { TeamMemberStatus, TeamRole, TeamVisibility } from '@/types/team'
 import { TEAM_MEMBER_STATUS_LABELS, TEAM_ROLE_LABELS, TEAM_VISIBILITY_LABELS } from '@/types/team'
 import { toPersianDigits } from '@/lib/jalali'
+import { Progress } from '@/components/ui/shadcn/progress'
 
 /**
  * پیام‌های فارسی خطاهای ساختارمند تیم (detail = {code, message}).
@@ -84,6 +85,26 @@ export const SPORT_NAME_FA: Record<string, string> = {
   tennis: 'تنیس', badminton: 'بدمینتون', gym: 'بدنسازی', pool: 'بیلیارد',
 }
 
+// کاغذِ روشن/تیره برای سنجش کنتراست جوهرِ چیپ‌ها (جایگزین palette.background.paper)
+const PAPER_LIGHT = '#ffffff'
+const PAPER_DARK = '#121a2b'
+
+/** جوهرِ خواناتر برای هر دو تم؛ با متغیر CSS تا کلاس dark بتواند جایگزینش کند */
+const chipStyle = (fg: string, bg: string): React.CSSProperties =>
+  ({
+    backgroundColor: bg,
+    '--chip-ink': chipInk(fg, bg, PAPER_LIGHT),
+    '--chip-ink-dark': chipInk(fg, bg, PAPER_DARK),
+  }) as React.CSSProperties
+
+const inkStyle = (fg: string): React.CSSProperties =>
+  ({
+    '--chip-ink': readableText(fg, PAPER_LIGHT),
+    '--chip-ink-dark': readableText(fg, PAPER_DARK),
+  }) as React.CSSProperties
+
+const CHIP_INK = 'text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]'
+
 const VISIBILITY_META: Record<TeamVisibility, { icon: string; fg: string; bg: string }> = {
   public: { icon: 'mdi:web', fg: '#059669', bg: 'rgba(16,185,129,0.08)' },
   invite_only: { icon: 'mdi:email-lock-outline', fg: '#b45309', bg: 'rgba(245,158,11,0.10)' },
@@ -91,26 +112,19 @@ const VISIBILITY_META: Record<TeamVisibility, { icon: string; fg: string; bg: st
 }
 
 export const TeamVisibilityChip: React.FC<{ visibility: TeamVisibility }> = ({ visibility }) => {
-  const paper = useTheme().palette.background.paper
   const c = VISIBILITY_META[visibility] ?? VISIBILITY_META.private
   // «عمومی» با #059669 روی تیغِ خودش ۳٫۴۸:۱ داشت — ممیزی axe F-21
-  const ink = chipInk(c.fg, c.bg, paper)
   return (
-    <Chip
-      size="small"
-      icon={<Icon icon={c.icon} style={{ width: 14, height: 14 }} />}
-      label={TEAM_VISIBILITY_LABELS[visibility] ?? visibility}
-      sx={{
-        height: 24,
-        borderRadius: '999px',
-        fontWeight: 600,
-        fontSize: '0.75rem',
-        bgcolor: c.bg,
-        color: ink,
-        '& .MuiChip-icon': { color: ink },
-        '& .MuiChip-label': { px: 1 },
-      }}
-    />
+    <span
+      className={cn(
+        'inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-full ps-1.5 pe-2 text-xs font-semibold',
+        CHIP_INK,
+      )}
+      style={chipStyle(c.fg, c.bg)}
+    >
+      <Icon icon={c.icon} style={{ width: 14, height: 14 }} />
+      {TEAM_VISIBILITY_LABELS[visibility] ?? visibility}
+    </span>
   )
 }
 
@@ -121,29 +135,18 @@ const ROLE_META: Record<TeamRole, { fg: string; bg: string; icon: string }> = {
 }
 
 export const TeamRoleBadge: React.FC<{ role: TeamRole }> = ({ role }) => {
-  const paper = useTheme().palette.background.paper
   const c = ROLE_META[role] ?? ROLE_META.member
-  const ink = chipInk(c.fg, c.bg, paper)
   return (
-    <Box
-      component="span"
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 1,
-        px: 0.9,
-        py: 0.25,
-        borderRadius: '999px',
-        bgcolor: c.bg,
-        color: ink,
-        fontSize: '0.75rem',
-        fontWeight: 700,
-        whiteSpace: 'nowrap',
-      }}
+    <span
+      className={cn(
+        'inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[7px] py-0.5 text-xs font-bold',
+        CHIP_INK,
+      )}
+      style={chipStyle(c.fg, c.bg)}
     >
       <Icon icon={c.icon} style={{ width: 13, height: 13 }} />
       {TEAM_ROLE_LABELS[role] ?? role}
-    </Box>
+    </span>
   )
 }
 
@@ -155,13 +158,15 @@ const MEMBER_STATUS_META: Record<TeamMemberStatus, { fg: string; icon: string }>
 }
 
 export const MemberStatusChip: React.FC<{ status: TeamMemberStatus }> = ({ status }) => {
-  const paper = useTheme().palette.background.paper
   const m = MEMBER_STATUS_META[status] ?? MEMBER_STATUS_META.active
   return (
-    <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, fontSize: '0.75rem', fontWeight: 700, color: readableText(m.fg, paper) }}>
+    <span
+      className={cn('inline-flex items-center gap-1 text-xs font-bold', CHIP_INK)}
+      style={inkStyle(m.fg)}
+    >
       <Icon icon={m.icon} style={{ width: 13, height: 13 }} />
       {TEAM_MEMBER_STATUS_LABELS[status] ?? status}
-    </Box>
+    </span>
   )
 }
 
@@ -178,21 +183,16 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
       : overdue
         ? { label: 'گذشته از سررسید', fg: '#dc2626', bg: 'rgba(239,68,68,0.10)' }
         : { label: 'پرداخت‌نشده', fg: '#b45309', bg: 'rgba(245,158,11,0.12)' }
-  const ink = chipInk(meta.fg, meta.bg, useTheme().palette.background.paper)
   return (
-    <Chip
-      size="small"
-      label={meta.label}
-      sx={{
-        height: 24,
-        borderRadius: '999px',
-        fontWeight: 700,
-        fontSize: '0.75rem',
-        bgcolor: meta.bg,
-        color: ink,
-        '& .MuiChip-label': { px: 1 },
-      }}
-    />
+    <span
+      className={cn(
+        'inline-flex h-6 items-center whitespace-nowrap rounded-full px-2 text-xs font-bold',
+        CHIP_INK,
+      )}
+      style={chipStyle(meta.fg, meta.bg)}
+    >
+      {meta.label}
+    </span>
   )
 }
 
@@ -200,25 +200,19 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
 
 /** بج «رسمی ✅» — وقتی تیم به حد نصاب اعضا رسیده باشد */
 export const TeamOfficialBadge: React.FC<{ size?: 'small' | 'medium' }> = ({ size = 'small' }) => (
-  <Box
-    component="span"
-    sx={{
-      display: 'inline-flex',
-      alignItems: 'center',
-      gap: 0.4,
-      px: 0.9,
-      py: 0.25,
-      borderRadius: '999px',
-      bgcolor: 'rgba(124,58,237,0.10)',
-      color: '#7c3aed',
-      fontSize: size === 'small' ? '0.75rem' : '0.75rem',
-      fontWeight: 800,
-      whiteSpace: 'nowrap',
-    }}
+  <span
+    className={cn(
+      'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-[7px] py-0.5 text-xs font-extrabold',
+      CHIP_INK,
+    )}
+    style={chipStyle('#7c3aed', 'rgba(124,58,237,0.10)')}
   >
-    <Icon icon="mdi:shield-star-outline" style={{ width: size === 'small' ? 13 : 15, height: size === 'small' ? 13 : 15 }} />
+    <Icon
+      icon="mdi:shield-star-outline"
+      style={{ width: size === 'small' ? 13 : 15, height: size === 'small' ? 13 : 15 }}
+    />
     {'رسمی ✅'}
-  </Box>
+  </span>
 )
 
 /** نوار پیشرفت «X از Y عضو» + بج رسمی + راهنمای حد نصاب (فقط برای اعضا/مدیران) */
@@ -232,39 +226,35 @@ export const TeamQuotaProgress: React.FC<{
   const total = quota > 0 ? quota : 0
   const ratio = total > 0 ? Math.min(memberCount / total, 1) : 0
   const reached = isOfficial || (total > 0 && memberCount >= total)
-  const color = reached ? '#7c3aed' : '#2563eb'
   return (
     // روی موبایل عرض ۱۵۰px + متن بلندِ راهنما فضای نام تیم را صفر می‌کرد و
     // هر دو روی هم می‌افتادند؛ در xs کل ردیف را می‌گیرد و زیر عنوان می‌نشیند.
-    <Box sx={{ width: compact ? 108 : { xs: '100%', sm: 150 }, minWidth: 0, flexShrink: 0 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.75, mb: 0.5 }}>
-        <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, color: '#334155', fontSize: '0.75rem', fontWeight: 700 }}>
+    <div className={cn('min-w-0 shrink-0', compact ? 'w-[108px]' : 'w-full sm:w-[150px]')}>
+      <div className="mb-1 flex items-center justify-between gap-1.5">
+        <div className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300">
           <Icon icon="mdi:account-group-outline" style={{ width: 14, height: 14 }} />
           {total > 0
             ? `${toPersianDigits(memberCount)} از ${toPersianDigits(total)} عضو`
             : `${toPersianDigits(memberCount)} عضو`}
-        </Box>
+        </div>
         {isOfficial && <TeamOfficialBadge />}
-      </Box>
+      </div>
       {total > 0 && (
-        <LinearProgress
-          variant="determinate"
+        <Progress
           value={ratio * 100}
           aria-label="پیشرفت عضویت تیم"
           aria-valuetext={`${toPersianDigits(memberCount)} از ${toPersianDigits(total)} عضو`}
-          sx={{
-            height: 5,
-            borderRadius: 999,
-            bgcolor: 'rgba(15,23,42,0.06)',
-            '& .MuiLinearProgress-bar': { bgcolor: color, borderRadius: 999 },
-          }}
+          className={cn(
+            'h-[5px] bg-slate-900/[0.06] dark:bg-white/10',
+            reached ? '[&>div]:bg-[#7c3aed]' : '[&>div]:bg-[#2563eb]',
+          )}
         />
       )}
       {showHint && !isOfficial && total > 0 && (
-        <Typography sx={{ fontSize: '0.75rem', color: 'warning.main', mt: 0.5, fontWeight: 600 }}>
+        <p className="mt-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
           {`برای رسمی‌شدن تیم به حداقل ${toPersianDigits(total)} عضو نیاز دارید`}
-        </Typography>
+        </p>
       )}
-    </Box>
+    </div>
   )
 }

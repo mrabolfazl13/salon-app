@@ -147,7 +147,7 @@ const FilterBottomSheet: React.FC<Props> = ({
 
   return (
     <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
-      <DialogContent className="inset-x-0 bottom-0 top-auto max-h-[86dvh] translate-y-0 gap-0 overflow-y-auto rounded-t-3xl border-x-0 border-b-0 p-0 sm:inset-x-0 sm:bottom-0 sm:start-0 sm:top-auto sm:w-full sm:max-w-none sm:translate-x-0 rtl:sm:translate-x-0">
+      <DialogContent className="inset-x-0 bottom-0 top-auto z-[70] max-h-[86dvh] translate-y-0 gap-0 overflow-y-auto rounded-t-3xl border-x-0 border-b-0 p-0 sm:inset-x-0 sm:bottom-0 sm:start-0 sm:top-auto sm:w-full sm:max-w-none sm:translate-x-0 rtl:sm:translate-x-0">
         <DialogTitle className="sr-only">فیلترها</DialogTitle>
         <DialogDescription className="sr-only">
           فیلتر سالن‌ها بر اساس نوع ورزش، محدوده قیمت و امکانات

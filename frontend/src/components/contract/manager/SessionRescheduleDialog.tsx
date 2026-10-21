@@ -3,20 +3,14 @@
 // اینلاین روی همان دیالوگ نمایش داده می‌شود.
 
 import React, { useEffect, useState } from 'react'
-import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import PersianDatePicker from '@/components/ui/PersianDatePicker'
+import Dialog from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/shadcn/button'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
 import { useRescheduleSession } from '@/hooks/useContracts'
 import { effectiveSession, extractError } from '@/components/contract/shared'
 import type { ContractSessionData } from '@/services/contract'
@@ -67,19 +61,41 @@ const SessionRescheduleDialog: React.FC<Props> = ({ open, onClose, contractId, s
   }
 
   return (
-    <Dialog aria-label="جابه‌جایی سانس" open={open} onClose={mutation.isPending ? undefined : onClose} maxWidth="xs" fullWidth
-      slotProps={{ paper: { sx: { borderRadius: '18px' } } }}>
-      <DialogTitle sx={{ fontWeight: 800, fontSize: '1rem' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Icon icon="mdi:calendar-sync" style={{ color: '#d97706' }} />
-          جابه‌جایی سانس
-        </Box>
-      </DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: '16px !important' }}>
-        <Typography variant="body2" color="text.secondary">
+    <Dialog
+      open={open}
+      onClose={mutation.isPending ? undefined : onClose}
+      title="جابه‌جایی سانس"
+      titleIcon={<Icon icon="mdi:calendar-sync" style={{ color: '#d97706' }} />}
+      maxWidth="xs"
+      actions={
+        <>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            disabled={mutation.isPending}
+            className="rounded-xl px-4"
+          >
+            انصراف
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={mutation.isPending}
+            className="rounded-xl font-bold"
+          >
+            {mutation.isPending ? 'در حال ثبت...' : 'جابه‌جایی'}
+          </Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-muted-foreground">
           {`وضعیت فعلی: ${session.status === 'rescheduled' ? `جابه‌جایی‌شده از ${eff.date} — ` : ''}${eff.time?.slice(0, 5)} به مدت ${session.duration} دقیقه`}
-        </Typography>
-        {serverError && <Alert severity="warning" sx={{ borderRadius: '12px' }}>{serverError}</Alert>}
+        </p>
+        {serverError && (
+          <Alert variant="warning">
+            <AlertDescription>{serverError}</AlertDescription>
+          </Alert>
+        )}
         <PersianDatePicker
           label="تاریخ جدید"
           value={date}
@@ -87,30 +103,17 @@ const SessionRescheduleDialog: React.FC<Props> = ({ open, onClose, contractId, s
           error={Boolean(dateErr)}
           helperText={dateErr}
         />
-        <TextField
-          label="ساعت جدید"
-          type="time"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          size="small"
-          fullWidth
-          slotProps={{ inputLabel: { shrink: true } }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-        />
-      </DialogContent>
-      <DialogActions sx={{ px: 2.5, pb: 2, gap: 1 }}>
-        <Button onClick={onClose} disabled={mutation.isPending} sx={{ textTransform: 'none', borderRadius: '10px' }}>
-          انصراف
-        </Button>
-        <Button
-          variant="contained"
-          onClick={submit}
-          disabled={mutation.isPending}
-          sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
-        >
-          {mutation.isPending ? 'در حال ثبت...' : 'جابه‌جایی'}
-        </Button>
-      </DialogActions>
+        <div className="space-y-1.5">
+          <Label htmlFor="session-reschedule-time">ساعت جدید</Label>
+          <Input
+            id="session-reschedule-time"
+            type="time"
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            className="h-11"
+          />
+        </div>
+      </div>
     </Dialog>
   )
 }

@@ -3,7 +3,7 @@
 
 import React from 'react'
 import { Icon } from '@iconify/react'
-import { Box, Typography } from '@mui/material'
+import { cn } from '@/lib/utils'
 
 import type { WaitlistEntry } from '@/types/game'
 import { formatPersianDateTime } from '@/utils/helpers'
@@ -14,65 +14,45 @@ interface Props {
 
 const WaitlistList: React.FC<Props> = ({ entries }) => {
   if (entries.length === 0) {
-    return (
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', py: 1 }}>
-        لیست انتظار خالی است.
-      </Typography>
-    )
+    return <p className="py-2 text-[0.85rem] text-muted-foreground">لیست انتظار خالی است.</p>
   }
 
   const sorted = [...entries].sort((a, b) => a.position - b.position)
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+    <div className="flex flex-col gap-1.5">
       {sorted.map((entry) => (
-        <Box
+        <div
           key={entry.id}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.25,
-            px: 1.5,
-            py: 1,
-            borderRadius: '14px',
-            border: '1px solid rgba(15,23,42,0.06)',
-            bgcolor: 'rgba(15,23,42,0.015)',
-          }}
+          className="flex items-center gap-2.5 rounded-[14px] border border-border bg-slate-900/[0.015] px-3 py-2 dark:bg-white/[0.02]"
         >
-          <Box
-            sx={{
-              width: 28,
-              height: 28,
-              borderRadius: '999px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              bgcolor: entry.position === 1 ? 'rgba(245,158,11,0.14)' : 'rgba(100,116,139,0.10)',
-              color: entry.position === 1 ? '#b45309' : '#64748b',
-              fontSize: '0.78rem',
-              fontWeight: 800,
-              flexShrink: 0,
-            }}
+          <div
+            className={cn(
+              'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.78rem] font-extrabold',
+              entry.position === 1
+                ? 'bg-amber-500/[0.14] text-amber-700 dark:text-amber-400'
+                : 'bg-slate-500/10 text-slate-500 dark:text-slate-400'
+            )}
           >
             {entry.position.toLocaleString('fa-IR')}
-          </Box>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f172a' }} noWrap>
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[0.82rem] font-semibold text-foreground">
               {`کاربر ${entry.user_id.toLocaleString('fa-IR')}`}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.1 }} noWrap>
+            </p>
+            <p className="mt-px truncate text-xs text-muted-foreground">
               {`در صف از: ${formatPersianDateTime(entry.created_at)}`}
-            </Typography>
-          </Box>
+            </p>
+          </div>
           {entry.position === 1 && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.4, color: 'warning.main', fontSize: '0.75rem', fontWeight: 700 }}>
+            <div className="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
               <Icon icon="mdi:star-four-points" style={{ width: 13, height: 13 }} />
               نوبت بعدی
-            </Box>
+            </div>
           )}
-        </Box>
+        </div>
       ))}
-    </Box>
+    </div>
   )
 }
 

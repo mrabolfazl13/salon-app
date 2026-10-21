@@ -1,21 +1,9 @@
-// frontend/src/pages/manager/teams/ManagerTeams.tsx
+// src/pages/manager/teams/ManagerTeams.tsx
 // «تیم‌های همکار» — دید شریک مدیر سالن (GET /teams/manager/partners): تیم‌هایی که اعضا/رزرو
-// منتسب‌شان در سالن(های) این مدیر رزرو داشته‌اند. جدول فقط‌خواندنی با انتخاب سالن و ستون‌های مرتب‌شدنی.
+// منتسب‌شان در سالن(های) مدیر رزرو داشته‌اند. جدول فقط‌خواندنی با انتخاب سالن و ستون‌های مرتب‌شدنی.
 
 import React, { useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Chip,
-  MenuItem,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material'
 
 import Layout from '@/components/layout/Layout'
 import { EmptyState, Shimmer } from '@/components/mobile'
@@ -25,7 +13,22 @@ import type { TeamPartner } from '@/types/team'
 import { ErrorBox, formatRial } from '@/components/finance/shared'
 import { SPORT_EMOJI, SPORT_NAME_FA, TeamOfficialBadge } from '@/components/team/shared'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
-import { radii, shadows } from '@/theme'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
+import { cn } from '@/lib/utils'
 
 type SortKey = 'name' | 'captain_name' | 'members_count' | 'total_bookings_at_my_venues' | 'upcoming_bookings_at_my_venues' | 'spent_at_my_venues' | 'last_booking_date'
 
@@ -70,150 +73,132 @@ const ManagerTeams: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-        <Box>
-          <Typography component="h1" variant="h4" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Icon icon="mdi:handshake-outline" style={{ width: 30, height: 30, color: '#2563eb' }} />
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-foreground">
+            <Icon icon="mdi:handshake-outline" aria-hidden="true" className="h-[30px] w-[30px] text-blue-600 dark:text-blue-400" />
             تیم‌های همکار
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             تیم‌هایی که اعضا یا رزروهای منتسب‌شان در سالن(های) شما رزرو داشته‌اند — فقط‌خواندنی.
-          </Typography>
-        </Box>
-        <TextField
-          select
-          label="سالن"
-          size="small"
-          sx={{ minWidth: 200, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-          value={venueSel === 'all' ? 'all' : venueSel}
-          onChange={(e) => setVenueSel(e.target.value === 'all' ? 'all' : Number(e.target.value))}
+          </p>
+        </div>
+        <Select
+          value={String(venueSel)}
+          onValueChange={(v) => setVenueSel(v === 'all' ? 'all' : Number(v))}
         >
-          <MenuItem value="all">همه سالن‌های من</MenuItem>
-          {(venuesQ.data ?? []).map((v) => (
-            <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
-          ))}
-        </TextField>
-      </Box>
+          <SelectTrigger aria-label="سالن" className="min-w-[200px] rounded-xl">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">همه سالن‌های من</SelectItem>
+            {(venuesQ.data ?? []).map((v) => (
+              <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
 
       {partnersQ.isPending ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" sx={{ height: 64, borderRadius: '12px' }} />)}
-        </Box>
+        <div className="flex flex-col gap-2">
+          {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" className="h-16 rounded-xl" />)}
+        </div>
       ) : partnersQ.isError ? (
         <ErrorBox message="دریافت تیم‌های همکار ممکن نشد (دسترسی فقط برای مدیران سالن)." onRetry={() => partnersQ.refetch()} />
       ) : items.length === 0 ? (
-        <EmptyState emoji="🤝" title="تیم همکاری ثبت نشده" description="وقتی اعضای یک تیم در سالن(های) شما رزرو کنند، اینجا نمایش داده می‌شوند." />
+        <EmptyState icon="mdi:handshake-outline" title="تیم همکاری ثبت نشده" description="وقتی اعضای یک تیم در سالن(های) شما رزرو کنند، اینجا نمایش داده می‌شوند." />
       ) : (
-        <Box
-          sx={{
-            borderRadius: `${radii.card}px`,
-            boxShadow: shadows.card,
-            border: '1px solid rgba(15,23,42,0.05)',
-            bgcolor: 'rgba(255,255,255,0.92)',
-            overflowX: 'auto',
-          }}
-        >
-          <Table size="small" aria-label="لیست تیم‌های همکار" sx={{ minWidth: 720 }}>
-            <TableHead>
+        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+          <Table aria-label="لیست تیم‌های همکار" className="min-w-[720px]">
+            <TableHeader>
               <TableRow>
                 {HEADERS.map((h) => (
-                  <TableCell scope="col"
+                  <TableHead
+                    scope="col"
                     key={h.key}
-                    align={h.numeric ? 'left' : 'right'}
                     aria-sort={sortKey === h.key ? (sortDir === -1 ? 'descending' : 'ascending') : undefined}
-                    sx={{
-                      fontWeight: 800,
-                      fontSize: '0.75rem',
-                      color: sortKey === h.key ? '#2563eb' : '#64748b',
-                      whiteSpace: 'nowrap',
-                      display: h.hideOnMobile ? { xs: 'none', md: 'table-cell' } : undefined,
-                    }}
+                    className={cn(
+                      'whitespace-nowrap text-[0.75rem] font-extrabold',
+                      sortKey === h.key ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground',
+                      h.numeric && 'text-end',
+                      h.hideOnMobile && 'hidden md:table-cell'
+                    )}
                   >
                     {/* مرتب‌سازی روی <th> کلیک‌پذیر کیبورد را نمی‌خواند: دکمهٔ واقعی داخل سرستون */}
-                    <Box
-                      component="button"
+                    <button
                       type="button"
                       onClick={() => toggleSort(h.key)}
-                      sx={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        gap: 1,
-                        border: 0,
-                        p: 0,
-                        m: 0,
-                        // سرستون مرتب‌شدنی هم هدف لمسی است (ممیزی F-11: ۲۴px ارتفاع)
-                        minHeight: 44,
-                        minWidth: 44,
-                        justifyContent: h.numeric ? 'flex-end' : 'flex-start',
-                        background: 'none',
-                        font: 'inherit',
-                        color: 'inherit',
-                        cursor: 'pointer',
-                        appearance: 'none',
-                        WebkitTapHighlightColor: 'transparent',
-                        '&:focus-visible': { outline: '3px solid #f59e0b', outlineOffset: 2 },
-                      }}
+                      className={cn(
+                        'inline-flex min-h-11 min-w-11 items-center gap-2 bg-transparent p-0 text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
+                        h.numeric ? 'justify-end' : 'justify-start'
+                      )}
                     >
                       {h.label}
-                      {sortKey === h.key && <Icon icon={sortDir === -1 ? 'mdi:sort-descending' : 'mdi:sort-ascending'} aria-hidden="true" style={{ width: 14, height: 14 }} />}
-                    </Box>
-                  </TableCell>
+                      {sortKey === h.key && (
+                        <Icon
+                          icon={sortDir === -1 ? 'mdi:sort-descending' : 'mdi:sort-ascending'}
+                          aria-hidden="true"
+                          className="h-3.5 w-3.5"
+                        />
+                      )}
+                    </button>
+                  </TableHead>
                 ))}
               </TableRow>
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {items.map((p: TeamPartner) => (
-                <TableRow key={p.team_id} hover>
-                  <TableCell sx={{ display: { xs: 'table-cell' } }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Box role="img" aria-label={SPORT_NAME_FA[p.sport] ?? p.sport} sx={{ fontSize: '1.1rem', lineHeight: 1 }}>{SPORT_EMOJI[p.sport] ?? '🏅'}</Box>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography sx={{ fontWeight: 800, fontSize: '0.85rem' }} noWrap>{p.name}</Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, mt: 0.25, flexWrap: 'wrap' }}>
-                          <Chip label={`تیم #${toPersianDigits(p.team_id)}`} size="small" sx={{ height: 18, fontSize: '0.6rem' }} />
+                <TableRow key={p.team_id} className="hover:bg-muted/50">
+                  <TableCell>
+                    <div className="flex items-center gap-2">
+                      <span role="img" aria-label={SPORT_NAME_FA[p.sport] ?? p.sport} className="text-[1.1rem] leading-none">{SPORT_EMOJI[p.sport] ?? '🏅'}</span>
+                      <div className="min-w-0">
+                        <p className="truncate text-[0.85rem] font-extrabold text-foreground">{p.name}</p>
+                        <div className="mt-1 flex flex-wrap items-center gap-1">
+                          <span className="inline-flex h-[18px] items-center rounded-full bg-foreground/5 px-1.5 text-[0.6rem] text-muted-foreground">تیم #{toPersianDigits(p.team_id)}</span>
                           {p.is_official ? (
                             <TeamOfficialBadge size="small" />
                           ) : (
-                            <Typography sx={{ fontSize: '0.6rem', color: '#64748b', fontWeight: 700 }}>
+                            <span className="text-[0.6rem] font-bold text-muted-foreground">
                               {p.quota > 0 ? `${toPersianDigits(p.member_count)} از ${toPersianDigits(p.quota)} عضو` : `${toPersianDigits(p.member_count)} عضو`}
-                            </Typography>
+                            </span>
                           )}
-                        </Box>
-                      </Box>
-                    </Box>
+                        </div>
+                      </div>
+                    </div>
                   </TableCell>
                   <TableCell>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.8rem' }} noWrap>{p.captain_name ?? '—'}</Typography>
+                    <p className="truncate text-[0.8rem] font-bold text-foreground">{p.captain_name ?? '—'}</p>
                     {p.captain_phone && (
-                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }} dir="ltr" noWrap>{p.captain_phone}</Typography>
+                      <p className="truncate text-xs text-muted-foreground" dir="ltr">{p.captain_phone}</p>
                     )}
                   </TableCell>
-                  <TableCell align="left" sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                    <Typography sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(p.members_count)}</Typography>
+                  <TableCell className="hidden text-end md:table-cell">
+                    <p className="font-extrabold tabular-nums text-foreground">{toPersianDigits(p.members_count)}</p>
                   </TableCell>
-                  <TableCell align="left">
-                    <Typography sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(p.total_bookings_at_my_venues)}</Typography>
+                  <TableCell className="text-end">
+                    <p className="font-extrabold tabular-nums text-foreground">{toPersianDigits(p.total_bookings_at_my_venues)}</p>
                   </TableCell>
-                  <TableCell align="left">
-                    <Typography sx={{ fontWeight: 700, color: (th) => (p.upcoming_bookings_at_my_venues ? th.palette.success.main : th.palette.text.secondary), fontVariantNumeric: 'tabular-nums' }}>
+                  <TableCell className="text-end">
+                    <p className={cn('font-bold tabular-nums', p.upcoming_bookings_at_my_venues ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground')}>
                       {toPersianDigits(p.upcoming_bookings_at_my_venues)}
-                    </Typography>
+                    </p>
                   </TableCell>
-                  <TableCell align="left">
-                    <Typography sx={{ fontWeight: 800, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }} dir="rtl">
+                  <TableCell className="text-end">
+                    <p className="font-extrabold tabular-nums text-foreground" dir="rtl">
                       {formatRial(p.spent_at_my_venues)}
-                    </Typography>
+                    </p>
                   </TableCell>
-                  <TableCell sx={{ display: { xs: 'none', md: 'table-cell' } }}>
-                    <Typography sx={{ fontSize: '0.78rem', color: '#475569' }} noWrap>
+                  <TableCell className="hidden md:table-cell">
+                    <p className="truncate text-[0.78rem] text-muted-foreground">
                       {p.last_booking_date ? formatJalaliDate(p.last_booking_date, { format: 'numeric' }) : '—'}
-                    </Typography>
+                    </p>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-        </Box>
+        </div>
       )}
     </Layout>
   )

@@ -2,20 +2,7 @@
 // «پیش‌نمایش» موتور قیمت — POST /pricing/preview همان مسیرِ لحظه‌ی رزرو را اجرا
 // می‌کند: مبنای سالن + زنجیره‌ی قوانینِ منطبق → قیمت نهایی. محاسباتی است، ذخیره نمی‌کند.
 
-import React, { useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Divider,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useId, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 
@@ -25,6 +12,17 @@ import { getTodayISO, toPersianDigits } from '@/lib/jalali'
 import { usePricingPreview } from '@/hooks/usePricing'
 import { MODIFIER_LABELS, faTime, parseIntFa, timeToHHMM } from './shared'
 import type { PricingPreview } from '@/services/pricing'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
 
 interface Props {
   venueId: number
@@ -37,6 +35,9 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
   const [baseOverride, setBaseOverride] = useState('')
   const [result, setResult] = useState<PricingPreview | null>(null)
   const preview = usePricingPreview()
+
+  const timeId = useId()
+  const baseId = useId()
 
   const run = () => {
     setResult(null)
@@ -73,116 +74,136 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
   }
 
   return (
-    <Box
-      sx={{
-        borderRadius: '16px',
-        border: '1px solid rgba(37,99,235,0.18)',
-        background: 'linear-gradient(135deg, rgba(37,99,235,0.04), rgba(124,58,237,0.04))',
-        p: 2.5,
-      }}
-    >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Icon icon="mdi:eye-outline" className="h-5 w-5" style={{ color: '#2563eb' }} />
-        <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>پیش‌نمایش قیمت — همان موتور لحظه‌ی رزرو</Typography>
-      </Box>
-      <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-        <Box sx={{ flex: '1 1 180px', minWidth: 170 }}>
+    <div className="rounded-2xl border border-blue-600/[0.18] bg-gradient-to-br from-blue-600/[0.04] to-violet-600/[0.04] p-5">
+      <div className="mb-4 flex items-center gap-2">
+        <Icon icon="mdi:eye-outline" className="h-5 w-5" style={{ color: '#2563eb' }} aria-hidden="true" />
+        <h2 className="text-sm font-extrabold text-foreground">پیش‌نمایش قیمت — همان موتور لحظه‌ی رزرو</h2>
+      </div>
+      <div className="flex flex-wrap items-start gap-4">
+        <div className="min-w-[170px] flex-[1_1_180px]">
           <PersianDatePicker label="تاریخ" value={date} onChange={setDate} size="small" clearable={false} />
-        </Box>
-        <TextField
-          label="ساعت شروع"
-          value={time}
-          onChange={(e) => setTime(e.target.value)}
-          size="small"
-          dir="ltr"
-          sx={{ flex: '0 1 120px', '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-        />
-        <Box sx={{ flex: '0 1 130px' }}>
-          <FormControl size="small" fullWidth>
-          <InputLabel id="pp-duration-label">مدت (دقیقه)</InputLabel>
-          <Select labelId="pp-duration-label" label="مدت (دقیقه)" value={duration} onChange={(e) => setDuration(e.target.value)} sx={{ borderRadius: '10px', width: '100%' }}>
-            {[60, 75, 90, 120].map((d) => (
-              <MenuItem key={d} value={String(d)}>{toPersianDigits(d)}</MenuItem>
-            ))}
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={timeId}>ساعت شروع</Label>
+          <Input
+            id={timeId}
+            value={time}
+            onChange={(e) => setTime(e.target.value)}
+            dir="ltr"
+            className="w-[120px] tabular-nums"
+          />
+        </div>
+        <div className="flex min-w-[130px] flex-col gap-1.5">
+          <Label id="pp-duration-label" htmlFor="pp-duration-select">مدت (دقیقه)</Label>
+          <Select value={duration} onValueChange={setDuration}>
+            <SelectTrigger id="pp-duration-select" aria-labelledby="pp-duration-label" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {[60, 75, 90, 120].map((d) => (
+                <SelectItem key={d} value={String(d)}>{toPersianDigits(d)}</SelectItem>
+              ))}
+            </SelectContent>
           </Select>
-          </FormControl>
-        </Box>
-        <TextField
-          label="مبنای دلخواه (ریال)"
-          value={baseOverride}
-          onChange={(e) => setBaseOverride(e.target.value)}
-          size="small"
-          placeholder="خالی = پیش‌فرض سالن"
-          sx={{ flex: '1 1 150px', minWidth: 140, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-        />
+        </div>
+        <div className="flex min-w-[140px] flex-[1_1_150px] flex-col gap-1.5">
+          <Label htmlFor={baseId}>مبنای دلخواه (ریال)</Label>
+          <Input
+            id={baseId}
+            value={baseOverride}
+            onChange={(e) => setBaseOverride(e.target.value)}
+            placeholder="خالی = پیش‌فرض سالن"
+            className="tabular-nums"
+          />
+        </div>
         <Button
-          variant="contained"
           onClick={run}
           disabled={preview.isPending}
-          sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, alignSelf: 'flex-end', height: 40, background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
-          startIcon={preview.isPending ? <CircularProgress size={16} color="inherit" /> : <Icon icon="mdi:calculator-variant-outline" className="h-4 w-4" />}
+          className="self-end bg-gradient-to-br from-blue-600 to-violet-600 font-bold text-white hover:from-blue-700 hover:to-violet-700"
         >
+          {preview.isPending ? (
+            <span
+              className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+              role="status"
+              aria-label="در حال بارگذاری"
+            />
+          ) : (
+            <Icon icon="mdi:calculator-variant-outline" className="h-4 w-4" aria-hidden="true" />
+          )}
           محاسبه
         </Button>
-      </Box>
+      </div>
 
       {result && (
-        <Box sx={{ mt: 2.5 }}>
-          <Divider sx={{ mb: 2 }} />
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-            <Chip size="small" label={`مبنا: ${formatRial(result.base_price)}`} sx={{ borderRadius: '8px', fontWeight: 600 }} />
-            <Chip size="small" label={`زمان بررسی: ${toPersianDigits(result.slot_date)} — ${faTime(result.start_time)}`} sx={{ borderRadius: '8px' }} />
+        <div className="mt-5">
+          <Separator className="mb-4" />
+          <div className="mb-3 flex flex-wrap items-center gap-2">
+            <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-semibold text-foreground tabular-nums">
+              {`مبنا: ${formatRial(result.base_price)}`}
+            </span>
+            <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs text-foreground tabular-nums">
+              {`زمان بررسی: ${toPersianDigits(result.slot_date)} — ${faTime(result.start_time)}`}
+            </span>
             {result.is_holiday && (
-              <Chip size="small" color="warning" label="این تاریخ تعطیل است 🔔" sx={{ borderRadius: '8px', fontWeight: 700 }} />
+              <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                این تاریخ تعطیل است 🔔
+              </span>
             )}
-          </Box>
+          </div>
           {result.rules.length === 0 ? (
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>هیچ قانونی روی این سانس اعمال نشد — قیمت = مبنا.</Typography>
+            <p className="text-sm text-muted-foreground">هیچ قانونی روی این سانس اعمال نشد — قیمت = مبنا.</p>
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-              <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>زنجیره‌ی قوانین اعمال‌شده (به ترتیب اجرا):</Typography>
+            <div className="flex flex-col gap-1.5">
+              <p className="text-xs font-bold text-muted-foreground">زنجیره‌ی قوانین اعمال‌شده (به ترتیب اجرا):</p>
               {result.rules.map((r, idx) => (
-                <Box
+                <div
                   key={`${r.rule_id}-${idx}`}
-                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, px: 1.5, py: 0.75, borderRadius: '10px', bgcolor: 'rgba(37,99,235,0.05)' }}
+                  className="flex items-center justify-between gap-2 rounded-[10px] bg-blue-600/[0.05] px-3 py-1.5"
                 >
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                    <Icon icon="mdi:tag-outline" style={{ width: 15, height: 15, color: '#2563eb', flexShrink: 0 }} />
-                    <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 0 }} noWrap>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Icon icon="mdi:tag-outline" className="h-[15px] w-[15px] shrink-0" style={{ color: '#2563eb' }} aria-hidden="true" />
+                    <p className="min-w-0 truncate text-sm font-bold text-foreground">
                       {r.label || `قانون #${toPersianDigits(r.rule_id)}`}
-                    </Typography>
-                    <Chip
-                      size="small"
-                      label={`${MODIFIER_LABELS[r.modifier_type] ?? r.modifier_type} ${toPersianDigits(Math.abs(r.modifier_type === 'percent' ? r.value / 100 : r.value))}${r.modifier_type === 'percent' ? '٪' : ' ریال'}`}
-                      sx={{ height: 20, fontSize: '0.75rem', borderRadius: '6px', flexShrink: 0 }}
-                    />
-                  </Box>
-                  <Typography
-                    variant="body2"
+                    </p>
+                    <span className="inline-flex h-5 shrink-0 items-center rounded-md bg-muted px-1.5 text-xs text-foreground tabular-nums">
+                      {`${MODIFIER_LABELS[r.modifier_type] ?? r.modifier_type} ${toPersianDigits(Math.abs(r.modifier_type === 'percent' ? r.value / 100 : r.value))}${r.modifier_type === 'percent' ? '٪' : ' ریال'}`}
+                    </span>
+                  </div>
+                  <span
                     dir="rtl"
-                    sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap', color: (th) => (r.delta > 0 ? th.palette.error.main : r.delta < 0 ? th.palette.success.main : th.palette.text.secondary) }}
+                    className={
+                      r.delta > 0
+                        ? 'whitespace-nowrap text-sm font-extrabold text-red-600 tabular-nums dark:text-red-400'
+                        : r.delta < 0
+                          ? 'whitespace-nowrap text-sm font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                          : 'whitespace-nowrap text-sm font-extrabold text-muted-foreground tabular-nums'
+                    }
                   >
                     {r.delta >= 0 ? '+' : '−'}{formatRial(Math.abs(r.delta))}
-                  </Typography>
-                </Box>
+                  </span>
+                </div>
               ))}
-            </Box>
+            </div>
           )}
-          <Box sx={{ mt: 2, p: 2, borderRadius: '12px', bgcolor: 'rgba(5,150,105,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 800, color: '#065f46' }}>قیمت نهایی این سانس</Typography>
-            <Typography variant="h6" sx={{ fontWeight: 900, color: 'success.main', fontVariantNumeric: 'tabular-nums' }}>{formatRial(result.final_price)}</Typography>
-          </Box>
+          <div className="mt-4 flex items-center justify-between rounded-xl bg-emerald-600/[0.08] p-4">
+            <span className="text-sm font-extrabold text-emerald-900 dark:text-emerald-300">قیمت نهایی این سانس</span>
+            <span className="text-lg font-black text-emerald-700 tabular-nums dark:text-emerald-400">{formatRial(result.final_price)}</span>
+          </div>
           {preview.isPending && <LoadingBoxCompact />}
-        </Box>
+        </div>
       )}
-    </Box>
+    </div>
   )
 }
 
 const LoadingBoxCompact: React.FC = () => (
-  <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.5 }}>
-    <CircularProgress size={20} sx={{ color: '#2563eb' }} />
-  </Box>
+  <div className="mt-3 flex justify-center">
+    <span
+      className="h-5 w-5 animate-spin rounded-full border-2 border-blue-600 border-t-transparent"
+      role="status"
+      aria-label="در حال بارگذاری"
+    />
+  </div>
 )
 
 export default PricingPreviewPanel

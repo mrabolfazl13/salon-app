@@ -1,25 +1,23 @@
 // frontend/src/components/membership/MembershipPurchaseDialog.tsx
 // دیالوگ خرید اشتراک باشگاه: فاکتور → فرم کارت → پردازش → موفقیت (الگوی PaymentDialog)
 import React, { useEffect, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  TextField,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 import { membershipService, type CardPayData } from '@/services/membership'
 import type { MembershipPlan, MembershipPurchase } from '@/types/membership'
 import { PLAN_TYPE_LABEL } from '@/types/membership'
 import { formatPrice } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import { Button } from '@/components/ui/shadcn/button'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
 
 // تبدیل ارقام فارسی/عربی به لاتین
 const toLatinDigits = (value: string): string =>
@@ -115,289 +113,211 @@ const MembershipPurchaseDialog: React.FC<Props> = ({ plan, venueName, open, onCl
   if (!plan) return null
 
   return (
-    <Dialog
-      aria-label="خرید اشتراک"
-      open={open}
-      onClose={() => step !== 'processing' && onClose()}
-      fullWidth
-      maxWidth="xs"
-      slotProps={{ paper: { sx: { borderRadius: '20px', p: 1 } } }}
-    >
-      <DialogTitle sx={{ pb: 1, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Icon icon="mdi:card-account-details-star" style={{ width: 22, height: 22, color: '#2563eb' }} />
-          <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            خرید اشتراک
-          </Typography>
-        </Box>
-        <Chip
-          label={PLAN_TYPE_LABEL[plan.plan_type]}
-          size="small"
-          sx={{
-            borderRadius: '8px',
-            fontWeight: 700,
-            bgcolor: 'rgba(124,58,237,0.1)',
-            color: '#7c3aed',
-          }}
-        />
-      </DialogTitle>
+    <Dialog open={open} onOpenChange={(next) => { if (!next && step !== 'processing') onClose() }}>
+      <DialogContent aria-label="خرید اشتراک" className="gap-4 sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="flex items-center justify-between gap-2">
+            <span className="flex items-center gap-2">
+              <Icon icon="mdi:card-account-details-star" style={{ width: 22, height: 22, color: '#2563eb' }} />
+              <span className="text-lg font-extrabold">خرید اشتراک</span>
+            </span>
+            <span className="rounded-lg bg-violet-600/10 px-2.5 py-1 text-xs font-bold text-violet-700 dark:text-violet-300">
+              {PLAN_TYPE_LABEL[plan.plan_type]}
+            </span>
+          </DialogTitle>
+        </DialogHeader>
 
-      <DialogContent sx={{ pt: 2 }}>
         {/* خلاصه پلن */}
-        <Box
-          sx={{
-            p: 2,
-            borderRadius: '14px',
-            bgcolor: 'rgba(37,99,235,0.05)',
-            border: '1px solid rgba(37,99,235,0.12)',
-            mb: 2.5,
-          }}
-        >
+        <div className="mb-2.5 rounded-[14px] border border-blue-600/[0.12] bg-blue-600/5 p-4">
           {venueName && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                سالن
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {venueName}
-              </Typography>
-            </Box>
+            <div className="mb-2 flex justify-between">
+              <span className="text-sm text-muted-foreground">سالن</span>
+              <span className="text-sm font-semibold">{venueName}</span>
+            </div>
           )}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              پلن
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {plan.title}
-            </Typography>
-          </Box>
+          <div className="mb-2 flex justify-between">
+            <span className="text-sm text-muted-foreground">پلن</span>
+            <span className="text-sm font-semibold">{plan.title}</span>
+          </div>
           {plan.sessions_count ? (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                تعداد جلسات
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            <div className="mb-2 flex justify-between">
+              <span className="text-sm text-muted-foreground">تعداد جلسات</span>
+              <span className="text-sm font-semibold">
                 {plan.sessions_count.toLocaleString('fa-IR')} جلسه
-              </Typography>
-            </Box>
+              </span>
+            </div>
           ) : null}
           {plan.duration_days ? (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-                مدت اعتبار
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+            <div className="mb-2 flex justify-between">
+              <span className="text-sm text-muted-foreground">مدت اعتبار</span>
+              <span className="text-sm font-semibold">
                 {plan.duration_days.toLocaleString('fa-IR')} روز
-              </Typography>
-            </Box>
+              </span>
+            </div>
           ) : null}
-          <Divider sx={{ my: 1 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-              مبلغ قابل پرداخت
-            </Typography>
-            <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>
+          <Separator className="my-2" />
+          <div className="flex items-center justify-between">
+            <span className="text-sm text-muted-foreground">مبلغ قابل پرداخت</span>
+            <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
               {formatPrice(plan.price)}
-            </Typography>
-          </Box>
-        </Box>
+            </span>
+          </div>
+        </div>
 
         {step === 'invoice' && (
-          <Box sx={{ textAlign: 'center', py: 1 }}>
+          <div className="py-1 text-center">
             {creating ? (
-              <CircularProgress size={28} />
+              <span
+                className="mx-auto block h-7 w-7 animate-spin rounded-full border-2 border-current border-t-transparent text-muted-foreground"
+                role="status"
+                aria-label="در حال بارگذاری"
+              />
             ) : (
               <>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+                <p className="mb-4 text-sm text-muted-foreground">
                   فاکتور شما آماده است. برای ادامه، اطلاعات کارت بانکی را وارد کنید.
-                </Typography>
+                </p>
                 <Button
-                  variant="contained"
-                  fullWidth
+                  type="button"
+                  variant="primary"
                   onClick={() => setStep('form')}
                   disabled={!purchase}
-                  sx={{
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    py: 1.4,
-                    fontWeight: 700,
-                    background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                  }}
+                  className="w-full rounded-xl py-3.5 font-bold"
                 >
-                  <Icon icon="mdi:credit-card-outline" style={{ width: 20, height: 20, marginLeft: 8 }} />
+                  <Icon icon="mdi:credit-card-outline" style={{ width: 20, height: 20 }} />
                   ورود به درگاه پرداخت
                 </Button>
               </>
             )}
-          </Box>
+          </div>
         )}
 
         {(step === 'form' || step === 'processing') && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, opacity: step === 'processing' ? 0.55 : 1 }}>
-            <TextField
-              label="شماره کارت"
-              placeholder="•••• •••• •••• ••••"
-              value={cardNumber}
-              onChange={(e) => setCardNumber(toLatinDigits(e.target.value).slice(0, 16))}
-              fullWidth
-              size="small"
-              inputMode="numeric"
-              slotProps={{
-                input: {
-                  startAdornment: (
-                    <Icon icon="mdi:credit-card-outline" style={{ width: 20, height: 20, marginLeft: 8, color: '#64748b' }} />
-                  ),
-                },
-              }}
-            />
-            <Box sx={{ display: 'flex', gap: 1.5 }}>
-              <TextField
-                label="CVV2"
-                value={cvv}
-                onChange={(e) => setCvv(toLatinDigits(e.target.value).slice(0, 4))}
-                size="small"
+          <div className={step === 'processing' ? 'flex flex-col gap-4 opacity-[0.55]' : 'flex flex-col gap-4'}>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="membership-card">شماره کارت</Label>
+              <Input
+                id="membership-card"
+                placeholder="•••• •••• •••• ••••"
+                value={cardNumber}
+                onChange={(e) => setCardNumber(toLatinDigits(e.target.value).slice(0, 16))}
                 inputMode="numeric"
-                sx={{ flex: 1 }}
+                startIcon={<Icon icon="mdi:credit-card-outline" style={{ width: 20, height: 20 }} />}
               />
-              <TextField
-                label="ماه"
-                value={month}
-                onChange={(e) => setMonth(toLatinDigits(e.target.value).slice(0, 2))}
-                size="small"
-                inputMode="numeric"
-                placeholder="۱۲"
-                sx={{ flex: 1 }}
-              />
-              <TextField
-                label="سال"
-                value={year}
-                onChange={(e) => setYear(toLatinDigits(e.target.value).slice(0, 4))}
-                size="small"
-                inputMode="numeric"
-                placeholder="۱۴۰۵"
-                sx={{ flex: 1 }}
-              />
-            </Box>
-          </Box>
+            </div>
+            <div className="flex gap-3">
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Label htmlFor="membership-cvv">CVV2</Label>
+                <Input
+                  id="membership-cvv"
+                  value={cvv}
+                  onChange={(e) => setCvv(toLatinDigits(e.target.value).slice(0, 4))}
+                  inputMode="numeric"
+                />
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Label htmlFor="membership-month">ماه</Label>
+                <Input
+                  id="membership-month"
+                  value={month}
+                  onChange={(e) => setMonth(toLatinDigits(e.target.value).slice(0, 2))}
+                  inputMode="numeric"
+                  placeholder="۱۲"
+                />
+              </div>
+              <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+                <Label htmlFor="membership-year">سال</Label>
+                <Input
+                  id="membership-year"
+                  value={year}
+                  onChange={(e) => setYear(toLatinDigits(e.target.value).slice(0, 4))}
+                  inputMode="numeric"
+                  placeholder="۱۴۰۵"
+                />
+              </div>
+            </div>
+          </div>
         )}
 
         {step === 'success' && purchase && (
-          <Box sx={{ textAlign: 'center', py: 1 }}>
-            <Box
-              sx={{
-                width: 64,
-                height: 64,
-                borderRadius: '50%',
-                bgcolor: 'rgba(76,175,80,0.12)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                mx: 'auto',
-                mb: 2,
-              }}
-            >
+          <div className="py-1 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/[0.12]">
               <Icon icon="mdi:check-circle" style={{ width: 34, height: 34, color: '#22c55e' }} />
-            </Box>
-            <Typography variant="subtitle1" sx={{ fontWeight: 800, mb: 0.5 }}>
+            </div>
+            <p className="mb-0.5 text-base font-extrabold">
               اشتراک فعال شد!
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+            </p>
+            <p className="mb-4 text-sm text-muted-foreground">
               {plan.plan_type === 'monthly'
                 ? 'اعتبار اشتراک ماهانه از همین حالا آغاز شده است.'
                 : 'برای استفاده، در ورود به باشگاه به مدیر سالن نشان دهید.'}
-            </Typography>
-            <Box
-              sx={{
-                p: 1.5,
-                borderRadius: '12px',
-                bgcolor: 'rgba(15,23,42,0.03)',
-                textAlign: 'right',
-                display: 'flex',
-                flexDirection: 'column',
-                gap: 0.75,
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                  کد پیگیری
-                </Typography>
-                <Typography variant="caption" sx={{ fontWeight: 700, direction: 'ltr' }}>
-                  {purchase.transaction_id}
-                </Typography>
-              </Box>
+            </p>
+            <div className="flex flex-col gap-1.5 rounded-xl bg-slate-900/[0.03] p-3 text-start dark:bg-white/5">
+              <div className="flex justify-between">
+                <span className="text-xs text-muted-foreground">کد پیگیری</span>
+                <span className="text-xs font-bold" dir="ltr">{purchase.transaction_id}</span>
+              </div>
               {purchase.sessions_remaining != null && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    جلسات باقی‌مانده
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                <div className="flex justify-between">
+                  <span className="text-xs text-muted-foreground">جلسات باقی‌مانده</span>
+                  <span className="text-xs font-bold">
                     {purchase.sessions_remaining.toLocaleString('fa-IR')}
-                  </Typography>
-                </Box>
+                  </span>
+                </div>
               )}
               {purchase.expires_at && (
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-                    انقضا
-                  </Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                <div className="flex justify-between">
+                  <span className="text-xs text-muted-foreground">انقضا</span>
+                  <span className="text-xs font-bold">
                     {new Date(purchase.expires_at).toLocaleDateString('fa-IR')}
-                  </Typography>
-                </Box>
+                  </span>
+                </div>
               )}
-            </Box>
-          </Box>
+            </div>
+          </div>
         )}
-      </DialogContent>
 
-      <DialogActions sx={{ px: 3, pb: 2.5, gap: 1 }}>
-        {step === 'success' ? (
-          <Button
-            fullWidth
-            variant="contained"
-            onClick={onClose}
-            sx={{
-              borderRadius: '12px',
-              textTransform: 'none',
-              py: 1.2,
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-            }}
-          >
-            بستن
-          </Button>
-        ) : (
-          <>
-            <Button onClick={onClose} disabled={step === 'processing'} variant="text" sx={{ textTransform: 'none', borderRadius: '10px' }}>
-              انصراف
+        <DialogFooter className="gap-2">
+          {step === 'success' ? (
+            <Button type="button" onClick={onClose} className="w-full rounded-xl py-3 font-bold">
+              بستن
             </Button>
-            {step === 'form' && (
+          ) : (
+            <>
               <Button
-                variant="contained"
-                onClick={handlePay}
-                sx={{
-                  borderRadius: '12px',
-                  textTransform: 'none',
-                  px: 3,
-                  fontWeight: 700,
-                  background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                }}
+                type="button"
+                variant="ghost"
+                onClick={onClose}
+                disabled={step === 'processing'}
               >
-                <Icon icon="mdi:bank-outline" style={{ width: 18, height: 18, marginLeft: 6 }} />
-                پرداخت
+                انصراف
               </Button>
-            )}
-            {step === 'processing' && (
-              <Button variant="contained" disabled sx={{ borderRadius: '12px', textTransform: 'none', px: 3 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={18} sx={{ color: 'white' }} />
-                  در حال پرداخت…
-                </Box>
-              </Button>
-            )}
-          </>
-        )}
-      </DialogActions>
+              {step === 'form' && (
+                <Button
+                  type="button"
+                  onClick={handlePay}
+                  className="px-6 font-bold"
+                >
+                  <Icon icon="mdi:bank-outline" style={{ width: 18, height: 18 }} />
+                  پرداخت
+                </Button>
+              )}
+              {step === 'processing' && (
+                <Button type="button" disabled className="px-6">
+                  <span className="flex items-center gap-2">
+                    <span
+                      className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-current border-t-transparent"
+                      role="status"
+                      aria-label="در حال بارگذاری"
+                    />
+                    در حال پرداخت…
+                  </span>
+                </Button>
+              )}
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   )
 }

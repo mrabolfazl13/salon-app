@@ -1,4 +1,4 @@
-// frontend/src/pages/manager/pricing/ManagerPricing.tsx
+// src/pages/manager/pricing/ManagerPricing.tsx
 // بخش «قیمت‌گذاری» مدیر — مسیر /manager/pricing (گیت venue_manager مثل /finance).
 // سه تب: قوانین قیمت (شامل مبنای سالن و پیش‌نمایش موتور قیمت)، تعطیلات، کدهای تخفیف.
 
@@ -6,18 +6,6 @@ import React, { useMemo, useState } from 'react'
 import { Link, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Button,
-  CircularProgress,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Tab,
-  Tabs,
-  Typography,
-} from '@mui/material'
 
 import Layout from '@/components/layout/Layout'
 import { ErrorBox } from '@/components/finance/shared'
@@ -27,9 +15,24 @@ import PricingRulesTab from '@/components/pricing/PricingRulesTab'
 import HolidaysTab from '@/components/pricing/HolidaysTab'
 import CouponsTab from '@/components/pricing/CouponsTab'
 import PricingInsightsTab from '@/components/pricing/PricingInsightsTab'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
 
 const TAB_KEYS = ['rules', 'insights', 'holidays', 'coupons'] as const
 type TabKey = (typeof TAB_KEYS)[number]
+
+const TAB_ITEMS: { value: TabKey; icon: string; text: string }[] = [
+  { value: 'rules', icon: 'mdi:tag-percent-outline', text: 'قوانین قیمت' },
+  { value: 'insights', icon: 'mdi:chart-bubble', text: 'تقاضا و پیشنهاد' },
+  { value: 'holidays', icon: 'mdi:calendar-multiple', text: 'تعطیلات' },
+  { value: 'coupons', icon: 'mdi:ticket-percent-outline', text: 'کدهای تخفیف' },
+]
 
 const ManagerPricing: React.FC = () => {
   const [searchParams, setSearchParams] = useSearchParams()
@@ -52,67 +55,46 @@ const ManagerPricing: React.FC = () => {
     setSearchParams(value === 'rules' ? {} : { tab: value }, { replace: true })
   }
 
+  const loading = (
+    <div className="flex justify-center py-12">
+      <span className="h-8 w-8 animate-spin rounded-full border-[3px] border-blue-600 border-t-transparent" role="status" aria-label="در حال بارگذاری" />
+    </div>
+  )
+
   return (
     <Layout userRole="venue_manager">
-      <Box sx={{ minHeight: '100vh', background: 'linear-gradient(180deg, #f0f5ff 0%, #ffffff 100%)' }}>
-        <Box
-          sx={{
-            background: 'linear-gradient(135deg, #1e3a5f 0%, #7c3aed 55%, #d97706 100%)',
-            pt: { xs: 4, md: 5 },
-            pb: { xs: 7, md: 8 },
-            position: 'relative',
-            overflow: 'hidden',
-            mx: { xs: -2, sm: -3, md: -4 },
-            px: { xs: 2, sm: 3, md: 4 },
-          }}
-        >
-          <Box sx={{ maxWidth: 1200, mx: 'auto' }}>
+      <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-slate-950 dark:to-background">
+        <div className="relative -mx-4 overflow-hidden bg-gradient-to-br from-[#1e3a5f] via-violet-600 to-amber-600 px-4 pb-14 pt-8 sm:-mx-6 sm:px-6 md:-mx-8 md:px-8 md:pb-16 md:pt-10">
+          <div className="mx-auto max-w-[1200px]">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
-                <Box>
-                  <Typography component="h1" variant="h3" sx={{ fontWeight: 800, color: 'white', mb: 1, fontSize: { xs: '1.5rem', md: '1.9rem' } }}>
+              <div className="flex flex-wrap items-start justify-between gap-4">
+                <div>
+                  <h1 className="mb-2 text-2xl font-extrabold text-white md:text-[1.9rem]">
                     قیمت‌گذاری
-                  </Typography>
-                  <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.72)' }}>
+                  </h1>
+                  <p className="text-sm text-white/70">
                     قوانین داینامیک قیمت، تقویم تعطیلات و کدهای تخفیف — قیمت فقط سمت سرور محاسبه می‌شود
-                  </Typography>
-                </Box>
-                <Button
-                  component={Link}
+                  </p>
+                </div>
+                <Link
                   to="/manager-dashboard"
-                  variant="contained"
-                  sx={{
-                    borderRadius: '12px',
-                    textTransform: 'none',
-                    px: 2.5,
-                    py: 1,
-                    fontWeight: 700,
-                    fontSize: '0.85rem',
-                    background: 'rgba(255,255,255,0.15)',
-                    border: '1px solid rgba(255,255,255,0.2)',
-                    color: 'white',
-                    '&:hover': { background: 'rgba(255,255,255,0.25)' },
-                  }}
-                  startIcon={<Icon icon="mdi:store-outline" className="h-4 w-4" />}
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-5 py-2 text-[0.85rem] font-bold text-white transition-colors hover:bg-white/25"
                 >
+                  <Icon icon="mdi:store-outline" aria-hidden="true" className="h-4 w-4" />
                   پنل مدیریت
-                </Button>
-              </Box>
+                </Link>
+              </div>
             </motion.div>
-          </Box>
-        </Box>
+          </div>
+        </div>
 
-        <Box sx={{ maxWidth: 1200, mx: 'auto', px: { xs: 2, md: 4 }, mt: -5, position: 'relative', zIndex: 2, pb: 6 }}>
+        <div className="relative z-[2] mx-auto -mt-10 max-w-[1200px] px-4 pb-12 md:px-8">
           {!pricingAccess.ready ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-              <CircularProgress sx={{ color: '#2563eb' }} />
-            </Box>
+            loading
           ) : !pricingAccess.allowed ? (
             <ForbiddenPanel detail="برای قیمت‌گذاری باید مدیر سالن باشید یا در یک سالن با دسترسی pricing.manage/holiday.manage/coupon.manage انتصاب شوید." />
           ) : venuesQuery.isPending ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 6 }}>
-              <CircularProgress sx={{ color: '#2563eb' }} />
-            </Box>
+            loading
           ) : venuesQuery.isError ? (
             isForbiddenError(venuesQuery.error) ? (
               <ForbiddenPanel detail="برای قیمت‌گذاری باید مدیر سالن باشید یا در یک سالن با دسترسی pricing.manage/holiday.manage/coupon.manage انتصاب شوید." />
@@ -122,61 +104,39 @@ const ManagerPricing: React.FC = () => {
           ) : (
             <>
               {venues.length === 0 && (
-                <Box sx={{ bgcolor: 'rgba(255,255,255,0.94)', borderRadius: '18px', p: 2, mb: 2, border: '1px solid rgba(0,0,0,0.05)' }}>
+                <div className="mb-4 rounded-[18px] border border-border bg-card/95 p-4">
                   <ForbiddenPanel detail="شما سالنی تحت مدیریت ندارید و در هیچ سالنی انتصاب کارمندی فعال ندارید." />
-                </Box>
+                </div>
               )}
 
-              <Box
-                sx={{
-                  display: 'flex',
-                  gap: 2,
-                  flexWrap: 'wrap',
-                  alignItems: 'center',
-                  bgcolor: 'rgba(255,255,255,0.92)',
-                  borderRadius: '16px',
-                  border: '1px solid rgba(0,0,0,0.05)',
-                  boxShadow: '0 8px 28px rgba(15,23,42,0.06)',
-                  px: { xs: 2, md: 2.5 },
-                  py: 1.5,
-                  mb: 3,
-                }}
-              >
-                <Tabs
-                  value={tab}
-                  onChange={(_, v) => changeTab(v)}
-                  variant="scrollable"
-                  scrollButtons={false}
-                  sx={{
-                    flex: 1,
-                    minWidth: 260,
-                    '& .MuiTabs-indicator': { borderRadius: '4px 4px 0 0' },
-                    '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, fontSize: '0.88rem', minHeight: 52 },
-                  }}
-                >
-                  <Tab value="rules" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:tag-percent-outline" className="h-4 w-4" />قوانین قیمت</Box>} />
-                  <Tab value="insights" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:chart-bubble" className="h-4 w-4" />تقاضا و پیشنهاد</Box>} />
-                  <Tab value="holidays" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:calendar-multiple" className="h-4 w-4" />تعطیلات</Box>} />
-                  <Tab value="coupons" label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:ticket-percent-outline" className="h-4 w-4" />کدهای تخفیف</Box>} />
+              <div className="mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-[0_8px_28px_rgba(15,23,42,0.06)] md:px-5">
+                <Tabs value={tab} onValueChange={(v) => changeTab(v as TabKey)} className="min-w-[260px] flex-1">
+                  <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {TAB_ITEMS.map((item) => (
+                      <TabsTrigger key={item.value} value={item.value} className="min-h-12 gap-2 whitespace-nowrap px-3 text-[0.88rem] font-bold">
+                        <Icon icon={item.icon} aria-hidden="true" className="h-4 w-4" />
+                        {item.text}
+                      </TabsTrigger>
+                    ))}
+                  </TabsList>
                 </Tabs>
 
                 {venues.length > 0 && (
-                  <FormControl size="small" sx={{ minWidth: 200 }}>
-                    <InputLabel id="mp-venue-label">سالن</InputLabel>
-                    <Select
-                      labelId="mp-venue-label"
-                      label="سالن"
-                      value={selectedVenue ?? ''}
-                      onChange={(e) => setVenueId(Number(e.target.value))}
-                      sx={{ borderRadius: '10px' }}
-                    >
+                  <Select
+                    value={selectedVenue != null ? String(selectedVenue) : undefined}
+                    onValueChange={(v) => setVenueId(Number(v))}
+                  >
+                    <SelectTrigger aria-label="سالن" className="min-w-[200px] rounded-[10px]">
+                      <SelectValue placeholder="سالن" />
+                    </SelectTrigger>
+                    <SelectContent>
                       {venues.map((v) => (
-                        <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                        <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
                       ))}
-                    </Select>
-                  </FormControl>
+                    </SelectContent>
+                  </Select>
                 )}
-              </Box>
+              </div>
 
               {venues.length > 0 && (
                 <>
@@ -188,8 +148,8 @@ const ManagerPricing: React.FC = () => {
               )}
             </>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Layout>
   )
 }

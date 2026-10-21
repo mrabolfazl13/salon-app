@@ -4,7 +4,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Paper, Chip } from '@mui/material'
 import toast from 'react-hot-toast'
 
 import Layout from '@/components/layout/Layout'
@@ -14,7 +13,6 @@ import GameFormDialog from '@/components/game/GameFormDialog'
 import { formatGameDateTime } from '@/components/game/shared'
 import { bookingService } from '@/services/booking'
 import { formatPrice } from '@/utils/helpers'
-import { radii, shadows } from '@/theme'
 
 // شکل رزرو از سمت بک‌اند (snake_case)
 interface ApiBooking {
@@ -31,52 +29,28 @@ interface ApiBooking {
 }
 
 const BookingRow: React.FC<{ booking: ApiBooking; onSelect: () => void }> = ({ booking, onSelect }) => (
-  <Paper
-    elevation={0}
-    sx={{
-      p: 2,
-      borderRadius: `${radii.card}px`,
-      boxShadow: shadows.card,
-      display: 'flex',
-      alignItems: 'center',
-      gap: 1.5,
-      flexWrap: 'wrap',
-    }}
-  >
-    <Box
-      sx={{
-        width: 42,
-        height: 42,
-        borderRadius: '12px',
-        background: 'linear-gradient(135deg, #10b981, #059669)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}
-    >
-      <Icon icon="mdi:calendar-check" style={{ width: 22, height: 22, color: '#fff' }} />
-    </Box>
-    <Box sx={{ minWidth: 0, flex: 1 }}>
-      <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: '#0f172a' }} noWrap>
+  <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+    <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
+      <Icon icon="mdi:calendar-check" aria-hidden="true" className="h-[22px] w-[22px] text-white" />
+    </span>
+    <div className="min-w-0 flex-1">
+      <p className="truncate text-[0.9rem] font-bold text-foreground">
         {booking.venue_name || `رزرو #${booking.id}`}
-      </Typography>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
-        <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+      </p>
+      <div className="mt-1 flex flex-wrap items-center gap-2">
+        <p className="text-xs text-muted-foreground">
           {formatGameDateTime(booking.slot_date, booking.start_time)}
           {booking.duration ? ` · ${booking.duration} دقیقه` : ''}
-        </Typography>
-        <Chip
-          label={formatPrice(booking.payment_amount)}
-          size="small"
-          sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: '#ecfdf5', color: 'success.main' }}
-        />
-      </Box>
-    </Box>
+        </p>
+        <span className="inline-flex h-5 items-center rounded-full bg-emerald-50 px-2 text-xs font-bold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+          {formatPrice(booking.payment_amount)}
+        </span>
+      </div>
+    </div>
     <Button size="sm" variant="gradient" icon="mdi:gamepad-variant" onClick={onSelect}>
       ساخت بازی
     </Button>
-  </Paper>
+  </div>
 )
 
 const GameCreate: React.FC = () => {
@@ -107,16 +81,16 @@ const GameCreate: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ py: 3 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
+      <div className="py-6">
+        <div className="mb-4 flex items-center gap-3">
           <IconButtonBack onClick={() => navigate(-1)} />
-          <Box sx={{ minWidth: 0 }}>
-            <Typography component="h1" sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a' }}>ساخت بازی</Typography>
-            <Typography sx={{ fontSize: '0.8rem', color: '#64748b', mt: 0.25 }}>
+          <div className="min-w-0">
+            <h1 className="text-xl font-extrabold text-foreground">ساخت بازی</h1>
+            <p className="mt-1 text-[0.8rem] text-muted-foreground">
               ابتدا یکی از رزروهای تأییدشده‌ی خود را انتخاب کنید؛ بازی روی همان رزرو ساخته می‌شود.
-            </Typography>
-          </Box>
-        </Box>
+            </p>
+          </div>
+        </div>
 
         {error ? (
           <ErrorState
@@ -125,27 +99,27 @@ const GameCreate: React.FC = () => {
             onRetry={fetchBookings}
           />
         ) : loading ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div className="flex flex-col gap-4">
             {[1, 2, 3].map((i) => (
-              <Shimmer key={i} variant="rectangular" height={86} sx={{ borderRadius: `${radii.card}px` }} />
+              <Shimmer key={i} variant="rectangular" height={86} className="rounded-2xl" />
             ))}
-          </Box>
+          </div>
         ) : bookings.length === 0 ? (
           <EmptyState
-            emoji="📅"
+            icon="mdi:calendar-blank-outline"
             title="رزرو تأییدشده‌ای ندارید"
             description="برای ساخت بازی باید ابتدا یک سانس را رزرو و تأیید کنید."
             actionLabel="رفتن به رزروها"
             onAction={() => navigate('/bookings')}
           />
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div className="flex flex-col gap-4">
             {bookings.map((b) => (
               <BookingRow key={String(b.id)} booking={b} onSelect={() => setSelected(b)} />
             ))}
-          </Box>
+          </div>
         )}
-      </Box>
+      </div>
 
       <GameFormDialog
         open={selected !== null}
@@ -166,26 +140,14 @@ const GameCreate: React.FC = () => {
 }
 
 const IconButtonBack: React.FC<{ onClick: () => void }> = ({ onClick }) => (
-  <Box
-    component="button"
+  <button
     type="button"
     aria-label="بازگشت"
     onClick={onClick}
-    sx={{
-      width: 44,
-      height: 44,
-      borderRadius: '50%',
-      border: '1px solid #e2e8f0',
-      bgcolor: '#fff',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      cursor: 'pointer',
-      flexShrink: 0,
-    }}
+    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
   >
-    <Icon icon="mdi:arrow-right" style={{ width: 20, height: 20, color: '#0f172a' }} />
-  </Box>
+    <Icon icon="mdi:arrow-right" aria-hidden="true" className="h-5 w-5" />
+  </button>
 )
 
 export default GameCreate

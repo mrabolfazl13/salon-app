@@ -3,8 +3,8 @@
 // base → قوانین → (تطبیق سرور) → دیل → کوپن → امتیاز → قابل پرداخت. همه ارقام سمت سرور.
 
 import React, { useId, useState } from 'react'
-import { Box, Collapse, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
+import { cn } from '@/lib/utils'
 import { formatRial } from '@/components/finance/shared'
 import { toPersianDigits } from '@/lib/jalali'
 
@@ -65,27 +65,31 @@ export function normalizeBreakdown(raw: unknown): BreakdownStep[] | null {
 const AmountRow: React.FC<{ label: React.ReactNode; amount: number; strong?: boolean; subRow?: boolean }> = ({ label, amount, strong = false, subRow = false }) => {
   const zero = amount === 0
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1.5, py: subRow ? 0.2 : 0.55, pe: subRow ? 3 : 0 }}>
-      <Typography
-        variant={subRow ? 'caption' : 'body2'}
-        sx={{ color: subRow ? 'text.secondary' : strong ? '#0f172a' : '#334155', fontWeight: strong ? 800 : subRow ? 400 : 600, minWidth: 0 }}
-        noWrap
+    <div className={cn('flex items-center justify-between gap-3', subRow ? 'py-0.5 pe-6' : 'py-1 pe-0')}>
+      <span
+        className={cn(
+          'min-w-0 truncate',
+          subRow
+            ? 'text-xs font-normal text-muted-foreground'
+            : strong
+              ? 'text-sm font-extrabold text-foreground'
+              : 'text-sm font-semibold text-slate-700 dark:text-slate-300'
+        )}
       >
         {label}
-      </Typography>
-      <Typography
+      </span>
+      <span
         dir="rtl"
-        variant={subRow ? 'caption' : 'body2'}
-        sx={{
-          fontWeight: strong ? 900 : 700,
-          fontVariantNumeric: 'tabular-nums',
-          whiteSpace: 'nowrap',
-          color: zero ? '#64748b' : amount > 0 ? '#dc2626' : '#059669',
-        }}
+        className={cn(
+          'whitespace-nowrap tabular-nums',
+          subRow ? 'text-xs' : 'text-sm',
+          strong ? 'font-black' : 'font-bold',
+          zero ? 'text-muted-foreground' : amount > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
+        )}
       >
         {amount > 0 ? `+${formatRial(amount)}` : amount < 0 ? `−${formatRial(Math.abs(amount))}` : formatRial(0)}
-      </Typography>
-    </Box>
+      </span>
+    </div>
   )
 }
 
@@ -95,79 +99,74 @@ const PricingBreakdown: React.FC<{ steps: BreakdownStep[]; payable: number | nul
   if (!steps || steps.length === 0) return null
 
   return (
-    <Box
-      sx={{
-        borderRadius: '14px',
-        border: '1px solid rgba(15,23,42,0.08)',
-        background: 'rgba(255,255,255,0.7)',
-        overflow: 'hidden',
-      }}
-    >
-      <Box
+    <div className="overflow-hidden rounded-[14px] border border-border bg-white/70 dark:bg-white/[0.03]">
+      <div
         role="button"
         tabIndex={0}
         aria-expanded={open}
         aria-controls={panelId}
         onClick={() => setOpen((o) => !o)}
         onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setOpen((o) => !o) } }}
-        sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, px: 1.75, py: 1.25, cursor: 'pointer', userSelect: 'none' }}
+        className="flex cursor-pointer select-none items-center justify-between gap-2 px-3.5 py-2.5"
       >
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <div className="flex items-center gap-2">
           <Icon icon="mdi:receipt-text-outline" style={{ width: 18, height: 18, color: '#2563eb' }} />
-          <Typography variant="body2" sx={{ fontWeight: 800 }}>جزئیات قیمت</Typography>
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+          <span className="text-sm font-extrabold text-foreground">جزئیات قیمت</span>
+        </div>
+        <div className="flex items-center gap-1">
           {isNumber(payable) && (
-            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+            <span className="text-sm text-muted-foreground">
               قابل پرداخت:{' '}
-              <b style={{ color: '#047857', fontVariantNumeric: 'tabular-nums' }}>{formatRial(payable)}</b>
-            </Typography>
+              <b className="tabular-nums text-emerald-700 dark:text-emerald-400">{formatRial(payable)}</b>
+            </span>
           )}
           {/* ردیف خودش role=button است؛ دکمهٔ تودرتو یک tab stop تکراری می‌سازد */}
           <Icon icon={open ? 'mdi:chevron-up' : 'mdi:chevron-down'} aria-hidden="true" style={{ width: 18, height: 18, color: '#64748b' }} />
-        </Box>
-      </Box>
-      <Collapse in={open}>
-        <Box id={panelId} sx={{ px: 1.75, pb: 1.5, borderTop: '1px dashed rgba(15,23,42,0.08)' }}>
-          {steps.map((s, i) => {
-            const label =
-              s.step === 'coupon' && s.code
-                ? `کد تخفیف (${s.code})`
-                : s.step === 'loyalty' && s.points
-                  ? `امتیاز وفاداری (${toPersianDigits(s.points)} امتیاز)`
-                  : STEP_LABELS[s.step] ?? s.step
-            return (
-              <Box key={`${s.step}-${i}`}>
-                <AmountRow label={label} amount={i === 0 ? s.amount : s.amount} />
-                {s.step === 'pricing_rules' && Array.isArray(s.rules) && (s.rules as BreakdownRuleEntry[]).length > 0 && (
-                  <Box>
-                    {(s.rules as BreakdownRuleEntry[]).map((r, ri) => (
-                      <AmountRow
-                        key={`${r.rule_id}-${ri}`}
-                        subRow
-                        label={
-                          <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}>
-                            <Icon icon="mdi:tag-outline" style={{ width: 12, height: 12, opacity: 0.6 }} />
-                            {r.label || `قانون #${toPersianDigits(r.rule_id)}`}
-                            <Box component="span" sx={{ color: 'text.secondary' }}>
-                              {r.modifier_type === 'percent'
-                                ? `${toPersianDigits((r.value / 100).toLocaleString('fa-IR', { maximumFractionDigits: 1 }))}٪`
-                                : MODIFIER_FA[r.modifier_type] ?? ''}
-                            </Box>
-                          </Box>
-                        }
-                        amount={r.delta}
-                      />
-                    ))}
-                  </Box>
-                )}
-              </Box>
-            )
-          })}
-          {isNumber(payable) && <AmountRow label="💳 مبلغ قابل پرداخت" amount={payable} strong />}
-        </Box>
-      </Collapse>
-    </Box>
+        </div>
+      </div>
+      <div className={cn('grid transition-all duration-200', open ? 'grid-rows-[1fr]' : 'grid-rows-[0fr]')}>
+        <div className="overflow-hidden">
+          <div id={panelId} className="border-t border-dashed border-border px-3.5 pb-3">
+            {steps.map((s, i) => {
+              const label =
+                s.step === 'coupon' && s.code
+                  ? `کد تخفیف (${s.code})`
+                  : s.step === 'loyalty' && s.points
+                    ? `امتیاز وفاداری (${toPersianDigits(s.points)} امتیاز)`
+                    : STEP_LABELS[s.step] ?? s.step
+              return (
+                <div key={`${s.step}-${i}`}>
+                  <AmountRow label={label} amount={s.amount} />
+                  {s.step === 'pricing_rules' && Array.isArray(s.rules) && (s.rules as BreakdownRuleEntry[]).length > 0 && (
+                    <div>
+                      {(s.rules as BreakdownRuleEntry[]).map((r, ri) => (
+                        <AmountRow
+                          key={`${r.rule_id}-${ri}`}
+                          subRow
+                          label={
+                            <span className="inline-flex items-center gap-2">
+                              <Icon icon="mdi:tag-outline" style={{ width: 12, height: 12, opacity: 0.6 }} />
+                              {r.label || `قانون #${toPersianDigits(r.rule_id)}`}
+                              <span className="text-muted-foreground">
+                                {r.modifier_type === 'percent'
+                                  ? `${toPersianDigits((r.value / 100).toLocaleString('fa-IR', { maximumFractionDigits: 1 }))}٪`
+                                  : MODIFIER_FA[r.modifier_type] ?? ''}
+                              </span>
+                            </span>
+                          }
+                          amount={r.delta}
+                        />
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )
+            })}
+            {isNumber(payable) && <AmountRow label="💳 مبلغ قابل پرداخت" amount={payable} strong />}
+          </div>
+        </div>
+      </div>
+    </div>
   )
 }
 

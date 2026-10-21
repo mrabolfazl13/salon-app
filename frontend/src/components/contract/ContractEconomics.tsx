@@ -2,9 +2,10 @@
 // خلاصه‌ی اقتصادی قرارداد — سانس مؤثر (کل منهای مستثنا)، پرداختی/مانده، بنر معوق.
 
 import React from 'react'
-import { Alert, Box, LinearProgress, Typography } from '@mui/material'
 import { KpiCard } from '@/components/finance/shared'
 import { formatRial, toPersianDigits } from '@/components/contract/shared'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Progress } from '@/components/ui/shadcn/progress'
 import type { ContractEconomicsData } from '@/services/contract'
 
 const ContractEconomics: React.FC<{
@@ -15,22 +16,15 @@ const ContractEconomics: React.FC<{
   const paidPct = totalAmount > 0 ? Math.min(100, Math.round((economics.paid_amount / totalAmount) * 100)) : 0
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <div className="flex flex-col gap-3">
       {economics.overdue && (
-        <Alert
-          severity="warning"
-          sx={{ borderRadius: '12px', fontWeight: 600 }}
-        >
-          هشدار: حداقل یک قسط از سررسید گذشته است — هرچه زودتر برای پرداخت اقدام کنید.
+        <Alert variant="warning" className="rounded-xl font-semibold">
+          <AlertDescription>
+            هشدار: حداقل یک قسط از سررسید گذشته است — هرچه زودتر برای پرداخت اقدام کنید.
+          </AlertDescription>
         </Alert>
       )}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
-          gap: 1.5,
-        }}
-      >
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard
           label="سانس‌های قرارداد"
           sub={economics.excluded_sessions > 0
@@ -59,31 +53,24 @@ const ContractEconomics: React.FC<{
           icon="mdi:book-alert-outline"
           color={economics.remaining_amount > 0 ? '#d97706' : '#059669'}
         />
-      </Box>
-      <Box sx={{ px: 0.5 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-          <Typography variant="caption" color="text.secondary">پیشرفت مالی</Typography>
-          <Typography variant="caption" sx={{ fontWeight: 700 }}>{toPersianDigits(paidPct)}٪</Typography>
-        </Box>
-        <LinearProgress
-          variant="determinate"
+      </div>
+      <div className="px-1">
+        <div className="mb-1 flex justify-between">
+          <span className="text-xs text-muted-foreground">پیشرفت مالی</span>
+          <span className="text-xs font-bold text-foreground">{toPersianDigits(paidPct)}٪</span>
+        </div>
+        <Progress
           value={paidPct}
           aria-label="پیشرفت مالی قرارداد"
           aria-valuetext={`${toPersianDigits(paidPct)}٪ پرداخت‌شده`}
-          sx={{
-            height: 8,
-            borderRadius: '8px',
-            bgcolor: 'rgba(0,0,0,0.06)',
-            '& .MuiLinearProgress-bar': {
-              borderRadius: '8px',
-              background: paidPct >= 100
-                ? 'linear-gradient(90deg, #059669, #10b981)'
-                : 'linear-gradient(90deg, #2563eb, #7c3aed)',
-            },
-          }}
+          className={
+            paidPct >= 100
+              ? 'h-2 rounded-lg bg-black/5 [&>div]:rounded-lg [&>div]:bg-gradient-to-l [&>div]:from-emerald-600 [&>div]:to-emerald-400 dark:bg-white/10'
+              : 'h-2 rounded-lg bg-black/5 [&>div]:rounded-lg [&>div]:bg-gradient-to-l [&>div]:from-blue-600 [&>div]:to-violet-600 dark:bg-white/10'
+          }
         />
-      </Box>
-    </Box>
+      </div>
+    </div>
   )
 }
 

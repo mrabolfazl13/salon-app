@@ -1,29 +1,25 @@
 // frontend/src/components/bookings/ManagerReceiptDialogs.tsx
 // دیالوگ‌های مدیر: بررسی/رد فیش واریزی + ثبت دریافت وجه در محل
 import React, { useEffect, useState } from 'react'
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  FormControl,
-  InputLabel,
-  Link,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import { bookingService } from '@/services/booking'
 import { extractError, parseAmountInput, TX_METHOD_LABELS } from '@/components/finance/shared'
 import { formatDateTime, formatPrice, translatePaymentError } from '@/lib/utils'
 import type { PayInPersonMethod } from '@/types/booking'
+import { Alert } from '@/components/ui/shadcn/alert'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/shadcn/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
 
 interface ReceiptDetail {
   id: number
@@ -38,15 +34,15 @@ interface ReceiptDetail {
 
 const IN_PERSON_METHODS: PayInPersonMethod[] = ['cash', 'card_to_card', 'pos', 'gateway', 'credit', 'other']
 
-const dialogPaper = { sx: { borderRadius: '20px', overflow: 'hidden' } }
-
 const Header: React.FC<{ icon: string; title: string; gradient: string }> = ({ icon, title, gradient }) => (
-  <Box sx={{ background: gradient, px: 3, py: 2.5 }}>
-    <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Icon icon={icon} className="h-5 w-5" />
-      {title}
-    </Typography>
-  </Box>
+  <div className="px-6 py-5" style={{ background: gradient }}>
+    <DialogHeader>
+      <DialogTitle className="flex items-center gap-2 pe-10 text-lg font-bold text-white">
+        <Icon icon={icon} className="h-5 w-5" />
+        {title}
+      </DialogTitle>
+    </DialogHeader>
+  </div>
 )
 
 // ───────────────────────── بررسی فیش واریزی ─────────────────────────
@@ -120,114 +116,110 @@ export const ReceiptReviewDialog: React.FC<{
   }
 
   return (
-    <Dialog aria-label="بررسی فیش واریزی" open={open} onClose={busy ? undefined : onClose} maxWidth="sm" fullWidth slotProps={{ paper: dialogPaper }}>
-      <Header icon="mdi:receipt-text-check-outline" title={`بررسی فیش واریزی${venueName ? ` — ${venueName}` : ''}`} gradient="linear-gradient(135deg, #d97706, #f59e0b)" />
-      <DialogContent sx={{ pt: 3, pb: 1 }}>
-        {loading ? (
-          <Box sx={{ textAlign: 'center', py: 5 }}>
-            <CircularProgress size={32} />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>در حال دریافت جزئیات فیش...</Typography>
-          </Box>
-        ) : loadError ? (
-          <Alert severity="error" sx={{ borderRadius: '12px' }}>{loadError}</Alert>
-        ) : (
-          <>
-            <Box sx={{ display: 'flex', gap: 2.5, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-              <Box sx={{ flex: 1, minWidth: 220, display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                <Box>
-                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>مبلغ فیش / رزرو</Typography>
-                  <Typography variant="body1" sx={{ fontWeight: 700 }}>
-                    {formatPrice(detail?.receipt_amount ?? detail?.payment_amount ?? 0)}
-                  </Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>شماره پیگیری</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }} dir="ltr">{detail?.receipt_reference || '—'}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>بانک</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>{detail?.receipt_bank || '—'}</Typography>
-                </Box>
-                <Box>
-                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>زمان ارسال</Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {detail?.receipt_submitted_at ? formatDateTime(detail.receipt_submitted_at) : '—'}
-                  </Typography>
-                </Box>
-                {detail?.receipt_status && (
-                  <Chip
-                    label={detail.receipt_status === 'submitted' ? 'در انتظار بررسی' : detail.receipt_status}
-                    color="warning"
-                    size="small"
-                    sx={{ borderRadius: '8px', fontWeight: 600, alignSelf: 'flex-start' }}
-                  />
-                )}
-              </Box>
-              <Box sx={{ width: 180, flexShrink: 0 }}>
-                <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.5 }}>تصویر فیش</Typography>
-                {detail?.receipt_image ? (
-                  <Link href={detail.receipt_image} target="_blank" rel="noopener noreferrer">
-                    <Box
-                      component="img"
-                      src={detail.receipt_image}
-                      alt="فیش واریزی"
-                      sx={{ width: '100%', borderRadius: '12px', border: '1px solid rgba(0,0,0,0.1)', display: 'block' }}
-                    />
-                  </Link>
-                ) : (
-                  <Typography variant="body2" color="text.secondary">تصویری ثبت نشده</Typography>
-                )}
-              </Box>
-            </Box>
+    <Dialog open={open} onOpenChange={(o) => { if (!o && !busy) onClose() }}>
+      <DialogContent
+        aria-label="بررسی فیش واریزی"
+        className="gap-0 overflow-hidden p-0 sm:max-w-[600px] [&>button]:text-white/90 [&>button:hover]:bg-white/15 [&>button:hover]:text-white"
+      >
+        <Header icon="mdi:receipt-text-check-outline" title={`بررسی فیش واریزی${venueName ? ` — ${venueName}` : ''}`} gradient="linear-gradient(135deg, #d97706, #f59e0b)" />
+        <div className="px-6 pb-2 pt-6">
+          {loading ? (
+            <div className="py-10 text-center">
+              <span
+                className="mx-auto block h-8 w-8 animate-spin rounded-full border-[3px] border-slate-300 border-t-amber-600"
+                role="status"
+                aria-label="در حال بارگذاری"
+              />
+              <p className="mt-3 text-sm text-muted-foreground">در حال دریافت جزئیات فیش...</p>
+            </div>
+          ) : loadError ? (
+            <Alert variant="destructive" className="rounded-xl">{loadError}</Alert>
+          ) : (
+            <>
+              <div className="flex flex-wrap items-start gap-5">
+                <div className="flex min-w-[220px] flex-1 flex-col gap-3">
+                  <div>
+                    <span className="block text-xs text-muted-foreground">مبلغ فیش / رزرو</span>
+                    <p className="text-base font-bold text-foreground">
+                      {formatPrice(detail?.receipt_amount ?? detail?.payment_amount ?? 0)}
+                    </p>
+                  </div>
+                  <div>
+                    <span className="block text-xs text-muted-foreground">شماره پیگیری</span>
+                    <p className="text-sm font-semibold text-foreground" dir="ltr">{detail?.receipt_reference || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="block text-xs text-muted-foreground">بانک</span>
+                    <p className="text-sm font-semibold text-foreground">{detail?.receipt_bank || '—'}</p>
+                  </div>
+                  <div>
+                    <span className="block text-xs text-muted-foreground">زمان ارسال</span>
+                    <p className="text-sm font-semibold text-foreground">
+                      {detail?.receipt_submitted_at ? formatDateTime(detail.receipt_submitted_at) : '—'}
+                    </p>
+                  </div>
+                  {detail?.receipt_status && (
+                    <span className="inline-flex items-center self-start rounded-lg bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-900 dark:bg-amber-500/15 dark:text-amber-300">
+                      {detail.receipt_status === 'submitted' ? 'در انتظار بررسی' : detail.receipt_status}
+                    </span>
+                  )}
+                </div>
+                <div className="w-[180px] shrink-0">
+                  <span className="mb-1 block text-xs text-muted-foreground">تصویر فیش</span>
+                  {detail?.receipt_image ? (
+                    <a href={detail.receipt_image} target="_blank" rel="noopener noreferrer">
+                      <img
+                        src={detail.receipt_image}
+                        alt="فیش واریزی"
+                        className="block w-full rounded-xl border border-border"
+                      />
+                    </a>
+                  ) : (
+                    <p className="text-sm text-muted-foreground">تصویری ثبت نشده</p>
+                  )}
+                </div>
+              </div>
 
-            <TextField
-              fullWidth
-              multiline
-              minRows={2}
-              label="دلیل رد فیش (حداقل ۴ حرف)"
-              value={rejectReason}
-              onChange={(e) => { setRejectReason(e.target.value); setRejectError(null) }}
-              disabled={Boolean(busy)}
-              error={Boolean(rejectError)}
-              helperText={rejectError || undefined}
-              sx={{ mt: 2.5 }}
-              slotProps={{ input: { sx: { borderRadius: '10px' } } }}
-            />
-          </>
-        )}
+              <div className="mt-5 flex flex-col gap-1.5">
+                <Label htmlFor="receipt-reject-reason">دلیل رد فیش (حداقل ۴ حرف)</Label>
+                <Textarea
+                  id="receipt-reject-reason"
+                  rows={2}
+                  value={rejectReason}
+                  onChange={(e) => { setRejectReason(e.target.value); setRejectError(null) }}
+                  disabled={Boolean(busy)}
+                  aria-invalid={Boolean(rejectError) || undefined}
+                  className={rejectError ? 'rounded-[10px] border-red-500' : 'rounded-[10px]'}
+                />
+                {rejectError && <p className="text-sm text-red-600 dark:text-red-400">{rejectError}</p>}
+              </div>
+            </>
+          )}
+        </div>
+        <DialogFooter className="flex-wrap gap-2 px-6 pb-6 pt-4">
+          <Button variant="ghost" onClick={onClose} disabled={Boolean(busy)} className="rounded-[10px]">
+            بستن
+          </Button>
+          <div className="flex-1" />
+          <Button
+            variant="outline"
+            disabled={Boolean(busy) || loading || Boolean(loadError)}
+            onClick={handleReject}
+            className="min-h-11 rounded-[10px] border-red-300 font-bold text-red-700 hover:bg-red-50 dark:border-red-500/40 dark:text-red-400 dark:hover:bg-red-500/10"
+          >
+            {busy === 'reject' ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال بارگذاری" /> : <Icon icon="mdi:close-circle-outline" className="h-4 w-4" />}
+            رد فیش
+          </Button>
+          <Button
+            disabled={Boolean(busy) || loading || Boolean(loadError)}
+            onClick={handleApprove}
+            className="min-h-11 rounded-[10px] bg-emerald-600 font-bold text-white hover:bg-emerald-700"
+          >
+            {busy === 'approve' ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال بارگذاری" /> : <Icon icon="mdi:check-circle-outline" className="h-4 w-4" />}
+            تأیید فیش
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3, gap: 1, flexWrap: 'wrap' }}>
-        <Button onClick={onClose} disabled={Boolean(busy)} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}>
-          بستن
-        </Button>
-        <Box sx={{ flex: 1 }} />
-        <Button
-          variant="outlined"
-          color="error"
-          disabled={Boolean(busy) || loading || Boolean(loadError)}
-          onClick={handleReject}
-          sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, minHeight: 44 }}
-          startIcon={busy === 'reject' ? <CircularProgress size={16} color="inherit" /> : <Icon icon="mdi:close-circle-outline" className="h-4 w-4" />}
-        >
-          رد فیش
-        </Button>
-        <Button
-          variant="contained"
-          disabled={Boolean(busy) || loading || Boolean(loadError)}
-          onClick={handleApprove}
-          sx={{
-            borderRadius: '10px',
-            textTransform: 'none',
-            fontWeight: 700,
-            minHeight: 44,
-            bgcolor: '#16a34a',
-            '&:hover': { bgcolor: '#15803d' },
-          }}
-          startIcon={busy === 'approve' ? <CircularProgress size={16} color="inherit" /> : <Icon icon="mdi:check-circle-outline" className="h-4 w-4" />}
-        >
-          تأیید فیش
-        </Button>
-      </DialogActions>
     </Dialog>
   )
 }
@@ -278,59 +270,64 @@ export const InPersonCollectDialog: React.FC<{
   }
 
   return (
-    <Dialog aria-label="ثبت دریافت در محل" open={open} onClose={busy ? undefined : onClose} maxWidth="xs" fullWidth slotProps={{ paper: dialogPaper }}>
-      <Header icon="mdi:cash-register" title={`ثبت دریافت در محل${venueName ? ` — ${venueName}` : ''}`} gradient="linear-gradient(135deg, #059669, #10b981)" />
-      <DialogContent sx={{ pt: 3, pb: 1 }}>
-        <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-          مبلغ دریافتی از مشتری را در محل ثبت کنید. در صورت خالی گذاشتن مبلغ، مبلغ رزرو ثبت می‌شود.
-        </Typography>
-        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: '10px' }}>{error}</Alert>}
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <TextField
-            fullWidth
-            label={`مبلغ دریافتی (ریال)${defaultAmount ? ` — پیش‌فرض ${formatPrice(defaultAmount)}` : ''}`}
-            value={amount}
-            onChange={(e) => { setAmount(e.target.value); setError(null) }}
+    <Dialog open={open} onOpenChange={(o) => { if (!o && !busy) onClose() }}>
+      <DialogContent
+        aria-label="ثبت دریافت در محل"
+        className="gap-0 overflow-hidden p-0 sm:max-w-[444px] [&>button]:text-white/90 [&>button:hover]:bg-white/15 [&>button:hover]:text-white"
+      >
+        <Header icon="mdi:cash-register" title={`ثبت دریافت در محل${venueName ? ` — ${venueName}` : ''}`} gradient="linear-gradient(135deg, #059669, #10b981)" />
+        <div className="px-6 pb-2 pt-6">
+          <p className="mb-4 text-sm text-muted-foreground">
+            مبلغ دریافتی از مشتری را در محل ثبت کنید. در صورت خالی گذاشتن مبلغ، مبلغ رزرو ثبت می‌شود.
+          </p>
+          {error && <Alert variant="destructive" className="mb-4 rounded-[10px]">{error}</Alert>}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor="collect-amount">
+                {`مبلغ دریافتی (ریال)${defaultAmount ? ` — پیش‌فرض ${formatPrice(defaultAmount)}` : ''}`}
+              </Label>
+              <Input
+                id="collect-amount"
+                inputMode="numeric"
+                className="rounded-[10px]"
+                value={amount}
+                onChange={(e) => { setAmount(e.target.value); setError(null) }}
+                disabled={busy}
+              />
+            </div>
+            <div className="flex flex-col gap-1.5">
+              <Label id="collect-method-label">روش دریافت</Label>
+              <Select value={method} onValueChange={(v) => setMethod(v as PayInPersonMethod)} disabled={busy}>
+                <SelectTrigger aria-labelledby="collect-method-label" className="rounded-[10px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {IN_PERSON_METHODS.map((m) => (
+                    <SelectItem key={m} value={m}>{TX_METHOD_LABELS[m] ?? m}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+        </div>
+        <DialogFooter className="gap-2 px-6 pb-6 pt-4">
+          <Button variant="ghost" onClick={onClose} disabled={busy} className="rounded-[10px]">
+            انصراف
+          </Button>
+          <Button
             disabled={busy}
-            slotProps={{ input: { sx: { borderRadius: '10px' } }, htmlInput: { inputMode: 'numeric' } }}
-          />
-          <FormControl fullWidth>
-            <InputLabel>روش دریافت</InputLabel>
-            <Select
-              value={method}
-              label="روش دریافت"
-              disabled={busy}
-              onChange={(e) => setMethod(e.target.value as PayInPersonMethod)}
-              sx={{ borderRadius: '10px' }}
-            >
-              {IN_PERSON_METHODS.map((m) => (
-                <MenuItem key={m} value={m}>{TX_METHOD_LABELS[m] ?? m}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        </Box>
+            onClick={handleCollect}
+            className="min-h-11 flex-1 rounded-[10px] bg-emerald-600 font-bold text-white hover:bg-emerald-700"
+          >
+            {busy ? (
+              <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال بارگذاری" />
+            ) : (
+              <Icon icon="mdi:cash-check" className="h-4 w-4" />
+            )}
+            {busy ? 'در حال ثبت...' : 'ثبت دریافت'}
+          </Button>
+        </DialogFooter>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-        <Button onClick={onClose} disabled={busy} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}>
-          انصراف
-        </Button>
-        <Button
-          variant="contained"
-          disabled={busy}
-          onClick={handleCollect}
-          sx={{
-            borderRadius: '10px',
-            textTransform: 'none',
-            fontWeight: 700,
-            flex: 1,
-            bgcolor: '#059669',
-            '&:hover': { bgcolor: '#047857' },
-          }}
-          startIcon={busy ? <CircularProgress size={16} color="inherit" /> : <Icon icon="mdi:cash-check" className="h-4 w-4" />}
-        >
-          {busy ? 'در حال ثبت...' : 'ثبت دریافت'}
-        </Button>
-      </DialogActions>
     </Dialog>
   )
 }

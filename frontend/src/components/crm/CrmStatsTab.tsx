@@ -3,7 +3,6 @@
 // + تازه‌واردهای ۷ روز اخیر (GET /crm/stats).
 
 import React from 'react'
-import { Box, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { Cell, Pie, PieChart, ResponsiveContainer, Tooltip as RTooltip } from 'recharts'
 import { EmptyBox, ErrorBox, FinTooltip, KpiCard, LoadingBox, SectionCard, formatRial } from '@/components/finance/shared'
@@ -31,21 +30,21 @@ const CrmStatsTab: React.FC<Props> = ({ venueId }) => {
     .filter((d) => d.value > 0)
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2,1fr)', md: 'repeat(4,1fr)' }, gap: 2 }}>
+    <div className="flex flex-col gap-5">
+      <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         <KpiCard label="کل مشتریان" value={toPersianDigits(stats.total_customers)} icon="mdi:account-group" />
         <KpiCard label="ویژه (VIP)" value={toPersianDigits(stats.segments.vip ?? 0)} icon="mdi:star" color="#d97706" />
         <KpiCard label="در معرض ریزش" value={toPersianDigits(stats.segments.at_risk ?? 0)} icon="mdi:account-alert-outline" color="#ef4444" />
         <KpiCard label="بی‌فعال (≥۴۵ روز)" value={toPersianDigits(stats.inactive_count)} icon="mdi:moon-waning-crescent" color="#64748b" />
-      </Box>
+      </div>
 
-      <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1.1fr 1fr' }, gap: 2.5, alignItems: 'stretch' }}>
+      <div className="grid grid-cols-1 items-stretch gap-5 md:grid-cols-[1.1fr_1fr]">
         <SectionCard title="تفکیک گروه‌های مشتریان" icon="mdi:chart-donut" color="#7c3aed">
           {pieData.length === 0 ? (
             <EmptyBox icon="mdi:chart-donut" title="داده‌ای برای نمودار نیست" />
           ) : (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', justifyContent: 'center' }}>
-              <Box sx={{ width: 220, height: 220 }}>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              <div className="h-[220px] w-[220px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <PieChart>
                     <Pie data={pieData} dataKey="value" nameKey="name" innerRadius={55} outerRadius={85} paddingAngle={3} stroke="none">
@@ -56,59 +55,73 @@ const CrmStatsTab: React.FC<Props> = ({ venueId }) => {
                     <RTooltip content={<FinTooltip unit="count" />} />
                   </PieChart>
                 </ResponsiveContainer>
-              </Box>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+              </div>
+              <div className="flex flex-col gap-1.5">
                 {pieData.map((d) => (
-                  <Box key={d.key} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Box sx={{ width: 10, height: 10, borderRadius: '3px', bgcolor: SEGMENT_COLORS[d.key] }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{d.name}</Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: SEGMENT_COLORS[d.key] }}>
+                  <div key={d.key} className="flex items-center gap-2">
+                    <span className="h-2.5 w-2.5 rounded-[3px]" style={{ backgroundColor: SEGMENT_COLORS[d.key] }} aria-hidden="true" />
+                    <span className="text-sm font-semibold text-foreground">{d.name}</span>
+                    <span className="text-sm font-extrabold tabular-nums" style={{ color: SEGMENT_COLORS[d.key] }}>
                       {toPersianDigits(d.value)}
-                    </Typography>
-                  </Box>
+                    </span>
+                  </div>
                 ))}
-              </Box>
-            </Box>
+              </div>
+            </div>
           )}
         </SectionCard>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <div className="flex flex-col gap-5">
           <SectionCard title="پرمصرف‌ترین مشتریان" icon="mdi:cash-fast" color="#059669" dense>
             {stats.top_spenders.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">هنوز پرداختی ثبت نشده است.</Typography>
+              <p className="text-sm text-muted-foreground">هنوز پرداختی ثبت نشده است.</p>
             ) : (
               stats.top_spenders.map((t, i) => (
-                <Box key={t.user_id} sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.6 }}>
-                  <Box sx={{ width: 22, height: 22, borderRadius: '7px', bgcolor: i === 0 ? 'rgba(217,119,6,0.14)' : 'rgba(37,99,235,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800, color: (th) => (i === 0 ? th.palette.warning.main : th.palette.info.main) }}>{toPersianDigits(i + 1)}</Typography>
-                  </Box>
-                  <Typography variant="body2" sx={{ flex: 1, fontWeight: 600, minWidth: 0 }}>{t.full_name ?? '—'}</Typography>
-                  <Typography variant="caption" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{formatRial(t.total_spend)}</Typography>
-                </Box>
+                <div key={t.user_id} className="flex items-center gap-2 py-1.5">
+                  <span
+                    className={
+                      i === 0
+                        ? 'flex h-[22px] w-[22px] items-center justify-center rounded-[7px] bg-amber-500/[0.14]'
+                        : 'flex h-[22px] w-[22px] items-center justify-center rounded-[7px] bg-blue-600/[0.08]'
+                    }
+                  >
+                    <span
+                      className={
+                        i === 0
+                          ? 'text-xs font-extrabold text-amber-700 tabular-nums dark:text-amber-400'
+                          : 'text-xs font-extrabold text-blue-700 tabular-nums dark:text-blue-300'
+                      }
+                    >
+                      {toPersianDigits(i + 1)}
+                    </span>
+                  </span>
+                  <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">{t.full_name ?? '—'}</span>
+                  <span className="text-xs font-extrabold text-foreground tabular-nums">{formatRial(t.total_spend)}</span>
+                </div>
               ))
             )}
           </SectionCard>
 
           <SectionCard title="مشتریان تازه (۷ روز اخیر)" icon="mdi:account-plus-outline" color="#2563eb" dense>
             {stats.recent_new_customers.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">تازگی مشتری جدید نداشته‌اید.</Typography>
+              <p className="text-sm text-muted-foreground">تازگی مشتری جدید نداشته‌اید.</p>
             ) : (
               stats.recent_new_customers.map((r) => (
-                <Box key={r.user_id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', py: 0.6 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                    <Icon icon="mdi:account-circle-outline" className="h-4 w-4" style={{ color: '#2563eb' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{r.full_name ?? '—'}</Typography>
-                  </Box>
-                  <Typography variant="caption" color="text.secondary">
+                <div key={r.user_id} className="flex items-center justify-between py-1.5">
+                  <div className="flex min-w-0 items-center gap-2">
+                    <Icon icon="mdi:account-circle-outline" className="h-4 w-4 shrink-0" style={{ color: '#2563eb' }} aria-hidden="true" />
+                    <span className="truncate text-sm font-semibold text-foreground">{r.full_name ?? '—'}</span>
+                  </div>
+                  <span className="text-xs text-muted-foreground tabular-nums">
                     {r.first_seen ? formatJalaliDate(r.first_seen, { format: 'numeric' }) : '—'}
-                  </Typography>
-                </Box>
+                  </span>
+                </div>
               ))
             )}
           </SectionCard>
-        </Box>
-      </Box>
-    </Box>
+        </div>
+      </div>
+    </div>
   )
 }
 

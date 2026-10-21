@@ -1,38 +1,8 @@
 // src/pages/venues/VenueDetail.tsx — جزئیات سالن: موبایل‌فرست (گالری/تاریخ/سانس/CTA) + دسکتاپ تب‌دار
-import React, { useState, useEffect, useMemo } from 'react'
+import React, { useId, useState, useEffect, useMemo } from 'react'
 import { useParams, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Button,
-  Chip,
-  Divider,
-  Tabs,
-  Tab,
-  List,
-  ListItem,
-  ListItemIcon,
-  ListItemText,
-  CircularProgress,
-  Alert,
-  Container,
-  Paper,
-  Avatar,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
-  TextField,
-  Rating,
-  IconButton,
-  Checkbox,
-  FormControlLabel,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import TimeSlotPicker from '@/components/booking/TimeSlotPicker'
 import ReviewSection from '@/components/venue/ReviewSection'
@@ -61,11 +31,23 @@ import { formatRial } from '@/components/finance/shared'
 import { toPersianDigits } from '@/lib/jalali'
 import { venueService } from '@/services/venue'
 import { slotService } from '@/services/slot'
-import { formatPrice, formatTimeFa, getSlotEndTime } from '@/lib/utils'
+import { cn, formatPrice, formatTimeFa, getSlotEndTime } from '@/lib/utils'
 import { parseList, toFullUrl } from '@/utils/venueMedia'
 import { useRecentlyViewedStore } from '@/store/recentlyViewedStore'
-import { gradients, radii, shadows } from '@/theme'
 import toast from 'react-hot-toast'
+import { Button } from '@/components/ui/shadcn/button'
+import { Checkbox } from '@/components/ui/shadcn/checkbox'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
 
 // پارس ایمن آرایه/JSON برای فیلدهای ممکن است خراب باشند
 function safeJsonParse<T>(value: unknown, fallback: T): T {
@@ -80,37 +62,47 @@ function safeJsonParse<T>(value: unknown, fallback: T): T {
   return fallback
 }
 
+/** گرادیان اصلی برند (navy → blue) روی Tailwind */
+const PRIMARY_GRADIENT = 'bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700'
+
+/** آیکون ۴۴px دکمه‌ای روی گالری */
+const glassIconButton =
+  'flex h-11 w-11 items-center justify-center rounded-full bg-white/85 text-slate-900 shadow-md backdrop-blur-md transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
+/** کارت شیشه‌ای نشستن روی تصویر */
+const chipOnImage = 'inline-flex items-center gap-1 rounded-[10px] px-2.5 py-1 text-xs font-bold text-white'
+
+/** ستاره‌های فقط‌خواندنی — جایگزین Rating خواندنی MUI (همان نام قابل‌دسترس) */
+const RatingStars: React.FC<{ value: number; label: string }> = ({ value, label }) => (
+  <span role="img" aria-label={label} className="flex items-center gap-0.5">
+    {[0, 1, 2, 3, 4].map((i) => {
+      const diff = value - i
+      const icon = diff >= 0.75 ? 'mdi:star' : diff >= 0.25 ? 'mdi:star-half-full' : 'mdi:star-outline'
+      return <Icon key={i} icon={icon} className="h-4 w-4 text-amber-400" />
+    })}
+  </span>
+)
+
 // تصویر با fallback گرادیانی — فایل غایب/آدرس شکسته دیگر آیکون شکسته نشان نمی‌دهد
-const LoadSafeImage: React.FC<{ src: string; alt: string; sx?: Record<string, unknown> }> = ({
+const LoadSafeImage: React.FC<{ src: string; alt: string; className?: string }> = ({
   src,
   alt,
-  sx,
+  className,
 }) => {
   const [failed, setFailed] = useState(false)
   if (!src || failed) {
     return (
-      <Box
-        sx={{
-          width: '100%',
-          height: '100%',
-          background: gradients.primary,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          ...sx,
-        }}
-      >
-        <Icon icon="mdi:stadium-variant" style={{ width: 64, height: 64, color: 'rgba(255,255,255,0.35)' }} />
-      </Box>
+      <div className={cn('flex h-full w-full items-center justify-center', PRIMARY_GRADIENT, className)}>
+        <Icon icon="mdi:stadium-variant" className="h-16 w-16 text-white/35" />
+      </div>
     )
   }
   return (
-    <Box
-      component="img"
+    <img
       src={src}
       alt={alt}
       onError={() => setFailed(true)}
-      sx={{ objectFit: 'cover', ...sx }}
+      className={cn('object-cover', className)}
     />
   )
 }
@@ -136,6 +128,7 @@ const VenueDetail: React.FC = () => {
   const [selectedPlan, setSelectedPlan] = useState<MembershipPlan | null>(null)
   const [purchaseOpen, setPurchaseOpen] = useState(false)
   const [bidSlot, setBidSlot] = useState<BidTargetSlot | null>(null)
+  const loyaltyCheckboxId = useId()
 
   const joinWaitlist = async () => {
     if (!selectedSlot || !isAuthenticated) {
@@ -365,9 +358,9 @@ const VenueDetail: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <Box sx={{ maxWidth: 600, mx: 'auto' }}>
+        <div className="mx-auto max-w-[600px]">
           <VenueDetailSkeleton />
-        </Box>
+        </div>
       </Layout>
     )
   }
@@ -375,35 +368,23 @@ const VenueDetail: React.FC = () => {
   if (!venue) {
     return (
       <Layout>
-        <Box
-          sx={{
-            minHeight: '100vh',
-            background: (t) =>
-              t.palette.mode === 'dark' ? '#0b1220' : 'linear-gradient(180deg, #f5f7fb 0%, #ffffff 100%)',
-          }}
-        >
-          <Container maxWidth="lg" sx={{ py: 8 }}>
+        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-night dark:to-night">
+          <div className="mx-auto w-full max-w-[1200px] px-4 py-16 sm:px-6">
             <Button
-              variant="contained"
+              variant="primary"
               onClick={() => navigate('/venues')}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 600,
-                px: 4,
-                py: 1.5,
-                background: gradients.primary,
-                mb: 3,
-              }}
+              className="mb-6 min-h-12 rounded-xl px-8 font-semibold"
             >
-              <Icon icon="mdi:arrow-right" className="h-5 w-5 ml-2" />
+              <Icon icon="mdi:arrow-right" className="h-5 w-5" />
               بازگشت به لیست سالن‌ها
             </Button>
-            <Alert severity="error" sx={{ borderRadius: '12px' }}>
-              سالن مورد نظر یافت نشد یا حذف شده است.
+            <Alert variant="destructive" className="rounded-xl">
+              <AlertDescription>
+                سالن مورد نظر یافت نشد یا حذف شده است.
+              </AlertDescription>
             </Alert>
-          </Container>
-        </Box>
+          </div>
+        </div>
       </Layout>
     )
   }
@@ -414,179 +395,93 @@ const VenueDetail: React.FC = () => {
 
   return (
     <Layout>
-      <Box
-        sx={{
-          minHeight: '100vh',
-          background: (t) =>
-            t.palette.mode === 'dark' ? '#0b1220' : 'linear-gradient(180deg, #f5f7fb 0%, #ffffff 100%)',
-        }}
-      >
+      <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-night dark:to-night">
         {/* ==================== موبایل: گالری هیرو ==================== */}
-        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
-          <Box
-            sx={{
-              position: 'relative',
-              height: 260,
-              overflow: 'hidden',
-              // تا رسیدن تصویر (یا شکست بی‌صدای درخواست) جای خالی خاکستری دیده
-              // نشود؛ پس‌زمینهٔ برند همان لحظه هست و تصویر رویش می‌آید.
-              background: gradients.primary,
-            }}
-          >
+        <div className="block md:hidden">
+          <div className={cn('relative h-[260px] overflow-hidden', PRIMARY_GRADIENT)}>
             {images.length > 0 && (
-              <Box aria-hidden sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                <Icon icon="mdi:stadium-variant" style={{ width: 72, height: 72, color: 'rgba(255,255,255,0.28)' }} />
-              </Box>
+              <div aria-hidden className="absolute inset-0 flex items-center justify-center">
+                <Icon icon="mdi:stadium-variant" className="h-[72px] w-[72px] text-white/30" />
+              </div>
             )}
             {images.length > 0 ? (
-              <Box
+              <div
                 role="region"
                 aria-label="گالری تصاویر سالن، قابل پیمایش با کیبورد"
                 tabIndex={0}
-                sx={{
-                  position: 'relative',
-                  zIndex: 1,
-                  display: 'flex',
-                  height: '100%',
-                  overflowX: 'auto',
-                  scrollSnapType: 'x mandatory',
-                  scrollbarWidth: 'none',
-                  '&::-webkit-scrollbar': { display: 'none' },
-                  '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
-                }}
+                className="relative z-[1] flex h-full snap-x snap-mandatory overflow-x-auto focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-primary [scrollbar-width:none] [&::-webkit-scrollbar]:hidden"
               >
                 {images.map((img, i) => (
                   <LoadSafeImage
                     key={i}
                     src={toFullUrl(img)}
                     alt={`${venue.name} ${i + 1}`}
-                    sx={{
-                      width: '100%',
-                      height: '100%',
-                      objectFit: 'cover',
-                      flexShrink: 0,
-                      scrollSnapAlign: 'start',
-                    }}
+                    className="h-full w-full shrink-0 snap-start object-cover"
                   />
                 ))}
-              </Box>
+              </div>
             ) : (
-              <Box
-                sx={{
-                  width: '100%',
-                  height: '100%',
-                  background: gradients.primary,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <Icon icon="mdi:stadium-variant" style={{ width: 72, height: 72, color: 'rgba(255,255,255,0.35)' }} />
-              </Box>
+              <div className={cn('flex h-full w-full items-center justify-center', PRIMARY_GRADIENT)}>
+                <Icon icon="mdi:stadium-variant" className="h-[72px] w-[72px] text-white/35" />
+              </div>
             )}
             {/* هدر شیشه‌ای روی گالری: بازگشت + قلب */}
-            <Box
-              sx={{
-                position: 'absolute',
-                top: 'calc(12px + env(safe-area-inset-top))',
-                insetInlineStart: 12,
-                insetInlineEnd: 12,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                zIndex: 2,
-              }}
-            >
-              <IconButton
-                onClick={() => navigate(-1)}
-                aria-label="بازگشت"
-                sx={{
-                  width: 44,
-                  height: 44,
-                  bgcolor: 'rgba(255,255,255,0.85)',
-                  backdropFilter: 'blur(8px)',
-                  color: '#0f172a',
-                  boxShadow: shadows.card,
-                  '&:hover': { bgcolor: '#fff' },
-                }}
-              >
-                <Icon icon="mdi:arrow-right" style={{ width: 24, height: 24 }} />
-              </IconButton>
+            <div className="absolute inset-x-3 top-[calc(12px+env(safe-area-inset-top))] z-[2] flex items-center justify-between">
+              <button type="button" onClick={() => navigate(-1)} aria-label="بازگشت" className={glassIconButton}>
+                <Icon icon="mdi:arrow-right" className="h-6 w-6" />
+              </button>
               <FavoriteButton venue={{ id: venue.id, name: venue.name }} size="md" />
-            </Box>
+            </div>
             {venue.is_verified && (
-              <Chip
-                icon={<Icon icon="mdi:shield-check" style={{ width: 16, height: 16 }} />}
-                label="تأیید شده"
-                size="small"
-                sx={{
-                  position: 'absolute',
-                  bottom: 12,
-                  insetInlineStart: 12,
-                  zIndex: 2,
-                  bgcolor: 'rgba(4,120,87,0.92)',
-                  color: 'white',
-                  fontWeight: 700,
-                  borderRadius: '10px',
-                  '& .MuiChip-icon': { color: 'white' },
-                }}
-              />
+              <span className={cn(chipOnImage, 'absolute bottom-3 start-3 z-[2] bg-emerald-700/90')}>
+                <Icon icon="mdi:shield-check" className="h-4 w-4" />
+                تأیید شده
+              </span>
             )}
-          </Box>
+          </div>
 
           {/* ==================== موبایل: اطلاعات اصلی ==================== */}
-          <Box sx={{ px: 2, pt: 2, pb: 26, maxWidth: 640, mx: 'auto' }}>
+          <div className="mx-auto max-w-[640px] px-4 pb-52 pt-4">
             {/* روی موبایل هیرو دسکتاپ display:none است؛ بدون این h1 صفحه سرتیتر سطح یک نداشت — axe F-25 */}
-            <Typography component="h1" sx={{ fontWeight: 800, fontSize: '1.3rem', color: 'text.primary', lineHeight: 1.5 }}>
+            <h1 className="text-[1.3rem] font-extrabold leading-normal text-foreground">
               {venue.name}
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mt: 0.75, flexWrap: 'wrap' }}>
+            </h1>
+            <div className="mt-1.5 flex flex-wrap items-center gap-3">
               <MobileRating value={venue.average_rating || 0} count={venue.total_reviews || 0} size="md" />
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                <Icon icon="mdi:map-marker-outline" style={{ width: 18, height: 18, color: '#64748b' }} />
-                <Typography variant="body2" sx={{ color: 'text.secondary', minWidth: 0 }}>
+              <div className="flex min-w-0 items-center gap-2">
+                <Icon icon="mdi:map-marker-outline" className="h-[18px] w-[18px] shrink-0 text-slate-500 dark:text-slate-400" />
+                <p className="min-w-0 text-sm text-muted-foreground">
                   {venue.address}
-                </Typography>
-              </Box>
-            </Box>
+                </p>
+              </div>
+            </div>
 
             {amenities.length > 0 && (
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, mt: 1.5 }}>
+              <div className="mt-3 flex flex-wrap gap-1.5">
                 {amenities.map((a) => (
-                  <Chip
+                  <span
                     key={a}
-                    label={a}
-                    size="small"
-                    icon={<Icon icon="mdi:check-circle-outline" style={{ width: 15, height: 15 }} />}
-                    sx={{
-                      borderRadius: '10px',
-                      bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
-                      color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#b45309'),
-                      fontWeight: 600,
-                      '& .MuiChip-icon': {
-                        color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#b45309'),
-                      },
-                    }}
-                  />
+                    className="inline-flex items-center gap-1 rounded-[10px] bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-400/15 dark:text-amber-300"
+                  >
+                    <Icon icon="mdi:check-circle-outline" className="h-[15px] w-[15px]" />
+                    {a}
+                  </span>
                 ))}
-              </Box>
+              </div>
             )}
 
             {venue.description && (
-              <Paper
-                elevation={0}
-                sx={{ mt: 2, p: 2, borderRadius: `${radii.card}px`, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
-              >
-                <Typography variant="subtitle2" component="h2" sx={{ fontWeight: 800, mb: 0.75 }}>درباره سالن</Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.9 }}>
+              <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
+                <h2 className="mb-1.5 text-sm font-extrabold text-foreground">درباره سالن</h2>
+                <p className="text-sm leading-[1.9] text-muted-foreground">
                   {venue.description}
-                </Typography>
-              </Paper>
+                </p>
+              </section>
             )}
 
             {isGym ? (
               /* باشگاه: پلن‌های اشتراک (جلسه‌ای / پک / ماهانه) به‌جای سانس */
-              <Box sx={{ mt: 3 }}>
+              <div className="mt-6">
                 <SectionHeader title="خرید اشتراک" subtitle="بدون نیاز به رزرو سانس" />
                 {plans.length === 0 ? (
                   <EmptyState
@@ -597,17 +492,17 @@ const VenueDetail: React.FC = () => {
                 ) : (
                   <PlanCards plans={plans} onBuy={handleBuyPlan} compact />
                 )}
-              </Box>
+              </div>
             ) : (
               <>
                 {/* انتخاب تاریخ — اسکرول افقی */}
-                <Box sx={{ mt: 3 }}>
+                <div className="mt-6">
                   <SectionHeader title="انتخاب تاریخ" subtitle="۱۴ روز آینده" />
                   <DateSelector dates={dates} value={selectedDate} onChange={setSelectedDate} />
-                </Box>
+                </div>
 
                 {/* سانس‌های روز انتخابی */}
-                <Box sx={{ mt: 3 }}>
+                <div className="mt-6">
                   <SectionHeader
                     title="سانس‌ها"
                     subtitle={daySlots.length > 0 ? `${daySlots.length} سانس در ${dateLabel}` : dateLabel}
@@ -619,7 +514,7 @@ const VenueDetail: React.FC = () => {
                       description="تاریخ دیگری را انتخاب کنید یا به روزهای بعد سر بزنید."
                     />
                   ) : (
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+                    <div className="flex flex-col gap-3">
                       {daySlots.map((s) => (
                         <TimeSlot
                           key={s.id}
@@ -629,66 +524,48 @@ const VenueDetail: React.FC = () => {
                           onBid={handleBid}
                         />
                       ))}
-                    </Box>
+                    </div>
                   )}
-                </Box>
+                </div>
               </>
             )}
 
             {/* تماس و موقعیت — اطلاعات ثانویه */}
-            <Paper
-              elevation={0}
-              sx={{ mt: 3, borderRadius: `${radii.card}px`, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', overflow: 'hidden' }}
-            >
-              <List sx={{ p: 0 }}>
+            <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div>
                 {venue.phone && (
-                <ListItem
-                  sx={{ px: 2, py: 1.75, borderBottom: '1px solid', borderColor: 'divider' }}
-                  secondaryAction={
-                    <Button
+                  <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5">
+                    <div className="flex items-center gap-3">
+                      <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
+                        <Icon icon="mdi:phone-outline" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
+                      </span>
+                      <div>
+                        <p className="text-sm font-bold text-foreground">{venue.phone}</p>
+                        <span className="text-xs text-muted-foreground">شماره تماس سالن</span>
+                      </div>
+                    </div>
+                    <a
                       href={`tel:${venue.phone}`}
-                      size="small"
-                      sx={{ textTransform: 'none', fontWeight: 700, color: 'primary.main', minHeight: 44, px: 1.5 }}
+                      className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-bold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       تماس
-                    </Button>
-                  }
-                >
-                  <ListItemIcon sx={{ minWidth: 42 }}>
-                    <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon icon="mdi:phone-outline" style={{ width: 18, height: 18, color: '#2563eb' }} />
-                    </Box>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={venue.phone}
-                    secondary="شماره تماس سالن"
-                    slotProps={{
-                      primary: { sx: { fontWeight: 700, fontSize: '0.9rem' } },
-                      secondary: { sx: { fontSize: '0.75rem' } },
-                    }}
-                  />
-                </ListItem>
+                    </a>
+                  </div>
                 )}
-                <ListItem sx={{ px: 2, py: 1.75 }}>
-                  <ListItemIcon sx={{ minWidth: 42 }}>
-                    <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                      <Icon icon="mdi:map-marker-outline" style={{ width: 18, height: 18, color: '#2563eb' }} />
-                    </Box>
-                  </ListItemIcon>
-                  <ListItemText
-                    primary={venue.address}
-                    secondary="آدرس سالن"
-                    slotProps={{
-                      primary: { sx: { fontWeight: 600, fontSize: '0.85rem' } },
-                      secondary: { sx: { fontSize: '0.75rem' } },
-                    }}
-                  />
-                </ListItem>
-              </List>
-            </Paper>
+                <div className="flex items-center gap-3 px-4 py-3.5">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
+                    <Icon icon="mdi:map-marker-outline" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
+                  </span>
+                  <div>
+                    <p className="text-sm font-semibold text-foreground">{venue.address}</p>
+                    <span className="text-xs text-muted-foreground">آدرس سالن</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* نظرات */}
-            <Box sx={{ mt: 3 }}>
+            <div className="mt-6">
               <SectionHeader title="نظرات کاربران" />
               <ReviewSection
                 venueId={venue.id}
@@ -698,8 +575,8 @@ const VenueDetail: React.FC = () => {
                   setVenue((prev: any) => (prev ? { ...prev, average_rating: avg, total_reviews: total } : prev))
                 }}
               />
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           {/* CTA چسبان پایین — بالای BottomNavigation */}
           {isGym ? (
@@ -725,191 +602,166 @@ const VenueDetail: React.FC = () => {
               onAction={handleCta}
             />
           )}
-        </Box>
+        </div>
 
-        {/* ==================== دسکتاپ: هیرو + تب‌ها (بدون تغییر) ==================== */}
-        <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Box sx={{ position: 'relative', height: 400, overflow: 'hidden', background: gradients.primary }}>
+        {/* ==================== دسکتاپ: هیرو + تب‌ها ==================== */}
+        <div className="hidden md:block">
+          <div className={cn('relative h-[400px] overflow-hidden', PRIMARY_GRADIENT)}>
             {mainImage ? (
               <LoadSafeImage
                 key={mainImage}
                 src={mainImage}
                 alt={venue.name}
                 // در جریان عادی بماند، عنوان را به زیر جعبه و پشت overflow:hidden پرت می‌کند
-                sx={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'cover' }}
+                className="absolute inset-0 h-full w-full object-cover"
               />
             ) : (
-              <Box sx={{
-                position: 'absolute', inset: 0,
-                width: '100%', height: '100%',
-                background: gradients.primary,
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}>
-                <Icon icon="mdi:stadium-variant" className="h-24 w-24" style={{ color: 'rgba(255,255,255,0.3)' }} />
-              </Box>
+              <div className={cn('absolute inset-0 flex h-full w-full items-center justify-center', PRIMARY_GRADIENT)}>
+                <Icon icon="mdi:stadium-variant" className="h-24 w-24 text-white/30" />
+              </div>
             )}
-            <Box sx={{
-              position: 'absolute', inset: 0,
-              background: 'linear-gradient(180deg, rgba(0,0,0,0.2) 0%, rgba(0,0,0,0.8) 100%)',
-            }} />
-            <Container maxWidth="lg" sx={{ position: 'relative', height: '100%', zIndex: 1 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%', pb: 4 }}>
+            <div className="absolute inset-0 bg-gradient-to-b from-black/20 to-black/80" />
+            <div className="relative z-[1] mx-auto h-full w-full max-w-[1200px] px-4 sm:px-6">
+              <div className="flex h-full flex-col justify-end pb-8">
                 <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
                   <Button
-                    variant="text"
+                    variant="ghost"
                     onClick={() => navigate('/venues')}
-                    sx={{ color: 'rgba(255,255,255,0.8)', mb: 2, textTransform: 'none', '&:hover': { color: 'white' } }}
+                    className="mb-4 min-h-11 text-white/80 hover:bg-white/10 hover:text-white"
                   >
-                    <Icon icon="mdi:arrow-right" className="h-5 w-5 ml-1" />
+                    <Icon icon="mdi:arrow-right" className="h-5 w-5" />
                     بازگشت به لیست سالن‌ها
                   </Button>
-                  <Typography component="h1" variant="h3" sx={{ fontWeight: 800, color: 'white', mb: 1, textShadow: '0 2px 10px rgba(0,0,0,0.3)' }}>
+                  <h1 className="mb-2 text-3xl font-extrabold text-white [text-shadow:0_2px_10px_rgba(0,0,0,0.3)]">
                     {venue.name}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Icon icon="mdi:map-marker" className="h-5 w-5" style={{ color: 'rgba(255,255,255,0.7)' }} />
-                      <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.8)' }}>{venue.address}</Typography>
-                    </Box>
+                  </h1>
+                  <div className="flex flex-wrap items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Icon icon="mdi:map-marker" className="h-5 w-5 text-white/70" />
+                      <p className="text-sm text-white/80">{venue.address}</p>
+                    </div>
                     {venue.average_rating > 0 && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'rgba(255,255,255,0.15)', borderRadius: '8px', px: 1.5, py: 0.3 }}>
-                        <Rating value={venue.average_rating} readOnly precision={0.5} size="small" name="venue-average-rating" aria-label={`امتیاز کاربران ${toPersianDigits(venue.average_rating.toFixed(1))} از ۵`} getLabelText={(v) => `${toPersianDigits(v ?? 0)} از ۵ ستاره`} sx={{ '& .MuiRating-icon': { color: '#fbbf24' } }} />
-                        <Typography variant="body2" sx={{ color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>
+                      <div className="flex items-center gap-1 rounded-lg bg-white/15 px-3 py-0.5">
+                        <RatingStars
+                          value={venue.average_rating}
+                          label={`امتیاز کاربران ${toPersianDigits(venue.average_rating.toFixed(1))} از ۵`}
+                        />
+                        <span className="text-sm font-bold text-white">
                           {toPersianDigits(venue.average_rating.toFixed(1)).replace('.', '٫')}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem' }}>
+                        </span>
+                        <span className="text-xs text-white/70">
                           ({toPersianDigits(venue.total_reviews)})
-                        </Typography>
-                      </Box>
+                        </span>
+                      </div>
                     )}
-                    <Chip
-                      icon={<Icon icon={venue.is_verified ? 'mdi:shield-check' : 'mdi:shield-alert-outline'} className="h-4 w-4" />}
-                      label={venue.is_verified ? 'تایید شده' : 'در انتظار تایید'}
-                      color={venue.is_verified ? 'success' : 'warning'}
-                      size="small"
-                      sx={{ borderRadius: '8px', fontWeight: 600, bgcolor: venue.is_verified ? 'rgba(4,120,87,0.92)' : 'rgba(180,83,9,0.92)', color: 'white' }}
-                    />
-                  </Box>
+                    <span
+                      className={cn(
+                        chipOnImage,
+                        'rounded-lg',
+                        venue.is_verified ? 'bg-emerald-700/90' : 'bg-amber-700/90',
+                      )}
+                    >
+                      <Icon icon={venue.is_verified ? 'mdi:shield-check' : 'mdi:shield-alert-outline'} className="h-4 w-4" />
+                      {venue.is_verified ? 'تایید شده' : 'در انتظار تایید'}
+                    </span>
+                  </div>
                 </motion.div>
-              </Box>
-            </Container>
-          </Box>
+              </div>
+            </div>
+          </div>
 
-          <Container maxWidth="lg" sx={{ mt: -2, position: 'relative', zIndex: 2 }}>
+          <div className="relative z-[2] mx-auto -mt-2 w-full max-w-[1200px] px-4 sm:px-6">
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5, delay: 0.2 }}>
-              <Grid container spacing={3}>
+              <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
                 {/* Main Content */}
-                <Grid size={{ xs: 12, lg: 8 }}>
-                  <Card sx={{ borderRadius: `${radii.card}px`, overflow: 'hidden', boxShadow: shadows.card, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                    <CardContent sx={{ p: 3 }}>
-                      <Tabs
-                        value={tab}
-                        onChange={(_, newValue) => setTab(newValue)}
-                        sx={{
-                          mb: 3,
-                          minHeight: 48,
-                          '& .MuiTabs-indicator': { display: 'none' },
-                          '& .MuiTab-root': {
-                            borderRadius: '10px',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            minHeight: 48,
-                            py: 1,
-                            color: 'text.secondary',
-                            '&.Mui-selected': {
-                              background: gradients.primary,
-                              color: 'white',
-                            },
-                          },
-                        }}
-                      >
-                        <Tab
-                          label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:information" className="h-4 w-4" />اطلاعات</Box>}
-                          sx={{ minHeight: 48, py: 1.5 }}
-                        />
-                        <Tab
-                          label={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Icon icon={isGym ? 'mdi:card-account-details-star' : 'mdi:calendar-clock'} className="h-4 w-4" />
-                              {isGym ? 'اشتراک‌ها' : 'سانس‌ها'}
-                            </Box>
-                          }
-                          sx={{ minHeight: 48, py: 1.5 }}
-                        />
-                        <Tab
-                          label={<Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}><Icon icon="mdi:star" className="h-4 w-4" />نظرات</Box>}
-                          sx={{ minHeight: 48, py: 1.5 }}
-                        />
+                <div className="lg:col-span-8">
+                  <div className="overflow-hidden rounded-[20px] border border-border bg-card shadow-sm">
+                    <div className="p-6">
+                      <Tabs value={String(tab)} onValueChange={(value) => setTab(Number(value))}>
+                        <TabsList className="mb-6 grid h-auto min-h-12 w-full grid-cols-3 gap-1 p-1">
+                          <TabsTrigger
+                            value="0"
+                            className="h-12 gap-1 rounded-[10px] text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+                          >
+                            <Icon icon="mdi:information" className="h-4 w-4" />
+                            اطلاعات
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="1"
+                            className="h-12 gap-1 rounded-[10px] text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+                          >
+                            <Icon icon={isGym ? 'mdi:card-account-details-star' : 'mdi:calendar-clock'} className="h-4 w-4" />
+                            {isGym ? 'اشتراک‌ها' : 'سانس‌ها'}
+                          </TabsTrigger>
+                          <TabsTrigger
+                            value="2"
+                            className="h-12 gap-1 rounded-[10px] text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+                          >
+                            <Icon icon="mdi:star" className="h-4 w-4" />
+                            نظرات
+                          </TabsTrigger>
+                        </TabsList>
                       </Tabs>
 
                       {tab === 0 && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                           {/* Description */}
-                          <Typography variant="body1" sx={{ color: 'text.secondary', lineHeight: 1.8, mb: 4 }}>
+                          <p className="mb-8 text-base leading-[1.8] text-muted-foreground">
                             {venue.description}
-                          </Typography>
+                          </p>
 
                           {/* Amenities */}
-                          <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 700, mb: 2 }}>
-                            <Icon icon="mdi:star-outline" className="h-5 w-5 ml-1" style={{ verticalAlign: 'middle' }} />
+                          <h2 className="mb-4 flex items-center text-base font-bold text-foreground">
+                            <Icon icon="mdi:star-outline" className="me-1 h-5 w-5 align-middle" />
                             امکانات
-                          </Typography>
-                          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 4 }}>
+                          </h2>
+                          <div className="mb-8 flex flex-wrap gap-2">
                             {amenities.map((amenity: string) => (
-                              <Chip
+                              <span
                                 key={amenity}
-                                label={amenity}
-                                size="medium"
-                                icon={<Icon icon="mdi:check-circle" className="h-4 w-4" />}
-                                sx={{
-                                  borderRadius: '10px',
-                                  bgcolor: 'rgba(37,99,235,0.08)',
-                                  color: 'primary.main',
-                                  fontWeight: 500,
-                                  minHeight: 44,
-                                  px: 0.5,
-                                  '& .MuiChip-icon': { color: 'primary.main' },
-                                  '& .MuiChip-label': { px: 1.5 },
-                                }}
-                              />
+                                className="inline-flex min-h-11 items-center gap-1 rounded-[10px] bg-blue-500/10 px-4 text-sm font-medium text-blue-700 dark:bg-blue-400/10 dark:text-blue-300"
+                              >
+                                <Icon icon="mdi:check-circle" className="h-4 w-4" />
+                                {amenity}
+                              </span>
                             ))}
-                          </Box>
+                          </div>
 
-                          <Divider sx={{ my: 3 }} />
+                          <Separator className="my-6" />
 
                           {/* Price & Manager Info */}
-                          <Box sx={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.10)' : 'rgba(245,158,11,0.08)'), flex: 1, minWidth: 150 }}>
-                              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>قیمت هر جلسه</Typography>
-                              <Typography variant="h5" component="div" sx={{ fontWeight: 800, color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309') }}>{formatPrice(venue.price)}</Typography>
-                            </Paper>
-                            <Paper elevation={0} sx={{ p: 2.5, borderRadius: '16px', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(37,99,235,0.05)'), flex: 1, minWidth: 150 }}>
-                              <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.5 }}>مدیر سالن</Typography>
-                              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                                <Avatar sx={{ width: 32, height: 32, bgcolor: 'primary.main', fontSize: '0.85rem' }}>
+                          <div className="flex flex-wrap gap-8">
+                            <div className="min-w-[150px] flex-1 rounded-2xl bg-amber-500/10 p-5 dark:bg-amber-400/10">
+                              <span className="mb-1 block text-xs text-muted-foreground">قیمت هر جلسه</span>
+                              <p className="text-xl font-extrabold text-amber-700 dark:text-amber-400">{formatPrice(venue.price)}</p>
+                            </div>
+                            <div className="min-w-[150px] flex-1 rounded-2xl bg-blue-500/5 p-5 dark:bg-white/5">
+                              <span className="mb-1 block text-xs text-muted-foreground">مدیر سالن</span>
+                              <div className="flex items-center gap-2">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white dark:bg-blue-500">
                                   {(venue.manager_name || 'ن')[0]}
-                                </Avatar>
-                                <Typography variant="body2" sx={{ fontWeight: 600 }}>{venue.manager_name || 'نامشخص'}</Typography>
-                              </Box>
-                            </Paper>
-                          </Box>
+                                </span>
+                                <p className="text-sm font-semibold text-foreground">{venue.manager_name || 'نامشخص'}</p>
+                              </div>
+                            </div>
+                          </div>
                         </motion.div>
                       )}
 
                       {tab === 1 && isGym && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                          <Box sx={{ mb: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>خرید اشتراک</Typography>
-                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          <div className="mb-6">
+                            <h2 className="mb-1 text-base font-bold text-foreground">خرید اشتراک</h2>
+                            <p className="text-sm text-muted-foreground">
                               در باشگاه‌ها رزرو سانس وجود ندارد — پلن مورد نظر (جلسه‌ای، پک یا ماهانه) را بخرید و با نشان دادن کد اشتراک در باشگاه استفاده کنید.
-                            </Typography>
-                          </Box>
+                            </p>
+                          </div>
                           {plans.length === 0 ? (
-                            <Box sx={{ textAlign: 'center', py: 5 }}>
-                              <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                            <div className="py-10 text-center">
+                              <p className="text-sm text-muted-foreground">
                                 هنوز پلن اشتراکی برای این باشگاه تعریف نشده است.
-                              </Typography>
-                            </Box>
+                              </p>
+                            </div>
                           ) : (
                             <PlanCards plans={plans} onBuy={handleBuyPlan} />
                           )}
@@ -918,12 +770,12 @@ const VenueDetail: React.FC = () => {
 
                       {tab === 1 && !isGym && (
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
-                          <Box sx={{ mb: 3 }}>
-                            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>انتخاب سانس</Typography>
-                            <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                          <div className="mb-6">
+                            <h2 className="mb-1 text-base font-bold text-foreground">انتخاب سانس</h2>
+                            <p className="text-sm text-muted-foreground">
                               سانس مورد نظر خود را انتخاب کنید و با کلیک روی دکمه رزرو، آن را برای خود رزرو کنید
-                            </Typography>
-                          </Box>
+                            </p>
+                          </div>
                           <TimeSlotPicker
                             slots={slotList}
                             onSelect={(slot) => setSelectedSlot(slot)}
@@ -936,66 +788,39 @@ const VenueDetail: React.FC = () => {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.3 }}
                             >
-                              <Paper
-                                elevation={0}
-                                sx={{
-                                  mt: 3,
-                                  p: 3,
-                                  borderRadius: '16px',
-                                  background: (t) =>
-                                    t.palette.mode === 'dark'
-                                      ? 'linear-gradient(135deg, rgba(251,191,36,0.10), rgba(249,115,22,0.06))'
-                                      : 'linear-gradient(135deg, rgba(245,158,11,0.07), rgba(249,115,22,0.05))',
-                                  border: '1px solid',
-                                  borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.30)' : 'rgba(245,158,11,0.28)'),
-                                }}
-                              >
-                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, mb: 2 }}>
-                                  <Box sx={{
-                                    width: 48, height: 48, borderRadius: '12px',
-                                    background: gradients.primary,
-                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                  }}>
-                                    <Icon icon="mdi:calendar-check" className="h-6 w-6" style={{ color: 'white' }} />
-                                  </Box>
-                                  <Box>
-                                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>سانس انتخاب شده</Typography>
-                                    <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+                              <div className="mt-6 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/5 p-6 dark:border-amber-400/30">
+                                <div className="mb-4 flex items-center gap-4">
+                                  <span className={cn('flex h-12 w-12 items-center justify-center rounded-xl', PRIMARY_GRADIENT)}>
+                                    <Icon icon="mdi:calendar-check" className="h-6 w-6 text-white" />
+                                  </span>
+                                  <div>
+                                    <p className="text-sm font-bold text-foreground">سانس انتخاب شده</p>
+                                    <p className="text-sm text-muted-foreground">
                                       {selectedSlot.startTime} - {selectedSlot.endTime}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                                <Divider sx={{ my: 2 }} />
-                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>قیمت:</Typography>
-                                  <Typography variant="h6" component="div" sx={{ fontWeight: 800, color: 'primary.main' }}>{formatPrice(selectedSlot.price)}</Typography>
-                                </Box>
-                                
+                                    </p>
+                                  </div>
+                                </div>
+                                <Separator className="my-4" />
+                                <div className="flex items-center justify-between">
+                                  <p className="text-sm text-muted-foreground">قیمت:</p>
+                                  <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400">{formatPrice(selectedSlot.price)}</p>
+                                </div>
+
                                 {/* اگر سانس پر است، دکمه ورود به صف انتظار نشان بده */}
                                 {selectedSlot.status === 'booked' ? (
                                   <Button
-                                    variant="outlined"
-                                    fullWidth
+                                    variant="outline"
                                     onClick={joinWaitlist}
                                     disabled={waitlistLoading || !isAuthenticated}
-                                    startIcon={<Icon icon="mdi:clock-outline" />}
-                                    sx={{
-                                      mt: 2.5,
-                                      borderRadius: '12px',
-                                      textTransform: 'none',
-                                      py: 1.5,
-                                      fontSize: '1rem',
-                                      fontWeight: 700,
-                                      borderColor: 'warning.main',
-                                      color: 'warning.main',
-                                      '&:hover': {
-                                        borderColor: 'warning.dark',
-                                        bgcolor: 'rgba(245,158,11,0.08)',
-                                      },
-                                    }}
+                                    className="mt-5 min-h-12 w-full rounded-xl border-amber-500/60 text-base font-bold text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
                                   >
+                                    <Icon icon="mdi:clock-outline" className="h-5 w-5" />
                                     {waitlistLoading ? (
-                                      <CircularProgress size={24} />
+                                      <span
+                                        className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent"
+                                        role="status"
+                                        aria-label="در حال بارگذاری"
+                                      />
                                     ) : !isAuthenticated ? (
                                       'ورود به صف انتظار (نیاز به ورود)'
                                     ) : (
@@ -1004,31 +829,25 @@ const VenueDetail: React.FC = () => {
                                   </Button>
                                 ) : (
                                   <Button
-                                    variant="contained"
-                                    fullWidth
                                     onClick={() => setConfirmOpen(true)}
                                     disabled={bookingLoading}
-                                    sx={{
-                                      mt: 2.5,
-                                      borderRadius: '12px',
-                                      textTransform: 'none',
-                                      py: 1.5,
-                                      fontSize: '1rem',
-                                      fontWeight: 800,
-                                      background: gradients.brandEnergy,
-                                      color: '#1c1917',
-                                      boxShadow: '0 4px 15px rgba(245,158,11,0.35)',
-                                      '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
-                                    }}
+                                    className="mt-5 min-h-12 w-full rounded-xl text-base font-extrabold"
                                   >
                                     {bookingLoading ? (
-                                      <CircularProgress size={24} sx={{ color: '#1c1917' }} />
+                                      <span
+                                        className="h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent"
+                                        role="status"
+                                        aria-label="در حال بارگذاری"
+                                      />
                                     ) : (
-                                      <><Icon icon="mdi:check-circle" className="h-5 w-5 ml-2" />تایید و رزرو</>
+                                      <>
+                                        <Icon icon="mdi:check-circle" className="h-5 w-5" />
+                                        تایید و رزرو
+                                      </>
                                     )}
                                   </Button>
                                 )}
-                              </Paper>
+                              </div>
                             </motion.div>
                           )}
                         </motion.div>
@@ -1046,55 +865,49 @@ const VenueDetail: React.FC = () => {
                           />
                         </motion.div>
                       )}
-                    </CardContent>
-                  </Card>
-                </Grid>
+                    </div>
+                  </div>
+                </div>
 
                 {/* Sidebar */}
-                <Grid size={{ xs: 12, lg: 4 }}>
-                  <Box sx={{ position: 'sticky', top: 24 }}>
-                    <Card sx={{ borderRadius: `${radii.card}px`, overflow: 'hidden', boxShadow: shadows.card, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper', mb: 3 }}>
-                      <CardContent sx={{ p: 3 }}>
-                        <Typography variant="h6" component="h3" sx={{ fontWeight: 700, mb: 2, display: 'flex', alignItems: 'center', gap: 1 }}>
-                          <Icon icon="mdi:phone-in-talk" className="h-5 w-5" style={{ color: '#2563eb' }} />
+                <div className="lg:col-span-4">
+                  <div className="sticky top-6">
+                    <div className="mb-6 overflow-hidden rounded-[20px] border border-border bg-card shadow-sm">
+                      <div className="p-6">
+                        <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-foreground">
+                          <Icon icon="mdi:phone-in-talk" className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                           اطلاعات تماس
-                        </Typography>
-                        <List sx={{ p: 0 }}>
+                        </h3>
+                        <div>
                           {venue.phone && (
-                          <ListItem sx={{ px: 0, py: 1.5 }}>
-                            <ListItemIcon sx={{ minWidth: 40 }}>
-                              <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Icon icon="mdi:phone" className="h-4 w-4" style={{ color: '#2563eb' }} />
-                              </Box>
-                            </ListItemIcon>
-                            <ListItemText primary={venue.phone} slotProps={{ primary: { sx: { fontWeight: 600 } } }} />
-                          </ListItem>
+                            <div className="flex items-center gap-2.5 py-3">
+                              <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
+                                <Icon icon="mdi:phone" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              </span>
+                              <p className="text-sm font-semibold text-foreground">{venue.phone}</p>
+                            </div>
                           )}
-                          <ListItem sx={{ px: 0, py: 1.5 }}>
-                            <ListItemIcon sx={{ minWidth: 40 }}>
-                              <Box sx={{ width: 36, height: 36, borderRadius: '10px', bgcolor: 'rgba(37,99,235,0.1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                                <Icon icon="mdi:map-marker" className="h-4 w-4" style={{ color: '#2563eb' }} />
-                              </Box>
-                            </ListItemIcon>
-                            <ListItemText primary={venue.address} slotProps={{ primary: { sx: { fontWeight: 600 } } }} />
-                          </ListItem>
-                        </List>
-                      </CardContent>
-                    </Card>
+                          <div className="flex items-center gap-2.5 py-3">
+                            <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
+                              <Icon icon="mdi:map-marker" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                            </span>
+                            <p className="text-sm font-semibold text-foreground">{venue.address}</p>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
 
-                    <Card sx={{ borderRadius: `${radii.card}px`, overflow: 'hidden', boxShadow: shadows.card, border: '1px solid', borderColor: 'divider', bgcolor: 'background.paper' }}>
-                      <CardContent sx={{ p: 3, textAlign: 'center' }}>
-                        <Box sx={{ mb: 2 }}>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    <div className="overflow-hidden rounded-[20px] border border-border bg-card shadow-sm">
+                      <div className="p-6 text-center">
+                        <div className="mb-4">
+                          <span className="block text-xs text-muted-foreground">
                             {isGym ? 'از قیمت' : 'قیمت هر جلسه'}
-                          </Typography>
-                          <Typography variant="h4" component="div" sx={{ fontWeight: 800, color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'), mt: 0.5 }}>
+                          </span>
+                          <p className="mt-1 text-2xl font-extrabold text-amber-700 dark:text-amber-400">
                             {formatPrice(isGym ? (minPlanPrice ?? venue.price) : venue.price)}
-                          </Typography>
-                        </Box>
+                          </p>
+                        </div>
                         <Button
-                          variant="contained"
-                          fullWidth
                           disabled={isGym && plans.length === 0}
                           onClick={() => {
                             if (isGym && plans.length > 0) {
@@ -1103,243 +916,194 @@ const VenueDetail: React.FC = () => {
                               setTab(1)
                             }
                           }}
-                          sx={{
-                            borderRadius: '12px',
-                            textTransform: 'none',
-                            py: 1.5,
-                            fontSize: '0.95rem',
-                            fontWeight: 800,
-                            background: gradients.brandEnergy,
-                            color: '#1c1917',
-                            boxShadow: '0 4px 15px rgba(245,158,11,0.35)',
-                            '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
-                          }}
+                          className="min-h-12 w-full rounded-xl text-base font-extrabold"
                         >
-                          <Icon icon={isGym ? 'mdi:card-account-details-star' : 'mdi:calendar-plus'} className="h-5 w-5 ml-2" />
+                          <Icon icon={isGym ? 'mdi:card-account-details-star' : 'mdi:calendar-plus'} className="h-5 w-5" />
                           {isGym ? (plans.length > 0 ? 'خرید اشتراک' : 'پلنی موجود نیست') : 'مشاهده سانس‌ها'}
                         </Button>
-                      </CardContent>
-                    </Card>
-                  </Box>
-                </Grid>
-              </Grid>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </motion.div>
-          </Container>
-        </Box>
-      </Box>
+          </div>
+        </div>
+      </div>
 
       {/* نوار شناور تایید دسکتاپ — بدون نیاز به اسکرول بعد از انتخاب سانس */}
       {!isGym && selectedSlot && tab === 1 && (
-        <Box
-          sx={{
-            display: { xs: 'none', md: 'block' },
-            position: 'fixed',
-            bottom: 28,
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 60,
-            width: '100%',
-            maxWidth: 560,
-            px: 3,
-          }}
-        >
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 2,
-              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(18,26,43,0.96)' : 'rgba(255,255,255,0.97)'),
-              backdropFilter: 'blur(12px)',
-              borderRadius: '16px',
-              border: '1px solid',
-              borderColor: 'divider',
-              boxShadow: '0 8px 30px rgba(2,8,23,0.14)',
-              px: 2.5,
-              py: 1.75,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-              <Icon icon="mdi:clock-outline" className="h-5 w-5" style={{ color: '#f59e0b', flexShrink: 0 }} />
-              <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }} noWrap>
+        <div className="fixed bottom-7 left-1/2 z-[60] hidden w-full max-w-[560px] -translate-x-1/2 px-6 md:block">
+          <div className="flex items-center gap-4 rounded-2xl border border-border bg-white/95 px-5 py-3.5 shadow-[0_8px_30px_rgba(2,8,23,0.14)] backdrop-blur-md dark:bg-slate-900/95">
+            <div className="flex min-w-0 items-center gap-2">
+              <Icon icon="mdi:clock-outline" className="h-5 w-5 shrink-0 text-amber-500" />
+              <p className="truncate text-sm font-bold text-foreground">
                 {selectedSlot.startTime} - {selectedSlot.endTime}
-              </Typography>
-            </Box>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
-              <Typography variant="body2" sx={{ fontWeight: 800, color: 'text.primary' }} noWrap>
+              </p>
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="truncate text-sm font-extrabold text-foreground">
                 {formatPrice(selectedSlot.price)}
-              </Typography>
-            </Box>
+              </p>
+            </div>
             <Button
-              variant="contained"
               onClick={() => setConfirmOpen(true)}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                py: 1,
-                px: 3,
-                fontWeight: 700,
-                flexShrink: 0,
-                background: gradients.brandEnergy,
-                color: '#1c1917',
-                boxShadow: '0 4px 15px rgba(245,158,11,0.35)',
-                '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
-              }}
+              className="min-h-11 shrink-0 rounded-xl px-6 font-bold"
             >
-              <Icon icon="mdi:check-circle" className="h-5 w-5 ml-2" />
+              <Icon icon="mdi:check-circle" className="h-5 w-5" />
               تایید و رزرو
             </Button>
-          </Box>
-        </Box>
+          </div>
+        </div>
       )}
 
       {/* Confirmation Dialog — مشترک موبایل و دسکتاپ */}
       <Dialog
         open={confirmOpen}
-        onClose={() => !bookingLoading && closeConfirm()}
-        aria-label="تایید رزرو"
-        slotProps={{
-          paper: { sx: { borderRadius: '20px', maxWidth: 400, p: 1 } }
+        onOpenChange={(open) => {
+          if (!open && !bookingLoading) closeConfirm()
         }}
       >
-        <DialogTitle sx={{ textAlign: 'center', pb: 1 }}>
-          <Box sx={{
-            width: 64, height: 64, borderRadius: '50%',
-            background: 'linear-gradient(135deg, rgba(251,191,36,0.18), rgba(249,115,22,0.12))',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            mx: 'auto', mb: 2,
-          }}>
-            <Icon icon="mdi:calendar-check" className="h-8 w-8" style={{ color: '#d97706' }} />
-          </Box>
-          <Typography variant="h6" sx={{ fontWeight: 700 }}>تایید رزرو</Typography>
-        </DialogTitle>
-        <DialogContent>
+        <DialogContent
+          aria-label="تایید رزرو"
+          aria-describedby={undefined}
+          className="max-w-[400px] rounded-[20px] p-5 sm:max-w-[400px]"
+        >
+          <div className="text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-amber-400/20 to-orange-500/10">
+              <Icon icon="mdi:calendar-check" className="h-8 w-8 text-amber-600" />
+            </div>
+            <DialogTitle className="text-center text-lg font-bold">تایید رزرو</DialogTitle>
+          </div>
+
           {bookingResult ? (
-            <Box>
-              <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <Typography variant="body2" sx={{ fontWeight: 800, color: 'success.main', mb: 0.5 }}>
+            <div>
+              <div className="mb-4 text-center">
+                <p className="mb-1 text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
                   رزرو ثبت شد — در انتظار تأیید مدیر سالن
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 900, color: 'primary.main' }}>
+                </p>
+                <p className="text-lg font-black text-blue-600 dark:text-blue-400">
                   قابل پرداخت: {formatRial(Number(bookingResult.payment_amount) || 0)}
-                </Typography>
+                </p>
                 {bookingResult.coupon_code && (
-                  <Typography variant="caption" sx={{ color: '#db2777', fontWeight: 700 }}>
+                  <span className="text-xs font-bold text-pink-600 dark:text-pink-400">
                     کد «{bookingResult.coupon_code}» اعمال شد
-                  </Typography>
+                  </span>
                 )}
-              </Box>
+              </div>
               <PricingBreakdown
                 steps={normalizeBreakdown(bookingResult.pricing_breakdown) ?? []}
                 payable={Number(bookingResult.payment_amount) || null}
               />
-            </Box>
+            </div>
           ) : (
             <>
-              <Box sx={{ textAlign: 'center', mb: 2 }}>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>سالن: {venue.name}</Typography>
-                <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+              <div className="mb-4 text-center">
+                <p className="mb-2 text-sm text-muted-foreground">سالن: {venue.name}</p>
+                <p className="mb-2 text-sm text-muted-foreground">
                   سانس: {selectedSlot?.startTime} - {selectedSlot?.endTime}
-                </Typography>
-                <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main', mt: 1 }}>
+                </p>
+                <p className="mt-2 text-lg font-extrabold text-blue-600 dark:text-blue-400">
                   {formatPrice(selectedSlot?.price)}
-                </Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.5 }}>
+                </p>
+                <span className="mt-1 block text-xs text-muted-foreground">
                   قیمت نهایی سمت سرور محاسبه می‌شود (قوانین + تخفیف‌ها)
-                </Typography>
-              </Box>
+                </span>
+              </div>
               {isAuthenticated && (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <TextField
-                    label="کد تخفیف (اختیاری)"
-                    value={discountCode}
-                    onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
-                    size="small"
-                    fullWidth
-                    placeholder="مثلاً: نوروز۱۴۰۵"
-                    slotProps={{ input: { sx: { borderRadius: '10px' } } }}
-                  />
-                  <FormControlLabel
-                    control={
-                      <Checkbox
-                        checked={useLoyalty}
-                        disabled={!loyalty || loyalty.balance <= 0}
-                        onChange={(e) => setUseLoyalty(e.target.checked)}
-                        size="small"
-                      />
-                    }
-                    label={
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                <div className="flex flex-col gap-2">
+                  <div>
+                    <Label htmlFor={`${loyaltyCheckboxId}-discount`} className="mb-1.5 block text-xs">
+                      کد تخفیف (اختیاری)
+                    </Label>
+                    <Input
+                      id={`${loyaltyCheckboxId}-discount`}
+                      value={discountCode}
+                      onChange={(e) => setDiscountCode(e.target.value.toUpperCase())}
+                      placeholder="مثلاً: نوروز۱۴۰۵"
+                      className="rounded-[10px]"
+                    />
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <Checkbox
+                      id={loyaltyCheckboxId}
+                      checked={useLoyalty}
+                      disabled={!loyalty || loyalty.balance <= 0}
+                      onCheckedChange={(checked) => setUseLoyalty(checked === true)}
+                      className="mt-0.5"
+                    />
+                    <div>
+                      <Label htmlFor={loyaltyCheckboxId} className="text-sm font-semibold">
                         استفاده از امتیازها (تا ۵۰٪)
-                        {loyalty ? (
-                          <Box component="span" sx={{ display: 'block', color: 'text.secondary', fontSize: '0.75rem' }}>
-                            موجودی: {toPersianDigits(loyalty.balance)} امتیاز ≈ {formatRial(loyalty.balance * loyalty.point_value_rial)}
-                          </Box>
-                        ) : null}
-                      </Typography>
-                    }
-                  />
-                </Box>
+                      </Label>
+                      {loyalty ? (
+                        <span className="block text-xs text-muted-foreground">
+                          موجودی: {toPersianDigits(loyalty.balance)} امتیاز ≈ {formatRial(loyalty.balance * loyalty.point_value_rial)}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                </div>
               )}
             </>
           )}
-        </DialogContent>
-        <DialogActions sx={{ justifyContent: bookingResult ? 'center' : 'space-between', pb: 2, gap: 1, flexWrap: 'wrap' }}>
-          {!bookingResult && (
-            <Button
-              onClick={closeConfirm}
-              disabled={bookingLoading}
-              variant="outlined"
-              sx={{ borderRadius: '10px', textTransform: 'none', px: 3 }}
-            >
-              انصراف
-            </Button>
-          )}
-          {bookingResult ? (
-            <>
+
+          <DialogFooter
+            className={
+              bookingResult
+                ? 'flex-row flex-wrap items-center justify-center gap-2 pb-2 sm:justify-center'
+                : 'flex-row flex-wrap items-center justify-between gap-2 pb-2 sm:justify-between'
+            }
+          >
+            {!bookingResult && (
               <Button
+                variant="outline"
                 onClick={closeConfirm}
-                variant="outlined"
-                sx={{ borderRadius: '10px', textTransform: 'none', px: 3 }}
+                disabled={bookingLoading}
+                className="min-h-11 rounded-[10px] px-6"
               >
-                بعداً
+                انصراف
               </Button>
+            )}
+            {bookingResult ? (
+              <>
+                <Button
+                  variant="outline"
+                  onClick={closeConfirm}
+                  className="min-h-11 rounded-[10px] px-6"
+                >
+                  بعداً
+                </Button>
+                <Button
+                  onClick={() => {
+                    const id = bookingResult.id
+                    closeConfirm()
+                    if (id) navigate(`/bookings/${id}`)
+                  }}
+                  className="min-h-11 rounded-[10px] bg-gradient-to-br from-emerald-600 to-emerald-500 px-6 text-white hover:from-emerald-700 hover:to-emerald-600"
+                >
+                  پرداخت و تکمیل رزرو
+                </Button>
+              </>
+            ) : (
               <Button
-                onClick={() => {
-                  const id = bookingResult.id
-                  closeConfirm()
-                  if (id) navigate(`/bookings/${id}`)
-                }}
-                variant="contained"
-                sx={{
-                  borderRadius: '10px', textTransform: 'none', px: 3, minHeight: 44,
-                  background: 'linear-gradient(135deg, #059669, #10b981)',
-                  '&:hover': { background: 'linear-gradient(135deg, #047857, #059669)' },
-                }}
+                onClick={handleBooking}
+                disabled={bookingLoading}
+                className="min-h-11 rounded-[10px] px-6 font-extrabold"
               >
-                پرداخت و تکمیل رزرو
+                {bookingLoading ? (
+                  <span
+                    className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                    role="status"
+                    aria-label="در حال بارگذاری"
+                  />
+                ) : (
+                  'تایید رزرو'
+                )}
               </Button>
-            </>
-          ) : (
-            <Button
-              onClick={handleBooking}
-              disabled={bookingLoading}
-              variant="contained"
-              sx={{
-                borderRadius: '10px', textTransform: 'none', px: 3, minHeight: 44,
-                fontWeight: 800,
-                background: gradients.brandEnergy,
-                color: '#1c1917',
-                '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' },
-              }}
-            >
-              {bookingLoading ? (
-                <CircularProgress size={20} sx={{ color: '#1c1917' }} />
-              ) : (
-                'تایید رزرو'
-              )}
-            </Button>
-          )}
-        </DialogActions>
+            )}
+          </DialogFooter>
+        </DialogContent>
       </Dialog>
 
       {/* Membership Purchase Dialog — مخصوص سالن‌های بدنسازی */}

@@ -2,36 +2,35 @@
 // «پرسنل» — جدول انتصاب‌ها (GET /staff) + افزودن/حذف نرم + تغییر inline موقعیت +
 // نمودار دسترسی‌ها (ماتریس utils/permissions.py) + زیرلیست ممیزی امنیتی (GET /staff/audit).
 
-import React, { useState } from 'react'
-import {
-  Alert,
-  Box,
-  Button,
-  Checkbox,
-  Chip,
-  CircularProgress,
-  Divider,
-  FormControl,
-  FormControlLabel,
-  IconButton,
-  MenuItem,
-  Pagination,
-  Select,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import React, { useId, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import Dialog from '@/components/ui/Dialog'
-import { EmptyBox, ErrorBox, LoadingBox, SectionCard, extractError } from '@/components/finance/shared'
+import { Alert } from '@/components/ui/shadcn/alert'
+import { Button } from '@/components/ui/shadcn/button'
+import { Checkbox } from '@/components/ui/shadcn/checkbox'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import { Switch } from '@/components/ui/shadcn/switch'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
+import { EmptyBox, ErrorBox, LoadingBox, Pager, SectionCard, extractError } from '@/components/finance/shared'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { useRemoveStaff, useStaffAudit, useStaffList, useCreateStaff, useUpdateStaff } from '@/hooks/useCrm'
 import {
@@ -96,6 +95,8 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
   const [auditPage, setAuditPage] = useState(1)
   const [auditAction, setAuditAction] = useState<string>('')
 
+  const includeInactiveId = useId()
+
   const staffQuery = useStaffList(venueId, includeInactive)
   const createStaff = useCreateStaff()
   const updateStaff = useUpdateStaff()
@@ -147,22 +148,28 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
   const activeCount = rows.filter((r) => r.is_active).length
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+    <div className="flex flex-col gap-5">
       <SectionCard
         title={`کارکنان سالن (${toPersianDigits(activeCount)} فعال)`}
         icon="mdi:badge-account-outline"
         color="#2563eb"
         action={
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <FormControlLabel
-              control={<Switch size="small" checked={includeInactive} onChange={(e) => setIncludeInactive(e.target.checked)} />}
-              label={<Typography variant="caption" sx={{ fontWeight: 600 }}>نمایش حذف‌شده‌ها</Typography>}
-              sx={{ ms: 0 }}
-            />
-            <Button size="small" variant="contained" onClick={() => setAddOpen(true)} startIcon={<Icon icon="mdi:plus" />} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}>
+          <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
+              <Switch
+                id={includeInactiveId}
+                checked={includeInactive}
+                onCheckedChange={setIncludeInactive}
+              />
+              <Label htmlFor={includeInactiveId} className="cursor-pointer text-xs font-semibold text-foreground">
+                نمایش حذف‌شده‌ها
+              </Label>
+            </div>
+            <Button size="sm" onClick={() => setAddOpen(true)} className="font-bold">
+              <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
               افزودن کارمند
             </Button>
-          </Box>
+          </div>
         }
       >
         {staffQuery.isPending ? (
@@ -172,79 +179,103 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
         ) : rows.length === 0 ? (
           <EmptyBox icon="mdi:badge-account-outline" title="هنوز کارمندی انتصاب نشده" text="با دکمه «افزودن کارمند» کاربرِ ثبت‌نام‌شده را با شماره موبایل انتصاب دهید." />
         ) : (
-          <Box sx={{ overflowX: 'auto' }}>
-            <Table aria-label="لیست کارکنان سالن" size="small" sx={{ minWidth: 720 }}>
-              <TableHead>
-                <TableRow>
+          <div className="-mx-1 overflow-x-auto px-1">
+            <Table aria-label="لیست کارکنان سالن" className="min-w-[720px]">
+              <TableHeader className="bg-slate-50/80 dark:bg-slate-900/80">
+                <TableRow className="hover:bg-transparent">
                   {['کارمند', 'موبایل', 'موقعیت', 'دسترسی‌ها', 'وضعیت', 'عملیات'].map((h, i) => (
-                    <TableCell scope="col" key={i} sx={{ fontWeight: 800, whiteSpace: 'nowrap', bgcolor: 'rgba(248,250,252,0.8)' }}>{h}</TableCell>
+                    <TableHead key={i} scope="col" className="whitespace-nowrap font-extrabold">{h}</TableHead>
                   ))}
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {rows.map((row) => (
-                  <TableRow key={row.id} hover sx={{ opacity: row.is_active ? 1 : 0.6 }}>
-                    <TableCell sx={{ fontWeight: 700 }}>{row.user_name ?? '—'}</TableCell>
-                    <TableCell dir="ltr" sx={{ fontVariantNumeric: 'tabular-nums' }}>{row.user_phone ?? '—'}</TableCell>
+                  <TableRow key={row.id} className={row.is_active ? 'hover:bg-muted/50' : 'opacity-60 hover:bg-muted/50'}>
+                    <TableCell className="font-bold text-foreground">{row.user_name ?? '—'}</TableCell>
+                    <TableCell dir="ltr" className="tabular-nums text-foreground">{row.user_phone ?? '—'}</TableCell>
                     <TableCell>
                       {row.is_active ? (
-                        <FormControl size="small" sx={{ minWidth: 138 }}>
+                        <div className="min-w-[138px]">
                           <Select
                             value={POSITION_ORDER.includes(row.position as StaffPosition) ? row.position : 'reception'}
-                            onChange={(e) => changePosition(row, e.target.value as StaffPosition)}
+                            onValueChange={(v) => changePosition(row, v as StaffPosition)}
                             disabled={updateStaff.isPending}
-                            aria-label="سمت"
-                            sx={{ borderRadius: '10px', fontWeight: 700, fontSize: '0.8rem' }}
                           >
-                            {POSITION_ORDER.map((pos) => (
-                              <MenuItem key={pos} value={pos}>{POSITION_LABELS[pos]}</MenuItem>
-                            ))}
+                            <SelectTrigger aria-label="سمت" className="h-11 rounded-xl text-[0.8rem] font-bold">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {POSITION_ORDER.map((pos) => (
+                                <SelectItem key={pos} value={pos}>{POSITION_LABELS[pos]}</SelectItem>
+                              ))}
+                            </SelectContent>
                           </Select>
-                        </FormControl>
+                        </div>
                       ) : (
-                        <Chip label={POSITION_LABELS[row.position as StaffPosition] ?? String(row.position)} size="small" variant="outlined" sx={{ borderRadius: '8px', fontWeight: 700 }} />
+                        <span className="inline-flex h-5 items-center rounded-lg border border-border px-2 text-xs font-bold text-foreground">
+                          {POSITION_LABELS[row.position as StaffPosition] ?? String(row.position)}
+                        </span>
                       )}
                     </TableCell>
                     <TableCell>
                       {row.is_custom_permissions ? (
-                        <Tooltip title="دسترسی سفارشی — با آیکن بازگشت به پیش‌فرض موقعیت برمی‌گردد">
-                          <Box sx={{ display: 'flex', gap: 0.4, flexWrap: 'wrap', alignItems: 'center', maxWidth: 330 }}>
-                            {row.permissions.slice(0, 4).map((code) => (
-                              <Chip key={code} label={code} size="small" sx={{ height: 18, fontSize: '0.6rem', borderRadius: '6px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed', fontWeight: 700 }} />
-                            ))}
-                            {row.permissions.length > 4 && (
-                              <Chip label={'+' + toPersianDigits(row.permissions.length - 4)} size="small" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700 }} />
-                            )}
-                            {row.is_active && (
-                              <IconButton size="small" onClick={() => resetCustomPermissions(row)} disabled={updateStaff.isPending} aria-label="بازگرداندن دسترسی به پیش‌فرض">
-                                <Icon icon="mdi:restore" className="h-4 w-4" style={{ color: '#2563eb' }} />
-                              </IconButton>
-                            )}
-                          </Box>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <div className="flex max-w-[330px] flex-wrap items-center gap-1">
+                              {row.permissions.slice(0, 4).map((code) => (
+                                <span key={code} className="inline-flex h-[18px] items-center rounded-md bg-violet-600/[0.08] px-1.5 text-[0.6rem] font-bold text-violet-700 dark:text-violet-300">
+                                  {code}
+                                </span>
+                              ))}
+                              {row.permissions.length > 4 && (
+                                <span className="inline-flex h-[18px] items-center rounded-md bg-muted px-1.5 text-[0.6rem] font-bold text-foreground">
+                                  {'+' + toPersianDigits(row.permissions.length - 4)}
+                                </span>
+                              )}
+                              {row.is_active && (
+                                <button
+                                  type="button"
+                                  onClick={() => resetCustomPermissions(row)}
+                                  disabled={updateStaff.isPending}
+                                  aria-label="بازگرداندن دسترسی به پیش‌فرض"
+                                  className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 dark:text-blue-400"
+                                >
+                                  <Icon icon="mdi:restore" className="h-4 w-4" aria-hidden="true" />
+                                </button>
+                              )}
+                            </div>
+                          </TooltipTrigger>
+                          <TooltipContent>دسترسی سفارشی — با آیکن بازگشت به پیش‌فرض موقعیت برمی‌گردد</TooltipContent>
                         </Tooltip>
                       ) : (
-                        <Typography variant="caption" color="text.secondary">پیش‌فرض {POSITION_LABELS[row.position as StaffPosition] ?? row.position}</Typography>
+                        <span className="text-xs text-muted-foreground">پیش‌فرض {POSITION_LABELS[row.position as StaffPosition] ?? row.position}</span>
                       )}
                     </TableCell>
                     <TableCell>
-                      <Chip
-                        label={row.is_active ? 'فعال' : 'حذف‌شده'}
-                        size="small"
-                        sx={{
-                          borderRadius: '8px', fontWeight: 700, fontSize: '0.75rem', height: 20,
-                          bgcolor: row.is_active ? 'rgba(5,150,105,0.12)' : 'rgba(107,114,128,0.12)',
-                          color: row.is_active ? '#059669' : '#6b7280',
-                        }}
-                      />
+                      <span
+                        className={
+                          row.is_active
+                            ? 'inline-flex h-5 items-center rounded-lg bg-emerald-600/[0.12] px-2 text-xs font-bold leading-none text-emerald-700 dark:text-emerald-400'
+                            : 'inline-flex h-5 items-center rounded-lg bg-slate-500/[0.12] px-2 text-xs font-bold leading-none text-muted-foreground'
+                        }
+                      >
+                        {row.is_active ? 'فعال' : 'حذف‌شده'}
+                      </span>
                     </TableCell>
                     <TableCell>
                       {row.is_active && (
-                        <Tooltip title="حذف انتصاب">
-                          <span>
-                            <IconButton size="small" onClick={() => setRemoveTarget(row)} aria-label="حذف انتصاب">
-                              <Icon icon="mdi:account-remove-outline" className="h-5 w-5" style={{ color: '#ef4444' }} />
-                            </IconButton>
-                          </span>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() => setRemoveTarget(row)}
+                              aria-label="حذف انتصاب"
+                              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
+                            >
+                              <Icon icon="mdi:account-remove-outline" className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>حذف انتصاب</TooltipContent>
                         </Tooltip>
                       )}
                     </TableCell>
@@ -252,7 +283,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                 ))}
               </TableBody>
             </Table>
-          </Box>
+          </div>
         )}
       </SectionCard>
 
@@ -262,53 +293,55 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
         icon="mdi:table-large"
         color="#7c3aed"
         action={
-          <Button size="small" onClick={() => setShowMatrix((s) => !s)} sx={{ textTransform: 'none', fontWeight: 700 }} endIcon={<Icon icon={showMatrix ? 'mdi:chevron-up' : 'mdi:chevron-down'} />}>
+          <Button size="sm" variant="ghost" onClick={() => setShowMatrix((s) => !s)} className="font-bold">
             {showMatrix ? 'بستن' : 'نمایش'}
+            <Icon icon={showMatrix ? 'mdi:chevron-up' : 'mdi:chevron-down'} className="h-4 w-4" aria-hidden="true" />
           </Button>
         }
       >
         {!showMatrix ? (
-          <Typography variant="caption" color="text.secondary">
+          <p className="text-xs text-muted-foreground">
             برای شفافیت، لیست کامل کدهای دسترسی هر موقعیت را ببینید. انتصابِ «دسترسی سفارشی» این ماتریس را دور می‌زند.
-          </Typography>
+          </p>
         ) : (
-          <Box sx={{ overflowX: 'auto' }}>
-            <Box sx={{ minWidth: 560 }}>
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: 'minmax(0,1.6fr) repeat(4, minmax(44px,0.6fr))',
-                  gap: 0.5, px: 1.5, py: 1, bgcolor: 'rgba(37,99,235,0.06)', borderRadius: '10px', mb: 0.5,
-                }}
-              >
-                <Typography variant="caption" sx={{ fontWeight: 800 }}>کد دسترسی</Typography>
+          <div className="overflow-x-auto">
+            <div className="min-w-[560px]">
+              <div className="mb-2 grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(44px,0.6fr))] items-center gap-1 rounded-[10px] bg-blue-600/[0.06] px-3 py-2">
+                <span className="text-xs font-extrabold text-foreground">کد دسترسی</span>
                 {POSITION_ORDER.map((pos) => (
-                  <Typography key={pos} variant="caption" sx={{ fontWeight: 800, textAlign: 'center' }}>{POSITION_LABELS[pos]}</Typography>
+                  <span key={pos} className="text-center text-xs font-extrabold text-foreground">{POSITION_LABELS[pos]}</span>
                 ))}
-              </Box>
+              </div>
               {ALL_PERMISSION_CODES.map((code) => (
                 <PermissionMatrixRow key={code} code={code} allowedFor={POSITION_ORDER.map((pos) => matrixSets[pos])} />
               ))}
-            </Box>
-          </Box>
+            </div>
+          </div>
         )}
       </SectionCard>
 
       {/* ممیزی امنیتی */}
       <SectionCard title="گزارش ممیزی امنیتی" icon="mdi:shield-lock-outline" color="#059669">
-        <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mb: 1.5 }}>
-          {AUDIT_ACTIONS.map((a) => (
-            <Chip
-              key={a || 'all'}
-              label={AUDIT_ACTION_LABELS[a]}
-              size="small"
-              color={auditAction === a ? 'primary' : 'default'}
-              variant={auditAction === a ? 'filled' : 'outlined'}
-              onClick={() => { setAuditAction(a); setAuditPage(1) }}
-              sx={{ borderRadius: '9px', fontWeight: 700, fontSize: '0.75rem', height: 26 }}
-            />
-          ))}
-        </Box>
+        <div className="mb-3 flex flex-wrap gap-1.5">
+          {AUDIT_ACTIONS.map((a) => {
+            const active = auditAction === a
+            return (
+              <button
+                key={a || 'all'}
+                type="button"
+                aria-pressed={active}
+                onClick={() => { setAuditAction(a); setAuditPage(1) }}
+                className={
+                  active
+                    ? 'inline-flex h-[26px] items-center rounded-[9px] bg-blue-600 px-2.5 text-xs font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    : 'inline-flex h-[26px] items-center rounded-[9px] border border-border bg-card px-2.5 text-xs font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                }
+              >
+                {AUDIT_ACTION_LABELS[a]}
+              </button>
+            )
+          })}
+        </div>
         {auditQuery.isPending ? (
           <LoadingBox text="در حال دریافت ممیزی..." />
         ) : auditQuery.isError ? (
@@ -317,33 +350,40 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
           <EmptyBox icon="mdi:shield-check-outline" title="رویدادی با این فیلتر ثبت نشده" />
         ) : (
           <>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            <div className="flex flex-col gap-1.5">
               {auditItems.map((e) => {
                 const ai = auditIcon(e.action)
                 return (
-                  <Box key={e.id} sx={{ display: 'flex', alignItems: 'center', gap: 1.5, px: 1.5, py: 1.25, borderRadius: '12px', border: '1px solid rgba(15,23,42,0.06)', bgcolor: e.action === 'permission.denied' ? 'rgba(239,68,68,0.04)' : 'rgba(248,250,252,0.6)' }}>
-                    <Icon icon={ai.icon} className="h-5 w-5" style={{ color: ai.color, flexShrink: 0 }} />
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                  <div
+                    key={e.id}
+                    className={
+                      e.action === 'permission.denied'
+                        ? 'flex items-center gap-3 rounded-xl border border-red-500/[0.12] bg-red-500/[0.04] px-3 py-2.5'
+                        : 'flex items-center gap-3 rounded-xl border border-border/60 bg-slate-50/60 px-3 py-2.5 dark:bg-slate-900/40'
+                    }
+                  >
+                    <Icon icon={ai.icon} className="h-5 w-5 shrink-0" style={{ color: ai.color }} aria-hidden="true" />
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-bold text-foreground">
                         {AUDIT_ACTION_LABELS[e.action] ?? e.action}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      </p>
+                      <p className="block truncate text-xs text-muted-foreground">
                         {e.data?.actor_name ? e.data.actor_name + ' · ' : ''}
                         {e.target_type ? e.target_type + (e.target_id ? ' #' + toPersianDigits(e.target_id) : '') + ' · ' : ''}
                         {e.ip ? 'IP: ' + e.ip : ''}
-                      </Typography>
-                    </Box>
-                    <Typography variant="caption" color="text.secondary" sx={{ flexShrink: 0 }}>
+                      </p>
+                    </div>
+                    <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
                       {e.created_at ? formatJalaliDateTime(e.created_at, { format: 'numeric' }) : '—'}
-                    </Typography>
-                  </Box>
+                    </span>
+                  </div>
                 )
               })}
-            </Box>
+            </div>
             {auditTotal > AUDIT_PAGE_SIZE && (
-              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 1.5 }}>
-                <Pagination count={auditPages} color="primary" shape="rounded" page={auditPage} onChange={(_, v) => setAuditPage(v)} size="small" />
-              </Box>
+              <div className="mt-3 flex justify-center">
+                <Pager count={auditPages} page={auditPage} onChange={setAuditPage} />
+              </div>
             )}
           </>
         )}
@@ -375,7 +415,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
         loading={removeStaff.isPending}
         onConfirm={confirmRemove}
       />
-    </Box>
+    </div>
   )
 }
 
@@ -400,6 +440,9 @@ const AddStaffDialog: React.FC<{
   const [custom, setCustom] = useState(false)
   const [codes, setCodes] = useState<string[]>([])
 
+  const phoneId = useId()
+  const customId = useId()
+
   const reset = () => { setPhone(''); setCustom(false); setCodes([]); setPosition('reception') }
 
   const submit = () => {
@@ -422,84 +465,93 @@ const AddStaffDialog: React.FC<{
 
   return (
     <Dialog open={open} onClose={onClose} title="افزودن کارمند" maxWidth="sm">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-        <Alert severity="info" sx={{ borderRadius: '12px', fontSize: '0.76rem' }}>
-          کاربر باید ابتدا در اپ ثبت‌نام کرده باشد؛ انتصاب با شماره موبایل انجام و بلافاصله فعال می‌شود.
+      <div className="flex flex-col gap-4 pt-1">
+        <Alert variant="info" className="rounded-xl text-[0.76rem]">
+          <Icon icon="mdi:information-outline" className="h-5 w-5 shrink-0" aria-hidden="true" />
+          <span>کاربر باید ابتدا در اپ ثبت‌نام کرده باشد؛ انتصاب با شماره موبایل انجام و بلافاصله فعال می‌شود.</span>
         </Alert>
-        <TextField
-          label="شماره موبایل کاربر"
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          fullWidth
-          dir="ltr"
-          placeholder="09121234567"
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-        />
-        <Box>
-          <FormControl fullWidth size="small">
-            <Select value={position} aria-label="سمت" onChange={(e) => setPosition(e.target.value as StaffPosition)} sx={{ borderRadius: '10px' }}>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={phoneId}>شماره موبایل کاربر</Label>
+          <Input
+            id={phoneId}
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            dir="ltr"
+            placeholder="09121234567"
+            className="tabular-nums"
+          />
+        </div>
+        <div>
+          <Select value={position} onValueChange={(v) => setPosition(v as StaffPosition)}>
+            <SelectTrigger aria-label="سمت" className="w-full">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
               {POSITION_ORDER.map((pos) => (
-                <MenuItem key={pos} value={pos}>{POSITION_LABELS[pos]}</MenuItem>
+                <SelectItem key={pos} value={pos}>{POSITION_LABELS[pos]}</SelectItem>
               ))}
-            </Select>
-          </FormControl>
-          <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.75 }}>
-            <Icon icon="mdi:information-outline" className="h-3.5 w-3.5 inline ml-1" />
+            </SelectContent>
+          </Select>
+          <p className="mt-1.5 block text-xs text-muted-foreground">
+            <Icon icon="mdi:information-outline" className="inline h-3.5 w-3.5 me-1" aria-hidden="true" />
             {POSITION_DESCRIPTIONS[position]}
-          </Typography>
-        </Box>
-        <Divider />
-        <FormControlLabel
-          control={<Switch checked={custom} onChange={(e) => setCustom(e.target.checked)} />}
-          label={<Typography variant="body2" sx={{ fontWeight: 800 }}>دسترسی سفارشی (به‌جای پیش‌فرض موقعیت)</Typography>}
-          sx={{ ms: 0 }}
-        />
+          </p>
+        </div>
+        <Separator />
+        <div className="flex items-center gap-2">
+          <Switch id={customId} checked={custom} onCheckedChange={setCustom} />
+          <Label htmlFor={customId} className="cursor-pointer text-sm font-extrabold text-foreground">
+            دسترسی سفارشی (به‌جای پیش‌فرض موقعیت)
+          </Label>
+        </div>
         {custom ? (
-          <Box sx={{ maxHeight: 230, overflow: 'auto', border: '1px solid rgba(15,23,42,0.08)', borderRadius: '12px', p: 1 }}>
+          <div className="max-h-[230px] overflow-auto rounded-xl border border-border p-2">
             {ALL_PERMISSION_CODES.map((code) => (
-              <FormControlLabel
-                key={code}
-                control={
-                  <Checkbox
-                    size="small"
-                    checked={codes.includes(code)}
-                    onChange={(e) => setCodes((prev) => (e.target.checked ? [...prev, code] : prev.filter((c) => c !== code)))}
-                  />
-                }
-                label={
-                  <Box component="span" sx={{ fontSize: '0.76rem' }}>
-                    <Box component="span" sx={{ fontWeight: 700 }} dir="ltr">{code}</Box>{' '}
-                    <Box component="span" color="text.secondary">— {PERMISSION_LABELS[code] ?? code}</Box>
-                  </Box>
-                }
-                sx={{ display: 'flex', ms: 0, py: 0.1 }}
-              />
+              <label key={code} className="flex items-center gap-2 py-[1px]">
+                <Checkbox
+                  checked={codes.includes(code)}
+                  onCheckedChange={(v) => setCodes((prev) => (v ? [...prev, code] : prev.filter((c) => c !== code)))}
+                />
+                <span className="text-[0.76rem] text-foreground">
+                  <span className="font-bold" dir="ltr">{code}</span>{' '}
+                  <span className="text-muted-foreground">— {PERMISSION_LABELS[code] ?? code}</span>
+                </span>
+              </label>
             ))}
-          </Box>
+          </div>
         ) : (
-          <Box sx={{ display: 'flex', gap: 0.4, flexWrap: 'wrap', alignItems: 'center' }}>
-            <Typography variant="caption" color="text.secondary">پیش‌فرض «{POSITION_LABELS[position]}»:</Typography>
+          <div className="flex flex-wrap items-center gap-1">
+            <span className="text-xs text-muted-foreground">پیش‌فرض «{POSITION_LABELS[position]}»:</span>
             {matrixSets[position].size === ALL_PERMISSION_CODES.length ? (
-              <Chip label="دسترسی کامل" size="small" sx={{ height: 18, fontSize: '0.6rem', fontWeight: 700, bgcolor: 'rgba(217,119,6,0.1)', color: 'warning.main' }} />
+              <span className="inline-flex h-[18px] items-center rounded-md bg-amber-500/10 px-1.5 text-[0.6rem] font-bold text-amber-700 dark:text-amber-400">
+                دسترسی کامل
+              </span>
             ) : (
               Array.from(matrixSets[position]).map((code) => (
-                <Chip key={code} label={code} size="small" sx={{ height: 18, fontSize: '0.58rem', borderRadius: '6px', bgcolor: 'rgba(37,99,235,0.07)', color: '#2563eb', fontWeight: 600 }} />
+                <span key={code} className="inline-flex h-[18px] items-center rounded-md bg-blue-600/[0.07] px-1.5 text-[0.58rem] font-semibold text-blue-700 dark:text-blue-300">
+                  {code}
+                </span>
               ))
             )}
-          </Box>
+          </div>
         )}
-        <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-          <Button variant="outlined" onClick={onClose} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}>انصراف</Button>
+        <div className="flex justify-end gap-2">
+          <Button variant="outline" onClick={onClose} className="font-bold">انصراف</Button>
           <Button
-            variant="contained"
             onClick={submit}
             disabled={pending}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg,#2563eb,#7c3aed)' }}
+            className="bg-gradient-to-br from-blue-600 to-violet-600 font-extrabold text-white hover:from-blue-700 hover:to-violet-700"
           >
-            {pending ? <CircularProgress size={18} color="inherit" /> : 'انتصاب کارمند'}
+            {pending ? (
+              <span
+                className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-current border-t-transparent"
+                role="status"
+                aria-label="در حال بارگذاری"
+              />
+            ) : 'انتصاب کارمند'}
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }

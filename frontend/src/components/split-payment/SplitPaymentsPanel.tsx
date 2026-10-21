@@ -2,12 +2,14 @@
 // پنل مدیریت پرداخت‌های اشتراکی تیم — لیست، وضعیت و جزئیات
 
 import React, { useState } from 'react'
-import { Box, Typography, Paper, Chip, IconButton, Tooltip, Alert, LinearProgress } from '@mui/material'
 import { Icon } from '@iconify/react'
 
 import { Button } from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
 import ConfirmModal from '@/components/modals/ConfirmModal'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Progress } from '@/components/ui/shadcn/progress'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 import { useToast } from '@/hooks/useToast'
 import { useAuthStore } from '@/store/authStore'
 import { splitPaymentService } from '@/services/splitPayment'
@@ -155,12 +157,12 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+    <div className="flex flex-col gap-4">
       {/* Header with Create Button */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: '#0f172a' }}>
+      <div className="flex items-center justify-between">
+        <p className="text-base font-bold text-foreground">
           پرداخت‌های اشتراکی
-        </Typography>
+        </p>
         {isManager && (
           <Button
             size="sm"
@@ -171,113 +173,119 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
             ایجاد پرداخت جدید
           </Button>
         )}
-      </Box>
+      </div>
 
       {/* Error Display */}
       {error && (
-        <Alert severity="error" onClose={() => setError(null)}>
-          {error}
+        <Alert variant="destructive">
+          <AlertDescription className="flex items-center justify-between gap-2">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={() => setError(null)}
+              aria-label="بستن"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
+            >
+              <Icon icon="mdi:close" className="h-4 w-4" aria-hidden="true" />
+            </button>
+          </AlertDescription>
         </Alert>
       )}
 
       {/* Loading State */}
       {loading ? (
-        <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-          <Icon icon="mdi:loading" style={{ width: 32, height: 32, color: '#3b82f6' }} />
-        </Box>
+        <div className="flex justify-center py-8">
+          <Icon
+            icon="mdi:loading"
+            className="h-8 w-8 animate-spin text-blue-500"
+            role="status"
+            aria-label="در حال بارگذاری"
+          />
+        </div>
       ) : payments.length === 0 ? (
-        <Paper
-          sx={{
-            p: 4,
-            textAlign: 'center',
-            borderRadius: '14px',
-            bgcolor: '#f8fafc',
-            border: '1px dashed #cbd5e1',
-          }}
-        >
-          <Icon icon="mdi:wallet-outline" style={{ width: 48, height: 48, color: '#64748b' }} />
-          <Typography sx={{ mt: 1, fontSize: '0.9rem', color: '#64748b' }}>
+        <div className="rounded-2xl border border-dashed border-slate-300 bg-muted/50 p-8 text-center dark:border-slate-600">
+          <Icon icon="mdi:wallet-outline" className="mx-auto h-12 w-12 text-muted-foreground" aria-hidden="true" />
+          <p className="mt-2 text-sm text-muted-foreground">
             هنوز پرداخت اشتراکی ایجاد نشده است.
-          </Typography>
+          </p>
           {isManager && (
-            <Button
-              size="sm"
-              variant="default"
-              onClick={() => setShowCreateDialog(true)}
-            >
-              اولین پرداخت را ایجاد کنید
-            </Button>
+            <div className="mt-4 flex justify-center">
+              <Button
+                size="sm"
+                variant="default"
+                onClick={() => setShowCreateDialog(true)}
+              >
+                اولین پرداخت را ایجاد کنید
+              </Button>
+            </div>
           )}
-        </Paper>
+        </div>
       ) : (
         /* Payment List */
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          {payments.map((payment) => (
-            <Paper
-              key={payment.id}
-              sx={{
-                p: 2,
-                borderRadius: '14px',
-                border: '1px solid rgba(15,23,42,0.08)',
-                transition: 'box-shadow 0.2s',
-                '&:hover': { boxShadow: '0 4px 12px rgba(0,0,0,0.08)' },
-              }}
-            >
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2 }}>
-                <Box sx={{ flex: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 1 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: '#0f172a' }}>
-                      پرداخت #{payment.id}
-                    </Typography>
-                    <Chip
-                      label={STATUS_LABELS[payment.status as keyof typeof STATUS_LABELS]}
-                      size="small"
-                      sx={{
-                        height: 22,
-                        fontSize: '0.75rem',
-                        fontWeight: 700,
-                        bgcolor: `${STATUS_COLORS[payment.status as keyof typeof STATUS_COLORS]}15`,
-                        color: STATUS_COLORS[payment.status as keyof typeof STATUS_COLORS],
-                      }}
-                    />
-                    <Chip
-                      label={METHOD_LABELS[payment.method as keyof typeof METHOD_LABELS]}
-                      size="small"
-                      variant="outlined"
-                      sx={{ height: 22, fontSize: '0.75rem' }}
-                    />
-                  </Box>
-                  <Box sx={{ display: 'flex', gap: 3, flexWrap: 'wrap', fontSize: '0.8rem', color: '#475569' }}>
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Icon icon="mdi:currency-irr" style={{ width: 16, height: 16 }} />
-                      <Typography>{Number(payment.amount).toLocaleString()} ریال</Typography>
-                    </Box>
-                    {payment.deadline && (
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        <Icon icon="mdi:clock-outline" style={{ width: 16, height: 16 }} />
-                        <Typography>مهلت: {new Date(payment.deadline).toLocaleDateString('fa-IR')}</Typography>
-                      </Box>
+        <div className="flex flex-col gap-4">
+          {payments.map((payment) => {
+            const statusColor = STATUS_COLORS[payment.status as keyof typeof STATUS_COLORS]
+            return (
+              <div
+                key={payment.id}
+                className="rounded-2xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+              >
+                <div className="flex items-start justify-between gap-4">
+                  <div className="flex-1">
+                    <div className="mb-2 flex flex-wrap items-center gap-3">
+                      <p className="text-[0.95rem] font-bold text-foreground">
+                        پرداخت #{payment.id}
+                      </p>
+                      <span
+                        className="inline-flex h-[22px] items-center rounded-lg px-2 text-[0.75rem] font-bold"
+                        style={{ backgroundColor: `${statusColor}15`, color: statusColor }}
+                      >
+                        {STATUS_LABELS[payment.status as keyof typeof STATUS_LABELS]}
+                      </span>
+                      <span className="inline-flex h-[22px] items-center rounded-lg border border-border px-2 text-[0.75rem] text-muted-foreground">
+                        {METHOD_LABELS[payment.method as keyof typeof METHOD_LABELS]}
+                      </span>
+                    </div>
+                    <div className="flex flex-wrap gap-6 text-[0.8rem] text-muted-foreground">
+                      <div className="flex items-center gap-2">
+                        <Icon icon="mdi:currency-irr" className="h-4 w-4" aria-hidden="true" />
+                        <span>{Number(payment.amount).toLocaleString()} ریال</span>
+                      </div>
+                      {payment.deadline && (
+                        <div className="flex items-center gap-2">
+                          <Icon icon="mdi:clock-outline" className="h-4 w-4" aria-hidden="true" />
+                          <span>مهلت: {new Date(payment.deadline).toLocaleDateString('fa-IR')}</span>
+                        </div>
+                      )}
+                      <div className="flex items-center gap-2">
+                        <Icon icon="mdi:calendar-outline" className="h-4 w-4" aria-hidden="true" />
+                        <span>{new Date(payment.created_at).toLocaleDateString('fa-IR')}</span>
+                      </div>
+                    </div>
+                    {payment.note && (
+                      <p className="mt-2 text-[0.78rem] italic text-muted-foreground">
+                        {payment.note}
+                      </p>
                     )}
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Icon icon="mdi:calendar-outline" style={{ width: 16, height: 16 }} />
-                      <Typography>{new Date(payment.created_at).toLocaleDateString('fa-IR')}</Typography>
-                    </Box>
-                  </Box>
-                  {payment.note && (
-                    <Typography sx={{ mt: 0.75, fontSize: '0.78rem', color: '#64748b', fontStyle: 'italic' }}>
-                      {payment.note}
-                    </Typography>
-                  )}
-                </Box>
-                <Tooltip title="مشاهده جزئیات">
-                  <IconButton onClick={() => handleViewDetails(payment.id)} size="small" aria-label={`مشاهده جزئیات پرداخت #${payment.id}`}>
-                    <Icon icon="mdi:eye-outline" style={{ width: 20, height: 20, color: '#3b82f6' }} />
-                  </IconButton>
-                </Tooltip>
-              </Box>
-            </Paper>
-          ))}
-        </Box>
+                  </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <button
+                        type="button"
+                        onClick={() => handleViewDetails(payment.id)}
+                        aria-label={`مشاهده جزئیات پرداخت #${payment.id}`}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-400 dark:hover:bg-blue-500/10"
+                      >
+                        <Icon icon="mdi:eye-outline" className="h-5 w-5" aria-hidden="true" />
+                      </button>
+                    </TooltipTrigger>
+                    <TooltipContent>مشاهده جزئیات</TooltipContent>
+                  </Tooltip>
+                </div>
+              </div>
+            )
+          })}
+        </div>
       )}
 
       {/* Payment Detail Dialog */}
@@ -288,51 +296,48 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
           title={`جزئیات پرداخت #${selectedPayment.id}`}
           maxWidth="md"
         >
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div className="flex flex-col gap-4">
             {/* Summary */}
-            <Paper sx={{ p: 2, bgcolor: '#f8fafc', borderRadius: '12px' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>مبلغ کل:</Typography>
-                <Typography sx={{ fontWeight: 700 }}>{Number(selectedPayment.amount).toLocaleString()} ریال</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
-                <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>روش تقسیم:</Typography>
-                <Typography sx={{ fontWeight: 600 }}>{METHOD_LABELS[selectedPayment.method as keyof typeof METHOD_LABELS]}</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>وضعیت:</Typography>
-                <Chip
-                  label={STATUS_LABELS[selectedPayment.status as keyof typeof STATUS_LABELS]}
-                  size="small"
-                  sx={{
-                    height: 22,
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    bgcolor: `${STATUS_COLORS[selectedPayment.status as keyof typeof STATUS_COLORS]}15`,
+            <div className="rounded-xl bg-muted p-4">
+              <div className="mb-2 flex justify-between">
+                <span className="text-[0.8rem] text-muted-foreground">مبلغ کل:</span>
+                <span className="font-bold text-foreground">{Number(selectedPayment.amount).toLocaleString()} ریال</span>
+              </div>
+              <div className="mb-2 flex justify-between">
+                <span className="text-[0.8rem] text-muted-foreground">روش تقسیم:</span>
+                <span className="font-semibold text-foreground">{METHOD_LABELS[selectedPayment.method as keyof typeof METHOD_LABELS]}</span>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-[0.8rem] text-muted-foreground">وضعیت:</span>
+                <span
+                  className="inline-flex h-[22px] items-center rounded-lg px-2 text-[0.75rem] font-bold"
+                  style={{
+                    backgroundColor: `${STATUS_COLORS[selectedPayment.status as keyof typeof STATUS_COLORS]}15`,
                     color: STATUS_COLORS[selectedPayment.status as keyof typeof STATUS_COLORS],
                   }}
-                />
-              </Box>
-            </Paper>
+                >
+                  {STATUS_LABELS[selectedPayment.status as keyof typeof STATUS_LABELS]}
+                </span>
+              </div>
+            </div>
 
             {/* Progress — سرور total_paid/remaining را می‌فرستد؛ قبلاً هیچ‌جا نشان داده نمی‌شد */}
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-              <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="text-[0.8rem] text-muted-foreground">
                 {`${Number(selectedPayment.total_paid ?? 0).toLocaleString('fa-IR')} پرداخت‌شده از ${Number(selectedPayment.amount).toLocaleString('fa-IR')} ریال`}
-              </Typography>
+              </span>
               {Number(selectedPayment.remaining ?? 0) > 0 && (
-                <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: '#b45309' }}>
+                <span className="text-[0.8rem] font-bold text-amber-700 dark:text-amber-300">
                   {`باقی‌مانده: ${Number(selectedPayment.remaining).toLocaleString('fa-IR')} ریال`}
-                </Typography>
+                </span>
               )}
-            </Box>
-            <LinearProgress
-              variant="determinate"
+            </div>
+            <Progress
               value={selectedPayment.amount
                 ? Math.min(100, (Number(selectedPayment.total_paid ?? 0) / Number(selectedPayment.amount)) * 100)
                 : 0}
               aria-label="پیشرفت پرداخت این سهم"
-              sx={{ height: 8, borderRadius: 4, bgcolor: '#e2e8f0' }}
+              className="h-2 rounded bg-slate-200 [&>div]:rounded dark:bg-slate-700"
             />
             {myShare && (
               <Button
@@ -357,45 +362,36 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
             )}
 
             {/* Shares */}
-            <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', mt: 1 }}>سهم اعضا:</Typography>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <p className="mt-2 text-[0.9rem] font-bold text-foreground">سهم اعضا:</p>
+            <div className="flex flex-col gap-3">
               {selectedPayment.shares?.map((share: any) => (
-                <Paper
+                <div
                   key={share.id}
-                  sx={{
-                    p: 1.5,
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    borderRadius: '10px',
-                    border: share.status === 'PAID' ? '1px solid #10b981' : '1px solid #e2e8f0',
-                    bgcolor: share.status === 'PAID' ? '#f0fdf4' : '#fff',
-                  }}
+                  className={
+                    share.status === 'PAID'
+                      ? 'flex items-center justify-between rounded-xl border border-emerald-500 bg-emerald-50 p-3 dark:bg-emerald-500/10'
+                      : 'flex items-center justify-between rounded-xl border border-border bg-card p-3'
+                  }
                 >
-                  <Box sx={{ flex: 1 }}>
-                    <Typography sx={{ fontWeight: 600, fontSize: '0.85rem' }}>
+                  <div className="flex-1">
+                    <p className="text-[0.85rem] font-semibold text-foreground">
                       {getUserName(share.user_id)}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
+                    </p>
+                    <p className="mt-1 text-[0.75rem] text-muted-foreground">
                       {share.percentage ? `${share.percentage}%` : ''}
                       {share.amount > 0 && ` · ${Number(share.amount).toLocaleString()} ریال`}
-                    </Typography>
-                  </Box>
-                  <Chip
-                    label={SHARE_LABELS[share.status] ?? 'در انتظار'}
-                    size="small"
-                    sx={{
-                      height: 24,
-                      fontSize: '0.75rem',
-                      fontWeight: 700,
-                      bgcolor: SHARE_COLORS[share.status] ?? '#f59e0b',
-                      color: '#fff',
-                    }}
-                  />
-                </Paper>
+                    </p>
+                  </div>
+                  <span
+                    className="inline-flex h-6 items-center rounded-lg px-2 text-[0.75rem] font-bold text-white"
+                    style={{ backgroundColor: SHARE_COLORS[share.status] ?? '#f59e0b' }}
+                  >
+                    {SHARE_LABELS[share.status] ?? 'در انتظار'}
+                  </span>
+                </div>
               ))}
-            </Box>
-          </Box>
+            </div>
+          </div>
         </Dialog>
       )}
 
@@ -430,7 +426,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
           }}
         />
       )}
-    </Box>
+    </div>
   )
 }
 

@@ -8,33 +8,29 @@
 import React, { useMemo, useState } from 'react'
 import { useQuery, useQueryClient } from '@tanstack/react-query'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography,
-  useTheme,
-} from '@mui/material'
 import toast from 'react-hot-toast'
 
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import DealPublishDialog, { type PublishSlot } from '@/components/deals/DealPublishDialog'
+import Dialog from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/shadcn/button'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
+import { cn } from '@/lib/utils'
 import { slotService, type Slot } from '@/services/slot'
 import { extractError, faNum, statusColorToken } from '@/components/finance/shared'
 import { formatJalaliDate, jalaliWeekdayNames, toPersianDigits } from '@/lib/jalali'
@@ -87,6 +83,22 @@ const isFutureSlot = (slot: Slot): boolean => {
   return now.getHours() * 60 + now.getMinutes() < h * 60 + (m || 0)
 }
 
+/** رنگ متن سلول: هگز تزئینی → توکن سمانتیک با کنتراست ≥۴٫۵:۱ (کلاس، با نسخه‌ی دارک) */
+const accentClassOf = (hex: string): string | undefined => {
+  switch (statusColorToken(hex)) {
+    case 'success':
+      return 'text-emerald-700 dark:text-emerald-300'
+    case 'warning':
+      return 'text-amber-700 dark:text-amber-300'
+    case 'error':
+      return 'text-red-700 dark:text-red-300'
+    case 'info':
+      return 'text-blue-700 dark:text-blue-300'
+    default:
+      return undefined
+  }
+}
+
 const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
   const queryClient = useQueryClient()
   const [venueId, setVenueId] = useState<number | null>(null)
@@ -95,12 +107,6 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
   const [busyId, setBusyId] = useState<number | null>(null)
   const [blockConfirm, setBlockConfirm] = useState<Slot | null>(null)
   const [publishSlot, setPublishSlot] = useState<PublishSlot | null>(null)
-  const theme = useTheme()
-  /** رنگ متن سلول: هگز تزئینی → توکن سمانتیک با کنتراست ≥۴٫۵:۱ */
-  const textOf = (hex: string) => {
-    const token = statusColorToken(hex)
-    return token ? theme.palette[token].main : hex
-  }
 
   const activeVenueId = venueId ?? venues[0]?.id ?? null
   const startDate = toIso(weekStart)
@@ -171,141 +177,169 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
   const slotAt = (day: string, time: string): Slot | undefined =>
     byDay.get(day)?.find((s) => s.start_time.slice(0, 5) === time)
 
+  const detailColor = selectedSlot ? (STATUS_COLORS[selectedSlot.status] || '#6b7280') : '#6b7280'
+  const detailTitle = selectedSlot
+    ? `سانس ${toPersianDigits(selectedSlot.start_time.slice(0, 5))} — ${formatJalaliDate(selectedSlot.slot_date, { format: 'full' })}`
+    : 'جزئیات سانس'
+
   return (
-    <Box>
+    <div>
       {/* کنترل‌ها: سالن + ناوبری هفته جلالی */}
-      <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', flexWrap: 'wrap', mb: 2 }}>
+      <div className="mb-4 flex flex-wrap items-center gap-3">
         {venues.length > 0 ? (
-          <FormControl size="small" sx={{ minWidth: 200 }}>
-            <InputLabel>سالن</InputLabel>
-            <Select
-              label="سالن"
-              value={activeVenueId ?? ''}
-              onChange={(e) => setVenueId(Number(e.target.value))}
-              sx={{ borderRadius: '10px' }}
-            >
+          <Select
+            value={activeVenueId !== null ? String(activeVenueId) : undefined}
+            onValueChange={(v) => setVenueId(Number(v))}
+          >
+            <SelectTrigger aria-label="سالن" className="h-11 min-w-[200px]">
+              <SelectValue placeholder="سالن" />
+            </SelectTrigger>
+            <SelectContent>
               {venues.map((v) => (
-                <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
               ))}
-            </Select>
-          </FormControl>
+            </SelectContent>
+          </Select>
         ) : (
-          <Chip label="سالنی در دسترس نیست" size="small" color="warning" sx={{ borderRadius: '8px', fontWeight: 700 }} />
+          <span className="inline-flex items-center rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+            سالنی در دسترس نیست
+          </span>
         )}
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, ms: 'auto' }}>
-          <IconButton size="small" onClick={() => setWeekStart((w) => addDays(w, -7))} aria-label="هفته قبل">
-            <Icon icon="mdi:chevron-right" className="h-5 w-5" />
-          </IconButton>
-          <Typography variant="body2" sx={{ fontWeight: 800, minWidth: 190, textAlign: 'center' }} dir="rtl">
+        <div className="ms-auto flex items-center gap-1">
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setWeekStart((w) => addDays(w, -7))}
+            aria-label="هفته قبل"
+            className="rounded-full"
+          >
+            <Icon icon="mdi:chevron-right" className="h-5 w-5" aria-hidden="true" />
+          </Button>
+          <p className="min-w-[190px] text-center text-sm font-extrabold text-foreground" dir="rtl">
             {`${formatJalaliDate(startDate, { format: 'numeric' })} — ${formatJalaliDate(endDate, { format: 'numeric' })}`}
-          </Typography>
-          <IconButton size="small" onClick={() => setWeekStart((w) => addDays(w, 7))} aria-label="هفته بعد">
-            <Icon icon="mdi:chevron-left" className="h-5 w-5" />
-          </IconButton>
-          <Button size="small" onClick={() => setWeekStart(saturdayOf(new Date()))} sx={{ textTransform: 'none', fontWeight: 700, borderRadius: '8px' }}>
+          </p>
+          <Button
+            size="icon"
+            variant="ghost"
+            onClick={() => setWeekStart((w) => addDays(w, 7))}
+            aria-label="هفته بعد"
+            className="rounded-full"
+          >
+            <Icon icon="mdi:chevron-left" className="h-5 w-5" aria-hidden="true" />
+          </Button>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={() => setWeekStart(saturdayOf(new Date()))}
+            className="rounded-lg text-xs font-bold"
+          >
             این هفته
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       {/* راهنمای وضعیت */}
-      <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 1.5 }}>
+      <div className="mb-3 flex flex-wrap gap-3">
         {Object.entries(STATUS_LABELS).map(([k, label]) => (
-          <Box key={k} sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-            <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: STATUS_COLORS[k] }} aria-hidden="true" />
-            <Typography variant="caption" color="text.secondary">{label}</Typography>
-          </Box>
+          <div key={k} className="flex items-center gap-1">
+            <span
+              className="h-2.5 w-2.5 rounded-full"
+              style={{ backgroundColor: STATUS_COLORS[k] }}
+              aria-hidden="true"
+            />
+            <span className="text-xs text-muted-foreground">{label}</span>
+          </div>
         ))}
-      </Box>
+      </div>
 
       {slotsQuery.isPending && venues.length > 0 ? (
-        <Box role="status" aria-busy="true" sx={{ textAlign: 'center', py: 5 }}>
-          <CircularProgress size={32} sx={{ color: 'primary.main' }} />
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+        <div role="status" aria-busy="true" className="py-10 text-center">
+          <span
+            aria-hidden="true"
+            className="mx-auto block h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-blue-600"
+          />
+          <p className="mt-2 text-sm text-muted-foreground">
             در حال بارگذاری سانس‌های هفته…
-          </Typography>
-        </Box>
+          </p>
+        </div>
       ) : slotsQuery.isError ? (
-        <Typography variant="body2" color="error.main" role="alert">
+        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
           {extractError(slotsQuery.error, 'خطا در دریافت سانس‌های هفته')}
-        </Typography>
+        </p>
       ) : times.length === 0 ? (
-        <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+        <p className="py-8 text-center text-sm text-muted-foreground">
           در این هفته سانسی ثبت نشده است — از تب «سانس‌ها» یا «سالن‌های من» سانس تولید کنید.
-        </Typography>
+        </p>
       ) : (
-        <Box sx={{ overflowX: 'auto', borderRadius: '14px', border: '1px solid rgba(0,0,0,0.06)' }}>
-          <Table aria-label="سانس‌های هفته" size="small" sx={{ minWidth: 760, '& td, & th': { p: 0.5, border: '1px solid rgba(0,0,0,0.06)' } }}>
-            <TableHead>
-              <TableRow sx={{ bgcolor: 'rgba(248,250,252,0.9)' }}>
-                <TableCell scope="col" sx={{ fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>ساعت</TableCell>
+        <div className="overflow-x-auto rounded-2xl border border-border">
+          <Table
+            aria-label="سانس‌های هفته"
+            className="min-w-[760px] border-collapse text-xs [&_td]:border [&_td]:border-border [&_td]:p-1 [&_th]:border [&_th]:border-border [&_th]:p-1"
+          >
+            <TableHeader>
+              <TableRow className="bg-slate-50/90 dark:bg-slate-900/60">
+                <TableHead scope="col" className="whitespace-nowrap text-xs font-extrabold">ساعت</TableHead>
                 {days.map((day, i) => (
-                  <TableCell scope="col" key={day} align="center" sx={{ fontWeight: 800, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                  <TableHead scope="col" key={day} className="whitespace-nowrap text-center text-xs font-extrabold">
                     {jalaliWeekdayNames[i]}
-                    <Typography component="div" variant="caption" color="text.secondary" sx={{ fontWeight: 600 }}>
+                    <span className="block text-xs font-semibold text-muted-foreground">
                       {toPersianDigits(formatJalaliDate(day, { format: 'numeric' }).slice(5))}
-                    </Typography>
-                  </TableCell>
+                    </span>
+                  </TableHead>
                 ))}
               </TableRow>
-            </TableHead>
+            </TableHeader>
             <TableBody>
               {times.map((time) => (
                 <TableRow key={time}>
-                  <TableCell sx={{ fontWeight: 800, fontSize: '0.75rem', fontFamily: 'monospace', whiteSpace: 'nowrap' }} dir="ltr">
+                  <TableCell className="whitespace-nowrap font-mono text-xs font-extrabold" dir="ltr">
                     {toPersianDigits(time)}
                   </TableCell>
                   {days.map((day) => {
                     const slot = slotAt(day, time)
                     if (!slot) {
-                      return <TableCell key={day} align="center" sx={{ color: 'text.disabled', fontSize: '0.75rem' }}>—</TableCell>
+                      return (
+                        <TableCell key={day} className="text-center text-xs text-muted-foreground">—</TableCell>
+                      )
                     }
                     const color = STATUS_COLORS[slot.status] || '#6b7280'
-                    const accent = textOf(color)
+                    const accentClass = accentClassOf(color)
+                    // جدول متراکم است، اما هدف لمسی باید ≥۴۴px بماند (Material)
                     return (
-                      <TableCell key={day} align="center" sx={{ p: 0.25 }}>
-                        <Tooltip title={`${STATUS_LABELS[slot.status] || slot.status} — ${faNum(slot.current_price)}`}>
-                          <Box
-                            component="button"
-                            type="button"
-                            onClick={() => setSelectedSlot(slot)}
-                            aria-label={`سانس ${toPersianDigits(time)} ${jalaliWeekdayNames[days.indexOf(day)] ?? day}، ${STATUS_LABELS[slot.status] || slot.status}، ${faNum(slot.current_price)} ریال`}
-                            sx={{
-                              // جدول متراکم است، اما هدف لمسی باید ≥۴۴px بماند (Material)
-                              minHeight: 44,
-                              minWidth: 44,
-                              width: '100%',
-                              cursor: 'pointer',
-                              borderRadius: '8px',
-                              px: 0.5,
-                              py: 0.75,
-                              display: 'flex',
-                              flexDirection: 'column',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                              gap: 0.25,
-                              bgcolor: `${color}14`,
-                              border: `1px solid ${color}40`,
-                              transition: 'all .15s',
-                              fontFamily: 'inherit',
-                              color: accent,
-                              appearance: 'none',
-                              WebkitTapHighlightColor: 'transparent',
-                              '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: 1 },
-                              '&:hover': { bgcolor: `${color}26`, transform: 'translateY(-1px)' },
-                            }}
-                          >
-                            <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: color }} aria-hidden="true" />
-                            <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: accent, lineHeight: 1.2 }}>
-                              {faNum(slot.current_price)}
-                            </Typography>
-                            {/* وضعیت نباید فقط با رنگ فهمیده شود (WCAG 1.4.1) */}
-                            {slot.status !== 'available' && (
-                              <Typography sx={{ fontSize: '0.625rem', fontWeight: 700, color: accent, lineHeight: 1.1 }}>
-                                {STATUS_LABELS[slot.status] || slot.status}
-                              </Typography>
-                            )}
-                          </Box>
+                      <TableCell key={day} className="text-center">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() => setSelectedSlot(slot)}
+                              aria-label={`سانس ${toPersianDigits(time)} ${jalaliWeekdayNames[days.indexOf(day)] ?? day}، ${STATUS_LABELS[slot.status] || slot.status}، ${faNum(slot.current_price)} ریال`}
+                              className={cn(
+                                'flex min-h-11 min-w-11 w-full cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 font-[inherit] transition-all hover:-translate-y-px hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                                accentClass,
+                              )}
+                              style={{
+                                backgroundColor: `${color}14`,
+                                border: `1px solid ${color}40`,
+                                ...(accentClass ? {} : { color }),
+                              }}
+                            >
+                              <span
+                                className="h-[7px] w-[7px] rounded-full"
+                                style={{ backgroundColor: color }}
+                                aria-hidden="true"
+                              />
+                              <span className="text-xs font-extrabold leading-tight">
+                                {faNum(slot.current_price)}
+                              </span>
+                              {/* وضعیت نباید فقط با رنگ فهمیده شود (WCAG 1.4.1) */}
+                              {slot.status !== 'available' && (
+                                <span className="text-[0.625rem] font-bold leading-none">
+                                  {STATUS_LABELS[slot.status] || slot.status}
+                                </span>
+                              )}
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>{`${STATUS_LABELS[slot.status] || slot.status} — ${faNum(slot.current_price)}`}</TooltipContent>
                         </Tooltip>
                       </TableCell>
                     )
@@ -314,7 +348,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
               ))}
             </TableBody>
           </Table>
-        </Box>
+        </div>
       )}
 
       {/* دیالوگ جزئیات/میان‌بر سانس */}
@@ -322,65 +356,35 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
         aria-label="جزئیات سانس"
         open={Boolean(selectedSlot)}
         onClose={() => setSelectedSlot(null)}
+        title={detailTitle}
+        titleIcon={<span className="inline-block h-2.5 w-2.5 rounded-full" style={{ backgroundColor: detailColor }} />}
         maxWidth="xs"
-        fullWidth
-        slotProps={{ paper: { sx: { borderRadius: '18px' } } }}
-      >
-        {selectedSlot && (() => {
-          const s = selectedSlot
-          const color = STATUS_COLORS[s.status] || '#6b7280'
-          const isBlockable = s.status === 'available' && !s.is_contract_slot && isFutureSlot(s)
-          const isUnblockable = s.status === 'blocked' && isFutureSlot(s)
-          return (
-            <>
-              <DialogTitle sx={{ fontWeight: 800, pb: 0.5, display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Box sx={{ width: 10, height: 10, borderRadius: '50%', bgcolor: color }} />
-                {`سانس ${toPersianDigits(s.start_time.slice(0, 5))} — ${formatJalaliDate(s.slot_date, { format: 'full' })}`}
-              </DialogTitle>
-              <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography variant="body2" color="text.secondary">
-                  {`${venueNameOf?.(s.venue_id) ?? `سالن #${faNum(s.venue_id)}`} — ${faNum(s.duration)} دقیقه`}
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center' }}>
-                  <Chip size="small" label={STATUS_LABELS[s.status] || s.status} sx={{ borderRadius: '8px', fontWeight: 700, bgcolor: `${color}18`, color }} />
-                  <Chip size="small" label={`قیمت: ${faNum(s.current_price)}`} variant="outlined" sx={{ borderRadius: '8px', fontWeight: 700 }} />
-                  {s.is_contract_slot && (
-                    <Chip size="small" label="سانس قرارداد" color="primary" sx={{ borderRadius: '8px', fontWeight: 700 }} />
-                  )}
-                </Box>
-                {s.is_contract_slot && (
-                  <Typography variant="caption" color="text.secondary">
-                    سانس قرارداد از این مسیر مسدود نمی‌شود — قواعد استثنا/جابه‌جایی در پنل قراردادها است.
-                  </Typography>
-                )}
-                {!isBlockable && !isUnblockable && !s.is_contract_slot && s.status !== 'available' && s.status !== 'blocked' && (
-                  <Typography variant="caption" color="text.secondary">
-                    این وضعیت سانس اقدام مستقیمی ندارد — مشاهده‌ی اطلاعات.
-                  </Typography>
-                )}
-              </DialogContent>
-              <DialogActions sx={{ px: 2.5, pb: 2, gap: 1, flexWrap: 'wrap' }}>
+        actions={
+          selectedSlot && (() => {
+            const s = selectedSlot
+            const isBlockable = s.status === 'available' && !s.is_contract_slot && isFutureSlot(s)
+            const isUnblockable = s.status === 'blocked' && isFutureSlot(s)
+            return (
+              <>
                 {isBlockable && (
                   <>
                     <Button
-                      size="small"
-                      variant="contained"
-                      color="warning"
+                      size="sm"
                       disabled={busyId === s.id}
                       onClick={() => setBlockConfirm(s)}
-                      sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
+                      className="rounded-xl font-bold !bg-none bg-amber-600 text-white hover:bg-amber-700"
                     >
                       مسدود کردن
                     </Button>
                     <Button
-                      size="small"
-                      variant="outlined"
+                      size="sm"
+                      variant="outline"
                       disabled={busyId === s.id}
                       onClick={() => {
                         setPublishSlot({ id: s.id, venue_id: s.venue_id, slot_date: s.slot_date, start_time: s.start_time })
                         setSelectedSlot(null)
                       }}
-                      sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
+                      className="rounded-xl font-bold"
                     >
                       انتشار شگفت‌انگیز
                     </Button>
@@ -388,21 +392,71 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                 )}
                 {isUnblockable && (
                   <Button
-                    size="small"
-                    variant="contained"
-                    color="success"
+                    size="sm"
                     disabled={busyId === s.id}
                     onClick={() => doUnblock(s)}
-                    sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
+                    className="rounded-xl font-bold !bg-none bg-emerald-600 text-white hover:bg-emerald-700"
                   >
-                    {busyId === s.id ? <CircularProgress size={16} color="inherit" /> : 'آزاد کردن سانس'}
+                    {busyId === s.id ? (
+                      <span
+                        aria-hidden="true"
+                        className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                      />
+                    ) : (
+                      'آزاد کردن سانس'
+                    )}
                   </Button>
                 )}
-                <Button size="small" onClick={() => setSelectedSlot(null)} sx={{ textTransform: 'none', borderRadius: '10px', ms: 'auto' }}>
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  onClick={() => setSelectedSlot(null)}
+                  className="ms-auto rounded-xl"
+                >
                   بستن
                 </Button>
-              </DialogActions>
-            </>
+              </>
+            )
+          })()
+        }
+      >
+        {selectedSlot && (() => {
+          const s = selectedSlot
+          const color = STATUS_COLORS[s.status] || '#6b7280'
+          const isBlockable = s.status === 'available' && !s.is_contract_slot && isFutureSlot(s)
+          const isUnblockable = s.status === 'blocked' && isFutureSlot(s)
+          return (
+            <div className="flex flex-col gap-2">
+              <p className="text-sm text-muted-foreground">
+                {`${venueNameOf?.(s.venue_id) ?? `سالن #${faNum(s.venue_id)}`} — ${faNum(s.duration)} دقیقه`}
+              </p>
+              <div className="flex flex-wrap items-center gap-2">
+                <span
+                  className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-bold"
+                  style={{ backgroundColor: `${color}18`, color }}
+                >
+                  {STATUS_LABELS[s.status] || s.status}
+                </span>
+                <span className="inline-flex items-center rounded-lg border border-border px-2 py-0.5 text-xs font-bold text-foreground">
+                  {`قیمت: ${faNum(s.current_price)}`}
+                </span>
+                {s.is_contract_slot && (
+                  <span className="inline-flex items-center rounded-lg bg-blue-600 px-2 py-0.5 text-xs font-bold text-white">
+                    سانس قرارداد
+                  </span>
+                )}
+              </div>
+              {s.is_contract_slot && (
+                <p className="text-xs text-muted-foreground">
+                  سانس قرارداد از این مسیر مسدود نمی‌شود — قواعد استثنا/جابه‌جایی در پنل قراردادها است.
+                </p>
+              )}
+              {!isBlockable && !isUnblockable && !s.is_contract_slot && s.status !== 'available' && s.status !== 'blocked' && (
+                <p className="text-xs text-muted-foreground">
+                  این وضعیت سانس اقدام مستقیمی ندارد — مشاهده‌ی اطلاعات.
+                </p>
+              )}
+            </div>
           )
         })()}
       </Dialog>
@@ -433,7 +487,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
           refetch()
         }}
       />
-    </Box>
+    </div>
   )
 }
 

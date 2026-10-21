@@ -2,22 +2,20 @@
 // مدیریت دسته‌بندی هزینه — فهرست/ایجاد/غیرفعال‌سازی (حذف نرم).
 // DELETE بک‌اند روی دسته‌بندیِ استفاده‌شده ۴۰۰ می‌دهد؛ پیام سرور نمایش داده می‌شود.
 
-import React, { useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useId, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import ConfirmModal from '@/components/modals/ConfirmModal'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
 import {
   useCreateExpenseCategory,
   useDeleteExpenseCategory,
@@ -34,6 +32,9 @@ const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }
   const [name, setName] = useState('')
   const [venueId, setVenueId] = useState<number | ''>(!isSuper && venues.length === 1 ? venues[0].id : '')
   const [deactivating, setDeactivating] = useState<ExpenseCategory | null>(null)
+
+  const nameId = useId()
+  const venueSelectId = useId()
 
   const list = useExpenseCategories(includeInactive)
   const createCategory = useCreateExpenseCategory()
@@ -85,61 +86,59 @@ const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }
       color="#db2777"
       dense
       action={
-        <Chip
-          size="small"
-          label={includeInactive ? 'نمایش: همه' : 'نمایش: فعال‌ها'}
+        <button
+          type="button"
           onClick={() => setIncludeInactive((v) => !v)}
-          sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem' }}
-          icon={<Icon icon={includeInactive ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} className="h-3.5 w-3.5" />}
-        />
+          aria-pressed={includeInactive}
+          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-muted px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        >
+          <Icon icon={includeInactive ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} className="h-3.5 w-3.5" aria-hidden="true" />
+          {includeInactive ? 'نمایش: همه' : 'نمایش: فعال‌ها'}
+        </button>
       }
     >
       {/* فرم ایجاد */}
-      <Grid container spacing={1.5} sx={{ mb: 2, alignItems: 'center' }}>
-        <Grid size={{ xs: 12, sm: 5 }}>
-          <TextField
-            fullWidth
-            size="small"
-            label="نام دسته‌بندی جدید"
+      <div className="mb-4 grid grid-cols-12 items-end gap-3">
+        <div className="col-span-12 flex flex-col gap-1.5 sm:col-span-5">
+          <Label htmlFor={nameId}>نام دسته‌بندی جدید</Label>
+          <Input
+            id={nameId}
             value={name}
+            maxLength={100}
             onChange={(e) => setName(e.target.value)}
             onKeyDown={(e) => {
               if (e.key === 'Enter') submit()
             }}
-            slotProps={{ htmlInput: { maxLength: 100 } }}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
           />
-        </Grid>
-        <Grid size={{ xs: 7, sm: 4 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>سالن دسته‌بندی</InputLabel>
-            <Select
-              value={venueId}
-              label="سالن دسته‌بندی"
-              onChange={(e) => { const sel = e.target.value as number | ''; setVenueId(sel === '' ? '' : sel) }}
-              sx={{ borderRadius: '10px' }}
-            >
-              {isSuper && <MenuItem value="">سراسری (همه سالن‌ها)</MenuItem>}
+        </div>
+        <div className="col-span-7 flex flex-col gap-1.5 sm:col-span-4">
+          <Label htmlFor={venueSelectId}>سالن دسته‌بندی</Label>
+          <Select
+            value={venueId === '' ? '' : String(venueId)}
+            onValueChange={(v) => setVenueId(v === 'global' ? '' : Number(v))}
+          >
+            <SelectTrigger id={venueSelectId}>
+              <SelectValue placeholder={isSuper ? 'سراسری (همه سالن‌ها)' : 'انتخاب سالن'} />
+            </SelectTrigger>
+            <SelectContent>
+              {isSuper && <SelectItem value="global">سراسری (همه سالن‌ها)</SelectItem>}
               {venues.map((v) => (
-                <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
               ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid size={{ xs: 5, sm: 3 }}>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="col-span-5 sm:col-span-3">
           <Button
-            fullWidth
-            size="small"
-            variant="contained"
             onClick={submit}
             disabled={createCategory.isPending}
-            startIcon={<Icon icon="mdi:plus" className="h-4 w-4" />}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, py: 0.9 }}
+            className="w-full font-bold"
           >
+            <Icon icon="mdi:plus" className="h-4 w-4" />
             {createCategory.isPending ? '...' : 'ایجاد'}
           </Button>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
 
       {/* فهرست */}
       {list.isPending ? (
@@ -147,65 +146,55 @@ const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }
       ) : list.isError ? (
         <ErrorBox message={extractError(list.error, 'خطا در دریافت دسته‌بندی‌ها')} onRetry={() => list.refetch()} />
       ) : (list.data?.length ?? 0) === 0 ? (
-        <Box sx={{ textAlign: 'center', py: 3 }}>
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+        <div className="py-6 text-center">
+          <p className="text-sm text-muted-foreground">
             هنوز دسته‌بندی هزینه‌ای ساخته نشده است
-          </Typography>
-        </Box>
+          </p>
+        </div>
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <div className="flex flex-col gap-2">
           {list.data!.map((cat) => (
-            <Box
+            <div
               key={cat.id}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 1.5,
-                p: 1.25,
-                pe: 1,
-                borderRadius: '12px',
-                border: '1px solid rgba(0,0,0,0.05)',
-                bgcolor: cat.is_active ? 'rgba(255,255,255,0.9)' : 'rgba(0,0,0,0.02)',
-                opacity: cat.is_active ? 1 : 0.7,
-              }}
+              className={
+                cat.is_active
+                  ? 'flex items-center gap-3 rounded-xl border border-border bg-card p-3 pe-2.5'
+                  : 'flex items-center gap-3 rounded-xl border border-border bg-muted/40 p-3 pe-2.5 opacity-70'
+              }
             >
-              <Box
-                sx={{
-                  width: 32,
-                  height: 32,
-                  borderRadius: '10px',
-                  bgcolor: cat.venue_id === null ? 'rgba(124,58,237,0.08)' : 'rgba(37,99,235,0.08)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+              <span
+                className={
+                  cat.venue_id === null
+                    ? 'flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-violet-600/[0.08]'
+                    : 'flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-blue-600/[0.08]'
+                }
               >
                 <Icon
                   icon={cat.venue_id === null ? 'mdi:earth' : 'mdi:store-outline'}
                   className="h-5 w-5"
                   style={{ color: cat.venue_id === null ? '#7c3aed' : '#2563eb' }}
+                  aria-hidden="true"
                 />
-              </Box>
-              <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>{cat.name}</Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>{venueName(cat)}</Typography>
-              </Box>
+              </span>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-foreground">{cat.name}</p>
+                <p className="text-xs text-muted-foreground">{venueName(cat)}</p>
+              </div>
               <StatusChip label={cat.is_active ? 'فعال' : 'غیرفعال'} color={cat.is_active ? '#059669' : '#6b7280'} />
               {cat.is_active && (
                 <Button
-                  size="small"
-                  color="error"
-                  variant="text"
+                  size="sm"
+                  variant="ghost"
                   onClick={() => setDeactivating(cat)}
                   disabled={deleteCategory.isPending}
-                  sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem' }}
+                  className="text-xs font-bold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400"
                 >
                   غیرفعال‌سازی
                 </Button>
               )}
-            </Box>
+            </div>
           ))}
-        </Box>
+        </div>
       )}
 
       <ConfirmModal

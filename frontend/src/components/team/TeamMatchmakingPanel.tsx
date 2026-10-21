@@ -6,13 +6,17 @@
 
 import React, { useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
-import { Box, Card, Chip, LinearProgress, Paper, TextField, Typography } from '@mui/material'
 
 import { Button } from '@/components/ui/Button'
 import Dialog from '@/components/ui/Dialog'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Progress } from '@/components/ui/shadcn/progress'
+import { Textarea } from '@/components/ui/shadcn/textarea'
 import { EmptyBox, ErrorBox, LoadingBox } from '@/components/finance/shared'
 import { useMatchSuggestions, useSendChallenge } from '@/hooks/useMatching'
 import { useToast } from '@/hooks/useToast'
+import { cn } from '@/lib/utils'
 import { toPersianDigits } from '@/lib/jalali'
 import type { MatchSuggestion, SignalScore } from '@/types/matching'
 import type { Team } from '@/types/team'
@@ -39,28 +43,25 @@ const SignalRow: React.FC<{ kind: 'level' | 'region' | 'schedule'; signal: Signa
   const meta = SIGNAL_META[kind]
   const known = signal.value !== null
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+    <div className="flex items-center gap-2">
       <Icon icon={meta.icon} style={{ width: 15, height: 15, color: '#64748b', flexShrink: 0 }} />
-      <Typography sx={{ fontSize: '0.75rem', color: '#64748b', minWidth: 74, fontWeight: 700 }}>
+      <p className="min-w-[74px] text-xs font-bold text-slate-500 dark:text-slate-400">
         {meta.label}
-      </Typography>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <LinearProgress
-          variant="determinate"
+      </p>
+      <div className="min-w-0 flex-1">
+        <Progress
           value={known ? signal.value! * 100 : 0}
           aria-label={`${meta.label}: ${known ? `${toPersianDigits(Math.round(signal.value! * 100))}٪` : 'داده ندارد'}`}
-          sx={{
-            height: 5,
-            borderRadius: 999,
-            bgcolor: 'rgba(100,116,139,0.16)',
-            '& .MuiLinearProgress-bar': { bgcolor: known ? '#10b981' : 'transparent' },
-          }}
+          className={cn(
+            'h-[5px] bg-slate-500/[0.16] dark:bg-white/10',
+            known ? '[&>div]:bg-emerald-500' : '[&>div]:bg-transparent',
+          )}
         />
-        <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8', mt: 0.25 }} noWrap>
+        <p className="mt-0.5 truncate text-[0.72rem] text-slate-400 dark:text-slate-500">
           {signal.note ?? '—'}
-        </Typography>
-      </Box>
-    </Box>
+        </p>
+      </div>
+    </div>
   )
 }
 
@@ -101,49 +102,50 @@ const ChallengeDialog: React.FC<{
 
   return (
     <Dialog open={!!target} onClose={onClose} title={target ? `چالش بازی با «${target.team_name}»` : ''} maxWidth="xs">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', lineHeight: 1.9 }}>
+      <div className="flex flex-col gap-4 pt-1">
+        <p className="text-xs leading-[1.9] text-muted-foreground">
           چالش فقط توافق دو تیم را ثبت می‌کند و برای مدیران حریف اعلان می‌فرستد — رزرو سالن و
           پرداخت در همان جریان همیشگی رزرو انجام می‌شود.
-        </Typography>
-        <TextField
-          label="پیام شما (اختیاری)"
-          size="small"
-          fullWidth
-          multiline
-          minRows={2}
-          slotProps={{ htmlInput: { maxLength: 300 } }}
-          value={message}
-          onChange={(e) => setMessage(e.target.value)}
-          placeholder="مثلاً: جمعه عصر، اگر موافقید هماهنگ کنیم…"
-        />
-        <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <TextField
-            label="تاریخ پیشنهادی"
-            type="date"
-            size="small"
-            fullWidth
-            slotProps={{ inputLabel: { shrink: true } }}
-            value={date}
-            onChange={(e) => setDate(e.target.value)}
+        </p>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="challenge-message">پیام شما (اختیاری)</Label>
+          <Textarea
+            id="challenge-message"
+            rows={2}
+            maxLength={300}
+            value={message}
+            onChange={(e) => setMessage(e.target.value)}
+            placeholder="مثلاً: جمعه عصر، اگر موافقید هماهنگ کنیم…"
+            className="min-h-[72px]"
           />
-          <TextField
-            label="ساعت پیشنهادی"
-            type="time"
-            size="small"
-            fullWidth
-            slotProps={{ inputLabel: { shrink: true } }}
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-          />
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+        </div>
+        <div className="flex gap-3">
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <Label htmlFor="challenge-date">تاریخ پیشنهادی</Label>
+            <Input
+              id="challenge-date"
+              type="date"
+              value={date}
+              onChange={(e) => setDate(e.target.value)}
+            />
+          </div>
+          <div className="flex min-w-0 flex-1 flex-col gap-1.5">
+            <Label htmlFor="challenge-time">ساعت پیشنهادی</Label>
+            <Input
+              id="challenge-time"
+              type="time"
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+            />
+          </div>
+        </div>
+        <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={send.isPending}>انصراف</Button>
           <Button variant="gradient" loading={send.isPending} onClick={submit} icon="mdi:swords" data-testid="match-challenge-send">
             ارسال چالش
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }
@@ -155,32 +157,30 @@ const SuggestionCard: React.FC<{
 }> = ({ row, canChallenge, onChallenge }) => {
   const tone = scoreTone(row.score)
   return (
-    <Card
+    <div
       data-testid={`match-suggestion-${row.team_id}`}
-      sx={{ p: 1.75, display: 'flex', flexDirection: 'column', gap: 1.25, borderRadius: '16px' }}
+      className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3.5 shadow-sm"
     >
-      <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
-        <Box
+      <div className="flex items-start gap-2.5">
+        <div
           role="img"
           aria-label={SPORT_NAME_FA[row.sport] ?? row.sport}
-          sx={{ fontSize: '1.5rem', lineHeight: 1, flexShrink: 0 }}
+          className="shrink-0 text-2xl leading-none"
         >
           {SPORT_EMOJI[row.sport] ?? '🏅'}
-        </Box>
-        <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
-            <Typography sx={{ fontWeight: 900, fontSize: '0.92rem', color: '#0f172a' }} noWrap>
+        </div>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-wrap items-center gap-1.5">
+            <p className="truncate text-[0.92rem] font-black text-slate-900 dark:text-slate-100">
               {row.team_name}
-            </Typography>
+            </p>
             {row.is_official && (
-              <Chip
-                label="رسمی"
-                size="small"
-                sx={{ height: 20, fontSize: '0.68rem', fontWeight: 700, bgcolor: 'rgba(37,99,235,0.10)', color: '#2563eb' }}
-              />
+              <span className="inline-flex h-5 items-center rounded-full bg-blue-600/10 px-2 text-[0.68rem] font-bold text-blue-700 dark:text-blue-300">
+                رسمی
+              </span>
             )}
-          </Box>
-          <Typography sx={{ fontSize: '0.74rem', color: '#64748b', mt: 0.25 }}>
+          </div>
+          <p className="mt-0.5 text-[0.74rem] text-slate-500 dark:text-slate-400">
             {[
               `${toPersianDigits(row.member_count)} عضو`,
               row.played ? `${toPersianDigits(row.won)} برد از ${toPersianDigits(row.played)} بازی` : 'بدون سابقۀ بازی',
@@ -189,40 +189,32 @@ const SuggestionCard: React.FC<{
             ]
               .filter(Boolean)
               .join(' • ')}
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            px: 1.1,
-            py: 0.4,
-            borderRadius: '12px',
-            bgcolor: tone.bg,
-            color: tone.color,
-            fontWeight: 900,
-            fontSize: '0.92rem',
-            flexShrink: 0,
-          }}
+          </p>
+        </div>
+        <div
+          className="shrink-0 rounded-xl px-[9px] py-1 text-[0.92rem] font-black"
+          style={{ backgroundColor: tone.bg, color: tone.color }}
           aria-label={`امتیاز تطبیق ${toPersianDigits(row.score)} از ۱۰۰`}
         >
           {toPersianDigits(row.score)}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+      <div className="flex flex-col gap-1.5">
         <SignalRow kind="level" signal={row.level} />
         <SignalRow kind="region" signal={row.region} />
         <SignalRow kind="schedule" signal={row.schedule} />
-      </Box>
+      </div>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
+      <div className="flex flex-wrap items-center gap-2">
         {row.has_open_challenge ? (
-          <Chip
-            label="چالش باز دارید"
-            size="small"
+          <span
+            className="inline-flex h-6 items-center gap-1 rounded-full bg-amber-500/[0.12] px-2 text-[0.74rem] font-bold text-amber-700 dark:text-amber-400"
             data-testid={`match-open-challenge-${row.team_id}`}
-            icon={<Icon icon="mdi:clock-outline" />}
-            sx={{ height: 24, fontSize: '0.74rem', fontWeight: 700, bgcolor: 'rgba(245,158,11,0.12)', color: 'warning.dark' }}
-          />
+          >
+            <Icon icon="mdi:clock-outline" className="h-3.5 w-3.5" />
+            چالش باز دارید
+          </span>
         ) : (
           canChallenge && (
             <Button
@@ -237,12 +229,12 @@ const SuggestionCard: React.FC<{
           )
         )}
         {!canChallenge && (
-          <Typography sx={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+          <p className="text-[0.72rem] text-slate-400 dark:text-slate-500">
             فقط کاپیتان یا مدیر تیم می‌تواند چالش بفرستد.
-          </Typography>
+          </p>
         )}
-      </Box>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -260,22 +252,22 @@ const TeamMatchmakingPanel: React.FC<{ team: Team; canChallenge: boolean }> = ({
   }, [basis])
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-      <Paper sx={{ p: 1.5, borderRadius: '16px', bgcolor: 'rgba(37,99,235,0.05)' }} elevation={0}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+    <div className="flex flex-col gap-3">
+      <div className="rounded-2xl bg-blue-600/5 p-3">
+        <div className="flex items-center gap-2">
           <Icon icon="mdi:swords" style={{ width: 18, height: 18, color: '#2563eb' }} />
-          <Typography sx={{ fontSize: '0.82rem', fontWeight: 800, color: '#1e293b' }}>
+          <p className="text-[0.82rem] font-extrabold text-slate-800 dark:text-slate-200">
             حریف متناسب با تیم شما
-          </Typography>
-        </Box>
-        <Typography sx={{ fontSize: '0.75rem', color: '#475569', mt: 0.5, lineHeight: 1.9 }}>
+          </p>
+        </div>
+        <p className="mt-1 text-xs leading-[1.9] text-slate-600 dark:text-slate-400">
           امتیاز از سه نشانه ساخته می‌شود: سطح نتایج بازی‌ها، نزدیکی سالن اصلی و هم‌پوشانی
           بازه‌های زمانی رزروها. تیمی که داده‌ای ندارد جریمه نمی‌شود.
-        </Typography>
+        </p>
         {header && (
-          <Typography data-testid="match-basis" sx={{ fontSize: '0.72rem', color: '#64748b', mt: 0.5 }}>{header}</Typography>
+          <p data-testid="match-basis" className="mt-1 text-[0.72rem] text-slate-500 dark:text-slate-400">{header}</p>
         )}
-      </Paper>
+      </div>
 
       {suggestionsQ.isPending && <LoadingBox />}
       {suggestionsQ.isError && (
@@ -294,7 +286,7 @@ const TeamMatchmakingPanel: React.FC<{ team: Team; canChallenge: boolean }> = ({
       ))}
 
       <ChallengeDialog team={team} target={target} onClose={() => setTarget(null)} />
-    </Box>
+    </div>
   )
 }
 

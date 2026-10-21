@@ -2,26 +2,7 @@
 // تقویم مناسبت‌ها — افزودن تک/دسته‌ای (POST /holidays/bulk) و حذف.
 // دامنه: سراسری فقط سرپرست؛ سالن‌ای مالک/برنچ‌منیجر. یکتایی تاریخ سراسری است.
 
-import React, { useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  FormControlLabel,
-  Switch,
-  Table,
-  Paper,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 
@@ -34,6 +15,25 @@ import { useBulkHolidays, useCreateHoliday, useDeleteHoliday, useHolidays } from
 import type { Holiday, HolidayBulkItem } from '@/services/holidays'
 import { parseDateInput } from './shared'
 import type { FinanceVenue } from '@/hooks/useFinance'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Switch } from '@/components/ui/shadcn/switch'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
 
 interface Props {
   venues: FinanceVenue[]
@@ -94,6 +94,11 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
   const [globalScope, setGlobalScope] = useState(false)
   const [bulkText, setBulkText] = useState('')
   const [bulkGlobal, setBulkGlobal] = useState(false)
+
+  const nameId = useId()
+  const globalId = useId()
+  const bulkTextId = useId()
+  const bulkGlobalId = useId()
 
   const venueNameById = (id: number | null) => (id == null ? null : venues.find((v) => v.id === id)?.name ?? `سالن #${id}`)
 
@@ -164,38 +169,37 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <div className="flex flex-col gap-6">
       <SectionCard
         title="تعطیلات و مناسبت‌های تقویم"
         icon="mdi:calendar-multiple"
         color="#0891b2"
         action={
-          <Box sx={{ display: 'flex', gap: 1 }}>
+          <div className="flex gap-2">
             <Button
-              size="small"
-              variant="outlined"
+              size="sm"
+              variant="outline"
               onClick={() => setBulkOpen(true)}
-              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600 }}
-              startIcon={<Icon icon="mdi:format-list-bulleted" className="h-4 w-4" />}
+              className="font-semibold"
             >
+              <Icon icon="mdi:format-list-bulleted" className="h-4 w-4" aria-hidden="true" />
               افزودن دسته‌ای
             </Button>
             <Button
-              size="small"
-              variant="contained"
+              size="sm"
               onClick={() => setAddOpen(true)}
-              sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, background: 'linear-gradient(135deg, #0891b2, #06b6d4)' }}
-              startIcon={<Icon icon="mdi:plus" className="h-4 w-4" />}
+              className="bg-gradient-to-br from-cyan-700 to-cyan-500 font-bold text-white hover:from-cyan-800 hover:to-cyan-600"
             >
+              <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
               مناسبت جدید
             </Button>
-          </Box>
+          </div>
         }
       >
-        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 2 }}>
+        <p className="mb-4 text-sm text-muted-foreground">
           روزهای تعطیل روی موتور قیمت اثر می‌گذارند (قوانین «فقط تعطیلات» فعال و قوانین عادی غیرفعال می‌شوند).
           مناسبت سراسری همه‌ی سالن‌ها را تعطیل می‌کند و فقط سرپرست سیستم می‌تواند آن را ثبت کند.
-        </Typography>
+        </p>
 
         {holidaysQuery.isPending ? (
           <LoadingBox text="در حال بارگذاری تقویم..." />
@@ -204,34 +208,44 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
         ) : list.length === 0 ? (
           <EmptyBox icon="mdi:calendar-blank-outline" title="مناسبتی ثبت نشده" text="در دو سال پیشِ‌رو تعطیلی‌ای ثبت نشده است." />
         ) : (
-          <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '12px', overflow: 'hidden' }}>
-            <Table aria-label="تعطیلات و مناسبت‌ها" size="small">
-              <TableHead>
-                <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>تاریخ (جلالی)</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>روز</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>نام</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>دامنه</TableCell>
-                  <TableCell scope="col" align="center" sx={{ fontWeight: 700 }}>حذف</TableCell>
+          <div className="overflow-hidden rounded-xl border border-border">
+            <Table aria-label="تعطیلات و مناسبت‌ها">
+              <TableHeader className="bg-muted/40">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead scope="col" className="font-bold">تاریخ (جلالی)</TableHead>
+                  <TableHead scope="col" className="font-bold">روز</TableHead>
+                  <TableHead scope="col" className="font-bold">نام</TableHead>
+                  <TableHead scope="col" className="font-bold">دامنه</TableHead>
+                  <TableHead scope="col" className="text-center font-bold">حذف</TableHead>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {[...list]
                   .sort((a, b) => a.holiday_date.localeCompare(b.holiday_date))
                   .map((h) => (
-                    <TableRow key={h.id} sx={{ '&:hover': { bgcolor: 'rgba(37,99,235,0.02)' } }}>
-                      <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{formatJalaliDate(h.holiday_date, { format: 'numeric' })}</TableCell>
-                      <TableCell sx={{ whiteSpace: 'nowrap', color: 'text.secondary' }}>{formatJalaliDate(h.holiday_date, { format: 'full' }).split(' ')[0]}</TableCell>
-                      <TableCell>{h.name}</TableCell>
+                    <TableRow key={h.id} className="hover:bg-blue-600/[0.02]">
+                      <TableCell className="whitespace-nowrap font-semibold text-foreground tabular-nums">{formatJalaliDate(h.holiday_date, { format: 'numeric' })}</TableCell>
+                      <TableCell className="whitespace-nowrap text-muted-foreground">{formatJalaliDate(h.holiday_date, { format: 'full' }).split(' ')[0]}</TableCell>
+                      <TableCell className="text-foreground">{h.name}</TableCell>
                       <TableCell>
                         {h.venue_id == null ? (
-                          <Chip size="small" color="error" label="سراسری" sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700 }} />
+                          <span className="inline-flex items-center rounded-lg bg-red-500/15 px-2 py-0.5 text-xs font-bold text-red-700 dark:text-red-400">
+                            سراسری
+                          </span>
                         ) : (
-                          <Chip size="small" label={venueNameById(h.venue_id) ?? '—'} sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }} />
+                          <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">
+                            {venueNameById(h.venue_id) ?? '—'}
+                          </span>
                         )}
                       </TableCell>
-                      <TableCell align="center">
-                        <Button size="small" color="error" onClick={() => setDeleteTarget(h)} sx={{ textTransform: 'none' }} startIcon={<Icon icon="mdi:trash-can-outline" className="h-4 w-4" />}>
+                      <TableCell className="text-center">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setDeleteTarget(h)}
+                          className="text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400"
+                        >
+                          <Icon icon="mdi:trash-can-outline" className="h-4 w-4" aria-hidden="true" />
                           حذف
                         </Button>
                       </TableCell>
@@ -239,64 +253,117 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
                   ))}
               </TableBody>
             </Table>
-          </TableContainer>
+          </div>
         )}
       </SectionCard>
 
       {/* دیالوگ افزودن تک */}
-      <Dialog aria-label="افزودن مناسبت" open={addOpen} onClose={createHoliday.isPending ? undefined : closeAdd} slotProps={{ paper: { sx: { borderRadius: '20px', maxWidth: 420, width: '100%', p: 1 } } }}>
-        <DialogTitleSx title="افزودن مناسبت" />
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2.5 }}>
-          <TextField label="نام مناسبت" value={newName} onChange={(e) => setNewName(e.target.value)} fullWidth size="small" placeholder="مثلاً: عید آکادمی" sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }} />
-          <PersianDatePicker label="تاریخ" value={newDate} onChange={setNewDate} size="small" clearable={false} />
-          {isSuper && (
-            <FormControlLabel
-              control={<Switch checked={globalScope} onChange={(e) => setGlobalScope(e.target.checked)} />}
-              label={<Typography variant="body2">سراسری (روی همه سالن‌ها)</Typography>}
-            />
-          )}
-          {!isSuper && venueId != null && (
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>ثبت برای: {venueNameById(venueId)}</Typography>
-          )}
+      <Dialog
+        open={addOpen}
+        onOpenChange={(next) => {
+          if (!next && !createHoliday.isPending) closeAdd()
+        }}
+      >
+        <DialogContent aria-describedby={undefined} className="sm:max-w-[420px]">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
+                <Icon icon="mdi:calendar-multiple" className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <DialogTitle className="text-lg font-extrabold text-foreground">افزودن مناسبت</DialogTitle>
+            </div>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={nameId}>نام مناسبت</Label>
+              <Input
+                id={nameId}
+                value={newName}
+                onChange={(e) => setNewName(e.target.value)}
+                placeholder="مثلاً: عید آکادمی"
+              />
+            </div>
+            <PersianDatePicker label="تاریخ" value={newDate} onChange={setNewDate} size="small" clearable={false} />
+            {isSuper && (
+              <div className="flex items-center gap-2">
+                <Switch id={globalId} checked={globalScope} onCheckedChange={setGlobalScope} />
+                <Label htmlFor={globalId} className="cursor-pointer text-sm font-normal text-foreground">
+                  سراسری (روی همه سالن‌ها)
+                </Label>
+              </div>
+            )}
+            {!isSuper && venueId != null && (
+              <p className="text-xs text-muted-foreground">ثبت برای: {venueNameById(venueId)}</p>
+            )}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button onClick={closeAdd} disabled={createHoliday.isPending} variant="outline">
+                انصراف
+              </Button>
+              <Button
+                onClick={submitAdd}
+                disabled={createHoliday.isPending}
+                className="bg-gradient-to-br from-cyan-700 to-cyan-500 font-bold text-white hover:from-cyan-800 hover:to-cyan-600"
+              >
+                {createHoliday.isPending ? '...' : 'ثبت'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
-        <DialogActions sx={{ px: 2, pb: 2, gap: 1 }}>
-          <Button onClick={closeAdd} disabled={createHoliday.isPending} variant="outlined" sx={{ borderRadius: '10px', textTransform: 'none' }}>انصراف</Button>
-          <Button onClick={submitAdd} variant="contained" disabled={createHoliday.isPending} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, background: 'linear-gradient(135deg, #0891b2, #06b6d4)' }}>
-            {createHoliday.isPending ? '...' : 'ثبت'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       {/* دیالوگ افزودن دسته‌ای */}
-      <Dialog aria-label="افزودن دسته‌ای مناسبت" open={bulkOpen} onClose={bulkHoliday.isPending ? undefined : () => setBulkOpen(false)} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px' } } }}>
-        <DialogTitleSx title="افزودن دسته‌ای مناسبت‌ها" />
-        <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2.5 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            هر خط: «نام | تاریخ» — تاریخ جلالی (۱۴۰۵/۰۷/۰۱) یا میلادی (2026-09-23). ردیف‌های تکراری/موجود با پیام سرور رد می‌شوند.
-          </Typography>
-          <TextField
-            label="فهرست مناسبت‌ها"
-            value={bulkText}
-            onChange={(e) => setBulkText(e.target.value)}
-            multiline
-            minRows={6}
-            maxRows={14}
-            placeholder={'جشن سالن | ۱۴۰۵/۰۷/۰۱\nمراسه تقدیر | ۱۴۰۵/۰۸/۱۵'}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px', fontFamily: 'Vazirmatn, sans-serif' } }}
-          />
-          {isSuper && (
-            <FormControlLabel
-              control={<Switch checked={bulkGlobal} onChange={(e) => setBulkGlobal(e.target.checked)} />}
-              label={<Typography variant="body2">سراسری (فقط سرپرست)</Typography>}
-            />
-          )}
+      <Dialog
+        open={bulkOpen}
+        onOpenChange={(next) => {
+          if (!next && !bulkHoliday.isPending) setBulkOpen(false)
+        }}
+      >
+        <DialogContent aria-describedby={undefined} className="sm:max-w-[600px]">
+          <DialogHeader>
+            <div className="flex items-center gap-3">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
+                <Icon icon="mdi:calendar-multiple" className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <DialogTitle className="text-lg font-extrabold text-foreground">افزودن دسته‌ای مناسبت‌ها</DialogTitle>
+            </div>
+          </DialogHeader>
+          <div className="flex flex-col gap-4">
+            <p className="text-xs text-muted-foreground">
+              هر خط: «نام | تاریخ» — تاریخ جلالی (۱۴۰۵/۰۷/۰۱) یا میلادی (2026-09-23). ردیف‌های تکراری/موجود با پیام سرور رد می‌شوند.
+            </p>
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={bulkTextId}>فهرست مناسبت‌ها</Label>
+              <Textarea
+                id={bulkTextId}
+                value={bulkText}
+                onChange={(e) => setBulkText(e.target.value)}
+                rows={6}
+                placeholder={'جشن سالن | ۱۴۰۵/۰۷/۰۱\nمراسه تقدیر | ۱۴۰۵/۰۸/۱۵'}
+                className="font-sans"
+              />
+            </div>
+            {isSuper && (
+              <div className="flex items-center gap-2">
+                <Switch id={bulkGlobalId} checked={bulkGlobal} onCheckedChange={setBulkGlobal} />
+                <Label htmlFor={bulkGlobalId} className="cursor-pointer text-sm font-normal text-foreground">
+                  سراسری (فقط سرپرست)
+                </Label>
+              </div>
+            )}
+            <div className="flex justify-end gap-2 pt-2">
+              <Button onClick={() => setBulkOpen(false)} disabled={bulkHoliday.isPending} variant="outline">
+                انصراف
+              </Button>
+              <Button
+                onClick={submitBulk}
+                disabled={bulkHoliday.isPending}
+                className="bg-gradient-to-br from-cyan-700 to-cyan-500 font-bold text-white hover:from-cyan-800 hover:to-cyan-600"
+              >
+                {bulkHoliday.isPending ? 'در حال ثبت...' : 'ثبت دسته‌ای'}
+              </Button>
+            </div>
+          </div>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-          <Button onClick={() => setBulkOpen(false)} disabled={bulkHoliday.isPending} variant="outlined" sx={{ borderRadius: '10px', textTransform: 'none' }}>انصراف</Button>
-          <Button onClick={submitBulk} variant="contained" disabled={bulkHoliday.isPending} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, background: 'linear-gradient(135deg, #0891b2, #06b6d4)' }}>
-            {bulkHoliday.isPending ? 'در حال ثبت...' : 'ثبت دسته‌ای'}
-          </Button>
-        </DialogActions>
       </Dialog>
 
       <ConfirmModal
@@ -318,17 +385,8 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
           })
         }}
       />
-    </Box>
+    </div>
   )
 }
-
-const DialogTitleSx: React.FC<{ title: string }> = ({ title }) => (
-  <Box sx={{ background: 'linear-gradient(135deg, #0891b2, #06b6d4)', px: 3, py: 2.5, borderRadius: '14px 14px 0 0' }}>
-    <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
-      <Icon icon="mdi:calendar-multiple" className="h-5 w-5" />
-      {title}
-    </Typography>
-  </Box>
-)
 
 export default HolidaysTab

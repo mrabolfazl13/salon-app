@@ -1,23 +1,6 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate, useParams, useSearchParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  CircularProgress,
-  Typography,
-  Button,
-  Chip,
-  Divider,
-  Paper,
-  useTheme,
-  Grid,
-  Container,
-  Skeleton,
-  Alert,
-  Dialog,
-  DialogContent,
-  DialogTitle,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import BookingPaymentPanel from '@/components/bookings/BookingPaymentPanel'
@@ -33,11 +16,21 @@ import {
   formatTimeFa,
   getSlotEndTime,
   getStatusLabel,
-  getMuiStatusColor,
 } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import PricingBreakdown, { normalizeBreakdown } from '@/components/deals/PricingBreakdown'
 import { downloadIcsEvent } from '@/utils/calendar'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Badge } from '@/components/ui/shadcn/badge'
+import { Button } from '@/components/ui/shadcn/button'
+import { Separator } from '@/components/ui/shadcn/separator'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
 
 interface ApiBooking {
   id: number
@@ -72,17 +65,34 @@ interface ApiBooking {
   receipt_review_note?: string | null
 }
 
-const paymentStatusMeta: Record<string, { label: string; color: 'success' | 'warning' | 'error' | 'info' }> = {
-  paid: { label: 'پرداخت شده', color: 'success' },
-  pending: { label: 'در انتظار پرداخت', color: 'warning' },
-  failed: { label: 'ناموفق', color: 'error' },
-  refunded: { label: 'بازگشت وجه', color: 'info' },
+type BadgeVariant = 'default' | 'primary' | 'success' | 'destructive' | 'outline' | 'muted'
+
+const paymentStatusMeta: Record<string, { label: string; variant: BadgeVariant }> = {
+  paid: { label: 'پرداخت شده', variant: 'success' },
+  pending: { label: 'در انتظار پرداخت', variant: 'default' },
+  failed: { label: 'ناموفق', variant: 'destructive' },
+  refunded: { label: 'بازگشت وجه', variant: 'primary' },
+}
+
+/** رنگ آیکون فاکتور بر پایهٔ وضعیت پرداخت (جایگزین theme.palette.*.main) */
+const PAYMENT_ICON_CLASS: Record<string, string> = {
+  success: 'text-emerald-600 dark:text-emerald-400',
+  destructive: 'text-red-600 dark:text-red-400',
+  primary: 'text-blue-600 dark:text-blue-400',
+  default: 'text-amber-600 dark:text-amber-400',
+}
+
+/** نگاشت وضعیت رزرو → واریانت Badge (هم‌رنگ Chip قبلی) */
+const statusBadgeVariant = (status: string): BadgeVariant => {
+  if (status === 'confirmed') return 'success'
+  if (status === 'completed') return 'primary'
+  if (status === 'cancelled') return 'destructive'
+  return 'default'
 }
 
 const BookingDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const navigate = useNavigate()
-  const theme = useTheme()
   const [searchParams] = useSearchParams()
   const [booking, setBooking] = useState<ApiBooking | null>(null)
   const [loading, setLoading] = useState(true)
@@ -226,11 +236,11 @@ const BookingDetail: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-          <Skeleton aria-hidden="true" variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton aria-hidden="true" variant="rounded" height={120} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton aria-hidden="true" variant="rounded" height={260} sx={{ borderRadius: 2 }} />
-        </Container>
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 md:py-8">
+          <Skeleton aria-hidden="true" className="mb-6 h-12 rounded-2xl" />
+          <Skeleton aria-hidden="true" className="mb-6 h-[120px] rounded-2xl" />
+          <Skeleton aria-hidden="true" className="h-[260px] rounded-2xl" />
+        </div>
       </Layout>
     )
   }
@@ -238,19 +248,21 @@ const BookingDetail: React.FC = () => {
   if (notFound || !booking) {
     return (
       <Layout>
-        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 md:py-8">
           <Button
-            variant="text"
+            variant="ghost"
             onClick={() => navigate('/bookings')}
-            sx={{ mb: 3, textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}
-            startIcon={<Icon icon="mdi:arrow-right" />}
+            className="mb-6 min-h-11 font-semibold text-muted-foreground"
           >
+            <Icon icon="mdi:arrow-right" className="h-5 w-5" />
             بازگشت به لیست رزروها
           </Button>
-          <Alert severity="error" sx={{ borderRadius: 2 }}>
-            رزرو مورد نظر یافت نشد یا دسترسی شما به آن محدود است.
+          <Alert variant="destructive" className="rounded-2xl">
+            <AlertDescription>
+              رزرو مورد نظر یافت نشد یا دسترسی شما به آن محدود است.
+            </AlertDescription>
           </Alert>
-        </Container>
+        </div>
       </Layout>
     )
   }
@@ -277,301 +289,268 @@ const BookingDetail: React.FC = () => {
 
   return (
     <Layout>
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 md:py-8">
         {/* Back Button */}
         <Button
-          variant="text"
+          variant="ghost"
           onClick={() => navigate('/bookings')}
-          sx={{ mb: 3, borderRadius: 1, textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}
-          startIcon={<Icon icon="mdi:arrow-right" />}
+          className="mb-6 min-h-11 font-semibold text-muted-foreground"
         >
+          <Icon icon="mdi:arrow-right" className="h-5 w-5" />
           بازگشت به لیست رزروها
         </Button>
 
         {/* Header */}
-        <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, mb: 3, border: `1px solid ${theme.palette.divider}` }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+        <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+          <div className="flex flex-wrap items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
               <VenueThumb
                 images={booking.venue_images}
                 name={booking.venue_name || `سالن #${booking.slot_id}`}
                 size={44}
                 radius={8}
               />
-              <Box>
-                <Typography component="h1" variant="h6" sx={{ fontWeight: 700 }}>
+              <div>
+                <h1 className="text-lg font-bold text-foreground">
                   {booking.venue_name || `سالن #${booking.slot_id}`}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
+                </h1>
+                <p className="text-sm text-muted-foreground">
                   رزرو #{booking.id}
                   {booking.slot_date &&
                     ` — ${formatDate(booking.slot_date)}، ${formatTimeFa(booking.start_time)} تا ${getSlotEndTime(booking.start_time || '', booking.duration || 90)}`}
-                </Typography>
-              </Box>
-            </Box>
-            <Chip
-              label={getStatusLabel(booking.status)}
-              color={getMuiStatusColor(booking.status) as any}
-              variant="outlined"
-              sx={{ borderRadius: 1, fontWeight: 600 }}
-            />
-          </Box>
-        </Paper>
+                </p>
+              </div>
+            </div>
+            <Badge
+              variant={statusBadgeVariant(booking.status)}
+              className="min-h-8 rounded-lg px-3 text-sm font-semibold"
+            >
+              {getStatusLabel(booking.status)}
+            </Badge>
+          </div>
+        </div>
 
-        <Grid container spacing={3}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
           {/* Main Info */}
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, border: `1px solid ${theme.palette.divider}` }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
-                جزئیات رزرو
-              </Typography>
-              <Grid container spacing={2}>
-                <Grid size={{ xs: 6, sm: 4 }}>
-                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.5 }}>
-                    مبلغ پرداختی
-                  </Typography>
-                  <Typography variant="h6" sx={{ fontWeight: 800, color: 'primary.main' }}>
+          <div className="md:col-span-8">
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+              <h2 className="mb-4 text-base font-bold text-foreground">جزئیات رزرو</h2>
+              <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                <div>
+                  <span className="mb-1 block text-xs text-muted-foreground">مبلغ پرداختی</span>
+                  <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
                     {formatPrice(booking.payment_amount)}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
-                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.5 }}>
-                    تاریخ ثبت
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  </p>
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs text-muted-foreground">تاریخ ثبت</span>
+                  <p className="text-sm font-semibold text-foreground">
                     {formatDateTime(booking.booked_at)}
-                  </Typography>
-                </Grid>
-                <Grid size={{ xs: 6, sm: 4 }}>
-                  <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mb: 0.5 }}>
-                    وضعیت
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                  </p>
+                </div>
+                <div>
+                  <span className="mb-1 block text-xs text-muted-foreground">وضعیت</span>
+                  <p className="text-sm font-semibold text-foreground">
                     {getStatusLabel(booking.status)}
-                  </Typography>
-                </Grid>
-              </Grid>
+                  </p>
+                </div>
+              </div>
 
               {normalizeBreakdown(booking.pricing_breakdown) && (
-                <Box sx={{ mt: 2 }}>
+                <div className="mt-4">
                   <PricingBreakdown
                     steps={normalizeBreakdown(booking.pricing_breakdown) ?? []}
                     payable={Number(booking.payment_amount) || null}
                   />
-                </Box>
+                </div>
               )}
 
               {/* اطلاعات فاکتور پرداخت */}
               {booking.payment && (() => {
-                const meta = paymentStatusMeta[booking.payment.status] ?? { label: booking.payment.status, color: 'warning' as const }
+                const meta = paymentStatusMeta[booking.payment.status] ?? { label: booking.payment.status, variant: 'default' as BadgeVariant }
                 return (
-                  <Box sx={{ mt: 2, p: 2, borderRadius: 2, bgcolor: `${theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(0,0,0,0.03)'}` }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1.5 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <div className="mt-4 rounded-2xl bg-foreground/5 p-4">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div className="flex items-center gap-2">
                         <Icon
                           icon={booking.payment.status === 'paid' ? 'mdi:check-decagram'
                             : booking.payment.status === 'refunded' ? 'mdi:restore'
                             : booking.payment.status === 'failed' ? 'mdi:alert-circle-outline'
                             : 'mdi:clock-outline'}
-                          style={{
-                            color: meta.color === 'success' ? theme.palette.success.main
-                              : meta.color === 'error' ? theme.palette.error.main
-                              : meta.color === 'info' ? theme.palette.info.main
-                              : theme.palette.warning.main,
-                          }}
+                          className={`h-5 w-5 ${PAYMENT_ICON_CLASS[meta.variant] ?? PAYMENT_ICON_CLASS.default}`}
                         />
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>فاکتور پرداخت</Typography>
-                      </Box>
-                      <Chip label={meta.label} color={meta.color} size="small" sx={{ borderRadius: 1, fontWeight: 600 }} />
-                    </Box>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 3, mt: 1.5 }}>
-                      <Box>
-                        <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>مبلغ فاکتور</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatPrice(booking.payment.amount)}</Typography>
-                      </Box>
+                        <p className="text-sm font-bold text-foreground">فاکتور پرداخت</p>
+                      </div>
+                      <Badge variant={meta.variant} className="rounded-lg px-2.5 py-1 text-xs font-semibold">
+                        {meta.label}
+                      </Badge>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-6">
+                      <div>
+                        <span className="block text-xs text-muted-foreground">مبلغ فاکتور</span>
+                        <p className="text-sm font-semibold text-foreground">{formatPrice(booking.payment.amount)}</p>
+                      </div>
                       {booking.payment.paid_at && (
-                        <Box>
-                          <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>زمان پرداخت</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatDateTime(booking.payment.paid_at)}</Typography>
-                        </Box>
+                        <div>
+                          <span className="block text-xs text-muted-foreground">زمان پرداخت</span>
+                          <p className="text-sm font-semibold text-foreground">{formatDateTime(booking.payment.paid_at)}</p>
+                        </div>
                       )}
                       {booking.payment.card_pan && (
-                        <Box>
-                          <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>کارت</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }} dir="ltr">**** {booking.payment.card_pan}</Typography>
-                        </Box>
+                        <div>
+                          <span className="block text-xs text-muted-foreground">کارت</span>
+                          <p className="text-sm font-semibold text-foreground" dir="ltr">**** {booking.payment.card_pan}</p>
+                        </div>
                       )}
                       {booking.payment.transaction_id && (
-                        <Box>
-                          <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>شناسه تراکنش</Typography>
-                          <Typography variant="body2" sx={{ fontWeight: 600 }} dir="ltr">{booking.payment.transaction_id}</Typography>
-                        </Box>
+                        <div>
+                          <span className="block text-xs text-muted-foreground">شناسه تراکنش</span>
+                          <p className="text-sm font-semibold text-foreground" dir="ltr">{booking.payment.transaction_id}</p>
+                        </div>
                       )}
-                    </Box>
-                  </Box>
+                    </div>
+                  </div>
                 )
               })()}
 
               {/* QR Code Check-in */}
               {booking.status === 'confirmed' && (
                 <>
-                  <Divider sx={{ my: 3 }} />
-                  
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-                    <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+                  <Separator className="my-6" />
+
+                  <div className="mb-4 flex items-center justify-between">
+                    <h2 className="text-base font-bold text-foreground">
                       کد ورود (Check-in)
-                    </Typography>
+                    </h2>
                     {checkedInAt && (
-                      <Chip
-                        label={`ورود ثبت شد: ${formatDateTime(checkedInAt)}`}
-                        size="small"
-                        color="success"
-                        sx={{ borderRadius: 1, fontWeight: 600 }}
-                        icon={<Icon icon="mdi:check-circle" />}
-                      />
+                      <Badge variant="success" className="gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold">
+                        <Icon icon="mdi:check-circle" className="h-4 w-4" />
+                        {`ورود ثبت شد: ${formatDateTime(checkedInAt)}`}
+                      </Badge>
                     )}
-                  </Box>
+                  </div>
 
                   {checkinLoading ? (
-                    <Skeleton aria-hidden="true" variant="rounded" height={80} sx={{ borderRadius: 2 }} />
+                    <Skeleton aria-hidden="true" className="h-20 rounded-2xl" />
                   ) : qrCodeData ? (
-                    <Paper
-                      component="button"
+                    <button
                       type="button"
                       aria-label="مشاهده کد حضور"
                       onClick={() => setQrDialogOpen(true)}
-                      sx={{
-                        p: 3,
-                        display: 'block',
-                        width: '100%',
-                        textAlign: 'center',
-                        cursor: 'pointer',
-                        // Paper به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر
-                        fontFamily: 'inherit',
-                        color: 'inherit',
-                        appearance: 'none',
-                        WebkitTapHighlightColor: 'transparent',
-                        border: `2px dashed ${theme.palette.primary.main}`,
-                        bgcolor: `${theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.08)' : 'rgba(99,102,241,0.05)'}`,
-                        '&:hover': {
-                          bgcolor: `${theme.palette.mode === 'dark' ? 'rgba(99,102,241,0.12)' : 'rgba(99,102,241,0.08)'}`,
-                        },
-                        '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: 2 },
-                      }}
+                      className="block w-full cursor-pointer appearance-none rounded-2xl border-2 border-dashed border-blue-600 bg-indigo-500/5 p-6 text-center text-inherit transition-colors [font-family:inherit] hover:bg-indigo-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-blue-400 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/15"
                     >
-                      <Typography
-                        variant="h3"
-                        sx={{
-                          fontFamily: 'monospace',
-                          letterSpacing: '0.2em',
-                          fontWeight: 700,
-                          color: 'primary.main',
-                          userSelect: 'all',
-                        }}
-                      >
+                      <span className="block select-all font-mono text-3xl font-bold tracking-[0.2em] text-blue-600 dark:text-blue-400">
                         {qrCodeData}
-                      </Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+                      </span>
+                      <span className="mt-2 block text-xs text-muted-foreground">
                         برای نمایش کد بزرگ کلیک کنید
-                      </Typography>
-                    </Paper>
+                      </span>
+                    </button>
                   ) : null}
                 </>
               )}
 
-              <Divider sx={{ my: 3 }} />
+              <Separator className="my-6" />
 
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
+              <h2 className="mb-4 text-base font-bold text-foreground">
                 خط زمانی
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              </h2>
+              <div className="flex flex-col gap-3">
                 {timelineItems.map((item, index) => (
-                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Box sx={{
-                      width: 10, height: 10, borderRadius: '50%',
-                      bgcolor: item.status === 'completed' ? 'success.main' : theme.palette.grey[300],
-                      flexShrink: 0,
-                    }} />
-                    <Typography variant="body2" sx={{ fontWeight: 600, flex: 1 }}>
+                  <div key={index} className="flex items-center gap-3">
+                    <span
+                      className={
+                        item.status === 'completed'
+                          ? 'h-2.5 w-2.5 shrink-0 rounded-full bg-emerald-600 dark:bg-emerald-400'
+                          : 'h-2.5 w-2.5 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600'
+                      }
+                    />
+                    <p className="flex-1 text-sm font-semibold text-foreground">
                       {item.label}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    </p>
+                    <span className="text-xs text-muted-foreground">
                       {item.time}
-                    </Typography>
-                  </Box>
+                    </span>
+                  </div>
                 ))}
-              </Box>
-            </Paper>
-          </Grid>
+              </div>
+            </div>
+          </div>
 
           {/* Actions */}
-          <Grid size={{ xs: 12, md: 4 }}>
-            <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, border: `1px solid ${theme.palette.divider}` }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
+          <div className="md:col-span-4">
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+              <h2 className="mb-4 text-base font-bold text-foreground">
                 عملیات
-              </Typography>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+              </h2>
+              <div className="flex flex-col gap-3">
                 {(booking.payment_mode === 'bank_receipt' || booking.payment_mode === 'pay_in_place') && (
                   <BookingPaymentPanel booking={booking} onChanged={fetchBooking} />
                 )}
                 {(booking.status === 'confirmed' || booking.status === 'pending') && (
                   <Button
-                    variant="outlined"
-                    color="error"
+                    variant="outline"
                     onClick={() => setCancelModalOpen(true)}
-                    sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1 }}
-                    startIcon={<Icon icon="mdi:close-circle" />}
+                    className="min-h-11 justify-start border-red-500/40 font-semibold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                   >
+                    <Icon icon="mdi:close-circle" className="h-5 w-5" />
                     لغو رزرو
                   </Button>
                 )}
                 <Button
-                  variant="contained"
                   onClick={handleRebook}
                   disabled={rebookBusy || !booking.slot_date}
-                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 800, py: 1, background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)', color: '#1c1917', boxShadow: '0 4px 14px rgba(245,158,11,0.35)', '&:hover': { background: 'linear-gradient(135deg, #f59e0b 0%, #ea580c 100%)' } }}
-                  startIcon={rebookBusy ? <CircularProgress size={18} color="inherit" /> : <Icon icon="mdi:calendar-refresh" />}
+                  className="min-h-11 font-extrabold"
                 >
+                  {rebookBusy ? (
+                    <span
+                      className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-current border-t-transparent"
+                      role="status"
+                      aria-label="در حال بارگذاری"
+                    />
+                  ) : (
+                    <Icon icon="mdi:calendar-refresh" className="h-5 w-5" />
+                  )}
                   رزرو دوباره
                 </Button>
                 <Button
-                  variant="outlined"
+                  variant="outline"
                   onClick={handlePrint}
-                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1 }}
-                  startIcon={<Icon icon="mdi:printer" />}
+                  className="min-h-11 justify-start font-semibold"
                 >
+                  <Icon icon="mdi:printer" className="h-5 w-5" />
                   چاپ فاکتور
                 </Button>
                 <Button
-                  variant="outlined"
+                  variant="outline"
                   onClick={handleAddToCalendar}
                   disabled={!booking.slot_date || !booking.start_time}
-                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1 }}
-                  startIcon={<Icon icon="mdi:calendar-plus" />}
+                  className="min-h-11 justify-start font-semibold"
                 >
+                  <Icon icon="mdi:calendar-plus" className="h-5 w-5" />
                   افزودن به تقویم
                 </Button>
                 <Button
-                  variant="outlined"
+                  variant="outline"
                   onClick={handleShare}
-                  sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600, py: 1 }}
-                  startIcon={<Icon icon="mdi:share" />}
+                  className="min-h-11 justify-start font-semibold"
                 >
+                  <Icon icon="mdi:share" className="h-5 w-5" />
                   اشتراک‌گذاری
                 </Button>
                 <Button
-                  variant="text"
+                  variant="ghost"
                   onClick={fetchBooking}
-                  sx={{ textTransform: 'none', fontWeight: 600, py: 1 }}
-                  startIcon={<Icon icon="mdi:refresh" />}
+                  className="min-h-11 justify-start font-semibold text-muted-foreground"
                 >
+                  <Icon icon="mdi:refresh" className="h-5 w-5" />
                   به‌روزرسانی
                 </Button>
-              </Box>
-            </Paper>
-          </Grid>
-        </Grid>
-      </Container>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
 
       <ConfirmModal
         open={cancelModalOpen}
@@ -586,52 +565,39 @@ const BookingDetail: React.FC = () => {
       />
 
       {/* QR Code Dialog */}
-      <Dialog
-        aria-label="کد ورود به سالن"
-        open={qrDialogOpen}
-        onClose={() => setQrDialogOpen(false)}
-        maxWidth="sm"
-        fullWidth
-      >
-        <DialogTitle sx={{ textAlign: 'center', fontWeight: 700, pb: 1 }}>
-          کد ورود به سالن
-        </DialogTitle>
-        <DialogContent>
+      <Dialog open={qrDialogOpen} onOpenChange={setQrDialogOpen}>
+        <DialogContent aria-label="کد ورود به سالن" aria-describedby={undefined} className="sm:max-w-[600px]">
+          <DialogHeader>
+            <DialogTitle className="text-center font-bold">کد ورود به سالن</DialogTitle>
+          </DialogHeader>
           {qrCodeData && (
-            <Box sx={{ textAlign: 'center', py: 3 }}>
-              <Typography
-                variant="h2"
-                sx={{
-                  fontFamily: 'monospace',
-                  letterSpacing: '0.15em',
-                  fontWeight: 800,
-                  color: 'primary.main',
-                  mb: 2,
-                  userSelect: 'all',
-                }}
-              >
+            <div className="py-6 text-center">
+              <p className="mb-4 select-all font-mono text-4xl font-extrabold tracking-[0.15em] text-blue-600 dark:text-blue-400">
                 {qrCodeData}
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 3 }}>
+              </p>
+              <p className="mb-6 text-sm text-muted-foreground">
                 این کد را به مسئول سالن ارائه دهید
-              </Typography>
+              </p>
               {checkedInAt ? (
-                <Alert severity="success" sx={{ borderRadius: 2 }}>
-                  ورود شما در تاریخ {formatDateTime(checkedInAt)} ثبت شده است
+                <Alert variant="success" className="text-start">
+                  <AlertDescription>
+                    ورود شما در تاریخ {formatDateTime(checkedInAt)} ثبت شده است
+                  </AlertDescription>
                 </Alert>
               ) : (
-                <Alert severity="info" sx={{ borderRadius: 2 }}>
-                  هنوز وارد نشده‌اید — کد را به مدیر سالن نشان دهید
+                <Alert variant="info" className="text-start">
+                  <AlertDescription>
+                    هنوز وارد نشده‌اید — کد را به مدیر سالن نشان دهید
+                  </AlertDescription>
                 </Alert>
               )}
               <Button
                 onClick={() => setQrDialogOpen(false)}
-                variant="contained"
-                sx={{ mt: 3, borderRadius: 2, textTransform: 'none', fontWeight: 600 }}
+                className="mt-6 min-h-11 rounded-xl font-semibold"
               >
                 بستن
               </Button>
-            </Box>
+            </div>
           )}
         </DialogContent>
       </Dialog>

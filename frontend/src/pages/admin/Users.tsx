@@ -1,18 +1,33 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box, Typography, Paper, useTheme, Skeleton, Chip, InputBase, Alert, Button,
-  FormControl, InputLabel, Select, MenuItem,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow, Avatar,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { adminService } from '@/services/admin'
 import type { AdminUser, UserStats } from '@/services/admin'
 import { formatDate, getInitials } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import { Input } from '@/components/ui/shadcn/input'
+import { Button } from '@/components/ui/shadcn/button'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
 import toast from 'react-hot-toast'
 
-const roleConfig: Record<string, { label: string; color: 'default' | 'info' | 'secondary' | 'warning' | 'success'; icon: string }> = {
+const roleConfig: Record<string, { label: string; color: 'info' | 'secondary' | 'warning' | 'success' | 'default'; icon: string }> = {
   user: { label: 'کاربر', color: 'default', icon: 'mdi:account' },
   venue_manager: { label: 'مدیر سالن', color: 'info', icon: 'mdi:stadium' },
   club_admin: { label: 'مدیر باشگاه', color: 'secondary', icon: 'mdi:soccer' },
@@ -20,8 +35,15 @@ const roleConfig: Record<string, { label: string; color: 'default' | 'info' | 's
   coach: { label: 'مربی', color: 'success', icon: 'mdi:school' },
 }
 
+const ROLE_BADGE_CLASS: Record<string, string> = {
+  default: 'bg-foreground/5 text-muted-foreground',
+  info: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
+  secondary: 'bg-violet-500/10 text-violet-700 dark:text-violet-400',
+  warning: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  success: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
+}
+
 const Users: React.FC = () => {
-  const theme = useTheme()
   const [users, setUsers] = useState<AdminUser[]>([])
   const [stats, setStats] = useState<UserStats | null>(null)
   const [loading, setLoading] = useState(true)
@@ -78,38 +100,35 @@ const Users: React.FC = () => {
   }
 
   const miniStats = [
-    { label: 'فعال', value: stats?.active_users, icon: 'mdi:account-check', color: '#16a34a' },
-    { label: 'غیرفعال', value: stats?.inactive_users, icon: 'mdi:account-off', color: '#dc2626' },
-    { label: 'تایید شده', value: stats?.verified_users, icon: 'mdi:check-decagram', color: '#2563eb' },
+    { label: 'فعال', value: stats?.active_users, icon: 'mdi:account-check', color: 'text-emerald-600 dark:text-emerald-400' },
+    { label: 'غیرفعال', value: stats?.inactive_users, icon: 'mdi:account-off', color: 'text-red-600 dark:text-red-400' },
+    { label: 'تایید شده', value: stats?.verified_users, icon: 'mdi:check-decagram', color: 'text-blue-600 dark:text-blue-400' },
   ]
 
   return (
     <Layout>
-      <Box sx={{ mb: 4 }}>
-        <Typography component="h1" variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-          <Icon icon="mdi:account-group" className="h-7 w-7 ml-2" style={{ verticalAlign: 'middle', color: theme.palette.primary.main }} />
+      <div className="mb-8">
+        <h1 className="mb-1 flex items-center gap-2 text-2xl font-extrabold text-foreground">
+          <Icon icon="mdi:account-group" aria-hidden="true" className="h-7 w-7 text-primary" />
           مدیریت کاربران
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
+        </h1>
+        <p className="text-sm text-muted-foreground">
           {users.length} کاربر در سیستم ثبت‌نام کرده‌اند
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
       {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 3, borderRadius: 2 }}
-          action={
-            <Button color="inherit" size="small" onClick={fetchData}>
+        <Alert variant="destructive" className="mb-6 rounded-lg">
+          <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
+            {error}
+            <Button variant="outline" size="sm" onClick={fetchData}>
               تلاش مجدد
             </Button>
-          }
-        >
-          {error}
+          </AlertDescription>
         </Alert>
       )}
 
-      <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', mb: 3 }}>
+      <div className="mb-6 flex flex-wrap gap-3">
         {miniStats.map((stat, index) => (
           <motion.div
             key={index}
@@ -117,158 +136,142 @@ const Users: React.FC = () => {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.4, delay: index * 0.08 }}
           >
-            <Paper sx={{
-              px: 2, py: 1.25, borderRadius: 1.5,
-              border: `1px solid ${theme.palette.divider}`,
-              display: 'flex', alignItems: 'center', gap: 1,
-            }}>
-              <Icon icon={stat.icon} className="h-4 w-4" style={{ color: stat.color }} />
-              <Typography variant="body2" sx={{ color: 'text.secondary' }}>{stat.label}</Typography>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, color: stat.color }}>
-                {stat.value ?? 0}
-              </Typography>
-            </Paper>
+            <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5">
+              <Icon icon={stat.icon} aria-hidden="true" className={`h-4 w-4 ${stat.color}`} />
+              <p className="text-sm text-muted-foreground">{stat.label}</p>
+              <p className={`text-sm font-extrabold ${stat.color}`}>
+                {(stat.value ?? 0).toLocaleString('fa-IR')}
+              </p>
+            </div>
           </motion.div>
         ))}
-      </Box>
+      </div>
 
-      <Paper sx={{ p: 2, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, mb: 3 }}>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'center' }}>
-          <Box component="label" sx={{
-            display: 'flex', alignItems: 'center', gap: 1,
-            px: 1.5, py: 0.75, flex: 1, minWidth: 220, minHeight: 44,
-            bgcolor: 'grey.50',
-            border: `1px solid ${theme.palette.divider}`,
-            borderRadius: 1,
-            cursor: 'text',
-            '&:focus-within': { border: `1px solid ${theme.palette.primary.main}` },
-          }}>
-            <Icon icon="mdi:magnify" className="h-4 w-4" style={{ color: theme.palette.text.secondary }} />
-            <InputBase
-              sx={{ flex: 1, fontSize: '0.875rem', direction: 'rtl' }}
+      <div className="mb-6 rounded-lg border border-border bg-card p-4">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="relative min-w-[220px] flex-1">
+            <Icon icon="mdi:magnify" aria-hidden="true" className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              aria-label="جستجوی کاربران"
               placeholder="جستجوی نام یا شماره موبایل..."
-              // aria-label روی ریشۀ InputBase روی divوالد می‌نشیند؛ نامِ قابل‌دسترس
-              // باید روی خودِ input بنشیند
-              slotProps={{ input: { 'aria-label': 'جستجوی کاربران' } }}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
+              className="pe-10"
             />
-          </Box>
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>نقش</InputLabel>
-            <Select
-              value={roleFilter}
-              label="نقش"
-              onChange={(e) => setRoleFilter(e.target.value)}
-              sx={{ borderRadius: 1, fontSize: '0.85rem' }}
-            >
-              <MenuItem value="all">همه نقش‌ها</MenuItem>
+          </div>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger aria-label="نقش" className="min-w-[160px]">
+              <SelectValue placeholder="نقش" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">همه نقش‌ها</SelectItem>
               {Object.entries(roleConfig).map(([value, conf]) => (
-                <MenuItem key={value} value={value}>{conf.label}</MenuItem>
+                <SelectItem key={value} value={value}>{conf.label}</SelectItem>
               ))}
-            </Select>
-          </FormControl>
-        </Box>
-      </Paper>
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
 
-      <Paper sx={{ borderRadius: 2, border: `1px solid ${theme.palette.divider}`, overflow: 'hidden' }}>
+      <div className="overflow-hidden rounded-lg border border-border">
         {loading ? (
-          <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <div className="flex flex-col gap-2 p-4">
             {[1, 2, 3, 4, 5, 6].map((i) => (
-              <Skeleton aria-hidden="true" key={i} variant="rounded" height={52} />
+              <Skeleton aria-hidden="true" key={i} className="h-[52px]" />
             ))}
-          </Box>
+          </div>
         ) : (
-          <TableContainer>
-            <Table size="small" aria-label="لیست کاربران سیستم">
-              <TableHead>
-                <TableRow sx={{ bgcolor: 'grey.50' }}>
-                  <TableCell scope="col">کاربر</TableCell>
-                  <TableCell scope="col">شماره موبایل</TableCell>
-                  <TableCell scope="col">نقش</TableCell>
-                  <TableCell scope="col">تخصیص نقش</TableCell>
-                  <TableCell scope="col">وضعیت</TableCell>
-                  <TableCell scope="col">تایید</TableCell>
-                  <TableCell scope="col">تاریخ ثبت‌نام</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {filtered.map((user) => (
-                  <TableRow key={user.id} hover>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Avatar sx={{ width: 34, height: 34, fontSize: '0.85rem', bgcolor: 'primary.main' }}>
+          <Table aria-label="لیست کاربران سیستم">
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead scope="col">کاربر</TableHead>
+                <TableHead scope="col">شماره موبایل</TableHead>
+                <TableHead scope="col">نقش</TableHead>
+                <TableHead scope="col">تخصیص نقش</TableHead>
+                <TableHead scope="col">وضعیت</TableHead>
+                <TableHead scope="col">تایید</TableHead>
+                <TableHead scope="col">تاریخ ثبت‌نام</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((user) => (
+                <TableRow key={user.id} className="hover:bg-muted/50">
+                  <TableCell>
+                    <div className="flex items-center gap-3">
+                      <Avatar className="h-[34px] w-[34px]">
+                        <AvatarFallback className="bg-blue-600 text-[0.85rem] text-white">
                           {getInitials(user.full_name)}
-                        </Avatar>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>{user.full_name}</Typography>
-                      </Box>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" dir="ltr" sx={{ fontFamily: 'monospace' }}>{user.phone}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        icon={<Icon icon={roleConfig[user.role]?.icon || 'mdi:account'} className="h-3.5 w-3.5" />}
-                        label={roleConfig[user.role]?.label || user.role}
-                        color={roleConfig[user.role]?.color || 'default'}
-                        size="small"
-                        sx={{ borderRadius: '8px', fontWeight: 600 }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <FormControl size="small">
-                        <Select
-                          value={user.role}
-                          disabled={busyRole === user.id}
-                          onChange={(e) => changeRole(user.id, e.target.value as AdminUser['role'])}
-                          aria-label={`تخصیص نقش برای ${user.full_name}`}
-                          data-testid={`user-role-${user.id}`}
-                          sx={{ borderRadius: 1, fontSize: '0.8rem', minWidth: 128, minHeight: 44 }}
-                        >
-                          {Object.entries(roleConfig).map(([value, conf]) => (
-                            <MenuItem key={value} value={value}>{conf.label}</MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        label={user.is_active ? 'فعال' : 'غیرفعال'}
-                        color={user.is_active ? 'success' : 'error'}
-                        size="small"
-                        variant="outlined"
-                        sx={{ borderRadius: '8px' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Icon
-                        icon={user.is_verified ? 'mdi:check-decagram' : 'mdi:minus-circle-outline'}
-                        className="h-5 w-5"
-                        style={{ color: user.is_verified ? '#16a34a' : 'rgba(0,0,0,0.25)' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">{formatDate(user.created_at)}</Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {filtered.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={7}>
-                      <Box sx={{ textAlign: 'center', py: 6 }}>
-                        <Icon icon="mdi:account-search-outline" className="h-8 w-8" style={{ color: 'rgba(0,0,0,0.2)' }} />
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                          کاربری با این مشخصات یافت نشد
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                        </AvatarFallback>
+                      </Avatar>
+                      <p className="text-sm font-semibold text-foreground">{user.full_name}</p>
+                    </div>
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-mono text-sm text-foreground" dir="ltr">{user.phone}</p>
+                  </TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold ${ROLE_BADGE_CLASS[roleConfig[user.role]?.color || 'default']}`}>
+                      <Icon icon={roleConfig[user.role]?.icon || 'mdi:account'} aria-hidden="true" className="h-3.5 w-3.5" />
+                      {roleConfig[user.role]?.label || user.role}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Select
+                      value={user.role}
+                      disabled={busyRole === user.id}
+                      onValueChange={(v) => changeRole(user.id, v as AdminUser['role'])}
+                    >
+                      <SelectTrigger
+                        aria-label={`تخصیص نقش برای ${user.full_name}`}
+                        data-testid={`user-role-${user.id}`}
+                        className="min-h-11 min-w-[128px] text-[0.8rem]"
+                      >
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {Object.entries(roleConfig).map(([value, conf]) => (
+                          <SelectItem key={value} value={value}>{conf.label}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </TableCell>
+                  <TableCell>
+                    <span className={`inline-flex items-center rounded-lg border px-2 py-1 text-xs font-semibold ${
+                      user.is_active
+                        ? 'border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
+                        : 'border-red-500/30 text-red-700 dark:text-red-400'
+                    }`}>
+                      {user.is_active ? 'فعال' : 'غیرفعال'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <Icon
+                      icon={user.is_verified ? 'mdi:check-decagram' : 'mdi:minus-circle-outline'}
+                      aria-label={user.is_verified ? 'تایید شده' : 'تایید نشده'}
+                      className={`h-5 w-5 ${user.is_verified ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground/40'}`}
+                    />
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-sm text-muted-foreground">{formatDate(user.created_at)}</p>
+                  </TableCell>
+                </TableRow>
+              ))}
+              {filtered.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={7}>
+                    <div className="py-12 text-center">
+                      <Icon icon="mdi:account-search-outline" aria-hidden="true" className="mx-auto h-8 w-8 text-muted-foreground/40" />
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        کاربری با این مشخصات یافت نشد
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         )}
-      </Paper>
+      </div>
     </Layout>
   )
 }

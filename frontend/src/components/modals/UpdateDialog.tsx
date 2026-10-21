@@ -1,9 +1,9 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { LinearProgress } from '@mui/material'
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
+import { Progress } from '@/components/ui/shadcn/progress'
 import { cn } from '@/lib/utils'
 import { useUpdateStore } from '@/store/updateStore'
 
@@ -71,15 +71,21 @@ const UpdateDialog: React.FC = () => {
 
         {phase === 'checking' && (
           <>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">در حال بررسی بروزرسانی…</h2>
-            <div className="py-4"><LinearProgress aria-label="در حال بررسی بروزرسانی" /></div>
+            <h2 className="text-lg font-bold text-foreground mb-1">در حال بررسی بروزرسانی…</h2>
+            <div className="py-4">
+              <Progress
+                value={100}
+                aria-label="در حال بررسی بروزرسانی"
+                className="[&>div]:w-1/3 [&>div]:animate-pulse"
+              />
+            </div>
           </>
         )}
 
         {phase === 'up-to-date' && (
           <>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">همه‌چیز به‌روز است</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            <h2 className="text-lg font-bold text-foreground mb-1">همه‌چیز به‌روز است</h2>
+            <p className="text-sm text-muted-foreground">
               نسخهٔ فعلی شما {currentVersion || manifest?.version} است و نسخهٔ جدیدتری منتشر نشده.
             </p>
             <div className="flex justify-center mt-5">
@@ -90,8 +96,8 @@ const UpdateDialog: React.FC = () => {
 
         {phase === 'error' && !manifest && (
           <>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">بروزرسانی ممکن نشد</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 leading-6">{error}</p>
+            <h2 className="text-lg font-bold text-foreground mb-1">بروزرسانی ممکن نشد</h2>
+            <p className="text-sm text-muted-foreground leading-6">{error}</p>
             <div className="flex justify-center mt-5">
               <Button onClick={closeDialog}>بستن</Button>
             </div>
@@ -100,15 +106,15 @@ const UpdateDialog: React.FC = () => {
 
         {(phase === 'available' || phase === 'downloading' || phase === 'ready' || phase === 'error') && manifest && (
           <>
-            <h2 className="text-lg font-bold text-gray-900 dark:text-gray-100 mb-1">
+            <h2 className="text-lg font-bold text-foreground mb-1">
               نسخهٔ جدید {manifest.version}
             </h2>
-            <p className="text-xs text-gray-400 mb-3">
+            <p className="text-xs text-muted-foreground/70 mb-3">
               {faDate(manifest.pub_date)} · {mb(manifest.size)}
               {force ? ' · نصب این بروزرسانی الزامی است' : ''}
             </p>
 
-            <ul className="text-right text-sm text-gray-600 dark:text-gray-300 space-y-1.5 mb-3 px-2">
+            <ul className="text-start text-sm text-muted-foreground space-y-1.5 mb-3 px-2">
               {manifest.notes.map((n, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <Icon icon="mdi:soccer-ball" className="h-4 w-4 mt-0.5 shrink-0 text-emerald-700" />
@@ -119,8 +125,13 @@ const UpdateDialog: React.FC = () => {
 
             {phase === 'downloading' && (
               <div className="px-2 pb-2">
-                <LinearProgress variant="determinate" value={pct} aria-label="دانلود بروزرسانی" aria-valuetext={`${Math.round(pct)}٪ دانلود شد`} className="rounded-full" />
-                <p className="text-xs text-gray-400 mt-2 tabular-nums">
+                <Progress
+                  value={pct}
+                  aria-label="دانلود بروزرسانی"
+                  aria-valuetext={`${Math.round(pct)}٪ دانلود شد`}
+                  className="rounded-full"
+                />
+                <p className="text-xs text-muted-foreground/70 mt-2 tabular-nums">
                   {mb(progress.received)} از {mb(progress.total || manifest.size)}
                 </p>
               </div>

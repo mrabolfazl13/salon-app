@@ -66,7 +66,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
               {am.slice(0, 3).map((a, i) => (
                 <span
                   key={i}
-                  className="inline-flex h-6 items-center rounded-full bg-amber-500/10 px-2 text-xs font-semibold text-amber-700 dark:bg-amber-400/12 dark:text-amber-300"
+                  className="inline-flex h-6 items-center rounded-full bg-amber-500/10 px-2 text-xs font-semibold text-amber-700 dark:bg-amber-400/10 dark:text-amber-300"
                 >
                   {a}
                 </span>

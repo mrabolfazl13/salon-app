@@ -4,16 +4,6 @@
 
 import React, { useState } from 'react'
 import { Icon } from '@iconify/react'
-import {
-  Avatar,
-  Box,
-  IconButton,
-  Menu,
-  MenuItem,
-  Tooltip,
-  Typography,
-  useMediaQuery,
-} from '@mui/material'
 
 import type { Team, TeamMember } from '@/types/team'
 import {
@@ -28,6 +18,15 @@ import { useAuthStore } from '@/store/authStore'
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/shadcn/dropdown-menu'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
+import { cn } from '@/lib/utils'
 import { formatPersianDateTime } from '@/utils/helpers'
 import { getTeamError, MemberStatusChip, TeamRoleBadge } from './shared'
 
@@ -68,14 +67,14 @@ const TransferCaptainDialog: React.FC<{
 
   return (
     <Dialog open={open} onClose={onClose} title="انتقال کاپیتانی" maxWidth="xs">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+      <div className="flex flex-col gap-4 pt-1">
+        <p className="text-xs text-muted-foreground">
           با انتقال کاپیتانی، نقش شما به «مدیر» تغییر می‌کند. این اقدام قابل بازگشت نیست و فقط کاپیتان فعلی می‌تواند انجامش دهد.
-        </Typography>
-        <Box component="ul" sx={{ m: 0, p: '0 20px 0 0', display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+        </p>
+        <ul className="m-0 flex list-disc flex-col gap-1.5 ps-5">
           {candidates.map((m) => (
-            <Box component="li" key={m.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-              <Typography sx={{ fontSize: '0.82rem', fontWeight: 700 }}>{m.full_name ?? `کاربر ${m.user_id}`}</Typography>
+            <li key={m.id} className="flex items-center justify-between gap-2">
+              <span className="text-[0.82rem] font-bold">{m.full_name ?? `کاربر ${m.user_id}`}</span>
               <Button
                 size="sm"
                 variant={target === m.user_id ? 'gradient' : 'outline'}
@@ -83,10 +82,10 @@ const TransferCaptainDialog: React.FC<{
               >
                 انتخاب
               </Button>
-            </Box>
+            </li>
           ))}
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+        </ul>
+        <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={transfer.isPending}>انصراف</Button>
           <Button
             variant="gradient"
@@ -97,25 +96,21 @@ const TransferCaptainDialog: React.FC<{
           >
             انتقال کاپیتانی
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }
 
-const ROLE_MENU_SX = { borderRadius: '12px' } as const
-
 const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }) => {
   const toast = useToast()
   const me = useAuthStore((s) => s.user)
-  const stack = useMediaQuery('(max-width:600px)')
   const acceptInv = useAcceptTeamInvitation()
   const declineInv = useDeclineTeamInvitation()
   const remove = useRemoveTeamMember(team.id)
   const setRole = useSetTeamMemberRole(team.id)
   const [confirmRemove, setConfirmRemove] = useState<TeamMember | null>(null)
   const [transferOpen, setTransferOpen] = useState(false)
-  const [roleMenuFor, setRoleMenuFor] = useState<{ member: TeamMember; anchor: HTMLElement } | null>(null)
 
   const rows = members.filter((m) => m.status === 'active' || m.status === 'pending')
   const transferCandidates = members.filter(
@@ -164,7 +159,6 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
         onError: (err) => toast.error(getTeamError(err)),
       },
     )
-    setRoleMenuFor(null)
   }
 
   const removeDescription = (m: TeamMember | null): string => {
@@ -179,113 +173,124 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
 
   if (rows.length === 0) {
     return (
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', py: 1 }}>
+      <p className="py-2 text-[0.85rem] text-muted-foreground">
         هنوز عضو فعال یا در انتظار پاسخی در تیم نیست.
-      </Typography>
+      </p>
     )
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+    <div className="flex flex-col gap-1">
       {rows.map((m) => {
         const isMe = me?.id === m.user_id
         const isPendingInviteForMe = m.status === 'pending' && isMe
         const removable = canManage && m.role !== 'captain' && !isMe && (isCaptain || m.role === 'member')
         return (
-          <Box
+          <div
             key={m.id}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.25,
-              flexWrap: stack ? 'wrap' : 'nowrap',
-              px: 1.25,
-              py: 1,
-              borderRadius: '14px',
-              bgcolor: isMe ? 'rgba(37,99,235,0.05)' : m.status === 'pending' ? 'rgba(245,158,11,0.05)' : 'transparent',
-              border: '1px solid',
-              borderColor: m.status === 'pending' ? 'rgba(245,158,11,0.25)' : 'rgba(15,23,42,0.05)',
-            }}
+            className={cn(
+              'flex flex-wrap items-center gap-2.5 rounded-[14px] border px-2.5 py-2 sm:flex-nowrap',
+              isMe
+                ? 'bg-blue-600/5'
+                : m.status === 'pending'
+                  ? 'bg-amber-500/5'
+                  : 'bg-transparent',
+              m.status === 'pending'
+                ? 'border-amber-500/25'
+                : 'border-slate-900/5 dark:border-white/10',
+            )}
           >
-            <Avatar sx={{ width: 34, height: 34, bgcolor: 'rgba(37,99,235,0.1)', color: '#2563eb', fontSize: '0.85rem', fontWeight: 800 }}>
-              {(m.full_name ?? '؟').trim().charAt(0)}
+            <Avatar className="h-[34px] w-[34px]">
+              <AvatarFallback className="bg-blue-600/10 text-[0.85rem] font-extrabold text-blue-700 dark:text-blue-300">
+                {(m.full_name ?? '؟').trim().charAt(0)}
+              </AvatarFallback>
             </Avatar>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0, flexWrap: 'wrap' }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }} noWrap>
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 flex-wrap items-center gap-1.5">
+                <p className="truncate text-[0.85rem] font-bold text-slate-900 dark:text-slate-100">
                   {m.full_name ?? `کاربر ${m.user_id}`}
-                  {isMe && <span style={{ color: '#2563eb' }}> (شما)</span>}
-                </Typography>
+                  {isMe && <span className="text-blue-600 dark:text-blue-400"> (شما)</span>}
+                </p>
                 <TeamRoleBadge role={m.role} />
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
+              </div>
+              <div className="mt-0.5 flex flex-wrap items-center gap-2">
                 <MemberStatusChip status={m.status} />
                 {m.status === 'active' && (
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">
                     {`عضویت: ${formatPersianDateTime(m.joined_at)}`}
-                  </Typography>
+                  </p>
                 )}
                 {m.phone && (
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }} dir="ltr">
+                  <p className="text-xs text-slate-500 dark:text-slate-400" dir="ltr">
                     {m.phone}
-                  </Typography>
+                  </p>
                 )}
-              </Box>
-            </Box>
+              </div>
+            </div>
 
             {isPendingInviteForMe && (
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+              <div className="flex items-center gap-2">
                 <Button size="sm" variant="gradient" loading={acceptInv.isPending} onClick={() => handleAccept(m)}>
                   پذیرش دعوت
                 </Button>
                 <Button size="sm" variant="outline" loading={declineInv.isPending} onClick={() => handleDecline(m)}>
                   رد
                 </Button>
-              </Box>
+              </div>
             )}
 
             {isCaptain && m.status === 'active' && m.role !== 'captain' && (
-              <Tooltip title="تغییر نقش">
-                <IconButton
-                  size="small"
-                  onClick={(e) => setRoleMenuFor({ member: m, anchor: e.currentTarget })}
-                  disabled={setRole.isPending}
-                  aria-haspopup="menu"
-                  aria-label={`تغییر نقش ${m.full_name ?? ''}`}
-                  sx={{ color: '#2563eb' }}
-                >
-                  <Icon icon={m.role === 'admin' ? 'mdi:shield-account' : 'mdi:shield-account-outline'} style={{ width: 18, height: 18 }} />
-                </IconButton>
+              <Tooltip>
+                <DropdownMenu>
+                  <TooltipTrigger asChild>
+                    <DropdownMenuTrigger asChild>
+                      <button
+                        type="button"
+                        disabled={setRole.isPending}
+                        aria-label={`تغییر نقش ${m.full_name ?? ''}`}
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-blue-400"
+                      >
+                        <Icon icon={m.role === 'admin' ? 'mdi:shield-account' : 'mdi:shield-account-outline'} style={{ width: 18, height: 18 }} />
+                      </button>
+                    </DropdownMenuTrigger>
+                  </TooltipTrigger>
+                  <DropdownMenuContent align="start">
+                    {m.role !== 'admin' && (
+                      <DropdownMenuItem onClick={() => handlePickRole(m, 'admin')}>منصوب کردن به مدیر</DropdownMenuItem>
+                    )}
+                    {m.role === 'admin' && (
+                      <DropdownMenuItem onClick={() => handlePickRole(m, 'member')}>برداشتن مدیریت</DropdownMenuItem>
+                    )}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+                <TooltipContent>تغییر نقش</TooltipContent>
               </Tooltip>
             )}
             {removable && m.role !== 'captain' && (
-              <Tooltip title={m.status === 'pending' ? 'ابطال دعوت' : 'حذف از تیم'}>
-                <IconButton size="small" onClick={() => setConfirmRemove(m)} aria-label={m.status === 'pending' ? `ابطال دعوت ${m.full_name ?? ''}` : `حذف ${m.full_name ?? ''} از تیم`} sx={{ color: 'error.main' }}>
-                  <Icon icon={m.status === 'pending' ? 'mdi:email-cancel-outline' : 'mdi:account-remove-outline'} style={{ width: 18, height: 18 }} />
-                </IconButton>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmRemove(m)}
+                    aria-label={m.status === 'pending' ? `ابطال دعوت ${m.full_name ?? ''}` : `حذف ${m.full_name ?? ''} از تیم`}
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
+                  >
+                    <Icon icon={m.status === 'pending' ? 'mdi:email-cancel-outline' : 'mdi:account-remove-outline'} style={{ width: 18, height: 18 }} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{m.status === 'pending' ? 'ابطال دعوت' : 'حذف از تیم'}</TooltipContent>
               </Tooltip>
             )}
-          </Box>
+          </div>
         )
       })}
 
       {isCaptain && transferCandidates.length > 0 && (
-        <Box sx={{ pt: 1 }}>
+        <div className="pt-2">
           <Button size="sm" variant="default" icon="mdi:crown-outline" onClick={() => setTransferOpen(true)}>
             انتقال کاپیتانی
           </Button>
-        </Box>
-      )}
-
-      {roleMenuFor && (
-        <Menu anchorEl={roleMenuFor.anchor} open onClose={() => setRoleMenuFor(null)} slotProps={{ paper: { sx: ROLE_MENU_SX } }}>
-          {roleMenuFor.member.role !== 'admin' && (
-            <MenuItem onClick={() => handlePickRole(roleMenuFor.member, 'admin')}>منصوب کردن به مدیر</MenuItem>
-          )}
-          {roleMenuFor.member.role === 'admin' && (
-            <MenuItem onClick={() => handlePickRole(roleMenuFor.member, 'member')}>برداشتن مدیریت</MenuItem>
-          )}
-        </Menu>
+        </div>
       )}
 
       <ConfirmModal
@@ -300,7 +305,7 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
       />
 
       <TransferCaptainDialog open={transferOpen} onClose={() => setTransferOpen(false)} team={team} candidates={transferCandidates} />
-    </Box>
+    </div>
   )
 }
 

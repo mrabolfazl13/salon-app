@@ -2,18 +2,7 @@
 // پنل جزئیات مشتری — پروفایل + ویرایش VIP/برچسب/یادداشت (PUT /crm/customers) +
 // اخیر رزروها/پرداخت‌ها و خلاصه صورتحساب از پاسخ GET /crm/customers/{user_id}.
 
-import React, { useEffect, useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Divider,
-  FormControlLabel,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useEffect, useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import Dialog from '@/components/ui/Dialog'
@@ -30,6 +19,12 @@ import {
 import { formatJalaliDate, formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { useCrmCustomer, useUpdateCrmCustomer } from '@/hooks/useCrm'
 import { BookingStatusChip, ForbiddenPanel, SegmentChip, crmErrorMessage, isForbidden } from './shared'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import { Switch } from '@/components/ui/shadcn/switch'
+import { Textarea } from '@/components/ui/shadcn/textarea'
 
 interface Props {
   userId: number | null
@@ -45,6 +40,9 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
   const [tags, setTags] = useState<string[]>([])
   const [tagInput, setTagInput] = useState('')
   const [notes, setNotes] = useState('')
+
+  const vipId = useId()
+  const notesId = useId()
 
   const detail = detailQuery.data
   const dirty = useMemo(() => {
@@ -102,35 +100,33 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
       ) : !detail ? (
         <EmptyBox icon="mdi:account-off-outline" title="مشتری یافت نشد" />
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+        <div className="flex flex-col gap-5">
           {/* هدر پروفایل */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexWrap: 'wrap' }}>
-            <Box
-              sx={{
-                width: 46, height: 46, borderRadius: '14px', flexShrink: 0,
-                bgcolor: 'rgba(37,99,235,0.08)', display: 'flex', alignItems: 'center', justifyContent: 'center',
-              }}
-            >
-              <Icon icon="mdi:account" className="h-6 w-6" style={{ color: '#2563eb' }} />
-            </Box>
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[14px] bg-blue-600/[0.08]">
+              <Icon icon="mdi:account" className="h-6 w-6" style={{ color: '#2563eb' }} aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <p className="text-base font-extrabold text-foreground">
                 {detail.customer.full_name ?? '—'}
-              </Typography>
-              <Typography variant="caption" color="text.secondary" dir="ltr">
+              </p>
+              <p className="text-xs text-muted-foreground tabular-nums" dir="ltr">
                 {detail.customer.phone ?? '—'}
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', gap: 0.75, alignItems: 'center', ms: 'auto' }}>
+              </p>
+            </div>
+            <div className="ms-auto flex items-center gap-1.5">
               {detail.customer.is_vip && (
-                <Chip icon={<Icon icon="mdi:star" />} label="VIP" size="small" sx={{ borderRadius: '8px', fontWeight: 700, color: 'warning.main', bgcolor: 'rgba(217,119,6,0.1)' }} />
+                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+                  <Icon icon="mdi:star" className="h-3.5 w-3.5" aria-hidden="true" />
+                  VIP
+                </span>
               )}
               <SegmentChip segment={detail.customer.segment} small />
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           {/* آمار مشتری */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: 'repeat(2,1fr)', sm: 'repeat(4,1fr)' }, gap: 1 }}>
+          <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
             {[
               { label: 'رزروها', value: `${toPersianDigits(detail.customer.bookings_count)}`, icon: 'mdi:calendar-check' },
               { label: 'مجموع پرداختی', value: formatRial(detail.customer.total_spend), icon: 'mdi:cash' },
@@ -138,149 +134,165 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
               { label: 'امتیاز وفاداری', value: toPersianDigits(detail.customer.loyalty_balance ?? 0), icon: 'mdi:star-four-points' },
               { label: 'آخرین بازدید', value: detail.customer.last_booking_date ? formatJalaliDate(detail.customer.last_booking_date, { format: 'numeric' }) : '—', icon: 'mdi:eye' },
             ].map((s) => (
-              <Box key={s.label} sx={{ p: 1.5, borderRadius: '12px', border: '1px solid rgba(15,23,42,0.06)', bgcolor: 'rgba(248,250,252,0.6)' }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{s.label}</Typography>
-                <Typography variant="body2" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums', mt: 0.25 }}>{s.value}</Typography>
-              </Box>
+              <div key={s.label} className="rounded-xl border border-border/60 bg-slate-50/60 p-3 dark:bg-slate-900/40">
+                <span className="block text-xs text-muted-foreground">{s.label}</span>
+                <span className="mt-0.5 block text-sm font-extrabold text-foreground tabular-nums">{s.value}</span>
+              </div>
             ))}
-          </Box>
+          </div>
 
           {/* ویرایش */}
           <SectionCard title="ویرایش اطلاعات (ویژه / برچسب / یادداشت)" icon="mdi:account-edit" color="#7c3aed" dense>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
-              <FormControlLabel
-                control={<Switch checked={isVip} onChange={(e) => setIsVip(e.target.checked)} />}
-                label={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Icon icon="mdi:star" className="h-4 w-4" style={{ color: '#d97706' }} />
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>مشتری ویژه (VIP)</Typography>
-                  </Box>
-                }
-                sx={{ ms: 0 }}
-              />
-              <Box>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>
+            <div className="flex flex-col gap-3.5">
+              <div className="flex items-center gap-2">
+                <Switch id={vipId} checked={isVip} onCheckedChange={setIsVip} />
+                <Label htmlFor={vipId} className="cursor-pointer">
+                  <span className="inline-flex items-center gap-2 text-sm font-bold text-foreground">
+                    <Icon icon="mdi:star" className="h-4 w-4" style={{ color: '#d97706' }} aria-hidden="true" />
+                    مشتری ویژه (VIP)
+                  </span>
+                </Label>
+              </div>
+              <div>
+                <span className="text-xs font-semibold text-muted-foreground">
                   برچسب‌ها (حداکثر ۱۰)
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap', mt: 0.75 }}>
+                </span>
+                <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {tags.map((t) => (
-                    <Chip
+                    <span
                       key={t}
-                      label={t}
-                      size="small"
-                      onDelete={() => setTags(tags.filter((x) => x !== t))}
-                      sx={{ borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb', fontWeight: 600 }}
-                    />
+                      className="inline-flex items-center gap-1 rounded-lg bg-blue-600/[0.08] py-0.5 pe-1 ps-2 text-xs font-semibold text-blue-700 dark:text-blue-300"
+                    >
+                      {t}
+                      <button
+                        type="button"
+                        onClick={() => setTags(tags.filter((x) => x !== t))}
+                        aria-label={`حذف برچسب ${t}`}
+                        className="inline-flex h-6 w-6 items-center justify-center rounded-md text-blue-700/70 transition-colors hover:bg-blue-600/10 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-300/70"
+                      >
+                        <Icon icon="mdi:close" className="h-3.5 w-3.5" aria-hidden="true" />
+                      </button>
+                    </span>
                   ))}
                   {tags.length === 0 && (
-                    <Typography variant="caption" color="text.secondary">بدون برچسب</Typography>
+                    <span className="text-xs text-muted-foreground">بدون برچسب</span>
                   )}
-                </Box>
-                <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                  <TextField
-                    size="small"
+                </div>
+                <div className="mt-2 flex gap-2">
+                  <Input
                     placeholder="افزودن برچسب..."
-                    slotProps={{ htmlInput: { 'aria-label': 'افزودن برچسب جدید' } }}
+                    aria-label="افزودن برچسب جدید"
                     value={tagInput}
                     onChange={(e) => setTagInput(e.target.value)}
                     onKeyDown={(e) => {
                       if (e.key === 'Enter') { e.preventDefault(); addTag() }
                     }}
-                    sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                    className="flex-1"
                   />
-                  <Button size="small" variant="outlined" onClick={addTag} sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}>
+                  <Button size="sm" variant="outline" onClick={addTag} className="font-bold">
                     افزودن
                   </Button>
-                </Box>
-              </Box>
-              <TextField
-                label="یادداشت"
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                multiline
-                minRows={2}
-                maxRows={6}
-                fullWidth
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-              />
-              <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                </div>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor={notesId}>یادداشت</Label>
+                <Textarea
+                  id={notesId}
+                  value={notes}
+                  rows={2}
+                  onChange={(e) => setNotes(e.target.value)}
+                />
+              </div>
+              <div className="flex justify-end">
                 <Button
-                  variant="contained"
                   disabled={!dirty || updateCustomer.isPending}
                   onClick={save}
-                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, background: 'linear-gradient(135deg,#2563eb,#7c3aed)' }}
+                  className="bg-gradient-to-br from-blue-600 to-violet-600 font-bold text-white hover:from-blue-700 hover:to-violet-700"
                 >
-                  {updateCustomer.isPending ? <CircularProgress size={18} sx={{ color: 'white' }} /> : 'ذخیره تغییرات'}
+                  {updateCustomer.isPending ? (
+                    <span
+                      className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-current border-t-transparent"
+                      role="status"
+                      aria-label="در حال بارگذاری"
+                    />
+                  ) : 'ذخیره تغییرات'}
                 </Button>
-              </Box>
-            </Box>
+              </div>
+            </div>
           </SectionCard>
 
           {/* فعالیت اخیر */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' }, gap: 2 }}>
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <SectionCard title={`رزروهای اخیر (${detail.recent_bookings.length})`} icon="mdi:calendar-month" dense>
               {detail.recent_bookings.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">رزروی ثبت نشده است.</Typography>
+                <p className="text-sm text-muted-foreground">رزروی ثبت نشده است.</p>
               ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                <div className="flex flex-col gap-1.5">
                   {detail.recent_bookings.map((b) => (
-                    <Box key={b.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    <div key={b.id} className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">
                           {formatJalaliDate(b.slot_date, { format: 'numeric' })} — {b.start_time}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        </p>
+                        <p className="text-xs text-muted-foreground">
                           ثبت: {formatJalaliDateTime(b.booked_at, { format: 'numeric' })}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+                        </p>
+                      </div>
+                      <div className="flex shrink-0 items-center gap-2">
                         {b.payment_amount !== null && (
-                          <Typography variant="caption" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                          <span className="text-xs font-bold text-foreground tabular-nums">
                             {formatRial(b.payment_amount)}
-                          </Typography>
+                          </span>
                         )}
                         <BookingStatusChip status={b.status} />
-                      </Box>
-                    </Box>
+                      </div>
+                    </div>
                   ))}
-                </Box>
+                </div>
               )}
             </SectionCard>
             <SectionCard title={`پرداخت‌های اخیر (${detail.recent_payments.length})`} icon="mdi:cash-sync" color="#059669" dense>
               {detail.recent_payments.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">تراکنشی ثبت نشده است.</Typography>
+                <p className="text-sm text-muted-foreground">تراکنشی ثبت نشده است.</p>
               ) : (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                <div className="flex flex-col gap-1.5">
                   {detail.recent_payments.map((t) => (
-                    <Box key={t.id} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    <div key={t.id} className="flex items-center justify-between gap-2">
+                      <div className="min-w-0">
+                        <p className="text-sm font-semibold text-foreground">
                           {labelOf(TX_TYPE_LABELS, t.type)}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
+                        </p>
+                        <p className="text-xs text-muted-foreground">
                           {formatJalaliDate(t.occurred_at, { format: 'numeric' })}
                           {t.status === 'voided' ? ' — باطل' : ''}
-                        </Typography>
-                      </Box>
-                      <Typography variant="caption" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums', color: (th) => (t.direction === 'income' ? th.palette.success.main : th.palette.error.main) }} dir="rtl">
+                        </p>
+                      </div>
+                      <span
+                        dir="rtl"
+                        className={
+                          t.direction === 'income'
+                            ? 'text-xs font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                            : 'text-xs font-extrabold text-red-600 tabular-nums dark:text-red-400'
+                        }
+                      >
                         {t.direction === 'income' ? '＋' : '−'}{formatRial(t.amount)}
-                      </Typography>
-                    </Box>
+                      </span>
+                    </div>
                   ))}
-                </Box>
+                </div>
               )}
-              <Divider sx={{ my: 1 }} />
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Typography variant="caption" color="text.secondary">
+              <Separator className="my-2" />
+              <div className="flex justify-between">
+                <span className="text-xs text-muted-foreground">
                   خلاصه صورتحساب · {toPersianDigits(detail.statement.entries.length)} ردیف
-                </Typography>
-                <Typography variant="caption" sx={{ fontWeight: 700 }}>
+                </span>
+                <span className="text-xs font-bold text-foreground tabular-nums">
                   موجودی: {formatRial(detail.statement.closing_balance)}
-                </Typography>
-              </Box>
+                </span>
+              </div>
             </SectionCard>
-          </Box>
-        </Box>
+          </div>
+        </div>
       )}
     </Dialog>
   )

@@ -2,36 +2,33 @@
 // «مشتریان» — نوار فیلتر (جست‌وجو/segment/VIP/مرتب‌سازی) + جدول با صفحه‌بندی
 // سمت سرور + سوییچ سریع VIP + پنل جزئیات (CustomerDetailDialog).
 
-import React, { useEffect, useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  FormControl,
-  IconButton,
-  MenuItem,
-  Pagination,
-  PaginationItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-  Typography,
-} from '@mui/material'
+import React, { useEffect, useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
-import { EmptyBox, ErrorBox, LoadingBox, formatRial } from '@/components/finance/shared'
+import { EmptyBox, ErrorBox, LoadingBox, Pager, formatRial } from '@/components/finance/shared'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
 import { useCrmCustomers, useUpdateCrmCustomer } from '@/hooks/useCrm'
 import type { CrmCustomerRow, CrmSort } from '@/services/crm'
 import CustomerDetailDialog from './CustomerDetailDialog'
 import { ForbiddenPanel, SegmentChip, SEGMENT_LABELS, SEGMENT_ORDER, ConsentIcon, crmErrorMessage, isForbidden } from './shared'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 
 const PAGE_SIZE = 20
 
@@ -40,6 +37,9 @@ const SORT_OPTIONS: { value: CrmSort; label: string }[] = [
   { value: 'spend', label: 'بیشترین پرداختی' },
   { value: 'bookings', label: 'بیشترین رزرو' },
 ]
+
+const TAG_CHIP = 'inline-flex h-4 items-center rounded-md bg-violet-600/[0.08] px-1.5 text-[0.6rem] font-semibold text-violet-700 dark:text-violet-300'
+const MOBILE_CHIP = 'inline-flex h-[22px] items-center rounded-lg px-2 text-xs font-bold leading-none'
 
 interface Props {
   venueId: number
@@ -53,6 +53,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
   const [sort, setSort] = useState<CrmSort>('last_visit')
   const [page, setPage] = useState(1)
   const [detailUserId, setDetailUserId] = useState<number | null>(null)
+
+  const searchId = useId()
 
   // debounce جست‌وجو
   useEffect(() => {
@@ -94,66 +96,74 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
   }
 
   const inactiveBadge = (row: CrmCustomerRow) => {
-    if (row.inactive_days === null) return <Typography variant="caption" color="text.secondary">بدون بازدید</Typography>
+    if (row.inactive_days === null) return <span className="text-xs text-muted-foreground">بدون بازدید</span>
     const color = row.segment === 'dormant' ? '#64748b' : row.segment === 'at_risk' ? '#ef4444' : '#059669'
     return (
-      <Box component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, color, ms: 0.75 }}>
+      <span className="ms-1.5 text-xs font-bold tabular-nums" style={{ color }}>
         {toPersianDigits(row.inactive_days)} روز
-      </Box>
+      </span>
     )
   }
 
   return (
-    <Box>
+    <div>
       {/* نوار فیلتر */}
-      <Box
-        sx={{
-          display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', mb: 2,
-          p: 2, borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.92)',
-          border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 16px rgba(15,23,42,0.04)',
-        }}
-      >
-        <TextField
-          size="small"
-          label="جست‌وجوی مشتری"
-          placeholder="جست‌وجوی نام یا شماره موبایل..."
-          value={searchInput}
-          onChange={(e) => setSearchInput(e.target.value)}
-          sx={{ minWidth: { xs: '100%', sm: 260 }, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-        />
-        <ToggleButtonGroup
-          size="small"
-          exclusive
-          value={segment}
-          onChange={(_, v) => { setSegment(v ?? null); setPage(1) }}
-          sx={{
-            flexWrap: 'wrap',
-            rowGap: 1,
-            '& .MuiToggleButton-root': {
-              textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', px: 1.5, borderRadius: '9px !important', mx: 0.25, border: 'none',
-            },
-          }}
-        >
-          {SEGMENT_ORDER.map((s) => (
-            <ToggleButton key={s} value={s}>{SEGMENT_LABELS[s]}</ToggleButton>
-          ))}
-        </ToggleButtonGroup>
-        <Chip
-          icon={<Icon icon="mdi:star" />}
-          label="فقط VIP"
-          color={vipOnly ? 'warning' : 'default'}
-          variant={vipOnly ? 'filled' : 'outlined'}
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+        <div className="flex min-w-full flex-col gap-1.5 sm:min-w-[260px] sm:flex-1 md:flex-none">
+          <Label htmlFor={searchId}>جست‌وجوی مشتری</Label>
+          <Input
+            id={searchId}
+            placeholder="جست‌وجوی نام یا شماره موبایل..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-wrap gap-1" role="group" aria-label="گروه مشتری">
+          {SEGMENT_ORDER.map((s) => {
+            const active = segment === s
+            return (
+              <button
+                key={s}
+                type="button"
+                aria-pressed={active}
+                onClick={() => { setSegment(active ? null : s); setPage(1) }}
+                className={
+                  active
+                    ? 'inline-flex min-h-11 items-center rounded-[9px] bg-blue-600 px-3 text-xs font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    : 'inline-flex min-h-11 items-center rounded-[9px] bg-muted px-3 text-xs font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                }
+              >
+                {SEGMENT_LABELS[s]}
+              </button>
+            )
+          })}
+        </div>
+        <button
+          type="button"
+          aria-pressed={vipOnly}
           onClick={() => { setVipOnly((v) => !v); setPage(1) }}
-          sx={{ borderRadius: '9px', fontWeight: 700, fontSize: '0.75rem', height: 32 }}
-        />
-        <FormControl size="small" sx={{ minWidth: 150, ms: 'auto' }}>
-          <Select value={sort} aria-label="مرتب‌سازی مشتریان" onChange={(e) => { setSort(e.target.value as CrmSort); setPage(1) }} sx={{ borderRadius: '10px' }}>
-            {SORT_OPTIONS.map((o) => (
-              <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
-            ))}
+          className={
+            vipOnly
+              ? 'inline-flex h-11 items-center gap-1.5 rounded-[9px] bg-amber-500 px-3 text-xs font-bold text-stone-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              : 'inline-flex h-11 items-center gap-1.5 rounded-[9px] border border-border bg-card px-3 text-xs font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+          }
+        >
+          <Icon icon="mdi:star" className="h-4 w-4" aria-hidden="true" />
+          فقط VIP
+        </button>
+        <div className="ms-auto min-w-[150px]">
+          <Select value={sort} onValueChange={(v) => { setSort(v as CrmSort); setPage(1) }}>
+            <SelectTrigger aria-label="مرتب‌سازی مشتریان" className="h-11 rounded-xl">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SORT_OPTIONS.map((o) => (
+                <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>
+              ))}
+            </SelectContent>
           </Select>
-        </FormControl>
-      </Box>
+        </div>
+      </div>
 
       {query.isPending ? (
         <LoadingBox text="در حال دریافت مشتریان..." />
@@ -165,20 +175,19 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
         <EmptyBox icon="mdi:account-group-outline" title="مشتری‌ای با این فیلترها پیدا نشد" text="ابتدا در سالن خود رزرو ثبت کنید تا مشتریان اینجا نمایش داده شوند." />
       ) : (
         <>
-          <Box sx={{ display: { xs: 'none', md: 'block' }, borderRadius: '16px', overflow: 'auto', bgcolor: 'rgba(255,255,255,0.92)', border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 8px 28px rgba(15,23,42,0.06)' }}>
-            <Table aria-label="لیست مشتریان" size="small" sx={{ minWidth: 880 }}>
-              <TableHead>
-                <TableRow>
+          <div className="hidden overflow-auto rounded-2xl border border-border bg-card shadow-sm md:block">
+            <Table aria-label="لیست مشتریان" className="min-w-[880px]">
+              <TableHeader className="bg-slate-50/80 dark:bg-slate-900/80">
+                <TableRow className="hover:bg-transparent">
                   {['مشتری', 'موبایل', 'رزرو', 'مجموع پرداختی', 'مانده', 'امتیاز', 'آخرین بازدید', 'گروه', ''].map((h, i) => (
-                    <TableCell scope="col" key={i} sx={{ fontWeight: 800, whiteSpace: 'nowrap', bgcolor: 'rgba(248,250,252,0.8)' }}>{h}</TableCell>
+                    <TableHead key={i} scope="col" className="whitespace-nowrap font-extrabold">{h}</TableHead>
                   ))}
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {items.map((row) => (
                   <TableRow
                     key={row.user_id}
-                    hover
                     tabIndex={0}
                     onClick={() => setDetailUserId(row.user_id)}
                     // سطر کلیک‌پذیر بدون کیبورد = کنترل دست‌نیافتنی
@@ -188,203 +197,196 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                         setDetailUserId(row.user_id)
                       }
                     }}
-                    sx={{
-                      cursor: 'pointer',
-                      '&:hover': { bgcolor: 'rgba(37,99,235,0.04)' },
-                      '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
-                    }}
+                    className="cursor-pointer hover:bg-blue-600/[0.04] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                   >
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-sm font-bold text-foreground">
                           {row.full_name ?? '—'}
-                        </Typography>
+                        </span>
                         {row.tags.slice(0, 2).map((t) => (
-                          <Chip key={t} label={t} size="small" sx={{ height: 16, fontSize: '0.6rem', borderRadius: '6px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
+                          <span key={t} className={TAG_CHIP}>{t}</span>
                         ))}
-                      </Box>
+                      </div>
                     </TableCell>
-                    <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }} dir="ltr">{row.phone ?? '—'}</TableCell>
-                    <TableCell sx={{ fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.bookings_count)}</TableCell>
-                    <TableCell sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>{formatRial(row.total_spend)}</TableCell>
+                    <TableCell dir="ltr" className="tabular-nums text-foreground">{row.phone ?? '—'}</TableCell>
+                    <TableCell className="tabular-nums text-foreground">{toPersianDigits(row.bookings_count)}</TableCell>
+                    <TableCell className="whitespace-nowrap font-bold text-foreground tabular-nums">{formatRial(row.total_spend)}</TableCell>
                     <TableCell
-                      sx={{
-                        fontWeight: 800, fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap',
-                        color: (t) => (row.balance_due > 0 ? t.palette.error.main
-                          : row.balance_due < 0 ? t.palette.success.main : t.palette.text.secondary),
-                      }}
+                      className={
+                        row.balance_due > 0
+                          ? 'whitespace-nowrap font-extrabold text-red-600 tabular-nums dark:text-red-400'
+                          : row.balance_due < 0
+                            ? 'whitespace-nowrap font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                            : 'whitespace-nowrap font-extrabold text-muted-foreground tabular-nums'
+                      }
                     >
                       {row.balance_due > 0 ? formatRial(row.balance_due) : row.balance_due < 0 ? formatRial(-row.balance_due) + ' (اعتبار)' : '—'}
                     </TableCell>
-                    <TableCell align="center">
-                      <Tooltip title="امتیاز وفاداری">
-                        <Chip
-                          icon={<Icon icon="mdi:star-four-points" />}
-                          label={toPersianDigits(row.loyalty_balance ?? 0)}
-                          size="small"
-                          sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: 'warning.main', '& .MuiChip-icon': { color: 'warning.main' } }}
-                        />
+                    <TableCell className="text-center">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <span
+                            className="inline-flex h-[22px] items-center gap-1 rounded-lg bg-amber-500/10 px-2 text-xs font-extrabold text-amber-700 tabular-nums dark:text-amber-400"
+                            tabIndex={0}
+                          >
+                            <Icon icon="mdi:star-four-points" className="h-3.5 w-3.5" aria-hidden="true" />
+                            {toPersianDigits(row.loyalty_balance ?? 0)}
+                          </span>
+                        </TooltipTrigger>
+                        <TooltipContent>امتیاز وفاداری</TooltipContent>
                       </Tooltip>
                     </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                      <Typography variant="caption" sx={{ display: 'block', fontWeight: 600 }}>
+                    <TableCell className="whitespace-nowrap">
+                      <span className="block text-xs font-semibold text-foreground tabular-nums">
                         {row.last_booking_date ? formatJalaliDate(row.last_booking_date, { format: 'numeric' }) : '—'}
-                      </Typography>
+                      </span>
                       {inactiveBadge(row)}
                     </TableCell>
                     <TableCell><SegmentChip segment={row.segment} /></TableCell>
                     <TableCell onClick={(e) => e.stopPropagation()}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.25 }}>
-                        <Tooltip title="رضایت بازاریابی">
-                          <Box component="span" sx={{ display: 'inline-flex', px: 0.5 }}><ConsentIcon consent={row.marketing_consent} /></Box>
+                      <div className="flex items-center gap-0.5">
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <span className="inline-flex px-1">
+                              <ConsentIcon consent={row.marketing_consent} />
+                            </span>
+                          </TooltipTrigger>
+                          <TooltipContent>رضایت بازاریابی</TooltipContent>
                         </Tooltip>
-                        <Tooltip title={row.is_vip ? 'حذف از مشتریان ویژه' : 'افزودن به مشتریان ویژه'}>
-                          <IconButton
-                            size="small"
-                            onClick={() => toggleVip(row)}
-                            disabled={updateCustomer.isPending}
-                            aria-label={row.is_vip ? `خارج کردن ${row.full_name ?? row.phone ?? ''} از مشتریان ویژه` : `افزودن ${row.full_name ?? row.phone ?? ''} به مشتریان ویژه`}
-                            aria-pressed={row.is_vip}
-                            sx={{ '& svg': { color: row.is_vip ? (t) => t.palette.warning.main : (t) => t.palette.text.disabled } }}
-                          >
-                            <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" />
-                          </IconButton>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <button
+                              type="button"
+                              onClick={() => toggleVip(row)}
+                              disabled={updateCustomer.isPending}
+                              aria-label={row.is_vip ? `خارج کردن ${row.full_name ?? row.phone ?? ''} از مشتریان ویژه` : `افزودن ${row.full_name ?? row.phone ?? ''} به مشتریان ویژه`}
+                              aria-pressed={row.is_vip}
+                              className={
+                                row.is_vip
+                                  ? 'inline-flex h-11 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
+                                  : 'inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
+                              }
+                            >
+                              <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" aria-hidden="true" />
+                            </button>
+                          </TooltipTrigger>
+                          <TooltipContent>{row.is_vip ? 'حذف از مشتریان ویژه' : 'افزودن به مشتریان ویژه'}</TooltipContent>
                         </Tooltip>
-                      </Box>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </Box>
+          </div>
 
-          <Box sx={{ display: { xs: 'flex', md: 'none' }, flexDirection: 'column', gap: 1.5 }}>
+          <div className="flex flex-col gap-3 md:hidden">
             {items.map((row) => (
-              <Box
+              <div
                 key={row.user_id}
-                sx={{
-                  position: 'relative', p: 2, borderRadius: '16px', bgcolor: 'rgba(255,255,255,0.92)',
-                  border: '1px solid rgba(0,0,0,0.05)', boxShadow: '0 4px 16px rgba(15,23,42,0.04)',
-                  // محتوای <button> را کروم با عرض max-content می‌چیند و بدون برش، سند را
-                  // تا ۷۸۱px پهن می‌کند؛ در RTL همین باعث خالی‌رندر شدن کل صفحه می‌شد.
-                  overflow: 'hidden',
-                  '&:active': { transform: 'scale(0.98)' },
-                }}
+                className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm active:scale-[0.98]"
               >
                 {/* کنترل‌های تعاملی بیرون از دکمهٔ کارت‌اند: دکمهٔ تودرتو در HTML مجاز نیست
                     و روی نامِ دکمه هم سایه می‌اندازد */}
-                <Box sx={{ position: 'absolute', top: 14, insetInlineEnd: 14, display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                <div className="absolute top-3.5 end-3.5 flex items-center gap-1">
                   <ConsentIcon consent={row.marketing_consent} />
-                  <IconButton
-                    size="small"
+                  <button
+                    type="button"
                     onClick={() => toggleVip(row)}
                     disabled={updateCustomer.isPending}
-                    sx={{ p: 0.5, '& svg': { color: row.is_vip ? (t) => t.palette.warning.main : (t) => t.palette.text.disabled } }}
                     aria-label={`مشتری ویژه: ${row.full_name ?? row.phone ?? ''}`}
                     aria-pressed={row.is_vip}
+                    className={
+                      row.is_vip
+                        ? 'inline-flex h-11 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        : 'inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    }
                   >
-                    <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" />
-                  </IconButton>
-                </Box>
+                    <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" aria-hidden="true" />
+                  </button>
+                </div>
 
-                <Box
-                  component="button"
+                <button
                   type="button"
                   aria-haspopup="dialog"
                   aria-label={`مشاهده جزئیات ${row.full_name ?? row.phone ?? 'مشتری'}`}
                   onClick={() => setDetailUserId(row.user_id)}
-                  sx={{
-                    display: 'block', width: '100%', p: 0, m: 0, border: 0, borderRadius: 'inherit',
-                    appearance: 'none', WebkitTapHighlightColor: 'transparent', bgcolor: 'transparent',
-                    fontFamily: 'inherit', color: 'inherit', textAlign: 'start', cursor: 'pointer',
-                    '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
-                  }}
+                  className="block w-full cursor-pointer appearance-none rounded-xl border-0 bg-transparent p-0 m-0 text-start font-[inherit] text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
-                  <Box sx={{ minWidth: 0, mb: 1.5, paddingInlineEnd: 92 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  <div className="mb-3 min-w-0 pe-[92px]">
+                    <p className="truncate text-sm font-extrabold text-foreground">
                       {row.full_name ?? '—'}
-                    </Typography>
-                    <Typography variant="caption" dir="ltr" sx={{ color: 'text.secondary', display: 'block' }}>
+                    </p>
+                    <p className="block text-xs text-muted-foreground" dir="ltr">
                       {row.phone ?? '—'}
-                    </Typography>
-                  </Box>
+                    </p>
+                  </div>
 
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }}>
+                  <div className="mb-3 flex flex-wrap gap-2">
                     <SegmentChip segment={row.segment} />
-                    <Chip
-                      icon={<Icon icon="mdi:calendar-check-outline" />}
-                      label={`${toPersianDigits(row.bookings_count)} رزرو`}
-                      size="small"
-                      sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }}
-                    />
-                    <Chip
-                      icon={<Icon icon="mdi:star-four-points" />}
-                      label={toPersianDigits(row.loyalty_balance ?? 0)}
-                      size="small"
-                      sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, borderRadius: '8px', bgcolor: 'rgba(217,119,6,0.1)', color: 'warning.main', '& .MuiChip-icon': { color: 'warning.main' } }}
-                    />
+                    <span className={`${MOBILE_CHIP} gap-1 bg-blue-600/[0.08] text-blue-700 dark:text-blue-300`}>
+                      <Icon icon="mdi:calendar-check-outline" className="h-3.5 w-3.5" aria-hidden="true" />
+                      {`${toPersianDigits(row.bookings_count)} رزرو`}
+                    </span>
+                    <span className={`${MOBILE_CHIP} gap-1 bg-amber-500/10 text-amber-700 tabular-nums dark:text-amber-400`}>
+                      <Icon icon="mdi:star-four-points" className="h-3.5 w-3.5" aria-hidden="true" />
+                      {toPersianDigits(row.loyalty_balance ?? 0)}
+                    </span>
                     {row.tags.slice(0, 2).map((t) => (
-                      <Chip key={t} label={t} size="small" sx={{ height: 22, fontSize: '0.75rem', borderRadius: '8px', bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
+                      <span key={t} className={`${MOBILE_CHIP} bg-violet-600/[0.08] text-violet-700 dark:text-violet-300`}>{t}</span>
                     ))}
-                  </Box>
+                  </div>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pt: 1.5, borderTop: '1px dashed rgba(0,0,0,0.06)' }}>
-                    <Box>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>پرداختی</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                  <div className="flex items-center justify-between border-t border-dashed border-border pt-3">
+                    <div>
+                      <span className="block text-xs text-muted-foreground">پرداختی</span>
+                      <span className="block text-sm font-extrabold text-foreground tabular-nums">
                         {formatRial(row.total_spend)}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ textAlign: 'center' }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>مانده</Typography>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: 800, fontVariantNumeric: 'tabular-nums',
-                          color: (t) => (row.balance_due > 0 ? t.palette.error.main
-                            : row.balance_due < 0 ? t.palette.success.main : t.palette.text.secondary),
-                        }}
+                      </span>
+                    </div>
+                    <div className="text-center">
+                      <span className="block text-xs text-muted-foreground">مانده</span>
+                      <span
+                        className={
+                          row.balance_due > 0
+                            ? 'block text-sm font-extrabold text-red-600 tabular-nums dark:text-red-400'
+                            : row.balance_due < 0
+                              ? 'block text-sm font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                              : 'block text-sm font-extrabold text-muted-foreground tabular-nums'
+                        }
                       >
                         {row.balance_due > 0 ? formatRial(row.balance_due) : row.balance_due < 0 ? formatRial(-row.balance_due) : '—'}
-                      </Typography>
-                    </Box>
-                    <Box sx={{ textAlign: 'end' }}>
-                      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>بازدید</Typography>
-                      <Typography variant="caption" sx={{ fontWeight: 700, display: 'block' }}>
+                      </span>
+                    </div>
+                    <div className="text-end">
+                      <span className="block text-xs text-muted-foreground">بازدید</span>
+                      <span className="block text-xs font-bold text-foreground tabular-nums">
                         {row.last_booking_date ? formatJalaliDate(row.last_booking_date, { format: 'numeric' }) : '—'}
-                      </Typography>
+                      </span>
                       {inactiveBadge(row)}
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
+                    </div>
+                  </div>
+                </button>
+              </div>
             ))}
-          </Box>
+          </div>
         </>
       )}
 
       {!query.isPending && !query.isError && total > PAGE_SIZE && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2.5 }}>
-          <Pagination
-            count={totalPages}
-            page={page}
-            onChange={(_, v) => setPage(v)}
-            color="primary"
-            shape="rounded"
-            renderItem={(item) => (
-              <PaginationItem {...item} component={Button} sx={{ fontWeight: 700 }} />
-            )}
-          />
-        </Box>
+        <div className="mt-5 flex justify-center">
+          <Pager count={totalPages} page={page} onChange={setPage} />
+        </div>
       )}
       {!query.isPending && !query.isError && total > 0 && (
-        <Typography variant="caption" sx={{ display: 'block', textAlign: 'center', mt: 1, color: 'text.secondary' }}>
+        <p className="mt-2 block text-center text-xs text-muted-foreground">
           {toPersianDigits(total)} مشتری — صفحه {toPersianDigits(page)} از {toPersianDigits(totalPages)}
-        </Typography>
+        </p>
       )}
 
       <CustomerDetailDialog userId={detailUserId} venueId={venueId} onClose={() => setDetailUserId(null)} />
-    </Box>
+    </div>
   )
 }
 

@@ -2,18 +2,14 @@
 // دیالوگ ایجاد پرداخت اشتراکی تیم — EQUAL/CUSTOM/PERCENTAGE
 
 import React, { useState, useEffect } from 'react'
-import {
-  Box,
-  Typography,
-  TextField,
-  FormControlLabel,
-  Radio,
-  RadioGroup,
-  Alert,
-} from '@mui/material'
 
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/shadcn/radio-group'
+import { Textarea } from '@/components/ui/shadcn/textarea'
 import { useToast } from '@/hooks/useToast'
 import { splitPaymentService, type CreateSplitPaymentPayload } from '@/services/splitPayment'
 import type { TeamMember } from '@/types/team'
@@ -56,7 +52,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
       const totalAmount = typeof amount === 'number' ? amount : 0
       const equalShare = Math.floor(totalAmount / members.length)
       const remainder = totalAmount - equalShare * members.length
-      
+
       setCustomShares(
         members.map((m, i) => ({
           user_id: m.user_id,
@@ -67,7 +63,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
     } else if (method === 'PERCENTAGE') {
       const equalPct = Math.floor(100 / members.length)
       const remainder = 100 - equalPct * members.length
-      
+
       setPercentageShares(
         members.map((m, i) => ({
           user_id: m.user_id,
@@ -138,7 +134,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
       }
 
       const result = await splitPaymentService.create(payload)
-      
+
       toast.success('پرداخت اشتراکی با موفقیت ایجاد شد.')
       onSuccess?.(result.id)
       onClose()
@@ -163,134 +159,146 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
 
   return (
     <Dialog open={open} onClose={handleClose} title="ایجاد پرداخت اشتراکی" maxWidth="md">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <div className="flex flex-col gap-6">
         {/* Method Selection */}
         <RadioGroup
           aria-label="روش تقسیم مبلغ"
           value={method}
-          onChange={(e) => setMethod(e.target.value as any)}
-          row
+          onValueChange={(v) => setMethod(v as typeof method)}
+          className="flex flex-wrap gap-4"
         >
           {METHOD_OPTIONS.map((opt) => (
-            <FormControlLabel
-              key={opt.value}
-              value={opt.value}
-              control={<Radio />}
-              label={
-                <Box>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {opt.label}
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary">
-                    {opt.description}
-                  </Typography>
-                </Box>
-              }
-            />
+            <div key={opt.value} className="flex items-start gap-2">
+              <RadioGroupItem
+                value={opt.value}
+                id={`split-method-${opt.value}`}
+                className="mt-1 h-5 w-5 shrink-0"
+              />
+              <Label htmlFor={`split-method-${opt.value}`} className="cursor-pointer font-normal">
+                <span className="block text-sm font-semibold text-foreground">
+                  {opt.label}
+                </span>
+                <span className="block text-xs text-muted-foreground">
+                  {opt.description}
+                </span>
+              </Label>
+            </div>
           ))}
         </RadioGroup>
 
         {/* Amount Input */}
-        <TextField
-          label="مبلغ کل (ریال)"
-          type="number"
-          value={amount}
-          onChange={(e) => setAmount(Number(e.target.value) || '')}
-          fullWidth
-          required
-          slotProps={{ htmlInput: { min: 0 } }}
-        />
+        <div className="space-y-1.5">
+          <Label htmlFor="split-amount">مبلغ کل (ریال)</Label>
+          <Input
+            id="split-amount"
+            type="number"
+            required
+            min={0}
+            value={amount}
+            onChange={(e) => setAmount(Number(e.target.value) || '')}
+            className="h-11"
+          />
+        </div>
 
         {/* Custom Shares Editor */}
         {method === 'CUSTOM' && customShares.length > 0 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+          <div className="flex flex-col gap-4">
+            <p className="text-sm font-semibold text-foreground">
               سهم هر عضو:
-            </Typography>
+            </p>
             {customShares.map((share) => {
               const member = members.find((m) => m.user_id === share.user_id)
               return (
-                <Box key={share.user_id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Typography sx={{ flex: 1 }}>{member?.full_name || `کاربر ${share.user_id}`}</Typography>
-                  <TextField
-                    label="سهم"
+                <div key={share.user_id} className="flex items-center gap-4">
+                  <p className="flex-1 text-sm text-foreground">{member?.full_name || `کاربر ${share.user_id}`}</p>
+                  <Input
+                    aria-label={`سهم ${member?.full_name || `کاربر ${share.user_id}`}`}
                     type="number"
                     value={share.amount}
                     onChange={(e) => handleUpdateCustomShare(share.user_id, Number(e.target.value) || 0)}
-                    size="small"
-                    sx={{ width: 150 }}
+                    className="h-11 w-[150px]"
                   />
-                  <Typography variant="caption" color="text.secondary">ریال</Typography>
-                </Box>
+                  <span className="text-xs text-muted-foreground">ریال</span>
+                </div>
               )
             })}
-            <Alert severity={getTotalCustomAmount() === (typeof amount === 'number' ? amount : 0) ? 'success' : 'error'}>
-              جمع: {getTotalCustomAmount().toLocaleString()} ریال
-              {typeof amount === 'number' && amount > 0 && (
-                <> از {amount.toLocaleString()} ریال</>
-              )}
+            <Alert variant={getTotalCustomAmount() === (typeof amount === 'number' ? amount : 0) ? 'success' : 'destructive'}>
+              <AlertDescription>
+                جمع: {getTotalCustomAmount().toLocaleString()} ریال
+                {typeof amount === 'number' && amount > 0 && (
+                  <> از {amount.toLocaleString()} ریال</>
+                )}
+              </AlertDescription>
             </Alert>
-          </Box>
+          </div>
         )}
 
         {/* Percentage Shares Editor */}
         {method === 'PERCENTAGE' && percentageShares.length > 0 && (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Typography variant="subtitle2" sx={{ fontWeight: 600 }}>
+          <div className="flex flex-col gap-4">
+            <p className="text-sm font-semibold text-foreground">
               درصد سهم هر عضو:
-            </Typography>
+            </p>
             {percentageShares.map((share) => {
               const member = members.find((m) => m.user_id === share.user_id)
               return (
-                <Box key={share.user_id} sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Typography sx={{ flex: 1 }}>{member?.full_name || `کاربر ${share.user_id}`}</Typography>
-                  <TextField
-                    label="درصد"
+                <div key={share.user_id} className="flex items-center gap-4">
+                  <p className="flex-1 text-sm text-foreground">{member?.full_name || `کاربر ${share.user_id}`}</p>
+                  <Input
+                    aria-label={`درصد ${member?.full_name || `کاربر ${share.user_id}`}`}
                     type="number"
+                    min={0}
+                    max={100}
                     value={share.percentage}
                     onChange={(e) => handleUpdatePercentageShare(share.user_id, Number(e.target.value) || 0)}
-                    size="small"
-                    sx={{ width: 100 }}
-                    slotProps={{ htmlInput: { min: 0, max: 100 } }}
+                    className="h-11 w-[100px]"
                   />
-                  <Typography variant="caption" color="text.secondary">٪</Typography>
-                </Box>
+                  <span className="text-xs text-muted-foreground">٪</span>
+                </div>
               )
             })}
-            <Alert severity={getTotalPercentage() === 100 ? 'success' : 'error'}>
-              جمع: {getTotalPercentage()}٪
+            <Alert variant={getTotalPercentage() === 100 ? 'success' : 'destructive'}>
+              <AlertDescription>
+                جمع: {getTotalPercentage()}٪
+              </AlertDescription>
             </Alert>
-          </Box>
+          </div>
         )}
 
         {/* Note */}
-        <TextField
-          label="یادداشت (اختیاری)"
-          multiline
-          rows={2}
-          value={note}
-          onChange={(e) => setNote(e.target.value)}
-          fullWidth
-          placeholder="مثلاً: هزینه اجاره زمین برای بازی پنجشنبه"
-        />
+        <div className="space-y-1.5">
+          <Label htmlFor="split-note">یادداشت (اختیاری)</Label>
+          <Textarea
+            id="split-note"
+            rows={2}
+            value={note}
+            onChange={(e) => setNote(e.target.value)}
+            placeholder="مثلاً: هزینه اجاره زمین برای بازی پنجشنبه"
+            className="min-h-[72px]"
+          />
+        </div>
 
         {/* Deadline */}
-        <TextField
-          label="مهلت پرداخت"
-          type="datetime-local"
-          value={deadline}
-          onChange={(e) => setDeadline(e.target.value)}
-          fullWidth
-          slotProps={{ inputLabel: { shrink: true } }}
-        />
+        <div className="space-y-1.5">
+          <Label htmlFor="split-deadline">مهلت پرداخت</Label>
+          <Input
+            id="split-deadline"
+            type="datetime-local"
+            value={deadline}
+            onChange={(e) => setDeadline(e.target.value)}
+            className="h-11"
+          />
+        </div>
 
         {/* Error Display */}
         {error && (
-          <Alert severity="error">{error}</Alert>
+          <Alert variant="destructive">
+            <AlertDescription>{error}</AlertDescription>
+          </Alert>
         )}
 
         {/* Actions */}
-        <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 2 }}>
+        <div className="flex justify-end gap-4">
           <Button variant="outline" onClick={handleClose}>
             انصراف
           </Button>
@@ -301,8 +309,8 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
           >
             {loading ? 'در حال ایجاد...' : 'ایجاد پرداخت'}
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }

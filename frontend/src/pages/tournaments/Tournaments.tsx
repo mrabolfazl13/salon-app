@@ -5,24 +5,6 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Button,
-  Card,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  FormControlLabel,
-  IconButton,
-  Radio,
-  RadioGroup,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material'
 import toast from 'react-hot-toast'
 
 import Layout from '@/components/layout/Layout'
@@ -38,7 +20,19 @@ import {
 import type { Tournament, TournamentFormat, TournamentStatus } from '@/types/tournament'
 import { useAuthStore } from '@/store/authStore'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
-import { radii, shadows } from '@/theme'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/shadcn/radio-group'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
 
 export const TOURNAMENT_STATUS_LABELS: Record<TournamentStatus, string> = {
   draft: 'پیش‌نویس',
@@ -95,66 +89,70 @@ const TournamentCard: React.FC<{
   const navigate = useNavigate()
 
   return (
-    <Card
+    <div
       data-testid={`tournament-card-${tournament.id}`}
-      sx={{
-        borderRadius: `${radii.card}px`,
-        boxShadow: shadows.card,
-        border: '1px solid rgba(15,23,42,0.05)',
-        bgcolor: 'rgba(255,255,255,0.92)',
-        p: 2,
-      }}
+      className="rounded-2xl border border-border bg-card p-4 shadow-sm"
     >
-      <Stack direction="row" spacing={1.5} sx={{ alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
-        <Box sx={{ minWidth: 0, cursor: 'pointer' }} onClick={() => navigate(`/tournaments/${tournament.id}`)}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
-            {tournament.name}
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0 cursor-pointer" onClick={() => navigate(`/tournaments/${tournament.id}`)}>
+          <h2 className="text-base font-extrabold text-foreground">{tournament.name}</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
             {TOURNAMENT_FORMAT_LABELS[tournament.format]}
             {` · ${toPersianDigits(tournament.team_count)} تیم`}
             {tournament.starts_at ? ` · ${formatJalaliDateTime(tournament.starts_at)}` : ''}
             {tournament.entry_fee > 0 ? ` · ورودی ${formatRial(tournament.entry_fee)}` : ''}
-          </Typography>
+          </p>
           {tournament.winner_team_name && (
-            <Typography variant="body2" sx={{ mt: 0.5, fontWeight: 700, color: 'success.dark' }}>
-              <Icon icon="mdi:trophy" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+            <p className="mt-2 flex items-center gap-1 text-sm font-bold text-emerald-700 dark:text-emerald-400">
+              <Icon icon="mdi:trophy" aria-hidden="true" className="h-4 w-4" />
               {tournament.winner_team_name}
-            </Typography>
+            </p>
           )}
-        </Box>
-        <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 0.5 }}>
+        </div>
+        <div className="flex flex-wrap items-center gap-1">
           <StatusChip label={TOURNAMENT_STATUS_LABELS[tournament.status]}
                       color={TOURNAMENT_STATUS_COLORS[tournament.status]} />
           {canManage && tournament.status === 'draft' && (
-            <Button size="small" variant="outlined" disabled={busy} onClick={onOpen}
-                    sx={{ borderRadius: '10px', minHeight: 44 }}>
+            <Button size="sm" variant="outline" disabled={busy} onClick={onOpen} className="min-h-11 rounded-[10px]">
               بازکردن ثبت‌نام
             </Button>
           )}
           {canManage && tournament.status === 'registration' && (
-            <Tooltip title={tournament.format === 'round_robin'
-              ? 'برنامهٔ هفته‌ها ساخته می‌شود و دیگر قابل تغییر نیست'
-              : 'براکت ساخته می‌شود و دیگر قابل تغییر نیست'}>
-              <span>
-                <Button size="small" variant="contained" disabled={busy || tournament.team_count < 2}
-                        onClick={onDraw} sx={{ borderRadius: '10px', minHeight: 44 }}>
-                  قرعه‌کشی
-                </Button>
-              </span>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span>
+                  <Button size="sm" disabled={busy || tournament.team_count < 2} onClick={onDraw} className="min-h-11 rounded-[10px]">
+                    قرعه‌کشی
+                  </Button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent>
+                {tournament.format === 'round_robin'
+                  ? 'برنامهٔ هفته‌ها ساخته می‌شود و دیگر قابل تغییر نیست'
+                  : 'براکت ساخته می‌شود و دیگر قابل تغییر نیست'}
+              </TooltipContent>
             </Tooltip>
           )}
           {canManage && !['completed', 'cancelled'].includes(tournament.status) && (
-            <Tooltip title="لغو تورنمنت">
-              <IconButton aria-label="لغو تورنمنت" disabled={busy} onClick={onCancel}
-                          sx={{ width: 40, height: 40, color: 'error.main' }}>
-                <Icon icon="mdi:cancel" style={{ width: 20, height: 20 }} />
-              </IconButton>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <Button
+                  size="icon"
+                  variant="ghost"
+                  aria-label="لغو تورنمنت"
+                  disabled={busy}
+                  onClick={onCancel}
+                  className="h-11 w-11 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+                >
+                  <Icon icon="mdi:cancel" aria-hidden="true" className="h-5 w-5" />
+                </Button>
+              </TooltipTrigger>
+              <TooltipContent>لغو تورنمنت</TooltipContent>
             </Tooltip>
           )}
-        </Stack>
-      </Stack>
-    </Card>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -234,91 +232,97 @@ const TournamentsPage: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-        <Box>
-          <Typography component="h1" variant="h4" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Icon icon="mdi:trophy-outline" style={{ width: 30, height: 30, color: '#d97706' }} />
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-foreground">
+            <Icon icon="mdi:trophy-outline" aria-hidden="true" className="h-[30px] w-[30px] text-amber-600 dark:text-amber-400" />
             تورنمنت‌ها
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             جام‌های حذفی و لیگِ همه‌با‌همه با قرعهٔ خودکار — تیمت را ثبت کن و نتیجه‌ها را وارد کن.
-          </Typography>
-        </Box>
+          </p>
+        </div>
         {isAuthenticated && (
-          <Button variant="contained" data-testid="tournament-new" onClick={() => setDialogOpen(true)}
-                  startIcon={<Icon icon="mdi:plus" />} sx={{ borderRadius: '12px', minHeight: 44 }}>
+          <Button data-testid="tournament-new" onClick={() => setDialogOpen(true)} className="rounded-xl">
+            <Icon icon="mdi:plus" aria-hidden="true" className="h-5 w-5" />
             تورنمنت جدید
           </Button>
         )}
-      </Box>
+      </div>
 
       {listQ.isPending ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" sx={{ height: 92, borderRadius: '16px' }} />)}
-        </Box>
+        <div className="flex flex-col gap-2">
+          {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" className="h-[92px] rounded-2xl" />)}
+        </div>
       ) : listQ.isError ? (
         <ErrorBox message="دریافت فهرست تورنمنت‌ها ممکن نشد." onRetry={() => listQ.refetch()} />
       ) : items.length === 0 ? (
-        <EmptyState emoji="🏆" title="هنوز تورنمنتی نیست"
+        <EmptyState icon="mdi:trophy-outline" title="هنوز تورنمنتی نیست"
                     description={isAuthenticated ? 'با دکمهٔ «تورنمنت جدید» اولین جام را بساز.' : 'برای ساخت تورنمنت وارد حساب شو.'} />
       ) : (
-        <Stack spacing={1.5} data-testid="tournament-list">
+        <div className="flex flex-col gap-3" data-testid="tournament-list">
           {items.map((t) => (
             <TournamentCard key={t.id} tournament={t} canManage={canManage(t)} busy={busy}
                             onOpen={() => runOpen(t)} onDraw={() => runDraw(t)} onCancel={() => runCancel(t)} />
           ))}
-        </Stack>
+        </div>
       )}
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm"
-              data-testid="tournament-create-dialog">
-        <DialogTitle sx={{ fontWeight: 800 }}>تورنمنت جدید</DialogTitle>
-        <Divider />
-        <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            <TextField label="نام تورنمنت" value={name} onChange={(e) => setName(e.target.value)}
-                       fullWidth placeholder="جام بهارانه" autoFocus />
-            <Box>
-              <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', mb: 0.5 }}>
-                فرمت مسابقات
-              </Typography>
-              <RadioGroup row value={format} data-testid="tournament-format"
-                          onChange={(e) => setFormat(e.target.value as TournamentFormat)}
-                          sx={{ flexWrap: 'wrap', gap: 0.5 }}>
+      <Dialog open={dialogOpen} onOpenChange={(o) => !o && setDialogOpen(false)}>
+        <DialogContent data-testid="tournament-create-dialog" className="max-h-[90dvh] overflow-y-auto sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>تورنمنت جدید</DialogTitle>
+          </DialogHeader>
+          <div className="flex flex-col gap-4 pt-1">
+            <div className="space-y-2">
+              <Label htmlFor="tournament-name">نام تورنمنت</Label>
+              <Input id="tournament-name" value={name} onChange={(e) => setName(e.target.value)}
+                     placeholder="جام بهارانه" autoFocus />
+            </div>
+            <div>
+              <p className="mb-2 text-[0.78rem] font-bold text-muted-foreground">فرمت مسابقات</p>
+              <RadioGroup
+                value={format}
+                onValueChange={(v) => setFormat(v as TournamentFormat)}
+                data-testid="tournament-format"
+                className="flex flex-wrap gap-2"
+              >
                 {(Object.keys(TOURNAMENT_FORMAT_LABELS) as TournamentFormat[]).map((f) => (
-                  <FormControlLabel key={f} value={f} control={<Radio size="small" />}
-                                    sx={{ ms: 0.5 }}
-                                    label={
-                                      <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                                        {TOURNAMENT_FORMAT_LABELS[f]}
-                                      </Typography>
-                                    } />
+                  <label key={f} htmlFor={`format-${f}`}
+                         className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-3 text-[0.8rem] font-semibold has-[:checked]:border-amber-500/60 has-[:checked]:bg-amber-500/10">
+                    <RadioGroupItem id={`format-${f}`} value={f} />
+                    {TOURNAMENT_FORMAT_LABELS[f]}
+                  </label>
                 ))}
               </RadioGroup>
-              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.5, lineHeight: 1.8 }}>
-                {TOURNAMENT_FORMAT_HINTS[format]}
-              </Typography>
-            </Box>
-            <TextField label="زمان شروع" type="datetime-local" value={startsAt}
-                       onChange={(e) => setStartsAt(e.target.value)} fullWidth
-                       slotProps={{ inputLabel: { shrink: true } }} />
-            <TextField label="ورودی هر تیم (ریال)" value={entryFee}
-                       onChange={(e) => setEntryFee(e.target.value.replace(/[^\d]/g, ''))}
-                       inputMode="numeric" fullWidth />
-            <TextField label="توضیح" value={description} onChange={(e) => setDescription(e.target.value)}
-                       multiline minRows={2} fullWidth placeholder="قوانین، زمان بازی‌ها، جوایز" />
-            <Typography variant="caption" color="text.secondary">
+              <p className="mt-2 text-xs leading-[1.8] text-muted-foreground">{TOURNAMENT_FORMAT_HINTS[format]}</p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tournament-start">زمان شروع</Label>
+              <Input id="tournament-start" type="datetime-local" value={startsAt}
+                     onChange={(e) => setStartsAt(e.target.value)} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tournament-fee">ورودی هر تیم (ریال)</Label>
+              <Input id="tournament-fee" value={entryFee} inputMode="numeric"
+                     onChange={(e) => setEntryFee(e.target.value.replace(/[^\d]/g, ''))} />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="tournament-desc">توضیح</Label>
+              <Textarea id="tournament-desc" value={description} onChange={(e) => setDescription(e.target.value)}
+                        rows={2} placeholder="قوانین، زمان بازی‌ها، جوایز" />
+            </div>
+            <p className="text-xs text-muted-foreground">
               پس از ساخت، ثبت‌نام را باز کن و تیم‌ها را دعوت کن؛ قرعه‌کشی براکت را می‌سازد.
-            </Typography>
-          </Stack>
+            </p>
+          </div>
+          <DialogFooter className="flex-row justify-end gap-2">
+            <Button variant="ghost" onClick={() => setDialogOpen(false)}>انصراف</Button>
+            <Button onClick={submit} disabled={createMut.isPending} className="rounded-xl">
+              {createMut.isPending ? 'در حال ساخت…' : 'ساخت تورنمنت'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setDialogOpen(false)} sx={{ minHeight: 44 }}>انصراف</Button>
-          <Button variant="contained" onClick={submit} disabled={createMut.isPending}
-                  sx={{ borderRadius: '12px', minHeight: 44 }}>
-            {createMut.isPending ? 'در حال ساخت…' : 'ساخت تورنمنت'}
-          </Button>
-        </DialogActions>
       </Dialog>
     </Layout>
   )

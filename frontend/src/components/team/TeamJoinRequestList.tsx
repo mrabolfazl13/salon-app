@@ -3,11 +3,12 @@
 
 import React from 'react'
 import { Icon } from '@iconify/react'
-import { Box, Avatar, Typography, IconButton, Tooltip } from '@mui/material'
 
 import type { TeamJoinRequest } from '@/types/team'
 import { useApproveTeamJoinRequest, useRejectTeamJoinRequest } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 import { formatPersianDateTime, getInitials } from '@/utils/helpers'
 import { getTeamError } from './shared'
 
@@ -32,65 +33,63 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
 
   if (requests.length === 0) {
     return (
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', py: 1 }}>
+      <p className="py-2 text-[0.85rem] text-muted-foreground">
         درخواست در انتظاری وجود ندارد.
-      </Typography>
+      </p>
     )
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <div className="flex flex-col gap-2">
       {requests.map((req) => (
-        <Box
+        <div
           key={req.id}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.25,
-            flexWrap: 'wrap',
-            px: 1.5,
-            py: 1.25,
-            borderRadius: '16px',
-            border: '1px solid rgba(245,158,11,0.25)',
-            bgcolor: 'rgba(245,158,11,0.05)',
-          }}
+          className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-amber-500/25 bg-amber-500/5 px-3 py-2.5"
         >
-          <Avatar sx={{ width: 36, height: 36, bgcolor: 'rgba(245,158,11,0.15)', color: 'warning.main', fontSize: '0.85rem', fontWeight: 700 }}>
-            {getInitials(req.full_name || '؟')}
+          <Avatar className="h-9 w-9">
+            <AvatarFallback className="bg-amber-500/15 text-[0.85rem] font-bold text-amber-700 dark:text-amber-300">
+              {getInitials(req.full_name || '؟')}
+            </AvatarFallback>
           </Avatar>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }} noWrap>
+          <div className="min-w-0 flex-1">
+            <p className="truncate text-[0.85rem] font-bold text-slate-900 dark:text-slate-100">
               {req.full_name || `کاربر ${req.user_id}`}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }} noWrap>
+            </p>
+            <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
               {`ثبت: ${formatPersianDateTime(req.created_at)}${req.message ? ` - ${req.message}` : ''}`}
-            </Typography>
-          </Box>
-          <Tooltip title="تأیید و افزودن به تیم">
-            <IconButton
-              size="small"
-              disabled={busy}
-              onClick={() => handleDecide(req, true)}
-              aria-label={`تأیید درخواست عضویت ${req.full_name ?? ''}`}
-              sx={{ bgcolor: 'rgba(16,185,129,0.12)', color: 'success.main', '&:hover': { bgcolor: 'rgba(16,185,129,0.2)' } }}
-            >
-              <Icon icon="mdi:check-bold" style={{ width: 18, height: 18 }} />
-            </IconButton>
+            </p>
+          </div>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => handleDecide(req, true)}
+                aria-label={`تأیید درخواست عضویت ${req.full_name ?? ''}`}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500/[0.12] text-emerald-700 transition-colors hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-emerald-300"
+              >
+                <Icon icon="mdi:check-bold" style={{ width: 18, height: 18 }} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>تأیید و افزودن به تیم</TooltipContent>
           </Tooltip>
-          <Tooltip title="رد درخواست">
-            <IconButton
-              size="small"
-              disabled={busy}
-              onClick={() => handleDecide(req, false)}
-              aria-label={`رد درخواست عضویت ${req.full_name ?? ''}`}
-              sx={{ bgcolor: 'rgba(239,68,68,0.10)', color: 'error.main', '&:hover': { bgcolor: 'rgba(239,68,68,0.18)' } }}
-            >
-              <Icon icon="mdi:close" style={{ width: 18, height: 18 }} />
-            </IconButton>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <button
+                type="button"
+                disabled={busy}
+                onClick={() => handleDecide(req, false)}
+                aria-label={`رد درخواست عضویت ${req.full_name ?? ''}`}
+                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-600 transition-colors hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-red-400"
+              >
+                <Icon icon="mdi:close" style={{ width: 18, height: 18 }} />
+              </button>
+            </TooltipTrigger>
+            <TooltipContent>رد درخواست</TooltipContent>
           </Tooltip>
-        </Box>
+        </div>
       ))}
-    </Box>
+    </div>
   )
 }
 

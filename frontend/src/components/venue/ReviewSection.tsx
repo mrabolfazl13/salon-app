@@ -1,24 +1,16 @@
 import React, { useEffect, useState, useCallback, useId } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Typography,
-  Rating,
-  Button,
-  TextField,
-  Divider,
-  Avatar,
-  Chip,
-  CircularProgress,
-  Paper,
-  Stack,
-} from '@mui/material'
 import toast from 'react-hot-toast'
 import { useNavigate } from 'react-router-dom'
 import { reviewService, type ReviewResponse } from '@/services/review'
 import { useAuthStore } from '@/store/authStore'
-import { formatDateTime } from '@/lib/utils'
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar'
+import { Button } from '@/components/ui/shadcn/button'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import { cn, formatDateTime } from '@/lib/utils'
 import { toPersianDigits } from '@/lib/jalali'
 
 interface Props {
@@ -26,6 +18,31 @@ interface Props {
   averageRating?: number
   totalReviews?: number
   onRatingChange?: (avg: number, total: number) => void
+}
+
+const STAR_SIZES = {
+  sm: { box: 'h-[18px] w-[18px]', icon: 'h-[18px] w-[18px]' },
+  md: { box: 'h-6 w-6', icon: 'h-6 w-6' },
+} as const
+
+/** نمایش ستاره‌ها با پشتیبانی از نیم‌ستاره (معادل precision=0.5 در Rating) */
+const StarMeter: React.FC<{ value: number; size?: keyof typeof STAR_SIZES }> = ({ value, size = 'sm' }) => {
+  const s = STAR_SIZES[size]
+  return (
+    <span className="inline-flex items-center gap-0.5" aria-hidden="true">
+      {[1, 2, 3, 4, 5].map((i) => {
+        const fill = Math.max(0, Math.min(1, value - (i - 1)))
+        return (
+          <span key={i} className={cn('relative inline-block', s.box)}>
+            <Icon icon="mdi:star-outline" className={cn('absolute inset-0 text-slate-400/50 dark:text-slate-500', s.icon)} />
+            <span className="absolute inset-y-0 start-0 overflow-hidden" style={{ width: `${fill * 100}%` }}>
+              <Icon icon="mdi:star" className={cn('absolute start-0 top-0 text-amber-500', s.icon)} />
+            </span>
+          </span>
+        )
+      })}
+    </span>
+  )
 }
 
 const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalReviews = 0, onRatingChange }) => {
@@ -128,208 +145,229 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
   }
 
   return (
-    <Box>
+    <div>
       {/* Header with summary */}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3, flexWrap: 'wrap', gap: 1 }}>
-        <Typography variant="subtitle1" component="h3" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
+        <h3 className="flex items-center gap-2 font-bold">
           <Icon icon="mdi:star" className="h-5 w-5" style={{ color: '#f59e0b' }} />
           نظرات کاربران
-        </Typography>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Rating
-            value={averageRating || 0}
-            readOnly
-            precision={0.5}
-            size="small"
-            name="venue-reviews-average"
+        </h3>
+        <div className="flex items-center gap-2">
+          <span
+            role="img"
             aria-label={`امتیاز متوسط ${toPersianDigits((averageRating || 0).toFixed(1))} از ۵`}
-            getLabelText={(v) => `${toPersianDigits(v ?? 0)} از ۵ ستاره`}
-          />
-          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+            className="inline-flex items-center"
+          >
+            <StarMeter value={averageRating || 0} />
+          </span>
+          <span className="text-sm font-bold">
             {averageRating ? toPersianDigits(averageRating.toFixed(1)).replace('.', '٫') : '—'}
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+          </span>
+          <span className="text-xs text-slate-400 dark:text-slate-500">
             ({toPersianDigits(totalReviews || 0)} نظر)
-          </Typography>
-        </Box>
-      </Box>
+          </span>
+        </div>
+      </div>
 
       {/* Review form */}
       {isNormalUser ? (
-        <Paper
-          elevation={0}
-          sx={{
-            p: 2.5,
-            borderRadius: '16px',
-            border: '1px solid rgba(37,99,235,0.12)',
-            background: 'rgba(37,99,235,0.03)',
-            mb: 3,
-          }}
-        >
-          <Typography variant="subtitle2" component="h3" sx={{ fontWeight: 700, mb: 1.5 }}>
+        <div className="mb-6 rounded-2xl border border-blue-600/[0.12] bg-blue-600/[0.03] p-5">
+          <h3 className="mb-3 font-bold">
             {editing ? 'ویرایش نظر شما' : 'نظر خود را ثبت کنید'}
-          </Typography>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-            <Typography variant="body2" id={ratingLabelId} sx={{ color: 'text.secondary' }}>امتیاز شما:</Typography>
-            <Rating
-              value={rating}
-              onChange={(_, newValue) => setRating(newValue)}
-              size="medium"
+          </h3>
+          <div className="mb-4 flex flex-wrap items-center gap-3">
+            <span id={ratingLabelId} className="text-sm text-muted-foreground">امتیاز شما:</span>
+            <div
+              role="radiogroup"
               aria-labelledby={ratingLabelId}
-              getLabelText={(v) => `${toPersianDigits(v ?? 0)} ستاره از ۵`}
-              emptyLabelText="بدون امتیاز"
+              aria-label="امتیاز شما"
+              className="flex items-center"
+            >
+              {[1, 2, 3, 4, 5].map((v) => (
+                <button
+                  key={v}
+                  type="button"
+                  role="radio"
+                  aria-checked={rating === v}
+                  aria-label={`${toPersianDigits(v)} ستاره از ۵`}
+                  onClick={() => setRating(v)}
+                  className="inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                >
+                  <span className="relative inline-block h-6 w-6" aria-hidden="true">
+                    <Icon icon="mdi:star-outline" className="absolute inset-0 h-6 w-6 text-slate-400/50 dark:text-slate-500" />
+                    {v <= (rating ?? 0) && (
+                      <Icon icon="mdi:star" className="absolute inset-0 h-6 w-6 text-amber-500" />
+                    )}
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+          <div className="mb-4 flex flex-col gap-1.5">
+            <Label htmlFor="review-comment">متن نظر</Label>
+            <Textarea
+              id="review-comment"
+              rows={2}
+              maxLength={1000}
+              placeholder="تجربه خود را از این مجموعه بنویسید (اختیاری)..."
+              value={comment}
+              onChange={(e) => setComment(e.target.value)}
+              className="min-h-[72px] max-h-40 rounded-xl"
             />
-          </Box>
-          <TextField
-            fullWidth
-            multiline
-            minRows={2}
-            maxRows={4}
-            label="متن نظر"
-            placeholder="تجربه خود را از این مجموعه بنویسید (اختیاری)..."
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-            slotProps={{ htmlInput: { maxLength: 1000 } }}
-            sx={{ mb: 2, '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-          />
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+          </div>
+          <div className="flex flex-wrap gap-2">
             <Button
-              variant="contained"
+              type="button"
+              variant="primary"
               disabled={submitting}
               onClick={handleSubmit}
-              sx={{
-                borderRadius: '10px', textTransform: 'none', fontWeight: 600,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                '&:hover': { background: 'linear-gradient(135deg, #1d4ed8, #6d28d9)' },
-              }}
+              className="rounded-[10px] font-semibold"
             >
-              {submitting ? <CircularProgress size={20} sx={{ color: 'white' }} /> : editing ? 'ذخیره تغییرات' : 'ثبت نظر'}
+              {submitting ? (
+                <span
+                  className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                  role="status"
+                  aria-label="در حال بارگذاری"
+                />
+              ) : editing ? 'ذخیره تغییرات' : 'ثبت نظر'}
             </Button>
             {editing && (
               <Button
-                variant="outlined"
+                type="button"
+                variant="outline"
                 onClick={() => {
                   setEditing(false)
                   setComment('')
                   setRating(5)
                 }}
-                sx={{ borderRadius: '10px', textTransform: 'none' }}
+                className="rounded-[10px]"
               >
                 انصراف
               </Button>
             )}
             {!editing && myReview && (
               <Button
-                variant="outlined"
+                type="button"
+                variant="outline"
                 onClick={() => myReview && handleEditStart(myReview)}
-                sx={{ borderRadius: '10px', textTransform: 'none' }}
+                className="rounded-[10px]"
               >
-                <Icon icon="mdi:pencil-outline" className="h-4 w-4 ml-1" />
+                <Icon icon="mdi:pencil-outline" className="h-4 w-4" />
                 ویرایش نظر قبلی
               </Button>
             )}
-          </Box>
-        </Paper>
+          </div>
+        </div>
       ) : (
-        <Paper
-          elevation={0}
-          sx={{ p: 2.5, borderRadius: '16px', border: '1px dashed rgba(0,0,0,0.12)', textAlign: 'center', mb: 3, bgcolor: 'rgba(0,0,0,0.015)' }}
-        >
-          <Icon icon="mdi:star-outline" className="h-8 w-8" style={{ color: '#f59e0b', margin: '0 auto 8px', display: 'block' }} />
-          <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1 }}>
+        <div className="mb-6 rounded-2xl border border-dashed border-slate-900/10 bg-slate-900/[0.015] p-5 text-center dark:border-white/10 dark:bg-white/[0.02]">
+          <Icon icon="mdi:star-outline" className="mx-auto mb-2 block h-8 w-8" style={{ color: '#f59e0b' }} />
+          <p className="mb-2 text-sm text-muted-foreground">
             برای ثبت نظر، وارد حساب کاربری شوید
-          </Typography>
+          </p>
           <Button
-            variant="contained"
-            size="small"
+            type="button"
+            size="sm"
+            variant="primary"
             onClick={() => navigate('/login')}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, minHeight: 44, px: 2, background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
+            className="min-h-11 rounded-[10px] px-4 font-semibold"
           >
             ورود / ثبت‌نام
           </Button>
-        </Paper>
+        </div>
       )}
 
-      <Divider sx={{ mb: 2 }} />
+      <Separator className="mb-4" />
 
       {/* Review list */}
       {loading ? (
-        <Box sx={{ textAlign: 'center', py: 4 }}>
-          <CircularProgress size={32} />
-        </Box>
+        <div className="py-8 text-center">
+          <span
+            className="mx-auto block h-8 w-8 animate-spin rounded-full border-2 border-current border-t-transparent text-muted-foreground"
+            role="status"
+            aria-label="در حال بارگذاری"
+          />
+        </div>
       ) : reviews.length === 0 ? (
-        <Box sx={{ textAlign: 'center', py: 5 }}>
-          <Icon icon="mdi:comment-quote-outline" className="h-10 w-10" style={{ color: 'rgba(0,0,0,0.2)', margin: '0 auto 8px', display: 'block' }} />
-          <Typography variant="body2" sx={{ color: 'text.secondary' }}>
+        <div className="py-10 text-center">
+          <Icon icon="mdi:comment-quote-outline" className="mx-auto mb-2 block h-10 w-10 text-slate-400/50 dark:text-slate-600" />
+          <p className="text-sm text-muted-foreground">
             هنوز نظری برای این مجموعه ثبت نشده است. اولین نفر باشید!
-          </Typography>
-        </Box>
+          </p>
+        </div>
       ) : (
-        <Stack spacing={2}>
+        <div className="flex flex-col gap-4">
           {reviews.map((review) => (
             <motion.div key={review.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-              <Paper elevation={0} sx={{ p: 2, borderRadius: '14px', border: '1px solid rgba(0,0,0,0.07)' }}>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1 }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <Avatar sx={{ width: 34, height: 34, bgcolor: 'primary.main', fontSize: '0.8rem', fontWeight: 700 }}>
-                      {(review.user_name || '؟')[0]}
+              <div className="rounded-[14px] border border-slate-900/[0.07] bg-card p-4 dark:border-white/10">
+                <div className="mb-2 flex items-start justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-[34px] w-[34px]">
+                      <AvatarFallback className="bg-blue-600/10 text-[0.8rem] font-bold text-blue-700 dark:text-blue-300">
+                        {(review.user_name || '؟')[0]}
+                      </AvatarFallback>
                     </Avatar>
-                    <Box>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
+                    <div>
+                      <p className="text-sm font-semibold">
                         {review.user_name || 'کاربر'}
                         {review.user_id === user?.id && (
-                          <Chip
-                            component="span"
-                            label="شما"
-                            size="small"
-                            sx={{ me: 1, height: 18, fontSize: '0.75rem', bgcolor: 'rgba(37,99,235,0.1)', color: 'primary.main', fontWeight: 700 }}
-                          />
+                          <span className="ms-2 inline-flex h-[18px] items-center rounded-full bg-blue-600/10 px-2 text-xs font-bold text-blue-700 dark:text-blue-300">
+                            شما
+                          </span>
                         )}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.disabled' }}>
+                      </p>
+                      <p className="text-xs text-slate-400 dark:text-slate-500">
                         {formatDateTime(review.created_at)}
-                      </Typography>
-                    </Box>
-                  </Box>
-                  <Rating
-                    value={review.rating}
-                    readOnly
-                    size="small"
-                    name={`review-${review.id}-rating`}
-                    aria-label={`امتیاز ${toPersianDigits(review.rating)} از ۵`}
-                    getLabelText={(v) => `${toPersianDigits(v ?? 0)} از ۵ ستاره`}
-                    sx={{ '& .MuiRating-icon': { fontSize: '0.9rem' } }}
-                  />
-                </Box>
+                      </p>
+                    </div>
+                  </div>
+                  <span role="img" aria-label={`امتیاز ${toPersianDigits(review.rating)} از ۵`} className="inline-flex items-center">
+                    <StarMeter value={review.rating} />
+                  </span>
+                </div>
                 {review.comment && (
-                  <Typography variant="body2" sx={{ color: 'text.secondary', lineHeight: 1.8, mt: 1, whiteSpace: 'pre-wrap' }}>
+                  <p className="mt-2 whitespace-pre-wrap text-sm leading-[1.8] text-muted-foreground">
                     {review.comment}
-                  </Typography>
+                  </p>
                 )}
                 {review.user_id === user?.id && (
-                  <Box sx={{ display: 'flex', gap: 1, mt: 1.5 }}>
-                    <Button size="small" onClick={() => handleEditStart(review)} sx={{ textTransform: 'none', fontSize: '0.75rem' }}>
-                      <Icon icon="mdi:pencil-outline" className="h-3.5 w-3.5 ml-1" />
+                  <div className="mt-3 flex gap-2">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleEditStart(review)}
+                      className="px-2 text-xs"
+                    >
+                      <Icon icon="mdi:pencil-outline" className="h-3.5 w-3.5" />
                       ویرایش
                     </Button>
                     <Button
-                      size="small"
-                      color="error"
+                      type="button"
+                      variant="ghost"
+                      size="sm"
                       disabled={deletingId === review.id}
                       onClick={() => handleDelete(review.id)}
-                      sx={{ textTransform: 'none', fontSize: '0.75rem' }}
+                      className="px-2 text-xs text-red-600 hover:text-red-700 dark:text-red-400"
                     >
-                      {deletingId === review.id ? <CircularProgress size={14} /> : <Icon icon="mdi:trash-can-outline" className="h-3.5 w-3.5 ml-1" />}
+                      {deletingId === review.id ? (
+                        <span
+                          className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                          role="status"
+                          aria-label="در حال بارگذاری"
+                        />
+                      ) : (
+                        <Icon icon="mdi:trash-can-outline" className="h-3.5 w-3.5" />
+                      )}
                       حذف
                     </Button>
-                  </Box>
+                  </div>
                 )}
-              </Paper>
+              </div>
             </motion.div>
           ))}
-        </Stack>
+        </div>
       )}
-    </Box>
+    </div>
   )
 }
 

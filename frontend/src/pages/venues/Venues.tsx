@@ -3,7 +3,6 @@
 import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Chip, Badge, useTheme } from '@mui/material'
 import { motion } from 'framer-motion'
 import Layout from '@/components/layout/Layout'
 import VenueCard from '@/components/venue/VenueCard'
@@ -18,20 +17,8 @@ import {
   type VenueFilters,
 } from '@/components/mobile'
 import { venueService } from '@/services/venue'
-import { formatPrice } from '@/lib/utils'
-import { radii, shadows } from '@/theme'
+import { cn, formatPrice } from '@/lib/utils'
 import type { Venue } from '@/types'
-
-/** گرید واکنش‌گرا — دقیقاً مثل Home (minmax(0,1fr) برای جلوگیری از سرریز) */
-const venueGrid = {
-  display: 'grid',
-  gridTemplateColumns: {
-    xs: 'minmax(0, 1fr)',
-    sm: 'repeat(2, minmax(0, 1fr))',
-    md: 'repeat(3, minmax(0, 1fr))',
-  },
-  gap: { xs: 2, sm: 2.5 },
-} as const
 
 interface SegOption {
   value: string
@@ -45,63 +32,37 @@ const Segmented: React.FC<{
   value: string
   onChange: (v: string) => void
   fullWidth?: boolean
-}> = ({ options, value, onChange, fullWidth = false }) => {
-  const theme = useTheme()
-  const dark = theme.palette.mode === 'dark'
-  return (
-  <Box
-    sx={{
-      display: 'flex',
-      gap: 0.5,
-      p: 0.5,
-      width: fullWidth ? '100%' : 'auto',
-      borderRadius: `${radii.button}px`,
-      bgcolor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)',
-    }}
+}> = ({ options, value, onChange, fullWidth = false }) => (
+  <div
+    className={cn(
+      'flex gap-1 rounded-xl bg-foreground/5 p-1 dark:bg-white/5',
+      fullWidth ? 'w-full' : 'w-auto'
+    )}
   >
     {options.map((o) => {
       const active = o.value === value
       return (
-        <Box
+        <button
           key={o.value}
+          type="button"
           onClick={() => onChange(o.value)}
-          role="button"
           aria-label={o.label}
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') onChange(o.value) }}
-          sx={{
-            flex: fullWidth ? 1 : 'none',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1,
-            px: 2,
-            py: 1,
-            minHeight: 48,
-            minWidth: 48,
-            borderRadius: `${Math.max(radii.button - 6, 8)}px`,
-            cursor: 'pointer',
-            userSelect: 'none',
-            fontWeight: active ? 800 : 600,
-            fontSize: '0.85rem',
-            color: active ? '#92400e' : dark ? '#9aa7b8' : '#64748b',
-            bgcolor: active ? (dark ? '#fbbf24' : '#fff') : 'transparent',
-            boxShadow: active
-              ? dark
-                ? '0 2px 10px rgba(251,191,36,0.25)'
-                : '0 2px 8px rgba(15,23,42,0.10)'
-              : 'none',
-            transition: 'all 0.2s ease',
-          }}
+          aria-pressed={active}
+          className={cn(
+            'inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-lg px-4 py-2 text-[0.85rem] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            fullWidth && 'flex-1',
+            active
+              ? 'bg-card font-extrabold text-amber-800 shadow-[0_2px_8px_rgba(15,23,42,0.10)] dark:bg-amber-400 dark:text-amber-950 dark:shadow-[0_2px_10px_rgba(251,191,36,0.25)]'
+              : 'font-semibold text-muted-foreground hover:text-foreground'
+          )}
         >
-          {o.icon && <Icon icon={o.icon} style={{ width: 18, height: 18 }} />}
+          {o.icon && <Icon icon={o.icon} aria-hidden="true" className="h-[18px] w-[18px]" />}
           {o.label}
-        </Box>
+        </button>
       )
     })}
-  </Box>
-  )
-}
+  </div>
+)
 
 const Venues: React.FC = () => {
   const [search, setSearch] = useState('')
@@ -233,41 +194,28 @@ const Venues: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
+      <div className="mx-auto max-w-[1000px]">
         {/* هدر صفحه — هم‌سبک سلام Home */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <Box sx={{ mb: 2.5 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '12px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)',
-                  color: '#1c1917',
-                  boxShadow: '0 4px 12px rgba(245,158,11,0.30)',
-                  flexShrink: 0,
-                }}
-              >
-                <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} style={{ width: 22, height: 22 }} />
-              </Box>
-              <Typography component="h1" sx={{ fontWeight: 800, fontSize: '1.35rem', color: 'text.primary', lineHeight: 1.4 }}>
+          <div className="mb-5">
+            <div className="flex items-center gap-2">
+              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-300 via-amber-500 to-orange-500 text-stone-900 shadow-[0_4px_12px_rgba(245,158,11,0.30)]">
+                <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} aria-hidden="true" className="h-[22px] w-[22px]" />
+              </span>
+              <h1 className="text-[1.35rem] font-extrabold leading-snug text-foreground">
                 {category === 'futsal' ? 'سالن‌های فوتسال' : 'باشگاه‌های بدنسازی'}
-              </Typography>
-            </Box>
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 0.25 }}>
+              </h1>
+            </div>
+            <p className="mt-1 text-[0.85rem] text-muted-foreground">
               {category === 'futsal'
                 ? 'سالن مورد نظر خود را در قم پیدا و رزرو کنید'
                 : 'باشگاه بدنسازی مورد نظر خود را در قم پیدا کنید'}
-            </Typography>
-          </Box>
+            </p>
+          </div>
         </motion.div>
 
         {/* دسته‌بندی — قطعه‌ای تمام‌عرض */}
-        <Box sx={{ mb: 2.5 }}>
+        <div className="mb-5">
           <Segmented
             fullWidth
             value={category}
@@ -277,126 +225,77 @@ const Venues: React.FC = () => {
               { value: 'gym', label: 'بدنسازی', icon: 'mdi:dumbbell' },
             ]}
           />
-        </Box>
+        </div>
 
         {/* جستجو + دکمه فیلتر */}
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'center', mb: 2 }}>
-          <Box sx={{ flex: 1, minWidth: 0 }}>
+        <div className="mb-4 flex items-center gap-3">
+          <div className="min-w-0 flex-1">
             <SearchBar
               value={search}
               onChange={setSearch}
               onClear={() => setSearch('')}
               placeholder={`جستجوی ${category === 'futsal' ? 'سالن' : 'باشگاه'} یا آدرس...`}
             />
-          </Box>
-          <Box
+          </div>
+          <button
+            type="button"
             onClick={() => setFilterOpen(true)}
-            role="button"
-            tabIndex={0}
             aria-label={`فیلترها${activeFilterCount > 0 ? ` (${activeFilterCount} فعال)` : ''}`}
-            onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setFilterOpen(true) }}
-            sx={{
-              width: 52,
-              height: 52,
-              flexShrink: 0,
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              borderRadius: `${radii.button}px`,
-              bgcolor: 'background.paper',
-              border: '1px solid',
-              borderColor: hasFilters
-                ? (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.55)' : 'rgba(245,158,11,0.6)')
-                : 'divider',
-              boxShadow: shadows.card,
-              color: hasFilters ? (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309') : 'text.secondary',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease',
-            }}
+            className={cn(
+              'relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl border bg-card shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              hasFilters
+                ? 'border-amber-500/60 text-amber-700 dark:border-amber-400/55 dark:text-amber-400'
+                : 'border-border text-muted-foreground'
+            )}
           >
-            <Badge
-              badgeContent={activeFilterCount}
-              color="secondary"
-              sx={{ '& .MuiBadge-badge': { minWidth: 18, height: 18, fontSize: '0.65rem' } }}
-            >
-              <Icon icon="mdi:tune-variant" style={{ width: 24, height: 24 }} />
-            </Badge>
-          </Box>
-        </Box>
+            <Icon icon="mdi:tune-variant" aria-hidden="true" className="h-6 w-6" />
+            {activeFilterCount > 0 && (
+              <span className="absolute -top-1.5 -end-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amber-500 px-1 text-[0.65rem] font-bold text-stone-900">
+                {activeFilterCount.toLocaleString('fa-IR')}
+              </span>
+            )}
+          </button>
+        </div>
 
         {/* چیپ‌های فیلتر فعال */}
         {activeChips.length > 0 && (
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2, alignItems: 'center' }}>
+          <div className="mb-4 flex flex-wrap items-center gap-2">
             {activeChips.map((c) => (
-              <Chip
+              <span
                 key={c.key}
-                label={c.label}
-                size="medium"
-                onDelete={c.onRemove}
-                sx={{
-                  bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
-                  color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#92400e'),
-                  fontWeight: 700,
-                  fontSize: '0.8rem',
-                  minHeight: 44,
-                  px: 0.5,
-                  borderRadius: '10px',
-                  '& .MuiChip-deleteIcon': {
-                    color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#d97706'),
-                    fontSize: 18,
-                  },
-                  '& .MuiChip-label': { px: 1.5 },
-                }}
-              />
+                className="inline-flex min-h-11 items-center gap-1 rounded-[10px] bg-amber-500/10 px-3 text-[0.8rem] font-bold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300"
+              >
+                {c.label}
+                <button
+                  type="button"
+                  onClick={c.onRemove}
+                  aria-label={`حذف فیلتر ${c.label}`}
+                  className="flex h-6 w-6 items-center justify-center rounded-full text-amber-700 hover:bg-amber-500/15 dark:text-amber-400"
+                >
+                  <Icon icon="mdi:close" aria-hidden="true" className="h-[18px] w-[18px]" />
+                </button>
+              </span>
             ))}
-            <Box
+            <button
+              type="button"
               onClick={() => setFilters({})}
-              role="button"
-              tabIndex={0}
               aria-label="پاک کردن همه فیلترها"
-              onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') setFilters({}) }}
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 1,
-                cursor: 'pointer',
-                color: 'text.secondary',
-                fontSize: '0.8rem',
-                fontWeight: 600,
-                minHeight: 44,
-                px: 1,
-                '&:hover': { color: 'error.main' },
-              }}
+              className="inline-flex min-h-11 items-center gap-2 px-2 text-[0.8rem] font-semibold text-muted-foreground transition-colors hover:text-red-600 dark:hover:text-red-400"
             >
-              <Icon icon="mdi:filter-remove-outline" style={{ width: 18, height: 18 }} />
+              <Icon icon="mdi:filter-remove-outline" aria-hidden="true" className="h-[18px] w-[18px]" />
               پاک کردن همه
-            </Box>
-          </Box>
+            </button>
+          </div>
         )}
 
         {/* ردیف نتیجه: شمارش + سوییچ لیست/نقشه */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 2 }}>
-          <Box
-            sx={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: 1,
-              px: 1.5,
-              py: 1,
-              minHeight: 44,
-              borderRadius: '10px',
-              bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
-              color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#92400e'),
-              fontSize: '0.8rem',
-              fontWeight: 700,
-              minWidth: 0,
-            }}
-          >
-            <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} style={{ width: 18, height: 18, flexShrink: 0 }} />
-            <Box component="span" sx={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <span className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-[10px] bg-amber-500/10 px-3 py-2 text-[0.8rem] font-bold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300">
+            <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+            <span className="truncate">
               {filteredVenues.length.toLocaleString('fa-IR')} {category === 'futsal' ? 'سالن' : 'باشگاه'}
-            </Box>
-          </Box>
+            </span>
+          </span>
           <Segmented
             value={view}
             onChange={(v) => setView(v as 'list' | 'map')}
@@ -405,7 +304,7 @@ const Venues: React.FC = () => {
               { value: 'map', label: 'نقشه', icon: 'mdi:map-outline' },
             ]}
           />
-        </Box>
+        </div>
 
         {view === 'list' ? (
           loading ? (
@@ -425,24 +324,14 @@ const Venues: React.FC = () => {
               onAction={hasFilters ? () => { setFilters({}); setSearch('') } : undefined}
             />
           ) : (
-            <Box sx={venueGrid}>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3">
               {filteredVenues.map((venue) => (
                 <VenueCard key={venue.id} venue={venue} onBook={(id) => navigate(`/venues/${id}`)} />
               ))}
-            </Box>
+            </div>
           )
         ) : (
-          <Box
-            sx={{
-              borderRadius: `${radii.card}px`,
-              overflow: 'hidden',
-              border: '1px solid',
-              borderColor: 'divider',
-              boxShadow: shadows.card,
-              height: { xs: '62dvh', md: 'calc(100vh - 300px)' },
-              minHeight: 340,
-            }}
-          >
+          <div className="h-[62dvh] min-h-[340px] overflow-hidden rounded-2xl border border-border shadow-sm md:h-[calc(100vh-300px)]">
             <VenueMap
               venues={filteredVenues.map((v) => ({
                 id: v.id, name: v.name, lat: v.latitude, lng: v.longitude,
@@ -453,9 +342,9 @@ const Venues: React.FC = () => {
               height="100%"
               onVenueClick={(venue) => navigate(`/venues/${venue.id}`)}
             />
-          </Box>
+          </div>
         )}
-      </Box>
+      </div>
 
       <FilterBottomSheet
         open={filterOpen}

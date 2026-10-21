@@ -2,13 +2,6 @@
 // روند ممیزی قرارداد — RTL، جدیدترین در بالا؛ جمع‌شونده با خلاصه‌ی diff داده‌ها.
 
 import React, { useId, useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Collapse,
-  Skeleton,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 import { formatJalaliDateTime } from '@/lib/jalali'
 import { useContractAudit } from '@/hooks/useContracts'
@@ -19,6 +12,8 @@ import {
   faNum,
   summarizeAuditData,
 } from '@/components/contract/shared'
+import { Button } from '@/components/ui/shadcn/button'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
 
 const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId }) => {
   const [expanded, setExpanded] = useState(false)
@@ -31,106 +26,81 @@ const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId })
   )
 
   return (
-    <Box>
+    <div>
       <Button
-        size="small"
+        size="sm"
+        variant="ghost"
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         aria-controls={panelId}
-        sx={{
-          textTransform: 'none',
-          fontWeight: 700,
-          gap: 0.75,
-          '& .MuiButton-endIcon': { ms: 0.5 },
-        }}
-        startIcon={<Icon icon="mdi:file-document-edit-outline" className="h-4 w-4" style={{ color: '#7c3aed' }} />}
-        endIcon={<Icon icon={expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'} className="h-4 w-4" />}
+        className="gap-2 text-xs font-bold text-violet-700 hover:bg-violet-50 dark:text-violet-300 dark:hover:bg-violet-500/10"
       >
+        <Icon icon="mdi:file-document-edit-outline" className="h-4 w-4" style={{ color: '#7c3aed' }} aria-hidden="true" />
         {`روند تغییرات (ممیزی)${query.data ? ` — ${faNum(query.data.length)} رویداد` : ''}`}
+        <Icon icon={expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'} className="h-4 w-4" aria-hidden="true" />
       </Button>
 
-      <Collapse in={expanded}>
-        <Box id={panelId} sx={{ pt: 1.5 }}>
+      {expanded && (
+        <div id={panelId} className="pt-3">
           {query.isLoading ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-              {[1, 2, 3].map((i) => <Skeleton aria-hidden="true" key={i} variant="rounded" height={64} sx={{ borderRadius: '12px' }} />)}
-            </Box>
+            <div className="flex flex-col gap-3">
+              {[1, 2, 3].map((i) => (
+                <Skeleton key={i} aria-hidden="true" className="h-16 rounded-xl" />
+              ))}
+            </div>
           ) : query.isError ? (
             <ErrorBox message="روند ممیزی بارگذاری نشد." onRetry={() => query.refetch()} />
           ) : events.length === 0 ? (
-            <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+            <p className="py-4 text-center text-sm text-muted-foreground">
               رویدادی ثبت نشده است.
-            </Typography>
+            </p>
           ) : (
-            <Box sx={{ position: 'relative' }}>
-              <Box sx={{ position: 'absolute', top: 6, bottom: 6, insetInlineStart: 17, width: '2px', bgcolor: 'divider' }} />
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+            <div className="relative">
+              <div className="absolute inset-y-1.5 start-[17px] w-[2px] bg-border" aria-hidden="true" />
+              <div className="flex flex-col gap-3">
                 {events.map((ev) => {
                   const rows = summarizeAuditData(ev.data)
                   return (
-                    <Box key={ev.id} sx={{ display: 'flex', gap: 1.5, position: 'relative' }}>
-                      <Box
-                        sx={{
-                          width: 34,
-                          height: 34,
-                          flexShrink: 0,
-                          borderRadius: '50%',
-                          bgcolor: 'rgba(124,58,237,0.08)',
-                          border: '2px solid',
-                          borderColor: 'background.paper',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          zIndex: 1,
-                        }}
-                      >
-                        <Icon icon={auditActionIcon(ev.action)} className="h-4 w-4" style={{ color: '#7c3aed' }} />
-                      </Box>
-                      <Box
-                        sx={{
-                          flex: 1,
-                          minWidth: 0,
-                          bgcolor: 'rgba(0,0,0,0.02)',
-                          borderRadius: '12px',
-                          px: 1.5,
-                          py: 1.25,
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 1, mb: 0.5 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    <div key={ev.id} className="relative flex gap-3">
+                      <div className="z-10 flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-full border-2 border-card bg-violet-500/10">
+                        <Icon icon={auditActionIcon(ev.action)} className="h-4 w-4" style={{ color: '#7c3aed' }} aria-hidden="true" />
+                      </div>
+                      <div className="min-w-0 flex-1 rounded-xl bg-black/[0.02] px-3 py-2.5 dark:bg-white/[0.04]">
+                        <div className="mb-1 flex flex-wrap items-center gap-2">
+                          <p className="text-sm font-bold text-foreground">
                             {AUDIT_ACTION_LABELS[ev.action] || ev.action}
-                          </Typography>
-                          <Typography variant="caption" color="text.disabled">
+                          </p>
+                          <span className="text-xs text-muted-foreground">
                             {formatJalaliDateTime(ev.created_at)}
-                          </Typography>
+                          </span>
                           {ev.actor_id != null && (
-                            <Typography variant="caption" color="text.disabled">
+                            <span className="text-xs text-muted-foreground">
                               {`عامل: کاربر #${faNum(ev.actor_id)}`}
-                            </Typography>
+                            </span>
                           )}
-                        </Box>
+                        </div>
                         {rows.length > 0 && (
-                          <Box>
+                          <div>
                             {rows.map((r, i) => (
-                              <Box key={i} sx={{ display: 'flex', gap: 1, py: 0.1 }}>
-                                <Typography variant="caption" color="text.secondary" sx={{ minWidth: 96 }}>
+                              <div key={i} className="flex gap-2 py-[0.1rem]">
+                                <span className="min-w-24 text-xs text-muted-foreground">
                                   {`${r.key}:`}
-                                </Typography>
-                                <Typography variant="caption" sx={{ fontWeight: 600 }}>{r.value}</Typography>
-                              </Box>
+                                </span>
+                                <span className="text-xs font-semibold text-foreground">{r.value}</span>
+                              </div>
                             ))}
-                          </Box>
+                          </div>
                         )}
-                      </Box>
-                    </Box>
+                      </div>
+                    </div>
                   )
                 })}
-              </Box>
-            </Box>
+              </div>
+            </div>
           )}
-        </Box>
-      </Collapse>
-    </Box>
+        </div>
+      )}
+    </div>
   )
 }
 

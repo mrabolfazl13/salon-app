@@ -4,17 +4,6 @@
 // سیاست لغو. خطاهای ۴۰۰ فارسی بک‌اند اینلاین نمایش داده می‌شود.
 
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  TextField,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import { useApproveContract } from '@/hooks/useContracts'
@@ -25,6 +14,12 @@ import {
   parseAmountInput,
   SectionCard,
 } from '@/components/contract/shared'
+import Dialog from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/shadcn/button'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Textarea } from '@/components/ui/shadcn/textarea'
 import type { ContractApprovePayload } from '@/services/contract'
 
 interface ApproveTarget {
@@ -120,97 +115,118 @@ const ContractApproveDialog: React.FC<Props> = ({ open, onClose, target }) => {
   }
 
   return (
-    <Dialog aria-label="تأیید قرارداد" open={open} onClose={mutation.isPending ? undefined : onClose} maxWidth="sm" fullWidth
-      slotProps={{ paper: { sx: { borderRadius: '18px', maxHeight: '92vh' } } }}>
-      <DialogTitle sx={{ fontWeight: 800, fontSize: '1.02rem', pb: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Icon icon="mdi:check-decagram" style={{ color: '#059669' }} />
-          {'تأیید قرارداد با تغییرات'}
-        </Box>
-      </DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        <Typography variant="body2" color="text.secondary">
+    <Dialog
+      open={open}
+      onClose={mutation.isPending ? undefined : onClose}
+      title="تأیید قرارداد با تغییرات"
+      titleIcon={<Icon icon="mdi:check-decagram" style={{ color: '#059669' }} />}
+      maxWidth="sm"
+      actions={
+        <>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            disabled={mutation.isPending}
+            className="rounded-xl px-4"
+          >
+            انصراف
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={mutation.isPending}
+            className="rounded-xl !bg-none bg-emerald-600 font-bold text-white hover:bg-emerald-700"
+          >
+            {mutation.isPending ? 'در حال تأیید...' : 'تأیید و فعال‌سازی'}
+          </Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-4">
+        <p className="text-sm text-muted-foreground">
           {(target.userName || 'کاربر') + ' — ' + target.venueName + ' | قیمت پیشنهادی: ' + formatRial(target.pricePerSession) + ' در ' + faNum(target.totalSessions) + ' سانس'}
-        </Typography>
-        {serverError && <Alert severity="error" sx={{ borderRadius: '12px' }}>{serverError}</Alert>}
+        </p>
+        {serverError && (
+          <Alert variant="destructive">
+            <AlertDescription>{serverError}</AlertDescription>
+          </Alert>
+        )}
 
-        <TextField
-          label="قیمت هر سانس (ریال)"
-          value={price}
-          onChange={(e) => setPrice(e.target.value)}
-          fullWidth
-          size="small"
-          error={Boolean(errors.price)}
-          helperText={errors.price || ('قیمت پایه سانس: ' + formatRial(target.originalPrice))}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-        />
-        <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap' }}>
-          <TextField
-            label="سقف تعداد سانس (اختیاری)"
-            value={maxSessions}
-            onChange={(e) => setMaxSessions(e.target.value)}
-            size="small"
-            sx={{ width: { xs: '100%', sm: 180 }, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-            error={Boolean(errors.max)}
-            helperText={errors.max || 'سانس‌های اضافیِ آینده آزاد می‌شوند'}
+        <div className="space-y-1.5">
+          <Label htmlFor="approve-price">قیمت هر سانس (ریال)</Label>
+          <Input
+            id="approve-price"
+            value={price}
+            onChange={(e) => setPrice(e.target.value)}
+            aria-invalid={errors.price ? true : undefined}
+            className={errors.price ? 'h-11 border-red-500 focus-visible:ring-red-500' : 'h-11'}
           />
-          <TextField
-            label="تعداد اقساط (اختیاری ۱ تا ۲۴)"
-            value={installCount}
-            onChange={(e) => setInstallCount(e.target.value)}
-            size="small"
-            sx={{ width: { xs: '100%', sm: 180 }, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-            error={Boolean(errors.count)}
-            helperText={errors.count || 'خالی = پیش‌فرض ماهانه بر اساس روز سررسید'}
+          <p className={errors.price ? 'text-xs text-red-600 dark:text-red-400' : 'text-xs text-muted-foreground'}>
+            {errors.price || ('قیمت پایه سانس: ' + formatRial(target.originalPrice))}
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-3">
+          <div className="w-full space-y-1.5 sm:w-[180px]">
+            <Label htmlFor="approve-max">سقف تعداد سانس (اختیاری)</Label>
+            <Input
+              id="approve-max"
+              value={maxSessions}
+              onChange={(e) => setMaxSessions(e.target.value)}
+              aria-invalid={errors.max ? true : undefined}
+              className={errors.max ? 'h-11 border-red-500 focus-visible:ring-red-500' : 'h-11'}
+            />
+            <p className={errors.max ? 'text-xs text-red-600 dark:text-red-400' : 'text-xs text-muted-foreground'}>
+              {errors.max || 'سانس‌های اضافیِ آینده آزاد می‌شوند'}
+            </p>
+          </div>
+          <div className="w-full space-y-1.5 sm:w-[180px]">
+            <Label htmlFor="approve-count">تعداد اقساط (اختیاری ۱ تا ۲۴)</Label>
+            <Input
+              id="approve-count"
+              value={installCount}
+              onChange={(e) => setInstallCount(e.target.value)}
+              aria-invalid={errors.count ? true : undefined}
+              className={errors.count ? 'h-11 border-red-500 focus-visible:ring-red-500' : 'h-11'}
+            />
+            <p className={errors.count ? 'text-xs text-red-600 dark:text-red-400' : 'text-xs text-muted-foreground'}>
+              {errors.count || 'خالی = پیش‌فرض ماهانه بر اساس روز سررسید'}
+            </p>
+          </div>
+          <div className="w-full space-y-1.5 sm:w-[180px]">
+            <Label htmlFor="approve-spacing">فاصله سررسید اقساط (روز)</Label>
+            <Input
+              id="approve-spacing"
+              value={dueSpacing}
+              onChange={(e) => setDueSpacing(e.target.value)}
+              aria-invalid={errors.spacing ? true : undefined}
+              className={errors.spacing ? 'h-11 border-red-500 focus-visible:ring-red-500' : 'h-11'}
+            />
+            <p className={errors.spacing ? 'text-xs text-red-600 dark:text-red-400' : 'text-xs text-muted-foreground'}>
+              {errors.spacing || 'بین ۷ تا ۹۰ روز — فقط با تعداد اقساط'}
+            </p>
+          </div>
+        </div>
+        <div className="space-y-1.5">
+          <Label htmlFor="approve-policy">شرایط لغو قرارداد (اختیاری)</Label>
+          <Textarea
+            id="approve-policy"
+            value={policy}
+            onChange={(e) => setPolicy(e.target.value)}
+            rows={2}
+            aria-invalid={errors.policy ? true : undefined}
+            className={errors.policy ? 'min-h-[72px] border-red-500 focus-visible:ring-red-500' : 'min-h-[72px]'}
           />
-          <TextField
-            label="فاصله سررسید اقساط (روز)"
-            value={dueSpacing}
-            onChange={(e) => setDueSpacing(e.target.value)}
-            size="small"
-            sx={{ width: { xs: '100%', sm: 180 }, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-            error={Boolean(errors.spacing)}
-            helperText={errors.spacing || 'بین ۷ تا ۹۰ روز — فقط با تعداد اقساط'}
-          />
-        </Box>
-        <TextField
-          label="شرایط لغو قرارداد (اختیاری)"
-          value={policy}
-          onChange={(e) => setPolicy(e.target.value)}
-          fullWidth
-          size="small"
-          multiline
-          minRows={2}
-          error={Boolean(errors.policy)}
-          helperText={errors.policy || 'این متن در جزئیات قرارداد برای کاربر نمایش داده می‌شود'}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-        />
+          <p className={errors.policy ? 'text-xs text-red-600 dark:text-red-400' : 'text-xs text-muted-foreground'}>
+            {errors.policy || 'این متن در جزئیات قرارداد برای کاربر نمایش داده می‌شود'}
+          </p>
+        </div>
 
         <SectionCard title="پیش‌نمایش پس از تأیید" icon="mdi:eye-outline" dense>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="caption" color="text.secondary">مبلغ کل جدید</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 800 }}>{formatRial(previewTotal)}</Typography>
-          </Box>
+          <div className="flex justify-between">
+            <span className="text-xs text-muted-foreground">مبلغ کل جدید</span>
+            <span className="text-sm font-extrabold">{formatRial(previewTotal)}</span>
+          </div>
         </SectionCard>
-      </DialogContent>
-      <DialogActions sx={{ px: 2.5, pb: 2, gap: 1 }}>
-        <Button onClick={onClose} disabled={mutation.isPending} sx={{ textTransform: 'none', borderRadius: '10px' }}>
-          انصراف
-        </Button>
-        <Button
-          variant="contained"
-          onClick={submit}
-          disabled={mutation.isPending}
-          sx={{
-            textTransform: 'none',
-            borderRadius: '10px',
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #059669, #047857)',
-          }}
-        >
-          {mutation.isPending ? 'در حال تأیید...' : 'تأیید و فعال‌سازی'}
-        </Button>
-      </DialogActions>
+      </div>
     </Dialog>
   )
 }

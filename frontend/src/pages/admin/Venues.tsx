@@ -1,15 +1,21 @@
 import React, { useEffect, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box, Typography, Paper, useTheme, Skeleton, Chip, Button, CircularProgress,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-} from '@mui/material'
 import toast from 'react-hot-toast'
 import Layout from '@/components/layout/Layout'
 import { venueService } from '@/services/venue'
 import { adminService } from '@/services/admin'
 import { formatPrice, formatDate } from '@/lib/utils'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import { Button } from '@/components/ui/shadcn/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
 
 // سالن‌های در انتظار تایید (پاسخ خام بک‌اند)
 interface PendingVenue {
@@ -23,7 +29,6 @@ interface PendingVenue {
 }
 
 const AdminVenues: React.FC = () => {
-  const theme = useTheme()
   const [venues, setVenues] = useState<any[]>([])
   const [pending, setPending] = useState<PendingVenue[]>([])
   const [loading, setLoading] = useState(true)
@@ -64,35 +69,35 @@ const AdminVenues: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ mb: 4 }}>
-        <Typography component="h1" variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-          <Icon icon="mdi:stadium" className="h-7 w-7 ml-2" style={{ verticalAlign: 'middle', color: theme.palette.primary.main }} />
+      <div className="mb-8">
+        <h1 className="mb-1 flex items-center gap-2 text-2xl font-extrabold text-foreground">
+          <Icon icon="mdi:stadium" aria-hidden="true" className="h-7 w-7 text-primary" />
           مدیریت سالن‌ها
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
+        </h1>
+        <p className="text-sm text-muted-foreground">
           {venues.length} سالن در سیستم | {pending.length} سالن در انتظار تایید
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
       {/* Pending venues */}
-      <Box sx={{ mb: 4 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-          <Icon icon="mdi:shield-question-outline" className="h-5 w-5" style={{ color: '#d97706' }} />
-          <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+      <div className="mb-8">
+        <div className="mb-4 flex items-center gap-2">
+          <Icon icon="mdi:shield-question-outline" aria-hidden="true" className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <h2 className="text-base font-bold text-foreground">
             سالن‌های در انتظار تایید
-          </Typography>
-        </Box>
+          </h2>
+        </div>
         {loading ? (
-          <Skeleton aria-hidden="true" variant="rounded" height={90} sx={{ borderRadius: 2 }} />
+          <Skeleton aria-hidden="true" className="h-[90px] rounded-lg" />
         ) : pending.length === 0 ? (
-          <Paper sx={{ p: 3, borderRadius: 2, border: `1px dashed ${theme.palette.divider}`, textAlign: 'center' }}>
-            <Icon icon="mdi:check-all" className="h-6 w-6" style={{ color: '#16a34a' }} />
-            <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+          <div className="rounded-lg border border-dashed border-border p-6 text-center">
+            <Icon icon="mdi:check-all" aria-hidden="true" className="mx-auto h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            <p className="mt-2 text-sm text-muted-foreground">
               سالنی در انتظار تایید نیست
-            </Typography>
-          </Paper>
+            </p>
+          </div>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+          <div className="flex flex-col gap-3">
             {pending.map((venue, index) => (
               <motion.div
                 key={venue.id}
@@ -100,120 +105,114 @@ const AdminVenues: React.FC = () => {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.08 }}
               >
-                <Paper sx={{
-                  p: 2, borderRadius: 2,
-                  border: `1px solid rgba(245,158,11,0.3)`,
-                  bgcolor: 'rgba(245,158,11,0.04)',
-                  display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap',
-                }}>
-                  <Box sx={{ flex: 1, minWidth: 200 }}>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{venue.name}</Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
-                      <Icon icon="mdi:map-marker-outline" className="h-3.5 w-3.5 ml-1" style={{ verticalAlign: 'middle' }} />
+                <div className="flex flex-wrap items-center gap-4 rounded-lg border border-amber-500/30 bg-amber-500/[0.04] p-4">
+                  <div className="min-w-[200px] flex-1">
+                    <p className="text-sm font-bold text-foreground">{venue.name}</p>
+                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                      <Icon icon="mdi:map-marker-outline" aria-hidden="true" className="h-3.5 w-3.5" />
                       {venue.address}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                    </p>
+                    <p className="mt-1 text-xs text-muted-foreground">
                       ثبت‌نام: {formatDate(venue.created_at)}
-                    </Typography>
-                  </Box>
+                    </p>
+                  </div>
                   <Button
-                    variant="contained"
                     onClick={() => handleVerify(venue.id)}
                     disabled={verifyingId === venue.id}
-                    startIcon={verifyingId === venue.id
-                      ? <CircularProgress size={16} sx={{ color: 'white' }} />
-                      : <Icon icon="mdi:shield-check" className="h-4 w-4" />}
-                    sx={{
-                      borderRadius: 1, textTransform: 'none', fontWeight: 600,
-                      background: 'linear-gradient(135deg, #16a34a, #15803d)',
-                    }}
+                    className="gap-2 rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-md shadow-emerald-900/15 hover:from-emerald-500 hover:to-emerald-600"
                   >
+                    {verifyingId === venue.id ? (
+                      <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال تایید" />
+                    ) : (
+                      <Icon icon="mdi:shield-check" aria-hidden="true" className="h-4 w-4" />
+                    )}
                     تایید سالن
                   </Button>
-                </Paper>
+                </div>
               </motion.div>
             ))}
-          </Box>
+          </div>
         )}
-      </Box>
+      </div>
 
       {/* All venues */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-        <Icon icon="mdi:stadium-variant" className="h-5 w-5" style={{ color: theme.palette.primary.main }} />
-        <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
+      <div className="mb-4 flex items-center gap-2">
+        <Icon icon="mdi:stadium-variant" aria-hidden="true" className="h-5 w-5 text-primary" />
+        <h2 className="text-base font-bold text-foreground">
           همه سالن‌ها
-        </Typography>
-      </Box>
-      <Paper sx={{ borderRadius: 2, border: `1px solid ${theme.palette.divider}`, overflow: 'hidden' }}>
+        </h2>
+      </div>
+      <div className="overflow-hidden rounded-lg border border-border">
         {loading ? (
-          <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <div className="flex flex-col gap-2 p-4">
             {[1, 2, 3, 4, 5].map((i) => (
-              <Skeleton aria-hidden="true" key={i} variant="rounded" height={52} />
+              <Skeleton aria-hidden="true" key={i} className="h-[52px] rounded-lg" />
             ))}
-          </Box>
+          </div>
         ) : (
-          <TableContainer>
-            <Table aria-label="لیست سالن‌ها" size="small">
-              <TableHead>
-                <TableRow sx={{ bgcolor: 'grey.50' }}>
-                  <TableCell scope="col">سالن</TableCell>
-                  <TableCell scope="col">آدرس</TableCell>
-                  <TableCell scope="col">تلفن</TableCell>
-                  <TableCell scope="col">حداقل قیمت</TableCell>
-                  <TableCell scope="col">وضعیت</TableCell>
-                  <TableCell scope="col">تاریخ ثبت</TableCell>
+          <Table aria-label="لیست سالن‌ها">
+            <TableHeader>
+              <TableRow className="bg-muted/50">
+                <TableHead scope="col">سالن</TableHead>
+                <TableHead scope="col">آدرس</TableHead>
+                <TableHead scope="col">تلفن</TableHead>
+                <TableHead scope="col">حداقل قیمت</TableHead>
+                <TableHead scope="col">وضعیت</TableHead>
+                <TableHead scope="col">تاریخ ثبت</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {venues.map((venue) => (
+                <TableRow key={venue.id} className="hover:bg-muted/50">
+                  <TableCell>
+                    <p className="text-sm font-semibold text-foreground">{venue.name}</p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="max-w-[220px] truncate text-sm text-muted-foreground">
+                      {venue.address}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="font-mono text-sm text-foreground" dir="ltr">{venue.phone}</p>
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-sm font-bold text-primary">
+                      {formatPrice(venue.price)}
+                    </p>
+                  </TableCell>
+                  <TableCell>
+                    <span
+                      className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold ${
+                        venue.is_verified
+                          ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
+                          : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                      }`}
+                    >
+                      <Icon icon={venue.is_verified ? 'mdi:shield-check' : 'mdi:shield-outline'} aria-hidden="true" className="h-3.5 w-3.5" />
+                      {venue.is_verified ? 'تایید شده' : 'در انتظار'}
+                    </span>
+                  </TableCell>
+                  <TableCell>
+                    <p className="text-sm text-muted-foreground">{formatDate(venue.created_at)}</p>
+                  </TableCell>
                 </TableRow>
-              </TableHead>
-              <TableBody>
-                {venues.map((venue) => (
-                  <TableRow key={venue.id} hover>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>{venue.name}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary" sx={{ maxWidth: 220, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {venue.address}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" dir="ltr" sx={{ fontFamily: 'monospace' }}>{venue.phone}</Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-                        {formatPrice(venue.price)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Chip
-                        icon={<Icon icon={venue.is_verified ? 'mdi:shield-check' : 'mdi:shield-outline'} className="h-3.5 w-3.5" />}
-                        label={venue.is_verified ? 'تایید شده' : 'در انتظار'}
-                        color={venue.is_verified ? 'success' : 'warning'}
-                        size="small"
-                        sx={{ borderRadius: '8px' }}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Typography variant="body2" color="text.secondary">{formatDate(venue.created_at)}</Typography>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {venues.length === 0 && (
-                  <TableRow>
-                    <TableCell colSpan={6}>
-                      <Box sx={{ textAlign: 'center', py: 6 }}>
-                        <Icon icon="mdi:stadium-outline" className="h-8 w-8" style={{ color: 'rgba(0,0,0,0.2)' }} />
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                          سالنی ثبت نشده است
-                        </Typography>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+              ))}
+              {venues.length === 0 && (
+                <TableRow>
+                  <TableCell colSpan={6}>
+                    <div className="py-12 text-center">
+                      <Icon icon="mdi:stadium-outline" aria-hidden="true" className="mx-auto h-8 w-8 text-muted-foreground/40" />
+                      <p className="mt-2 text-sm text-muted-foreground">
+                        سالنی ثبت نشده است
+                      </p>
+                    </div>
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         )}
-      </Paper>
+      </div>
     </Layout>
   )
 }

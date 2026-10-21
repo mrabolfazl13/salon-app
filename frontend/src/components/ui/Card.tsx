@@ -1,26 +1,22 @@
 // src/components/ui/Card.tsx
+// پوسته‌ی کارت پروژه روی Tailwind — نام و امضای صادرات قبلی حفظ شده است.
+// فایل‌های هنوز مهاجرت‌نشده ممکن است پراپ‌های MUI (سx، elevation، variant…) بفرستند؛
+// sx نادیده گرفته می‌شود و بقیه روی ریشه پخش می‌شوند تا رفتار قبلی نشکند.
 import React from 'react'
-import {
-  Card as MuiCard,
-  CardContent as MuiCardContent,
-  CardHeader as MuiCardHeader,
-  CardActions as MuiCardActions,
-  CardMedia as MuiCardMedia,
-  Typography,
-} from '@mui/material'
-import type {
-  CardProps as MuiCardProps,
-  CardContentProps,
-  CardHeaderProps,
-  CardActionsProps,
-} from '@mui/material'
 import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
 
-export interface CardProps extends MuiCardProps {
+/** پراپ‌های آزاد (سازگاری با فراخوانی‌های MUI) */
+type LooseDivProps = React.HTMLAttributes<HTMLDivElement> & {
+  sx?: unknown
+  [key: string]: unknown
+}
+
+export interface CardProps extends LooseDivProps {
   hover?: boolean
 }
 
-const Card: React.FC<CardProps> = ({ hover = true, children, ...props }) => {
+const Card: React.FC<CardProps> = ({ hover = true, children, className, sx: _sx, ...props }) => {
   return (
     <motion.div
       whileHover={hover ? { y: -4, transition: { duration: 0.2 } } : {}}
@@ -29,35 +25,60 @@ const Card: React.FC<CardProps> = ({ hover = true, children, ...props }) => {
       transition={{ duration: 0.4 }}
       style={{ height: '100%' }}
     >
-      <MuiCard {...props}>{children}</MuiCard>
+      <div
+        className={cn(
+          'h-full rounded-2xl border border-border bg-card text-card-foreground shadow-sm',
+          className
+        )}
+        {...(props as React.HTMLAttributes<HTMLDivElement>)}
+      >
+        {children}
+      </div>
     </motion.div>
   )
 }
 
-export const CardContent: React.FC<CardContentProps> = (props) => (
-  <MuiCardContent {...props} />
+export const CardContent: React.FC<LooseDivProps> = ({ className, sx: _sx, ...props }) => (
+  <div className={cn('p-4', className)} {...(props as React.HTMLAttributes<HTMLDivElement>)} />
 )
 
-export const CardHeader: React.FC<CardHeaderProps> = (props) => (
-  <MuiCardHeader {...props} />
+export const CardHeader: React.FC<LooseDivProps> = ({ className, sx: _sx, ...props }) => (
+  <div
+    className={cn('flex flex-col gap-1 p-4', className)}
+    {...(props as React.HTMLAttributes<HTMLDivElement>)}
+  />
 )
 
-export const CardActions: React.FC<CardActionsProps> = (props) => (
-  <MuiCardActions {...props} />
+export const CardActions: React.FC<LooseDivProps> = ({ className, sx: _sx, ...props }) => (
+  <div
+    className={cn('flex items-center gap-2 p-2', className)}
+    {...(props as React.HTMLAttributes<HTMLDivElement>)}
+  />
 )
 
-export const CardMedia: React.FC<any> = (props) => <MuiCardMedia {...props} />
+export const CardMedia: React.FC<LooseDivProps> = ({ className, sx: _sx, ...props }) => (
+  <div
+    className={cn('h-40 w-full bg-cover bg-center', className)}
+    {...(props as React.HTMLAttributes<HTMLDivElement>)}
+  />
+)
 
-export const CardTitle: React.FC<{ children: React.ReactNode }> = ({ children, ...props }) => (
-  <Typography sx={{ fontWeight: 600 }} variant="h5" component="h2" {...props}>
+export const CardTitle: React.FC<LooseDivProps> = ({ children, className, sx: _sx, ...props }) => (
+  <h2
+    className={cn('text-xl font-semibold text-foreground', className)}
+    {...(props as React.HTMLAttributes<HTMLHeadingElement>)}
+  >
     {children}
-  </Typography>
+  </h2>
 )
 
-export const CardDescription: React.FC<{ children: React.ReactNode }> = ({ children, ...props }) => (
-  <Typography variant="body2" color="text.secondary" {...props}>
+export const CardDescription: React.FC<LooseDivProps> = ({ children, className, sx: _sx, ...props }) => (
+  <p
+    className={cn('text-sm text-muted-foreground', className)}
+    {...(props as React.HTMLAttributes<HTMLParagraphElement>)}
+  >
     {children}
-  </Typography>
+  </p>
 )
 
 export default Card

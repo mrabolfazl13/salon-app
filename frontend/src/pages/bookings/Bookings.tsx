@@ -2,19 +2,6 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Chip,
-  Button,
-  Tabs,
-  Tab,
-  Skeleton,
-  Alert,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import BookingPaymentPanel from '@/components/bookings/BookingPaymentPanel'
@@ -30,11 +17,14 @@ import {
   formatTimeFa,
   getSlotEndTime,
   getStatusLabel,
-  getMuiStatusColor,
 } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { downloadIcsEvent } from '@/utils/calendar'
-import { gradients } from '@/theme'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Badge } from '@/components/ui/shadcn/badge'
+import { Button } from '@/components/ui/shadcn/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
 
 // شکل رزرو از سمت بک‌اند (snake_case)
 interface ApiBooking {
@@ -60,6 +50,22 @@ interface ApiBooking {
 }
 
 export type TabFilter = 'all' | 'confirmed' | 'pending' | 'cancelled' | 'completed'
+
+/** نگاشت وضعیت رزرو → واریانت Badge (هم‌رنگ Chip قبلی: سبز/کهربایی/قرمز/آبی) */
+const STATUS_BADGE_VARIANT: Record<string, 'success' | 'primary' | 'destructive' | 'default'> = {
+  confirmed: 'success',
+  pending: 'default',
+  cancelled: 'destructive',
+  completed: 'primary',
+}
+
+const FILTER_TABS: { value: TabFilter; label: string; ariaLabel: string }[] = [
+  { value: 'all', label: 'همه', ariaLabel: 'تب همه رزروها' },
+  { value: 'confirmed', label: 'تایید شده', ariaLabel: 'تب رزروهای تایید شده' },
+  { value: 'pending', label: 'در انتظار', ariaLabel: 'تب رزروهای در انتظار' },
+  { value: 'cancelled', label: 'لغو شده', ariaLabel: 'تب رزروهای لغو شده' },
+  { value: 'completed', label: 'انجام شده', ariaLabel: 'تب رزروهای انجام شده' },
+]
 
 /** دانلود فایل .ics برای یک رزرو از فهرست — همان رویداد صفحهٔ جزئیات */
 const addToCalendar = (booking: ApiBooking) => {
@@ -154,77 +160,46 @@ const Bookings: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ py: 3 }}>
+      <div className="py-6">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Typography component="h1" variant="h4" sx={{ fontWeight: 700, mb: 1 }}>
-            رزروهای من
-          </Typography>
-          <Typography color="text.secondary" sx={{ mb: 4 }}>
-            لیست رزروهای شما
-          </Typography>
+          <h1 className="mb-2 text-2xl font-bold text-foreground">رزروهای من</h1>
+          <p className="mb-8 text-sm text-muted-foreground">لیست رزروهای شما</p>
         </motion.div>
 
-        <Tabs
-          value={tab}
-          onChange={(_, newValue: TabFilter) => setTab(newValue)}
-          variant="scrollable"
-          scrollButtons="auto"
-          allowScrollButtonsMobile
-          sx={{
-            mb: 3,
-            minHeight: 48,
-            '& .MuiTab-root': {
-              borderRadius: '10px',
-              textTransform: 'none',
-              fontWeight: 600,
-              minHeight: 48,
-              py: 1.5,
-              fontSize: '0.85rem',
-            },
-            '& .Mui-selected': {
-              background: gradients.brandEnergy,
-              color: '#1c1917 !important',
-              fontWeight: 800,
-              borderRadius: '10px',
-            },
-          }}
-        >
-          <Tab value="all" label="همه" aria-label="تب همه رزروها" />
-          <Tab value="confirmed" label="تایید شده" aria-label="تب رزروهای تایید شده" />
-          <Tab value="pending" label="در انتظار" aria-label="تب رزروهای در انتظار" />
-          <Tab value="cancelled" label="لغو شده" aria-label="تب رزروهای لغو شده" />
-          <Tab value="completed" label="انجام شده" aria-label="تب رزروهای انجام شده" />
+        <Tabs value={tab} onValueChange={(value) => setTab(value as TabFilter)} className="mb-6">
+          <TabsList className="flex h-auto w-full justify-start gap-1 overflow-x-auto p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+            {FILTER_TABS.map((t) => (
+              <TabsTrigger
+                key={t.value}
+                value={t.value}
+                aria-label={t.ariaLabel}
+                className="h-11 shrink-0 rounded-[10px] px-3.5 text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-400 data-[state=active]:via-amber-500 data-[state=active]:to-orange-500 data-[state=active]:font-extrabold data-[state=active]:text-stone-900"
+              >
+                {t.label}
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </Tabs>
 
         {error ? (
-          <Alert
-            severity="error"
-            sx={{ borderRadius: '16px' }}
-            action={
-              <Button
-                color="inherit"
-                size="medium"
-                onClick={fetchBookings}
-                sx={{ minHeight: 44, px: 2.5 }}
-              >
+          <Alert variant="destructive" className="rounded-2xl">
+            <AlertDescription className="flex w-full flex-wrap items-center justify-between gap-3">
+              <span>در دریافت رزروها خطایی رخ داد. لطفاً دوباره تلاش کنید.</span>
+              <Button variant="destructive" size="sm" onClick={fetchBookings} className="min-h-11 px-4">
                 تلاش دوباره
               </Button>
-            }
-          >
-            در دریافت رزروها خطایی رخ داد. لطفاً دوباره تلاش کنید.
+            </AlertDescription>
           </Alert>
         ) : loading ? (
-          <Grid container spacing={3}>
+          <div className="flex flex-col gap-6">
             {[1, 2, 3].map((i) => (
-              <Grid size={{ xs: 12 }} key={i}>
-                <Skeleton aria-hidden="true" variant="rounded" height={110} sx={{ borderRadius: '16px' }} />
-              </Grid>
+              <Skeleton key={i} aria-hidden="true" className="h-[110px] rounded-2xl" />
             ))}
-          </Grid>
+          </div>
         ) : filtered.length === 0 ? (
           <EmptyState
             icon="mdi:calendar-blank-outline"
@@ -234,184 +209,116 @@ const Bookings: React.FC = () => {
             onAction={() => navigate('/venues')}
           />
         ) : (
-          <Grid container spacing={3}>
+          <div className="flex flex-col gap-6">
             {filtered.map((booking, index) => (
-              <Grid size={{ xs: 12 }} key={booking.id}>
-                <motion.div
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.3, delay: index * 0.05 }}
-                >
-                  <Card
-                    sx={{
-                      borderRadius: '16px',
-                      bgcolor: 'background.paper',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      transition: 'all 0.3s',
-                      '&:hover': {
-                        boxShadow: (t) =>
-                          t.palette.mode === 'dark'
-                            ? '0 8px 40px rgba(0,0,0,0.45)'
-                            : '0 8px 40px rgba(0,0,0,0.08)',
-                        borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.35)' : 'rgba(245,158,11,0.45)'),
-                      },
-                    }}
-                  >
-                    <CardContent>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          flexDirection: { xs: 'column', sm: 'row' },
-                          justifyContent: 'space-between',
-                          alignItems: { xs: 'flex-start', sm: 'center' },
-                          gap: 2,
-                        }}
-                      >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                          <VenueThumb images={booking.venue_images} name={booking.venue_name || `سالن #${booking.slot_id}`} size={48} />
-                          <Box>
-                            <Typography sx={{ fontWeight: 600 }} variant="subtitle1" component="h2">
-                              {booking.venue_name || `سالن #${booking.slot_id}`}
-                            </Typography>
-                            {booking.slot_date ? (
-                              <Typography variant="caption" color="text.secondary">
-                                {formatDate(booking.slot_date)} —{' '}
-                                {formatTimeFa(booking.start_time)} تا{' '}
-                                {getSlotEndTime(booking.start_time || '', booking.duration || 90)}
-                              </Typography>
-                            ) : (
-                              <Typography variant="caption" color="text.secondary">
-                                {formatDateTime(booking.booked_at)}
-                              </Typography>
-                            )}
-                          </Box>
-                        </Box>
+              <motion.div
+                key={booking.id}
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3, delay: index * 0.05 }}
+              >
+                <div className="rounded-2xl border border-border bg-card p-5 shadow-sm transition-all hover:border-amber-500/45 hover:shadow-[0_8px_40px_rgba(0,0,0,0.08)] dark:hover:border-amber-400/35 dark:hover:shadow-[0_8px_40px_rgba(0,0,0,0.45)]">
+                  <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                    <div className="flex items-center gap-4">
+                      <VenueThumb images={booking.venue_images} name={booking.venue_name || `سالن #${booking.slot_id}`} size={48} />
+                      <div>
+                        <h2 className="text-base font-semibold leading-snug text-foreground">
+                          {booking.venue_name || `سالن #${booking.slot_id}`}
+                        </h2>
+                        {booking.slot_date ? (
+                          <p className="text-xs text-muted-foreground">
+                            {formatDate(booking.slot_date)} —{' '}
+                            {formatTimeFa(booking.start_time)} تا{' '}
+                            {getSlotEndTime(booking.start_time || '', booking.duration || 90)}
+                          </p>
+                        ) : (
+                          <p className="text-xs text-muted-foreground">
+                            {formatDateTime(booking.booked_at)}
+                          </p>
+                        )}
+                      </div>
+                    </div>
 
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            flexWrap: 'wrap',
-                            gap: 1.5,
-                            justifyContent: { xs: 'flex-start', sm: 'flex-end' },
-                          }}
+                    <div className="flex flex-wrap items-center justify-start gap-3 sm:justify-end">
+                      <span className="text-sm font-bold text-foreground">
+                        {formatPrice(booking.payment_amount)}
+                      </span>
+                      <Badge
+                        variant={STATUS_BADGE_VARIANT[booking.status] ?? 'default'}
+                        className="min-h-11 rounded-[10px] px-3 text-sm"
+                      >
+                        {getStatusLabel(booking.status)}
+                      </Badge>
+                      {booking.status === 'cancelled' &&
+                        refundedBookingIds.has(Number(booking.id)) && (
+                          <Badge variant="primary" className="min-h-11 gap-1.5 rounded-[10px] px-3 text-sm font-semibold">
+                            <Icon icon="mdi:restore" className="h-4 w-4" />
+                            بازگشت وجه
+                          </Badge>
+                        )}
+                      {booking.status === 'confirmed' &&
+                        !booking.isPendingRedis &&
+                        (booking.payment_mode ?? 'gateway') === 'gateway' &&
+                        (paidBookingIds.has(Number(booking.id)) ? (
+                          <Badge variant="success" className="min-h-11 gap-1.5 rounded-[10px] px-3 text-sm font-semibold">
+                            <Icon icon="mdi:check-circle-outline" className="h-4 w-4" />
+                            پرداخت شده
+                          </Badge>
+                        ) : (
+                          <Button
+                            size="sm"
+                            onClick={() => setPayTarget(booking)}
+                            className="min-h-11 rounded-xl bg-gradient-to-br from-green-600 to-green-700 px-4 text-sm text-white shadow-sm hover:from-green-700 hover:to-green-800"
+                          >
+                            <Icon icon="mdi:credit-card-plus-outline" className="h-4 w-4" />
+                            پرداخت
+                          </Button>
+                        ))}
+                      {!booking.isPendingRedis && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => navigate(`/bookings/${booking.id}`)}
+                          className="min-h-11 rounded-xl px-4 text-sm"
                         >
-                          <Typography sx={{ fontWeight: 700 }} variant="body2">
-                            {formatPrice(booking.payment_amount)}
-                          </Typography>
-                          <Chip
-                            label={getStatusLabel(booking.status)}
-                            color={getMuiStatusColor(booking.status) as any}
-                            size="medium"
-                            sx={{ borderRadius: '10px', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 1.5 } }}
-                          />
-                          {booking.status === 'cancelled' &&
-                            refundedBookingIds.has(Number(booking.id)) && (
-                              <Chip
-                                label="بازگشت وجه"
-                                size="medium"
-                                color="info"
-                                icon={<Icon icon="mdi:restore" className="h-4 w-4" />}
-                                sx={{ borderRadius: '10px', fontWeight: 600, minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 1.5 } }}
-                              />
-                            )}
-                          {booking.status === 'confirmed' &&
-                            !booking.isPendingRedis &&
-                            (booking.payment_mode ?? 'gateway') === 'gateway' &&
-                            (paidBookingIds.has(Number(booking.id)) ? (
-                              <Chip
-                                label="پرداخت شده"
-                                size="medium"
-                                color="success"
-                                icon={<Icon icon="mdi:check-circle-outline" className="h-4 w-4" />}
-                                sx={{ borderRadius: '10px', fontWeight: 600, minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 1.5 } }}
-                              />
-                            ) : (
-                              <Button
-                                variant="contained"
-                                size="medium"
-                                onClick={() => setPayTarget(booking)}
-                                sx={{
-                                  borderRadius: '12px',
-                                  textTransform: 'none',
-                                  minHeight: 44,
-                                  px: 2.5,
-                                  fontSize: '0.85rem',
-                                  background: 'linear-gradient(135deg, #16a34a, #15803d)',
-                                  '&:hover': { background: 'linear-gradient(135deg, #15803d, #166534)' },
-                                }}
-                              >
-                                <Icon icon="mdi:credit-card-plus-outline" className="h-4 w-4 ml-1" />
-                                پرداخت
-                              </Button>
-                            ))}
-                          {!booking.isPendingRedis && (
-                            <Button
-                              variant="outlined"
-                              size="medium"
-                              onClick={() => navigate(`/bookings/${booking.id}`)}
-                              sx={{
-                                borderRadius: '12px',
-                                textTransform: 'none',
-                                minHeight: 44,
-                                px: 2.5,
-                                fontSize: '0.85rem',
-                              }}
-                            >
-                              جزئیات
-                            </Button>
-                          )}
-                          {!booking.isPendingRedis && (
-                            <Button
-                              variant="text"
-                              size="medium"
-                              onClick={() => addToCalendar(booking)}
-                              disabled={!booking.slot_date || !booking.start_time}
-                              aria-label={`افزودن رزرو ${booking.venue_name || ''} به تقویم`}
-                              sx={{
-                                borderRadius: '12px',
-                                textTransform: 'none',
-                                minHeight: 44,
-                                px: 1.5,
-                                fontSize: '0.85rem',
-                              }}
-                            >
-                              <Icon icon="mdi:calendar-plus" className="h-5 w-5" />
-                            </Button>
-                          )}
-                          {(booking.status === 'confirmed' || booking.status === 'pending') && (
-                            <Button
-                              variant="contained"
-                              color="error"
-                              size="medium"
-                              onClick={() => setCancelTarget(booking)}
-                              sx={{
-                                borderRadius: '12px',
-                                textTransform: 'none',
-                                minHeight: 44,
-                                px: 2.5,
-                                fontSize: '0.85rem',
-                              }}
-                            >
-                              لغو
-                            </Button>
-                          )}
-                        </Box>
-                      </Box>
-                      {!booking.isPendingRedis && (booking.payment_mode === 'bank_receipt' || booking.payment_mode === 'pay_in_place') && (
-                        <Box sx={{ mt: 2 }}>
-                          <BookingPaymentPanel booking={booking} compact onChanged={fetchBookings} />
-                        </Box>
+                          جزئیات
+                        </Button>
                       )}
-                    </CardContent>
-                  </Card>
-                </motion.div>
-              </Grid>
+                      {!booking.isPendingRedis && (
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => addToCalendar(booking)}
+                          disabled={!booking.slot_date || !booking.start_time}
+                          aria-label={`افزودن رزرو ${booking.venue_name || ''} به تقویم`}
+                          className="min-h-11 min-w-11 rounded-xl"
+                        >
+                          <Icon icon="mdi:calendar-plus" className="h-5 w-5" />
+                        </Button>
+                      )}
+                      {(booking.status === 'confirmed' || booking.status === 'pending') && (
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          onClick={() => setCancelTarget(booking)}
+                          className="min-h-11 rounded-xl px-4 text-sm"
+                        >
+                          لغو
+                        </Button>
+                      )}
+                    </div>
+                  </div>
+                  {!booking.isPendingRedis && (booking.payment_mode === 'bank_receipt' || booking.payment_mode === 'pay_in_place') && (
+                    <div className="mt-4">
+                      <BookingPaymentPanel booking={booking} compact onChanged={fetchBookings} />
+                    </div>
+                  )}
+                </div>
+              </motion.div>
             ))}
-          </Grid>
+          </div>
         )}
-      </Box>
+      </div>
 
       <ConfirmModal
         open={Boolean(cancelTarget)}

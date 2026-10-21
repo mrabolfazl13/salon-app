@@ -3,33 +3,22 @@
 // چیپسی جهت/نوع/وضعیت + بازه جلالی، خروجی CSV با همان فیلترها (دانلود blob)،
 // ابطال با دلیل اجباری و ساخت ردیف دستی.
 
-import React, { useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Divider,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Pagination,
-  PaginationItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  useTheme,
-} from '@mui/material'
+import React, { useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import Dialog from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/shadcn/button'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/shadcn/table'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
 import { PersianDateRangePicker } from '@/components/ui/PersianDatePicker'
 import {
   useExportTransactionsCsv,
@@ -41,6 +30,7 @@ import { useAuthStore } from '@/store/authStore'
 import {
   ErrorBox,
   LoadingBox,
+  Pager,
   SectionCard,
   StatusChip,
   TX_DIRECTION_LABELS,
@@ -80,7 +70,6 @@ const STATUS_CHIPS: { value: StatusFilter; label: string }[] = [
 ]
 
 const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
-  const theme = useTheme()
   const [venueSel, setVenueSel] = useState<number | 'all'>('all')
   const [from, setFrom] = useState('')
   const [to, setTo] = useState('')
@@ -133,97 +122,110 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
   }
 
   return (
-    <Box>
+    <div>
       {/* ردیف اقدامات */}
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1.5, mb: 2, flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-          {DIRECTION_CHIPS.map((chip) => (
-            <Chip
-              key={chip.value}
-              label={chip.label}
-              size="small"
-              onClick={() => resetPageAnd(setDirection)(chip.value)}
-              sx={{
-                borderRadius: '8px',
-                fontWeight: 700,
-                fontSize: '0.75rem',
-                bgcolor: direction === chip.value ? statusPairOf(theme, chip.color).main : 'rgba(0,0,0,0.04)',
-                color: direction === chip.value ? statusPairOf(theme, chip.color).on : 'text.primary',
-              }}
-            />
-          ))}
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1 }}>
-          <Button
-            size="small"
-            variant="outlined"
-            onClick={handleExport}
-            disabled={exportCsv.isPending}
-            startIcon={exportCsv.isPending ? <CircularProgress size={14} /> : <Icon icon="mdi:file-download-outline" className="h-4 w-4" />}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 600, borderColor: 'rgba(5,150,105,0.3)', color: 'success.main' }}
-          >
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex flex-wrap gap-2">
+          {DIRECTION_CHIPS.map((chip) => {
+            const active = direction === chip.value
+            const pair = statusPairOf(null, chip.color)
+            return (
+              <button
+                key={chip.value}
+                type="button"
+                onClick={() => resetPageAnd(setDirection)(chip.value)}
+                className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                style={{
+                  backgroundColor: active ? pair.main : 'rgba(0,0,0,0.04)',
+                  color: active ? pair.on : undefined,
+                }}
+              >
+                {chip.label}
+              </button>
+            )
+          })}
+        </div>
+        <div className="flex gap-2">
+          <Button size="sm" variant="outline" onClick={handleExport} disabled={exportCsv.isPending}>
+            {exportCsv.isPending ? (
+              <span
+                className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                role="status"
+                aria-label="در حال بارگذاری"
+              />
+            ) : (
+              <Icon icon="mdi:file-download-outline" className="h-4 w-4" aria-hidden="true" />
+            )}
             خروجی CSV
           </Button>
-          <Button
-            size="small"
-            variant="contained"
-            onClick={() => setCreateOpen(true)}
-            startIcon={<Icon icon="mdi:plus" className="h-4 w-4" />}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, background: 'linear-gradient(135deg, #2563eb, #7c3aed)' }}
-          >
+          <Button size="sm" onClick={() => setCreateOpen(true)}>
+            <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
             ثبت ردیف دستی
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       <SectionCard title="دفتر کل تراکنش‌ها" icon="mdi:book-ledger-outline" color="#2563eb" dense>
         {/* فیلترها */}
-        <Grid container spacing={1.5} sx={{ mb: 1.5 }}>
-          <Grid size={{ xs: 12, sm: 4 }}>
+        <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-12">
+          <div className="col-span-2 sm:col-span-4">
             <PersianDateRangePicker size="small" start={from} end={to} onStartChange={resetPageAnd(setFrom)} onEndChange={resetPageAnd(setTo)} />
-          </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>نوع</InputLabel>
-              <Select value={type} label="نوع" onChange={(e) => resetPageAnd(setType)(e.target.value)} sx={{ borderRadius: '10px' }}>
-                <MenuItem value={ALL}>همه انواع</MenuItem>
+          </div>
+          <div className="col-span-1 sm:col-span-3">
+            <Label id="tx-type-label" className="mb-1.5 block">نوع</Label>
+            <Select value={type} onValueChange={(v) => resetPageAnd(setType)(v)}>
+              <SelectTrigger className="h-11" aria-labelledby="tx-type-label">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value={ALL}>همه انواع</SelectItem>
                 {Object.entries(TX_TYPE_LABELS).map(([k, v]) => (
-                  <MenuItem key={k} value={k}>{v}</MenuItem>
+                  <SelectItem key={k} value={k}>{v}</SelectItem>
                 ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid size={{ xs: 6, sm: 3 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>وضعیت</InputLabel>
-              <Select value={status} label="وضعیت" onChange={(e) => resetPageAnd(setStatus)(e.target.value as StatusFilter)} sx={{ borderRadius: '10px' }}>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="col-span-1 sm:col-span-3">
+            <Label id="tx-status-label" className="mb-1.5 block">وضعیت</Label>
+            <Select value={status} onValueChange={(v) => resetPageAnd(setStatus)(v as StatusFilter)}>
+              <SelectTrigger className="h-11" aria-labelledby="tx-status-label">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
                 {STATUS_CHIPS.map((s) => (
-                  <MenuItem key={s.value} value={s.value}>{s.label}</MenuItem>
+                  <SelectItem key={s.value} value={s.value}>{s.label}</SelectItem>
                 ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 2 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>سالن</InputLabel>
-              <Select value={venueSel} label="سالن" onChange={(e) => resetPageAnd(setVenueSel)(e.target.value as number | 'all')} sx={{ borderRadius: '10px' }}>
-                <MenuItem value="all">همه</MenuItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="col-span-2 sm:col-span-2">
+            <Label id="tx-venue-label" className="mb-1.5 block">سالن</Label>
+            <Select
+              value={venueSel === 'all' ? 'all' : String(venueSel)}
+              onValueChange={(v) => resetPageAnd(setVenueSel)(v === 'all' ? 'all' : Number(v))}
+            >
+              <SelectTrigger className="h-11" aria-labelledby="tx-venue-label">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">همه</SelectItem>
                 {venues.map((v) => (
-                  <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                  <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
                 ))}
-              </Select>
-            </FormControl>
-          </Grid>
-        </Grid>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1, px: 0.5 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+        <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
+          <span className="text-xs text-muted-foreground">
             {data ? `مجموع ${toPersianDigits(total)} ردیف — صفحه ${toPersianDigits(page)} از ${toPersianDigits(totalPages)}` : ''}
             {isFetching && data ? ' — به‌روزرسانی...' : ''}
-          </Typography>
+          </span>
           {(direction !== ALL || status !== ALL || type !== ALL || venueSel !== 'all' || from || to) && (
             <Button
-              size="small"
+              size="sm"
+              variant="ghost"
               onClick={() => {
                 setDirection(ALL)
                 setStatus(ALL)
@@ -233,41 +235,46 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                 setTo('')
                 setPage(1)
               }}
-              sx={{ textTransform: 'none', fontSize: '0.75rem' }}
-              startIcon={<Icon icon="mdi:filter-remove-outline" className="h-4 w-4" />}
+              className="text-xs"
             >
+              <Icon icon="mdi:filter-remove-outline" className="h-4 w-4" aria-hidden="true" />
               پاک‌سازی فیلترها
             </Button>
           )}
-        </Box>
+        </div>
 
         {isPending && items.length === 0 ? (
           <LoadingBox text="در حال دریافت دفتر کل..." />
         ) : isError ? (
           <ErrorBox message={extractError(error, 'خطا در دریافت تراکنش‌ها')} onRetry={() => refetch()} />
         ) : items.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
+          <div className="py-8 text-center">
             <Icon icon="mdi:book-open-page-variant-outline" className="h-9 w-9" style={{ color: '#64748b' }} />
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+            <p className="mt-2 text-sm text-muted-foreground">
               ردیفی با این فیلترها یافت نشد
-            </Typography>
-          </Box>
+            </p>
+          </div>
         ) : (
-          <TableContainer role="region" aria-label="تراکنش‌های مالی، قابل پیمایش با کیبورد" tabIndex={0} sx={{ maxHeight: 560 }}>
-            <Table aria-label="تراکنش‌های مالی" size="small" stickyHeader>
-              <TableHead>
+          <div
+            role="region"
+            aria-label="تراکنش‌های مالی، قابل پیمایش با کیبورد"
+            tabIndex={0}
+            className="max-h-[560px] overflow-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          >
+            <Table aria-label="تراکنش‌های مالی">
+              <TableHeader>
                 <TableRow>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>ردیف</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>تاریخ</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>نوع / منبع</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>طرف‌حساب / شرح</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>سالن</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>روش</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>وضعیت</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>مبلغ</TableCell>
-                  <TableCell scope="col" align="left" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>عملیات</TableCell>
+                  <TableHead scope="col" className="text-[0.78rem]">ردیف</TableHead>
+                  <TableHead scope="col" className="text-[0.78rem]">تاریخ</TableHead>
+                  <TableHead scope="col" className="text-[0.78rem]">نوع / منبع</TableHead>
+                  <TableHead scope="col" className="text-[0.78rem]">طرف‌حساب / شرح</TableHead>
+                  <TableHead scope="col" className="text-[0.78rem]">سالن</TableHead>
+                  <TableHead scope="col" className="text-[0.78rem]">روش</TableHead>
+                  <TableHead scope="col" className="text-[0.78rem]">وضعیت</TableHead>
+                  <TableHead scope="col" className="text-[0.78rem]">مبلغ</TableHead>
+                  <TableHead scope="col" className="text-end text-[0.78rem]">عملیات</TableHead>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {items.map((tx) => {
                   const voided = tx.status === 'voided'
@@ -276,70 +283,64 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                   return (
                     <TableRow
                       key={tx.id}
-                      hover
-                      sx={{
-                        bgcolor: voided ? 'rgba(239,68,68,0.04)' : undefined,
-                        '&:hover': { bgcolor: voided ? 'rgba(239,68,68,0.07)' : 'rgba(37,99,235,0.03)' },
-                      }}
+                      className={voided ? 'bg-red-500/[0.04] hover:bg-red-500/[0.07]' : 'hover:bg-blue-600/[0.03]'}
                     >
                       <TableCell>
-                        <Typography variant="caption" sx={{ fontFamily: 'monospace', fontWeight: 700 }}>
+                        <span className="font-mono text-xs font-bold">
                           #{toPersianDigits(tx.id)}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>
+                        <span className="whitespace-nowrap text-xs">
                           {formatJalaliDateTime(tx.occurred_at, { format: 'numeric' })}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.25, alignItems: 'flex-start' }}>
+                        <div className="flex flex-col items-start gap-1">
                           <StatusChip label={labelOf(TX_TYPE_LABELS, tx.type)} color={income ? '#059669' : '#d97706'} />
-                          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                          <span className="text-xs text-muted-foreground">
                             {labelOf(TX_SOURCE_LABELS, tx.source_type)}
-                          </Typography>
-                        </Box>
+                          </span>
+                        </div>
                       </TableCell>
-                      <TableCell sx={{ maxWidth: 220 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 600, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={tx.counterparty_name ?? ''}>
+                      <TableCell className="max-w-[220px]">
+                        <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-foreground" title={tx.counterparty_name ?? ''}>
                           {tx.counterparty_name || (tx.expense_category_name ? `دسته: ${tx.expense_category_name}` : '—')}
-                        </Typography>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={tx.description}>
+                        </p>
+                        <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-xs text-muted-foreground" title={tx.description}>
                           {voided && tx.void_reason ? `ابطال: ${tx.void_reason}` : tx.description || ''}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>{venueName}</Typography>
+                        <span className="whitespace-nowrap text-xs">{venueName}</span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="caption" sx={{ whiteSpace: 'nowrap' }}>{labelOf(TX_METHOD_LABELS, tx.method)}</Typography>
+                        <span className="whitespace-nowrap text-xs">{labelOf(TX_METHOD_LABELS, tx.method)}</span>
                       </TableCell>
                       <TableCell>
                         <StatusChip label={labelOf(TX_STATUS_LABELS, tx.status)} color={TX_STATUS_COLORS[tx.status] ?? '#6b7280'} />
                       </TableCell>
                       <TableCell>
-                        <Typography
-                          variant="body2"
+                        <p
                           dir="rtl"
-                          sx={{
-                            fontWeight: 800,
-                            fontVariantNumeric: 'tabular-nums',
-                            whiteSpace: 'nowrap',
-                            color: voided ? '#9ca3af' : income ? '#059669' : '#dc2626',
-                            textDecoration: voided ? 'line-through' : 'none',
-                          }}
+                          className={`whitespace-nowrap text-sm font-extrabold tabular-nums ${
+                            voided
+                              ? 'text-gray-400 line-through dark:text-gray-500'
+                              : income
+                                ? 'text-emerald-700 dark:text-emerald-400'
+                                : 'text-red-700 dark:text-red-400'
+                          }`}
                         >
                           {income ? '+' : '-'}{formatRial(tx.amount, false)}
-                        </Typography>
+                        </p>
                       </TableCell>
-                      <TableCell align="left">
+                      <TableCell className="text-end">
                         {!voided && (
                           <Button
-                            size="small"
-                            color="error"
-                            variant="text"
+                            size="sm"
+                            variant="ghost"
                             onClick={() => setVoidTx(tx)}
-                            sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', borderRadius: '8px' }}
+                            className="text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-400"
                           >
                             ابطال
                           </Button>
@@ -350,38 +351,21 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                 })}
               </TableBody>
             </Table>
-          </TableContainer>
+          </div>
         )}
 
         {total > PAGE_SIZE && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, v) => setPage(v)}
-              color="primary"
-              shape="rounded"
-              size="small"
-              renderItem={(item) => (
-                <PaginationItem
-                  {...item}
-                  key={item.type === 'page' ? `p-${item.page}` : item.type}
-                >
-                  {item.type === 'page' ? toPersianDigits(item.page as number) : undefined}
-                </PaginationItem>
-              )}
-            />
-          </Box>
+          <Pager className="mt-4" count={totalPages} page={page} onChange={setPage} />
         )}
       </SectionCard>
 
-      <Box sx={{ mt: 3 }}>
+      <div className="mt-6">
         <ExpenseCategoriesPanel venues={venues} />
-      </Box>
+      </div>
 
       <TransactionEntryDialog open={createOpen} onClose={() => setCreateOpen(false)} venues={venues} />
       <VoidTransactionDialog tx={voidTx} onClose={() => setVoidTx(null)} />
-    </Box>
+    </div>
   )
 }
 
@@ -389,6 +373,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
 
 const VoidTransactionDialog: React.FC<{ tx: FinanceTransaction | null; onClose: () => void }> = ({ tx, onClose }) => {
   const [reason, setReason] = useState('')
+  const reasonId = useId()
   const voidTx = useVoidTransaction()
   const isSuper = useAuthStore((s) => s.user?.role === 'super_admin')
 
@@ -418,49 +403,48 @@ const VoidTransactionDialog: React.FC<{ tx: FinanceTransaction | null; onClose: 
     <Dialog open={tx !== null} onClose={close} maxWidth="xs" title="ابطال ردیف دفتر کل">
       {tx && (
         <>
-          <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(239,68,68,0.06)', mb: 2, display: 'flex', gap: 1.5, alignItems: 'center' }}>
+          <div className="mb-4 flex items-center gap-3 rounded-xl bg-red-500/[0.06] p-3">
             <Icon icon="mdi:cash-remove" className="h-6 w-6" style={{ color: '#ef4444' }} />
-            <Box sx={{ minWidth: 0 }}>
-              <Typography variant="body2" sx={{ fontWeight: 800 }}>
+            <div className="min-w-0">
+              <p className="text-sm font-extrabold text-foreground">
                 {formatRial(tx.amount)} · {labelOf(TX_TYPE_LABELS, tx.type)} ({labelOf(TX_DIRECTION_LABELS, tx.direction)})
-              </Typography>
-              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              </p>
+              <span className="text-xs text-muted-foreground">
                 ردیف #{toPersianDigits(tx.id)} — {formatJalaliDateTime(tx.occurred_at, { format: 'numeric' })}
-              </Typography>
-            </Box>
-          </Box>
+              </span>
+            </div>
+          </div>
           {!isSuper && tx.venue_id === null && (
-            <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mb: 1 }}>
+            <p className="mb-2 block text-xs text-amber-700 dark:text-amber-400">
               توجه: ردیف بدون سالن برای مدیران قابل ابطال نیست (۴۰۳).
-            </Typography>
+            </p>
           )}
-          <TextField
-            fullWidth
-            size="small"
+          <Label htmlFor={reasonId} className="mb-1.5 block">
+            دلیل ابطال <span className="text-red-600">*</span>
+          </Label>
+          <Textarea
+            id={reasonId}
             required
-            label="دلیل ابطال"
             value={reason}
             onChange={(e) => setReason(e.target.value)}
-            error={reason.length > 0 && !valid}
-            helperText={valid ? '' : 'حداقل ۳ و حداکثر ۳۰۰ نویسه (اجباری)'}
-            multiline
-            minRows={2}
-            slotProps={{ htmlInput: { maxLength: 300 } }}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            maxLength={300}
+            rows={2}
+            aria-invalid={reason.length > 0 && !valid ? true : undefined}
           />
-          <Divider sx={{ mt: 2 }} />
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1.5 }}>
-            <Button variant="outlined" onClick={close} disabled={voidTx.isPending}>انصراف</Button>
+          <p className={reason.length > 0 && !valid ? 'mt-1.5 text-xs text-red-600 dark:text-red-400' : 'mt-1.5 text-xs text-muted-foreground'}>
+            {valid ? '' : 'حداقل ۳ و حداکثر ۳۰۰ نویسه (اجباری)'}
+          </p>
+          <Separator className="mt-4" />
+          <div className="mt-3 flex justify-end gap-2">
+            <Button variant="outline" onClick={close} disabled={voidTx.isPending}>انصراف</Button>
             <Button
-              variant="contained"
-              color="error"
+              variant="destructive"
               onClick={submit}
               disabled={!valid || voidTx.isPending}
-              sx={{ textTransform: 'none', fontWeight: 700 }}
             >
               {voidTx.isPending ? 'در حال ابطال...' : 'ابطال قطعی'}
             </Button>
-          </Box>
+          </div>
         </>
       )}
     </Dialog>

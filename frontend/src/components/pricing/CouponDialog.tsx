@@ -2,29 +2,19 @@
 // ساخت/ویرایش کد تخفیف — percent در دیتا ×۱۰۰ ذخیره می‌شود؛ venue_id=null سراسری
 // (ساختش فقط سرپرست؛ ویرایش سراسری هم فقط سرپرست).
 
-import React, { useEffect, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  FormControl,
-  FormControlLabel,
-  InputLabel,
-  MenuItem,
-  Select,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useEffect, useId, useState } from 'react'
 import { Icon } from '@iconify/react'
 import PersianDatePicker from '@/components/ui/PersianDatePicker'
 import { toPersianDigits } from '@/lib/jalali'
 import type { Coupon, CouponCreatePayload, CouponType, CouponUpdatePayload } from '@/services/coupons'
 import type { FinanceVenue } from '@/hooks/useFinance'
 import { parseIntFa } from './shared'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Switch } from '@/components/ui/shadcn/switch'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/shadcn/dialog'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/shadcn/select'
 
 interface Props {
   open: boolean
@@ -52,6 +42,17 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
   const [validUntil, setValidUntil] = useState('')
   const [active, setActive] = useState(true)
   const [localError, setLocalError] = useState('')
+
+  const formId = useId()
+  const codeId = `${formId}-code`
+  const scopeId = `${formId}-scope`
+  const venueId_ = `${formId}-venue`
+  const typeId = `${formId}-type`
+  const amountId = `${formId}-amount`
+  const maxUsesId = `${formId}-max-uses`
+  const perUserId = `${formId}-per-user`
+  const minAmountId = `${formId}-min-amount`
+  const activeId = `${formId}-active`
 
   useEffect(() => {
     if (!open) return
@@ -161,111 +162,185 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
     }
   }
 
-  const inputSx = { '& .MuiOutlinedInput-root': { borderRadius: '10px' } } as const
+  const scopeChip = isEdit
+    ? (coupon?.venue_id == null ? 'دامنه: سراسری' : `دامنه: ${venues.find((v) => v.id === coupon?.venue_id)?.name ?? 'سالن'}`)
+    : (venueId ? `اعمال: ${venues.find((v) => v.id === venueId)?.name ?? 'سالن انتخابی'}` : 'سالن انتخابی')
 
   return (
-    <Dialog aria-label={isEdit ? 'ویرایش کد تخفیف' : 'کد تخفیف جدید'} open={open} onClose={saving ? undefined : onClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px', overflow: 'hidden' } } }}>
-      <Box sx={{ background: 'linear-gradient(135deg, #db2777, #f472b6)', px: 3, py: 2.5 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Icon icon="mdi:ticket-percent-outline" className="h-5 w-5" />
-          {isEdit ? `ویرایش ${coupon?.code}` : 'کد تخفیف جدید'}
-        </Typography>
-      </Box>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 2.5, pt: '24px !important' }}>
-        {!isEdit && (
-          <TextField
-            label="کد تخفیف"
-            value={code}
-            onChange={(e) => setCode(e.target.value.toUpperCase())}
-            fullWidth
-            placeholder="مثلاً: نوروز۱۴۰۵"
-            dir="auto"
-            sx={inputSx}
-          />
-        )}
+    <Dialog open={open} onOpenChange={(next) => { if (!next && !saving) onClose() }}>
+      <DialogContent aria-describedby={undefined} className="sm:max-w-[560px]">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-400 text-white">
+              <Icon icon="mdi:ticket-percent-outline" className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <DialogTitle className="text-lg font-extrabold text-foreground">
+              {isEdit ? `ویرایش ${coupon?.code}` : 'کد تخفیف جدید'}
+            </DialogTitle>
+          </div>
+        </DialogHeader>
 
-        {!isEdit ? (
-          isSuper ? (
-            <FormControl size="small" fullWidth>
-              <InputLabel>دامنه اعمال</InputLabel>
-              <Select
-                label="دامنه اعمال"
-                value={scope}
-                onChange={(e) => {
-                  const v = e.target.value as 'venue' | 'global'
-                  setScope(v)
-                  if (v === 'venue' && targetVenue === '') setTargetVenue(venueId ?? venues[0]?.id ?? '')
-                }}
-                sx={{ borderRadius: '10px' }}
-              >
-                <MenuItem value="venue">فقط یک سالن مشخص</MenuItem>
-                <MenuItem value="global">سراسری (همه سالن‌ها)</MenuItem>
-              </Select>
-            </FormControl>
+        <div className="flex flex-col gap-5">
+          {!isEdit && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={codeId}>کد تخفیف</Label>
+              <Input
+                id={codeId}
+                value={code}
+                onChange={(e) => setCode(e.target.value.toUpperCase())}
+                placeholder="مثلاً: نوروز۱۴۰۵"
+                dir="auto"
+              />
+            </div>
+          )}
+
+          {!isEdit ? (
+            isSuper ? (
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor={scopeId}>دامنه اعمال</Label>
+                <Select
+                  value={scope}
+                  onValueChange={(v) => {
+                    const next = v as 'venue' | 'global'
+                    setScope(next)
+                    if (next === 'venue' && targetVenue === '') setTargetVenue(venueId ?? venues[0]?.id ?? '')
+                  }}
+                >
+                  <SelectTrigger id={scopeId}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="venue">فقط یک سالن مشخص</SelectItem>
+                    <SelectItem value="global">سراسری (همه سالن‌ها)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            ) : (
+              <span className="inline-flex items-center gap-1 self-start rounded-xl border border-border bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+                {scopeChip}
+              </span>
+            )
           ) : (
-            <Chip size="small" label={venueId ? `اعمال: ${venues.find((v) => v.id === venueId)?.name ?? 'سالن انتخابی'}` : 'سالن انتخابی'} sx={{ alignSelf: 'flex-start', borderRadius: '10px', fontWeight: 600 }} />
-          )
-        ) : (
-          <Chip size="small" label={coupon?.venue_id == null ? 'دامنه: سراسری' : `دامنه: ${venues.find((v) => v.id === coupon?.venue_id)?.name ?? 'سالن'}`} sx={{ alignSelf: 'flex-start', borderRadius: '10px', fontWeight: 600 }} />
-        )}
+            <span className="inline-flex items-center gap-1 self-start rounded-xl border border-border bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+              {scopeChip}
+            </span>
+          )}
 
-        {scope === 'venue' && !isEdit && venues.length > 1 && (
-          <FormControl size="small" fullWidth>
-            <InputLabel>سالن اعمال</InputLabel>
-            <Select label="سالن اعمال" value={targetVenue} onChange={(e) => setTargetVenue(e.target.value as number)} sx={{ borderRadius: '10px' }}>
-              {venues.map((v) => (
-                <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-        )}
+          {scope === 'venue' && !isEdit && venues.length > 1 && (
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={venueId_}>سالن اعمال</Label>
+              <Select
+                value={targetVenue === '' ? '' : String(targetVenue)}
+                onValueChange={(v) => setTargetVenue(Number(v))}
+              >
+                <SelectTrigger id={venueId_}>
+                  <SelectValue placeholder="انتخاب سالن" />
+                </SelectTrigger>
+                <SelectContent>
+                  {venues.map((v) => (
+                    <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          )}
 
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel>نوع تخفیف</InputLabel>
-            <Select label="نوع تخفیف" value={discountType} onChange={(e) => setDiscountType(e.target.value as CouponType)} sx={{ borderRadius: '10px' }}>
-              <MenuItem value="percent">درصدی</MenuItem>
-              <MenuItem value="fixed">مبلغ ثابت (ریال)</MenuItem>
-            </Select>
-          </FormControl>
-          <TextField
-            label={discountType === 'percent' ? 'درصد' : 'مبلغ تخفیف (ریال)'}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            size="small"
-            inputMode="numeric"
-            sx={{ flex: 1, minWidth: 140, ...inputSx }}
-          />
-        </Box>
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+              <Label htmlFor={typeId}>نوع تخفیف</Label>
+              <Select value={discountType} onValueChange={(v) => setDiscountType(v as CouponType)}>
+                <SelectTrigger id={typeId}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="percent">درصدی</SelectItem>
+                  <SelectItem value="fixed">مبلغ ثابت (ریال)</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex min-w-[140px] flex-1 flex-col gap-1.5">
+              <Label htmlFor={amountId}>{discountType === 'percent' ? 'درصد' : 'مبلغ تخفیف (ریال)'}</Label>
+              <Input
+                id={amountId}
+                value={amount}
+                onChange={(e) => setAmount(e.target.value)}
+                inputMode="numeric"
+                className="tabular-nums"
+              />
+            </div>
+          </div>
 
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <TextField label="سقف مجموع استفاده (خالی = نامحدود)" value={maxUses} onChange={(e) => setMaxUses(e.target.value)} size="small" inputMode="numeric" sx={{ flex: 1, minWidth: 150, ...inputSx }} />
-          <TextField label={`سقف هر کاربر (خالی = نامحدود، پیش‌فرض ${toPersianDigits(1)})`} value={perUserLimit} onChange={(e) => setPerUserLimit(e.target.value)} size="small" inputMode="numeric" sx={{ flex: 1, minWidth: 150, ...inputSx }} />
-        </Box>
-        <TextField label="حداقل مبلغ رزرو برای اعمال (ریال)" value={minAmount} onChange={(e) => setMinAmount(e.target.value)} size="small" inputMode="numeric" sx={inputSx} />
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+              <Label htmlFor={maxUsesId}>سقف مجموع استفاده (خالی = نامحدود)</Label>
+              <Input
+                id={maxUsesId}
+                value={maxUses}
+                onChange={(e) => setMaxUses(e.target.value)}
+                inputMode="numeric"
+                className="tabular-nums"
+              />
+            </div>
+            <div className="flex min-w-[150px] flex-1 flex-col gap-1.5">
+              <Label htmlFor={perUserId}>{`سقف هر کاربر (خالی = نامحدود، پیش‌فرض ${toPersianDigits(1)})`}</Label>
+              <Input
+                id={perUserId}
+                value={perUserLimit}
+                onChange={(e) => setPerUserLimit(e.target.value)}
+                inputMode="numeric"
+                className="tabular-nums"
+              />
+            </div>
+          </div>
 
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <Box sx={{ flex: 1, minWidth: 150 }}>
-            <PersianDatePicker label="اعتبار از" value={validFrom} onChange={setValidFrom} size="small" sx={inputSx} />
-          </Box>
-          <Box sx={{ flex: 1, minWidth: 150 }}>
-            <PersianDatePicker label="اعتبار تا" value={validUntil} onChange={setValidUntil} size="small" min={validFrom || undefined} sx={inputSx} />
-          </Box>
-        </Box>
-        <Typography variant="caption" sx={{ color: 'text.secondary', mt: '-12px' }}>خالی‌گذاری = بدون محدودیت زمانی. سرور این تاریخ‌ها را به میلادی تبدیل و ذخیره می‌کند.</Typography>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={minAmountId}>حداقل مبلغ رزرو برای اعمال (ریال)</Label>
+            <Input
+              id={minAmountId}
+              value={minAmount}
+              onChange={(e) => setMinAmount(e.target.value)}
+              inputMode="numeric"
+              className="tabular-nums"
+            />
+          </div>
 
-        {isEdit && (
-          <FormControlLabel control={<Switch checked={active} onChange={(e) => setActive(e.target.checked)} />} label={<Typography variant="body2" sx={{ fontWeight: 600 }}>کد فعال باشد</Typography>} />
-        )}
+          <div className="flex flex-wrap items-start gap-4">
+            <div className="min-w-[150px] flex-1">
+              <PersianDatePicker label="اعتبار از" value={validFrom} onChange={setValidFrom} size="small" />
+            </div>
+            <div className="min-w-[150px] flex-1">
+              <PersianDatePicker label="اعتبار تا" value={validUntil} onChange={setValidUntil} size="small" min={validFrom || undefined} />
+            </div>
+          </div>
+          <p className="-mt-2 text-xs text-muted-foreground">خالی‌گذاری = بدون محدودیت زمانی. سرور این تاریخ‌ها را به میلادی تبدیل و ذخیره می‌کند.</p>
 
-        {localError && <Typography variant="body2" role="alert" sx={{ color: 'error.main', fontWeight: 600 }}>{localError}</Typography>}
+          {isEdit && (
+            <div className="flex items-center gap-3">
+              <Switch id={activeId} checked={active} onCheckedChange={setActive} />
+              <Label htmlFor={activeId} className="cursor-pointer text-sm font-semibold text-foreground">
+                کد فعال باشد
+              </Label>
+            </div>
+          )}
+
+          {localError && (
+            <p role="alert" className="text-sm font-semibold text-red-600 dark:text-red-400">{localError}</p>
+          )}
+        </div>
+
+        <div className="flex justify-end gap-2 border-t border-border pt-4">
+          <Button onClick={onClose} disabled={saving} variant="outline">
+            انصراف
+          </Button>
+          <Button
+            onClick={submit}
+            disabled={saving}
+            className="bg-gradient-to-br from-pink-600 to-pink-400 font-bold text-white hover:from-pink-700 hover:to-pink-500"
+          >
+            {isEdit ? 'ذخیره تغییرات' : 'ایجاد کد'}
+          </Button>
+        </div>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-        <Button onClick={onClose} disabled={saving} variant="outlined" sx={{ borderRadius: '10px', textTransform: 'none', px: 3 }}>انصراف</Button>
-        <Button onClick={submit} variant="contained" disabled={saving} sx={{ borderRadius: '10px', textTransform: 'none', px: 3, fontWeight: 700, background: 'linear-gradient(135deg, #db2777, #f472b6)' }}>
-          {isEdit ? 'ذخیره تغییرات' : 'ایجاد کد'}
-        </Button>
-      </DialogActions>
     </Dialog>
   )
 }

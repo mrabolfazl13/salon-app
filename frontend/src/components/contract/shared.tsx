@@ -3,18 +3,14 @@
 // واحدهای پول (ریال — واحد دفترکل بک‌اند؛ بازنشر از finance/shared بدون تکرار)،
 // کمک‌تابع‌های تاریخ/سانس و دیالوگ دلیل‌دار عمومی.
 
-import React, { useEffect, useState } from 'react'
-import {
-  Alert,
-  Box,
-  Button,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Typography,
-} from '@mui/material'
+import React, { useEffect, useId, useState } from 'react'
 import { Icon } from '@iconify/react'
+import Dialog from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/shadcn/button'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Label } from '@/components/ui/shadcn/label'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import { cn } from '@/lib/utils'
 import {
   faNum,
   formatRial,
@@ -273,6 +269,9 @@ export const ReasonDialog: React.FC<ReasonDialogProps> = ({
 }) => {
   const [reason, setReason] = useState('')
   const [touched, setTouched] = useState(false)
+  // اتصال برچسب/خطا به textarea برای صفحه‌خوان
+  const reasonId = useId()
+  const reasonErrId = useId()
 
   useEffect(() => {
     if (open) {
@@ -291,58 +290,69 @@ export const ReasonDialog: React.FC<ReasonDialogProps> = ({
   }
 
   return (
-    <Dialog aria-label={title} open={open} onClose={loading ? undefined : onClose} maxWidth="sm" fullWidth
-      slotProps={{ paper: { sx: { borderRadius: '18px' } } }}>
-      <DialogTitle sx={{ fontWeight: 800, fontSize: '1.02rem', pb: 0.5 }}>{title}</DialogTitle>
-      <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <Dialog
+      open={open}
+      onClose={loading ? undefined : onClose}
+      title={title}
+      maxWidth="sm"
+      actions={
+        <>
+          <Button
+            variant="ghost"
+            onClick={onClose}
+            disabled={loading}
+            className="rounded-xl px-4"
+          >
+            انصراف
+          </Button>
+          <Button
+            variant={danger ? 'destructive' : 'default'}
+            onClick={submit}
+            disabled={loading || (!touched && invalid)}
+            className="rounded-xl font-bold"
+          >
+            {loading ? 'در حال ثبت...' : confirmText}
+          </Button>
+        </>
+      }
+    >
+      <div className="flex flex-col gap-3">
         {description && (
-          <Alert severity={danger ? 'warning' : 'info'} sx={{ borderRadius: '12px', fontSize: '0.82rem' }}>
-            {description}
+          <Alert variant={danger ? 'warning' : 'info'} className="rounded-xl text-[0.82rem]">
+            <AlertDescription>{description}</AlertDescription>
           </Alert>
         )}
         {errorText && (
-          <Alert severity="error" sx={{ borderRadius: '12px', fontSize: '0.82rem' }}>{errorText}</Alert>
+          <Alert variant="destructive" className="rounded-xl text-[0.82rem]">
+            <AlertDescription>{errorText}</AlertDescription>
+          </Alert>
         )}
-        <Box>
-          <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.75 }}>{reasonLabel} *</Typography>
-          <textarea
+        <div>
+          <Label htmlFor={reasonId} className="mb-1.5 block font-semibold">
+            {reasonLabel} *
+          </Label>
+          <Textarea
+            id={reasonId}
             value={reason}
             onChange={(e) => setReason(e.target.value)}
             onBlur={() => setTouched(true)}
             rows={3}
             maxLength={500}
             placeholder="حداقل ۳ کاراکتر — این دلیل برای طرف مقابل و در ممیزی ثبت می‌شود"
-            style={{
-              width: '100%',
-              borderRadius: '12px',
-              border: `1px solid ${touched && invalid ? '#ef4444' : 'rgba(0,0,0,0.23)'}`,
-              padding: '10px 12px',
-              fontFamily: 'Vazirmatn, sans-serif',
-              fontSize: '0.88rem',
-              background: 'white',
-              resize: 'vertical',
-              boxSizing: 'border-box',
-            }}
+            aria-invalid={touched && invalid ? true : undefined}
+            aria-describedby={touched && invalid ? reasonErrId : undefined}
+            className={cn(
+              'min-h-[92px] resize-y text-[0.88rem]',
+              touched && invalid && 'border-red-500 focus-visible:ring-red-500',
+            )}
           />
           {touched && invalid && (
-            <Typography variant="caption" color="error">دلیل باید بین ۳ تا ۵۰۰ کاراکتر باشد</Typography>
+            <p id={reasonErrId} className="mt-1 text-xs text-red-600 dark:text-red-400">
+              دلیل باید بین ۳ تا ۵۰۰ کاراکتر باشد
+            </p>
           )}
-        </Box>
-      </DialogContent>
-      <DialogActions sx={{ px: 2.5, pb: 2, gap: 1 }}>
-        <Button onClick={onClose} disabled={loading} sx={{ textTransform: 'none', borderRadius: '10px' }}>
-          انصراف
-        </Button>
-        <Button
-          variant="contained"
-          color={danger ? 'error' : 'primary'}
-          onClick={submit}
-          disabled={loading || (!touched && invalid)}
-          sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
-        >
-          {loading ? 'در حال ثبت...' : confirmText}
-        </Button>
-      </DialogActions>
+        </div>
+      </div>
     </Dialog>
   )
 }
@@ -357,9 +367,9 @@ export const ContractStatusChip: React.FC<{ status: string | null | undefined; s
 export const SessionStatusChip: React.FC<{ status: string | null | undefined }> = ({ status }) => {
   const meta = sessionStatusMeta(status)
   return (
-    <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
+    <span className="inline-flex items-center gap-1">
       <Icon icon={meta.icon} className="h-4 w-4" style={{ color: meta.color }} />
       <StatusChip label={meta.label} color={meta.color} />
-    </Box>
+    </span>
   )
 }

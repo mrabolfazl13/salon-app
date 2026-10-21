@@ -4,16 +4,6 @@
 
 import React, { useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Button as MuiButton,
-  Chip,
-  FormControlLabel,
-  MenuItem,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material'
 
 import type { DuesPayMethod, Team, TeamDue, TeamMember } from '@/types/team'
 import { DUE_METHOD_LABELS } from '@/types/team'
@@ -29,8 +19,20 @@ import { useAuthStore } from '@/store/authStore'
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
 import PersianDatePicker from '@/components/ui/PersianDatePicker'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import { Switch } from '@/components/ui/shadcn/switch'
+import { Textarea } from '@/components/ui/shadcn/textarea'
 import { EmptyBox, ErrorBox, LoadingBox, formatRial, parseAmountInput } from '@/components/finance/shared'
 import { formatJalaliDate, getTodayISO, toPersianDigits } from '@/lib/jalali'
+import { cn } from '@/lib/utils'
 import { getTeamError, DueStatusChip } from './shared'
 
 const PAGE_SIZE = 20
@@ -76,44 +78,47 @@ const DuePayDialog: React.FC<{
 
   return (
     <Dialog open={open} onClose={onClose} title={isCollecting ? 'وصول حصه' : 'پرداخت حصه'} maxWidth="xs">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
+      <div className="flex flex-col gap-4 pt-1">
         {due && (
-          <Box sx={{ px: 2, py: 1.5, borderRadius: '14px', bgcolor: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.12)' }}>
-            <Typography sx={{ fontWeight: 800, fontSize: '0.9rem' }}>{due.title}</Typography>
-            <Typography sx={{ fontSize: '0.78rem', color: '#64748b', mt: 0.25 }} dir="rtl">
+          <div className="rounded-[14px] border border-blue-600/[0.12] bg-blue-600/5 px-4 py-3">
+            <p className="text-[0.9rem] font-extrabold">{due.title}</p>
+            <p className="mt-0.5 text-[0.78rem] text-slate-500 dark:text-slate-400" dir="rtl">
               {`${formatRial(due.amount)} — سررسید ${formatJalaliDate(due.due_date, { format: 'numeric' })}`}
-            </Typography>
-          </Box>
+            </p>
+          </div>
         )}
-        <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+        <p className="text-xs text-slate-500 dark:text-slate-400">
           توجه: روش «درگاه» در این نسخه همانند بک‌اند به‌صورت قطعی ثبت می‌شود (پرداخت بانکی واقعی انجام نمی‌شود) — برای دریافت لینک پرداخت از flow رزروها استفاده کنید.
-        </Typography>
-        <TextField
-          select
-          label="روش"
-          size="small"
-          value={method}
-          onChange={(e) => setMethod(e.target.value as DuesPayMethod)}
-        >
-          {(Object.keys(DUE_METHOD_LABELS) as DuesPayMethod[]).map((m) => (
-            <MenuItem key={m} value={m}>{DUE_METHOD_LABELS[m]}</MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          label="شناسه/کد پیگیری (اختیاری)"
-          size="small"
-          fullWidth
-          value={reference}
-          slotProps={{ htmlInput: { maxLength: 120 } }}
-          onChange={(e) => setReference(e.target.value)}
-        />
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+        </p>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="due-method">روش</Label>
+          <Select value={method} onValueChange={(v) => setMethod(v as DuesPayMethod)}>
+            <SelectTrigger id="due-method">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {(Object.keys(DUE_METHOD_LABELS) as DuesPayMethod[]).map((m) => (
+                <SelectItem key={m} value={m}>{DUE_METHOD_LABELS[m]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="due-reference">شناسه/کد پیگیری (اختیاری)</Label>
+          <Input
+            id="due-reference"
+            maxLength={120}
+            value={reference}
+            onChange={(e) => setReference(e.target.value)}
+          />
+        </div>
+        <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={pay.isPending}>انصراف</Button>
           <Button variant="gradient" loading={pay.isPending} onClick={handlePay} icon="mdi:cash-check">
             {isCollecting ? 'ثبت وصول' : 'پرداخت'}
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }
@@ -186,29 +191,36 @@ const DuesGenerateDialog: React.FC<{
 
   return (
     <Dialog open={open} onClose={onClose} title="ایجاد حصه برای اعضا" maxWidth="xs">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+      <div className="flex flex-col gap-4 pt-1">
+        <p className="text-xs text-muted-foreground">
           مبلغ سرانه‌ی هر عضو است و برای همه‌ی اعضای انتخابی (پیش‌فرض: همه) به یکی از همین مبلغ ساخته می‌شود؛ کاپیتان هم شامل می‌شود.
-        </Typography>
-        <TextField
-          label="عنوان حصه"
-          size="small"
-          required
-          fullWidth
-          value={title}
-          slotProps={{ htmlInput: { maxLength: 100 } }}
-          onChange={(e) => setTitle(e.target.value)}
-          placeholder="مثلاً: سهم هفته — سالن انقلاب"
-        />
-        <TextField
-          label="مبلغ سرانه (ریال)"
-          size="small"
-          required
-          fullWidth
-          value={amountStr}
-          onChange={(e) => { setAmountStr(e.target.value); setFieldError('') }}
-          placeholder="۵۰۰٬۰۰۰"
-        />
+        </p>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="due-title">
+            عنوان حصه <span className="text-red-600 dark:text-red-400">*</span>
+          </Label>
+          <Input
+            id="due-title"
+            required
+            maxLength={100}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="مثلاً: سهم هفته — سالن انقلاب"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="due-amount">
+            مبلغ سرانه (ریال) <span className="text-red-600 dark:text-red-400">*</span>
+          </Label>
+          <Input
+            id="due-amount"
+            inputMode="numeric"
+            required
+            value={amountStr}
+            onChange={(e) => { setAmountStr(e.target.value); setFieldError('') }}
+            placeholder="۵۰۰٬۰۰۰"
+          />
+        </div>
         <PersianDatePicker
           label="سررسید"
           size="small"
@@ -217,38 +229,41 @@ const DuesGenerateDialog: React.FC<{
           min={getTodayISO()}
           clearable={false}
         />
-        <Box>
-          <Typography sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#64748b', mb: 0.5 }}>
+        <div>
+          <p className="mb-1 text-xs font-bold text-slate-500 dark:text-slate-400">
             اعضا ({toPersianDigits(targets.length)} نفر)
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75, maxHeight: 160, overflowY: 'auto' }}>
+          </p>
+          <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
             {active.map((m) => {
               const on = allSelected || (selected ?? []).includes(m.user_id)
               return (
-                <Chip
+                <button
                   key={m.id}
-                  size="small"
-                  label={m.full_name ?? `کاربر ${m.user_id}`}
+                  type="button"
+                  aria-pressed={on}
                   onClick={() => toggle(m.user_id)}
-                  icon={<Icon icon={on ? 'mdi:check-circle' : 'mdi:circle-outline'} style={{ width: 14, height: 14 }} />}
-                  sx={{
-                    fontWeight: 600,
-                    bgcolor: on ? 'rgba(37,99,235,0.10)' : 'rgba(15,23,42,0.04)',
-                    color: on ? '#2563eb' : '#64748b',
-                  }}
-                />
+                  className={cn(
+                    'inline-flex min-h-11 items-center gap-1 rounded-full px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    on
+                      ? 'bg-blue-600/10 text-blue-700 dark:text-blue-300'
+                      : 'bg-slate-900/5 text-slate-500 hover:bg-slate-900/10 dark:bg-white/5 dark:text-slate-400',
+                  )}
+                >
+                  <Icon icon={on ? 'mdi:check-circle' : 'mdi:circle-outline'} style={{ width: 14, height: 14 }} />
+                  {m.full_name ?? `کاربر ${m.user_id}`}
+                </button>
               )
             })}
-          </Box>
-        </Box>
-        {fieldError && <Typography role="alert" sx={{ fontSize: '0.75rem', color: 'error.main', fontWeight: 600 }}>{fieldError}</Typography>}
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+          </div>
+        </div>
+        {fieldError && <p role="alert" className="text-xs font-semibold text-red-600 dark:text-red-400">{fieldError}</p>}
+        <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={generate.isPending}>انصراف</Button>
           <Button variant="gradient" loading={generate.isPending} onClick={handleSubmit} icon="mdi:plus-circle-outline">
             ساخت حصه‌ها
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }
@@ -309,68 +324,79 @@ const DuesPlanDialog: React.FC<{
 
   return (
     <Dialog open onClose={onClose} title="برنامه حق‌عضویت" maxWidth="xs">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-        <FormControlLabel
-          control={<Switch checked={auto} onChange={(e) => { setAuto(e.target.checked); setFieldError('') }} />}
-          label={
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-              <Icon icon={auto ? 'mdi:repeat' : 'mdi:hand-coin-outline'} style={{ width: 16, height: 16 }} />
-              <Typography sx={{ fontSize: '0.85rem', fontWeight: 700 }}>سهم خودکار هر ماه</Typography>
-            </Box>
-          }
-          sx={{ mx: 0 }}
-        />
-        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+      <div className="flex flex-col gap-4 pt-1">
+        <div className="flex min-h-11 items-center gap-2">
+          <Switch
+            id="dues-auto"
+            checked={auto}
+            onCheckedChange={(checked) => { setAuto(checked); setFieldError('') }}
+          />
+          <Label htmlFor="dues-auto" className="flex cursor-pointer items-center gap-1 text-[0.85rem] font-bold">
+            <Icon icon={auto ? 'mdi:repeat' : 'mdi:hand-coin-outline'} style={{ width: 16, height: 16 }} />
+            سهم خودکار هر ماه
+          </Label>
+        </div>
+        <p className="text-xs text-muted-foreground">
           با روشن بودن این گزینه، سرور هر ماه به‌صورت خودکار برای همه اعضای فعال سهم می‌سازد و
           نیازی به دکمه «ایجاد حصه» نیست؛ با خاموشی، سهم‌ها دستی ساخته می‌شوند.
-        </Typography>
-        <TextField
-          label="عنوان حصه"
-          size="small"
-          fullWidth
-          value={title}
-          slotProps={{ htmlInput: { maxLength: 80 } }}
-          onChange={(e) => setTitle(e.target.value)}
-        />
-        <TextField
-          label="مبلغ ماهانه سرانه (ریال)"
-          size="small"
-          fullWidth
-          required={auto}
-          value={amountStr}
-          inputMode="numeric"
-          onChange={(e) => { setAmountStr(e.target.value); setFieldError('') }}
-          placeholder="۵۰۰٬۰۰۰"
-        />
-        <TextField
-          select
-          label="روز سررسید هر ماه"
-          size="small"
-          value={dueDay}
-          onChange={(e) => setDueDay(Number(e.target.value))}
-        >
-          {DUE_DAYS.map((d) => (
-            <MenuItem key={d} value={d}>{toPersianDigits(d)}</MenuItem>
-          ))}
-        </TextField>
-        <TextField
-          label="جریمه دیرکرد (٪)"
-          size="small"
-          value={pctStr}
-          inputMode="numeric"
-          onChange={(e) => { setPctStr(e.target.value); setFieldError('') }}
-          helperText={`۰ یعنی بدون جریمه — بعد از ${toPersianDigits(graceDays)} روز مهلت، یک‌بار به همان حصه اضافه می‌شود.`}
-        />
+        </p>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="plan-title">عنوان حصه</Label>
+          <Input
+            id="plan-title"
+            maxLength={80}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="plan-amount">
+            مبلغ ماهانه سرانه (ریال){auto && <span className="text-red-600 dark:text-red-400"> *</span>}
+          </Label>
+          <Input
+            id="plan-amount"
+            inputMode="numeric"
+            required={auto}
+            value={amountStr}
+            onChange={(e) => { setAmountStr(e.target.value); setFieldError('') }}
+            placeholder="۵۰۰٬۰۰۰"
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="plan-due-day">روز سررسید هر ماه</Label>
+          <Select value={String(dueDay)} onValueChange={(v) => setDueDay(Number(v))}>
+            <SelectTrigger id="plan-due-day">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {DUE_DAYS.map((d) => (
+                <SelectItem key={d} value={String(d)}>{toPersianDigits(d)}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="plan-pct">جریمه دیرکرد (٪)</Label>
+          <Input
+            id="plan-pct"
+            inputMode="numeric"
+            value={pctStr}
+            onChange={(e) => { setPctStr(e.target.value); setFieldError('') }}
+          />
+          <p className="text-xs text-muted-foreground">
+            {`۰ یعنی بدون جریمه — بعد از ${toPersianDigits(graceDays)} روز مهلت، یک‌بار به همان حصه اضافه می‌شود.`}
+          </p>
+        </div>
         {fieldError && (
-          <Typography role="alert" sx={{ fontSize: '0.75rem', color: 'error.main', fontWeight: 600 }}>{fieldError}</Typography>
+          <p role="alert" className="text-xs font-semibold text-red-600 dark:text-red-400">{fieldError}</p>
         )}
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+        <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={setPlan.isPending}>انصراف</Button>
           <Button variant="gradient" loading={setPlan.isPending} onClick={handleSubmit} icon="mdi:content-save-outline">
             ذخیره برنامه
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }
@@ -426,30 +452,25 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+    <div className="flex flex-col gap-3">
       {plan && (
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.25,
-            flexWrap: 'wrap',
-            px: 1.5,
-            py: 1.25,
-            borderRadius: '16px',
-            border: `1px solid ${plan.dues_auto ? 'rgba(16,185,129,0.25)' : 'rgba(15,23,42,0.08)'}`,
-            bgcolor: plan.dues_auto ? 'rgba(16,185,129,0.06)' : 'rgba(15,23,42,0.03)',
-          }}
+        <div
+          className={cn(
+            'flex flex-wrap items-center gap-2.5 rounded-2xl border px-3 py-2.5',
+            plan.dues_auto
+              ? 'border-emerald-500/25 bg-emerald-500/[0.06]'
+              : 'border-slate-900/10 bg-slate-900/[0.03] dark:border-white/10 dark:bg-white/5',
+          )}
         >
           <Icon
             icon={plan.dues_auto ? 'mdi:repeat' : 'mdi:hand-coin-outline'}
             style={{ width: 20, height: 20, color: plan.dues_auto ? '#059669' : '#64748b' }}
           />
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>
+          <div className="min-w-0 flex-1">
+            <p className="text-[0.85rem] font-extrabold text-slate-900 dark:text-slate-100">
               {plan.dues_auto ? 'حق‌عضویت خودکار' : 'حق‌عضویت دستی'}
-            </Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }} dir="rtl">
+            </p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400" dir="rtl">
               {plan.dues_auto && plan.amount
                 ? `هر ماه ${formatRial(plan.amount)} — سررسید روز ${toPersianDigits(plan.due_day)} هر ماه${
                     plan.late_fee_pct > 0
@@ -457,43 +478,35 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
                       : ''
                   }`
                 : 'سهم‌ها را کاپیتان/مدیر با دکمه «ایجاد حصه» می‌سازد.'}
-            </Typography>
-          </Box>
+            </p>
+          </div>
           {isManager && (
             <Button size="sm" variant="outline" icon="mdi:cog-outline" onClick={() => setPlanOpen(true)}>
               ویرایش برنامه
             </Button>
           )}
-        </Box>
+        </div>
       )}
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
-        <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {STATUS_CHIPS.map((s) => (
-            <MuiButton
+            <Button
               key={s.value}
-              size="small"
-              variant={status === s.value ? 'contained' : 'outlined'}
+              size="sm"
+              variant={status === s.value ? 'gradient' : 'secondary'}
               onClick={() => { setStatus(s.value); setPage(1) }}
-              sx={{
-                borderRadius: '999px',
-                textTransform: 'none',
-                fontWeight: 700,
-                fontSize: '0.75rem',
-                px: 1.5,
-                py: 0.25,
-                ...(status === s.value ? { background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: '#fff', border: 'none' } : {}),
-              }}
+              className="rounded-full px-3 font-bold"
             >
               {s.label}
-            </MuiButton>
+            </Button>
           ))}
-        </Box>
+        </div>
         {isManager && (
           <Button size="sm" variant="gradient" icon="mdi:plus-circle-outline" onClick={() => setGenerateOpen(true)}>
             ایجاد حصه
           </Button>
         )}
-      </Box>
+      </div>
 
       {duesQ.isPending ? (
         <LoadingBox text="در حال دریافت حصه‌ها..." />
@@ -502,54 +515,51 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
       ) : items.length === 0 ? (
         <EmptyBox icon="mdi:cash-clock-outline" title="حصه‌ای ثبت نشده" text={isManager ? 'با دکمه‌ی «ایجاد حصه» برای اعضا سهم سرانه بسازید.' : 'هنوز سهمی برای شما ثبت نشده است.'} />
       ) : (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <div className="flex flex-col gap-2">
           {items.map((due) => {
             const mine = due.user_id === me?.id
             return (
-              <Box
+              <div
                 key={due.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.25,
-                  flexWrap: 'wrap',
-                  px: 1.5,
-                  py: 1.25,
-                  borderRadius: '16px',
-                  border: '1px solid rgba(15,23,42,0.06)',
-                  bgcolor: due.is_paid ? 'rgba(16,185,129,0.04)' : due.is_voided ? 'rgba(100,116,139,0.04)' : 'rgba(245,158,11,0.04)',
-                }}
+                className={cn(
+                  'flex flex-wrap items-center gap-2.5 rounded-2xl border border-slate-900/[0.06] px-3 py-2.5 dark:border-white/10',
+                  due.is_paid
+                    ? 'bg-emerald-500/[0.04]'
+                    : due.is_voided
+                      ? 'bg-slate-500/[0.04]'
+                      : 'bg-amber-500/[0.04]',
+                )}
               >
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Typography sx={{ fontSize: '0.85rem', fontWeight: 700, color: '#0f172a' }}>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[0.85rem] font-bold text-slate-900 dark:text-slate-100">
                     {due.title}
-                    {mine && <span style={{ color: '#2563eb', fontSize: '0.75rem' }}> (شما)</span>}
+                    {mine && <span className="text-xs text-blue-600 dark:text-blue-400"> (شما)</span>}
                     {due.penalty_for_id && (
-                      <span style={{ color: '#b45309', fontSize: '0.72rem', fontWeight: 700 }}> — جریمه دیرکرد</span>
+                      <span className="text-[0.72rem] font-bold text-amber-700 dark:text-amber-400"> — جریمه دیرکرد</span>
                     )}
-                  </Typography>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25, flexWrap: 'wrap' }}>
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: '#0f172a' }} dir="rtl">
+                  </p>
+                  <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                    <p className="text-xs font-extrabold text-slate-900 dark:text-slate-100" dir="rtl">
                       {formatRial(due.amount)}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {`سررسید: ${formatJalaliDate(due.due_date, { format: 'numeric' })}`}
-                    </Typography>
+                    </p>
                     {isManager && !mine && (
-                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 600 }}>
+                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                         {due.full_name ?? `کاربر ${due.user_id}`}
-                      </Typography>
+                      </p>
                     )}
                     {due.payment_method && (
-                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         {DUE_METHOD_LABELS[due.payment_method] ?? due.payment_method}
-                      </Typography>
+                      </p>
                     )}
-                  </Box>
+                  </div>
                   {due.void_reason && (
-                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>{`دلیل ابطال: ${due.void_reason}`}</Typography>
+                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{`دلیل ابطال: ${due.void_reason}`}</p>
                   )}
-                </Box>
+                </div>
                 <DueStatusChip isPaid={due.is_paid} isVoided={due.is_voided} overdue={due.overdue} />
                 {canPay(due) && (
                   <Button size="sm" variant="gradient" icon="mdi:cash-check" onClick={() => setPayTarget(due)}>
@@ -557,60 +567,62 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
                   </Button>
                 )}
                 {isManager && !due.is_paid && !due.is_voided && (
-                  <MuiButton
-                    size="small"
+                  <Button
+                    size="sm"
+                    variant="ghost"
                     onClick={() => setVoidTarget(due)}
-                    sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', color: 'error.main' }}
+                    className="text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-400"
                   >
                     ابطال
-                  </MuiButton>
+                  </Button>
                 )}
-              </Box>
+              </div>
             )
           })}
           {pageCount > 1 && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 1.5, pt: 1 }}>
-              <MuiButton size="small" disabled={page <= 1 || duesQ.isFetching} onClick={() => setPage((p) => p - 1)} sx={{ textTransform: 'none', fontWeight: 700 }}>
+            <div className="flex items-center justify-center gap-3 pt-2">
+              <Button size="sm" variant="ghost" disabled={page <= 1 || duesQ.isFetching} onClick={() => setPage((p) => p - 1)} className="font-bold">
                 قبلی
-              </MuiButton>
-              <Typography sx={{ fontSize: '0.75rem', color: '#64748b', fontWeight: 700 }}>
+              </Button>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
                 {`${toPersianDigits(page)} / ${toPersianDigits(pageCount)}`}
-              </Typography>
-              <MuiButton size="small" disabled={page >= pageCount || duesQ.isFetching} onClick={() => setPage((p) => p + 1)} sx={{ textTransform: 'none', fontWeight: 700 }}>
+              </p>
+              <Button size="sm" variant="ghost" disabled={page >= pageCount || duesQ.isFetching} onClick={() => setPage((p) => p + 1)} className="font-bold">
                 بعدی
-              </MuiButton>
-            </Box>
+              </Button>
+            </div>
           )}
-        </Box>
+        </div>
       )}
 
       <DuePayDialog team={team} due={payTarget} onClose={() => setPayTarget(null)} isCollecting={!!payTarget && isCollecting(payTarget)} />
       <DuesGenerateDialog team={team} members={members} open={generateOpen} onClose={() => setGenerateOpen(false)} />
       {planOpen && <DuesPlanDialog team={team} onClose={() => setPlanOpen(false)} />}
       <Dialog open={!!voidTarget} onClose={() => setVoidTarget(null)} title="ابطال حصه" maxWidth="xs">
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-          <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary' }}>
+        <div className="flex flex-col gap-4 pt-1">
+          <p className="text-[0.8rem] text-muted-foreground">
             {voidTarget ? `حصه‌«${voidTarget.title}» (${formatRial(voidTarget.amount)}) باطل شود؟ حصه‌های پرداخت‌شده قابل ابطال نیستند.` : ''}
-          </Typography>
-          <TextField
-            label="دلیل (اختیاری)"
-            size="small"
-            fullWidth
-            multiline
-            minRows={2}
-            slotProps={{ htmlInput: { maxLength: 300 } }}
-            value={voidReason}
-            onChange={(e) => setVoidReason(e.target.value)}
-          />
-          <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+          </p>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="void-reason">دلیل (اختیاری)</Label>
+            <Textarea
+              id="void-reason"
+              rows={2}
+              maxLength={300}
+              value={voidReason}
+              onChange={(e) => setVoidReason(e.target.value)}
+              className="min-h-[72px]"
+            />
+          </div>
+          <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={() => setVoidTarget(null)} disabled={voidDue.isPending}>انصراف</Button>
             <Button variant="destructive" loading={voidDue.isPending} onClick={handleVoid} icon="mdi:delete-cancel-outline">
               ابطال
             </Button>
-          </Box>
-        </Box>
+          </div>
+        </div>
       </Dialog>
-    </Box>
+    </div>
   )
 }
 

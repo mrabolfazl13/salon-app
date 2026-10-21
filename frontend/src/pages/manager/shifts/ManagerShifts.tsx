@@ -7,25 +7,6 @@
 
 import React, { useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Button,
-  Card,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  FormControl,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  Stack,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material'
 import toast from 'react-hot-toast'
 
 import Layout from '@/components/layout/Layout'
@@ -42,7 +23,14 @@ import {
 } from '@/hooks/useShifts'
 import type { ShiftRow, ShiftStatus } from '@/types/shift'
 import { formatJalaliDate, jalaliMonthNames, toJalali, toPersianDigits } from '@/lib/jalali'
-import { radii, shadows } from '@/theme'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import {
+  Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle,
+} from '@/components/ui/shadcn/dialog'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/shadcn/select'
 
 export const SHIFT_STATUS_LABELS: Record<ShiftStatus, string> = {
   scheduled: 'برنامه‌ریزی‌شده',
@@ -242,16 +230,16 @@ const ManagerShifts: React.FC = () => {
 
   return (
     <Layout userRole="venue_manager">
-      <Stack spacing={2} sx={{ pt: 1, pb: 4 }}>
-        <Box>
-          <Typography component="h1" variant="h5" sx={{ fontWeight: 800 }}>
-            <Icon icon="mdi:calendar-clock" style={{ verticalAlign: 'middle', marginLeft: 6 }} />
+      <div className="flex flex-col gap-4 pb-8 pt-2">
+        <div>
+          <h1 className="flex items-center gap-2 text-xl font-extrabold md:text-2xl">
+            <Icon icon="mdi:calendar-clock" className="h-6 w-6 text-primary" aria-hidden="true" />
             شیفت پرسنل
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             برنامه‌ریزی هفتگی با تشخیص خودکار تداخل — یک نفر نمی‌تواند هم‌زمان دو شیفت داشته باشد.
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
         {venuesQuery.isPending ? (
           <Shimmer height={96} />
@@ -266,72 +254,100 @@ const ManagerShifts: React.FC = () => {
                       description="در کنسول CRM کارمند را با موقعیت «مدیر شعبه» انتصاب کنید تا بتوانید شیفت بچینید." />
         ) : (
           <>
-            <Card sx={{ p: 1.5, borderRadius: `${radii.card}px`, boxShadow: shadows.card }}>
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+            <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+              <div className="flex flex-wrap items-center gap-2">
                 {venues.map((v) => (
-                  <Button key={v.id} size="small"
-                          data-testid={`shift-venue-${v.id}`}
-                          variant={activeVenue === v.id ? 'contained' : 'outlined'}
-                          onClick={() => setVenueId(v.id)}
-                          sx={{ borderRadius: '10px', minHeight: 44 }}>
+                  <button
+                    key={v.id}
+                    type="button"
+                    data-testid={`shift-venue-${v.id}`}
+                    aria-pressed={activeVenue === v.id}
+                    onClick={() => setVenueId(v.id)}
+                    className={`min-h-11 rounded-[10px] px-3 text-sm font-semibold transition-colors ${
+                      activeVenue === v.id
+                        ? 'bg-primary text-white shadow-sm'
+                        : 'border border-border text-foreground hover:bg-muted'
+                    }`}
+                  >
                     {v.name}
-                  </Button>
+                  </button>
                 ))}
-                <Box sx={{ flex: 1 }} />
-                <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', gap: 0.5 }}>
-                  <IconButton aria-label="هفتهٔ قبل" sx={{ width: 44, height: 44 }}
-                              data-testid="shift-prev-week"
-                              onClick={() => setWeekStart(addDays(weekStart, -7))}>
-                    <Icon icon="mdi:chevron-right" style={{ width: 22, height: 22 }} />
-                  </IconButton>
-                  <Button size="small" onClick={() => setWeekStart(startOfWeek(today))}
-                          sx={{ minHeight: 44, borderRadius: '10px' }}>
+                <div className="flex-1" />
+                <div className="flex items-center gap-1">
+                  <button
+                    type="button"
+                    aria-label="هفتهٔ قبل"
+                    data-testid="shift-prev-week"
+                    onClick={() => setWeekStart(addDays(weekStart, -7))}
+                    className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
+                  >
+                    <Icon icon="mdi:chevron-right" className="h-[22px] w-[22px]" aria-hidden="true" />
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setWeekStart(startOfWeek(today))}
+                    className="min-h-11 rounded-[10px] px-3 text-sm font-semibold transition-colors hover:bg-muted"
+                  >
                     این هفته
-                  </Button>
-                  <IconButton aria-label="هفتهٔ بعد" sx={{ width: 44, height: 44 }}
-                              data-testid="shift-next-week"
-                              onClick={() => setWeekStart(addDays(weekStart, 7))}>
-                    <Icon icon="mdi:chevron-left" style={{ width: 22, height: 22 }} />
-                  </IconButton>
-                </Stack>
-              </Stack>
-              <Divider sx={{ my: 1.25 }} />
-              <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+                  </button>
+                  <button
+                    type="button"
+                    aria-label="هفتهٔ بعد"
+                    data-testid="shift-next-week"
+                    onClick={() => setWeekStart(addDays(weekStart, 7))}
+                    className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
+                  >
+                    <Icon icon="mdi:chevron-left" className="h-[22px] w-[22px]" aria-hidden="true" />
+                  </button>
+                </div>
+              </div>
+              <hr className="my-3 border-border" />
+              <div className="flex flex-wrap items-center gap-2">
+                <p className="inline-flex items-center gap-1.5 text-sm font-bold">
                   {/* دو تاریخ در یک رشتهٔ واحد در RTL برعکس دیده می‌شد؛ هر تاریخ
                       جدا رندر می‌شود تا شروع همیشه سمت راست بماند */}
-                  <Box component="span" dir="ltr">{formatJalaliDate(`${weekStart}T09:00:00`, { format: 'numeric' })}</Box>
-                  <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>تا</Box>
-                  <Box component="span" dir="ltr">{formatJalaliDate(`${addDays(weekStart, 6)}T09:00:00`, { format: 'numeric' })}</Box>
-                </Typography>
-                <Box sx={{ flex: 1 }} />
-                <TextField select size="small" label="ماه خروجی" value={exportMonth}
-                           onChange={(e) => setExportMonth(e.target.value)}
-                           sx={{ minWidth: 170 }}>
-                  {monthChoices.map((m) => (
-                    <MenuItem key={m.value} value={m.value}>{m.label}</MenuItem>
-                  ))}
-                </TextField>
-                <Button variant="outlined" size="small" data-testid="shift-export"
-                        disabled={exportShifts.isPending || !/^\d{4}-\d{2}$/.test(exportMonth)}
-                        onClick={doExport} sx={{ borderRadius: '10px', minHeight: 44 }}>
+                  <span dir="ltr">{formatJalaliDate(`${weekStart}T09:00:00`, { format: 'numeric' })}</span>
+                  <span className="font-semibold text-muted-foreground">تا</span>
+                  <span dir="ltr">{formatJalaliDate(`${addDays(weekStart, 6)}T09:00:00`, { format: 'numeric' })}</span>
+                </p>
+                <div className="flex-1" />
+                <div className="flex items-center gap-2">
+                  <Label htmlFor="shift-export-month" className="text-xs text-muted-foreground">ماه خروجی</Label>
+                  <Select value={exportMonth} onValueChange={setExportMonth}>
+                    <SelectTrigger id="shift-export-month" aria-label="ماه خروجی" className="min-w-[170px]">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {monthChoices.map((m) => (
+                        <SelectItem key={m.value} value={m.value}>{m.label}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <button
+                  type="button"
+                  data-testid="shift-export"
+                  disabled={exportShifts.isPending || !/^\d{4}-\d{2}$/.test(exportMonth)}
+                  onClick={doExport}
+                  className="min-h-11 rounded-[10px] border border-border px-3 text-sm font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                >
                   {exportShifts.isPending ? 'در حال آماده‌سازی…' : 'خروجی CSV ماهانه'}
-                </Button>
-              </Stack>
-            </Card>
+                </button>
+              </div>
+            </div>
 
-            <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-              <Box sx={{ flex: 1 }}>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex-1">
                 <KpiCard label="ساعت کاری این هفته" value={hoursLabel(weekMinutes)}
                          icon="mdi:timer-outline" color="#2563eb"
                          sub={`${toPersianDigits(shifts.length)} شیفت ثبت‌شده`} />
-              </Box>
-              <Box sx={{ flex: 1 }}>
+              </div>
+              <div className="flex-1">
                 <KpiCard label="پرسنل در شیفت" icon="mdi:account-group-outline" color="#7c3aed"
                          value={toPersianDigits(new Set(shifts.map((s) => s.user_id)).size)}
                          sub={`از ${toPersianDigits(roster.length)} کارمند فعال`} />
-              </Box>
-            </Stack>
+              </div>
+            </div>
 
             {staffQuery.isError && (
               <ErrorBox message="خطا در دریافت کارکنان" onRetry={() => staffQuery.refetch()} />
@@ -348,155 +364,194 @@ const ManagerShifts: React.FC = () => {
             ) : shiftsQuery.isError ? null : shiftsQuery.isPending ? (
               <Shimmer height={320} />
             ) : (
-              <Card data-testid="shift-week-grid"
-                    sx={{ p: 1.5, borderRadius: `${radii.card}px`, boxShadow: shadows.card, overflowX: 'auto' }}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: gridColumns, gap: 1, minWidth: 980 }}>
-                  <Box sx={{ px: 1, py: 0.5 }}>
-                    <Typography variant="caption" sx={{ fontWeight: 800 }}>پرسنل</Typography>
-                  </Box>
+              <div data-testid="shift-week-grid" className="overflow-x-auto rounded-2xl border border-border bg-card p-3 shadow-sm">
+                <div className="grid gap-2" style={{ gridTemplateColumns: gridColumns, minWidth: 980 }}>
+                  <div className="px-2 py-1">
+                    <span className="text-xs font-extrabold">پرسنل</span>
+                  </div>
                   {days.map((day, i) => (
-                    <Box key={day} data-testid={`shift-day-${day}`} sx={{ px: 1, py: 0.5, textAlign: 'center' }}>
-                      <Typography variant="caption" sx={{ fontWeight: 800 }}>{WEEKDAY_LABELS[i]}</Typography>
-                      <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                    <div key={day} data-testid={`shift-day-${day}`} className="px-2 py-1 text-center">
+                      <span className="text-xs font-extrabold">{WEEKDAY_LABELS[i]}</span>
+                      <span className="block text-xs text-muted-foreground">
                         {formatJalaliDate(`${day}T09:00:00`, { format: 'numeric' }).split('/').slice(1).join('/')}
-                      </Typography>
-                    </Box>
+                      </span>
+                    </div>
                   ))}
                   {roster.map((person) => (
                     <React.Fragment key={person.user_id}>
-                      <Box sx={{ px: 1, py: 1, borderRight: '1px solid rgba(15,23,42,0.06)' }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{person.user_name ?? '—'}</Typography>
-                        <Typography variant="caption" color="text.secondary">
+                      <div className="border-e border-border px-2 py-2">
+                        <p className="text-sm font-bold">{person.user_name ?? '—'}</p>
+                        <span className="text-xs text-muted-foreground">
                           {POSITION_LABELS[person.position as StaffPosition] ?? person.position}
-                        </Typography>
-                      </Box>
+                        </span>
+                      </div>
                       {days.map((day) => {
                         const cell = byCell.get(`${person.user_id}|${day}`) ?? []
                         const cellMinutes = cell
                           .filter((s) => s.status !== 'cancelled')
                           .reduce((sum, s) => sum + s.duration_min, 0)
                         return (
-                          <Box key={`${person.user_id}-${day}`}
-                               data-testid={`shift-cell-${person.user_id}-${day}`}
-                               sx={{
-                                 p: 0.5, minHeight: 76, borderRadius: '12px',
-                                 bgcolor: cell.length ? 'rgba(37,99,235,0.04)' : 'transparent',
-                                 display: 'flex', flexDirection: 'column', gap: 0.5,
-                               }}>
+                          <div
+                            key={`${person.user_id}-${day}`}
+                            data-testid={`shift-cell-${person.user_id}-${day}`}
+                            className={`flex min-h-[76px] flex-col gap-1 rounded-xl p-1 ${
+                              cell.length ? 'bg-primary/5' : ''
+                            }`}
+                          >
                             {cell.map((s) => (
-                              <Tooltip key={s.id}
-                                       title={`${SHIFT_STATUS_LABELS[s.status]} · ${hoursLabel(s.duration_min)}${s.notes ? ` — ${s.notes}` : ''}`}>
-                                <Box
-                                  data-testid={`shift-chip-${s.id}`}
-                                  role="button"
-                                  tabIndex={0}
-                                  onClick={() => openEdit(s)}
-                                  onKeyDown={(e) => { if (e.key === 'Enter') openEdit(s) }}
-                                  sx={{
-                                    cursor: 'pointer', px: 1, py: 0.75, borderRadius: '10px',
-                                    minHeight: 44, display: 'flex', alignItems: 'center',
-                                    justifyContent: 'space-between', gap: 0.5,
-                                    borderRight: `4px solid ${SHIFT_STATUS_COLORS[s.status]}`,
-                                    bgcolor: s.status === 'cancelled' ? 'rgba(107,114,128,0.10)' : 'rgba(37,99,235,0.08)',
-                                    textDecoration: s.status === 'cancelled' ? 'line-through' : 'none',
-                                  }}
-                                >
-                                  <Typography variant="caption" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
-                                    {toPersianDigits(`${s.starts_at.slice(11, 16)}–${s.ends_at.slice(11, 16)}`)}
-                                  </Typography>
-                                  {cellMinutes > 0 && cell.length === 1 && (
-                                    <Typography variant="caption" color="text.secondary">
-                                      {hoursLabel(cellMinutes)}
-                                    </Typography>
-                                  )}
-                                </Box>
-                              </Tooltip>
+                              <div
+                                key={s.id}
+                                data-testid={`shift-chip-${s.id}`}
+                                role="button"
+                                tabIndex={0}
+                                title={`${SHIFT_STATUS_LABELS[s.status]} · ${hoursLabel(s.duration_min)}${s.notes ? ` — ${s.notes}` : ''}`}
+                                onClick={() => openEdit(s)}
+                                onKeyDown={(e) => {
+                                  if (e.key === 'Enter' || e.key === ' ') {
+                                    e.preventDefault()
+                                    openEdit(s)
+                                  }
+                                }}
+                                className={`flex min-h-11 cursor-pointer items-center justify-between gap-1 rounded-[10px] border-r-4 px-2 py-1.5 ${
+                                  s.status === 'cancelled'
+                                    ? 'bg-gray-500/10 line-through'
+                                    : 'bg-primary/10'
+                                }`}
+                                style={{ borderRightColor: SHIFT_STATUS_COLORS[s.status] }}
+                              >
+                                <span className="text-xs font-extrabold tabular-nums">
+                                  {toPersianDigits(`${s.starts_at.slice(11, 16)}–${s.ends_at.slice(11, 16)}`)}
+                                </span>
+                                {cellMinutes > 0 && cell.length === 1 && (
+                                  <span className="text-xs text-muted-foreground">
+                                    {hoursLabel(cellMinutes)}
+                                  </span>
+                                )}
+                              </div>
                             ))}
-                            <Button size="small" data-testid={`shift-add-${person.user_id}-${day}`}
-                                    onClick={() => openNew(person.user_id, day)}
-                                    startIcon={<Icon icon="mdi:plus" style={{ width: 16, height: 16 }} />}
-                                    disabled={!activeVenue}
-                                    sx={{ borderRadius: '10px', minHeight: 44, justifyContent: 'flex-start',
-                                            fontSize: '0.72rem', color: 'text.secondary' }}>
+                            <button
+                              type="button"
+                              data-testid={`shift-add-${person.user_id}-${day}`}
+                              onClick={() => openNew(person.user_id, day)}
+                              disabled={!activeVenue}
+                              className="inline-flex min-h-11 items-center justify-start gap-1 rounded-[10px] px-2 text-[0.72rem] font-semibold text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                            >
+                              <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
                               افزودن
-                            </Button>
-                          </Box>
+                            </button>
+                          </div>
                         )
                       })}
                     </React.Fragment>
                   ))}
-                </Box>
-                <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 1 }}>
+                </div>
+                <p className="mt-2 block text-xs text-muted-foreground">
                   روزهای آینده قابل ویرایش‌اند؛ تداخل با سالن‌های دیگرِ همان شخص هم رد می‌شود.
-                </Typography>
-              </Card>
+                </p>
+              </div>
             )}
           </>
         )}
-      </Stack>
+      </div>
 
-      <Dialog open={dialog !== null} onClose={closeDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>{dialog?.id ? 'ویرایش شیفت' : 'شیفت جدید'}</DialogTitle>
-        <DialogContent>
+      <Dialog open={dialog !== null} onOpenChange={(open) => { if (!open) closeDialog() }}>
+        <DialogContent className="sm:max-w-lg">
+          <DialogHeader>
+            <DialogTitle>{dialog?.id ? 'ویرایش شیفت' : 'شیفت جدید'}</DialogTitle>
+          </DialogHeader>
           {dialog && (
-            <Stack spacing={2} sx={{ pt: 1 }}>
-              <Typography variant="body2" color="text.secondary">
-                پرسنل: <strong>{roster.find((r) => r.user_id === dialog.user_id)?.user_name ?? `#${toPersianDigits(dialog.user_id)}`}</strong>
-              </Typography>
-              <Stack direction={{ xs: 'column', sm: 'row' }} spacing={1.5}>
-                <TextField sx={{ flex: 2 }} size="small" type="date" label="روز"
-                           slotProps={{ inputLabel: { shrink: true } }} value={dialog.date}
-                           onChange={(e) => setDialog({ ...dialog, date: e.target.value })} />
-                <TextField sx={{ flex: 1 }} size="small" type="time" label="شروع"
-                           slotProps={{ inputLabel: { shrink: true } }} value={dialog.start}
-                           onChange={(e) => setDialog({ ...dialog, start: e.target.value })} />
-                <TextField sx={{ flex: 1 }} size="small" type="time" label="پایان"
-                           slotProps={{ inputLabel: { shrink: true } }} value={dialog.end}
-                           onChange={(e) => setDialog({ ...dialog, end: e.target.value })} />
-              </Stack>
-              <Typography variant="caption" color="text.secondary">
+            <div className="flex flex-col gap-4">
+              <p className="text-sm text-muted-foreground">
+                پرسنل: <strong className="text-foreground">{roster.find((r) => r.user_id === dialog.user_id)?.user_name ?? `#${toPersianDigits(dialog.user_id)}`}</strong>
+              </p>
+              <div className="flex flex-col gap-3 sm:flex-row">
+                <div className="flex-[2] space-y-1.5">
+                  <Label htmlFor="shift-date">روز</Label>
+                  <Input id="shift-date" type="date" dir="ltr" value={dialog.date}
+                         onChange={(e) => setDialog({ ...dialog, date: e.target.value })} />
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor="shift-start">شروع</Label>
+                  <Input id="shift-start" type="time" dir="ltr" value={dialog.start}
+                         onChange={(e) => setDialog({ ...dialog, start: e.target.value })} />
+                </div>
+                <div className="flex-1 space-y-1.5">
+                  <Label htmlFor="shift-end">پایان</Label>
+                  <Input id="shift-end" type="time" dir="ltr" value={dialog.end}
+                         onChange={(e) => setDialog({ ...dialog, end: e.target.value })} />
+                </div>
+              </div>
+              <p className="text-xs text-muted-foreground">
                 مدت: {hoursLabel(Math.max(0, minutesBetween(dialog.start, dialog.end)))}
                 {' '}· مجاز: {toPersianDigits(MIN_MIN)} دقیقه تا {toPersianDigits(MAX_MIN / 60)} ساعت
-              </Typography>
-              <TextField size="small" multiline minRows={2} label="یادداشت"
-                         value={dialog.notes} onChange={(e) => setDialog({ ...dialog, notes: e.target.value })} />
+              </p>
+              <div className="space-y-1.5">
+                <Label htmlFor="shift-notes">یادداشت</Label>
+                <textarea
+                  id="shift-notes"
+                  rows={2}
+                  value={dialog.notes}
+                  onChange={(e) => setDialog({ ...dialog, notes: e.target.value })}
+                  className="flex min-h-[72px] w-full rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+                />
+              </div>
               {dialog.id ? (
-                <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                  <FormControl size="small" sx={{ minWidth: 170 }}>
-                    <InputLabel id="shift-status-label">وضعیت</InputLabel>
-                    <Select labelId="shift-status-label" label="وضعیت"
-                            value={shifts.find((s) => s.id === dialog.id)?.status ?? 'scheduled'}
-                            onChange={(e) => {
-                              const next = e.target.value as ShiftStatus
-                              const current = shifts.find((s) => s.id === dialog.id)
-                              if (current) setStatus(current, next)
-                            }}>
-                      {(['scheduled', 'done', 'cancelled'] as ShiftStatus[]).map((st) => (
-                        <MenuItem key={st} value={st}>{SHIFT_STATUS_LABELS[st]}</MenuItem>
-                      ))}
+                <div className="flex flex-wrap items-center gap-2">
+                  <div className="min-w-[170px] space-y-1.5">
+                    <Label htmlFor="shift-status">وضعیت</Label>
+                    <Select
+                      value={shifts.find((s) => s.id === dialog.id)?.status ?? 'scheduled'}
+                      onValueChange={(next) => {
+                        const current = shifts.find((s) => s.id === dialog.id)
+                        if (current) setStatus(current, next as ShiftStatus)
+                      }}
+                    >
+                      <SelectTrigger id="shift-status" aria-label="وضعیت شیفت">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {(['scheduled', 'done', 'cancelled'] as ShiftStatus[]).map((st) => (
+                          <SelectItem key={st} value={st}>{SHIFT_STATUS_LABELS[st]}</SelectItem>
+                        ))}
+                      </SelectContent>
                     </Select>
-                  </FormControl>
-                  <Box sx={{ flex: 1 }} />
-                  <Button color="error" variant="outlined" data-testid="shift-cancel-action"
-                          disabled={busy}
-                          onClick={() => {
-                            const current = shifts.find((s) => s.id === dialog.id)
-                            if (current) setStatus(current, 'cancelled')
-                          }}>
+                  </div>
+                  <div className="flex-1" />
+                  <button
+                    type="button"
+                    data-testid="shift-cancel-action"
+                    disabled={busy}
+                    onClick={() => {
+                      const current = shifts.find((s) => s.id === dialog.id)
+                      if (current) setStatus(current, 'cancelled')
+                    }}
+                    className="min-h-11 rounded-xl border border-destructive/50 px-3 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                  >
                     لغو شیفت
-                  </Button>
-                </Stack>
+                  </button>
+                </div>
               ) : null}
-            </Stack>
+            </div>
           )}
+          <DialogFooter>
+            <button
+              type="button"
+              onClick={closeDialog}
+              className="min-h-11 rounded-xl px-4 text-sm font-semibold transition-colors hover:bg-muted"
+            >
+              بستن
+            </button>
+            <button
+              type="button"
+              data-testid="shift-save"
+              disabled={busy || !dialog?.date}
+              onClick={submit}
+              className="min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+            >
+              {busy ? 'در حال ثبت…' : dialog?.id ? 'ذخیره تغییرات' : 'ثبت شیفت'}
+            </button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions>
-          <Button onClick={closeDialog} sx={{ minHeight: 44 }}>بستن</Button>
-          <Button variant="contained" data-testid="shift-save" disabled={busy || !dialog?.date}
-                  onClick={submit}>
-            {busy ? 'در حال ثبت…' : dialog?.id ? 'ذخیره تغییرات' : 'ثبت شیفت'}
-          </Button>
-        </DialogActions>
       </Dialog>
     </Layout>
   )

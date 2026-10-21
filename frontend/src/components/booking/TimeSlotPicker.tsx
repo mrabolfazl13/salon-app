@@ -1,15 +1,8 @@
 import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Tooltip,
-  Typography,
-  Grid,
-  Chip,
-  Paper,
-} from '@mui/material'
-import { formatPrice } from '@/lib/utils'
+import { cn, formatPrice } from '@/lib/utils'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 
 interface TimeSlot {
   id: number
@@ -61,98 +54,46 @@ const formatDate = (dateStr: string) => {
   return `${dayName} ${dayNumber} ${monthName}`
 }
 
+const chipBase = 'mt-1.5 inline-flex h-5 items-center gap-1 rounded-md px-2 text-xs'
+
 const StatusChip: React.FC<{ status: string }> = ({ status }) => {
   switch (status) {
     case 'available':
       return (
-        <Chip
-          label="آزاد"
-          size="small"
-          sx={{
-            mt: 0.75,
-            borderRadius: '6px',
-            height: 20,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            bgcolor: 'rgba(76,175,80,0.1)',
-            color: 'success.main',
-          }}
-        />
+        <span className={cn(chipBase, 'bg-green-500/10 font-semibold text-emerald-600 dark:text-emerald-400')}>
+          آزاد
+        </span>
       )
     case 'booked':
       return (
-        <Chip
-          label="پر"
-          size="small"
-          color="error"
-          sx={{ mt: 0.75, borderRadius: '6px', height: 20, fontSize: '0.75rem', fontWeight: 600 }}
-        />
+        <span className={cn(chipBase, 'bg-red-600 font-semibold text-white')}>
+          پر
+        </span>
       )
     case 'blocked':
       return (
-        <Chip
-          label="مسدود"
-          size="small"
-          sx={{
-            mt: 0.75,
-            borderRadius: '6px',
-            height: 20,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            bgcolor: 'rgba(15,23,42,0.06)',
-            color: 'text.disabled',
-          }}
-        />
+        <span className={cn(chipBase, 'bg-slate-900/[0.06] font-semibold text-slate-400 dark:bg-white/10 dark:text-slate-500')}>
+          مسدود
+        </span>
       )
     case 'reserved':
       return (
-        <Chip
-          label="رزرو قرارداد"
-          size="small"
-          sx={{
-            mt: 0.75,
-            borderRadius: '6px',
-            height: 20,
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            bgcolor: 'rgba(139,92,246,0.12)',
-            color: '#7c3aed',
-          }}
-        />
+        <span className={cn(chipBase, 'bg-violet-500/[0.12] font-bold text-violet-600 dark:text-violet-300')}>
+          رزرو قرارداد
+        </span>
       )
     case 'in_competition':
       return (
-        <Chip
-          icon={<Icon icon="mdi:gavel" className="h-3 w-3" />}
-          label="رقابت با بقیه"
-          size="small"
-          sx={{
-            mt: 0.75,
-            borderRadius: '6px',
-            height: 20,
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            background: 'linear-gradient(135deg, #f59e0b, #7c3aed)',
-            color: 'white',
-            '& .MuiChip-icon': { color: 'white', me: '4px' },
-          }}
-        />
+        <span className={cn(chipBase, 'bg-gradient-to-br from-amber-500 to-violet-600 font-bold text-white')}>
+          <Icon icon="mdi:gavel" className="h-3 w-3" />
+          رقابت با بقیه
+        </span>
       )
     default:
       return (
-        <Chip
-          label="نامشخص"
-          size="small"
-          sx={{
-            mt: 0.75,
-            borderRadius: '6px',
-            height: 20,
-            fontSize: '0.75rem',
-            fontWeight: 600,
-            bgcolor: 'rgba(15,23,42,0.06)',
-            color: 'text.disabled',
-          }}
-        />
+        <span className={cn(chipBase, 'bg-slate-900/[0.06] font-semibold text-slate-400 dark:bg-white/10 dark:text-slate-500')}>
+          نامشخص
+        </span>
       )
   }
 }
@@ -184,238 +125,143 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
 
   if (!slots || slots.length === 0) {
     return (
-      <Box sx={{
-        textAlign: 'center',
-        py: 6,
-        px: 2,
-        bgcolor: 'rgba(0,0,0,0.02)',
-        borderRadius: '16px',
-      }}>
-        <Box sx={{
-          width: 80,
-          height: 80,
-          borderRadius: '50%',
-          bgcolor: 'rgba(37,99,235,0.08)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mx: 'auto',
-          mb: 2,
-        }}>
+      <div className="rounded-2xl bg-slate-900/[0.02] px-4 py-12 text-center dark:bg-white/[0.02]">
+        <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-600/[0.08]">
           <Icon icon="mdi:calendar-remove" className="h-10 w-10" style={{ color: '#2563eb' }} />
-        </Box>
-        <Typography variant="subtitle1" sx={{ fontWeight: 600, mb: 0.5 }}>
-          سانسی موجود نیست
-        </Typography>
-        <Typography variant="body2" sx={{ color: 'text.secondary' }}>
-          برای تاریخ انتخاب شده سانسی یافت نشد
-        </Typography>
-      </Box>
+        </div>
+        <p className="mb-1 text-base font-semibold text-foreground">سانسی موجود نیست</p>
+        <p className="text-sm text-muted-foreground">برای تاریخ انتخاب شده سانسی یافت نشد</p>
+      </div>
     )
   }
 
   return (
-    <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: 1 }}>
+    <div>
+      <div className="mb-5 flex items-center justify-between">
+        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
           <Icon icon="mdi:clock-outline" className="h-5 w-5" style={{ color: '#2563eb' }} />
           سانس‌های موجود
-        </Typography>
-        <Chip
-          label={`${slots.filter(isAvailableSlot).length} سانس آزاد`}
-          size="small"
-          sx={{
-            borderRadius: '8px',
-            bgcolor: 'rgba(76,175,80,0.1)',
-            color: 'success.main',
-            fontWeight: 600,
-            fontSize: '0.75rem',
-          }}
-        />
-      </Box>
+        </h3>
+        <span className="inline-flex items-center rounded-lg bg-green-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+          {`${slots.filter(isAvailableSlot).length} سانس آزاد`}
+        </span>
+      </div>
 
       {groupedSlots.map((group, groupIndex) => (
-        <Box key={group.date} sx={{ mb: groupIndex < groupedSlots.length - 1 ? 3 : 0 }}>
+        <div key={group.date} className={groupIndex < groupedSlots.length - 1 ? 'mb-6' : 'mb-0'}>
           {/* Date Header */}
-          <Box sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            mb: 2,
-            mt: groupIndex > 0 ? 1 : 0,
-          }}>
-            <Box sx={{
-              width: 36,
-              height: 36,
-              borderRadius: '10px',
-              background: 'linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1))',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}>
-              <Icon icon="mdi:calendar" className="h-4.5 w-4.5" style={{ color: '#2563eb' }} />
-            </Box>
-            <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary' }}>
-              {formatDate(group.date)}
-            </Typography>
-            <Chip
-              label={`${group.slots.filter(isAvailableSlot).length} سانس`}
-              size="small"
-              sx={{
-                borderRadius: '6px',
-                height: 22,
-                fontSize: '0.75rem',
-                fontWeight: 600,
-                bgcolor: 'rgba(37,99,235,0.08)',
-                color: 'primary.main',
-              }}
-            />
-          </Box>
+          <div className={cn('mb-4 flex items-center gap-3', groupIndex > 0 && 'mt-2')}>
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-blue-600/10 to-violet-600/10">
+              <Icon icon="mdi:calendar" className="h-[18px] w-[18px]" style={{ color: '#2563eb' }} />
+            </div>
+            <h4 className="text-sm font-bold text-foreground">{formatDate(group.date)}</h4>
+            <span className="inline-flex h-[22px] items-center rounded-md bg-blue-600/[0.08] px-2 text-xs font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
+              {`${group.slots.filter(isAvailableSlot).length} سانس`}
+            </span>
+          </div>
 
           {/* Slots Grid */}
-          <Grid container spacing={1.5}>
+          <div className="grid grid-cols-3 gap-3 sm:grid-cols-4 md:grid-cols-6">
             {group.slots.map((slot, index) => {
               const st = statusOf(slot)
               const bidable = isBidableSlot(slot)
               const reserved = st === 'reserved'
               const clickable = isAvailableSlot(slot) || bidable
+              const isSelected = selected === slot.id
 
               const card = (
-                <Paper
-                  component="button"
+                <button
                   type="button"
-                  elevation={selected === slot.id ? 4 : 1}
                   disabled={!clickable}
-                  aria-pressed={selected === slot.id}
+                  aria-pressed={isSelected}
                   aria-label={`سانس ${slot.startTime} تا ${slot.endTime}، ${formatPrice(slot.price)} ریال، ${STATUS_LABEL[st]}`}
-                  sx={{
-                    p: 1.5,
-                    textAlign: 'center',
-                    borderRadius: '12px',
-                    // Paper به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر + ارتفاع لمسی
-                    display: 'block',
-                    width: '100%',
-                    minHeight: 96,
-                    fontFamily: 'inherit',
-                    color: 'inherit',
-                    appearance: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                    cursor: clickable ? 'pointer' : 'not-allowed',
-                    opacity: clickable ? 1 : 0.55,
-                    border: selected === slot.id ? '2px solid' : bidable ? '1.5px solid rgba(124,58,237,0.5)' : '1px solid',
-                    borderColor: selected === slot.id
-                      ? 'primary.main'
-                      : bidable
-                        ? 'rgba(124,58,237,0.5)'
-                        : reserved
-                          ? 'rgba(139,92,246,0.35)'
-                          : 'rgba(0,0,0,0.06)',
-                    bgcolor: bidable ? 'rgba(124,58,237,0.04)' : reserved ? 'rgba(139,92,246,0.05)' : undefined,
-                    transition: 'all 0.3s cubic-bezier(0.4, 0, 0.2, 1)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    '&:focus-visible': {
-                      outline: '3px solid #f59e0b',
-                      outlineOffset: 2,
-                    },
-                    '&::before': selected === slot.id ? {
-                      content: '""',
-                      position: 'absolute',
-                      top: 0,
-                      insetInlineEnd: 0,
-                      insetInlineStart: 0,
-                      height: '3px',
-                      background: 'linear-gradient(90deg, #2563eb, #7c3aed)',
-                    } : {},
-                    '&:hover': clickable ? {
-                      transform: 'translateY(-3px)',
-                      boxShadow: '0 6px 20px rgba(0,0,0,0.1)',
-                      borderColor: bidable ? '#7c3aed' : 'primary.light',
-                    } : {},
-                  }}
                   onClick={() => {
                     if (isAvailableSlot(slot)) handleSelect(slot)
                     else if (bidable) onBid?.(slot)
                   }}
+                  className={cn(
+                    'relative block min-h-24 w-full overflow-hidden rounded-xl p-3 text-center transition-all duration-300',
+                    'cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500 focus-visible:ring-offset-2',
+                    clickable ? 'opacity-100' : 'cursor-not-allowed opacity-[0.55]',
+                    isSelected
+                      ? 'border-2 border-blue-600 shadow-md'
+                      : bidable
+                        ? 'border-[1.5px] border-violet-600/50 bg-violet-600/[0.04] hover:-translate-y-[3px] hover:border-violet-600 hover:shadow-[0_6px_20px_rgba(0,0,0,0.1)]'
+                        : reserved
+                          ? 'border border-violet-500/35 bg-violet-500/5'
+                          : 'border border-border bg-card shadow-sm',
+                    clickable && !bidable && !isSelected && 'hover:-translate-y-[3px] hover:border-blue-400 hover:shadow-[0_6px_20px_rgba(0,0,0,0.1)]'
+                  )}
                 >
+                  {/* نوار انتخاب */}
+                  {isSelected && (
+                    <span
+                      aria-hidden="true"
+                      className="absolute inset-x-0 top-0 h-[3px] bg-gradient-to-l from-blue-600 to-violet-600"
+                    />
+                  )}
+
                   {/* Time */}
-                  <Typography variant="body2" sx={{ fontWeight: 700, mb: 0.25, fontSize: '0.85rem' }}>
-                    {slot.startTime}
-                  </Typography>
-                  <Typography variant="caption" sx={{ color: 'text.disabled', display: 'block', mb: 1, fontSize: '0.75rem' }}>
-                    {slot.endTime}
-                  </Typography>
+                  <p className="mb-0.5 text-[0.85rem] font-bold text-foreground">{slot.startTime}</p>
+                  <span className="mb-2 block text-xs text-slate-400 dark:text-slate-500">{slot.endTime}</span>
 
                   {/* Divider */}
-                  <Box sx={{
-                    height: '1px',
-                    bgcolor: 'rgba(0,0,0,0.06)',
-                    mb: 1,
-                  }} />
+                  <div className="mb-2 h-px bg-slate-900/[0.06] dark:bg-white/10" />
 
                   {/* Price */}
-                  <Typography
-                    variant="body2"
-                    sx={{
-                      fontWeight: 700,
-                      color: bidable ? '#7c3aed' : 'primary.main',
-                      fontSize: '0.8rem',
-                      textDecoration: reserved ? 'line-through' : 'none',
-                    }}
+                  <p
+                    className={cn(
+                      'text-[0.8rem] font-bold',
+                      bidable ? 'text-violet-600 dark:text-violet-300' : 'text-blue-600 dark:text-blue-400',
+                      reserved && 'line-through'
+                    )}
                   >
                     {formatPrice(slot.price)}
-                  </Typography>
+                  </p>
 
                   {/* Status */}
                   <StatusChip status={st} />
 
                   {/* Selected Check */}
-                  {selected === slot.id && (
+                  {isSelected && (
                     <motion.div
                       initial={{ scale: 0 }}
                       animate={{ scale: 1 }}
                       transition={{ type: 'spring', stiffness: 500 }}
                       style={{ position: 'absolute', top: 6, insetInlineStart: 6 }}
                     >
-                      <Box sx={{
-                        width: 18,
-                        height: 18,
-                        borderRadius: '50%',
-                        background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}>
+                      <div className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600">
                         <Icon icon="mdi:check" className="h-3 w-3" style={{ color: 'white' }} />
-                      </Box>
+                      </div>
                     </motion.div>
                   )}
-                </Paper>
+                </button>
               )
 
               return (
-                <Grid key={slot.id} size={{ xs: 4, sm: 3, md: 2 }}>
-                  <motion.div
-                    initial={{ opacity: 0, scale: 0.9 }}
-                    animate={{ opacity: 1, scale: 1 }}
-                    transition={{ duration: 0.3, delay: index * 0.03 }}
-                  >
-                    {reserved ? (
-                      <Tooltip title="این سانس مربوط به قرارداد است" arrow>
-                        <Box component="span" sx={{ display: 'block' }}>{card}</Box>
-                      </Tooltip>
-                    ) : (
-                      card
-                    )}
-                  </motion.div>
-                </Grid>
+                <motion.div
+                  key={slot.id}
+                  initial={{ opacity: 0, scale: 0.9 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  transition={{ duration: 0.3, delay: index * 0.03 }}
+                >
+                  {reserved ? (
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <span className="block">{card}</span>
+                      </TooltipTrigger>
+                      <TooltipContent>این سانس مربوط به قرارداد است</TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    card
+                  )}
+                </motion.div>
               )
             })}
-          </Grid>
-        </Box>
+          </div>
+        </div>
       ))}
-    </Box>
+    </div>
   )
 }
 

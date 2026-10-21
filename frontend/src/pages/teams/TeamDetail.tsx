@@ -6,14 +6,17 @@
 import React, { useMemo, useState } from 'react'
 import { Link, useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { Alert, Box, Divider, Paper, Tab, Tabs, Typography } from '@mui/material'
 
 import Layout from '@/components/layout/Layout'
 import { EmptyState, ErrorState, Shimmer } from '@/components/mobile'
 import { Button } from '@/components/ui/Button'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
+import { Textarea } from '@/components/ui/shadcn/textarea'
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import Dialog from '@/components/ui/Dialog'
-import { TextField } from '@mui/material'
 import {
   SPORT_EMOJI,
   SPORT_NAME_FA,
@@ -50,14 +53,13 @@ import { useToast } from '@/hooks/useToast'
 import { useAuthStore } from '@/store/authStore'
 import { formatPersianDate } from '@/utils/helpers'
 import { toPersianDigits } from '@/lib/jalali'
-import { radii, shadows } from '@/theme'
 
 const InfoRow: React.FC<{ icon: string; label: string; value: React.ReactNode }> = ({ icon, label, value }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
-    <Icon icon={icon} style={{ width: 17, height: 17, color: '#64748b', flexShrink: 0 }} />
-    <Typography sx={{ fontSize: '0.8rem', color: '#64748b', minWidth: 70 }}>{label}</Typography>
-    <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f172a' }}>{value}</Typography>
-  </Box>
+  <div className="flex items-center gap-2 py-1">
+    <Icon icon={icon} className="h-[17px] w-[17px] shrink-0 text-muted-foreground" aria-hidden="true" />
+    <span className="min-w-[70px] text-[0.8rem] text-muted-foreground">{label}</span>
+    <span className="text-[0.82rem] font-semibold text-foreground">{value}</span>
+  </div>
 )
 
 const TeamDetail: React.FC = () => {
@@ -107,11 +109,11 @@ const TeamDetail: React.FC = () => {
   if (teamQ.isPending || (!team && !teamQ.isError)) {
     return (
       <Layout>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Shimmer variant="rounded" sx={{ height: 190 }} />
-          <Shimmer variant="rounded" sx={{ height: 60 }} />
-          <Shimmer variant="rounded" sx={{ height: 260 }} />
-        </Box>
+        <div className="flex flex-col gap-4">
+          <Shimmer height={190} />
+          <Shimmer height={60} />
+          <Shimmer height={260} />
+        </div>
       </Layout>
     )
   }
@@ -193,28 +195,32 @@ const TeamDetail: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ mb: 2 }}>
-        <Link to="/teams" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}>
-          <Typography sx={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 1 }}>
-            <Icon icon="mdi:arrow-right" style={{ width: 16, height: 16 }} />
+      <div className="mb-4">
+        <Link to="/teams" className="inline-flex min-h-11 items-center no-underline">
+          <span className="inline-flex items-center gap-2 text-[0.8rem] font-bold text-blue-600 dark:text-blue-400">
+            <Icon icon="mdi:arrow-right" className="h-4 w-4" aria-hidden="true" />
             بازگشت به تیم‌ها
-          </Typography>
+          </span>
         </Link>
-      </Box>
+      </div>
 
       {!team.is_active && (
-        <Alert severity="warning" sx={{ mb: 2, borderRadius: '14px' }} icon={<Icon icon="mdi:cancel" style={{ width: 20, height: 20 }} />}>
-          این تیم غیرفعال شده است؛ عملیات عضویت، حصه و اتصال رزرو روی آن مجاز نیست.
+        <Alert variant="warning" className="mb-4 rounded-[14px]">
+          <Icon icon="mdi:cancel" aria-hidden="true" />
+          <AlertDescription>
+            این تیم غیرفعال شده است؛ عملیات عضویت، حصه و اتصال رزرو روی آن مجاز نیست.
+          </AlertDescription>
         </Alert>
       )}
 
       {showPendingInvitation && myInvitation && (
-        <Alert
-          severity="info"
-          icon={<Icon icon="mdi:email-fast-outline" style={{ width: 20, height: 20 }} />}
-          sx={{ mb: 2, borderRadius: '14px' }}
-          action={
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Alert variant="info" className="mb-4 rounded-[14px]">
+          <Icon icon="mdi:email-fast-outline" aria-hidden="true" />
+          <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <AlertDescription>
+              شما به این تیم دعوت شده‌اید و هنوز پاسخ نداده‌اید.
+            </AlertDescription>
+            <div className="flex shrink-0 items-center gap-2">
               <Button
                 size="sm"
                 variant="gradient"
@@ -241,57 +247,55 @@ const TeamDetail: React.FC = () => {
               >
                 رد
               </Button>
-            </Box>
-          }
-        >
-          شما به این تیم دعوت شده‌اید و هنوز پاسخ نداده‌اید.
+            </div>
+          </div>
         </Alert>
       )}
 
-      <Paper sx={{ p: { xs: 2.25, md: 3 }, borderRadius: `${radii.card}px`, boxShadow: shadows.card, border: '1px solid rgba(15,23,42,0.05)', mb: 2.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, flexWrap: 'wrap' }}>
-          <Box role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} sx={{ fontSize: { xs: '2rem', md: '2.4rem' }, lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography component="h1" sx={{ fontWeight: 900, fontSize: { xs: '1.15rem', md: '1.4rem' }, color: '#0f172a' }}>
+      <div className="mb-5 rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
+        <div className="flex flex-wrap items-start gap-3">
+          <div role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} className="text-[2rem] leading-none md:text-[2.4rem]">{SPORT_EMOJI[team.sport] ?? '🏅'}</div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-black text-foreground md:text-2xl">
               {team.name}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 0.75, mt: 1, flexWrap: 'wrap', alignItems: 'center' }}>
+            </h1>
+            <div className="mt-2 flex flex-wrap items-center gap-1.5">
               <TeamVisibilityChip visibility={team.visibility} />
               {team.my_role && <TeamRoleBadge role={team.my_role} />}
-            </Box>
-          </Box>
+            </div>
+          </div>
           <TeamQuotaProgress
             memberCount={team.member_count}
             quota={team.quota}
             isOfficial={team.is_official}
             showHint={isMember || isManager}
           />
-        </Box>
+        </div>
 
-        <Divider sx={{ my: 2 }} />
+        <Separator className="my-4" />
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 0.5 }}>
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
           <InfoRow icon="mdi:crown-outline" label="کاپیتان" value={team.captain_name ?? '—'} />
           <InfoRow icon="mdi:view-day-outline" label="تاریخ ساخت" value={formatPersianDate(team.created_at)} />
-        </Box>
+        </div>
 
         {team.description && (
-          <Typography sx={{ mt: 1.5, fontSize: '0.85rem', color: '#475569', lineHeight: 1.9, whiteSpace: 'pre-wrap' }}>
+          <p className="mt-3 whitespace-pre-wrap text-[0.85rem] leading-[1.9] text-slate-600 dark:text-slate-300">
             {team.description}
-          </Typography>
+          </p>
         )}
 
-        <Box sx={{ display: 'flex', gap: 1.5, mt: 2.5, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           {canRequestJoin && (
             <Button variant="gradient" icon="mdi:hand-back-right" onClick={() => setJoinDialogOpen(true)}>
               درخواست عضویت
             </Button>
           )}
           {team.has_open_join_request && !isMember && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'warning.main' }}>
-              <Icon icon="mdi:clock-outline" style={{ width: 20, height: 20 }} />
-              <Typography sx={{ fontWeight: 700, fontSize: '0.88rem' }}>درخواست شما در انتظار بررسی مدیران است</Typography>
-            </Box>
+            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+              <Icon icon="mdi:clock-outline" className="h-5 w-5" aria-hidden="true" />
+              <span className="text-[0.88rem] font-bold">درخواست شما در انتظار بررسی مدیران است</span>
+            </div>
           )}
           {isViewer && team.my_role !== 'captain' && (
             <Button variant="outline" icon="mdi:exit-run" loading={leaveTeam.isPending} onClick={() => setConfirmLeave(true)}>
@@ -313,69 +317,69 @@ const TeamDetail: React.FC = () => {
               غیرفعال‌سازی تیم
             </Button>
           )}
-        </Box>
-      </Paper>
+        </div>
+      </div>
 
       <Tabs
-        value={tabIndex}
-        onChange={(_, v) => setTab(v)}
-        variant="scrollable"
-        scrollButtons="auto"
-        sx={{
-          mb: 2.5,
-          '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, fontSize: '0.85rem', borderRadius: '10px', minHeight: 44 },
-          '& .Mui-selected': { bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb !important' },
+        value={currentTab}
+        onValueChange={(label) => {
+          const next = visibleTabs.findIndex((t) => t.label === label)
+          if (next >= 0) setTab(next)
         }}
+        className="mb-5"
       >
-        {visibleTabs.map((t) => (
-          <Tab
-            key={t.label}
-            label={
-              <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
-                {t.label}
-                {!!t.badge && (
-                  <Box component="span" sx={{ px: 0.8, py: 0.1, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.14)', color: 'warning.main', fontSize: '0.75rem', fontWeight: 800 }}>
-                    {toPersianDigits(t.badge)}
-                  </Box>
-                )}
-              </Box>
-            }
-          />
-        ))}
+        <TabsList className="h-auto w-full justify-start overflow-x-auto">
+          {visibleTabs.map((t) => (
+            <TabsTrigger
+              key={t.label}
+              value={t.label}
+              className="h-11 shrink-0 gap-1.5 px-3 text-[0.85rem] font-bold data-[state=active]:bg-blue-600/10 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+            >
+              {t.label}
+              {!!t.badge && (
+                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-extrabold text-amber-700 dark:text-amber-400">
+                  {toPersianDigits(t.badge)}
+                </span>
+              )}
+            </TabsTrigger>
+          ))}
+        </TabsList>
+
+        <TabsContent value={currentTab}>
+          {currentTab === 'اعضا' && (
+            <div>
+              {membersQ.isPending ? (
+                <div className="flex flex-col gap-2">
+                  {[1, 2, 3].map((i) => <Shimmer key={i} height={56} />)}
+                </div>
+              ) : membersQ.isError ? (
+                <p className="text-[0.85rem] text-muted-foreground">نمایش اعضا ممکن نیست.</p>
+              ) : (
+                <TeamMemberList team={team} members={membersQ.data ?? []} isCaptain={isCaptain} canManage={isManager} />
+              )}
+            </div>
+          )}
+
+          {currentTab === 'درخواست‌ها' && (
+            <TeamJoinRequestList teamId={teamId} requests={joinRequestsQ.data ?? []} />
+          )}
+
+          {currentTab === 'گفتگو' && <TeamChatPanel teamId={teamId} />}
+
+          {currentTab === 'بازی‌ها و رزروها' && <TeamBookingsPanel team={team} />}
+          {currentTab === 'حریف‌یابی' && <TeamMatchmakingPanel team={team} canChallenge={isManager} />}
+          {currentTab === 'چالش‌ها' && <TeamChallengePanel teamId={teamId} canRespond={isManager} />}
+          {currentTab === 'حصه‌ها' && <TeamDuesPanel team={team} members={membersQ.data ?? []} isManager={isManager} />}
+          {currentTab === 'تراز' && <TeamBalancePanel team={team} isManager={isManager} />}
+          {currentTab === 'پرداخت اشتراکی' && (
+            <SplitPaymentsPanel team={team} members={membersQ.data ?? []} isManager={isManager} />
+          )}
+        </TabsContent>
       </Tabs>
 
-      {currentTab === 'اعضا' && (
-        <Box>
-          {membersQ.isPending ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" sx={{ height: 56 }} />)}
-            </Box>
-          ) : membersQ.isError ? (
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>نمایش اعضا ممکن نیست.</Typography>
-          ) : (
-            <TeamMemberList team={team} members={membersQ.data ?? []} isCaptain={isCaptain} canManage={isManager} />
-          )}
-        </Box>
-      )}
-
-      {currentTab === 'درخواست‌ها' && (
-        <TeamJoinRequestList teamId={teamId} requests={joinRequestsQ.data ?? []} />
-      )}
-
-      {currentTab === 'گفتگو' && <TeamChatPanel teamId={teamId} />}
-
-      {currentTab === 'بازی‌ها و رزروها' && <TeamBookingsPanel team={team} />}
-      {currentTab === 'حریف‌یابی' && <TeamMatchmakingPanel team={team} canChallenge={isManager} />}
-      {currentTab === 'چالش‌ها' && <TeamChallengePanel teamId={teamId} canRespond={isManager} />}
-      {currentTab === 'حصه‌ها' && <TeamDuesPanel team={team} members={membersQ.data ?? []} isManager={isManager} />}
-      {currentTab === 'تراز' && <TeamBalancePanel team={team} isManager={isManager} />}
-      {currentTab === 'پرداخت اشتراکی' && (
-        <SplitPaymentsPanel team={team} members={membersQ.data ?? []} isManager={isManager} />
-      )}
-
-      <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 3 }}>
+      <p className="mt-6 text-xs text-muted-foreground">
         {`شناسه تیم ${toPersianDigits(team.id)} — ساخته‌شده در ${formatPersianDate(team.created_at)}`}
-      </Typography>
+      </p>
 
       <TeamFormDialog open={editOpen} onClose={() => setEditOpen(false)} team={team} />
       <TeamInviteDialog teamId={teamId} open={inviteOpen} onClose={() => setInviteOpen(false)} />
@@ -403,24 +407,24 @@ const TeamDetail: React.FC = () => {
       />
 
       <Dialog open={joinDialogOpen} onClose={() => setJoinDialogOpen(false)} title={`درخواست پیوستن به «${team.name}»`} maxWidth="xs">
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
-          <TextField
-            label="پیام همراه درخواست (اختیاری)"
-            size="small"
-            fullWidth
-            multiline
-            minRows={2}
-            slotProps={{ htmlInput: { maxLength: 300 } }}
-            value={joinMessage}
-            onChange={(e) => setJoinMessage(e.target.value)}
-          />
-          <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end' }}>
+        <div className="flex flex-col gap-4 pt-1">
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor="team-join-message">پیام همراه درخواست (اختیاری)</Label>
+            <Textarea
+              id="team-join-message"
+              maxLength={300}
+              rows={2}
+              value={joinMessage}
+              onChange={(e) => setJoinMessage(e.target.value)}
+            />
+          </div>
+          <div className="flex justify-end gap-3">
             <Button variant="outline" onClick={() => setJoinDialogOpen(false)} disabled={requestJoin.isPending}>انصراف</Button>
             <Button variant="gradient" loading={requestJoin.isPending} onClick={handleJoinRequest} icon="mdi:hand-back-right">
               ثبت درخواست
             </Button>
-          </Box>
-        </Box>
+          </div>
+        </div>
       </Dialog>
     </Layout>
   )

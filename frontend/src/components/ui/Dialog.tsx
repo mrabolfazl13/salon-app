@@ -1,71 +1,94 @@
 // src/components/ui/Dialog.tsx
+// پوسته‌ی دیالوگ پروژه روی shadcn/Radix — امضای عمومی قبلی حفظ شده است:
+// open, onClose, title?, actions?, maxWidth?, fullWidth? و children.
+// aria-labelledby برای عنوان و دکمه‌ی بستن با برچسب «بستن» در DialogContent اولیه هست.
 import React, { useId } from 'react'
+import { cn } from '@/lib/utils'
 import {
-  Dialog as MuiDialog,
-  DialogTitle,
+  Dialog as DialogRoot,
   DialogContent,
-  DialogActions,
-  IconButton,
-} from '@mui/material'
-import type { DialogProps as MuiDialogProps } from '@mui/material'
-import { Icon } from '@iconify/react'
-import { motion, AnimatePresence } from 'framer-motion'
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
 
-export interface DialogProps extends MuiDialogProps {
+type MaxWidth = 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+
+/** عرض‌های MUI → کلاس‌های معادل (همان مقادیر پیکسلی) */
+const MAX_WIDTH_CLASS: Record<MaxWidth, string> = {
+  xs: 'sm:!max-w-[444px]',
+  sm: 'sm:!max-w-[600px]',
+  md: 'sm:!max-w-[900px]',
+  lg: 'sm:!max-w-[1200px]',
+  xl: 'sm:!max-w-[1536px]',
+}
+
+export interface DialogProps {
   open: boolean
-  onClose: () => void
+  /** اگر undefined باشد دیالوگ با Esc/کلیک بیرون بسته نمی‌شود (هم‌رفتار با MUI) */
+  onClose?: () => void
   title?: string
+  /** آیکون اختیاری کنار عنوان (تزئینی) */
+  titleIcon?: React.ReactNode
   actions?: React.ReactNode
-  maxWidth?: 'xs' | 'sm' | 'md' | 'lg' | 'xl'
+  maxWidth?: MaxWidth
+  fullWidth?: boolean
+  children?: React.ReactNode
+  className?: string
+  /** پراپ MUI در فایل‌های مهاجرت‌نشده — نادیده گرفته می‌شود */
+  sx?: unknown
+  /** پراپ MUI در فایل‌های مهاجرت‌نشده — نادیده گرفته می‌شود */
+  slotProps?: unknown
+  [key: string]: unknown
 }
 
 const Dialog: React.FC<DialogProps> = ({
   open,
   onClose,
   title,
+  titleIcon,
   children,
   actions,
   maxWidth = 'sm',
   fullWidth = true,
+  className,
+  sx: _sx,
+  slotProps: _slotProps,
   ...props
 }) => {
   // MUI دیالوگ را خودکار به DialogTitle وصل نمی‌کند؛ بدون این، صفحه‌خوان دیالوگ بی‌نام اعلام می‌کند
   const titleId = useId()
+
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          exit={{ opacity: 0, scale: 0.9 }}
-          transition={{ duration: 0.2 }}
-        >
-          <MuiDialog
-            open={open}
-            onClose={onClose}
-            maxWidth={maxWidth}
-            fullWidth={fullWidth}
-            aria-labelledby={title ? titleId : undefined}
-            {...props}
-          >
-            {title && (
-              <DialogTitle id={titleId} sx={{ fontWeight: 800 }}>
-                {title}
-                <IconButton
-                  onClick={onClose}
-                  aria-label="بستن"
-                  sx={{ position: 'absolute', insetInlineEnd: 8, top: 8 }}
-                >
-                  <Icon icon="mdi:close" />
-                </IconButton>
-              </DialogTitle>
-            )}
-            <DialogContent>{children}</DialogContent>
-            {actions && <DialogActions>{actions}</DialogActions>}
-          </MuiDialog>
-        </motion.div>
-      )}
-    </AnimatePresence>
+    <DialogRoot
+      open={open}
+      onOpenChange={(next) => {
+        if (!next) onClose?.()
+      }}
+    >
+      <DialogContent
+        aria-labelledby={title ? titleId : undefined}
+        // بدون DialogDescription، Radix هشدار توصیف‌نبودن می‌دهد
+        aria-describedby={undefined}
+        className={cn(MAX_WIDTH_CLASS[maxWidth], fullWidth ? 'sm:w-full' : 'sm:!w-auto', className)}
+        {...(props as React.HTMLAttributes<HTMLDivElement>)}
+      >
+        {title && (
+          <DialogHeader>
+            <DialogTitle
+              id={titleId}
+              className="flex items-center gap-2 text-lg font-extrabold text-foreground"
+            >
+              {titleIcon && <span aria-hidden="true">{titleIcon}</span>}
+              {title}
+            </DialogTitle>
+          </DialogHeader>
+        )}
+        {children}
+        {actions && (
+          <div className="flex flex-wrap items-center justify-end gap-2 pt-1">{actions}</div>
+        )}
+      </DialogContent>
+    </DialogRoot>
   )
 }
 

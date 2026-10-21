@@ -2,36 +2,12 @@
 // داشبورد مربی (P004) — نقش `coach`: KPI ماه، جلسات امروز با ثبت حضور/تسویه،
 // پیش‌روها و فهرست شاگردها. داده‌ها واقعی‌اند (GET /coach/dashboard) و هیچ mockی ندارد.
 
-import React, { useMemo, useState } from 'react'
+import React, { useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Button,
-  Card,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Grid,
-  IconButton,
-  MenuItem,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  ToggleButton,
-  ToggleButtonGroup,
-  Tooltip,
-  Typography,
-} from '@mui/material'
 import toast from 'react-hot-toast'
 
 import Layout from '@/components/layout/Layout'
-import { EmptyState, Shimmer } from '@/components/mobile'
+import { EmptyState } from '@/components/mobile'
 import {
   ErrorBox,
   KpiCard,
@@ -49,7 +25,35 @@ import {
 } from '@/hooks/useCoach'
 import type { CoachSession, CoachSessionStatus } from '@/types/coach'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
-import { radii, shadows } from '@/theme'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import { Separator } from '@/components/ui/shadcn/separator'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Dialog,
+  DialogContent,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 
 const STATUS_LABELS: Record<CoachSessionStatus, string> = {
   scheduled: 'برنامه‌ریزی‌شده',
@@ -67,6 +71,8 @@ const STATUS_COLORS: Record<CoachSessionStatus, string> = {
 
 const DURATION_OPTIONS = [30, 45, 60, 90, 120]
 
+const STATUS_FILTERS: (CoachSessionStatus | 'all')[] = ['all', 'scheduled', 'attended', 'absent', 'cancelled']
+
 /** مقدار پیش‌فرض datetime-local (ساعت محلی، بدون منطقه) — بک‌اند naive را وقت تهران می‌گیرد */
 function defaultStartsAt(): string {
   const d = new Date()
@@ -76,83 +82,93 @@ function defaultStartsAt(): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
 }
 
+/** دکمهٔ آیکونی ۴۴px با tooltip — همان IconButton قبلی */
+const iconButtonClass =
+  'inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40'
+
 const SessionRow: React.FC<{
   session: CoachSession
   onAttendance: (status: CoachSessionStatus) => void
   onSettle: () => void
   busy: boolean
 }> = ({ session, onAttendance, onSettle, busy }) => (
-  <Card
+  <div
     data-testid={`coach-session-${session.id}`}
-    sx={{
-      borderRadius: `${radii.card}px`,
-      boxShadow: shadows.card,
-      border: '1px solid rgba(15,23,42,0.05)',
-      bgcolor: 'rgba(255,255,255,0.92)',
-      p: 1.5,
-    }}
+    className="rounded-2xl border border-border bg-card p-3 shadow-sm"
   >
-    <Stack direction="row" spacing={1.5} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center', justifyContent: 'space-between' }}>
-      <Box sx={{ minWidth: 0 }}>
-        <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>
+    <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="min-w-0">
+        <p className="text-sm font-bold text-foreground">
           {session.client_name ?? 'شاگرد'}
           {session.fee > 0 && (
-            <Typography component="span" variant="caption" sx={{ color: 'text.secondary', mr: 1 }}>
+            <span className="ms-2 text-xs font-normal text-muted-foreground">
               — {formatRial(session.fee)}
-            </Typography>
+            </span>
           )}
-        </Typography>
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 0.25 }}>
+        </p>
+        <p className="mt-1 text-sm text-muted-foreground">
           {formatJalaliDateTime(session.starts_at)} · {toPersianDigits(session.duration_min)} دقیقه
           {session.fee_settled && ' · تسویه شده'}
-        </Typography>
-      </Box>
-      <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+        </p>
+      </div>
+      <div className="flex flex-wrap items-center gap-2">
         <StatusChip label={STATUS_LABELS[session.status]} color={STATUS_COLORS[session.status]} />
-        <Tooltip title="برگزارشده">
-          <IconButton
-            aria-label="ثبت حضور"
-            disabled={busy || session.status === 'attended'}
-            onClick={() => onAttendance('attended')}
-            sx={{ width: 44, height: 44, color: 'success.main' }}
-          >
-            <Icon icon="mdi:check-circle-outline" style={{ width: 22, height: 22 }} />
-          </IconButton>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              aria-label="ثبت حضور"
+              disabled={busy || session.status === 'attended'}
+              onClick={() => onAttendance('attended')}
+              className={`${iconButtonClass} text-emerald-600 dark:text-emerald-400`}
+            >
+              <Icon icon="mdi:check-circle-outline" className="h-[22px] w-[22px]" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>برگزارشده</TooltipContent>
         </Tooltip>
-        <Tooltip title="غایب">
-          <IconButton
-            aria-label="ثبت غیبت"
-            disabled={busy || session.status === 'absent'}
-            onClick={() => onAttendance('absent')}
-            sx={{ width: 44, height: 44, color: 'error.main' }}
-          >
-            <Icon icon="mdi:close-circle-outline" style={{ width: 22, height: 22 }} />
-          </IconButton>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              aria-label="ثبت غیبت"
+              disabled={busy || session.status === 'absent'}
+              onClick={() => onAttendance('absent')}
+              className={`${iconButtonClass} text-red-600 dark:text-red-400`}
+            >
+              <Icon icon="mdi:close-circle-outline" className="h-[22px] w-[22px]" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>غایب</TooltipContent>
         </Tooltip>
-        <Tooltip title="لغو">
-          <IconButton
-            aria-label="لغو جلسه"
-            disabled={busy || session.status === 'cancelled'}
-            onClick={() => onAttendance('cancelled')}
-            sx={{ width: 44, height: 44, color: 'text.secondary' }}
-          >
-            <Icon icon="mdi:cancel" style={{ width: 22, height: 22 }} />
-          </IconButton>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <button
+              type="button"
+              aria-label="لغو جلسه"
+              disabled={busy || session.status === 'cancelled'}
+              onClick={() => onAttendance('cancelled')}
+              className={`${iconButtonClass} text-muted-foreground`}
+            >
+              <Icon icon="mdi:cancel" className="h-[22px] w-[22px]" />
+            </button>
+          </TooltipTrigger>
+          <TooltipContent>لغو</TooltipContent>
         </Tooltip>
         {session.status === 'attended' && !session.fee_settled && (
           <Button
-            size="small"
-            variant="outlined"
+            size="sm"
+            variant="outline"
             disabled={busy}
             onClick={onSettle}
-            sx={{ borderRadius: '10px', minHeight: 44 }}
+            className="min-h-11 rounded-[10px]"
           >
             تسویه
           </Button>
         )}
-      </Stack>
-    </Stack>
-  </Card>
+      </div>
+    </div>
+  </div>
 )
 
 const CoachDashboard: React.FC = () => {
@@ -161,6 +177,12 @@ const CoachDashboard: React.FC = () => {
   const createMut = useCreateCoachSession()
   const attendanceMut = useSetCoachAttendance()
   const settleMut = useSetCoachSettled()
+
+  const phoneId = useId()
+  const startsAtId = useId()
+  const durationLabelId = useId()
+  const feeId = useId()
+  const notesId = useId()
 
   const [dialogOpen, setDialogOpen] = useState(false)
   const [statusFilter, setStatusFilter] = useState<CoachSessionStatus | 'all'>('all')
@@ -228,62 +250,51 @@ const CoachDashboard: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 2, flexWrap: 'wrap', mb: 3 }}>
-        <Box>
-          <Typography component="h1" variant="h4" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Icon icon="mdi:school-outline" style={{ width: 30, height: 30, color: '#2563eb' }} />
+      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-foreground">
+            <Icon icon="mdi:school-outline" className="h-[30px] w-[30px] text-blue-600 dark:text-blue-400" />
             پنل مربی
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             جلسات تمرینی، حضور/غیبت شاگردها و درآمد ماه — بر پایهٔ داده‌های واقعی.
-          </Typography>
-        </Box>
-        <Button
-          variant="contained"
-          data-testid="coach-new-session"
-          onClick={() => setDialogOpen(true)}
-          startIcon={<Icon icon="mdi:plus" />}
-          sx={{ borderRadius: '12px', minHeight: 44 }}
-        >
+          </p>
+        </div>
+        <Button variant="primary" data-testid="coach-new-session" onClick={() => setDialogOpen(true)} className="min-h-11 rounded-xl">
+          <Icon icon="mdi:plus" className="h-5 w-5" />
           جلسه جدید
         </Button>
-      </Box>
+      </div>
 
       {dashQ.isPending ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-          {[1, 2, 3, 4].map((i) => <Shimmer key={i} variant="rounded" sx={{ height: 72, borderRadius: '16px' }} />)}
-        </Box>
+        <div className="flex flex-col gap-2">
+          {[1, 2, 3, 4].map((i) => (
+            <Skeleton key={i} aria-hidden="true" className="h-[72px] rounded-2xl" />
+          ))}
+        </div>
       ) : dashQ.isError ? (
         <ErrorBox message="دریافت پنل مربی ممکن نشد (این بخش فقط برای حساب‌های با نقش مربی فعال است)." onRetry={() => dashQ.refetch()} />
       ) : (
-        <Stack spacing={3}>
-          <Grid container spacing={2} data-testid="coach-kpis">
-            <Grid size={{ xs: 6, md: 3 }}>
-              <KpiCard label="جلسات امروز" value={toPersianDigits(dashQ.data.today_count)} icon="mdi:calendar-today" color="#2563eb" />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <KpiCard label="جلسات برگزارشده (ماه)" value={toPersianDigits(dashQ.data.month_sessions)} icon="mdi:account-check" color="#16a34a" />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <KpiCard label="درآمد ماه" value={formatRial(dashQ.data.month_revenue)} icon="mdi:cash-multiple" color="#0ea5e9" />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <KpiCard
-                label="منتظر تسویه"
-                value={formatRial(dashQ.data.month_outstanding)}
-                sub={`${toPersianDigits(dashQ.data.active_clients)} شاگرد فعال`}
-                icon="mdi:clock-alert-outline"
-                color="#d97706"
-              />
-            </Grid>
-          </Grid>
+        <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4" data-testid="coach-kpis">
+            <KpiCard label="جلسات امروز" value={toPersianDigits(dashQ.data.today_count)} icon="mdi:calendar-today" color="#2563eb" />
+            <KpiCard label="جلسات برگزارشده (ماه)" value={toPersianDigits(dashQ.data.month_sessions)} icon="mdi:account-check" color="#16a34a" />
+            <KpiCard label="درآمد ماه" value={formatRial(dashQ.data.month_revenue)} icon="mdi:cash-multiple" color="#0ea5e9" />
+            <KpiCard
+              label="منتظر تسویه"
+              value={formatRial(dashQ.data.month_outstanding)}
+              sub={`${toPersianDigits(dashQ.data.active_clients)} شاگرد فعال`}
+              icon="mdi:clock-alert-outline"
+              color="#d97706"
+            />
+          </div>
 
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>جلسات امروز</Typography>
+          <div>
+            <h2 className="mb-3 text-lg font-bold text-foreground">جلسات امروز</h2>
             {today.length === 0 ? (
               <EmptyState emoji="🗓️" title="جلسه‌ای برای امروز نیست" description="از دکمهٔ «جلسه جدید» برای شاگردانت زمان بگذار." />
             ) : (
-              <Stack spacing={1.25} data-testid="coach-today">
+              <div className="flex flex-col gap-2.5" data-testid="coach-today">
                 {today.map((s) => (
                   <SessionRow
                     key={s.id}
@@ -293,60 +304,70 @@ const CoachDashboard: React.FC = () => {
                     onSettle={() => runSettle(s)}
                   />
                 ))}
-              </Stack>
+              </div>
             )}
-          </Box>
+          </div>
 
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>پیش‌رو</Typography>
+          <div>
+            <h2 className="mb-3 text-lg font-bold text-foreground">پیش‌رو</h2>
             {upcoming.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">جلسهٔ زمان‌بندی‌شده‌ای در آینده نیست.</Typography>
+              <p className="text-sm text-muted-foreground">جلسهٔ زمان‌بندی‌شده‌ای در آینده نیست.</p>
             ) : (
-              <Stack spacing={1} data-testid="coach-upcoming">
+              <div className="flex flex-col gap-2" data-testid="coach-upcoming">
                 {upcoming.map((s) => (
-                  <Box
+                  <div
                     key={s.id}
-                    sx={{
-                      display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5,
-                      p: 1.25, borderRadius: '12px', border: '1px solid rgba(15,23,42,0.06)', bgcolor: 'rgba(255,255,255,0.85)',
-                    }}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-2.5"
                   >
-                    <Typography variant="body2" sx={{ fontWeight: 600 }}>{s.client_name ?? 'شاگرد'}</Typography>
-                    <Typography variant="caption" color="text.secondary">
+                    <p className="text-sm font-semibold text-foreground">{s.client_name ?? 'شاگرد'}</p>
+                    <span className="text-xs text-muted-foreground">
                       {formatJalaliDateTime(s.starts_at)} · {toPersianDigits(s.duration_min)} دقیقه
-                    </Typography>
-                  </Box>
+                    </span>
+                  </div>
                 ))}
-              </Stack>
+              </div>
             )}
-          </Box>
+          </div>
 
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>همهٔ جلسات</Typography>
-            <ToggleButtonGroup
-              exclusive
-              size="small"
-              value={statusFilter}
-              onChange={(_e, next: CoachSessionStatus | 'all') => next && setStatusFilter(next)}
+          <div>
+            <h2 className="mb-3 text-lg font-bold text-foreground">همهٔ جلسات</h2>
+            <div
+              role="group"
               aria-label="فیلتر وضعیت جلسات"
               data-testid="coach-status-filter"
-              sx={{ mb: 1.5, flexWrap: 'wrap', gap: 0.5, '& .MuiToggleButton-root': { minHeight: 44, px: 1.5, borderRadius: '10px !important', border: '1px solid rgba(15,23,42,0.12)' } }}
+              className="mb-3 flex flex-wrap gap-1"
             >
-              <ToggleButton value="all">همه</ToggleButton>
-              {(Object.keys(STATUS_LABELS) as CoachSessionStatus[]).map((s) => (
-                <ToggleButton key={s} value={s}>{STATUS_LABELS[s]}</ToggleButton>
-              ))}
-            </ToggleButtonGroup>
+              {STATUS_FILTERS.map((value) => {
+                const active = statusFilter === value
+                return (
+                  <button
+                    key={value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => setStatusFilter(value)}
+                    className={
+                      active
+                        ? 'inline-flex min-h-11 items-center rounded-[10px] border border-blue-600 bg-blue-600 px-4 text-sm font-bold text-white transition-colors dark:border-blue-500 dark:bg-blue-500'
+                        : 'inline-flex min-h-11 items-center rounded-[10px] border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted'
+                    }
+                  >
+                    {value === 'all' ? 'همه' : STATUS_LABELS[value]}
+                  </button>
+                )
+              })}
+            </div>
             {sessionsQ.isError ? (
               <ErrorBox message="دریافت فهرست جلسات ممکن نشد." onRetry={() => sessionsQ.refetch()} />
             ) : sessionsQ.isPending ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" sx={{ height: 64, borderRadius: '12px' }} />)}
-              </Box>
+              <div className="flex flex-col gap-2">
+                {[1, 2, 3].map((i) => (
+                  <Skeleton key={i} aria-hidden="true" className="h-16 rounded-xl" />
+                ))}
+              </div>
             ) : sessionsQ.data.items.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">جلسه‌ای با این وضعیت یافت نشد.</Typography>
+              <p className="text-sm text-muted-foreground">جلسه‌ای با این وضعیت یافت نشد.</p>
             ) : (
-              <Stack spacing={1} data-testid="coach-history">
+              <div className="flex flex-col gap-2" data-testid="coach-history">
                 {sessionsQ.data.items.map((s) => (
                   <SessionRow
                     key={s.id}
@@ -356,118 +377,127 @@ const CoachDashboard: React.FC = () => {
                     onSettle={() => runSettle(s)}
                   />
                 ))}
-              </Stack>
+              </div>
             )}
-          </Box>
+          </div>
 
-          <Box>
-            <Typography variant="h6" sx={{ fontWeight: 700, mb: 1.5 }}>شاگردها</Typography>
+          <div>
+            <h2 className="mb-3 text-lg font-bold text-foreground">شاگردها</h2>
             {clientsQ.isError ? (
               <ErrorBox message="دریافت فهرست شاگردها ممکن نشد." onRetry={() => clientsQ.refetch()} />
             ) : (
-              <Box
-                sx={{
-                  borderRadius: `${radii.card}px`,
-                  boxShadow: shadows.card,
-                  border: '1px solid rgba(15,23,42,0.05)',
-                  bgcolor: 'rgba(255,255,255,0.92)',
-                  overflowX: 'auto',
-                }}
-              >
-                <Table size="small" aria-label="فهرست شاگردهای مربی" data-testid="coach-clients">
-                  <TableHead>
+              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                <Table aria-label="فهرست شاگردهای مربی" data-testid="coach-clients">
+                  <TableHeader>
                     <TableRow>
-                      <TableCell>شاگرد</TableCell>
-                      <TableCell>شماره</TableCell>
-                      <TableCell align="right">جلسات</TableCell>
-                      <TableCell align="right">مجموع حق جلسه</TableCell>
-                      <TableCell>آخرین جلسه</TableCell>
+                      <TableHead>شاگرد</TableHead>
+                      <TableHead>شماره</TableHead>
+                      <TableHead className="text-end">جلسات</TableHead>
+                      <TableHead className="text-end">مجموع حق جلسه</TableHead>
+                      <TableHead>آخرین جلسه</TableHead>
                     </TableRow>
-                  </TableHead>
+                  </TableHeader>
                   <TableBody>
                     {(clientsQ.data?.items ?? []).map((c) => (
                       <TableRow key={c.user_id}>
-                        <TableCell sx={{ fontWeight: 600 }}>{c.full_name}</TableCell>
+                        <TableCell className="font-semibold">{c.full_name}</TableCell>
                         <TableCell>{c.phone}</TableCell>
-                        <TableCell align="right">{toPersianDigits(c.sessions)}</TableCell>
-                        <TableCell align="right">{formatRial(c.fee_total)}</TableCell>
+                        <TableCell className="text-end">{toPersianDigits(c.sessions)}</TableCell>
+                        <TableCell className="text-end">{formatRial(c.fee_total)}</TableCell>
                         <TableCell>{c.last_session_at ? formatJalaliDateTime(c.last_session_at) : '—'}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
                 </Table>
                 {clientsQ.isPending ? (
-                  <Box sx={{ p: 2 }}><Shimmer variant="rounded" sx={{ height: 48, borderRadius: '12px' }} /></Box>
+                  <div className="p-4"><Skeleton aria-hidden="true" className="h-12 rounded-xl" /></div>
                 ) : (clientsQ.data?.items.length ?? 0) === 0 ? (
-                  <Box sx={{ p: 2 }}>
-                    <Typography variant="body2" color="text.secondary">هنوز شاگردی ثبت نشده است.</Typography>
-                  </Box>
+                  <div className="p-4">
+                    <p className="text-sm text-muted-foreground">هنوز شاگردی ثبت نشده است.</p>
+                  </div>
                 ) : null}
-              </Box>
+              </div>
             )}
-          </Box>
-        </Stack>
+          </div>
+        </div>
       )}
 
-      <Dialog open={dialogOpen} onClose={() => setDialogOpen(false)} fullWidth maxWidth="sm" data-testid="coach-session-dialog">
-        <DialogTitle sx={{ fontWeight: 800 }}>جلسهٔ تمرینی جدید</DialogTitle>
-        <Divider />
-        <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            <TextField
-              label="شماره شاگرد"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              placeholder="09121234567"
-              inputMode="tel"
-              fullWidth
-              helperText="باید حساب فعال در سامانه داشته باشد."
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-            <TextField
-              label="زمان شروع"
-              type="datetime-local"
-              value={startsAt}
-              onChange={(e) => setStartsAt(e.target.value)}
-              fullWidth
-              slotProps={{ inputLabel: { shrink: true } }}
-            />
-            <TextField
-              label="مدت (دقیقه)"
-              select
-              value={duration}
-              onChange={(e) => setDuration(Number(e.target.value))}
-              fullWidth
-              sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
-            >
-              {DURATION_OPTIONS.map((d) => (
-                <MenuItem key={d} value={d}>{toPersianDigits(d)} دقیقه</MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              label="حق جلسه (ریال)"
-              value={fee}
-              onChange={(e) => setFee(e.target.value.replace(/[^\d]/g, ''))}
-              inputMode="numeric"
-              fullWidth
-            />
-            <TextField
-              label="یادداشت"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              multiline
-              minRows={2}
-              fullWidth
-              placeholder="مثلاً: تمرین پاس و تمام‌کننده"
-            />
-          </Stack>
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent
+          aria-describedby={undefined}
+          data-testid="coach-session-dialog"
+          className="sm:max-w-[600px]"
+        >
+          <DialogHeader>
+            <DialogTitle className="font-extrabold">جلسهٔ تمرینی جدید</DialogTitle>
+          </DialogHeader>
+          <Separator />
+          <div className="flex flex-col gap-4 pt-2">
+            <div>
+              <Label htmlFor={phoneId} className="mb-1.5 block">شماره شاگرد</Label>
+              <Input
+                id={phoneId}
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="09121234567"
+                inputMode="tel"
+                aria-describedby={`${phoneId}-help`}
+              />
+              <p id={`${phoneId}-help`} className="mt-1.5 text-xs text-muted-foreground">
+                باید حساب فعال در سامانه داشته باشد.
+              </p>
+            </div>
+            <div>
+              <Label htmlFor={startsAtId} className="mb-1.5 block">زمان شروع</Label>
+              <Input
+                id={startsAtId}
+                type="datetime-local"
+                value={startsAt}
+                onChange={(e) => setStartsAt(e.target.value)}
+              />
+            </div>
+            <div>
+              <Label id={durationLabelId} className="mb-1.5 block">مدت (دقیقه)</Label>
+              <Select value={String(duration)} onValueChange={(value) => setDuration(Number(value))}>
+                <SelectTrigger aria-labelledby={durationLabelId} className="rounded-xl">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {DURATION_OPTIONS.map((d) => (
+                    <SelectItem key={d} value={String(d)}>{toPersianDigits(d)} دقیقه</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor={feeId} className="mb-1.5 block">حق جلسه (ریال)</Label>
+              <Input
+                id={feeId}
+                value={fee}
+                onChange={(e) => setFee(e.target.value.replace(/[^\d]/g, ''))}
+                inputMode="numeric"
+              />
+            </div>
+            <div>
+              <Label htmlFor={notesId} className="mb-1.5 block">یادداشت</Label>
+              <Textarea
+                id={notesId}
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={2}
+                placeholder="مثلاً: تمرین پاس و تمام‌کننده"
+              />
+            </div>
+          </div>
+          <DialogFooter className="px-1 pb-1">
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="min-h-11">
+              انصراف
+            </Button>
+            <Button variant="primary" onClick={submit} disabled={createMut.isPending} className="min-h-11 rounded-xl">
+              {createMut.isPending ? 'در حال ثبت…' : 'ثبت جلسه'}
+            </Button>
+          </DialogFooter>
         </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setDialogOpen(false)} sx={{ minHeight: 44 }}>انصراف</Button>
-          <Button variant="contained" onClick={submit} disabled={createMut.isPending} sx={{ borderRadius: '12px', minHeight: 44 }}>
-            {createMut.isPending ? 'در حال ثبت…' : 'ثبت جلسه'}
-          </Button>
-        </DialogActions>
       </Dialog>
     </Layout>
   )

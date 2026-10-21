@@ -7,7 +7,6 @@ import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
 import { Icon } from '@iconify/react'
-import { Box, Card, Chip, Grid, Typography } from '@mui/material'
 
 import Layout from '@/components/layout/Layout'
 import { EmptyState, ErrorState, Shimmer } from '@/components/mobile'
@@ -22,7 +21,7 @@ import type { StandingsItem } from '@/services/team'
 import type { Team, TeamInvitation } from '@/types/team'
 import { TEAM_MEMBER_STATUS_LABELS, TEAM_ROLE_LABELS } from '@/types/team'
 import { toPersianDigits } from '@/lib/jalali'
-import { radii, shadows } from '@/theme'
+import { cn } from '@/lib/utils'
 
 const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
   const toast = useToast()
@@ -31,30 +30,18 @@ const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
   const busy = accept.isPending || decline.isPending
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1.25,
-        flexWrap: 'wrap',
-        px: 2,
-        py: 1.5,
-        borderRadius: '16px',
-        border: '1px solid rgba(124,58,237,0.25)',
-        bgcolor: 'rgba(124,58,237,0.05)',
-      }}
-    >
-      <Icon icon="mdi:email-open-outline" style={{ width: 20, height: 20, color: '#7c3aed', flexShrink: 0 }} />
-      <Box sx={{ minWidth: 0, flex: 1 }}>
-        <Typography sx={{ fontSize: '0.85rem', fontWeight: 800, color: '#0f172a' }}>
+    <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-violet-600/25 bg-violet-600/5 px-4 py-3">
+      <Icon icon="mdi:email-open-outline" className="h-5 w-5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden="true" />
+      <div className="min-w-0 flex-1">
+        <p className="text-[0.85rem] font-extrabold text-foreground">
           دعوت به تیم «{inv.team_name ?? `#${inv.team_id}`}»
-        </Typography>
-        <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }} noWrap>
+        </p>
+        <p className="truncate text-xs text-muted-foreground">
           {inv.team_name ? 'پس از پذیرش، عضو فعال تیم می‌شوید.' : ''}
-        </Typography>
-      </Box>
+        </p>
+      </div>
       {inv.member_id ? (
-        <Box sx={{ display: 'flex', gap: 1 }}>
+        <div className="flex gap-2">
           <Button
             size="sm"
             variant="gradient"
@@ -81,16 +68,18 @@ const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
           >
             رد
           </Button>
-        </Box>
+        </div>
       ) : (
-        <Chip label="بدون شناسه عضویت" size="small" sx={{ height: 22, fontSize: '0.75rem' }} />
+        <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+          بدون شناسه عضویت
+        </span>
       )}
       {!busy && inv.member_id && (
-        <Link to={`/teams/${inv.team_id}`} style={{ textDecoration: 'none' }}>
-          <Typography sx={{ fontSize: '0.75rem', color: '#2563eb', fontWeight: 700 }}>مشاهده تیم</Typography>
+        <Link to={`/teams/${inv.team_id}`} className="no-underline">
+          <span className="text-xs font-bold text-blue-600 dark:text-blue-400">مشاهده تیم</span>
         </Link>
       )}
-    </Box>
+    </div>
   )
 }
 
@@ -100,24 +89,10 @@ const JoinRequestsBadge: React.FC<{ team: Team }> = ({ team }) => {
   const n = q.data?.length ?? 0
   if (!isManager || n === 0) return null
   return (
-    <Box
-      component="span"
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 0.4,
-        px: 0.9,
-        py: 0.25,
-        borderRadius: '999px',
-        bgcolor: 'rgba(245,158,11,0.14)',
-        color: 'warning.main',
-        fontSize: '0.75rem',
-        fontWeight: 800,
-      }}
-    >
-      <Icon icon="mdi:hand-back-right" style={{ width: 13, height: 13 }} />
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-1 text-xs font-extrabold text-amber-700 dark:text-amber-400">
+      <Icon icon="mdi:hand-back-right" className="h-[13px] w-[13px]" aria-hidden="true" />
       {`${toPersianDigits(n)} درخواست`}
-    </Box>
+    </span>
   )
 }
 
@@ -130,52 +105,40 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
         : 'بدون عضویت'
   return (
     <motion.div whileHover={{ y: -3 }} transition={{ duration: 0.2 }}>
-      <Link to={`/teams/${team.id}`} style={{ textDecoration: 'none' }}>
-        <Card
-          sx={{
-            borderRadius: `${radii.card}px`,
-            boxShadow: shadows.card,
-            border: team.is_active ? '1px solid rgba(15,23,42,0.06)' : '1px dashed rgba(100,116,139,0.4)',
-            opacity: team.is_active ? 1 : 0.75,
-            height: '100%',
-          }}
+      <Link to={`/teams/${team.id}`} className="block h-full no-underline">
+        <div
+          className={cn(
+            'h-full rounded-2xl border bg-card shadow-sm transition-opacity',
+            team.is_active ? 'border-border' : 'border-dashed border-slate-500/40 opacity-75',
+          )}
         >
-          <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.25, height: '100%' }}>
-            <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.25 }}>
-              <Box role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} sx={{ fontSize: '1.7rem', lineHeight: 1 }}>{SPORT_EMOJI[team.sport] ?? '🏅'}</Box>
-              <Box sx={{ minWidth: 0, flex: 1 }}>
-                <Typography sx={{ fontWeight: 900, fontSize: '0.98rem', color: '#0f172a' }} noWrap>
+          <div className="flex h-full flex-col gap-2.5 p-4">
+            <div className="flex items-start gap-2.5">
+              <div role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} className="text-[1.7rem] leading-none">{SPORT_EMOJI[team.sport] ?? '🏅'}</div>
+              <div className="min-w-0 flex-1">
+                <p className="truncate text-[0.98rem] font-black text-foreground">
                   {team.name}
-                </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }} noWrap>
+                </p>
+                <p className="mt-1 truncate text-xs text-muted-foreground">
                   {`کاپیتان: ${team.captain_name ?? '—'}`}
-                </Typography>
-              </Box>
+                </p>
+              </div>
               {!team.is_active && (
-                <Chip label="غیرفعال" size="small" sx={{ height: 22, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(100,116,139,0.10)', color: '#64748b' }} />
+                <span className="rounded-full bg-slate-500/10 px-2.5 py-0.5 text-xs font-bold text-muted-foreground">غیرفعال</span>
               )}
-            </Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, flexWrap: 'wrap' }}>
+            </div>
+            <div className="flex flex-wrap items-center gap-1.5">
               <TeamVisibilityChip visibility={team.visibility} />
-              <Chip
-                label={statusLabel}
-                size="small"
-                sx={{
-                  height: 24,
-                  borderRadius: '999px',
-                  fontWeight: 700,
-                  fontSize: '0.75rem',
-                  bgcolor: 'rgba(37,99,235,0.08)',
-                  color: '#2563eb',
-                }}
-              />
+              <span className="inline-flex h-6 items-center rounded-full bg-blue-600/10 px-2.5 text-xs font-bold text-blue-600 dark:text-blue-400">
+                {statusLabel}
+              </span>
               {team.my_status === 'pending' && (
-                <Typography sx={{ fontSize: '0.75rem', color: 'warning.main', fontWeight: 700 }}>
+                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
                   {TEAM_MEMBER_STATUS_LABELS.pending}
-                </Typography>
+                </p>
               )}
-            </Box>
-            <Box sx={{ mt: 'auto', display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+            </div>
+            <div className="mt-auto flex flex-col gap-1.5">
               <TeamQuotaProgress
                 memberCount={team.member_count}
                 quota={team.quota}
@@ -184,15 +147,17 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
                 compact
               />
               <JoinRequestsBadge team={team} />
-            </Box>
-          </Box>
-        </Card>
+            </div>
+          </div>
+        </div>
       </Link>
     </motion.div>
   )
 }
 
 const RANK_MEDAL: Record<number, string> = { 1: '#f59e0b', 2: '#64748b', 3: '#b45309' }
+
+const STANDINGS_GRID = 'grid grid-cols-[34px_1fr_46px_46px_46px_52px] items-center gap-1'
 
 const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   const q = useQuery({
@@ -206,66 +171,56 @@ const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   if (!q.isSuccess || items.length === 0) return null
 
   return (
-    <Card sx={{ borderRadius: `${radii.card}px`, boxShadow: shadows.card, border: '1px solid rgba(15,23,42,0.06)', mb: 3 }}>
-      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Icon icon="mdi:trophy-outline" style={{ width: 18, height: 18, color: '#f59e0b' }} />
-          <Typography sx={{ fontSize: '0.85rem', fontWeight: 900, color: '#0f172a' }}>جدول لیگ</Typography>
+    <div className="mb-6 rounded-2xl border border-border bg-card shadow-sm">
+      <div className="flex flex-col gap-2 p-4">
+        <div className="flex items-center gap-2">
+          <Icon icon="mdi:trophy-outline" className="h-[18px] w-[18px] text-amber-500" aria-hidden="true" />
+          <h2 className="text-[0.85rem] font-black text-foreground">جدول لیگ</h2>
           {q.data?.my_rank && (
-            <Chip
-              label={`رتبه شما: ${toPersianDigits(q.data.my_rank)}`}
-              size="small"
-              sx={{ height: 22, fontSize: '0.75rem', fontWeight: 800, bgcolor: 'rgba(245,158,11,0.14)', color: 'warning.main', ms: 'auto' }}
-            />
+            <span className="ms-auto inline-flex h-[22px] items-center rounded-full bg-amber-500/15 px-2.5 text-xs font-extrabold text-amber-700 dark:text-amber-400">
+              {`رتبه شما: ${toPersianDigits(q.data.my_rank)}`}
+            </span>
           )}
-        </Box>
+        </div>
         {/* هدر ستون‌ها */}
-        <Box sx={{ display: 'grid', gridTemplateColumns: '34px 1fr 46px 46px 46px 52px', gap: 0.5, px: 0.5, fontSize: '0.75rem', fontWeight: 800, color: '#64748b' }}>
-          <Box>#</Box><Box>تیم</Box><Box sx={{ textAlign: 'center' }}>بازی</Box>
-          <Box sx={{ textAlign: 'center' }}>برد</Box><Box sx={{ textAlign: 'center' }}>باخت</Box>
-          <Box sx={{ textAlign: 'center' }}>امتیاز</Box>
-        </Box>
+        <div className={cn(STANDINGS_GRID, 'px-1 text-xs font-extrabold text-muted-foreground')}>
+          <div>#</div><div>تیم</div><div className="text-center">بازی</div>
+          <div className="text-center">برد</div><div className="text-center">باخت</div>
+          <div className="text-center">امتیاز</div>
+        </div>
         {items.map((row: StandingsItem, i: number) => (
           <motion.div key={row.team_id} initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.22, delay: i * 0.03 }}>
-            <Box
-              component={Link}
+            <Link
               to={`/teams/${row.team_id}`}
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: '34px 1fr 46px 46px 46px 52px',
-                gap: 0.5,
-                alignItems: 'center',
-                px: 0.5,
-                py: 0.75,
-                borderRadius: '10px',
-                textDecoration: 'none',
-                bgcolor: q.data?.my_rank === row.rank ? 'rgba(245,158,11,0.08)' : 'transparent',
-                '&:hover': { bgcolor: 'rgba(15,23,42,0.04)' },
-              }}
+              className={cn(
+                STANDINGS_GRID,
+                'rounded-[10px] px-1 py-1.5 no-underline transition-colors',
+                q.data?.my_rank === row.rank ? 'bg-amber-500/10' : 'hover:bg-muted/60',
+              )}
             >
-              <Box sx={{ fontWeight: 900, fontSize: '0.8rem', color: RANK_MEDAL[row.rank] ?? '#64748b', textAlign: 'center' }}>
+              <div className="text-center text-[0.8rem] font-black" style={{ color: RANK_MEDAL[row.rank] ?? '#64748b' }}>
                 {toPersianDigits(row.rank)}
-              </Box>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontSize: '0.78rem', fontWeight: 800, color: '#0f172a' }} noWrap>
+              </div>
+              <div className="min-w-0">
+                <p className="truncate text-[0.78rem] font-extrabold text-foreground">
                   {row.team_name}
                   {row.is_official && (
-                    <Icon icon="mdi:shield-check" style={{ width: 12, height: 12, color: '#059669', marginInlineStart: 4, verticalAlign: -2 }} />
+                    <Icon icon="mdi:shield-check" className="ms-1 inline-block h-3 w-3 align-[-2px]" style={{ color: '#059669' }} aria-hidden="true" />
                   )}
-                </Typography>
-                <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+                </p>
+                <p className="text-xs text-muted-foreground">
                   {`${toPersianDigits(row.win_rate)}٪ برد · ${toPersianDigits(row.member_count)} عضو`}
-                </Typography>
-              </Box>
-              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', color: '#334155', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.played)}</Box>
-              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 800, color: 'success.main', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.won)}</Box>
-              <Box sx={{ textAlign: 'center', fontSize: '0.75rem', color: 'error.main', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.lost)}</Box>
-              <Box sx={{ textAlign: 'center', fontSize: '0.8rem', fontWeight: 900, color: '#0f172a', fontVariantNumeric: 'tabular-nums' }}>{toPersianDigits(row.points)}</Box>
-            </Box>
+                </p>
+              </div>
+              <div className="text-center text-xs text-slate-700 tabular-nums dark:text-slate-300">{toPersianDigits(row.played)}</div>
+              <div className="text-center text-xs font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400">{toPersianDigits(row.won)}</div>
+              <div className="text-center text-xs text-red-600 tabular-nums dark:text-red-400">{toPersianDigits(row.lost)}</div>
+              <div className="text-center text-[0.8rem] font-black text-foreground tabular-nums">{toPersianDigits(row.points)}</div>
+            </Link>
           </motion.div>
         ))}
-      </Box>
-    </Card>
+      </div>
+    </div>
   )
 }
 
@@ -281,43 +236,41 @@ const Teams: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5, flexWrap: 'wrap', mb: 2.5 }}>
-        <Box>
-          <Typography component="h1" variant="h4" sx={{ fontWeight: 800 }}>تیم‌ها</Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
+      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-2xl font-extrabold text-foreground md:text-3xl">تیم‌ها</h1>
+          <p className="mt-1 text-sm text-muted-foreground">
             تیم‌های ماندگار شما — اعضا، حصه‌ها، تاریخچه رزروها و تراز مالی تیم.
-          </Typography>
-        </Box>
-        <Box sx={{ display: 'flex', gap: 1.25, flexWrap: 'wrap' }}>
+          </p>
+        </div>
+        <div className="flex flex-wrap gap-2.5">
           <Button variant="default" icon="mdi:magnify" onClick={() => navigate('/teams/discover')}>
             کاوش تیم‌ها
           </Button>
           <Button variant="gradient" icon="mdi:shield-plus-outline" onClick={() => setCreateOpen(true)}>
             تیم جدید
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       <LeagueStandingsPanel enabled={isAuthenticated} />
 
       {invites.length > 0 && (
-        <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', gap: 1 }}>
-          <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#7c3aed', display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Icon icon="mdi:email-fast-outline" style={{ width: 16, height: 16 }} />
+        <div className="mb-6 flex flex-col gap-2">
+          <p className="flex items-center gap-2 text-[0.8rem] font-extrabold text-violet-600 dark:text-violet-400">
+            <Icon icon="mdi:email-fast-outline" className="h-4 w-4" aria-hidden="true" />
             {`دعوت‌نامه‌های شما (${toPersianDigits(invites.length)})`}
-          </Typography>
+          </p>
           {invites.map((inv) => <PendingInvitationRow key={inv.id} inv={inv} />)}
-        </Box>
+        </div>
       )}
 
       {teamsQ.isPending ? (
-        <Grid container spacing={2}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={i}>
-              <Shimmer variant="rounded" sx={{ height: 150, borderRadius: `${radii.card}px` }} />
-            </Grid>
+            <Shimmer key={i} height={150} className="rounded-2xl" />
           ))}
-        </Grid>
+        </div>
       ) : teamsQ.isError ? (
         <ErrorState description="بارگذاری تیم‌ها ممکن نشد." onRetry={() => teamsQ.refetch()} />
       ) : teams.length === 0 ? (
@@ -329,13 +282,11 @@ const Teams: React.FC = () => {
           onAction={() => setCreateOpen(true)}
         />
       ) : (
-        <Grid container spacing={2}>
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {teams.map((t) => (
-            <Grid size={{ xs: 12, sm: 6, md: 4 }} key={t.id}>
-              <TeamCard team={t} />
-            </Grid>
+            <TeamCard key={t.id} team={t} />
           ))}
-        </Grid>
+        </div>
       )}
 
       <TeamFormDialog open={createOpen} onClose={() => setCreateOpen(false)} />

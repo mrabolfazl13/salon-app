@@ -1,21 +1,20 @@
 import React, { useEffect, useState } from 'react'
 import { Icon } from '@iconify/react'
+import { motion, AnimatePresence } from 'framer-motion'
+import { paymentService, type PaymentItem } from '@/services/payment'
+import { cn, formatPrice } from '@/lib/utils'
+import toast from 'react-hot-toast'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Alert } from '@/components/ui/shadcn/alert'
 import {
   Dialog,
   DialogContent,
-  DialogActions,
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Chip,
-  CircularProgress,
-  Alert,
-} from '@mui/material'
-import { motion, AnimatePresence } from 'framer-motion'
-import { paymentService, type PaymentItem } from '@/services/payment'
-import { formatPrice } from '@/lib/utils'
-import toast from 'react-hot-toast'
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
 
 // تبدیل ارقام فارسی/عربی به لاتین
 const toLatinDigits = (value: string): string =>
@@ -35,6 +34,9 @@ interface PaymentDialogProps {
 }
 
 type Step = 'invoice' | 'form' | 'processing' | 'success'
+
+const spinnerClass =
+  'inline-block h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent'
 
 const PaymentDialog: React.FC<PaymentDialogProps> = ({
   open,
@@ -121,294 +123,218 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
     }
   }
 
+  const handleOpenChange = (next: boolean) => {
+    if (next) return
+    if (step === 'processing') return
+    onClose()
+  }
+
   return (
-    <Dialog
-      aria-label="پرداخت آنلاین رزرو"
-      open={open}
-      onClose={step === 'processing' ? undefined : onClose}
-      maxWidth="xs"
-      fullWidth
-      slotProps={{ paper: { sx: { borderRadius: '20px', overflow: 'visible' } } }}
-    >
-      {/* هدر گرادیانی شبیه درگاه بانک */}
-      <Box
-        sx={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%)',
-          borderRadius: '20px 20px 0 0',
-          px: 3,
-          py: 2.5,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
+    <Dialog open={open} onOpenChange={handleOpenChange}>
+      <DialogContent
+        aria-label="پرداخت آنلاین رزرو"
+        className="gap-0 overflow-hidden p-0 sm:max-w-[444px] [&>button]:text-white/90 [&>button:hover]:bg-white/15 [&>button:hover]:text-white"
       >
-        <Typography
-          variant="subtitle1"
-          sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}
-        >
-          <Icon icon="mdi:bank-outline" className="h-5 w-5" />
-          درگاه پرداخت
-        </Typography>
-        <Chip
-          label="شبیه‌سازی‌شده"
-          size="small"
-          sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }}
-        />
-      </Box>
+        {/* هدر گرادیانی شبیه درگاه بانک */}
+        <div className="flex items-center justify-between gap-2 bg-gradient-to-br from-blue-900 via-blue-600 to-violet-600 ps-6 pe-16 py-5">
+          <DialogHeader className="flex-1">
+            <DialogTitle className="flex items-center gap-2 pe-10 text-base font-bold text-white">
+              <Icon icon="mdi:bank-outline" className="h-5 w-5" />
+              درگاه پرداخت
+            </DialogTitle>
+          </DialogHeader>
+          <span className="shrink-0 rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">
+            شبیه‌سازی‌شده
+          </span>
+        </div>
 
-      <DialogContent sx={{ pt: 3 }}>
-        {/* خلاصه سفارش */}
-        <Box
-          sx={{
-            bgcolor: 'action.hover',
-            borderRadius: '14px',
-            p: 2,
-            mb: 2.5,
-            display: 'flex',
-            flexDirection: 'column',
-            gap: 0.75,
-          }}
-        >
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="caption" color="text.secondary">
-              سالن
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>
-              {venueName || `رزرو #${bookingId}`}
-            </Typography>
-          </Box>
-          {slotDate && (
-            <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-              <Typography variant="caption" color="text.secondary">
-                زمان
-              </Typography>
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                {slotDate}
-                {startTime ? ` — ${startTime.slice(0, 5)}` : ''}
-              </Typography>
-            </Box>
-          )}
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="caption" color="text.secondary">
-              مبلغ قابل پرداخت
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>
-              {formatPrice(amount)}
-            </Typography>
-          </Box>
-        </Box>
+        <div className="px-6 pt-6">
+          {/* خلاصه سفارش */}
+          <div className="mb-5 flex flex-col gap-1.5 rounded-[14px] bg-muted p-4">
+            <div className="flex justify-between">
+              <span className="text-xs text-muted-foreground">سالن</span>
+              <span className="text-sm font-semibold text-foreground">{venueName || `رزرو #${bookingId}`}</span>
+            </div>
+            {slotDate && (
+              <div className="flex justify-between">
+                <span className="text-xs text-muted-foreground">زمان</span>
+                <span className="text-sm font-semibold text-foreground">
+                  {slotDate}
+                  {startTime ? ` — ${startTime.slice(0, 5)}` : ''}
+                </span>
+              </div>
+            )}
+            <div className="flex justify-between">
+              <span className="text-xs text-muted-foreground">مبلغ قابل پرداخت</span>
+              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{formatPrice(amount)}</span>
+            </div>
+          </div>
 
-        {error && (
-          <Alert severity="error" sx={{ mb: 2, borderRadius: '12px' }}>
-            {error}
-          </Alert>
-        )}
+          {error && <Alert variant="destructive" className="mb-4 rounded-xl">{error}</Alert>}
 
-        <AnimatePresence mode="wait">
-          {step === 'invoice' && (
-            <motion.div
-              key="invoice"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              style={{ textAlign: 'center', padding: '32px 0' }}
-            >
-              <CircularProgress size={32} />
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5 }}>
-                در حال صدور فاکتور...
-              </Typography>
-            </motion.div>
-          )}
-
-          {(step === 'form' || step === 'processing') && (
-            <motion.div
-              key="form"
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              exit={{ opacity: 0, x: -20 }}
-            >
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, opacity: step === 'processing' ? 0.5 : 1 }}>
-                <TextField
-                  label="شماره کارت"
-                  placeholder="6037 9971 0000 0000"
-                  value={cardNumber}
-                  onChange={(e) => {
-                    const digits = toLatinDigits(e.target.value).replace(/\D/g, '').slice(0, 16)
-                    setCardNumber(digits.replace(/(\d{4})(?=\d)/g, '$1 '))
-                  }}
-                  fullWidth
-                  size="small"
-                  disabled={step === 'processing'}
-                  error={Boolean(fieldErrors.cardNumber)}
-                  helperText={fieldErrors.cardNumber || '۱۶ رقم روی کارت'}
-                  slotProps={{
-                    input: {
-                      startAdornment: <Icon icon="mdi:credit-card-outline" className="h-5 w-5 ml-2" style={{ color: 'rgba(0,0,0,0.4)' }} />,
-                    },
-                  }}
+          <AnimatePresence mode="wait">
+            {step === 'invoice' && (
+              <motion.div
+                key="invoice"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                style={{ textAlign: 'center', padding: '32px 0' }}
+              >
+                <span
+                  className="mx-auto block h-8 w-8 animate-spin rounded-full border-[3px] border-slate-300 border-t-blue-600"
+                  role="status"
+                  aria-label="در حال بارگذاری"
                 />
-                <Box sx={{ display: 'flex', gap: 1.5 }}>
-                  <TextField
-                    label="CVV2"
-                    placeholder="123"
-                    value={cvv}
-                    onChange={(e) => setCvv(toLatinDigits(e.target.value).replace(/\D/g, '').slice(0, 4))}
-                    size="small"
-                    sx={{ width: 100 }}
-                    disabled={step === 'processing'}
-                    error={Boolean(fieldErrors.cvv)}
-                    helperText={fieldErrors.cvv}
-                  />
-                  <TextField
-                    label="ماه"
-                    placeholder="01"
-                    value={month}
-                    onChange={(e) => setMonth(toLatinDigits(e.target.value).replace(/\D/g, '').slice(0, 2))}
-                    size="small"
-                    sx={{ width: 72 }}
-                    disabled={step === 'processing'}
-                    error={Boolean(fieldErrors.month)}
-                    helperText={fieldErrors.month}
-                  />
-                  <TextField
-                    label="سال"
-                    placeholder="1405"
-                    value={year}
-                    onChange={(e) => setYear(toLatinDigits(e.target.value).replace(/\D/g, '').slice(0, 4))}
-                    size="small"
-                    sx={{ width: 84 }}
-                    disabled={step === 'processing'}
-                    error={Boolean(fieldErrors.year)}
-                    helperText={fieldErrors.year}
-                  />
-                </Box>
-              </Box>
-            </motion.div>
-          )}
+                <p className="mt-3 text-sm text-muted-foreground">در حال صدور فاکتور...</p>
+              </motion.div>
+            )}
 
-          {step === 'success' && payment && (
-            <motion.div
-              key="success"
-              initial={{ opacity: 0, scale: 0.9 }}
-              animate={{ opacity: 1, scale: 1 }}
-              style={{ textAlign: 'center', padding: '8px 0' }}
-            >
-              <Box
-                sx={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  bgcolor: 'success.main',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mx: 'auto',
-                  mb: 2,
-                }}
+            {(step === 'form' || step === 'processing') && (
+              <motion.div
+                key="form"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
               >
-                <Icon icon="mdi:check-bold" className="h-8 w-8" style={{ color: 'white' }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>
-                پرداخت موفق
-              </Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                تراکنش شما با موفقیت انجام شد
-              </Typography>
-              <Box
-                sx={{
-                  bgcolor: 'action.hover',
-                  borderRadius: '12px',
-                  p: 1.5,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 0.5,
-                }}
-              >
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="caption" color="text.secondary">
-                    کد پیگیری
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600, direction: 'ltr' }}>
-                    {payment.transaction_id}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Typography variant="caption" color="text.secondary">
-                    مبلغ
-                  </Typography>
-                  <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                    {formatPrice(payment.amount)}
-                  </Typography>
-                </Box>
-                {payment.card_pan && (
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                    <Typography variant="caption" color="text.secondary">
-                      کارت
-                    </Typography>
-                    <Typography variant="body2" sx={{ fontWeight: 600, direction: 'ltr' }}>
-                      **** {payment.card_pan}
-                    </Typography>
-                  </Box>
-                )}
-              </Box>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </DialogContent>
+                <div className={cn('flex flex-col gap-4', step === 'processing' && 'opacity-50')}>
+                  <div className="flex flex-col gap-1.5">
+                    <Label htmlFor="payment-card-number">شماره کارت</Label>
+                    <Input
+                      id="payment-card-number"
+                      placeholder="6037 9971 0000 0000"
+                      inputMode="numeric"
+                      startIcon={<Icon icon="mdi:credit-card-outline" />}
+                      value={cardNumber}
+                      onChange={(e) => {
+                        const digits = toLatinDigits(e.target.value).replace(/\D/g, '').slice(0, 16)
+                        setCardNumber(digits.replace(/(\d{4})(?=\d)/g, '$1 '))
+                      }}
+                      disabled={step === 'processing'}
+                      error={fieldErrors.cardNumber}
+                      aria-describedby={!fieldErrors.cardNumber ? 'payment-card-hint' : undefined}
+                    />
+                    {!fieldErrors.cardNumber && (
+                      <p id="payment-card-hint" className="text-xs text-muted-foreground">۱۶ رقم روی کارت</p>
+                    )}
+                  </div>
+                  <div className="flex gap-3">
+                    <div className="flex w-[100px] shrink-0 flex-col gap-1.5">
+                      <Label htmlFor="payment-cvv">CVV2</Label>
+                      <Input
+                        id="payment-cvv"
+                        placeholder="123"
+                        inputMode="numeric"
+                        value={cvv}
+                        onChange={(e) => setCvv(toLatinDigits(e.target.value).replace(/\D/g, '').slice(0, 4))}
+                        disabled={step === 'processing'}
+                        error={fieldErrors.cvv}
+                        className="px-3"
+                      />
+                    </div>
+                    <div className="flex w-[72px] shrink-0 flex-col gap-1.5">
+                      <Label htmlFor="payment-month">ماه</Label>
+                      <Input
+                        id="payment-month"
+                        placeholder="01"
+                        inputMode="numeric"
+                        value={month}
+                        onChange={(e) => setMonth(toLatinDigits(e.target.value).replace(/\D/g, '').slice(0, 2))}
+                        disabled={step === 'processing'}
+                        error={fieldErrors.month}
+                        className="px-3"
+                      />
+                    </div>
+                    <div className="flex w-[84px] shrink-0 flex-col gap-1.5">
+                      <Label htmlFor="payment-year">سال</Label>
+                      <Input
+                        id="payment-year"
+                        placeholder="1405"
+                        inputMode="numeric"
+                        value={year}
+                        onChange={(e) => setYear(toLatinDigits(e.target.value).replace(/\D/g, '').slice(0, 4))}
+                        disabled={step === 'processing'}
+                        error={fieldErrors.year}
+                        className="px-3"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
 
-      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-        {step === 'success' ? (
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={onClose}
-            sx={{
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #16a34a, #15803d)',
-              '&:hover': { background: 'linear-gradient(135deg, #15803d, #166534)' },
-            }}
-          >
-            بستن
-          </Button>
-        ) : (
-          <>
+            {step === 'success' && payment && (
+              <motion.div
+                key="success"
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={{ opacity: 1, scale: 1 }}
+                style={{ textAlign: 'center', padding: '8px 0' }}
+              >
+                <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600">
+                  <Icon icon="mdi:check-bold" className="h-8 w-8" style={{ color: 'white' }} />
+                </div>
+                <h2 className="mb-1 text-lg font-bold text-foreground">پرداخت موفق</h2>
+                <p className="mb-4 text-sm text-muted-foreground">تراکنش شما با موفقیت انجام شد</p>
+                <div className="flex flex-col gap-1 rounded-xl bg-muted p-3">
+                  <div className="flex justify-between">
+                    <span className="text-xs text-muted-foreground">کد پیگیری</span>
+                    <span className="text-sm font-semibold text-foreground" dir="ltr">{payment.transaction_id}</span>
+                  </div>
+                  <div className="flex justify-between">
+                    <span className="text-xs text-muted-foreground">مبلغ</span>
+                    <span className="text-sm font-semibold text-foreground">{formatPrice(payment.amount)}</span>
+                  </div>
+                  {payment.card_pan && (
+                    <div className="flex justify-between">
+                      <span className="text-xs text-muted-foreground">کارت</span>
+                      <span className="text-sm font-semibold text-foreground" dir="ltr">**** {payment.card_pan}</span>
+                    </div>
+                  )}
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </div>
+
+        <DialogFooter className="gap-2 px-6 pb-6 pt-4">
+          {step === 'success' ? (
             <Button
               onClick={onClose}
-              disabled={step === 'processing'}
-              sx={{ borderRadius: '12px', textTransform: 'none' }}
+              className="w-full rounded-xl bg-gradient-to-br from-green-600 to-green-700 font-bold text-white hover:from-green-700 hover:to-green-800"
             >
-              انصراف
+              بستن
             </Button>
-            <Button
-              variant="contained"
-              onClick={handlePay}
-              disabled={step !== 'form' || !payment}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 700,
-                flex: 1,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                '&:hover': { background: 'linear-gradient(135deg, #1d4ed8, #6d28d9)' },
-              }}
-            >
-              {step === 'processing' ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={16} color="inherit" />
-                  در حال پرداخت...
-                </Box>
-              ) : (
-                <>
-                  <Icon icon="mdi:lock-check-outline" className="h-5 w-5 ml-1" />
-                  پرداخت {formatPrice(amount)}
-                </>
-              )}
-            </Button>
-          </>
-        )}
-      </DialogActions>
+          ) : (
+            <>
+              <Button
+                variant="outline"
+                onClick={onClose}
+                disabled={step === 'processing'}
+                className="rounded-xl"
+              >
+                انصراف
+              </Button>
+              <Button
+                onClick={handlePay}
+                disabled={step !== 'form' || !payment}
+                className="flex-1 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 font-bold text-white hover:from-blue-700 hover:to-violet-700"
+              >
+                {step === 'processing' ? (
+                  <span className="flex items-center gap-2">
+                    <span className={spinnerClass} role="status" aria-label="در حال بارگذاری" />
+                    در حال پرداخت...
+                  </span>
+                ) : (
+                  <>
+                    <Icon icon="mdi:lock-check-outline" className="h-5 w-5" />
+                    پرداخت {formatPrice(amount)}
+                  </>
+                )}
+              </Button>
+            </>
+          )}
+        </DialogFooter>
+      </DialogContent>
     </Dialog>
   )
 }

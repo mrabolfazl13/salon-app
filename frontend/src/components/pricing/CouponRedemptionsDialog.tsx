@@ -7,29 +7,22 @@
 // و سرجمعِ «زنده در برابرِ برگشتی» که کلِ کوپن را می‌پاید نه فقط این صفحه را.
 
 import React from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  IconButton,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 
 import { ErrorBox, LoadingBox, extractError, formatRial } from '@/components/finance/shared'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { useCouponRedemptions } from '@/hooks/usePricing'
 import type { Coupon, RedemptionStatus } from '@/services/coupons'
+import { Button } from '@/components/ui/shadcn/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/shadcn/dialog'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
 
 interface Props {
   open: boolean
@@ -75,46 +68,47 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
   ]
 
   return (
-    <Dialog
-      aria-label="مصرف‌های کد تخفیف"
-      open={open}
-      onClose={onClose}
-      maxWidth="md"
-      fullWidth
-      slotProps={{ paper: { sx: { borderRadius: '20px', overflow: 'hidden' } } }}
-    >
-      <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1.5, pb: 1 }}>
-        <Icon icon="mdi:ticket-percent-outline" className="h-5 w-5" style={{ color: '#db2777' }} />
-        <Box sx={{ flex: 1 }}>
-          <Typography variant="h6" sx={{ fontWeight: 800 }}>
-            مصرف‌های کد {coupon?.code ?? ''}
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'text.secondary' }}>
-            {coupon ? `سقف ${coupon.max_uses == null ? 'نامحدود' : toPersianDigits(coupon.max_uses)} مصرف · ` : ''}
-            تخفیفِ زنده: {formatRial(stats?.active_discount ?? 0)}
-            {(stats?.released_discount ?? 0) > 0 &&
-              ` · برگشتیِ لغو: ${formatRial(stats?.released_discount ?? 0)}`}
-          </Typography>
-        </Box>
-        <IconButton onClick={onClose} size="small" aria-label="بستن" sx={{ alignSelf: 'flex-start' }}>
-          <Icon icon="mdi:close" className="h-5 w-5" />
-        </IconButton>
-      </DialogTitle>
+    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
+      <DialogContent aria-label="مصرف‌های کد تخفیف" aria-describedby={undefined} className="sm:max-w-[760px]">
+        <DialogHeader>
+          <div className="flex items-start gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-400 text-white">
+              <Icon icon="mdi:ticket-percent-outline" className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <div className="min-w-0">
+              <DialogTitle className="text-lg font-extrabold text-foreground">
+                مصرف‌های کد {coupon?.code ?? ''}
+              </DialogTitle>
+              <p className="mt-1 text-xs text-muted-foreground tabular-nums">
+                {coupon ? `سقف ${coupon.max_uses == null ? 'نامحدود' : toPersianDigits(coupon.max_uses)} مصرف · ` : ''}
+                تخفیفِ زنده: {formatRial(stats?.active_discount ?? 0)}
+                {(stats?.released_discount ?? 0) > 0 &&
+                  ` · برگشتیِ لغو: ${formatRial(stats?.released_discount ?? 0)}`}
+              </p>
+            </div>
+          </div>
+        </DialogHeader>
 
-      <DialogContent dividers>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 1.5 }} role="group" aria-label="صافیِ مصرف‌ها">
-          {chips.map((c) => (
-            <Chip
-              key={c.key}
-              size="small"
-              label={`${c.label} ${toPersianDigits(c.count)}`}
-              color={filter === c.key ? 'primary' : 'default'}
-              variant={filter === c.key ? 'filled' : 'outlined'}
-              onClick={() => pick(c.key)}
-              sx={{ borderRadius: '10px', fontWeight: 700, minHeight: 32 }}
-            />
-          ))}
-        </Box>
+        <div className="flex flex-wrap items-center gap-2" role="group" aria-label="صافیِ مصرف‌ها">
+          {chips.map((c) => {
+            const selected = filter === c.key
+            return (
+              <button
+                key={c.key}
+                type="button"
+                aria-pressed={selected}
+                onClick={() => pick(c.key)}
+                className={`inline-flex h-11 min-w-11 items-center rounded-xl border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                  selected
+                    ? 'border-pink-600 bg-pink-600 text-white'
+                    : 'border-border bg-card text-foreground hover:bg-muted'
+                }`}
+              >
+                {`${c.label} ${toPersianDigits(c.count)}`}
+              </button>
+            )
+          })}
+        </div>
 
         {query.isPending ? (
           <LoadingBox text="در حال دریافت مصرف‌ها..." />
@@ -124,152 +118,133 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
             onRetry={() => query.refetch()}
           />
         ) : rows.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Icon icon="mdi:account-clock-outline" className="h-8 w-8" style={{ color: '#94a3b8' }} />
-            <Typography variant="body2" sx={{ mt: 1, fontWeight: 600 }}>
+          <div className="py-8 text-center">
+            <Icon icon="mdi:account-clock-outline" className="h-8 w-8 text-slate-400" aria-hidden="true" />
+            <p className="mt-2 text-sm font-semibold text-foreground">
               {filter === 'ALL'
                 ? 'هنوز کسی این کد را مصرف نکرده است'
                 : filter === 'ACTIVE'
                   ? 'مصرفِ زنده‌ای ثبت نشده است'
                   : 'مصرفِ لغوشده‌ای ثبت نشده است'}
-            </Typography>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
               هر رزروِ موفق با این کد، یک ردیف با نام کاربر و مبلغ تخفیف می‌سازد.
-            </Typography>
-          </Box>
+            </p>
+          </div>
         ) : (
-          <TableContainer>
-            <Table size="small" aria-label="فهرست مصرف‌ها">
-              <TableHead>
-                <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>کاربر</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>زمان مصرف</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>تخفیف</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>رزرو</TableCell>
+          <div className="overflow-hidden rounded-xl border border-border">
+            <Table aria-label="فهرست مصرف‌ها" className="min-w-[560px]">
+              <TableHeader className="bg-muted/40">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead scope="col" className="font-bold">کاربر</TableHead>
+                  <TableHead scope="col" className="font-bold">زمان مصرف</TableHead>
+                  <TableHead scope="col" className="font-bold">تخفیف</TableHead>
+                  <TableHead scope="col" className="font-bold">رزرو</TableHead>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {rows.map((r) => {
                   const releasedRow = r.status === 'RELEASED'
                   return (
-                  <TableRow
-                    key={r.id}
-                    sx={{
-                      bgcolor: releasedRow ? 'rgba(100,116,139,0.05)' : undefined,
-                      '&:hover': { bgcolor: 'rgba(219,39,119,0.03)' },
-                    }}
-                  >
-                    <TableCell>
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                        {r.user_full_name || '—'}
-                      </Typography>
-                      <Typography
-                        variant="caption"
-                        dir="ltr"
-                        sx={{ display: 'block', color: 'text.secondary', fontFamily: 'ui-monospace, monospace' }}
-                      >
-                        {r.user_phone ?? '—'}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>{formatJalaliDateTime(r.created_at)}</TableCell>
-                    <TableCell>
-                      <Typography
-                        variant="body2"
-                        sx={{
-                          fontWeight: 800,
-                          color: releasedRow ? 'text.secondary' : '#db2777',
-                          textDecoration: releasedRow ? 'line-through' : undefined,
-                        }}
-                      >
-                        {formatRial(r.amount_discounted)}
-                      </Typography>
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
-                        {r.booking_id == null ? (
-                          <Chip
-                            size="small"
-                            label="در انتظار تأیید"
-                            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(245,158,11,0.12)', color: '#b45309' }}
-                          />
-                        ) : (
-                          <Chip
-                            size="small"
-                            icon={<Icon icon="mdi:clipboard-check-outline" />}
-                            label={`رزرو ${toPersianDigits(r.booking_id)}`}
-                            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }}
-                          />
-                        )}
-                        {releasedRow && (
-                          <Chip
-                            size="small"
-                            icon={<Icon icon="mdi:bookmark-off-outline" />}
-                            label="لغوشده"
-                            title={r.released_at ? `لغو در ${formatJalaliDateTime(r.released_at)}` : undefined}
-                            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(100,116,139,0.14)', color: '#475569' }}
-                          />
-                        )}
-                      </Box>
-                    </TableCell>
-                  </TableRow>
+                    <TableRow
+                      key={r.id}
+                      className={`hover:bg-pink-600/[0.03] ${releasedRow ? 'bg-slate-500/[0.05]' : ''}`}
+                    >
+                      <TableCell>
+                        <span className="block text-sm font-bold text-foreground">
+                          {r.user_full_name || '—'}
+                        </span>
+                        <span dir="ltr" className="block text-xs text-muted-foreground [font-family:ui-monospace,monospace]">
+                          {r.user_phone ?? '—'}
+                        </span>
+                      </TableCell>
+                      <TableCell className="whitespace-nowrap text-sm text-muted-foreground tabular-nums">
+                        {formatJalaliDateTime(r.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        <span
+                          className={`whitespace-nowrap text-sm font-extrabold tabular-nums ${
+                            releasedRow ? 'text-muted-foreground line-through' : 'text-pink-700 dark:text-pink-300'
+                          }`}
+                        >
+                          {formatRial(r.amount_discounted)}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap items-center gap-1">
+                          {r.booking_id == null ? (
+                            <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                              در انتظار تأیید
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">
+                              <Icon icon="mdi:clipboard-check-outline" className="h-3.5 w-3.5" aria-hidden="true" />
+                              {`رزرو ${toPersianDigits(r.booking_id)}`}
+                            </span>
+                          )}
+                          {releasedRow && (
+                            <span
+                              title={r.released_at ? `لغو در ${formatJalaliDateTime(r.released_at)}` : undefined}
+                              className="inline-flex items-center gap-1 rounded-lg bg-slate-500/15 px-2 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300"
+                            >
+                              <Icon icon="mdi:bookmark-off-outline" className="h-3.5 w-3.5" aria-hidden="true" />
+                              لغوشده
+                            </span>
+                          )}
+                        </div>
+                      </TableCell>
+                    </TableRow>
                   )
                 })}
               </TableBody>
             </Table>
-          </TableContainer>
+          </div>
         )}
 
         {total > 0 && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 1.5, flexWrap: 'wrap' }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }} aria-live="polite">
-              {toPersianDigits(Math.min(offset + 1, total))}–{toPersianDigits(offset + shown)}
-              {' '}از {toPersianDigits(total)} ردیف
+          <div className="flex flex-wrap items-center gap-2">
+            <p className="text-xs text-muted-foreground tabular-nums" aria-live="polite">
+              {`${toPersianDigits(Math.min(offset + 1, total))}–${toPersianDigits(offset + shown)} از ${toPersianDigits(total)} ردیف`}
               {query.isPlaceholderData ? ' · در حال بارگذاری…' : ''}
-            </Typography>
+            </p>
             {offset > 0 && (
-              <Button
-                size="small"
-                onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}
-                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
-                startIcon={<Icon icon="mdi:chevron-right" className="h-4 w-4" />}
-              >
+              <Button size="sm" variant="ghost" onClick={() => setOffset(Math.max(0, offset - PAGE_SIZE))}>
+                <Icon icon="mdi:chevron-right" className="h-4 w-4" aria-hidden="true" />
                 قبلی
               </Button>
             )}
             {hasMore && (
-              <Button
-                size="small"
-                variant="outlined"
-                onClick={() => setOffset(offset + PAGE_SIZE)}
-                sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
-                startIcon={<Icon icon="mdi:chevron-left" className="h-4 w-4" />}
-              >
+              <Button size="sm" variant="outline" onClick={() => setOffset(offset + PAGE_SIZE)}>
+                <Icon icon="mdi:chevron-left" className="h-4 w-4" aria-hidden="true" />
                 ادامه
               </Button>
             )}
-          </Box>
+          </div>
         )}
-        <Typography variant="caption" sx={{ display: 'block', mt: rows.length ? 1.5 : 0, color: 'text.secondary' }}>
+        <p className={`text-xs leading-relaxed text-muted-foreground ${rows.length ? 'mt-2' : ''}`}>
           رزروی که پیش از پرداخت لغو شود ظرفیت کد را برمی‌گرداند، اما ردیفش با برچسب
           «لغوشده» در همین تاریخچه می‌ماند و در «تخفیفِ زنده» شمرده نمی‌شود. سرجمع‌های
           بالای همین پنجره کلِ کد را می‌پایند، نه فقط صفحۀ جاری را.
-        </Typography>
-      </DialogContent>
+        </p>
 
-      <DialogActions sx={{ px: 3, py: 2 }}>
-        <Button
-          onClick={() => query.refetch()}
-          disabled={query.isFetching}
-          variant="outlined"
-          sx={{ borderRadius: '10px', textTransform: 'none', mr: 'auto' }}
-          startIcon={<Icon icon="mdi:refresh" className="h-4 w-4" />}
-        >
-          تازه‌سازی
-        </Button>
-        <Button onClick={onClose} variant="contained" sx={{ borderRadius: '10px', textTransform: 'none', px: 3, fontWeight: 700, background: 'linear-gradient(135deg, #db2777, #f472b6)' }}>
-          بستن
-        </Button>
-      </DialogActions>
+        <div className="flex flex-wrap items-center justify-between gap-2 border-t border-border pt-3">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => query.refetch()}
+            disabled={query.isFetching}
+          >
+            <Icon icon="mdi:refresh" className="h-4 w-4" aria-hidden="true" />
+            تازه‌سازی
+          </Button>
+          <Button
+            onClick={onClose}
+            className="bg-gradient-to-br from-pink-600 to-pink-400 font-bold text-white hover:from-pink-700 hover:to-pink-500"
+          >
+            بستن
+          </Button>
+        </div>
+      </DialogContent>
     </Dialog>
   )
 }

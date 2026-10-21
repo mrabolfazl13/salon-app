@@ -1,6 +1,6 @@
 // frontend/src/pages/tournaments/TournamentDetail.tsx
 // صفحهٔ تورنمنت (P005) — ثبت‌نام تیم، قرعه‌کشی، براکت/برنامهٔ هفته‌ها و رده‌بندی.
-// براکت با CSS grid و `gridAutoFlow: column` رندر می‌شود: در RTL ستون اول سمت راست
+// براکت با CSS grid و `grid-flow-col` رندر می‌شود: در RTL ستون اول سمت راست
 // می‌نشیند (همان مسیر زمان)، بدون transform یا ترتیب معکوسِ دست‌سازی.
 // هر دو فرمت (تک‌حذفی و لیگ) از همین grid استفاده می‌کنند: لیگ هم «مراحل» مرتب دارد
 // (هفته‌ها)، فقط معنای مرحله عوض شده؛ پس دو مسیر رندر برای هم‌ترازیِ ظاهر لازم نیست.
@@ -8,27 +8,6 @@
 import React, { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Button,
-  Card,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  DialogTitle,
-  Divider,
-  Grid,
-  MenuItem,
-  Stack,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  TextField,
-  Tooltip,
-  Typography,
-} from '@mui/material'
 import toast from 'react-hot-toast'
 
 import Layout from '@/components/layout/Layout'
@@ -40,6 +19,20 @@ import {
   extractError,
   formatRial,
 } from '@/components/finance/shared'
+import Dialog from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 import {
   TOURNAMENT_FORMAT_LABELS,
   TOURNAMENT_STATUS_COLORS,
@@ -59,7 +52,7 @@ import { useMyTeams } from '@/hooks/useTeams'
 import type { LeagueStanding, MatchStatus, TournamentBracketHalf, TournamentMatch, TournamentRound, TournamentStanding } from '@/types/tournament'
 import { useAuthStore } from '@/store/authStore'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
-import { radii, shadows } from '@/theme'
+import { cn } from '@/lib/utils'
 
 const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
   pending: 'در انتظار تیم',
@@ -83,25 +76,20 @@ const TeamLine: React.FC<{
   isWinner: boolean
   muted?: boolean
 }> = ({ name, score, isWinner, muted }) => (
-  <Stack direction="row" spacing={1} sx={{
-    alignItems: 'center', justifyContent: 'space-between', gap: 1,
-    opacity: muted ? 0.45 : 1,
-  }}>
-    <Typography variant="body2" sx={{
-      fontWeight: isWinner ? 800 : 600,
-      color: isWinner ? 'text.primary' : 'text.secondary',
-      minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap',
-    }}>
+  <div className={cn('flex items-center justify-between gap-2', muted && 'opacity-50')}>
+    <p className={cn(
+      'min-w-0 truncate text-sm',
+      isWinner ? 'font-extrabold text-foreground' : 'font-semibold text-muted-foreground',
+    )}>
       {name ?? '—'}
-    </Typography>
-    <Stack direction="row" spacing={0.5} sx={{ alignItems: 'center', gap: 0.5 }}>
-      {isWinner && <Icon icon="mdi:chevron-right" style={{ width: 16, height: 16, color: '#16a34a' }} />}
-      <Typography variant="body2" component="span"
-                  sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums', minWidth: 14, textAlign: 'center' }}>
+    </p>
+    <div className="flex items-center gap-1">
+      {isWinner && <Icon icon="mdi:chevron-right" className="h-4 w-4" style={{ color: '#16a34a' }} aria-hidden="true" />}
+      <span className="min-w-[14px] text-center text-sm font-extrabold tabular-nums">
         {score === null || score === undefined ? '' : toPersianDigits(score)}
-      </Typography>
-    </Stack>
-  </Stack>
+      </span>
+    </div>
+  </div>
 )
 
 const MatchCard: React.FC<{
@@ -112,34 +100,30 @@ const MatchCard: React.FC<{
 }> = ({ match, canManage, busy, onResult }) => {
   const isBye = match.status === 'bye'
   return (
-    <Card
+    <div
       data-testid={`bracket-match-${match.id}`}
-      sx={{
-        borderRadius: `${radii.card}px`,
-        boxShadow: shadows.card,
-        border: `1px solid ${match.status === 'ready' ? 'rgba(37,99,235,0.35)' : 'rgba(15,23,42,0.07)'}`,
-        bgcolor: 'rgba(255,255,255,0.94)',
-        p: 1.25,
-      }}
+      className={cn(
+        'rounded-2xl border bg-card/95 p-2.5 shadow-sm',
+        match.status === 'ready' ? 'border-blue-600/35' : 'border-border',
+      )}
     >
-      <Stack spacing={0.75}>
+      <div className="flex flex-col gap-1.5">
         <TeamLine name={match.team_a_name} score={match.score_a}
                   isWinner={!!match.winner_team_id && match.winner_team_id === match.team_a_id} />
-        <Divider />
+        <Separator />
         <TeamLine name={match.team_b_name} score={match.score_b}
                   isWinner={!!match.winner_team_id && match.winner_team_id === match.team_b_id}
                   muted={isBye && !match.team_b_id} />
-        <Stack direction="row" spacing={1} sx={{ alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        <div className="flex items-center justify-between gap-2">
           <StatusChip label={MATCH_STATUS_LABELS[match.status]} color={MATCH_STATUS_COLORS[match.status]} />
           {canManage && (match.status === 'ready' || match.status === 'live') && (
-            <Button size="small" variant="outlined" disabled={busy} onClick={onResult}
-                    sx={{ borderRadius: '10px', minHeight: 44 }}>
+            <Button size="sm" variant="outline" disabled={busy} onClick={onResult}>
               ثبت نتیجه
             </Button>
           )}
-        </Stack>
-      </Stack>
-    </Card>
+        </div>
+      </div>
+    </div>
   )
 }
 
@@ -155,44 +139,36 @@ const BracketGrid: React.FC<{
   busy: boolean
   onResult: (match: TournamentMatch) => void
 }> = ({ rounds, testId, canManage, busy, onResult }) => (
-  <Box>
-    <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 0.5, mb: 1, color: 'text.secondary' }}>
-      <Icon icon="mdi:gesture-swipe-horizontal" style={{ width: 18, height: 18 }} />
-      <Typography variant="caption">برای دیدن دورهای بعد، براکت را افقی بکشید.</Typography>
-    </Box>
-    <Box sx={{ overflowX: 'auto', pb: 1, WebkitOverflowScrolling: 'touch' }} role="region" aria-label="براکت مسابقات، قابل پیمایش با کیبورد" tabIndex={0}>
-      <Box data-testid={testId}
-           sx={{
-             display: 'grid', gridAutoFlow: 'column',
-             gridAutoColumns: 'minmax(232px, max-content)', gap: 2, alignItems: 'stretch',
-             scrollSnapType: 'x proximity',
-           }}>
+  <div>
+    <div className="mb-2 flex items-center gap-1 text-muted-foreground md:hidden">
+      <Icon icon="mdi:gesture-swipe-horizontal" className="h-[18px] w-[18px]" aria-hidden="true" />
+      <p className="text-xs">برای دیدن دورهای بعد، براکت را افقی بکشید.</p>
+    </div>
+    <div className="overflow-x-auto pb-2 [scrollbar-width:thin]" role="region" aria-label="براکت مسابقات، قابل پیمایش با کیبورد" tabIndex={0}>
+      <div data-testid={testId}
+           className="grid snap-x snap-proximity grid-flow-col auto-cols-[minmax(232px,max-content)] items-stretch gap-4">
         {rounds.map((round) => (
-          <Box key={round.id} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, scrollSnapAlign: 'start' }}>
-            <Typography variant="overline" sx={{
-              fontWeight: 800, color: 'text.secondary', textAlign: 'center',
-              letterSpacing: '0.4px', bgcolor: 'rgba(15,23,42,0.04)', borderRadius: '10px', py: 0.5,
-            }}>
+          <div key={round.id} className="flex snap-start flex-col gap-3">
+            <p className="rounded-[10px] bg-muted py-1 text-center text-xs font-extrabold uppercase tracking-[0.4px] text-muted-foreground">
               {round.name}
-            </Typography>
+            </p>
             {round.bye_team_name && (
-              <Typography variant="caption" data-testid={`tournament-bye-${round.id}`}
-                          sx={{ textAlign: 'center', color: 'text.secondary' }}>
-                <Icon icon="mdi:sofa-single" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+              <p className="text-center text-xs text-muted-foreground" data-testid={`tournament-bye-${round.id}`}>
+                <Icon icon="mdi:sofa-single" className="me-1 inline-block h-4 w-4 align-middle" aria-hidden="true" />
                 {round.bye_team_name} استراحت می‌کند
-              </Typography>
+              </p>
             )}
-            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: 2, flexGrow: 1 }}>
+            <div className="flex grow flex-col justify-around gap-4">
               {round.matches.map((match) => (
                 <MatchCard key={match.id} match={match} canManage={canManage}
                            busy={busy} onResult={() => onResult(match)} />
               ))}
-            </Box>
-          </Box>
+            </div>
+          </div>
         ))}
-      </Box>
-    </Box>
-  </Box>
+      </div>
+    </div>
+  </div>
 )
 
 const TournamentDetailPage: React.FC = () => {
@@ -237,7 +213,7 @@ const TournamentDetailPage: React.FC = () => {
   const isLeague = tournament?.format === 'round_robin'
   const isDouble = tournament?.format === 'double_elimination'
   // نیمهٔ مرحله از خودِ داده خوانده می‌شود؛ بک‌اند در تک‌حذفی `bracket` را نمی‌فرستد،
-  // پس پیش‌فرض «winners» است و فیلتر برای تک‌حذفی همان آرایۀ قبلی را برمی‌گرداند.
+  // پس پیش‌فرض «winners» است و فیلتر برای تک‌حذفی همان آرایهٔ قبلی را برمی‌گرداند.
   const mainRounds = rounds.filter((r) => (r.bracket ?? 'winners') !== 'losers')
   const losersRounds = rounds.filter((r) => r.bracket === 'losers')
   const mutating = openMut.isPending || drawMut.isPending || cancelMut.isPending
@@ -330,18 +306,18 @@ const TournamentDetailPage: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ mb: 2 }}>
-        <Button size="small" onClick={() => navigate('/tournaments')} startIcon={<Icon icon="mdi:arrow-right" />}
-                sx={{ minHeight: 44, px: 0 }}>
+      <div className="mb-4">
+        <Button variant="ghost" size="sm" className="px-0" onClick={() => navigate('/tournaments')}>
+          <Icon icon="mdi:arrow-right" className="h-5 w-5" aria-hidden="true" />
           بازگشت به تورنمنت‌ها
         </Button>
-      </Box>
+      </div>
 
       {bracketQ.isPending ? (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          <Shimmer variant="rounded" sx={{ height: 96, borderRadius: '16px' }} />
-          {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" sx={{ height: 120, borderRadius: '16px' }} />)}
-        </Box>
+        <div className="flex flex-col gap-3">
+          <Shimmer height={96} className="rounded-2xl" />
+          {[1, 2, 3].map((i) => <Shimmer key={i} height={120} className="rounded-2xl" />)}
+        </div>
       ) : bracketQ.isError ? (
         bracketHttpStatus === 404 ? (
           <EmptyState
@@ -358,130 +334,124 @@ const TournamentDetailPage: React.FC = () => {
       ) : !tournament ? (
         <EmptyState emoji="🏆" title="تورنمنتی نیست" description="از فهرست تورنمنت‌ها یک جام انتخاب کن." />
       ) : (
-        <Stack spacing={3}>
-          <Box>
-            <Typography component="h1" variant="h4" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-              <Icon icon="mdi:trophy" style={{ width: 28, height: 28, color: '#d97706' }} />
+        <div className="flex flex-col gap-6">
+          <div>
+            <h1 className="flex flex-wrap items-center gap-2 text-2xl font-extrabold text-foreground md:text-3xl">
+              <Icon icon="mdi:trophy" className="h-7 w-7" style={{ color: '#d97706' }} aria-hidden="true" />
               {tournament.name}
               <StatusChip label={TOURNAMENT_STATUS_LABELS[tournament.status]}
                           color={TOURNAMENT_STATUS_COLORS[tournament.status]} />
               <StatusChip label={TOURNAMENT_FORMAT_LABELS[tournament.format]} color="#7c3aed" />
-            </Typography>
+            </h1>
             {tournament.description && (
-              <Typography variant="body2" color="text.secondary" sx={{ mt: 0.75 }}>
+              <p className="mt-1.5 text-sm text-muted-foreground">
                 {tournament.description}
-              </Typography>
+              </p>
             )}
-          </Box>
+          </div>
 
-          <Grid container spacing={2} data-testid="tournament-kpis">
-            <Grid size={{ xs: 6, md: 3 }}>
-              <KpiCard label="تیم‌ها" value={toPersianDigits(tournament.team_count)} icon="mdi:account-group" color="#2563eb" />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <KpiCard label="ورودی هر تیم" value={formatRial(tournament.entry_fee)} icon="mdi:ticket-percent-outline" color="#0ea5e9" />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <KpiCard label="شروع" value={tournament.starts_at ? formatJalaliDateTime(tournament.starts_at) : '—'}
-                       icon="mdi:calendar-outline" color="#7c3aed" />
-            </Grid>
-            <Grid size={{ xs: 6, md: 3 }}>
-              <KpiCard label={isLeague ? 'صدر جدول' : 'قهرمان'}
-                       value={tournament.winner_team_name ?? (isLeague ? leagueLeader ?? '—' : '—')}
-                       icon={isLeague ? 'mdi:table-check' : 'mdi:trophy-outline'} color="#16a34a" />
-            </Grid>
-          </Grid>
+          <div className="grid grid-cols-2 gap-4 md:grid-cols-4" data-testid="tournament-kpis">
+            <KpiCard label="تیم‌ها" value={toPersianDigits(tournament.team_count)} icon="mdi:account-group" color="#2563eb" />
+            <KpiCard label="ورودی هر تیم" value={formatRial(tournament.entry_fee)} icon="mdi:ticket-percent-outline" color="#0ea5e9" />
+            <KpiCard label="شروع" value={tournament.starts_at ? formatJalaliDateTime(tournament.starts_at) : '—'}
+                     icon="mdi:calendar-outline" color="#7c3aed" />
+            <KpiCard label={isLeague ? 'صدر جدول' : 'قهرمان'}
+                     value={tournament.winner_team_name ?? (isLeague ? leagueLeader ?? '—' : '—')}
+                     icon={isLeague ? 'mdi:table-check' : 'mdi:trophy-outline'} color="#16a34a" />
+          </div>
 
-          <Stack direction="row" spacing={1} sx={{ flexWrap: 'wrap', gap: 1, alignItems: 'center' }}>
+          <div className="flex flex-wrap items-center gap-2">
             {canManage && tournament.status === 'draft' && (
-              <Button variant="contained" disabled={mutating} data-testid="tournament-open"
+              <Button disabled={mutating} data-testid="tournament-open"
                       onClick={() => openMut.mutate(tournament.id, {
                         onSuccess: () => toast.success('ثبت‌نام باز شد'),
                         onError: (err) => toast.error(extractError(err, 'بازکردن ثبت‌نام ممکن نشد.')),
-                      })} sx={{ borderRadius: '12px', minHeight: 44 }}>
+                      })}>
                 بازکردن ثبت‌نام
               </Button>
             )}
             {canManage && tournament.status === 'registration' && (
-              <Tooltip title={isLeague
-                ? 'برنامهٔ هفته‌ها ساخته می‌شود؛ پس از آن قابل تغییر نیست'
-                : isDouble
-                  ? 'هر دو براکت (برندگان و بازندگان) ساخته می‌شود؛ پس از آن قابل تغییر نیست'
-                  : 'براکت ساخته می‌شود؛ پس از آن قابل تغییر نیست'}>
-                <span>
-                  <Button variant="contained" disabled={mutating || tournament.team_count < 2}
-                          data-testid="tournament-draw"
-                          startIcon={<Icon icon="mdi:shuffle-variant" />}
-                          onClick={() => drawMut.mutate(tournament.id, {
-                            onSuccess: () => toast.success(isLeague
-                              ? 'برنامهٔ هفته‌ها ساخته شد'
-                              : isDouble
-                                ? 'براکتِ دو-حذفی ساخته شد'
-                                : 'براکت ساخته شد'),
-                            onError: (err) => toast.error(extractError(err, 'قرعه‌کشی ممکن نشد.')),
-                          })} sx={{ borderRadius: '12px', minHeight: 44 }}>
-                    {isLeague ? 'قرعه‌کشی و ساخت برنامهٔ هفته‌ها' : 'قرعه‌کشی و ساخت براکت'}
-                  </Button>
-                </span>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <span className="inline-flex">
+                    <Button disabled={mutating || tournament.team_count < 2}
+                            data-testid="tournament-draw"
+                            onClick={() => drawMut.mutate(tournament.id, {
+                              onSuccess: () => toast.success(isLeague
+                                ? 'برنامهٔ هفته‌ها ساخته شد'
+                                : isDouble
+                                  ? 'براکتِ دو-حذفی ساخته شد'
+                                  : 'براکت ساخته شد'),
+                              onError: (err) => toast.error(extractError(err, 'قرعه‌کشی ممکن نشد.')),
+                            })}>
+                      <Icon icon="mdi:shuffle-variant" className="h-5 w-5" aria-hidden="true" />
+                      {isLeague ? 'قرعه‌کشی و ساخت برنامهٔ هفته‌ها' : 'قرعه‌کشی و ساخت براکت'}
+                    </Button>
+                  </span>
+                </TooltipTrigger>
+                <TooltipContent>
+                  {isLeague
+                    ? 'برنامهٔ هفته‌ها ساخته می‌شود؛ پس از آن قابل تغییر نیست'
+                    : isDouble
+                      ? 'هر دو براکت (برندگان و بازندگان) ساخته می‌شود؛ پس از آن قابل تغییر نیست'
+                      : 'براکت ساخته می‌شود؛ پس از آن قابل تغییر نیست'}
+                </TooltipContent>
               </Tooltip>
             )}
             {user && (tournament.status === 'draft' || tournament.status === 'registration') && (
-              <Button variant="outlined" data-testid="tournament-register"
-                      onClick={() => setRegisterOpen(true)}
-                      startIcon={<Icon icon="mdi:plus-circle-outline" />}
-                      sx={{ borderRadius: '12px', minHeight: 44 }}>
+              <Button variant="outline" data-testid="tournament-register"
+                      onClick={() => setRegisterOpen(true)}>
+                <Icon icon="mdi:plus-circle-outline" className="h-5 w-5" aria-hidden="true" />
                 ثبت تیم من
               </Button>
             )}
             {canManage && !['completed', 'cancelled'].includes(tournament.status) && (
-              <Button color="error" variant="text" disabled={mutating} data-testid="tournament-cancel"
+              <Button variant="ghost" className="text-destructive hover:text-destructive" disabled={mutating}
+                      data-testid="tournament-cancel"
                       onClick={() => cancelMut.mutate(tournament.id, {
                         onSuccess: () => toast.success('تورنمنت لغو شد'),
                         onError: (err) => toast.error(extractError(err, 'لغو تورنمنت ممکن نشد.')),
-                      })} sx={{ minHeight: 44 }}>
+                      })}>
                 لغو تورنمنت
               </Button>
             )}
-          </Stack>
+          </div>
 
           {!drawn && (
-            <Box>
-              <Typography variant="h6" component="h2" sx={{ fontWeight: 700, mb: 1.5 }}>تیم‌های ثبت‌نام‌شده</Typography>
+            <div>
+              <h2 className="mb-3 text-lg font-bold text-foreground">تیم‌های ثبت‌نام‌شده</h2>
               {participants.length === 0 ? (
-                <Typography variant="body2" color="text.secondary">
+                <p className="text-sm text-muted-foreground">
                   هنوز تیمی ثبت‌نام نکرده است؛ کاپیتان‌ها با «ثبت تیم من» وارد می‌شوند.
-                </Typography>
+                </p>
               ) : (
-                <Box sx={{
-                  borderRadius: `${radii.card}px`, boxShadow: shadows.card,
-                  border: '1px solid rgba(15,23,42,0.05)', bgcolor: 'rgba(255,255,255,0.92)', overflowX: 'auto',
-                }}>
-                  <Table size="small" aria-label="تیم‌های ثبت‌نام‌شده در تورنمنت" data-testid="tournament-participants">
-                    <TableHead>
+                <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                  <Table aria-label="تیم‌های ثبت‌نام‌شده در تورنمنت" data-testid="tournament-participants">
+                    <TableHeader>
                       <TableRow>
-                        <TableCell scope="col">تیم</TableCell>
-                        <TableCell scope="col" align="right">سید</TableCell>
-                        <TableCell scope="col">وضعیت</TableCell>
-                        {canManage && <TableCell scope="col" align="right">عمل</TableCell>}
+                        <TableHead scope="col">تیم</TableHead>
+                        <TableHead scope="col">سید</TableHead>
+                        <TableHead scope="col">وضعیت</TableHead>
+                        {canManage && <TableHead scope="col">عمل</TableHead>}
                       </TableRow>
-                    </TableHead>
+                    </TableHeader>
                     <TableBody>
                       {participants.map((p) => (
                         <TableRow key={p.team_id}>
-                          <TableCell sx={{ fontWeight: 600 }}>{p.team_name ?? `تیم #${p.team_id}`}</TableCell>
-                          <TableCell align="right">{p.seed ? toPersianDigits(p.seed) : '—'}</TableCell>
+                          <TableCell className="font-semibold">{p.team_name ?? `تیم #${p.team_id}`}</TableCell>
+                          <TableCell>{p.seed ? toPersianDigits(p.seed) : '—'}</TableCell>
                           <TableCell>{p.status === 'registered' ? 'ثبت‌نام‌شده' : 'کناره‌گرفته'}</TableCell>
                           {canManage && (
-                            <TableCell align="right">
+                            <TableCell>
                               {p.status === 'registered' && (
-                                <Button size="small" color="error" variant="text" disabled={mutating}
+                                <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" disabled={mutating}
                                         aria-label={`حذف ${p.team_name ?? ''}`}
                                         onClick={() => withdrawMut.mutate(
                                           { id: tournament.id, teamId: p.team_id },
                                           {
                                             onSuccess: () => toast.success('تیم از تورنمنت حذف شد'),
                                             onError: (err) => toast.error(extractError(err, 'حذف تیم ممکن نشد.')),
-                                          })} sx={{ minHeight: 44 }}>
+                                          })}>
                                   حذف
                                 </Button>
                               )}
@@ -491,119 +461,115 @@ const TournamentDetailPage: React.FC = () => {
                       ))}
                     </TableBody>
                   </Table>
-                </Box>
+                </div>
               )}
               {tournament.status === 'registration' && (
-                <Box sx={{ mt: 1 }}>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}>
+                <div className="mt-2">
+                  <p className="block text-xs text-muted-foreground">
                     برای قرعه‌کشی حداقل {toPersianDigits(2)} تیم لازم است.{' '}
                     {isLeague
                       ? `در لیگ هر تیم با همه بازی می‌کند ⇒ ${toPersianDigits(totalMatches || 0)} دیدار.`
                       : `تعداد دیدارهای براکت: ${toPersianDigits(totalMatches || 0)}`}
-                  </Typography>
+                  </p>
                   {isDouble && (
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block' }}
-                                data-testid="double-elim-plan-hint">
-                      <Icon icon="mdi:information-outline" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+                    <p className="block text-xs text-muted-foreground"
+                       data-testid="double-elim-plan-hint">
+                      <Icon icon="mdi:information-outline" className="me-1 inline-block h-4 w-4 align-middle" aria-hidden="true" />
                       با {toPersianDigits(tournament.team_count)} تیم و حذفِ دوباختی، {toPersianDigits(Math.max(0, (tournament.team_count - 1) * 2))} دیدار
                       بازی می‌شود؛ دیدارهای بدون حریفِ مرحلهٔ اول «بدون بازی» رد می‌شوند.
-                    </Typography>
+                    </p>
                   )}
-                </Box>
+                </div>
               )}
-            </Box>
+            </div>
           )}
 
           {drawn && (
-            <Box>
-              <Typography variant="h6" component="h2" sx={{ fontWeight: 700, mb: 1.5 }}>
+            <div>
+              <h2 className="mb-3 text-lg font-bold text-foreground">
                 {isLeague ? 'برنامهٔ هفته‌ها' : isDouble ? 'براکت برندگان و فینالِ بزرگ' : 'براکت'}
-              </Typography>
+              </h2>
               <BracketGrid rounds={mainRounds} testId="tournament-bracket"
                            canManage={canManage} busy={mutating} onResult={openResult} />
 
               {isDouble && losersRounds.length > 0 && (
-                <Box sx={{ mt: 2 }}>
-                  <Typography variant="h6" component="h2" sx={{ fontWeight: 700, mb: 0.5 }}>
-                    <Icon icon="mdi:arrow-down-bold-circle-outline" style={{ verticalAlign: 'middle', marginLeft: 6 }} />
+                <div className="mt-4">
+                  <h2 className="mb-1 text-lg font-bold text-foreground">
+                    <Icon icon="mdi:arrow-down-bold-circle-outline" className="me-1.5 inline-block h-5 w-5 align-middle" aria-hidden="true" />
                     براکت بازندگان
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.5 }}
-                              data-testid="double-elim-note">
+                  </h2>
+                  <p className="mb-3 block text-xs text-muted-foreground"
+                     data-testid="double-elim-note">
                     تیمی که اینجا می‌بازد دومین باختش را داشته و حذف شده است. برندهٔ آخرین
                     دیدارِ این براکت به فینالِ بزرگ می‌رود؛ فینالِ بزرگ یک دیدار است و
                     بازیِ دوباره (bracket reset) ندارد.
-                  </Typography>
+                  </p>
                   <BracketGrid rounds={losersRounds} testId="tournament-losers-bracket"
                                canManage={canManage} busy={mutating} onResult={openResult} />
-                </Box>
+                </div>
               )}
-            </Box>
+            </div>
           )}
 
           {standingsEnabled && (
-            <Box>
-              <Typography variant="h6" component="h2" sx={{ fontWeight: 700, mb: 1.5 }}>
+            <div>
+              <h2 className="mb-3 text-lg font-bold text-foreground">
                 {isLeague ? (tournament.status === 'completed' ? 'جدول نهایی' : 'جدول امتیازها') : 'رده‌بندی نهایی'}
-              </Typography>
-              <Box sx={{
-                borderRadius: `${radii.card}px`, boxShadow: shadows.card,
-                border: '1px solid rgba(15,23,42,0.05)', bgcolor: 'rgba(255,255,255,0.92)', overflowX: 'auto',
-              }}>
-                <Table size="small"
-                       aria-label={isLeague ? 'جدول امتیازهای تورنمنت' : 'رده‌بندی نهایی تورنمنت'}
+              </h2>
+              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                <Table aria-label={isLeague ? 'جدول امتیازهای تورنمنت' : 'رده‌بندی نهایی تورنمنت'}
                        data-testid="tournament-standings">
-                  <TableHead>
+                  <TableHeader>
                     <TableRow>
-                      <TableCell scope="col" align="right">رتبه</TableCell>
-                      <TableCell scope="col">تیم</TableCell>
+                      <TableHead scope="col">رتبه</TableHead>
+                      <TableHead scope="col">تیم</TableHead>
                       {isLeague ? (
                         <>
-                          <TableCell scope="col" align="right">بازی</TableCell>
-                          <TableCell scope="col" align="right">برد</TableCell>
-                          <TableCell scope="col" align="right">تساوی</TableCell>
-                          <TableCell scope="col" align="right">باخت</TableCell>
-                          <TableCell scope="col" align="right">گل</TableCell>
-                          <TableCell scope="col" align="right">تفاضل</TableCell>
-                          <TableCell scope="col" align="right">امتیاز</TableCell>
+                          <TableHead scope="col">بازی</TableHead>
+                          <TableHead scope="col">برد</TableHead>
+                          <TableHead scope="col">تساوی</TableHead>
+                          <TableHead scope="col">باخت</TableHead>
+                          <TableHead scope="col">گل</TableHead>
+                          <TableHead scope="col">تفاضل</TableHead>
+                          <TableHead scope="col">امتیاز</TableHead>
                         </>
                       ) : (
-                        <TableCell scope="col">مرحله</TableCell>
+                        <TableHead scope="col">مرحله</TableHead>
                       )}
                     </TableRow>
-                  </TableHead>
+                  </TableHeader>
                   <TableBody>
                     {leagueRows.map((row) => (
                       <TableRow key={`${row.rank}-${row.team_id}`} data-testid={`league-row-${row.team_id}`}>
-                        <TableCell align="right" sx={{ fontWeight: 800 }}>
+                        <TableCell className="font-extrabold">
                           {toPersianDigits(row.rank)}{row.tied ? ' *' : ''}
                         </TableCell>
-                        <TableCell sx={{ fontWeight: row.rank === 1 ? 800 : 600 }}>
+                        <TableCell className={row.rank === 1 ? 'font-extrabold' : 'font-semibold'}>
                           {row.rank === 1 && !row.tied && (
-                            <Icon icon="mdi:trophy" style={{ verticalAlign: 'middle', marginLeft: 4, color: '#d97706' }} />
+                            <Icon icon="mdi:trophy" className="me-1 inline-block h-4 w-4 align-middle" style={{ color: '#d97706' }} aria-hidden="true" />
                           )}
                           {row.team_name ?? `تیم #${row.team_id}`}
                         </TableCell>
-                        <TableCell align="right">{toPersianDigits(row.played)}</TableCell>
-                        <TableCell align="right">{toPersianDigits(row.won)}</TableCell>
-                        <TableCell align="right">{toPersianDigits(row.drawn)}</TableCell>
-                        <TableCell align="right">{toPersianDigits(row.lost)}</TableCell>
-                        <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                        <TableCell>{toPersianDigits(row.played)}</TableCell>
+                        <TableCell>{toPersianDigits(row.won)}</TableCell>
+                        <TableCell>{toPersianDigits(row.drawn)}</TableCell>
+                        <TableCell>{toPersianDigits(row.lost)}</TableCell>
+                        <TableCell className="tabular-nums">
                           {toPersianDigits(row.goals_for)}−{toPersianDigits(row.goals_against)}
                         </TableCell>
-                        <TableCell align="right" sx={{ fontVariantNumeric: 'tabular-nums' }}>
+                        <TableCell className="tabular-nums">
                           {row.goal_difference > 0 ? '+' : ''}{toPersianDigits(row.goal_difference)}
                         </TableCell>
-                        <TableCell align="right" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>
+                        <TableCell className="font-extrabold tabular-nums">
                           {toPersianDigits(row.points)}
                         </TableCell>
                       </TableRow>
                     ))}
                     {elimRows.map((row) => (
                       <TableRow key={`${row.rank}-${row.team_id}`}>
-                        <TableCell align="right" sx={{ fontWeight: 800 }}>{toPersianDigits(row.rank)}</TableCell>
-                        <TableCell sx={{ fontWeight: row.rank === 1 ? 800 : 600 }}>
-                          {row.rank === 1 && <Icon icon="mdi:trophy" style={{ verticalAlign: 'middle', marginLeft: 4, color: '#d97706' }} />}
+                        <TableCell className="font-extrabold">{toPersianDigits(row.rank)}</TableCell>
+                        <TableCell className={row.rank === 1 ? 'font-extrabold' : 'font-semibold'}>
+                          {row.rank === 1 && <Icon icon="mdi:trophy" className="me-1 inline-block h-4 w-4 align-middle" style={{ color: '#d97706' }} aria-hidden="true" />}
                           {row.team_name ?? `تیم #${row.team_id}`}
                         </TableCell>
                         <TableCell>{row.label}</TableCell>
@@ -612,115 +578,129 @@ const TournamentDetailPage: React.FC = () => {
                   </TableBody>
                 </Table>
                 {standingsQ.isPending ? (
-                  <Box sx={{ p: 2 }}><Shimmer variant="rounded" sx={{ height: 48, borderRadius: '12px' }} /></Box>
+                  <div className="p-4"><Shimmer height={48} className="rounded-xl" /></div>
                 ) : standingsRows.length === 0 ? (
-                  <Box sx={{ p: 2 }}>
-                    <Typography variant="body2" color="text.secondary">رتبه‌ای ثبت نشده است.</Typography>
-                  </Box>
+                  <div className="p-4">
+                    <p className="text-sm text-muted-foreground">رتبه‌ای ثبت نشده است.</p>
+                  </div>
                 ) : null}
                 {isLeague && leagueRows.some((row) => row.tied && row.rank === 1) && (
-                  <Box sx={{ p: 1.5 }}>
-                    <Typography variant="caption" color="warning.dark" data-testid="league-tie-note">
-                      <Icon icon="mdi:information-outline" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+                  <div className="p-3">
+                    <p className="text-xs text-amber-700 dark:text-amber-400" data-testid="league-tie-note">
+                      <Icon icon="mdi:information-outline" className="me-1 inline-block h-4 w-4 align-middle" aria-hidden="true" />
                       رتبهٔ ۱ مشترک است؛ با امتیاز، تفاضل گل و گل زده جدا نشد. برای تعیین قهرمان به پلی‌آف نیاز است.
-                    </Typography>
-                  </Box>
+                    </p>
+                  </div>
                 )}
-              </Box>
-            </Box>
+              </div>
+            </div>
           )}
 
           {drawn && totalMatches > 0 && tournament.status !== 'completed' && (
-            <Typography variant="body2" color="text.secondary">
-              <Icon icon="mdi:information-outline" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+            <p className="text-sm text-muted-foreground">
+              <Icon icon="mdi:information-outline" className="me-1 inline-block h-4 w-4 align-middle" aria-hidden="true" />
               {isLeague
                 ? 'فقط برگزارکننده نتیجه ثبت می‌کند؛ تساوی مجاز است و جدول امتیازها خودکار به‌روز می‌شود.'
                 : isDouble
                   ? 'فقط برگزارکننده نتیجه ثبت می‌کند؛ برنده در براکت برندگان می‌ماند و بازنده به براکت بازندگان می‌افتد (با دومین باخت حذف می‌شود).'
                   : 'فقط برگزارکننده نتیجه ثبت می‌کند؛ برنده خودش به دیدار بعد می‌رود.'}
-            </Typography>
+            </p>
           )}
-        </Stack>
+        </div>
       )}
 
-      <Dialog open={registerOpen} onClose={() => setRegisterOpen(false)} fullWidth maxWidth="xs"
-              data-testid="tournament-register-dialog">
-        <DialogTitle sx={{ fontWeight: 800 }}>ثبت تیم در تورنمنت</DialogTitle>
-        <Divider />
-        <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            {eligibleTeams.length === 0 ? (
-              <Typography variant="body2" color="text.secondary">
-                تیمی که کاپیتان آن باشی و هنوز در این تورنمنت ثبت نشده باشد پیدا نشد.
-              </Typography>
-            ) : (
-              <>
-                <TextField label="تیم" select value={teamId}
-                           onChange={(e) => setTeamId(Number(e.target.value))} fullWidth
-                           slotProps={{ inputLabel: { shrink: true } }}>
+      <Dialog open={registerOpen} onClose={() => setRegisterOpen(false)} maxWidth="xs" fullWidth
+              data-testid="tournament-register-dialog"
+              title="ثبت تیم در تورنمنت"
+              actions={
+                <>
+                  <Button variant="ghost" onClick={() => setRegisterOpen(false)}>انصراف</Button>
+                  <Button onClick={submitRegister} disabled={registerMut.isPending || eligibleTeams.length === 0}>
+                    {registerMut.isPending ? 'در حال ثبت…' : 'ثبت تیم'}
+                  </Button>
+                </>
+              }>
+        <div className="flex flex-col gap-4 pt-1">
+          {eligibleTeams.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              تیمی که کاپیتان آن باشی و هنوز در این تورنمنت ثبت نشده باشد پیدا نشد.
+            </p>
+          ) : (
+            <>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="tournament-team">تیم</Label>
+                <select
+                  id="tournament-team"
+                  value={teamId}
+                  onChange={(e) => setTeamId(e.target.value ? Number(e.target.value) : '')}
+                  className="h-12 w-full rounded-xl border border-input bg-card px-4 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                >
                   {eligibleTeams.map((t) => (
-                    <MenuItem key={t.id} value={t.id}>{t.name}</MenuItem>
+                    // کلیک روی گزینه هم انتخاب را ثبت می‌کند (هم‌رفتار با انتخاب بومی)
+                    <option key={t.id} value={t.id} onClick={() => setTeamId(t.id)}>{t.name}</option>
                   ))}
-                </TextField>
-                <TextField label="سید (اختیاری)" value={seed}
-                           onChange={(e) => setSeed(e.target.value.replace(/[^\d]/g, ''))}
-                           inputMode="numeric" fullWidth
-                           helperText="۱ = بهترین. خالی بگذار تا ترتیب ورود ملاک باشد." />
-              </>
-            )}
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setRegisterOpen(false)} sx={{ minHeight: 44 }}>انصراف</Button>
-          <Button variant="contained" onClick={submitRegister} disabled={registerMut.isPending || eligibleTeams.length === 0}
-                  sx={{ borderRadius: '12px', minHeight: 44 }}>
-            {registerMut.isPending ? 'در حال ثبت…' : 'ثبت تیم'}
-          </Button>
-        </DialogActions>
+                </select>
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor="tournament-seed">سید (اختیاری)</Label>
+                <Input
+                  id="tournament-seed"
+                  value={seed}
+                  onChange={(e) => setSeed(e.target.value.replace(/[^\d]/g, ''))}
+                  inputMode="numeric"
+                />
+                <p className="text-xs text-muted-foreground">۱ = بهترین. خالی بگذار تا ترتیب ورود ملاک باشد.</p>
+              </div>
+            </>
+          )}
+        </div>
       </Dialog>
 
-      <Dialog open={!!resultMatch} onClose={() => setResultMatch(null)} fullWidth maxWidth="xs"
-              data-testid="tournament-result-dialog">
-        <DialogTitle sx={{ fontWeight: 800 }}>
-          {resultMatch ? `${resultMatch.team_a_name ?? '—'} مقابل ${resultMatch.team_b_name ?? '—'}` : 'ثبت نتیجه'}
-        </DialogTitle>
-        <Divider />
-        <DialogContent>
-          <Stack spacing={2} sx={{ pt: 1 }}>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', gap: 1.5 }}>
-              <Typography variant="body2" sx={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {resultMatch?.team_a_name ?? '—'}
-              </Typography>
-              <TextField label="گل" value={scoreA} onChange={(e) => setScoreA(e.target.value.replace(/[^\d]/g, ''))}
-                         inputMode="numeric" sx={{ width: 96 }} slotProps={{ inputLabel: { shrink: true } }} />
-            </Stack>
-            <Stack direction="row" spacing={1.5} sx={{ alignItems: 'center', gap: 1.5 }}>
-              <Typography variant="body2" sx={{ flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                {resultMatch?.team_b_name ?? '—'}
-              </Typography>
-              <TextField label="گل" value={scoreB} onChange={(e) => setScoreB(e.target.value.replace(/[^\d]/g, ''))}
-                         inputMode="numeric" sx={{ width: 96 }} slotProps={{ inputLabel: { shrink: true } }} />
-            </Stack>
-            <Typography variant="caption" color="text.secondary">
-              {isLeague
-                ? 'تساوی مجاز است؛ هر تیم یک امتیاز می‌گیرد.'
-                : isDouble && dialogHalf === 'grand_final'
-                  ? 'تساوی مجاز نیست؛ برنده قهرمان می‌شود و بازنده نایب‌قهرمان.'
-                  : isDouble && dialogHalf === 'losers'
-                    ? 'تساوی مجاز نیست؛ بازندهٔ این دیدار دومین باختش را می‌گیرد و حذف می‌شود.'
-                    : isDouble
-                      ? 'تساوی مجاز نیست؛ برنده جلو می‌رود و بازنده فقط یک باخت دارد، پس حذف نمی‌شود.'
-                      : 'تساوی مجاز نیست؛ برنده به مرحلهٔ بعد می‌رود.'}
-            </Typography>
-          </Stack>
-        </DialogContent>
-        <DialogActions sx={{ px: 3, pb: 2 }}>
-          <Button onClick={() => setResultMatch(null)} sx={{ minHeight: 44 }}>انصراف</Button>
-          <Button variant="contained" onClick={submitResult} disabled={resultMut.isPending}
-                  data-testid="tournament-result-submit" sx={{ borderRadius: '12px', minHeight: 44 }}>
-            {resultMut.isPending ? 'در حال ثبت…' : 'ثبت نتیجه'}
-          </Button>
-        </DialogActions>
+      <Dialog open={!!resultMatch} onClose={() => setResultMatch(null)} maxWidth="xs" fullWidth
+              data-testid="tournament-result-dialog"
+              title={resultMatch ? `${resultMatch.team_a_name ?? '—'} مقابل ${resultMatch.team_b_name ?? '—'}` : 'ثبت نتیجه'}
+              actions={
+                <>
+                  <Button variant="ghost" onClick={() => setResultMatch(null)}>انصراف</Button>
+                  <Button onClick={submitResult} disabled={resultMut.isPending}
+                          data-testid="tournament-result-submit">
+                    {resultMut.isPending ? 'در حال ثبت…' : 'ثبت نتیجه'}
+                  </Button>
+                </>
+              }>
+        <div className="flex flex-col gap-4 pt-1">
+          <div className="flex items-center gap-3">
+            <p className="min-w-0 flex-1 truncate text-sm text-foreground">
+              {resultMatch?.team_a_name ?? '—'}
+            </p>
+            <div className="flex w-24 flex-col gap-1">
+              <Label htmlFor="tournament-score-a" className="text-xs">گل</Label>
+              <Input id="tournament-score-a" value={scoreA} onChange={(e) => setScoreA(e.target.value.replace(/[^\d]/g, ''))}
+                     inputMode="numeric" className="text-center" />
+            </div>
+          </div>
+          <div className="flex items-center gap-3">
+            <p className="min-w-0 flex-1 truncate text-sm text-foreground">
+              {resultMatch?.team_b_name ?? '—'}
+            </p>
+            <div className="flex w-24 flex-col gap-1">
+              <Label htmlFor="tournament-score-b" className="text-xs">گل</Label>
+              <Input id="tournament-score-b" value={scoreB} onChange={(e) => setScoreB(e.target.value.replace(/[^\d]/g, ''))}
+                     inputMode="numeric" className="text-center" />
+            </div>
+          </div>
+          <p className="text-xs text-muted-foreground">
+            {isLeague
+              ? 'تساوی مجاز است؛ هر تیم یک امتیاز می‌گیرد.'
+              : isDouble && dialogHalf === 'grand_final'
+                ? 'تساوی مجاز نیست؛ برنده قهرمان می‌شود و بازنده نایب‌قهرمان.'
+                : isDouble && dialogHalf === 'losers'
+                  ? 'تساوی مجاز نیست؛ بازندهٔ این دیدار دومین باختش را می‌گیرد و حذف می‌شود.'
+                  : isDouble
+                    ? 'تساوی مجاز نیست؛ برنده جلو می‌رود و بازنده فقط یک باخت دارد، پس حذف نمی‌شود.'
+                    : 'تساوی مجاز نیست؛ برنده به مرحلهٔ بعد می‌رود.'}
+          </p>
+        </div>
       </Dialog>
     </Layout>
   )

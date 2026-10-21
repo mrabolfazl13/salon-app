@@ -2,7 +2,6 @@ import React, { useEffect } from 'react'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useStaffMe } from '@/hooks/useStaffMe'
-import { CircularProgress, Box } from '@mui/material'
 import toast from 'react-hot-toast'
 
 interface ProtectedRouteProps {
@@ -51,9 +50,13 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
   }, [roleMismatch])
 
   const spinner = (
-    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh' }}>
-      <CircularProgress />
-    </Box>
+    <div className="flex min-h-screen items-center justify-center">
+      <span
+        className="h-10 w-10 animate-spin rounded-full border-4 border-slate-300 border-t-blue-600 dark:border-slate-600 dark:border-t-blue-400"
+        role="status"
+        aria-label="در حال بارگذاری"
+      />
+    </div>
   )
 
   if (isLoading) return spinner

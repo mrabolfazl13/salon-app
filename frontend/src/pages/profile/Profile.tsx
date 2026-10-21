@@ -1,4 +1,4 @@
-﻿import React, { useEffect, useMemo, useState } from 'react'
+import React, { useEffect, useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { useQuery } from '@tanstack/react-query'
@@ -16,26 +16,7 @@ import { useMyMarketingConsent, useSetMarketingConsent } from '@/hooks/useCrm'
 import { formatRial } from '@/components/finance/shared'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Typography,
-  Grid,
-  Card,
-  CardContent,
-  Avatar,
-  Button,
-  TextField,
-  Divider,
-  Chip,
-  Tabs,
-  Tab,
-  CircularProgress,
-  Switch,
-  FormControlLabel,
-  Alert,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
-import { Shimmer } from '@/components/mobile'
 import { useAuthStore } from '@/store/authStore'
 import { useNotificationStore } from '@/store/notificationStore'
 import { useUpdateStore } from '@/store/updateStore'
@@ -43,6 +24,16 @@ import { getAppVersion, isTauri } from '@/services/update'
 import { authService } from '@/services/auth'
 import { formatDate, getInitials } from '@/lib/utils'
 import toast from 'react-hot-toast'
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar'
+import { Badge } from '@/components/ui/shadcn/badge'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Switch } from '@/components/ui/shadcn/switch'
+import { Separator } from '@/components/ui/shadcn/separator'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
 
 const roleLabels: Record<string, string> = {
   user: 'کاربر',
@@ -60,6 +51,24 @@ function friendlyError(err: any, fallback: string): string {
   }
   return err?.response?.data?.detail || fallback
 }
+
+/** اسپینر استاندارد (جایگزین CircularProgress) */
+const Spinner: React.FC<{ className?: string }> = ({ className }) => (
+  <span
+    className={`inline-block h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent ${className ?? ''}`}
+    role="status"
+    aria-label="در حال بارگذاری"
+  />
+)
+
+const ProfileTabTrigger: React.FC<{ value: string; children: React.ReactNode }> = ({ value, children }) => (
+  <TabsTrigger
+    value={value}
+    className="h-auto min-h-11 whitespace-normal rounded-lg px-2 py-1.5 text-center text-[0.8rem] font-semibold leading-tight data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-400 data-[state=active]:via-amber-500 data-[state=active]:to-orange-500 data-[state=active]:font-extrabold data-[state=active]:text-stone-900 data-[state=active]:shadow-sm"
+  >
+    {children}
+  </TabsTrigger>
+)
 
 const Profile: React.FC = () => {
   const { user, updateUser, logout } = useAuthStore()
@@ -154,17 +163,17 @@ const Profile: React.FC = () => {
   if (!user) {
     return (
       <Layout>
-        <Box sx={{ py: 3 }}>
-          <Shimmer variant="rounded" sx={{ height: 40, width: 220, mb: 4, borderRadius: '12px' }} />
-          <Grid container spacing={4}>
-            <Grid size={{ xs: 12, md: 4 }}>
-              <Shimmer variant="rounded" sx={{ height: 260, borderRadius: '16px' }} />
-            </Grid>
-            <Grid size={{ xs: 12, md: 8 }}>
-              <Shimmer variant="rounded" sx={{ height: 340, borderRadius: '16px' }} />
-            </Grid>
-          </Grid>
-        </Box>
+        <div className="py-6">
+          <Skeleton aria-hidden="true" className="mb-8 h-10 w-[220px] rounded-xl" />
+          <div className="grid grid-cols-1 gap-8 md:grid-cols-12">
+            <div className="md:col-span-4">
+              <Skeleton aria-hidden="true" className="h-[260px] rounded-2xl" />
+            </div>
+            <div className="md:col-span-8">
+              <Skeleton aria-hidden="true" className="h-[340px] rounded-2xl" />
+            </div>
+          </div>
+        </div>
       </Layout>
     )
   }
@@ -239,241 +248,157 @@ const Profile: React.FC = () => {
     }
   }
 
+  const passwordsMismatch = confirmPassword.length > 0 && confirmPassword !== newPassword
+
   return (
     <Layout>
-      <Box sx={{ py: 3 }}>
-        <Box sx={{ mb: 1 }}>
+      <div className="py-6">
+        <div className="mb-1">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.5 }}
           >
-          <Typography component="h1" variant="h4" sx={{ fontWeight: 700 }}>
-            پروفایل کاربری
-          </Typography>
-          <Typography variant="body2" color="text.secondary" sx={{ mt: 0.5 }}>
-            مدیریت اطلاعات، رمز عبور و تنظیمات حساب شما
-          </Typography>
+            <h1 className="text-2xl font-bold text-foreground">
+              پروفایل کاربری
+            </h1>
+            <p className="mt-1 text-sm text-muted-foreground">
+              مدیریت اطلاعات، رمز عبور و تنظیمات حساب شما
+            </p>
           </motion.div>
-        </Box>
+        </div>
 
-        <Box sx={{ height: '1.5rem' }} />
+        <div className="h-6" />
 
-        <Grid container spacing={3}>
+        <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
           {/* Sidebar */}
-          <Grid size={{ xs: 12, md: 4 }}>
+          <div className="md:col-span-4">
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.1 }}
             >
-              <Card sx={{ borderRadius: '16px', textAlign: 'center', p: 3 }}>
-                <Avatar
-                  sx={{
-                    width: 100,
-                    height: 100,
-                    mx: 'auto',
-                    mb: 2,
-                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)',
-                    color: '#1c1917',
-                    fontSize: '2rem',
-                    fontWeight: 800,
-                    boxShadow: '0 8px 24px rgba(245,158,11,0.35)',
-                  }}
-                >
-                  {getInitials(user.fullName) || 'ک'}
+              <div className="rounded-2xl border border-border bg-card p-6 text-center shadow-sm">
+                <Avatar className="mx-auto mb-4 h-[100px] w-[100px] shadow-[0_8px_24px_rgba(245,158,11,0.35)]">
+                  <AvatarFallback className="bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-[2rem] font-extrabold text-stone-900">
+                    {getInitials(user.fullName) || 'ک'}
+                  </AvatarFallback>
                 </Avatar>
-                <Typography sx={{ fontWeight: 600 }} variant="h6">
+                <h2 className="text-lg font-semibold text-foreground">
                   {user.fullName}
-                </Typography>
-                <Typography variant="body2" color="text.secondary">
+                </h2>
+                <p className="text-sm text-muted-foreground">
                   {roleLabels[user.role] || user.role}
-                </Typography>
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 1, mt: 1.5 }}>
-                  <Chip
-                    label={user.isVerified ? 'تایید شده' : 'در انتظار تایید'}
-                    color={user.isVerified ? 'success' : 'default'}
-                    size="medium"
-                    sx={{ borderRadius: '10px', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 1.5 } }}
-                  />
+                </p>
+                <div className="mt-3 flex flex-wrap justify-center gap-2">
+                  <Badge
+                    variant={user.isVerified ? 'success' : 'muted'}
+                    className="min-h-11 rounded-[10px] px-3 text-sm"
+                  >
+                    {user.isVerified ? 'تایید شده' : 'در انتظار تایید'}
+                  </Badge>
                   {/* چیپ امتیاز — نمایش فوری موجودی وفاداری؛ با کلیک می‌رود به تب «وفاداری و اعلان» */}
                   {loyaltyQuery.isSuccess && (
-                    <Chip
-                      icon={<Icon icon="mdi:star" style={{ fontSize: 18 }} />}
-                      label={`${toPersianDigits(loyaltyQuery.data.balance ?? 0)} امتیاز`}
-                      size="medium"
+                    <button
+                      type="button"
                       onClick={() => setTab(2)}
-                      sx={{
-                        borderRadius: '10px',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        minHeight: 44,
-                        px: 0.5,
-                        bgcolor: 'rgba(245,158,11,0.14)',
-                        color: (t) => (t.palette.mode === 'dark' ? '#fcd34d' : '#b45309'),
-                        '& .MuiChip-label': { px: 1.5 },
-                        '&:hover': { bgcolor: 'rgba(245,158,11,0.22)' },
-                      }}
-                    />
+                      className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[10px] bg-amber-500/15 px-3 text-sm font-bold text-amber-700 transition-colors hover:bg-amber-500/25 dark:text-amber-300"
+                    >
+                      <Icon icon="mdi:star" className="h-[18px] w-[18px]" />
+                      {`${toPersianDigits(loyaltyQuery.data.balance ?? 0)} امتیاز`}
+                    </button>
                   )}
-                </Box>
-                <Divider sx={{ my: 2 }} />
-                <Box sx={{ textAlign: 'right', display: 'flex', flexDirection: 'column', gap: 1.25 }}>
-                  <Typography variant="body2">
-                    <Icon icon="mdi:phone" className="h-4 w-4 inline ml-2" />
+                </div>
+                <Separator className="my-4" />
+                <div className="flex flex-col gap-2.5 text-start">
+                  <p className="text-sm text-foreground">
+                    <Icon icon="mdi:phone" className="me-2 inline h-4 w-4" />
                     {user.phone}
-                  </Typography>
+                  </p>
                   {user.createdAt && (
-                    <Typography variant="body2">
-                      <Icon icon="mdi:calendar" className="h-4 w-4 inline ml-2" />
+                    <p className="text-sm text-foreground">
+                      <Icon icon="mdi:calendar" className="me-2 inline h-4 w-4" />
                       عضویت: {formatDate(user.createdAt)}
-                    </Typography>
+                    </p>
                   )}
-                </Box>
+                </div>
                 {/* خروج — دسترسی مستقیم بدون نیاز به منوی آواتار */}
                 <Button
+                  variant="outline"
                   onClick={handleLogout}
-                  color="error"
-                  startIcon={<Icon icon="mdi:logout" />}
-                  sx={{
-                    mt: 2,
-                    width: '100%',
-                    minHeight: 44,
-                    borderRadius: '10px',
-                    textTransform: 'none',
-                    fontWeight: 700,
-                    border: '1px solid rgba(220,38,38,0.25)',
-                    bgcolor: 'rgba(220,38,38,0.04)',
-                    '&:hover': { bgcolor: 'rgba(220,38,38,0.08)', border: '1px solid rgba(220,38,38,0.4)' },
-                  }}
+                  className="mt-4 min-h-11 w-full rounded-[10px] border-red-500/25 bg-red-500/5 font-bold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                 >
+                  <Icon icon="mdi:logout" className="h-5 w-5" />
                   خروج از حساب
                 </Button>
-              </Card>
+              </div>
 
               {/* بروزرسانی برنامه — چک دستی + بج نسخه جدید */}
-              <Card sx={{ borderRadius: '16px', mt: 3 }}>
-                <CardContent sx={{ p: 2.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
-                  <Box>
-                    <Typography variant="subtitle2" sx={{ fontWeight: 800, display: 'flex', alignItems: 'center', gap: 1 }}>
+              <div className="mt-6 rounded-2xl border border-border bg-card shadow-sm">
+                <div className="flex items-center justify-between gap-3 p-5">
+                  <div>
+                    <p className="flex items-center gap-2 text-sm font-extrabold text-foreground">
                       <Icon icon="mdi:cellphone-arrow-down" className="h-5 w-5" />
                       بروزرسانی برنامه
                       {updateAvailable && (
-                        <Box component="span" sx={{ width: 8, height: 8, borderRadius: '50%', bgcolor: 'error.main' }} />
+                        <span className="h-2 w-2 rounded-full bg-red-500" />
                       )}
-                    </Typography>
-                    <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mt: 0.5 }}>
+                    </p>
+                    <span className="mt-1 block text-xs text-muted-foreground">
                       نسخه فعلی: {profileAppVersion || '—'}
-                    </Typography>
-                  </Box>
+                    </span>
+                  </div>
                   <Button
-                    variant="outlined"
-                    size="medium"
+                    variant="outline"
                     onClick={() => void useUpdateStore.getState().check(true)}
                     disabled={!isTauri()}
-                    sx={{ minHeight: 44, borderRadius: '12px', textTransform: 'none', fontWeight: 700, px: 2 }}
+                    className="min-h-11 rounded-xl px-4 font-bold"
                   >
                     {isTauri() ? 'بررسی بروزرسانی' : 'فقط در اپ موبایل'}
                   </Button>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
 
               {/* مرور سریع — دسترسی مستقیم به بخش‌های فرعی (جواب به «دسترسی بد تیم‌ها/رقابت») */}
-              <Card sx={{ borderRadius: '16px', mt: 3 }}>
-                <CardContent sx={{ p: 2.5 }}>
-                  <Typography variant="subtitle2" sx={{ fontWeight: 800 }}>
+              <div className="mt-6 rounded-2xl border border-border bg-card shadow-sm">
+                <div className="p-5">
+                  <p className="text-sm font-extrabold text-foreground">
                     مرور سریع
-                  </Typography>
-                  <Typography variant="caption" color="text.secondary" sx={{ display: 'block', mb: 1.75 }}>
+                  </p>
+                  <span className="mb-3.5 mt-1 block text-xs text-muted-foreground">
                     دسترسی مستقیم به بخش‌های کاربری
-                  </Typography>
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: 'repeat(2, 1fr)', sm: 'repeat(3, 1fr)' },
-                      gap: 1.5,
-                    }}
-                  >
+                  </span>
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                     {quickLinks.map((q) => (
-                      <Box
+                      <Link
                         key={q.href}
-                        component={Link}
                         to={q.href}
-                        sx={{
-                          display: 'flex',
-                          flexDirection: 'column',
-                          alignItems: 'center',
-                          gap: 1,
-                          py: 1.75,
-                          px: 1,
-                          borderRadius: '12px',
-                          border: '1px solid',
-                          borderColor: 'divider',
-                          bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(248,250,252,0.6)'),
-                          textDecoration: 'none',
-                          transition: 'all 0.2s',
-                          '&:hover': {
-                            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.10)' : 'rgba(245,158,11,0.07)'),
-                            borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.4)' : 'rgba(245,158,11,0.45)'),
-                            transform: 'translateY(-1px)',
-                          },
-                        }}
+                        className="flex flex-col items-center gap-2 rounded-xl border border-border bg-slate-50/60 px-2 py-3 no-underline transition-all hover:-translate-y-px hover:border-amber-500/45 hover:bg-amber-500/10 dark:bg-white/5 dark:hover:border-amber-400/40 dark:hover:bg-amber-400/10"
                       >
-                        <Box
-                          sx={{
-                            width: 40,
-                            height: 40,
-                            borderRadius: '12px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.10)'),
-                          }}
-                        >
-                          <Icon icon={q.icon} style={{ fontSize: 22, color: '#d97706' }} />
-                        </Box>
-                        <Typography
-                          variant="caption"
-                          sx={{ fontWeight: 700, color: 'text.primary', textAlign: 'center', lineHeight: 1.4 }}
-                        >
+                        <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 dark:bg-amber-400/15">
+                          <Icon icon={q.icon} className="h-[22px] w-[22px] text-amber-600 dark:text-amber-400" />
+                        </span>
+                        <span className="text-center text-xs font-bold leading-snug text-foreground">
                           {q.label}
-                        </Typography>
-                      </Box>
+                        </span>
+                      </Link>
                     ))}
-                  </Box>
-                </CardContent>
-              </Card>
+                  </div>
+                </div>
+              </div>
             </motion.div>
-          </Grid>
+          </div>
 
           {/* Content */}
-          <Grid size={{ xs: 12, md: 8 }}>
-            <Card sx={{ borderRadius: '16px' }}>
-              <CardContent>
-                <Tabs
-                  value={tab}
-                  onChange={(_, newValue) => setTab(newValue)}
-                  variant="fullWidth"
-                  sx={{
-                    mb: 3,
-                    '& .MuiTab-root': {
-                      borderRadius: '8px',
-                      textTransform: 'none',
-                      fontWeight: 600,
-                    },
-                    '& .Mui-selected': {
-                      background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)',
-                      color: '#1c1917 !important',
-                      fontWeight: 800,
-                      borderRadius: '8px',
-                    },
-                  }}
-                >
-                  <Tab label="اطلاعات شخصی" sx={{ minHeight: 48, py: 1.5 }} />
-                  <Tab label="تغییر رمز عبور" sx={{ minHeight: 48, py: 1.5 }} />
-                  <Tab label="وفاداری و اعلان" sx={{ minHeight: 48, py: 1.5 }} />
-                  <Tab label="دستاوردها" sx={{ minHeight: 48, py: 1.5 }} />
-                </Tabs>
+          <div className="md:col-span-8">
+            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm sm:p-5">
+              <Tabs value={String(tab)} onValueChange={(value) => setTab(Number(value))}>
+                <TabsList className="mb-6 grid h-auto w-full grid-cols-4 gap-1 p-1">
+                  <ProfileTabTrigger value="0">اطلاعات شخصی</ProfileTabTrigger>
+                  <ProfileTabTrigger value="1">تغییر رمز عبور</ProfileTabTrigger>
+                  <ProfileTabTrigger value="2">وفاداری و اعلان</ProfileTabTrigger>
+                  <ProfileTabTrigger value="3">دستاوردها</ProfileTabTrigger>
+                </TabsList>
 
                 {tab === 0 && (
                   <motion.div
@@ -481,52 +406,46 @@ const Profile: React.FC = () => {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
+                    <h2 className="mb-4 text-sm font-bold text-foreground">
                       اطلاعات شخصی
-                    </Typography>
-                    <Box
-                      component="form"
-                      sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 480 }}
-                    >
-                      <TextField
-                        label="نام کامل"
-                        value={fullName}
-                        onChange={(e) => setFullName(e.target.value)}
-                        fullWidth
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
-                      />
-                      <TextField
-                        label="شماره موبایل"
-                        value={user.phone}
-                        disabled
-                        fullWidth
-                        helperText="شماره موبایل قابل تغییر نیست"
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
-                      />
+                    </h2>
+                    <form className="flex max-w-[480px] flex-col gap-4">
+                      <div>
+                        <Label htmlFor="profile-full-name" className="mb-1.5 block">نام کامل</Label>
+                        <Input
+                          id="profile-full-name"
+                          value={fullName}
+                          onChange={(e) => setFullName(e.target.value)}
+                          className="min-h-14 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="profile-phone" className="mb-1.5 block">شماره موبایل</Label>
+                        <Input
+                          id="profile-phone"
+                          value={user.phone}
+                          disabled
+                          aria-describedby="profile-phone-help"
+                          className="min-h-14 rounded-xl"
+                        />
+                        <p id="profile-phone-help" className="mt-1.5 text-xs text-muted-foreground">
+                          شماره موبایل قابل تغییر نیست
+                        </p>
+                      </div>
                       <Button
                         type="button"
-                        variant="contained"
+                        variant="primary"
                         onClick={handleSaveProfile}
                         disabled={savingProfile}
-                        sx={{
-                          borderRadius: '12px',
-                          textTransform: 'none',
-                          fontWeight: 700,
-                          minHeight: 48,
-                          px: 3,
-                          mt: 1,
-                          maxWidth: 220,
-                          background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #1d4ed8 100%)',
-                          boxShadow: '0 4px 14px rgba(29,78,216,0.30)',
-                        }}
+                        className="mt-2 min-h-12 max-w-[220px] rounded-xl px-6 font-bold"
                       >
                         {savingProfile ? (
-                          <CircularProgress size={20} sx={{ color: 'white' }} />
+                          <Spinner className="text-white" />
                         ) : (
                           'ذخیره تغییرات'
                         )}
                       </Button>
-                    </Box>
+                    </form>
                   </motion.div>
                 )}
 
@@ -536,67 +455,65 @@ const Profile: React.FC = () => {
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.3 }}
                   >
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 2 }}>
+                    <h2 className="mb-4 text-sm font-bold text-foreground">
                       تغییر رمز عبور
-                    </Typography>
-                    <Box
-                      component="form"
-                      sx={{ display: 'flex', flexDirection: 'column', gap: 2, maxWidth: 480 }}
-                    >
-                      <TextField
-                        label="رمز عبور فعلی"
-                        type="password"
-                        value={oldPassword}
-                        onChange={(e) => setOldPassword(e.target.value)}
-                        fullWidth
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
-                      />
-                      <TextField
-                        label="رمز عبور جدید"
-                        type="password"
-                        value={newPassword}
-                        onChange={(e) => setNewPassword(e.target.value)}
-                        fullWidth
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
-                      />
-                      <TextField
-                        label="تکرار رمز عبور جدید"
-                        type="password"
-                        value={confirmPassword}
-                        onChange={(e) => setConfirmPassword(e.target.value)}
-                        fullWidth
-                        error={confirmPassword.length > 0 && confirmPassword !== newPassword}
-                        helperText={
-                          confirmPassword.length > 0 && confirmPassword !== newPassword
-                            ? 'رمز عبور و تکرار آن مطابقت ندارند'
-                            : undefined
-                        }
-                        sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px', minHeight: 56 }, '& .MuiInputLabel-root': { top: 2 } }}
-                      />
+                    </h2>
+                    <form className="flex max-w-[480px] flex-col gap-4">
+                      <div>
+                        <Label htmlFor="profile-old-password" className="mb-1.5 block">رمز عبور فعلی</Label>
+                        <Input
+                          id="profile-old-password"
+                          type="password"
+                          value={oldPassword}
+                          onChange={(e) => setOldPassword(e.target.value)}
+                          className="min-h-14 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="profile-new-password" className="mb-1.5 block">رمز عبور جدید</Label>
+                        <Input
+                          id="profile-new-password"
+                          type="password"
+                          value={newPassword}
+                          onChange={(e) => setNewPassword(e.target.value)}
+                          className="min-h-14 rounded-xl"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="profile-confirm-password" className="mb-1.5 block">تکرار رمز عبور جدید</Label>
+                        <Input
+                          id="profile-confirm-password"
+                          type="password"
+                          value={confirmPassword}
+                          onChange={(e) => setConfirmPassword(e.target.value)}
+                          aria-invalid={passwordsMismatch || undefined}
+                          aria-describedby={passwordsMismatch ? 'profile-confirm-password-help' : undefined}
+                          className={
+                            passwordsMismatch
+                              ? 'min-h-14 rounded-xl border-red-500 focus-visible:ring-red-500'
+                              : 'min-h-14 rounded-xl'
+                          }
+                        />
+                        {passwordsMismatch && (
+                          <p id="profile-confirm-password-help" className="mt-1.5 text-xs text-red-600 dark:text-red-400">
+                            رمز عبور و تکرار آن مطابقت ندارند
+                          </p>
+                        )}
+                      </div>
                       <Button
                         type="button"
-                        variant="contained"
+                        variant="primary"
                         onClick={handleChangePassword}
                         disabled={savingPassword}
-                        sx={{
-                          borderRadius: '12px',
-                          textTransform: 'none',
-                          fontWeight: 700,
-                          minHeight: 48,
-                          px: 3,
-                          mt: 1,
-                          maxWidth: 220,
-                          background: 'linear-gradient(135deg, #0f172a 0%, #1e3a8a 58%, #1d4ed8 100%)',
-                          boxShadow: '0 4px 14px rgba(29,78,216,0.30)',
-                        }}
+                        className="mt-2 min-h-12 max-w-[220px] rounded-xl px-6 font-bold"
                       >
                         {savingPassword ? (
-                          <CircularProgress size={20} sx={{ color: 'white' }} />
+                          <Spinner className="text-white" />
                         ) : (
                           'تغییر رمز عبور'
                         )}
                       </Button>
-                    </Box>
+                    </form>
                   </motion.div>
                 )}
 
@@ -607,188 +524,142 @@ const Profile: React.FC = () => {
                     transition={{ duration: 0.3 }}
                   >
                     {/* کارت امتیاز وفاداری */}
-                    <Box
-                      sx={{
-                        borderRadius: '16px',
-                        p: 3,
-                        mb: 3,
-                        color: 'white',
-                        background: 'linear-gradient(135deg, #b45309 0%, #f59e0b 100%)',
-                        boxShadow: '0 10px 30px rgba(245,158,11,0.25)',
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 2, flexWrap: 'wrap' }}>
-                        <Box>
-                          <Typography variant="caption" sx={{ opacity: 0.85, fontWeight: 600 }}>امتیاز وفاداری</Typography>
-                          <Typography variant="h3" sx={{ fontWeight: 900, mt: 0.5, fontVariantNumeric: 'tabular-nums' }}>
+                    <div className="mb-6 rounded-2xl bg-gradient-to-br from-amber-700 to-amber-500 p-6 text-white shadow-[0_10px_30px_rgba(245,158,11,0.25)]">
+                      <div className="flex flex-wrap items-start justify-between gap-4">
+                        <div>
+                          <span className="text-xs font-semibold opacity-85">امتیاز وفاداری</span>
+                          <p className="mt-1 text-3xl font-black tabular-nums">
                             {loyaltyQuery.isPending ? '…' : toPersianDigits(loyaltyQuery.data?.balance ?? 0)}
-                          </Typography>
+                          </p>
                           {loyaltyQuery.data && (
-                            <Typography variant="body2" sx={{ mt: 0.5, opacity: 0.9 }}>
+                            <p className="mt-1 text-sm opacity-90">
                               ارزش هر امتیاز {formatRial(loyaltyQuery.data.point_value_rial)} — موجودی شما ≈ {formatRial(loyaltyQuery.data.balance * loyaltyQuery.data.point_value_rial)}
-                            </Typography>
+                            </p>
                           )}
-                        </Box>
-                        <Icon icon="mdi:card-account-details-star" className="h-12 w-12" style={{ opacity: 0.35 }} />
-                      </Box>
-                      <Typography variant="caption" sx={{ display: 'block', mt: 1.5, opacity: 0.85 }}>
+                        </div>
+                        <Icon icon="mdi:card-account-details-star" className="h-12 w-12 opacity-35" />
+                      </div>
+                      <span className="mt-3 block text-xs opacity-85">
                         با هر رزرو تأییدشده امتیاز می‌گیرید و هنگام رزرو می‌توانید تا ۵۰٪ مبلغ را با امتیاز بپردازید.
-                      </Typography>
-                    </Box>
+                      </span>
+                    </div>
 
                     {/* تاریخچه امتیاز */}
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>تاریخچه امتیازها</Typography>
+                    <h2 className="mb-3 text-sm font-bold text-foreground">تاریخچه امتیازها</h2>
                     {loyaltyQuery.isPending ? (
-                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 3 }}><CircularProgress size={26} /></Box>
+                      <div className="flex justify-center py-6"><Spinner className="h-[26px] w-[26px]" /></div>
                     ) : loyaltyQuery.isError ? (
-                      <Alert severity="warning" sx={{ borderRadius: '12px' }}>دریافت تاریخچه ممکن نشد</Alert>
+                      <Alert variant="warning" className="rounded-xl">
+                        <AlertDescription>دریافت تاریخچه ممکن نشد</AlertDescription>
+                      </Alert>
                     ) : (loyaltyQuery.data?.history?.length ?? 0) === 0 ? (
-                      <Box sx={{ borderRadius: '12px', border: '1px dashed', borderColor: 'divider', py: 3, textAlign: 'center' }}>
-                        <Icon icon="mdi:ticket-outline" className="h-8 w-8" style={{ color: '#9ca3af' }} />
-                        <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
+                      <div className="rounded-xl border border-dashed border-border py-6 text-center">
+                        <Icon icon="mdi:ticket-outline" className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+                        <p className="mt-2 text-sm text-muted-foreground">
                           هنوز ردیف امتیازی ثبت نشده است. با اولین رزرو تأییدشده امتیاز می‌گیرید.
-                        </Typography>
-                      </Box>
+                        </p>
+                      </div>
                     ) : (
-                      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, mb: 3 }}>
+                      <div className="mb-6 flex flex-col gap-2">
                         {loyaltyQuery.data!.history.map((h) => (
-                          <Box
+                          <div
                             key={h.id}
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'space-between',
-                              gap: 1,
-                              px: 2,
-                              py: 1.25,
-                              borderRadius: '12px',
-                              border: '1px solid',
-                              borderColor: 'divider',
-                              bgcolor: h.points >= 0 ? 'rgba(5,150,105,0.05)' : 'rgba(220,38,38,0.04)',
-                            }}
+                            className={
+                              h.points >= 0
+                                ? 'flex items-center justify-between gap-2 rounded-xl border border-border bg-emerald-500/5 px-4 py-2.5'
+                                : 'flex items-center justify-between gap-2 rounded-xl border border-border bg-red-500/5 px-4 py-2.5'
+                            }
                           >
-                            <Box sx={{ minWidth: 0 }}>
-                              <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                            <div className="min-w-0">
+                              <p className="text-sm font-bold text-foreground">
                                 {LOYALTY_REASON_LABELS[h.reason] ?? h.reason}
-                              </Typography>
-                              <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                              </p>
+                              <span className="text-xs text-muted-foreground">
                                 {formatJalaliDateTime(h.created_at, { format: 'numeric' })}
-                              </Typography>
-                            </Box>
-                            <Typography
-                              variant="body2"
-                              sx={{ fontWeight: 900, fontVariantNumeric: 'tabular-nums', color: (th) => (h.points >= 0 ? th.palette.success.main : th.palette.error.main), whiteSpace: 'nowrap' }}
+                              </span>
+                            </div>
+                            <p
+                              className={
+                                h.points >= 0
+                                  ? 'whitespace-nowrap text-sm font-black tabular-nums text-emerald-700 dark:text-emerald-400'
+                                  : 'whitespace-nowrap text-sm font-black tabular-nums text-red-700 dark:text-red-400'
+                              }
                               dir="rtl"
                             >
                               {h.points >= 0 ? '+' : '−'}{toPersianDigits(Math.abs(h.points))} امتیاز
-                            </Typography>
-                          </Box>
+                            </p>
+                          </div>
                         ))}
-                      </Box>
+                      </div>
                     )}
 
                     {/* اطلاع‌رسانی لحظه آخری — GET/PUT /deals/subscription */}
-                    <Divider sx={{ my: 2 }} />
-                    <Typography variant="subtitle2" sx={{ fontWeight: 700, mb: 1.5 }}>اعلان‌ها و رضایت‌ها</Typography>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 2,
-                        px: 2,
-                        py: 1.75,
-                        borderRadius: '14px',
-                        border: '1px solid rgba(245,158,11,0.35)',
-                        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(245,158,11,0.10)' : 'rgba(255,247,237,0.7)'),
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-                        <Icon icon="mdi:fire-alert-outline" className="h-6 w-6" style={{ color: '#d97706', flexShrink: 0 }} />
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 800 }}>اطلاع‌رسانی تخفیف‌های لحظه‌ای</Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    <Separator className="my-4" />
+                    <h2 className="mb-3 text-sm font-bold text-foreground">اعلان‌ها و رضایت‌ها</h2>
+                    <div className="flex items-center justify-between gap-4 rounded-[14px] border border-amber-500/35 bg-amber-50/70 px-4 py-3.5 dark:bg-amber-500/10">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Icon icon="mdi:fire-alert-outline" className="h-6 w-6 shrink-0 text-amber-600 dark:text-amber-400" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-extrabold text-foreground">اطلاع‌رسانی تخفیف‌های لحظه‌ای</p>
+                          <span className="block text-xs text-muted-foreground">
                             فقط برای سالن‌هایی که آن‌ها را به علاقه‌مندی اضافه کرده‌اید اعلان می‌شود.
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={!!subscriptionQuery.data?.notify_deals}
-                            disabled={subscriptionQuery.isPending || subscriptionQuery.isError || setSubscription.isPending}
-                            onChange={(e) =>
-                              setSubscription.mutate(e.target.checked, {
-                                onSuccess: () => toast.success(e.target.checked ? 'اشتراک تخفیف‌ها فعال شد' : 'اشتراک غیرفعال شد'),
-                                onError: () => toast.error('خطا در ذخیره تنظیمات'),
-                              })
-                            }
-                          />
+                          </span>
+                        </div>
+                      </div>
+                      <Switch
+                        aria-label="اطلاع‌رسانی تخفیف‌های لحظه‌ای"
+                        checked={!!subscriptionQuery.data?.notify_deals}
+                        disabled={subscriptionQuery.isPending || subscriptionQuery.isError || setSubscription.isPending}
+                        onCheckedChange={(checked) =>
+                          setSubscription.mutate(checked, {
+                            onSuccess: () => toast.success(checked ? 'اشتراک تخفیف‌ها فعال شد' : 'اشتراک غیرفعال شد'),
+                            onError: () => toast.error('خطا در ذخیره تنظیمات'),
+                          })
                         }
-                        label=""
-                        sx={{ ms: 0 }}
                       />
-                    </Box>
+                    </div>
                     {subscriptionQuery.isError && (
-                      <Typography variant="caption" sx={{ color: 'text.secondary', mt: 1, display: 'block' }}>
+                      <span className="mt-2 block text-xs text-muted-foreground">
                         دریافت وضعیت اشتراک ممکن نشد — با بارگذاری مجدد تلاش کنید.
-                      </Typography>
+                      </span>
                     )}
-                    <Box sx={{ height: 2 }} />
+                    <div className="h-0.5" />
 
                     {/* رضایت بازاریابی — وضعیت اولیه از GET /crm/consent و ثبت با
                         PUT /crm/consent (self-service، همه سالن‌ها). */}
-                    <Box
-                      sx={{
-                        mt: 2,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        gap: 2,
-                        px: 2,
-                        py: 1.75,
-                        borderRadius: '14px',
-                        border: '1px solid rgba(37,99,235,0.3)',
-                        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(37,99,235,0.12)' : 'rgba(239,246,255,0.7)'),
-                      }}
-                    >
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, minWidth: 0 }}>
-                        <Icon icon="mdi:bullhorn-outline" className="h-6 w-6" style={{ color: '#2563eb', flexShrink: 0 }} />
-                        <Box sx={{ minWidth: 0 }}>
-                          <Typography variant="body2" sx={{ fontWeight: 800 }}>دریافت پیام‌های بازاریابی</Typography>
-                          <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>
+                    <div className="mt-4 flex items-center justify-between gap-4 rounded-[14px] border border-blue-500/30 bg-blue-50/70 px-4 py-3.5 dark:bg-blue-500/10">
+                      <div className="flex min-w-0 items-center gap-3">
+                        <Icon icon="mdi:bullhorn-outline" className="h-6 w-6 shrink-0 text-blue-600 dark:text-blue-400" />
+                        <div className="min-w-0">
+                          <p className="text-sm font-extrabold text-foreground">دریافت پیام‌های بازاریابی</p>
+                          <span className="block text-xs text-muted-foreground">
                             با فعال بودن این گزینه، سالن‌ها می‌توانند به شما کمپین/تخفیف پیامک کنند. فعلی:
                             {' '}{consentLabel}
-                          </Typography>
-                        </Box>
-                      </Box>
-                      <FormControlLabel
-                        control={
-                          <Switch
-                            checked={marketingConsent}
-                            disabled={setConsent.isPending}
-                            onChange={(e) => {
-                              const next = e.target.checked
-                              setMarketingConsent(next)
-                              setConsent.mutate(
-                                { marketing_consent: next },
-                                {
-                                  onSuccess: () => {
-                                    toast.success(next ? 'رضایت بازاریابی فعال شد' : 'رضایت بازاریابی لغو شد')
-                                  },
-                                  onError: () => {
-                                    setMarketingConsent(!next)
-                                    toast.error('خطا در ذخیره رضایت')
-                                  },
-                                },
-                              )
-                            }}
-                          />
-                        }
-                        label=""
-                        sx={{ ms: 0 }}
+                          </span>
+                        </div>
+                      </div>
+                      <Switch
+                        aria-label="دریافت پیام‌های بازاریابی"
+                        checked={marketingConsent}
+                        disabled={setConsent.isPending}
+                        onCheckedChange={(checked) => {
+                          const next = checked
+                          setMarketingConsent(next)
+                          setConsent.mutate(
+                            { marketing_consent: next },
+                            {
+                              onSuccess: () => {
+                                toast.success(next ? 'رضایت بازاریابی فعال شد' : 'رضایت بازاریابی لغو شد')
+                              },
+                              onError: () => {
+                                setMarketingConsent(!next)
+                                toast.error('خطا در ذخیره رضایت')
+                              },
+                            },
+                          )
+                        }}
                       />
-                    </Box>
+                    </div>
                   </motion.div>
                 )}
 
@@ -799,45 +670,28 @@ const Profile: React.FC = () => {
                     transition={{ duration: 0.3 }}
                   >
                     {/* خلاصه پیشرفت */}
-                    <Box
-                      sx={{
-                        borderRadius: '16px',
-                        p: 2.5,
-                        mb: 3,
-                        color: 'white',
-                        background: 'linear-gradient(135deg, #7c3aed 0%, #4f46e5 55%, #2563eb 100%)',
-                        boxShadow: '0 10px 30px rgba(79,70,229,0.25)',
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        gap: 2,
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="caption" sx={{ opacity: 0.85, fontWeight: 600 }}>نشان‌های شما</Typography>
-                        <Typography variant="h5" sx={{ fontWeight: 900, mt: 0.5 }}>
+                    <div className="mb-6 flex items-center justify-between gap-4 rounded-2xl bg-gradient-to-br from-violet-600 via-indigo-600 to-blue-600 p-5 text-white shadow-[0_10px_30px_rgba(79,70,229,0.25)]">
+                      <div>
+                        <span className="text-xs font-semibold opacity-85">نشان‌های شما</span>
+                        <p className="mt-1 text-xl font-black">
                           {achievementPending ? '…' : `${toPersianDigits(unlockedCount)} از ${toPersianDigits(badges.length)} نشان باز شده`}
-                        </Typography>
-                      </Box>
-                      <Icon icon="mdi:trophy" style={{ width: 40, height: 40, opacity: 0.4 }} />
-                    </Box>
+                        </p>
+                      </div>
+                      <Icon icon="mdi:trophy" className="h-10 w-10 opacity-40" />
+                    </div>
 
                     {achievementFailed && (
-                      <Alert severity="warning" sx={{ borderRadius: '12px', mb: 2 }}>
-                        برخی داده‌ها دریافت نشد — دوباره تلاش کنید.
+                      <Alert variant="warning" className="mb-4 rounded-xl">
+                        <AlertDescription>
+                          برخی داده‌ها دریافت نشد — دوباره تلاش کنید.
+                        </AlertDescription>
                       </Alert>
                     )}
 
                     {achievementPending ? (
-                      <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}><CircularProgress size={28} /></Box>
+                      <div className="flex justify-center py-8"><Spinner className="h-7 w-7" /></div>
                     ) : (
-                      <Box
-                        sx={{
-                          display: 'grid',
-                          gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))',
-                          gap: 1.5,
-                        }}
-                      >
+                      <div className="grid grid-cols-[repeat(auto-fill,minmax(150px,1fr))] gap-3">
                         {badges.map((b, i) => {
                           const unlocked = b.progress >= b.goal
                           return (
@@ -847,70 +701,60 @@ const Profile: React.FC = () => {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.25, delay: i * 0.04 }}
                             >
-                              <Box
-                                sx={{
-                                  position: 'relative',
-                                  textAlign: 'center',
-                                  p: 2,
-                                  borderRadius: '16px',
-                                  height: '100%',
-                                  border: '1px solid',
-                                  borderColor: unlocked ? 'rgba(245,158,11,0.5)' : 'divider',
-                                  bgcolor: unlocked
-                                    ? (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.08)' : 'rgba(255,247,237,0.8)')
-                                    : 'transparent',
-                                  boxShadow: unlocked ? '0 8px 24px rgba(245,158,11,0.18)' : 'none',
-                                }}
+                              <div
+                                className={
+                                  unlocked
+                                    ? 'relative h-full rounded-2xl border border-amber-500/50 bg-amber-50/80 p-4 text-center shadow-[0_8px_24px_rgba(245,158,11,0.18)] dark:bg-amber-400/10'
+                                    : 'relative h-full rounded-2xl border border-border bg-transparent p-4 text-center'
+                                }
                               >
-                                <Box
-                                  sx={{
-                                    width: 52,
-                                    height: 52,
-                                    mx: 'auto',
-                                    mb: 1,
-                                    borderRadius: '50%',
-                                    display: 'flex',
-                                    alignItems: 'center',
-                                    justifyContent: 'center',
-                                    background: unlocked
-                                      ? 'linear-gradient(135deg, #fbbf24 0%, #f97316 100%)'
-                                      : (t) => (t.palette.mode === 'dark' ? 'rgba(148,163,184,0.12)' : 'rgba(148,163,184,0.15)'),
-                                  }}
+                                <div
+                                  className={
+                                    unlocked
+                                      ? 'mx-auto mb-2 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500'
+                                      : 'mx-auto mb-2 flex h-[52px] w-[52px] items-center justify-center rounded-full bg-slate-400/15'
+                                  }
                                 >
                                   <Icon
                                     icon={b.icon}
-                                    style={{ width: 26, height: 26, color: unlocked ? '#1c1917' : (b.progress > 0 ? '#d97706' : '#64748b') }}
+                                    className={
+                                      unlocked
+                                        ? 'h-[26px] w-[26px] text-stone-900'
+                                        : b.progress > 0
+                                          ? 'h-[26px] w-[26px] text-amber-600 dark:text-amber-400'
+                                          : 'h-[26px] w-[26px] text-slate-500 dark:text-slate-400'
+                                    }
                                   />
-                                </Box>
-                                <Typography variant="body2" sx={{ fontWeight: 800, color: unlocked ? 'text.primary' : 'text.secondary' }}>
+                                </div>
+                                <p className={unlocked ? 'text-sm font-extrabold text-foreground' : 'text-sm font-extrabold text-muted-foreground'}>
                                   {b.label}
-                                </Typography>
-                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mt: 0.25 }}>
+                                </p>
+                                <span className="mt-1 block text-xs text-muted-foreground">
                                   {b.desc}
-                                </Typography>
+                                </span>
                                 {!unlocked && (
-                                  <Typography variant="caption" sx={{ display: 'block', mt: 0.5, fontWeight: 700, color: 'warning.main', fontVariantNumeric: 'tabular-nums' }}>
+                                  <span className="mt-2 block text-xs font-bold tabular-nums text-amber-600 dark:text-amber-400">
                                     {toPersianDigits(Math.min(b.progress, b.goal))}/{toPersianDigits(b.goal)}
-                                  </Typography>
+                                  </span>
                                 )}
                                 {unlocked && (
-                                  <Box sx={{ position: 'absolute', top: 8, insetInlineEnd: 8 }}>
-                                    <Icon icon="mdi:check-circle" style={{ width: 18, height: 18, color: '#059669' }} />
-                                  </Box>
+                                  <span className="absolute end-2 top-2">
+                                    <Icon icon="mdi:check-circle" className="h-[18px] w-[18px] text-emerald-600 dark:text-emerald-400" />
+                                  </span>
                                 )}
-                              </Box>
+                              </div>
                             </motion.div>
                           )
                         })}
-                      </Box>
+                      </div>
                     )}
                   </motion.div>
                 )}
-              </CardContent>
-            </Card>
-          </Grid>
-        </Grid>
-      </Box>
+              </Tabs>
+            </div>
+          </div>
+        </div>
+      </div>
     </Layout>
   )
 }

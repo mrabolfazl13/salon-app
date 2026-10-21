@@ -4,12 +4,13 @@
 import React, { useState } from 'react'
 import { useNavigate, useParams, useLocation, Link } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Paper, Divider, Alert } from '@mui/material'
 
 import { SPORT_NAME_FA } from '@/components/team/shared'
 import Layout from '@/components/layout/Layout'
 import { EmptyState, ErrorState, Shimmer } from '@/components/mobile'
 import { Button } from '@/components/ui/Button'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Separator } from '@/components/ui/shadcn/separator'
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import {
   CapacityBar,
@@ -48,7 +49,6 @@ import { useToast } from '@/hooks/useToast'
 import { useAuthStore } from '@/store/authStore'
 import { PAYMENT_MODE_LABELS } from '@/types/game'
 import { formatPersianDate, formatPersianDateTime, formatPrice } from '@/utils/helpers'
-import { radii, shadows } from '@/theme'
 
 const SPORT_EMOJI: Record<string, string> = {
   football: '⚽', futsal: '⚽', basketball: '🏀', volleyball: '🏐',
@@ -56,41 +56,28 @@ const SPORT_EMOJI: Record<string, string> = {
 }
 
 const InfoRow: React.FC<{ icon: string; label: string; value: React.ReactNode }> = ({ icon, label, value }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, py: 0.5 }}>
-    <Icon icon={icon} style={{ width: 17, height: 17, color: '#64748b', flexShrink: 0 }} />
-    <Typography sx={{ fontSize: '0.8rem', color: '#64748b', minWidth: 70 }}>{label}</Typography>
-    <Typography sx={{ fontSize: '0.82rem', fontWeight: 600, color: '#0f172a' }}>{value}</Typography>
-  </Box>
+  <div className="flex items-center gap-2 py-1">
+    <Icon icon={icon} className="h-[17px] w-[17px] shrink-0 text-muted-foreground" aria-hidden="true" />
+    <span className="min-w-[70px] text-[0.8rem] text-muted-foreground">{label}</span>
+    <span className="text-[0.82rem] font-semibold text-foreground">{value}</span>
+  </div>
 )
 
 const SectionCard: React.FC<{ title: string; icon: string; badge?: number; children: React.ReactNode }> = ({
   title, icon, badge, children,
 }) => (
-  <Paper
-    sx={{
-      p: { xs: 2, md: 2.5 },
-      borderRadius: `${radii.card}px`,
-      boxShadow: shadows.card,
-      border: '1px solid rgba(15,23,42,0.05)',
-    }}
-  >
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1.5 }}>
-      <Icon icon={icon} style={{ width: 19, height: 19, color: '#2563eb' }} />
-      <Typography sx={{ fontWeight: 800, fontSize: '0.95rem', color: '#0f172a' }}>{title}</Typography>
+  <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
+    <div className="mb-3 flex items-center gap-2">
+      <Icon icon={icon} className="h-[19px] w-[19px] text-blue-600 dark:text-blue-400" aria-hidden="true" />
+      <h2 className="text-[0.95rem] font-extrabold text-foreground">{title}</h2>
       {badge !== undefined && badge > 0 && (
-        <Box
-          component="span"
-          sx={{
-            px: 0.9, py: 0.1, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.14)',
-            color: 'warning.main', fontSize: '0.75rem', fontWeight: 800,
-          }}
-        >
+        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-extrabold text-amber-700 dark:text-amber-400">
           {badge.toLocaleString('fa-IR')}
-        </Box>
+        </span>
       )}
-    </Box>
+    </div>
     {children}
-  </Paper>
+  </section>
 )
 
 const GameDetail: React.FC = () => {
@@ -137,11 +124,11 @@ const GameDetail: React.FC = () => {
   if (isLoading || (!game && !isError)) {
     return (
       <Layout>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <Shimmer variant="rounded" sx={{ height: 220 }} />
-          <Shimmer variant="rounded" sx={{ height: 140 }} />
-          <Shimmer variant="rounded" sx={{ height: 100 }} />
-        </Box>
+        <div className="flex flex-col gap-4">
+          <Shimmer height={220} />
+          <Shimmer height={140} />
+          <Shimmer height={100} />
+        </div>
       </Layout>
     )
   }
@@ -217,17 +204,17 @@ const GameDetail: React.FC = () => {
     )
   } else if (isOrganizer) {
     primaryAction = (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#7c3aed' }}>
-        <Icon icon="mdi:crown-outline" style={{ width: 20, height: 20 }} />
-        <Typography sx={{ fontWeight: 800, fontSize: '0.9rem' }}>شما برگزارکننده هستید</Typography>
-      </Box>
+      <div className="flex items-center gap-2 text-violet-600 dark:text-violet-400">
+        <Icon icon="mdi:crown-outline" className="h-5 w-5" aria-hidden="true" />
+        <span className="text-[0.9rem] font-extrabold">شما برگزارکننده هستید</span>
+      </div>
     )
   } else if (myStatus === 'invited') {
     primaryAction = (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#2563eb' }}>
-        <Icon icon="mdi:email-open-outline" style={{ width: 20, height: 20 }} />
-        <Typography sx={{ fontWeight: 700, fontSize: '0.88rem' }}>شما به این بازی دعوت شده‌اید</Typography>
-      </Box>
+      <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+        <Icon icon="mdi:email-open-outline" className="h-5 w-5" aria-hidden="true" />
+        <span className="text-[0.88rem] font-bold">شما به این بازی دعوت شده‌اید</span>
+      </div>
     )
   } else if (myStatus === 'accepted') {
     primaryAction = (
@@ -237,10 +224,10 @@ const GameDetail: React.FC = () => {
     )
   } else if (myStatus === 'pending' || game.has_pending_join_request) {
     primaryAction = (
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: 'warning.main' }}>
-        <Icon icon="mdi:clock-outline" style={{ width: 20, height: 20 }} />
-        <Typography sx={{ fontWeight: 700, fontSize: '0.88rem' }}>درخواست شما در انتظار تأیید است</Typography>
-      </Box>
+      <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+        <Icon icon="mdi:clock-outline" className="h-5 w-5" aria-hidden="true" />
+        <span className="text-[0.88rem] font-bold">درخواست شما در انتظار تأیید است</span>
+      </div>
     )
   } else if (isWaitlisted) {
     primaryAction = (
@@ -260,10 +247,10 @@ const GameDetail: React.FC = () => {
     )
   } else if (game.visibility === 'private') {
     primaryAction = (
-      <Typography sx={{ fontSize: '0.82rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Icon icon="mdi:lock-outline" style={{ width: 18, height: 18 }} />
+      <p className="flex items-center gap-2 text-[0.82rem] text-muted-foreground">
+        <Icon icon="mdi:lock-outline" className="h-[18px] w-[18px]" aria-hidden="true" />
         بازی خصوصی است — برای پیوستن به لینک دعوت نیاز دارید
-      </Typography>
+      </p>
     )
   } else if (game.status === 'full') {
     primaryAction = (
@@ -289,37 +276,39 @@ const GameDetail: React.FC = () => {
     )
   } else {
     primaryAction = (
-      <Typography sx={{ fontSize: '0.82rem', color: '#64748b' }}>
+      <p className="text-[0.82rem] text-muted-foreground">
         {game.status === 'draft' ? 'این بازی هنوز منتشر نشده است.' : game.status === 'started' ? 'بازی شروع شده است.' : game.status === 'completed' ? 'بازی به پایان رسیده است.' : 'بازی لغو شده است.'}
-      </Typography>
+      </p>
     )
   }
 
   return (
     <Layout>
-      <Box sx={{ mb: 2 }}>
-        <Link to="/games" style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', minHeight: 44 }}>
-          <Typography sx={{ fontSize: '0.8rem', color: '#2563eb', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 1 }}>
-            <Icon icon="mdi:arrow-right" style={{ width: 16, height: 16 }} />
+      <div className="mb-4">
+        <Link to="/games" className="inline-flex min-h-11 items-center no-underline">
+          <span className="inline-flex items-center gap-2 text-[0.8rem] font-bold text-blue-600 dark:text-blue-400">
+            <Icon icon="mdi:arrow-right" className="h-4 w-4" aria-hidden="true" />
             بازگشت به بازی‌ها
-          </Typography>
+          </span>
         </Link>
-      </Box>
+      </div>
 
       {game.status === 'cancelled' && (
-        <Alert severity="error" icon={<Icon icon="mdi:close-circle-outline" style={{ width: 20, height: 20 }} />} sx={{ mb: 2, borderRadius: '14px' }}>
-          این بازی لغو شده و رزرو آن آزاد شده است.
+        <Alert variant="destructive" className="mb-4 rounded-[14px]">
+          <Icon icon="mdi:close-circle-outline" aria-hidden="true" />
+          <AlertDescription>این بازی لغو شده و رزرو آن آزاد شده است.</AlertDescription>
         </Alert>
       )}
 
       {/* ─────────── بنر دعوت‌نامه ─────────── */}
       {myInvitation && (
-        <Alert
-          severity="info"
-          icon={<Icon icon="mdi:email-fast-outline" style={{ width: 20, height: 20 }} />}
-          sx={{ mb: 2, borderRadius: '14px' }}
-          action={
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+        <Alert variant="info" className="mb-4 rounded-[14px]">
+          <Icon icon="mdi:email-fast-outline" aria-hidden="true" />
+          <div className="flex min-w-0 flex-1 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+            <AlertDescription>
+              شما توسط برگزارکننده به این بازی دعوت شده‌اید. با پذیرفتن، در بازی ثبت می‌شوید.
+            </AlertDescription>
+            <div className="flex shrink-0 items-center gap-2">
               <Button
                 size="sm"
                 variant="default"
@@ -349,43 +338,33 @@ const GameDetail: React.FC = () => {
               >
                 رد کردن
               </Button>
-            </Box>
-          }
-        >
-          شما توسط برگزارکننده به این بازی دعوت شده‌اید. با پذیرفتن، در بازی ثبت می‌شوید.
+            </div>
+          </div>
         </Alert>
       )}
 
       {/* ─────────── کارت اصلی ─────────── */}
-      <Paper
-        sx={{
-          p: { xs: 2.25, md: 3 },
-          borderRadius: `${radii.card}px`,
-          boxShadow: shadows.card,
-          border: '1px solid rgba(15,23,42,0.05)',
-          mb: 2.5,
-        }}
-      >
-        <Box sx={{ display: 'flex', alignItems: 'flex-start', gap: 1.5, flexWrap: 'wrap' }}>
-          <Box role="img" aria-label={SPORT_NAME_FA[game.sport] ?? game.sport} sx={{ fontSize: { xs: '2rem', md: '2.4rem' }, lineHeight: 1 }}>{SPORT_EMOJI[game.sport] ?? '🎮'}</Box>
-          <Box sx={{ minWidth: 0, flex: 1 }}>
-            <Typography component="h1" sx={{ fontWeight: 900, fontSize: { xs: '1.15rem', md: '1.4rem' }, color: '#0f172a' }}>
+      <div className="mb-5 rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
+        <div className="flex flex-wrap items-start gap-3">
+          <div role="img" aria-label={SPORT_NAME_FA[game.sport] ?? game.sport} className="text-[2rem] leading-none md:text-[2.4rem]">{SPORT_EMOJI[game.sport] ?? '🎮'}</div>
+          <div className="min-w-0 flex-1">
+            <h1 className="text-xl font-black text-foreground md:text-2xl">
               {game.name}
-            </Typography>
-            <Box sx={{ display: 'flex', gap: 0.75, mt: 1, flexWrap: 'wrap' }}>
+            </h1>
+            <div className="mt-2 flex flex-wrap gap-1.5">
               <GameStatusChip status={game.status} />
               <VisibilityChip visibility={game.visibility} />
               <SkillChip level={game.skill_level} />
-            </Box>
-          </Box>
-          <Box sx={{ textAlign: { xs: 'left', md: 'center' } }}>
+            </div>
+          </div>
+          <div className="text-end md:text-center">
             <CapacityBar current={game.current_players} max={game.max_players} />
-          </Box>
-        </Box>
+          </div>
+        </div>
 
-        <Divider sx={{ my: 2 }} />
+        <Separator className="my-4" />
 
-        <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 0.5 }}>
+        <div className="grid grid-cols-1 gap-1 sm:grid-cols-2">
           <InfoRow icon="mdi:store-outline" label="مکان" value={game.venue_name || '—'} />
           <InfoRow icon="mdi:calendar-outline" label="زمان" value={formatGameDateTime(game.slot_date, game.start_time)} />
           <InfoRow icon="mdi:clock-fast" label="مدت" value={game.duration ? `${game.duration.toLocaleString('fa-IR')} دقیقه` : '—'} />
@@ -402,28 +381,28 @@ const GameDetail: React.FC = () => {
                   : PAYMENT_MODE_LABELS[game.payment_mode]
             }
           />
-        </Box>
+        </div>
 
         {game.description && (
-          <Typography sx={{ mt: 1.5, fontSize: '0.85rem', color: '#475569', lineHeight: 1.9, whiteSpace: 'pre-wrap' }}>
+          <p className="mt-3 whitespace-pre-wrap text-[0.85rem] leading-[1.9] text-slate-600 dark:text-slate-300">
             {game.description}
-          </Typography>
+          </p>
         )}
 
-        <Box sx={{ display: 'flex', gap: 1.5, mt: 2.5, flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="mt-5 flex flex-wrap items-center gap-3">
           {primaryAction}
           {remaining > 0 && game.status === 'open' && (
-            <Typography sx={{ fontSize: '0.78rem', color: 'success.main', fontWeight: 700 }}>
+            <p className="text-[0.78rem] font-bold text-emerald-600 dark:text-emerald-400">
               {`${remaining.toLocaleString('fa-IR')} جای خالی`}
-            </Typography>
+            </p>
           )}
-        </Box>
+        </div>
 
         {/* ─────────── اقدامات برگزارکننده/ادمین ─────────── */}
         {canManage && game.status !== 'cancelled' && game.status !== 'completed' && (
           <>
-            <Divider sx={{ my: 2 }} />
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+            <Separator className="my-4" />
+            <div className="flex flex-wrap gap-2">
               {isAuthenticated && (
                 <>
                   <Button size="sm" variant="default" icon="mdi:link-variant" onClick={() => setInviteLinkOpen(true)}>
@@ -478,13 +457,13 @@ const GameDetail: React.FC = () => {
                   )}
                 </>
               )}
-            </Box>
+            </div>
           </>
         )}
-      </Paper>
+      </div>
 
       {/* ─────────── بخش‌ها ─────────── */}
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+      <div className="flex flex-col gap-5">
         {canManage && (joinRequestsQ.data?.length ?? 0) > 0 && (
           <SectionCard title="درخواست‌های پیوستن" icon="mdi:hand-back-right" badge={joinRequestsQ.data?.length}>
             <JoinRequestList gameId={gameId} requests={joinRequestsQ.data ?? []} />
@@ -494,53 +473,53 @@ const GameDetail: React.FC = () => {
         {(canSetResult || game.result_set) && (
           <SectionCard title="نتیجه بازی" icon="mdi:trophy-outline">
             {game.result_set ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1, py: 0.2, borderRadius: '999px', bgcolor: 'rgba(16,185,129,0.10)', color: 'success.main', fontSize: '0.75rem', fontWeight: 800 }}>
-                    <Icon icon="mdi:check-decagram" style={{ width: 14, height: 14 }} />
+              <div className="flex flex-col gap-2">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-extrabold text-emerald-600 dark:text-emerald-400">
+                    <Icon icon="mdi:check-decagram" className="h-[14px] w-[14px]" aria-hidden="true" />
                     نتیجه ثبت شده
-                  </Box>
+                  </span>
                   {game.result_set_at && (
-                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    <p className="text-xs text-muted-foreground">
                       {formatPersianDateTime(game.result_set_at)}
-                    </Typography>
+                    </p>
                   )}
-                </Box>
+                </div>
                 {winnerList.length === 0 ? (
-                  <Typography sx={{ fontSize: '0.82rem', color: '#64748b' }}>برنده‌ی ثبت‌شده‌ای موجود نیست.</Typography>
+                  <p className="text-[0.82rem] text-muted-foreground">برنده‌ی ثبت‌شده‌ای موجود نیست.</p>
                 ) : (
-                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
+                  <div className="flex flex-wrap gap-1.5">
                     {winnerList.map((w) => (
-                      <Box key={w.userId} component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1.1, py: 0.4, borderRadius: '999px', bgcolor: 'rgba(245,158,11,0.12)', color: 'warning.main', fontSize: '0.78rem', fontWeight: 700 }}>
-                        <Icon icon="mdi:trophy" style={{ width: 14, height: 14 }} />
+                      <span key={w.userId} className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-2.5 py-1 text-[0.78rem] font-bold text-amber-600 dark:text-amber-400">
+                        <Icon icon="mdi:trophy" className="h-[14px] w-[14px]" aria-hidden="true" />
                         {w.name}
-                      </Box>
+                      </span>
                     ))}
-                  </Box>
+                  </div>
                 )}
-              </Box>
+              </div>
             ) : (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>
+              <div className="flex flex-col gap-2">
+                <p className="text-[0.8rem] text-muted-foreground">
                   بازی به پایان رسیده؟ نتیجه و برندگان را ثبت کنید تا امتیاز وفاداری به آنان اضافه شود.
-                </Typography>
-                <Box>
+                </p>
+                <div>
                   <Button variant="gradient" icon="mdi:trophy-outline" onClick={() => setResultOpen(true)}>
                     ثبت نتیجه بازی
                   </Button>
-                </Box>
-              </Box>
+                </div>
+              </div>
             )}
           </SectionCard>
         )}
 
         <SectionCard title={`بازیکنان (${game.current_players.toLocaleString('fa-IR')})`} icon="mdi:account-group-outline">
           {participantsQ.isLoading ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-              {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" sx={{ height: 52 }} />)}
-            </Box>
+            <div className="flex flex-col gap-2">
+              {[1, 2, 3].map((i) => <Shimmer key={i} height={52} />)}
+            </div>
           ) : participantsQ.isError ? (
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>نمایش بازیکنان ممکن نیست.</Typography>
+            <p className="text-[0.85rem] text-muted-foreground">نمایش بازیکنان ممکن نیست.</p>
           ) : (
             <ParticipantList
               gameId={gameId}
@@ -564,7 +543,7 @@ const GameDetail: React.FC = () => {
         {canManage && (
           <SectionCard title="لیست انتظار" icon="mdi:sort-clock-ascending-outline" badge={waitlistQ.data?.length}>
             {waitlistQ.isLoading ? (
-              <Shimmer variant="rounded" sx={{ height: 52 }} />
+              <Shimmer height={52} />
             ) : (
               <WaitlistList entries={waitlistQ.data ?? []} />
             )}
@@ -572,16 +551,16 @@ const GameDetail: React.FC = () => {
         )}
 
         {game.my_role && game.my_role !== 'member' && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Typography sx={{ fontSize: '0.8rem', color: '#64748b' }}>نقش شما در بازی:</Typography>
+          <div className="flex items-center gap-2">
+            <p className="text-[0.8rem] text-muted-foreground">نقش شما در بازی:</p>
             <RoleBadge role={game.my_role} />
-          </Box>
+          </div>
         )}
 
-        <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+        <p className="text-xs text-muted-foreground">
           {`شناسه بازی ${game.id.toLocaleString('fa-IR')} - ساخته‌شده در ${formatPersianDate(game.created_at)}`}
-        </Typography>
-      </Box>
+        </p>
+      </div>
 
       {/* ─────────── دیالوگ‌ها ─────────── */}
       <GameResultDialog

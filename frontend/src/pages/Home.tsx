@@ -508,7 +508,7 @@ const Home: React.FC = () => {
                   .catch(() => setVenuesError(true))
                   .finally(() => setVenuesLoading(false))
               }}
-              className="mt-3 gap-1 rounded-full px-5 font-bold"
+              className="mt-3 gap-1 rounded-full border-blue-600 px-5 font-bold text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-500/10"
             >
               <Icon icon="mdi:refresh" style={{ width: 18, height: 18 }} />
               تلاش مجدد

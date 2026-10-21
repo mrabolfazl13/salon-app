@@ -1,44 +1,58 @@
 /**
  * نگهبانِ الگوی «نامِ قابل‌دسترسِ input» در این اپ.
  * شش فیلد فقط‌با-placeholder (ورود، جستجوی تیم، برچسب CRM، دسته‌بندی مالی،
- * امکانات داشبورد مدیر، جستجوی ادمین) `aria-label` را روی ریشۀ
- * `TextField`/`InputBase` می‌دادند؛ MUI آن را روی divوالد می‌گذارد و خودِ input
- * بی‌نام می‌ماند (صفحه‌خوان فقط placeholder را می‌خواند). چهارتا از آن شش پشتِ
+ * امکانات داشبورد مدیر، جستجوی ادمین) `aria-label` را روی ریشهٔ کامپوننت
+ * می‌دادند؛ آن‌گاه نام روی divِ والد می‌نشست و خودِ input بی‌نام می‌ماند
+ * (صفحه‌خوان فقط placeholder را می‌خواند). چهارتا از آن شش پشتِ
  * احراز هویت‌اند و بدون حساب تست (X1) دیدنی نیستند، پس الگو همین‌جا قفل می‌شود
  * و ادعا در سطح واحد می‌ماند، نه روی دستگاه.
+ *
+ * پس از حذف MUI همان قرارداد روی Input/Textarea (shadcn، عناصر بومی DOM)
+ * بررسی می‌شود: نام باید به خودِ کنترل برسد، نه به پوستهٔ والد.
  */
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
-import { InputBase, TextField } from '@mui/material'
+import { Input } from '@/components/ui/shadcn/input'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import { Label } from '@/components/ui/shadcn/label'
 
 describe('نام قابل‌دسترسِ فیلدهای بی‌برچسب', () => {
-  it('slotProps.htmlInput روی TextField نام را به خودِ input می‌رساند', () => {
-    render(
-      <TextField
-        placeholder="09xxxxxxxxx"
-        slotProps={{ htmlInput: { 'aria-label': 'شماره تلفن همراه', inputMode: 'tel' } }}
-      />,
-    )
+  it('aria-label روی Input نام را به خودِ input می‌رساند', () => {
+    render(<Input placeholder="09xxxxxxxxx" aria-label="شماره تلفن همراه" inputMode="tel" />)
     const input = screen.getByLabelText('شماره تلفن همراه')
     expect(input.tagName).toBe('INPUT')
     expect(input).toHaveAttribute('inputmode', 'tel')
   })
 
-  it('aria-label روی ریشۀ TextField (الگوی شکسته) input را بی‌نام می‌گذارد', () => {
-    render(<TextField placeholder="09xxxxxxxxx" aria-label="شماره تلفن همراه" />)
-    // نام روی divوالد می‌نشیند: خودِ input هیچ aria-label ندارد و آنچه
+  it('aria-label روی ریشهٔ والد (الگوی شکسته) input را بی‌نام می‌گذارد', () => {
+    render(
+      <div aria-label="شماره تلفن همراه">
+        <Input placeholder="09xxxxxxxxx" />
+      </div>,
+    )
+    // نام روی divِ والد می‌نشیند: خودِ input هیچ aria-label ندارد و آنچه
     // getByLabelText برمی‌گرداند همان div است نه کنترلی که کاربر تایپ می‌کند
     expect(document.querySelector('input[aria-label="شماره تلفن همراه"]')).toBeNull()
     expect(screen.getByLabelText('شماره تلفن همراه').tagName).toBe('DIV')
   })
 
-  it('slotProps.input روی InputBase (جستجوی ادمین) همان کار را می‌کند', () => {
+  it('aria-label روی Textarea (جستجوی ادمین) همان کار را می‌کند', () => {
     render(
-      <InputBase
+      <Textarea
         placeholder="جستجوی نام یا شماره موبایل..."
-        slotProps={{ input: { 'aria-label': 'جستجوی کاربران' } }}
+        aria-label="جستجوی کاربران"
       />,
     )
-    expect(screen.getByLabelText('جستجوی کاربران').tagName).toBe('INPUT')
+    expect(screen.getByLabelText('جستجوی کاربران').tagName).toBe('TEXTAREA')
+  })
+
+  it('Label با htmlFor کنترل را نام‌دار می‌کند', () => {
+    render(
+      <>
+        <Label htmlFor="profile-full-name">نام کامل</Label>
+        <Input id="profile-full-name" />
+      </>,
+    )
+    expect(screen.getByLabelText('نام کامل').tagName).toBe('INPUT')
   })
 })

@@ -3,14 +3,15 @@
 // polling هر ۱۵ ثانیه، اسکرول خودکار به جدیدترین، علامت‌گذاری خوانده‌شده هنگام باز شدن/ارسال.
 
 import React, { useEffect, useMemo, useRef, useState } from 'react'
-import { Box, CircularProgress, TextField, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 
 import type { TeamMessage } from '@/types/team'
 import { useMarkTeamMessagesRead, usePostTeamMessage, useTeamMessages } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
 import { Button } from '@/components/ui/Button'
+import { Textarea } from '@/components/ui/shadcn/textarea'
 import { useAuthStore } from '@/store/authStore'
+import { cn } from '@/lib/utils'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { getTeamError } from './shared'
 
@@ -60,7 +61,7 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
     })
   }
 
-  const onKeyDown = (e: React.KeyboardEvent<HTMLDivElement>) => {
+  const onKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault()
       send()
@@ -68,92 +69,82 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
   }
 
   return (
-    <Box
-      sx={{
-        borderRadius: '16px',
-        border: '1px solid rgba(15,23,42,0.06)',
-        bgcolor: 'rgba(248,250,252,0.6)',
-        display: 'flex',
-        flexDirection: 'column',
-        overflow: 'hidden',
-      }}
-    >
-      <Box sx={{ height: { xs: 380, md: 460 }, overflowY: 'auto', p: { xs: 1.25, md: 1.75 }, display: 'flex', flexDirection: 'column', gap: 1 }}>
+    <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-900/[0.06] bg-slate-50/60 dark:border-white/10 dark:bg-white/[0.02]">
+      <div className="flex h-[380px] flex-col gap-2 overflow-y-auto p-2.5 md:h-[460px] md:p-3.5">
         {messagesQ.isPending ? (
-          <Box sx={{ m: 'auto', textAlign: 'center' }}>
-            <CircularProgress size={24} />
-            <Typography sx={{ fontSize: '0.78rem', color: '#64748b', mt: 1 }}>در حال دریافت پیام‌ها...</Typography>
-          </Box>
+          <div className="m-auto text-center">
+            <span
+              className="mx-auto block h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent text-slate-500 dark:text-slate-400"
+              role="status"
+              aria-label="در حال بارگذاری"
+            />
+            <p className="mt-2 text-[0.78rem] text-slate-500 dark:text-slate-400">در حال دریافت پیام‌ها...</p>
+          </div>
         ) : messagesQ.isError ? (
-          <Box sx={{ m: 'auto', textAlign: 'center', maxWidth: 320 }}>
+          <div className="m-auto max-w-[320px] text-center">
             <Icon icon="mdi:message-alert-outline" style={{ width: 30, height: 30, color: '#dc2626' }} />
-            <Typography sx={{ fontSize: '0.82rem', color: '#475569', mt: 0.75 }}>
+            <p className="mt-1.5 text-[0.82rem] text-slate-600 dark:text-slate-300">
               دریافت پیام‌ها ممکن نشد (فقط اعضای فعال تیم دسترسی دارند).
-            </Typography>
-            <Box sx={{ mt: 1 }}>
+            </p>
+            <div className="mt-2">
               <Button size="sm" variant="outline" onClick={() => messagesQ.refetch()}>تلاش دوباره</Button>
-            </Box>
-          </Box>
+            </div>
+          </div>
         ) : messages.length === 0 ? (
-          <Box sx={{ m: 'auto', textAlign: 'center', maxWidth: 320 }}>
+          <div className="m-auto max-w-[320px] text-center">
             <Icon icon="mdi:message-text-outline" style={{ width: 32, height: 32, color: '#64748b' }} />
-            <Typography sx={{ fontSize: '0.85rem', color: '#64748b', mt: 0.75, fontWeight: 700 }}>هنوز پیامی در چت تیم نیست</Typography>
-            <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>اولین پیام را بنویسید و هم‌تیمی‌ها را هماهنگ کنید.</Typography>
-          </Box>
+            <p className="mt-1.5 text-[0.85rem] font-bold text-slate-500 dark:text-slate-400">هنوز پیامی در چت تیم نیست</p>
+            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">اولین پیام را بنویسید و هم‌تیمی‌ها را هماهنگ کنید.</p>
+          </div>
         ) : (
           <>
             {messagesQ.hasNextPage && (
-              <Box sx={{ textAlign: 'center', pb: 0.5 }}>
+              <div className="pb-1 text-center">
                 <Button size="sm" variant="outline" loading={messagesQ.isFetchingNextPage} onClick={() => messagesQ.fetchNextPage()}>
                   بارگذاری پیام‌های قدیمی‌تر
                 </Button>
-              </Box>
+              </div>
             )}
             {messages.map((m) => {
               const mine = me?.id === m.user_id
               return (
-                <Box key={m.id} sx={{ alignSelf: mine ? 'flex-end' : 'flex-start', maxWidth: { xs: '88%', md: '72%' } }}>
-                  <Box
-                    sx={{
-                      px: 1.5,
-                      py: 1,
-                      borderRadius: '14px',
-                      bgcolor: mine ? 'rgba(37,99,235,0.10)' : 'rgba(255,255,255,0.95)',
-                      border: '1px solid',
-                      borderColor: mine ? 'rgba(37,99,235,0.2)' : 'rgba(15,23,42,0.06)',
-                    }}
+                <div key={m.id} className={cn('max-w-[88%] md:max-w-[72%]', mine ? 'self-end' : 'self-start')}>
+                  <div
+                    className={cn(
+                      'rounded-[14px] border px-3 py-2',
+                      mine
+                        ? 'border-blue-600/20 bg-blue-600/10'
+                        : 'border-slate-900/[0.06] bg-card/95 dark:border-white/10 dark:bg-white/5',
+                    )}
                   >
-                    <Typography sx={{ fontSize: '0.75rem', fontWeight: 800, color: mine ? '#2563eb' : '#7c3aed', mb: 0.25 }}>
+                    <p className={cn('mb-0.5 text-xs font-extrabold', mine ? 'text-blue-600 dark:text-blue-400' : 'text-violet-700 dark:text-violet-300')}>
                       {mine ? 'شما' : (m.full_name ?? `کاربر ${toPersianDigits(m.user_id)}`)}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.85rem', color: '#0f172a', whiteSpace: 'pre-wrap', wordBreak: 'break-word', lineHeight: 1.85 }}>
+                    </p>
+                    <p className="whitespace-pre-wrap break-words text-[0.85rem] leading-[1.85] text-slate-900 dark:text-slate-100">
                       {m.content}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.6rem', color: '#64748b', mt: 0.4, textAlign: mine ? 'left' : 'right' }}>
+                    </p>
+                    <p className={cn('mt-1 text-[0.6rem] text-slate-500 dark:text-slate-400', mine ? 'text-end' : 'text-start')}>
                       {formatJalaliDateTime(m.created_at, { format: 'numeric' })}
-                    </Typography>
-                  </Box>
-                </Box>
+                    </p>
+                  </div>
+                </div>
               )
             })}
           </>
         )}
         <div ref={bottomRef} />
-      </Box>
+      </div>
 
-      <Box sx={{ display: 'flex', alignItems: 'flex-end', gap: 1, p: { xs: 1.25, md: 1.5 }, borderTop: '1px solid rgba(15,23,42,0.06)', bgcolor: '#fff' }}>
-        <TextField
-          fullWidth
-          size="small"
-          multiline
-          maxRows={4}
-          label="پیام"
+      <div className="flex items-end gap-2 border-t border-slate-900/[0.06] bg-card p-2.5 md:p-3 dark:border-white/10">
+        <Textarea
+          aria-label="پیام"
+          rows={1}
+          maxLength={2000}
           placeholder="پیام خود را بنویسید..."
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
-          slotProps={{ htmlInput: { maxLength: 2000 } }}
-          sx={{ '& .MuiOutlinedInput-root': { borderRadius: '12px' } }}
+          className="max-h-32 min-h-11 resize-none rounded-xl"
         />
         <Button
           variant="gradient"
@@ -164,8 +155,8 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
         >
           ارسال
         </Button>
-      </Box>
-    </Box>
+      </div>
+    </div>
   )
 }
 

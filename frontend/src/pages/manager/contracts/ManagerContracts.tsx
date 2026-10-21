@@ -7,28 +7,6 @@
 import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Button,
-  Card,
-  Chip,
-  Divider,
-  Skeleton,
-  Tab,
-  Tabs,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TextField,
-  Typography,
-  Select,
-  MenuItem,
-  FormControl,
-  InputLabel,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import toast from 'react-hot-toast'
 import {
@@ -56,6 +34,16 @@ import ContractApproveDialog, { type ApproveTarget } from '@/components/contract
 import { ForbiddenPanel, isForbidden } from '@/components/crm/shared'
 import type { ContractManagerRow, ContractStatusValue } from '@/services/contract'
 import { formatJalaliDate, getTodayISO } from '@/lib/jalali'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
+import { Input } from '@/components/ui/shadcn/input'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import {
+  Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/shadcn/table'
+import { cn } from '@/lib/utils'
 
 const timeWindow = (start: string, duration: number): string => {
   const [h, m] = (start || '00:00').slice(0, 5).split(':').map(Number)
@@ -70,6 +58,9 @@ const dayNamesOf = (c: { day_of_week: number; days?: number[] }): string => {
   const days = c.days && c.days.length > 0 ? c.days : [c.day_of_week]
   return days.map((d) => pyDayNames[d] ?? '—').join('، ')
 }
+
+const actionBtn =
+  'inline-flex min-h-11 items-center gap-1.5 rounded-[10px] px-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50'
 
 const ManagerContracts: React.FC = () => {
   const navigate = useNavigate()
@@ -113,41 +104,31 @@ const ManagerContracts: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ py: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1, mb: 1 }}>
-          <Typography component="h1" variant="h4" sx={{ fontWeight: 800 }}>مدیریت قراردادها</Typography>
-          <Typography variant="body2" color="text.secondary">
-            صف تأیید و پرونده قراردادهای سالن‌های شما
-          </Typography>
-        </Box>
+      <div className="py-6">
+        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-2xl font-extrabold md:text-3xl">مدیریت قراردادها</h1>
+          <p className="text-sm text-muted-foreground">صف تأیید و پرونده قراردادهای سالن‌های شما</p>
+        </div>
 
-        <Tabs
-          value={tab}
-          onChange={(_, v) => setTab(v)}
-          sx={{
-            mb: 3,
-            '& .MuiTab-root': { textTransform: 'none', fontWeight: 700, borderRadius: '10px' },
-            '& .Mui-selected': { bgcolor: 'primary.main', color: 'white !important', borderRadius: '10px' },
-          }}
-        >
-          <Tab
-            icon={<Icon icon="mdi:inbox-arrow-up" className="h-5 w-5" />}
-            iconPosition="start"
-            label={`صف درخواست‌ها${pendingQuery.data ? ` (${toPersianDigits(pendingQuery.data.length)})` : ''}`}
-          />
-          <Tab
-            icon={<Icon icon="mdi:file-document-multiple-outline" className="h-5 w-5" />}
-            iconPosition="start"
-            label="همه قراردادها"
-          />
+        <Tabs value={String(tab)} onValueChange={(v) => setTab(Number(v))} className="mb-6">
+          <TabsList>
+            <TabsTrigger value="0" className="gap-2">
+              <Icon icon="mdi:inbox-arrow-up" className="h-5 w-5" aria-hidden="true" />
+              صف درخواست‌ها{pendingQuery.data ? ` (${toPersianDigits(pendingQuery.data.length)})` : ''}
+            </TabsTrigger>
+            <TabsTrigger value="1" className="gap-2">
+              <Icon icon="mdi:file-document-multiple-outline" className="h-5 w-5" aria-hidden="true" />
+              همه قراردادها
+            </TabsTrigger>
+          </TabsList>
         </Tabs>
 
         {/* ─────────── تب صف ─────────── */}
         {tab === 0 && (
           pendingQuery.isLoading ? (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-              {[1, 2].map((i) => <Skeleton aria-hidden="true" key={i} variant="rounded" height={190} sx={{ borderRadius: '16px' }} />)}
-            </Box>
+            <div className="flex flex-col gap-4">
+              {[1, 2].map((i) => <Skeleton aria-hidden="true" key={i} className="h-[190px] rounded-2xl" />)}
+            </div>
           ) : pendingQuery.isError ? (
             isForbidden(pendingQuery.error) ? (
               <ForbiddenPanel detail="برای دیدن صف قراردادها باید contract.view (پذیرش به بالا) یا مدیریت سالن داشته باشید." />
@@ -161,23 +142,23 @@ const ManagerContracts: React.FC = () => {
               text="درخواست در انتظار تأییدی برای سالن‌های شما وجود ندارد."
             />
           ) : (
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            <div className="flex flex-col gap-4">
               {(pendingQuery.data ?? []).map((row) => {
                 const c = row.contract
                 const diffPct = c.original_price > 0
                   ? Math.round((1 - c.discounted_price / c.original_price) * 100) : 0
                 return (
-                  <Card key={c.id} sx={{ borderRadius: '16px', p: { xs: 2, md: 2.5 } }}>
-                    <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'space-between', gap: 2 }}>
-                      <Box sx={{ minWidth: 0 }}>
-                        <Typography variant="subtitle1" sx={{ fontWeight: 800 }}>
+                  <div key={c.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
+                    <div className="flex flex-wrap justify-between gap-4">
+                      <div className="min-w-0">
+                        <h2 className="text-base font-extrabold">
                           {row.user_full_name || `کاربر #${faNum(c.user_id)}`}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary" dir="ltr">
+                        </h2>
+                        <p className="text-xs text-muted-foreground" dir="ltr">
                           {`${row.user_phone || '—'} — ${row.venue_name}`}
-                        </Typography>
-                      </Box>
-                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap items-center gap-2">
                         <StatusChip label={`قرارداد #${faNum(c.id)}`} color="#6b7280" />
                         <StatusChip
                           label={c.end_date >= getTodayISO() ? `سرعت: ${toPersianDigits(diffPct)}٪ تخفیف` : 'بازه منقضی'}
@@ -186,161 +167,160 @@ const ManagerContracts: React.FC = () => {
                         {(row.outstanding_amount ?? 0) > 0 && (
                           <StatusChip label={`معوق: ${formatRial(row.outstanding_amount ?? 0)}`} color="#dc2626" />
                         )}
-                      </Box>
-                    </Box>
+                      </div>
+                    </div>
 
-                    <Box
-                      sx={{
-                        display: 'grid',
-                        gridTemplateColumns: { xs: '1fr 1fr', md: 'repeat(4, 1fr)' },
-                        gap: 2,
-                        mt: 2,
-                      }}
-                    >
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">زمان هفتگی</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                    <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
+                      <div>
+                        <span className="text-xs text-muted-foreground">زمان هفتگی</span>
+                        <p className="text-sm font-bold">
                           {`${dayNamesOf(c)} — ${timeWindow(c.start_time, c.duration)}`}
-                        </Typography>
+                        </p>
                         {(c.days?.length ?? 0) > 1 && (
-                          <Box sx={{ display: 'flex', gap: 0.4, mt: 0.5, flexWrap: 'wrap' }}>
+                          <div className="mt-1 flex flex-wrap gap-1">
                             {c.days!.map((d) => (
-                              <Chip key={d} label={pyDayNames[d] ?? d} size="small" sx={{ height: 18, fontSize: '0.75rem', fontWeight: 700, borderRadius: '6px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }} />
+                              <span key={d} className="rounded-md bg-primary/10 px-1.5 py-0.5 text-xs font-bold text-primary">
+                                {pyDayNames[d] ?? d}
+                              </span>
                             ))}
-                          </Box>
+                          </div>
                         )}
-                      </Box>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">بازه و سانس‌ها</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground">بازه و سانس‌ها</span>
+                        <p className="text-sm font-bold">
                           {`${formatJalaliDate(c.start_date)} تا ${formatJalaliDate(c.end_date)}`}
-                        </Typography>
-                        <Typography variant="caption" color="text.disabled">
+                        </p>
+                        <span className="text-xs text-muted-foreground/70">
                           {`${toPersianDigits(row.total_sessions)} سانس درخواستی`}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">قیمت پیشنهادی / قیمت پایه سانس</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700, color: '#2563eb' }}>
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground">قیمت پیشنهادی / قیمت پایه سانس</span>
+                        <p className="text-sm font-bold text-primary">
                           {formatRial(c.discounted_price)}
-                        </Typography>
-                        <Typography variant="caption" color="text.disabled">
+                        </p>
+                        <span className="text-xs text-muted-foreground/70">
                           {`پایه: ${formatRial(c.original_price)}`}
-                        </Typography>
-                      </Box>
-                      <Box>
-                        <Typography variant="caption" color="text.secondary">مبلغ کل / پیش‌پرداخت درخواستی</Typography>
-                        <Typography variant="body2" sx={{ fontWeight: 700 }}>{formatRial(c.total_amount)}</Typography>
-                        <Typography variant="caption" color="text.disabled">
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-xs text-muted-foreground">مبلغ کل / پیش‌پرداخت درخواستی</span>
+                        <p className="text-sm font-bold">{formatRial(c.total_amount)}</p>
+                        <span className="text-xs text-muted-foreground/70">
                           {c.down_payment_amount ? `پیش‌پرداخت: ${formatRial(c.down_payment_amount)}` : 'بدون پیش‌پرداخت'}
-                        </Typography>
-                      </Box>
-                    </Box>
+                        </span>
+                      </div>
+                    </div>
 
                     {c.description && (
-                      <Typography variant="body2" color="text.secondary" sx={{ mt: 1.5, fontSize: '0.8rem' }}>
+                      <p className="mt-3 text-[0.8rem] text-muted-foreground">
                         {`یادداشت متقاضی: ${c.description}`}
-                      </Typography>
+                      </p>
                     )}
 
-                    <Divider sx={{ my: 1.5 }} />
-                    <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                      <Button
-                        variant="contained"
-                        size="small"
+                    <hr className="my-3 border-border" />
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
                         onClick={() => navigate(`/manager/contracts/${c.id}`)}
-                        sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
-                        startIcon={<Icon icon="mdi:eye-outline" className="h-4 w-4" />}
+                        className={cn(actionBtn, 'bg-primary text-white hover:bg-primary/90')}
                       >
+                        <Icon icon="mdi:eye-outline" className="h-4 w-4" aria-hidden="true" />
                         مشاهده و اقدام
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="success"
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => {
                           const t = approveFrom(row)
                           if (!Number.isFinite(t.totalSessions)) t.totalSessions = 0
                           setApproveTarget(t)
                         }}
-                        sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
-                        startIcon={<Icon icon="mdi:check-decagram-outline" className="h-4 w-4" />}
+                        className={cn(actionBtn, 'border border-emerald-300 text-emerald-700 hover:bg-emerald-50 dark:border-emerald-500/40 dark:text-emerald-300 dark:hover:bg-emerald-500/10')}
                       >
+                        <Icon icon="mdi:check-decagram-outline" className="h-4 w-4" aria-hidden="true" />
                         تأیید با تغییرات
-                      </Button>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        color="error"
+                      </button>
+                      <button
+                        type="button"
                         onClick={() => { setRejectTarget(row); setDialogError(null) }}
-                        sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
-                        startIcon={<Icon icon="mdi:close-octagon-outline" className="h-4 w-4" />}
+                        className={cn(actionBtn, 'border border-destructive/50 text-destructive hover:bg-destructive/10')}
                       >
+                        <Icon icon="mdi:close-octagon-outline" className="h-4 w-4" aria-hidden="true" />
                         رد درخواست
-                      </Button>
-                    </Box>
-                  </Card>
+                      </button>
+                    </div>
+                  </div>
                 )
               })}
-            </Box>
+            </div>
           )
         )}
 
         {/* ─────────── تب همه قراردادها ─────────── */}
         {tab === 1 && (
           <SectionCard title="فیلترها" icon="mdi:filter-variant" dense>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1.5, alignItems: 'center' }}>
-              <Box sx={{ display: 'flex', gap: 0.75, flexWrap: 'wrap' }}>
-                <Chip
-                  label="همه"
-                  size="small"
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex flex-wrap gap-2">
+                <button
+                  type="button"
+                  aria-pressed={statusFilter === ''}
                   onClick={() => setStatusFilter('')}
-                  color={statusFilter === '' ? 'primary' : 'default'}
-                  variant={statusFilter === '' ? 'filled' : 'outlined'}
-                  sx={{ borderRadius: '8px', fontWeight: 600 }}
-                />
-                {CONTRACT_TAB_STATUSES.map((s) => (
-                  <Chip
-                    key={s}
-                    label={CONTRACT_STATUS_META[s].label}
-                    size="small"
-                    onClick={() => setStatusFilter(s)}
-                    color={statusFilter === s ? 'primary' : 'default'}
-                    variant={statusFilter === s ? 'filled' : 'outlined'}
-                    sx={{ borderRadius: '8px', fontWeight: 600 }}
-                  />
-                ))}
-              </Box>
-              <Box sx={{ flex: 1 }} />
-              <FormControl size="small" sx={{ minWidth: 150 }}>
-                <InputLabel>سالن</InputLabel>
-                <Select
-                  label="سالن"
-                  value={venueFilter}
-                  onChange={(e) => { const v = e.target.value as unknown; setVenueFilter(v === 'all' ? '' : Number(v)) }}
-                  sx={{ borderRadius: '10px' }}
+                  className={cn(
+                    'min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors',
+                    statusFilter === ''
+                      ? 'bg-primary text-white'
+                      : 'border border-border hover:bg-muted'
+                  )}
                 >
-                  <MenuItem value="all">همه سالن‌ها</MenuItem>
+                  همه
+                </button>
+                {CONTRACT_TAB_STATUSES.map((s) => (
+                  <button
+                    key={s}
+                    type="button"
+                    aria-pressed={statusFilter === s}
+                    onClick={() => setStatusFilter(s)}
+                    className={cn(
+                      'min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors',
+                      statusFilter === s
+                        ? 'bg-primary text-white'
+                        : 'border border-border hover:bg-muted'
+                    )}
+                  >
+                    {CONTRACT_STATUS_META[s].label}
+                  </button>
+                ))}
+              </div>
+              <div className="flex-1" />
+              <Select
+                value={venueFilter === '' ? 'all' : String(venueFilter)}
+                onValueChange={(v) => setVenueFilter(v === 'all' ? '' : Number(v))}
+              >
+                <SelectTrigger aria-label="سالن" className="min-w-[150px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">همه سالن‌ها</SelectItem>
                   {(venuesQuery.data ?? []).map((v) => (
-                    <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                    <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
                   ))}
-                </Select>
-              </FormControl>
-              <TextField
-                size="small"
+                </SelectContent>
+              </Select>
+              <Input
                 placeholder="جستجو: نام کاربر / شناسه"
                 aria-label="جستجوی کاربر بر اساس نام یا شناسه"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                sx={{ width: 210, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+                className="w-[210px]"
               />
-            </Box>
+            </div>
 
-            <Box sx={{ mt: 2 }}>
+            <div className="mt-4">
               {allQuery.isLoading ? (
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  {[1, 2, 3].map((i) => <Skeleton aria-hidden="true" key={i} variant="rounded" height={52} sx={{ borderRadius: '12px' }} />)}
-                </Box>
+                <div className="flex flex-col gap-2">
+                  {[1, 2, 3].map((i) => <Skeleton aria-hidden="true" key={i} className="h-[52px] rounded-xl" />)}
+                </div>
               ) : allQuery.isError ? (
                 isForbidden(allQuery.error) ? (
                   <ForbiddenPanel detail="برای دیدن قراردادهای سالن باید contract.view (پذیرش به بالا) یا مدیریت سالن داشته باشید." />
@@ -350,73 +330,70 @@ const ManagerContracts: React.FC = () => {
               ) : filteredRows.length === 0 ? (
                 <EmptyBox icon="mdi:file-search-outline" title="قراردادی با این فیلترها نیست" />
               ) : (
-                <TableContainer sx={{ overflowX: 'auto' }}>
-                  <Table aria-label="لیست قراردادها" size="small" stickyHeader sx={{ minWidth: 880 }}>
-                    <TableHead>
+                <div className="overflow-x-auto">
+                  <Table aria-label="لیست قراردادها" className="min-w-[880px]">
+                    <TableHeader>
                       <TableRow>
                         {['#', 'متقاضی', 'سالن', 'بازه / برنامه', 'سانس', 'قیمت و کل', 'پرداخت', 'وضعیت', ''].map((h, i) => (
-                          <TableCell scope="col" key={i} sx={{ fontWeight: 700, fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{h}</TableCell>
+                          <TableHead scope="col" key={i} className="whitespace-nowrap text-xs font-bold">{h}</TableHead>
                         ))}
                       </TableRow>
-                    </TableHead>
+                    </TableHeader>
                     <TableBody>
                       {filteredRows.map((row) => {
                         const c = row.contract
                         const pm = paymentStatusMeta(c.payment_status)
                         const sm = contractStatusMeta(c.status)
+                        const go = () => navigate(`/manager/contracts/${c.id}`)
                         return (
                           <TableRow
                             key={c.id}
-                            hover
                             tabIndex={0}
-                            onClick={() => navigate(`/manager/contracts/${c.id}`)}
+                            onClick={go}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault()
-                                navigate(`/manager/contracts/${c.id}`)
+                                go()
                               }
                             }}
-                            sx={{
-                              cursor: 'pointer',
-                              '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
-                            }}
+                            className="cursor-pointer focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-primary"
                           >
-                            <TableCell sx={{ fontSize: '0.8rem', fontWeight: 700 }}>{faNum(c.id)}</TableCell>
-                            <TableCell sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                            <TableCell className="text-[0.8rem] font-bold">{faNum(c.id)}</TableCell>
+                            <TableCell className="whitespace-nowrap text-[0.8rem]">
                               {row.user_full_name || `کاربر #${faNum(c.user_id)}`}
                             </TableCell>
-                            <TableCell sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>{row.venue_name}</TableCell>
-                            <TableCell sx={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                            <TableCell className="whitespace-nowrap text-[0.8rem]">{row.venue_name}</TableCell>
+                            <TableCell className="whitespace-nowrap text-xs">
                               {`${formatJalaliDate(c.start_date)} تا ${formatJalaliDate(c.end_date)}`}
-                              <Typography component="div" variant="caption" color="text.disabled">
+                              <span className="block text-muted-foreground/70">
                                 {`${dayNamesOf(c)} ${(c.start_time || '').slice(0, 5)}`}
-                              </Typography>
+                              </span>
                             </TableCell>
-                            <TableCell sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }}>
+                            <TableCell className="whitespace-nowrap text-[0.8rem]">
                               {`${toPersianDigits(row.total_sessions)} کل / ${toPersianDigits(row.sessions_upcoming)} آینده`}
                             </TableCell>
-                            <TableCell sx={{ fontSize: '0.78rem', whiteSpace: 'nowrap' }}>
+                            <TableCell className="whitespace-nowrap text-[0.78rem]">
                               {formatRial(c.total_amount)}
-                              <Typography component="div" variant="caption" color="text.disabled">
+                              <span className="block text-muted-foreground/70">
                                 {`${formatRial(c.discounted_price)} / سانس`}
-                              </Typography>
+                              </span>
                             </TableCell>
                             <TableCell><StatusChip label={pm.label} color={pm.color} /></TableCell>
                             <TableCell><StatusChip label={sm.label} color={sm.color} /></TableCell>
-                            <TableCell align="left">
-                              <Icon icon="mdi:chevron-left" className="h-4 w-4" style={{ color: '#64748b' }} />
+                            <TableCell className="text-start">
+                              <Icon icon="mdi:chevron-left" className="h-4 w-4 text-muted-foreground" aria-hidden="true" />
                             </TableCell>
                           </TableRow>
                         )
                       })}
                     </TableBody>
                   </Table>
-                </TableContainer>
+                </div>
               )}
-            </Box>
+            </div>
           </SectionCard>
         )}
-      </Box>
+      </div>
 
       <ContractApproveDialog
         open={Boolean(approveTarget)}

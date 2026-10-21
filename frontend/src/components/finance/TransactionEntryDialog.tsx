@@ -3,25 +3,22 @@
 // با انتخاب دسته‌بندی + ساخت خطی دسته جدید، روش پرداخت، سالن، طرف‌حساب از /accounts
 // و کلید همسانی (idempotency) برای جلوگیری از ثبت دوباره.
 
-import React, { useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  Divider,
-  FormControl,
-  Grid,
-  IconButton,
-  InputLabel,
-  MenuItem,
-  Select,
-  TextField,
-  Typography,
-  useTheme,
-} from '@mui/material'
+import React, { useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import Dialog from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
 import PersianDatePicker from '@/components/ui/PersianDatePicker'
 import { useAuthStore } from '@/store/authStore'
 import {
@@ -52,7 +49,6 @@ const TransactionEntryDialog: React.FC<{
   onClose: () => void
   venues: FinanceVenue[]
 }> = ({ open, onClose, venues }) => {
-  const theme = useTheme()
   const isSuper = useAuthStore((s) => s.user?.role === 'super_admin')
   const venueRequired = !isSuper
   const [mode, setMode] = useState<EntryMode>('payment')
@@ -67,6 +63,14 @@ const TransactionEntryDialog: React.FC<{
   const [description, setDescription] = useState('')
   const [date, setDate] = useState(() => getTodayISO())
   const [idempotencyKey, setIdempotencyKey] = useState(genIdemKey)
+
+  const amountId = useId()
+  const methodLabelId = useId()
+  const statusLabelId = useId()
+  const venueLabelId = useId()
+  const categoryLabelId = useId()
+  const counterpartyLabelId = useId()
+  const descriptionId = useId()
 
   const categories = useExpenseCategories(false, open)
   const contacts = useAccounts({ kind: 'all', limit: 500 }, open)
@@ -165,195 +169,214 @@ const TransactionEntryDialog: React.FC<{
   return (
     <Dialog open={open} onClose={close} maxWidth="sm" title="ثبت ردیف مالی دستی">
       {/* نوع: دریافت وجه / هزینه */}
-      <Box sx={{ display: 'flex', gap: 1, mb: 2 }}>
+      <div className="mb-4 flex gap-2">
         {(
           [
             { value: 'payment', label: 'دریافت وجه', icon: 'mdi:cash-plus', color: '#059669' },
             { value: 'expense', label: 'هزینه', icon: 'mdi:cash-minus', color: '#d97706' },
           ] as { value: EntryMode; label: string; icon: string; color: string }[]
-        ).map((m) => (
-          <Chip
-            key={m.value}
-            label={m.label}
-            icon={<Icon icon={m.icon} className="h-4 w-4" />}
-            onClick={() => setMode(m.value)}
-            sx={{
-              flex: 1,
-              height: 40,
-              borderRadius: '12px',
-              fontWeight: 800,
-              bgcolor: mode === m.value ? statusPairOf(theme, m.color).main : 'rgba(0,0,0,0.04)',
-              color: mode === m.value ? statusPairOf(theme, m.color).on : 'text.primary',
-            }}
-          />
-        ))}
-      </Box>
+        ).map((m) => {
+          const active = mode === m.value
+          const pair = statusPairOf(null, m.color)
+          return (
+            <button
+              key={m.value}
+              type="button"
+              onClick={() => setMode(m.value)}
+              aria-pressed={active}
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-xl text-sm font-extrabold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              style={{
+                backgroundColor: active ? pair.main : 'rgba(0,0,0,0.04)',
+                color: active ? pair.on : undefined,
+              }}
+            >
+              <Icon icon={m.icon} className="h-4 w-4" aria-hidden="true" />
+              {m.label}
+            </button>
+          )
+        })}
+      </div>
 
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, sm: 6 }}>
-          <TextField
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-12">
+        <div className="col-span-2 sm:col-span-6">
+          <Label htmlFor={amountId} className="mb-1.5 block">
+            مبلغ (ریال) <span className="text-red-600">*</span>
+          </Label>
+          <Input
+            id={amountId}
             autoFocus
-            fullWidth
-            size="small"
             required
-            label="مبلغ (ریال)"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
             inputMode="numeric"
-            helperText={Number.isNaN(parseAmountInput(cleanDigits(amount))) && amount ? 'عدد معتبر نیست' : formatRial(parseAmountInput(cleanDigits(amount)))}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            aria-invalid={Number.isNaN(parseAmountInput(cleanDigits(amount))) && amount ? true : undefined}
           />
-        </Grid>
-        <Grid size={{ xs: 12, sm: 6 }}>
+          <p className={Number.isNaN(parseAmountInput(cleanDigits(amount))) && amount ? 'mt-1.5 text-xs text-red-600 dark:text-red-400' : 'mt-1.5 text-xs text-muted-foreground'}>
+            {Number.isNaN(parseAmountInput(cleanDigits(amount))) && amount ? 'عدد معتبر نیست' : formatRial(parseAmountInput(cleanDigits(amount)))}
+          </p>
+        </div>
+        <div className="col-span-2 sm:col-span-6">
           <PersianDatePicker size="small" label="تاریخ واقعه" value={date} onChange={setDate} clearable={false} />
-        </Grid>
-        <Grid size={{ xs: 6, sm: 4 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>روش</InputLabel>
-            <Select value={method} label="روش" onChange={(e) => setMethod(e.target.value as TransactionMethod)} sx={{ borderRadius: '10px' }}>
+        </div>
+        <div className="col-span-1 sm:col-span-4">
+          <Label id={methodLabelId} className="mb-1.5 block">روش</Label>
+          <Select value={method} onValueChange={(v) => setMethod(v as TransactionMethod)}>
+            <SelectTrigger className="h-11" aria-labelledby={methodLabelId}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
               {METHOD_OPTIONS.map((m) => (
-                <MenuItem key={m} value={m}>{TX_METHOD_LABELS[m] ?? m}</MenuItem>
+                <SelectItem key={m} value={m}>{TX_METHOD_LABELS[m] ?? m}</SelectItem>
               ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid size={{ xs: 6, sm: 4 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>وضعیت</InputLabel>
-            <Select value={status} label="وضعیت" onChange={(e) => setStatus(e.target.value as TransactionStatus)} sx={{ borderRadius: '10px' }}>
-              <MenuItem value="cleared">قطعی</MenuItem>
-              <MenuItem value="pending">در انتظار</MenuItem>
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid size={{ xs: 12, sm: 4 }}>
-          <FormControl fullWidth size="small" required={venueRequired}>
-            <InputLabel>سالن</InputLabel>
-            <Select
-              value={venueId}
-              label="سالن"
-              onChange={(e) => {
-                { const sel = e.target.value as number | ''; setVenueId(sel === '' ? '' : sel) }
-                setCategoryId('')
-              }}
-              sx={{ borderRadius: '10px' }}
-            >
-              {!venueRequired && <MenuItem value="">سراسری (بدون سالن)</MenuItem>}
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="col-span-1 sm:col-span-4">
+          <Label id={statusLabelId} className="mb-1.5 block">وضعیت</Label>
+          <Select value={status} onValueChange={(v) => setStatus(v as TransactionStatus)}>
+            <SelectTrigger className="h-11" aria-labelledby={statusLabelId}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="cleared">قطعی</SelectItem>
+              <SelectItem value="pending">در انتظار</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="col-span-2 sm:col-span-4">
+          <Label id={venueLabelId} className="mb-1.5 block">
+            سالن {venueRequired && <span className="text-red-600">*</span>}
+          </Label>
+          <Select
+            value={venueId === '' ? '' : String(venueId)}
+            onValueChange={(v) => {
+              const sel = v === 'global' ? '' : Number(v)
+              setVenueId(sel)
+              setCategoryId('')
+            }}
+          >
+            <SelectTrigger className="h-11" aria-labelledby={venueLabelId}>
+              <SelectValue placeholder="انتخاب کنید" />
+            </SelectTrigger>
+            <SelectContent>
+              {!venueRequired && <SelectItem value="global">سراسری (بدون سالن)</SelectItem>}
               {venues.map((v) => (
-                <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
               ))}
-            </Select>
-          </FormControl>
-        </Grid>
+            </SelectContent>
+          </Select>
+        </div>
 
         {mode === 'expense' && (
-          <Grid size={{ xs: 12 }}>
-            <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
-              <FormControl fullWidth size="small" required>
-                <InputLabel>دسته‌بندی هزینه</InputLabel>
-                <Select value={categoryId} label="دسته‌بندی هزینه" onChange={(e) => { const sel = e.target.value as number | ''; setCategoryId(sel === '' ? '' : sel) }} sx={{ borderRadius: '10px' }}>
-                  <MenuItem value="" disabled>انتخاب کنید</MenuItem>
-                  {availableCategories.map((cat) => (
-                    <MenuItem key={cat.id} value={cat.id}>
-                      {cat.name}
-                      <Typography component="span" variant="caption" sx={{ color: 'text.secondary', ms: 0.75 }}>
-                        ({cat.venue_id === null ? 'سراسری' : 'اختصاصی'})
-                      </Typography>
-                    </MenuItem>
-                  ))}
-                  {availableCategories.length === 0 && (
-                    <MenuItem value="" disabled>
-                      دسته‌بندی فعالی نیست — بسازید
-                    </MenuItem>
-                  )}
+          <div className="col-span-2 sm:col-span-12">
+            <div className="flex items-center gap-2">
+              <div className="flex-1">
+                <Label id={categoryLabelId} className="mb-1.5 block">
+                  دسته‌بندی هزینه <span className="text-red-600">*</span>
+                </Label>
+                <Select
+                  value={categoryId === '' ? '' : String(categoryId)}
+                  onValueChange={(v) => setCategoryId(Number(v))}
+                >
+                  <SelectTrigger className="h-11" aria-labelledby={categoryLabelId}>
+                    <SelectValue placeholder="انتخاب کنید" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableCategories.map((cat) => (
+                      <SelectItem key={cat.id} value={String(cat.id)}>
+                        {cat.name}
+                        <span className="ms-1.5 text-xs text-muted-foreground">
+                          ({cat.venue_id === null ? 'سراسری' : 'اختصاصی'})
+                        </span>
+                      </SelectItem>
+                    ))}
+                    {availableCategories.length === 0 && (
+                      <SelectItem value="__empty__" disabled>
+                        دسته‌بندی فعالی نیست — بسازید
+                      </SelectItem>
+                    )}
+                  </SelectContent>
                 </Select>
-              </FormControl>
-              <IconButton
-                size="small"
+              </div>
+              <Button
+                type="button"
+                size="icon"
+                variant="outline"
                 onClick={() => setAddingCategory((v) => !v)}
                 aria-expanded={addingCategory}
                 aria-label="ایجاد دسته‌بندی جدید"
-                sx={{ border: '1px dashed rgba(37,99,235,0.4)', borderRadius: '10px', color: 'primary.main' }}
                 title="ایجاد دسته‌بندی جدید"
+                className="mt-6 border-dashed border-blue-600/40 text-blue-700 dark:text-blue-400"
               >
-                <Icon icon={addingCategory ? 'mdi:close' : 'mdi:plus'} className="h-5 w-5" />
-              </IconButton>
-            </Box>
+                <Icon icon={addingCategory ? 'mdi:close' : 'mdi:plus'} className="h-5 w-5" aria-hidden="true" />
+              </Button>
+            </div>
             {addingCategory && (
-              <Box sx={{ display: 'flex', gap: 1, mt: 1 }}>
-                <TextField
-                  fullWidth
-                  size="small"
+              <div className="mt-2 flex gap-2">
+                <Input
                   placeholder="مثلاً: هزینه برق"
-                  slotProps={{ htmlInput: { 'aria-label': 'نام دسته‌بندی جدید' } }}
+                  aria-label="نام دسته‌بندی جدید"
                   value={newCategory}
                   onChange={(e) => setNewCategory(e.target.value)}
-                  sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
                 />
                 <Button
-                  variant="contained"
-                  size="small"
+                  size="sm"
                   onClick={submitNewCategory}
                   disabled={createCategory.isPending}
-                  sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
                 >
                   {createCategory.isPending ? '...' : 'ساخت'}
                 </Button>
-              </Box>
+              </div>
             )}
-          </Grid>
+          </div>
         )}
 
-        <Grid size={{ xs: 12 }}>
-          <FormControl fullWidth size="small">
-            <InputLabel>طرف‌حساب (اشخاص دارای حساب)</InputLabel>
-            <Select
-              value={counterparty}
-              label="طرف‌حساب (اشخاص دارای حساب)"
-              onChange={(e) => { const sel = e.target.value as number | ''; setCounterparty(sel === '' ? '' : sel) }}
-              sx={{ borderRadius: '10px' }}
-              MenuProps={{ sx: { maxHeight: 320 } }}
-            >
-              <MenuItem value="">— بدون طرف‌حساب —</MenuItem>
+        <div className="col-span-2 sm:col-span-12">
+          <Label id={counterpartyLabelId} className="mb-1.5 block">طرف‌حساب (اشخاص دارای حساب)</Label>
+          <Select
+            value={counterparty === '' ? 'none' : String(counterparty)}
+            onValueChange={(v) => setCounterparty(v === 'none' ? '' : Number(v))}
+          >
+            <SelectTrigger className="h-11" aria-labelledby={counterpartyLabelId}>
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="none">— بدون طرف‌حساب —</SelectItem>
               {(contacts.data?.items ?? []).map((a) => (
-                <MenuItem key={a.user_id} value={a.user_id}>
+                <SelectItem key={a.user_id} value={String(a.user_id)}>
                   {a.full_name || `کاربر #${a.user_id}`} · بدهی/اعتبار {formatRial(a.balance, false)}
-                </MenuItem>
+                </SelectItem>
               ))}
-            </Select>
-          </FormControl>
-        </Grid>
-        <Grid size={{ xs: 12 }}>
-          <TextField
-            fullWidth
-            size="small"
-            label="شرح"
+            </SelectContent>
+          </Select>
+        </div>
+        <div className="col-span-2 sm:col-span-12">
+          <Label htmlFor={descriptionId} className="mb-1.5 block">شرح</Label>
+          <Textarea
+            id={descriptionId}
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            multiline
-            minRows={2}
-            slotProps={{ htmlInput: { maxLength: 500 } }}
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
+            rows={2}
+            maxLength={500}
           />
-        </Grid>
-      </Grid>
+        </div>
+      </div>
 
-      <Divider sx={{ mt: 2 }} />
-      <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 1, mt: 1.5 }}>
-        <Button variant="outlined" onClick={close} disabled={createTx.isPending}>انصراف</Button>
+      <Separator className="mt-4" />
+      <div className="mt-3 flex justify-end gap-2">
+        <Button variant="outline" onClick={close} disabled={createTx.isPending}>انصراف</Button>
         <Button
-          variant="contained"
           onClick={submit}
           disabled={createTx.isPending}
-          sx={{
-            textTransform: 'none',
-            fontWeight: 700,
-            background: mode === 'expense' ? 'linear-gradient(135deg, #d97706, #f59e0b)' : 'linear-gradient(135deg, #059669, #10b981)',
-          }}
+          className={
+            mode === 'expense'
+              ? 'bg-gradient-to-br from-amber-500 to-amber-400 text-stone-900'
+              : 'bg-gradient-to-br from-emerald-600 to-emerald-500 text-white'
+          }
         >
           {createTx.isPending ? 'در حال ثبت...' : mode === 'expense' ? 'ثبت هزینه' : 'ثبت دریافت وجه'}
         </Button>
-      </Box>
+      </div>
     </Dialog>
   )
 }

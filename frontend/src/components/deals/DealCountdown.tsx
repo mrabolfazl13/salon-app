@@ -3,8 +3,8 @@
 // آگاهانه UTC فرض می‌کند و هر ثانیه تیک می‌خورد.
 
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
+import { cn } from '@/lib/utils'
 import { toPersianDigits } from '@/lib/jalali'
 
 function toExpiresTime(expiresAt: string): number {
@@ -35,41 +35,36 @@ const DealCountdown: React.FC<{ expiresAt: string | null; compact?: boolean }> =
 
   if (!deadline) {
     return (
-      <Typography variant="caption" sx={{ color: 'text.secondary', display: 'inline-flex', alignItems: 'center', gap: 1 }}>
+      <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
         <Icon icon="mdi:infinity" style={{ width: 14, height: 14 }} />
         تخفیف تا شروع سانس معتبر است
-      </Typography>
+      </span>
     )
   }
   const diff = deadline - now
   if (diff <= 0) {
     return (
-      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, px: 1, py: 0.25, borderRadius: '8px', bgcolor: 'rgba(239,68,68,0.1)', color: 'error.main', fontSize: '0.75rem', fontWeight: 700 }}>
+      <span className="inline-flex items-center gap-2 rounded-lg bg-red-500/10 px-2 py-0.5 text-xs font-bold text-red-600 dark:text-red-400">
         <Icon icon="mdi:timer-off-outline" style={{ width: 14, height: 14 }} />
         تخفیف منقضی شده
-      </Box>
+      </span>
     )
   }
+  const urgent = diff < 15 * 60 * 1000
   return (
-    <Box
-      component="span"
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 1,
-        px: compact ? 0.75 : 1.25,
-        py: 0.4,
-        borderRadius: '999px',
-        bgcolor: diff < 15 * 60 * 1000 ? 'rgba(220,38,38,0.1)' : 'rgba(245,158,11,0.12)',
-        color: diff < 15 * 60 * 1000 ? '#dc2626' : '#d97706',
-        fontSize: '0.75rem',
-        fontWeight: 800,
-      }}
+    <span
+      className={cn(
+        'inline-flex items-center gap-2 rounded-full py-1 text-xs font-extrabold',
+        compact ? 'px-1.5' : 'px-2.5',
+        urgent
+          ? 'bg-red-600/10 text-red-600 dark:text-red-400'
+          : 'bg-amber-500/[0.12] text-amber-600 dark:text-amber-400'
+      )}
     >
       <Icon icon="mdi:timer-sand" style={{ width: 14, height: 14 }} />
       تا پایان تخفیف
-      <Typography component="span" dir="ltr" sx={{ fontWeight: 900, fontVariantNumeric: 'tabular-nums' }}>{fmt(diff)}</Typography>
-    </Box>
+      <span dir="ltr" className="font-black tabular-nums">{fmt(diff)}</span>
+    </span>
   )
 }
 

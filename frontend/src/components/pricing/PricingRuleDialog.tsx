@@ -3,27 +3,28 @@
 // day_of_week = weekday پایتون | percent ذخیره ⇒ درصد×۱۰۰ | fixed ریالِ علامत
 // holiday_applies ⇒ شرط روز هفته نادیده گرفته می‌شود (الگوی تعطیل).
 
-import React, { useEffect, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  FormControl,
-  FormControlLabel,
-  InputLabel,
-  MenuItem,
-  Select,
-  Switch,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useEffect, useId, useState } from 'react'
 import { Icon } from '@iconify/react'
 
 import { MODIFIER_LABELS, WEEKDAYS_PY_ORDER, parseIntFa, timeToHHMM } from './shared'
 import type { ModifierType, PricingRule, PricingRulePayload } from '@/services/pricing'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Switch } from '@/components/ui/shadcn/switch'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
 
 /** پیش‌پرکردن قانون تازه (مثلاً از پیشنهاد قیمت) — فقط وقتی rule=null معنا دارد */
 export interface RuleDraft {
@@ -45,6 +46,8 @@ interface Props {
   onSubmit: (payload: PricingRulePayload) => void
 }
 
+const DAY_CHIP = 'inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+
 const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null, saving, onClose, onSubmit }) => {
   const [day, setDay] = useState<number | null>(null)
   const [holidayApplies, setHolidayApplies] = useState(false)
@@ -57,6 +60,14 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null,
   const [label, setLabel] = useState('')
   const [active, setActive] = useState(true)
   const [localError, setLocalError] = useState('')
+
+  const holidayId = useId()
+  const startId = useId()
+  const endId = useId()
+  const amountId = useId()
+  const priorityId = useId()
+  const labelId = useId()
+  const activeId = useId()
 
   useEffect(() => {
     if (!open) return
@@ -148,138 +159,207 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null,
   }
 
   return (
-    <Dialog aria-label={rule ? 'ویرایش قانون قیمت' : 'قانون قیمت جدید'} open={open} onClose={saving ? undefined : onClose} maxWidth="sm" fullWidth slotProps={{ paper: { sx: { borderRadius: '20px' } } }}>
-      <Box sx={{ background: 'linear-gradient(135deg, #d97706, #f59e0b)', px: 3, py: 2.5 }}>
-        <Typography variant="h6" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Icon icon="mdi:tag-percent" className="h-5 w-5" />
-          {rule ? 'ویرایش قانون قیمت' : 'قانون قیمت جدید'}
-        </Typography>
-      </Box>
-      <DialogContent sx={{ pt: 3, display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-        <Box>
-          <FormControlLabel
-            control={<Switch checked={holidayApplies} onChange={(e) => setHolidayApplies(e.target.checked)} />}
-            label={
-              <Typography variant="body2" sx={{ fontWeight: 600 }}>
+    <Dialog
+      open={open}
+      onOpenChange={(next) => {
+        if (!next && !saving) onClose()
+      }}
+    >
+      <DialogContent aria-describedby={undefined} className="sm:max-w-[600px]">
+        <DialogHeader>
+          <div className="flex items-center gap-3">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 text-stone-900">
+              <Icon icon="mdi:tag-percent" className="h-5 w-5" aria-hidden="true" />
+            </span>
+            <DialogTitle className="text-lg font-extrabold text-foreground">
+              {rule ? 'ویرایش قانون قیمت' : 'قانون قیمت جدید'}
+            </DialogTitle>
+          </div>
+        </DialogHeader>
+
+        <div className="flex flex-col gap-5">
+          <div>
+            <div className="flex items-center gap-2">
+              <Switch id={holidayId} checked={holidayApplies} onCheckedChange={setHolidayApplies} />
+              <Label htmlFor={holidayId} className="cursor-pointer text-sm font-semibold text-foreground">
                 فقط در روزهای تعطیل اعمال شود (قانونِ تعطیل شرط روز هفته را نادیده می‌گیرد)
-              </Typography>
-            }
-            sx={{ mb: holidayApplies ? 0 : 1 }}
-          />
-          {!holidayApplies && (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.75 }}>
-              <Chip
-                label="همه روزها"
-                size="small"
-                color={day === null ? 'primary' : 'default'}
-                variant={day === null ? 'filled' : 'outlined'}
-                onClick={() => setDay(null)}
-                sx={{ borderRadius: '8px', fontWeight: 600 }}
-              />
-              {WEEKDAYS_PY_ORDER.map((d) => (
-                <Chip
-                  key={d.value}
-                  label={d.label}
-                  size="small"
-                  color={day === d.value ? 'primary' : 'default'}
-                  variant={day === d.value ? 'filled' : 'outlined'}
-                  onClick={() => setDay(day === d.value ? null : d.value)}
-                  sx={{ borderRadius: '8px', fontWeight: 600 }}
+              </Label>
+            </div>
+            {!holidayApplies && (
+              <div className="mt-2 flex flex-wrap gap-1.5">
+                <button
+                  type="button"
+                  aria-pressed={day === null}
+                  onClick={() => setDay(null)}
+                  className={
+                    day === null
+                      ? `${DAY_CHIP} bg-blue-600 text-white`
+                      : `${DAY_CHIP} border border-border bg-card text-foreground hover:bg-muted`
+                  }
+                >
+                  همه روزها
+                </button>
+                {WEEKDAYS_PY_ORDER.map((d) => {
+                  const selected = day === d.value
+                  return (
+                    <button
+                      key={d.value}
+                      type="button"
+                      aria-pressed={selected}
+                      onClick={() => setDay(day === d.value ? null : d.value)}
+                      className={
+                        selected
+                          ? `${DAY_CHIP} bg-blue-600 text-white`
+                          : `${DAY_CHIP} border border-border bg-card text-foreground hover:bg-muted`
+                      }
+                    >
+                      {d.label}
+                    </button>
+                  )
+                })}
+              </div>
+            )}
+          </div>
+
+          <div>
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Label htmlFor={startId}>ساعت شروع بازه (اختیاری)</Label>
+                <Input
+                  id={startId}
+                  value={startTime}
+                  onChange={(e) => setStartTime(e.target.value)}
+                  placeholder="16:00"
+                  dir="ltr"
+                  className="tabular-nums"
                 />
-              ))}
-            </Box>
+              </div>
+              <div className="flex flex-1 flex-col gap-1.5">
+                <Label htmlFor={endId}>ساعت پایان بازه (اختیاری)</Label>
+                <Input
+                  id={endId}
+                  value={endTime}
+                  onChange={(e) => setEndTime(e.target.value)}
+                  placeholder="23:00"
+                  dir="ltr"
+                  className="tabular-nums"
+                />
+              </div>
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              بازه با پنجره‌ی سانس همپوشانی داشته باشد؛ خالی = کل روز (اثر پیک/آف‌پیک)
+            </p>
+          </div>
+
+          <div>
+            <div className="flex flex-wrap items-end gap-4">
+              <div className="flex min-w-[160px] flex-col gap-1.5">
+                <Label htmlFor="pricing-modifier-type">نوع اثر</Label>
+                <Select value={modifierType} onValueChange={(v) => setModifierType(v as ModifierType)}>
+                  <SelectTrigger id="pricing-modifier-type">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {(Object.keys(MODIFIER_LABELS) as ModifierType[]).map((t) => (
+                      <SelectItem key={t} value={t}>{MODIFIER_LABELS[t]}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex min-w-[140px] flex-1 flex-col gap-1.5">
+                <Label htmlFor={amountId}>{modifierType === 'percent' ? 'درصد' : 'مبلغ (ریال)'}</Label>
+                <Input
+                  id={amountId}
+                  value={amount}
+                  onChange={(e) => setAmount(e.target.value)}
+                  inputMode="numeric"
+                  className="tabular-nums"
+                />
+              </div>
+              {modifierType !== 'absolute' && (
+                <div className="flex items-center gap-1 pb-0.5">
+                  <button
+                    type="button"
+                    aria-pressed={increase}
+                    onClick={() => setIncrease(true)}
+                    className={
+                      increase
+                        ? `${DAY_CHIP} bg-blue-600 text-white`
+                        : `${DAY_CHIP} border border-border bg-card text-foreground hover:bg-muted`
+                    }
+                  >
+                    افزایش
+                  </button>
+                  <button
+                    type="button"
+                    aria-pressed={!increase}
+                    onClick={() => setIncrease(false)}
+                    className={
+                      !increase
+                        ? `${DAY_CHIP} bg-emerald-600 text-white`
+                        : `${DAY_CHIP} border border-border bg-card text-foreground hover:bg-muted`
+                    }
+                  >
+                    کاهش
+                  </button>
+                </div>
+              )}
+            </div>
+            <p className="mt-1.5 text-xs text-muted-foreground">
+              {modifierType === 'percent' && 'درصدی = گرانی/تخفیف نسبی روی قیمت لحظه‌ای؛ مبلغ در دیتابیس ×۱۰۰ ذخیره می‌شود.'}
+              {modifierType === 'fixed' && 'مبلغ ثابت = اضافه/کم کردن ریالی به قیمت (مثلاً −۵۰٬۰۰۰ ریال).'}
+              {modifierType === 'absolute' && 'قیمت قطعی = کل قیمت را با این مبلغ جایگزین می‌کند.'}
+            </p>
+          </div>
+
+          <div className="flex items-start gap-3">
+            <div className="flex w-[120px] flex-col gap-1.5">
+              <Label htmlFor={priorityId}>اولویت</Label>
+              <Input
+                id={priorityId}
+                value={priority}
+                onChange={(e) => setPriority(e.target.value)}
+                inputMode="numeric"
+                className="tabular-nums"
+              />
+            </div>
+            <div className="flex flex-1 flex-col gap-1.5">
+              <Label htmlFor={labelId}>برچسب قانون</Label>
+              <Input
+                id={labelId}
+                value={label}
+                onChange={(e) => setLabel(e.target.value)}
+                placeholder="مثلاً: اوج پنجشنبه شب"
+              />
+            </div>
+          </div>
+          <p className="-mt-3 text-xs text-muted-foreground">
+            اعمال به ترتیب اولویت صعودی؛ اولویت بالاتر دیرتر اعمال می‌شود و برنده است
+          </p>
+
+          <div className="flex items-center gap-2">
+            <Switch id={activeId} checked={active} onCheckedChange={setActive} />
+            <Label htmlFor={activeId} className="cursor-pointer text-sm font-semibold text-foreground">فعال</Label>
+          </div>
+
+          {localError && (
+            <p role="alert" className="text-sm font-semibold text-red-600 dark:text-red-400">{localError}</p>
           )}
-        </Box>
 
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <TextField
-            label="ساعت شروع بازه (اختیاری)"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-            placeholder="16:00"
-            size="small"
-            dir="ltr"
-            sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
-          <TextField
-            label="ساعت پایان بازه (اختیاری)"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-            placeholder="23:00"
-            size="small"
-            dir="ltr"
-            sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
-        </Box>
-        <Typography variant="caption" sx={{ color: 'text.secondary', mt: -1.5 }}>
-          بازه با پنجره‌ی سانس همپوشانی داشته باشد؛ خالی = کل روز (اثر پیک/آف‌پیک)
-        </Typography>
-
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-          <FormControl size="small" sx={{ minWidth: 160 }}>
-            <InputLabel>نوع اثر</InputLabel>
-            <Select label="نوع اثر" value={modifierType} onChange={(e) => setModifierType(e.target.value as ModifierType)} sx={{ borderRadius: '10px' }}>
-              {(Object.keys(MODIFIER_LABELS) as ModifierType[]).map((t) => (
-                <MenuItem key={t} value={t}>{MODIFIER_LABELS[t]}</MenuItem>
-              ))}
-            </Select>
-          </FormControl>
-          <TextField
-            label={modifierType === 'percent' ? 'درصد' : 'مبلغ (ریال)'}
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            size="small"
-            type="text"
-            inputMode="numeric"
-            sx={{ flex: 1, minWidth: 140, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
-          {modifierType !== 'absolute' && (
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, pt: 0.5 }}>
-              <Chip label="افزایش" size="small" color={increase ? 'primary' : 'default'} variant={increase ? 'filled' : 'outlined'} onClick={() => setIncrease(true)} sx={{ borderRadius: '8px', fontWeight: 600 }} />
-              <Chip label="کاهش" size="small" color={!increase ? 'success' : 'default'} variant={!increase ? 'filled' : 'outlined'} onClick={() => setIncrease(false)} sx={{ borderRadius: '8px', fontWeight: 600 }} />
-            </Box>
-          )}
-        </Box>
-        <Typography variant="caption" sx={{ color: 'text.secondary', mt: -1.5 }}>
-          {modifierType === 'percent' && 'درصدی = گرانی/تخفیف نسبی روی قیمت لحظه‌ای؛ مبلغ در دیتابیس ×۱۰۰ ذخیره می‌شود.'}
-          {modifierType === 'fixed' && 'مبلغ ثابت = اضافه/کم کردن ریالی به قیمت (مثلاً −۵۰٬۰۰۰ ریال).'}
-          {modifierType === 'absolute' && 'قیمت قطعی = کل قیمت را با این مبلغ جایگزین می‌کند.'}
-        </Typography>
-
-        <Box sx={{ display: 'flex', gap: 2 }}>
-          <TextField
-            label="اولویت"
-            value={priority}
-            onChange={(e) => setPriority(e.target.value)}
-            size="small"
-            type="text"
-            inputMode="numeric"
-            helperText="اعمال به ترتیب اولویت صعودی؛ اولویت بالاتر دیرتر اعمال می‌شود و برنده است"
-            sx={{ width: 120, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
-          <TextField
-            label="برچسب قانون"
-            value={label}
-            onChange={(e) => setLabel(e.target.value)}
-            size="small"
-            fullWidth
-            placeholder="مثلاً: اوج پنجشنبه شب"
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
-        </Box>
-
-        <FormControlLabel control={<Switch checked={active} onChange={(e) => setActive(e.target.checked)} />} label={<Typography variant="body2" sx={{ fontWeight: 600 }}>فعال</Typography>} />
-
-        {localError && (
-          <Typography variant="body2" role="alert" sx={{ color: 'error.main', fontWeight: 600 }}>{localError}</Typography>
-        )}
+          <div className="flex justify-end gap-2 border-t border-border pt-4">
+            <Button variant="outline" onClick={onClose} disabled={saving} className="px-6">
+              انصراف
+            </Button>
+            <Button
+              onClick={handleSubmit}
+              disabled={saving}
+              className="bg-gradient-to-br from-amber-600 to-amber-500 px-6 font-bold text-stone-900 hover:from-amber-700 hover:to-amber-600"
+            >
+              {rule ? 'ذخیره تغییرات' : 'افزودن قانون'}
+            </Button>
+          </div>
+        </div>
       </DialogContent>
-      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-        <Button onClick={onClose} disabled={saving} variant="outlined" sx={{ borderRadius: '10px', textTransform: 'none', px: 3 }}>انصراف</Button>
-        <Button onClick={handleSubmit} variant="contained" disabled={saving} sx={{ borderRadius: '10px', textTransform: 'none', px: 3, fontWeight: 700, background: 'linear-gradient(135deg, #d97706, #f59e0b)' }}>
-          {rule ? 'ذخیره تغییرات' : 'افزودن قانون'}
-        </Button>
-      </DialogActions>
     </Dialog>
   )
 }

@@ -1,11 +1,11 @@
 // frontend/src/components/membership/PlanCards.tsx
 // کارت‌های پلن اشتراک باشگاه (جلسه‌ای / پک / ماهانه) با دکمه خرید
 import React from 'react'
-import { Box, Button, Chip, Paper, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import type { MembershipPlan } from '@/types/membership'
 import { PLAN_TYPE_LABEL } from '@/types/membership'
-import { formatPrice } from '@/lib/utils'
+import { Button } from '@/components/ui/shadcn/button'
+import { cn, formatPrice } from '@/lib/utils'
 
 const PLAN_ICONS: Record<string, string> = {
   session: 'mdi:flash-outline',
@@ -27,98 +27,65 @@ interface Props {
 
 const PlanCards: React.FC<Props> = ({ plans, onBuy, compact = false }) => {
   return (
-    <Box
-      sx={{
-        display: 'grid',
-        gridTemplateColumns: { xs: '1fr', sm: compact ? '1fr' : 'repeat(auto-fill, minmax(220px, 1fr))' },
-        gap: 1.5,
-      }}
+    <div
+      className={cn(
+        'grid grid-cols-1 gap-3',
+        compact ? 'sm:grid-cols-1' : 'sm:grid-cols-[repeat(auto-fill,minmax(220px,1fr))]',
+      )}
     >
       {plans.map((plan, idx) => {
         const color = PLAN_COLORS[plan.plan_type] ?? PLAN_COLORS.session
         const isBest = idx === 0 && plans.length > 1
         return (
-          <Paper
+          <div
             key={plan.id}
-            elevation={0}
-            sx={{
-              p: 2,
-              borderRadius: '16px',
-              border: isBest ? '1.5px solid rgba(124,58,237,0.4)' : '1px solid rgba(15,23,42,0.08)',
-              bgcolor: 'background.paper',
-              position: 'relative',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: 1,
-            }}
+            className={cn(
+              'relative flex flex-col gap-2 rounded-2xl border bg-card p-4',
+              isBest ? 'border-[1.5px] border-violet-600/40' : 'border-slate-900/10 dark:border-white/10',
+            )}
           >
             {isBest && (
-              <Chip
-                label="بهترین مقدار"
-                size="small"
-                sx={{
-                  position: 'absolute',
-                  top: -10,
-                  insetInlineEnd: 12,
-                  height: 20,
-                  fontSize: '0.75rem',
-                  fontWeight: 800,
-                  bgcolor: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-                  color: 'white',
-                }}
-              />
+              <span className="absolute -top-2.5 end-3 inline-flex h-5 items-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 px-2 text-xs font-extrabold text-white">
+                بهترین مقدار
+              </span>
             )}
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-              <Box
-                sx={{
-                  width: 34,
-                  height: 34,
-                  borderRadius: '10px',
-                  bgcolor: color.bg,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
+            <div className="flex items-center gap-2">
+              <div
+                className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px]"
+                style={{ backgroundColor: color.bg }}
               >
                 <Icon icon={PLAN_ICONS[plan.plan_type] ?? 'mdi:card-account-details'} style={{ width: 18, height: 18, color: color.fg }} />
-              </Box>
-              <Box sx={{ minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 800, fontSize: '0.95rem' }}>{plan.title}</Typography>
-                <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              </div>
+              <div className="min-w-0">
+                <p className="text-[0.95rem] font-extrabold">{plan.title}</p>
+                <p className="text-xs text-muted-foreground">
                   {PLAN_TYPE_LABEL[plan.plan_type]}
-                </Typography>
-              </Box>
-            </Box>
+                </p>
+              </div>
+            </div>
             {plan.description && (
-              <Typography variant="caption" sx={{ color: 'text.secondary', lineHeight: 1.7 }}>
+              <p className="text-xs leading-[1.7] text-muted-foreground">
                 {plan.description}
-              </Typography>
+              </p>
             )}
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 'auto', pt: 0.5 }}>
-              <Typography sx={{ fontWeight: 800, color: color.fg, fontSize: '1.05rem' }}>
+            <div className="mt-auto flex items-center justify-between pt-1">
+              <p className="text-[1.05rem] font-extrabold" style={{ color: color.fg }}>
                 {formatPrice(plan.price)}
-              </Typography>
+              </p>
               <Button
-                size="small"
-                variant="contained"
+                type="button"
+                size="sm"
                 onClick={() => onBuy(plan)}
-                sx={{
-                  borderRadius: '10px',
-                  textTransform: 'none',
-                  fontWeight: 700,
-                  px: 2,
-                  background: `linear-gradient(135deg, ${color.fg}, #7c3aed)`,
-                  boxShadow: 'none',
-                  '&:hover': { boxShadow: '0 4px 12px rgba(37,99,235,0.25)' },
-                }}
+                className="rounded-[10px] px-4 text-xs font-bold text-white shadow-none hover:shadow-[0_4px_12px_rgba(37,99,235,0.25)]"
+                style={{ background: `linear-gradient(135deg, ${color.fg}, #7c3aed)` }}
               >
                 خرید
               </Button>
-            </Box>
-          </Paper>
+            </div>
+          </div>
         )
       })}
-    </Box>
+    </div>
   )
 }
 

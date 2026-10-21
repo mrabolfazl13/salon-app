@@ -4,24 +4,17 @@
 // نکات بک‌اند: فقط مالک قرارداد؛ قرارداد active/expired؛ کارت اختیاری (بدون کارت = نقدی).
 
 import React, { useEffect, useState } from 'react'
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  Dialog,
-  DialogActions,
-  DialogContent,
-  TextField,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import { motion, AnimatePresence } from 'framer-motion'
 import { usePayInstallment } from '@/hooks/useContracts'
 import { formatJalaliDate } from '@/lib/jalali'
 import { extractError, formatRial } from '@/components/contract/shared'
+import Dialog from '@/components/ui/Dialog'
+import { Button } from '@/components/ui/shadcn/button'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
 import type { ContractPaymentData } from '@/services/contract'
 
 // تبدیل ارقام فارسی/عربی به لاتین (هم‌رفتار با payments.py در نرمال‌سازی)
@@ -94,55 +87,96 @@ const ContractInstallmentPayDialog: React.FC<Props> = ({
       open={open}
       onClose={step === 'processing' ? undefined : onClose}
       maxWidth="xs"
-      fullWidth
-      slotProps={{ paper: { sx: { borderRadius: '20px' } } }}
+      actions={
+        step === 'success' ? (
+          <Button
+            onClick={onClose}
+            className="w-full rounded-xl font-bold !bg-none bg-emerald-600 text-white hover:bg-emerald-700"
+          >
+            بستن
+          </Button>
+        ) : (
+          <>
+            <Button
+              variant="ghost"
+              onClick={onClose}
+              disabled={step === 'processing'}
+              className="rounded-xl px-4"
+            >
+              انصراف
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handlePay}
+              disabled={step !== 'form'}
+              className="flex-1 rounded-xl font-bold"
+            >
+              {step === 'processing' ? (
+                <>
+                  <span
+                    aria-hidden="true"
+                    className="h-4 w-4 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                  />
+                  در حال پرداخت...
+                </>
+              ) : (
+                <>
+                  <Icon icon="mdi:lock-check-outline" className="h-5 w-5" aria-hidden="true" />
+                  {`پرداخت ${formatRial(payment.amount)}`}
+                </>
+              )}
+            </Button>
+          </>
+        )
+      }
     >
-      <Box
-        sx={{
-          background: 'linear-gradient(135deg, #1e3a8a 0%, #2563eb 50%, #7c3aed 100%)',
-          borderRadius: '20px 20px 0 0',
-          px: 3,
-          py: 2.5,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Typography variant="subtitle1" sx={{ fontWeight: 700, color: 'white', display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Icon icon="mdi:bank-outline" className="h-5 w-5" />
+      <div className="-mx-5 -mt-5 mb-1 flex items-center justify-between rounded-t-2xl bg-gradient-to-br from-blue-900 via-blue-600 to-violet-600 py-5 pe-16 ps-6">
+        <p className="flex items-center gap-2 text-base font-bold text-white">
+          <Icon icon="mdi:bank-outline" className="h-5 w-5" aria-hidden="true" />
           درگاه پرداخت قسط
-        </Typography>
-        <Chip label="شبیه‌سازی‌شده" size="small" sx={{ bgcolor: 'rgba(255,255,255,0.2)', color: 'white', fontWeight: 600 }} />
-      </Box>
+        </p>
+        <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">
+          شبیه‌سازی‌شده
+        </span>
+      </div>
 
-      <DialogContent sx={{ pt: 3 }}>
-        <Box sx={{ bgcolor: 'action.hover', borderRadius: '14px', p: 2, mb: 2.5, display: 'flex', flexDirection: 'column', gap: 0.75 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="caption" color="text.secondary">سالن</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>{venueName || '—'}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="caption" color="text.secondary">قسط</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>{payment.label || 'قسط'}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="caption" color="text.secondary">سررسید</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 600 }}>{formatJalaliDate(payment.due_date)}</Typography>
-          </Box>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-            <Typography variant="caption" color="text.secondary">مبلغ قابل پرداخت</Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700, color: 'primary.main' }}>{formatRial(payment.amount)}</Typography>
-          </Box>
-        </Box>
+      <div className="rounded-2xl bg-muted p-4">
+        <div className="flex flex-col gap-1.5">
+          <div className="flex justify-between">
+            <span className="text-xs text-muted-foreground">سالن</span>
+            <span className="text-sm font-semibold">{venueName || '—'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-xs text-muted-foreground">قسط</span>
+            <span className="text-sm font-semibold">{payment.label || 'قسط'}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-xs text-muted-foreground">سررسید</span>
+            <span className="text-sm font-semibold">{formatJalaliDate(payment.due_date)}</span>
+          </div>
+          <div className="flex justify-between">
+            <span className="text-xs text-muted-foreground">مبلغ قابل پرداخت</span>
+            <span className="text-sm font-bold text-primary">{formatRial(payment.amount)}</span>
+          </div>
+        </div>
+      </div>
 
-        {error && <Alert severity="error" sx={{ mb: 2, borderRadius: '12px' }}>{error}</Alert>}
+      {error && (
+        <Alert variant="destructive">
+          <AlertDescription>{error}</AlertDescription>
+        </Alert>
+      )}
 
-        <AnimatePresence mode="wait">
-          {(step === 'form' || step === 'processing') && (
-            <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, opacity: step === 'processing' ? 0.5 : 1 }}>
-                <TextField
-                  label="شماره کارت (اختیاری)"
+      <AnimatePresence mode="wait">
+        {(step === 'form' || step === 'processing') && (
+          <motion.div key="form" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -20 }}>
+            <div className={step === 'processing' ? 'flex flex-col gap-4 opacity-50' : 'flex flex-col gap-4'}>
+              <div className="space-y-1.5">
+                <Label htmlFor="installment-card">شماره کارت (اختیاری)</Label>
+                <Input
+                  id="installment-card"
+                  dir="ltr"
+                  className="text-start tabular-nums"
                   placeholder="6037 9971 0000 0000"
                   value={cardNumber}
                   onChange={(e) => {
@@ -150,94 +184,29 @@ const ContractInstallmentPayDialog: React.FC<Props> = ({
                     setCardNumber(digits.replace(/(\d{4})(?=\d)/g, '$1 '))
                     setCardError(null)
                   }}
-                  fullWidth
-                  size="small"
                   disabled={step === 'processing'}
-                  error={Boolean(cardError)}
-                  helperText={cardError || 'برای ثبت به‌صورت کارت‌به‌کارت وارد کنید؛ خالی = پرداخت نقدی'}
-                  slotProps={{
-                    input: {
-                      startAdornment: <Icon icon="mdi:credit-card-outline" className="h-5 w-5 ml-2" style={{ color: 'rgba(0,0,0,0.4)' }} />,
-                    },
-                  }}
+                  startIcon={<Icon icon="mdi:credit-card-outline" className="text-muted-foreground" aria-hidden="true" />}
                 />
-              </Box>
-            </motion.div>
-          )}
-
-          {step === 'success' && (
-            <motion.div key="ok" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} style={{ textAlign: 'center', padding: '8px 0' }}>
-              <Box
-                sx={{
-                  width: 64,
-                  height: 64,
-                  borderRadius: '50%',
-                  bgcolor: 'success.main',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  mx: 'auto',
-                  mb: 2,
-                }}
-              >
-                <Icon icon="mdi:check-bold" className="h-8 w-8" style={{ color: 'white' }} />
-              </Box>
-              <Typography variant="h6" sx={{ fontWeight: 700, mb: 0.5 }}>پرداخت موفق</Typography>
-              <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-                «{payment.label || 'قسط'}» با مبلغ {formatRial(payment.amount)} تسویه شد
-              </Typography>
-            </motion.div>
-          )}
-        </AnimatePresence>
-      </DialogContent>
-
-      <DialogActions sx={{ px: 3, pb: 3, gap: 1 }}>
-        {step === 'success' ? (
-          <Button
-            variant="contained"
-            fullWidth
-            onClick={onClose}
-            sx={{
-              borderRadius: '12px',
-              textTransform: 'none',
-              fontWeight: 700,
-              background: 'linear-gradient(135deg, #16a34a, #15803d)',
-            }}
-          >
-            بستن
-          </Button>
-        ) : (
-          <>
-            <Button onClick={onClose} disabled={step === 'processing'} sx={{ borderRadius: '12px', textTransform: 'none' }}>
-              انصراف
-            </Button>
-            <Button
-              variant="contained"
-              onClick={handlePay}
-              disabled={step !== 'form'}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                fontWeight: 700,
-                flex: 1,
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              }}
-            >
-              {step === 'processing' ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                  <CircularProgress size={16} color="inherit" />
-                  در حال پرداخت...
-                </Box>
-              ) : (
-                <>
-                  <Icon icon="mdi:lock-check-outline" className="h-5 w-5 ml-1" />
-                  {`پرداخت ${formatRial(payment.amount)}`}
-                </>
-              )}
-            </Button>
-          </>
+                <p className={cardError ? 'text-xs text-red-600 dark:text-red-400' : 'text-xs text-muted-foreground'}>
+                  {cardError || 'برای ثبت به‌صورت کارت‌به‌کارت وارد کنید؛ خالی = پرداخت نقدی'}
+                </p>
+              </div>
+            </div>
+          </motion.div>
         )}
-      </DialogActions>
+
+        {step === 'success' && (
+          <motion.div key="ok" initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} className="py-2 text-center">
+            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-emerald-600">
+              <Icon icon="mdi:check-bold" className="h-8 w-8" style={{ color: 'white' }} aria-hidden="true" />
+            </div>
+            <h2 className="mb-1 text-lg font-bold text-foreground">پرداخت موفق</h2>
+            <p className="mb-4 text-sm text-muted-foreground">
+              «{payment.label || 'قسط'}» با مبلغ {formatRial(payment.amount)} تسویه شد
+            </p>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </Dialog>
   )
 }

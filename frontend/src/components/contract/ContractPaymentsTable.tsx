@@ -3,21 +3,19 @@
 // دکمه «پرداخت» (درگاه شبیه‌سازی‌شده) برای مالک و «ابطال» برای مدیر.
 
 import React from 'react'
-import {
-  Box,
-  Button,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Tooltip,
-  Typography,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
 import { formatJalaliDate, formatJalaliDateTime } from '@/lib/jalali'
 import { formatRial, installmentState, StatusChip, toPersianDigits } from '@/components/contract/shared'
+import { Button } from '@/components/ui/shadcn/button'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 import type { ContractPaymentData } from '@/services/contract'
 
 interface ContractPaymentsTableProps {
@@ -35,9 +33,6 @@ interface ContractPaymentsTableProps {
   onMarkPaid?: (payment: ContractPaymentData) => void
 }
 
-const cellHead = { fontWeight: 700, fontSize: '0.76rem', whiteSpace: 'nowrap' as const }
-const cellBody = { fontSize: '0.82rem' }
-
 const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
   payments,
   canPay = false,
@@ -51,119 +46,120 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
 }) => {
   if (payments.length === 0) {
     return (
-      <Typography variant="body2" color="text.secondary" sx={{ py: 2, textAlign: 'center' }}>
+      <p className="py-4 text-center text-sm text-muted-foreground">
         تقویم اقساط هنوز تولید نشده است — پس از تأیید قرارداد توسط مدیر صادر می‌شود.
-      </Typography>
+      </p>
     )
   }
 
   const sorted = [...payments].sort((a, b) => (a.due_date < b.due_date ? -1 : 1))
 
   return (
-    <TableContainer sx={{ overflowX: 'auto' }}>
-      <Table aria-label="اقساط قرارداد" size="small" sx={{ minWidth: 560 }}>
-        <TableHead>
-          <TableRow>
-            <TableCell scope="col" sx={cellHead}>قسط</TableCell>
-            <TableCell scope="col" sx={cellHead}>سررسید</TableCell>
-            <TableCell scope="col" sx={cellHead}>مبلغ</TableCell>
-            <TableCell scope="col" sx={cellHead}>وضعیت</TableCell>
-            <TableCell scope="col" sx={cellHead}>توضیحات</TableCell>
-            <TableCell scope="col" align="left" sx={cellHead}>عملکرد</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {sorted.map((p) => {
-            const state = installmentState(p)
-            const payable = canPay && !p.is_paid && !p.is_voided
-            const markable = canMarkPaid && !p.is_paid && !p.is_voided
-            const voidable = canVoid && !p.is_voided
-            return (
-              <TableRow key={p.id} sx={{ opacity: p.is_voided ? 0.55 : 1 }}>
-                <TableCell sx={cellBody}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                    <Icon
-                      icon={p.record_type === 'down_payment' ? 'mdi:bank-outline' : 'mdi:calendar-text-outline'}
-                      className="h-4 w-4"
-                      style={{ color: p.record_type === 'down_payment' ? '#7c3aed' : '#6b7280' }}
-                    />
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.82rem' }}>
-                      {p.label || (p.record_type === 'down_payment' ? 'پیش‌پرداخت' : `قسط ${toPersianDigits(p.installment_no ?? 0)}`)}
-                    </Typography>
-                  </Box>
-                </TableCell>
-                <TableCell sx={{ ...cellBody, whiteSpace: 'nowrap' }}>{formatJalaliDate(p.due_date)}</TableCell>
-                <TableCell sx={{ ...cellBody, fontWeight: 700, whiteSpace: 'nowrap', fontVariantNumeric: 'tabular-nums' }}>
-                  <span style={{ textDecoration: p.is_voided ? 'line-through' : 'none' }}>
-                    {formatRial(p.amount)}
+    <Table aria-label="اقساط قرارداد" className="min-w-[560px] text-[0.82rem]">
+      <TableHeader>
+        <TableRow>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">قسط</TableHead>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">سررسید</TableHead>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">مبلغ</TableHead>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">وضعیت</TableHead>
+          <TableHead scope="col" className="whitespace-nowrap text-[0.76rem] font-bold">توضیحات</TableHead>
+          <TableHead scope="col" className="whitespace-nowrap text-end text-[0.76rem] font-bold">عملکرد</TableHead>
+        </TableRow>
+      </TableHeader>
+      <TableBody>
+        {sorted.map((p) => {
+          const state = installmentState(p)
+          const payable = canPay && !p.is_paid && !p.is_voided
+          const markable = canMarkPaid && !p.is_paid && !p.is_voided
+          const voidable = canVoid && !p.is_voided
+          return (
+            <TableRow key={p.id} className={p.is_voided ? 'opacity-[0.55]' : undefined}>
+              <TableCell>
+                <div className="flex items-center gap-1">
+                  <Icon
+                    icon={p.record_type === 'down_payment' ? 'mdi:bank-outline' : 'mdi:calendar-text-outline'}
+                    className="h-4 w-4"
+                    style={{ color: p.record_type === 'down_payment' ? '#7c3aed' : '#6b7280' }}
+                  />
+                  <span className="text-[0.82rem] font-bold">
+                    {p.label || (p.record_type === 'down_payment' ? 'پیش‌پرداخت' : `قسط ${toPersianDigits(p.installment_no ?? 0)}`)}
                   </span>
-                </TableCell>
-                <TableCell><StatusChip label={state.label} color={state.color} /></TableCell>
-                <TableCell sx={{ ...cellBody, maxWidth: 240 }}>
-                  {p.is_paid && !p.is_voided ? (
-                    <Typography variant="caption" color="text.secondary">
-                      پرداخت {formatJalaliDateTime(p.paid_at)}
-                      {p.transaction_id && (
-                        <> — کد تراکنش <span dir="ltr" style={{ fontSize: '0.75rem' }}>{p.transaction_id.slice(0, 8)}</span></>
-                      )}
-                    </Typography>
-                  ) : p.is_voided ? (
-                    <Tooltip title={p.void_reason || ''}>
-                      <Typography variant="caption" color="error.main">باطل: {p.void_reason || '—'}</Typography>
-                    </Tooltip>
-                  ) : (
-                    <Typography variant="caption" color="text.disabled">—</Typography>
-                  )}
-                </TableCell>
-                <TableCell align="left" sx={{ whiteSpace: 'nowrap' }}>
-                  {payable && (
-                    <Button
-                      size="small"
-                      variant="contained"
-                      disabled={busyPaymentId === p.id}
-                      onClick={() => onPay?.(p)}
-                      sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '0.75rem' }}
-                      startIcon={busyPaymentId === p.id
-                        ? undefined
-                        : <Icon icon="mdi:credit-card-outline" className="h-4 w-4" />}
-                    >
-                      {busyPaymentId === p.id ? '...' : 'پرداخت'}
-                    </Button>
-                  )}
-                  {markable && (
-                    <Button
-                      size="small"
-                      variant="contained"
-                      color="success"
-                      disabled={busyMarkPaidId === p.id}
-                      onClick={() => onMarkPaid?.(p)}
-                      sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '0.75rem', me: 0.5 }}
-                      startIcon={busyMarkPaidId === p.id
-                        ? undefined
-                        : <Icon icon="mdi:cash-outline" className="h-4 w-4" />}
-                    >
-                      {busyMarkPaidId === p.id ? '...' : 'دریافت نقدی'}
-                    </Button>
-                  )}
-                  {voidable && (
-                    <Button
-                      size="small"
-                      color="error"
-                      variant="text"
-                      disabled={busyPaymentId === p.id}
-                      onClick={() => onVoid?.(p)}
-                      sx={{ textTransform: 'none', borderRadius: '8px', fontWeight: 700, fontSize: '0.75rem' }}
-                    >
-                      ابطال
-                    </Button>
-                  )}
-                </TableCell>
-              </TableRow>
-            )
-          })}
-        </TableBody>
-      </Table>
-    </TableContainer>
+                </div>
+              </TableCell>
+              <TableCell className="whitespace-nowrap">{formatJalaliDate(p.due_date)}</TableCell>
+              <TableCell className="whitespace-nowrap font-bold tabular-nums">
+                <span className={p.is_voided ? 'line-through' : undefined}>
+                  {formatRial(p.amount)}
+                </span>
+              </TableCell>
+              <TableCell><StatusChip label={state.label} color={state.color} /></TableCell>
+              <TableCell className="max-w-[240px]">
+                {p.is_paid && !p.is_voided ? (
+                  <span className="text-xs text-muted-foreground">
+                    پرداخت {formatJalaliDateTime(p.paid_at)}
+                    {p.transaction_id && (
+                      <> — کد تراکنش <span dir="ltr" className="text-[0.75rem]">{p.transaction_id.slice(0, 8)}</span></>
+                    )}
+                  </span>
+                ) : p.is_voided ? (
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <span className="text-xs text-red-600 dark:text-red-400">باطل: {p.void_reason || '—'}</span>
+                    </TooltipTrigger>
+                    <TooltipContent>{p.void_reason || ''}</TooltipContent>
+                  </Tooltip>
+                ) : (
+                  <span className="text-xs text-muted-foreground">—</span>
+                )}
+              </TableCell>
+              <TableCell className="whitespace-nowrap text-end">
+                {payable && (
+                  <Button
+                    size="sm"
+                    disabled={busyPaymentId === p.id}
+                    onClick={() => onPay?.(p)}
+                    className="text-xs font-bold"
+                  >
+                    {busyPaymentId === p.id ? '...' : (
+                      <>
+                        <Icon icon="mdi:credit-card-outline" className="h-4 w-4" />
+                        پرداخت
+                      </>
+                    )}
+                  </Button>
+                )}
+                {markable && (
+                  <Button
+                    size="sm"
+                    disabled={busyMarkPaidId === p.id}
+                    onClick={() => onMarkPaid?.(p)}
+                    className="me-1 text-xs font-bold !bg-none bg-emerald-600 text-white hover:bg-emerald-700"
+                  >
+                    {busyMarkPaidId === p.id ? '...' : (
+                      <>
+                        <Icon icon="mdi:cash-outline" className="h-4 w-4" />
+                        دریافت نقدی
+                      </>
+                    )}
+                  </Button>
+                )}
+                {voidable && (
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    disabled={busyPaymentId === p.id}
+                    onClick={() => onVoid?.(p)}
+                    className="text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                  >
+                    ابطال
+                  </Button>
+                )}
+              </TableCell>
+            </TableRow>
+          )
+        })}
+      </TableBody>
+    </Table>
   )
 }
 

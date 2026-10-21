@@ -1,26 +1,7 @@
 // frontend/src/components/pricing/PricingInsightsTab.tsx
 // C5 — «تقاضا و پیشنهاد»: نقشهٔ اشغال از رزروهای واقعی + پیشنهاد قیمت چسبیده به موتور.
 
-import React, { useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  Divider,
-  FormControl,
-  InputLabel,
-  MenuItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 
@@ -46,6 +27,25 @@ import type { OccupancyBucket, PriceSuggestion } from '@/services/pricing'
 import PricingRuleDialog from './PricingRuleDialog'
 import { WEEKDAYS_PY_ORDER, faTime, parseIntFa, timeToHHMM } from './shared'
 import type { FinanceVenue } from '@/hooks/useFinance'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Separator } from '@/components/ui/shadcn/separator'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
 
 interface Props {
   venues: FinanceVenue[]
@@ -60,13 +60,16 @@ const CONFIDENCE_LABELS: Record<PriceSuggestion['confidence'], string> = {
 
 /** رنگ فقط مکمل است؛ عدد و متن همیشه دیده می‌شوند (WCAG — color-not-only) */
 function occTone(pct: number | null): { bg: string; fg: string } {
-  if (pct === null) return { bg: 'rgba(0,0,0,0.02)', fg: 'text.secondary' }
+  if (pct === null) return { bg: 'rgba(0,0,0,0.02)', fg: '#64748b' }
   if (pct >= 80) return { bg: 'rgba(220,38,38,0.14)', fg: '#991b1b' }
   if (pct >= 60) return { bg: 'rgba(217,119,6,0.14)', fg: '#92400e' }
   if (pct >= 40) return { bg: 'rgba(5,150,105,0.12)', fg: '#065f46' }
   if (pct >= 20) return { bg: 'rgba(37,99,235,0.10)', fg: '#1d4ed8' }
   return { bg: 'rgba(0,0,0,0.04)', fg: '#374151' }
 }
+
+const META_CHIP = 'inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs text-foreground tabular-nums'
+const META_CHIP_OUTLINE = 'inline-flex items-center rounded-lg border border-border bg-card px-2 py-0.5 text-xs text-foreground tabular-nums'
 
 const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
   const [days, setDays] = useState<number>(90)
@@ -75,6 +78,8 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
   const [duration, setDuration] = useState('90')
   const [suggestion, setSuggestion] = useState<PriceSuggestion | null>(null)
   const [ruleDraftOpen, setRuleDraftOpen] = useState(false)
+
+  const timeId = useId()
 
   const occupancyQuery = usePricingOccupancy(venueId, days, venueId != null)
   const suggest = usePriceSuggestion()
@@ -127,32 +132,31 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
   const venueName = venues.find((v) => v.id === venueId)?.name ?? 'سالن'
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <div className="flex flex-col gap-6">
       <SectionCard
         title={`نقشهٔ اشغال ${venueName}`}
         icon="mdi:chart-bubble"
         color="#7c3aed"
         action={
-          <FormControl size="small" sx={{ minWidth: 150 }}>
-            <InputLabel id="pi-window-label">پنجرهٔ تاریخچه</InputLabel>
-            <Select
-              labelId="pi-window-label"
-              label="پنجرهٔ تاریخچه"
-              value={days}
-              onChange={(e) => setDays(Number(e.target.value))}
-              sx={{ borderRadius: '10px' }}
-            >
-              {PRICING_INSIGHT_WINDOWS.map((d) => (
-                <MenuItem key={d} value={d}>{`${toPersianDigits(d)} روز اخیر`}</MenuItem>
-              ))}
+          <div className="flex min-w-[150px] flex-col gap-1.5">
+            <Label id="pi-window-label" htmlFor="pi-window-select" className="text-xs">پنجرهٔ تاریخچه</Label>
+            <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
+              <SelectTrigger id="pi-window-select" aria-labelledby="pi-window-label" className="h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {PRICING_INSIGHT_WINDOWS.map((d) => (
+                  <SelectItem key={d} value={String(d)}>{`${toPersianDigits(d)} روز اخیر`}</SelectItem>
+                ))}
+              </SelectContent>
             </Select>
-          </FormControl>
+          </div>
         }
       >
-        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
+        <p className="mb-3 text-sm text-muted-foreground">
           نرخ اشغال از رزروهای تأییدشدهٔ گذشته شمرده می‌شود (رزرو لغوشده شمار نمی‌شود)؛
           «—» یعنی سانسِ فعالی برای آن روز و ساعت در این بازه ثبت نشده، نه اینکه اشغال صفر باشد.
-        </Typography>
+        </p>
 
         {occupancyQuery.isPending ? (
           <LoadingBox text="در حال محاسبهٔ اشغال..." />
@@ -166,57 +170,59 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
           />
         ) : (
           <>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-              <Chip size="small" data-testid="insight-overall" label={`میانگین اشغال: ${formatPct(report.overall_occupancy)}`} sx={{ borderRadius: '8px', fontWeight: 700 }} />
-              <Chip size="small" label={`${toPersianDigits(report.total_bookings)} رزرو از ${toPersianDigits(report.total_slots)} سانس`} sx={{ borderRadius: '8px' }} />
-              <Chip size="small" label={`میانگین پرداخت: ${formatRial(report.overall_avg_paid)}`} sx={{ borderRadius: '8px' }} />
-              <Chip size="small" variant="outlined" label={`${toPersianDigits(report.start_date)} تا ${toPersianDigits(report.end_date)}`} sx={{ borderRadius: '8px' }} />
-            </Box>
-            <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '12px', overflowX: 'auto' }}>
-              <Table size="small" aria-label="نقشه اشغال به تفکیک روز هفته و ساعت">
-                <TableHead>
-                  <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                    <TableCell scope="col" sx={{ fontWeight: 700, whiteSpace: 'nowrap' }}>روز</TableCell>
+            <div className="mb-4 flex flex-wrap gap-2">
+              <span data-testid="insight-overall" className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-bold text-foreground tabular-nums">
+                {`میانگین اشغال: ${formatPct(report.overall_occupancy)}`}
+              </span>
+              <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs text-foreground tabular-nums">
+                {`${toPersianDigits(report.total_bookings)} رزرو از ${toPersianDigits(report.total_slots)} سانس`}
+              </span>
+              <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs text-foreground tabular-nums">
+                {`میانگین پرداخت: ${formatRial(report.overall_avg_paid)}`}
+              </span>
+              <span className={META_CHIP_OUTLINE}>
+                {`${toPersianDigits(report.start_date)} تا ${toPersianDigits(report.end_date)}`}
+              </span>
+            </div>
+            <div className="overflow-x-auto rounded-xl border border-border">
+              <Table aria-label="نقشه اشغال به تفکیک روز هفته و ساعت">
+                <TableHeader className="bg-muted/40">
+                  <TableRow className="hover:bg-transparent">
+                    <TableHead scope="col" className="whitespace-nowrap font-bold">روز</TableHead>
                     {hours.map((h) => (
-                      <TableCell key={h} scope="col" align="center" sx={{ fontWeight: 700, whiteSpace: 'nowrap', fontSize: '0.75rem' }}>
+                      <TableHead key={h} scope="col" className="whitespace-nowrap text-center text-[0.75rem] font-bold">
                         {faTime(`${String(h).padStart(2, '0')}:00`)}
-                      </TableCell>
+                      </TableHead>
                     ))}
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {WEEKDAYS_PY_ORDER.map((d) => (
                     <TableRow key={d.value}>
-                      <TableCell sx={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{d.label}</TableCell>
+                      <TableCell className="whitespace-nowrap font-semibold text-foreground">{d.label}</TableCell>
                       {hours.map((h) => {
                         const b = byKey.get(`${d.value}-${h}`)
                         const tone = occTone(b?.occupancy ?? null)
                         return (
-                          <TableCell key={h} align="center" sx={{ p: 0.5 }}>
+                          <TableCell key={h} className="p-1 text-center">
                             {b ? (
-                              <Box
+                              <div
                                 data-testid={`insight-cell-${d.value}-${h}`}
                                 aria-label={`${d.label} ساعت ${faTime(`${String(h).padStart(2, '0')}:00`)}: اشغال ${formatPct(b.occupancy)} — ${toPersianDigits(b.bookings)} رزرو از ${toPersianDigits(b.slots)} سانس${b.avg_paid != null ? `، میانگین پرداخت ${formatRial(b.avg_paid)}` : ''}`}
-                                sx={{
-                                  borderRadius: '8px',
-                                  px: 0.75,
-                                  py: 0.5,
-                                  minWidth: 58,
-                                  bgcolor: tone.bg,
-                                  color: tone.fg,
-                                }}
+                                className="min-w-[58px] rounded-lg px-1.5 py-1"
+                                style={{ backgroundColor: tone.bg, color: tone.fg }}
                               >
-                                <Typography variant="body2" sx={{ fontWeight: 800, lineHeight: 1.2 }}>
+                                <p className="text-sm font-extrabold leading-tight tabular-nums">
                                   {formatPct(b.occupancy)}
-                                </Typography>
-                                <Typography variant="caption" sx={{ display: 'block', lineHeight: 1.1 }}>
+                                </p>
+                                <p className="block text-xs leading-tight tabular-nums">
                                   {toPersianDigits(b.bookings)}/{toPersianDigits(b.slots)}
-                                </Typography>
-                              </Box>
+                                </p>
+                              </div>
                             ) : (
-                              <Box data-testid={`insight-empty-${d.value}-${h}`} sx={{ color: 'text.disabled', fontSize: '0.85rem' }}>
+                              <div data-testid={`insight-empty-${d.value}-${h}`} className="text-sm text-muted-foreground/60">
                                 —
-                              </Box>
+                              </div>
                             )}
                           </TableCell>
                         )
@@ -225,118 +231,159 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
                   ))}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </div>
           </>
         )}
       </SectionCard>
 
       <SectionCard title="پیشنهاد قیمت بر پایهٔ تاریخچه" icon="mdi:lightbulb-on-outline" color="#059669">
-        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
+        <p className="mb-3 text-sm text-muted-foreground">
           پیشنهاد همیشه کنارِ قیمت موتور محاسبه می‌شود و هرگز خودش را جای قیمت نمی‌گذارد؛
           تا قانون نسازید، هیچ رزرویی با این عدد فروش نمی‌رود.
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', alignItems: 'flex-start' }}>
-          <Box sx={{ flex: '1 1 180px', minWidth: 170 }}>
+        </p>
+        <div className="flex flex-wrap items-start gap-4">
+          <div className="min-w-[170px] flex-[1_1_180px]">
             <PersianDatePicker label="تاریخ" value={date} onChange={setDate} size="small" clearable={false} />
-          </Box>
-          <TextField
-            label="ساعت شروع"
-            value={time}
-            onChange={(e) => setTime(e.target.value)}
-            size="small"
-            dir="ltr"
-            data-testid="insight-time"
-            sx={{ flex: '0 1 120px', '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
-          <Box sx={{ flex: '0 1 130px' }}>
-            <FormControl size="small" fullWidth>
-              <InputLabel id="pi-duration-label">مدت (دقیقه)</InputLabel>
-              <Select labelId="pi-duration-label" label="مدت (دقیقه)" value={duration} onChange={(e) => setDuration(e.target.value)} sx={{ borderRadius: '10px', width: '100%' }}>
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={timeId}>ساعت شروع</Label>
+            <Input
+              id={timeId}
+              value={time}
+              onChange={(e) => setTime(e.target.value)}
+              dir="ltr"
+              data-testid="insight-time"
+              className="w-[120px] tabular-nums"
+            />
+          </div>
+          <div className="flex min-w-[130px] flex-col gap-1.5">
+            <Label id="pi-duration-label" htmlFor="pi-duration-select">مدت (دقیقه)</Label>
+            <Select value={duration} onValueChange={setDuration}>
+              <SelectTrigger id="pi-duration-select" aria-labelledby="pi-duration-label" className="w-full">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
                 {[60, 75, 90, 120].map((d) => (
-                  <MenuItem key={d} value={String(d)}>{toPersianDigits(d)}</MenuItem>
+                  <SelectItem key={d} value={String(d)}>{toPersianDigits(d)}</SelectItem>
                 ))}
-              </Select>
-            </FormControl>
-          </Box>
+              </SelectContent>
+            </Select>
+          </div>
           <Button
-            variant="contained"
             onClick={runSuggestion}
             disabled={suggest.isPending}
             data-testid="insight-run"
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, alignSelf: 'flex-end', height: 40, background: 'linear-gradient(135deg, #059669, #10b981)' }}
-            startIcon={<Icon icon={suggest.isPending ? 'mdi:loading' : 'mdi:sparkles'} className="h-4 w-4" />}
+            className="self-end bg-gradient-to-br from-emerald-600 to-emerald-500 font-bold text-white hover:from-emerald-700 hover:to-emerald-600"
           >
+            <Icon icon={suggest.isPending ? 'mdi:loading' : 'mdi:sparkles'} className={suggest.isPending ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} aria-hidden="true" />
             {suggest.isPending ? '...' : 'محاسبهٔ پیشنهاد'}
           </Button>
-        </Box>
+        </div>
 
         {suggestion && (
-          <Box sx={{ mt: 2.5 }}>
-            <Divider sx={{ mb: 2 }} />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-              <Chip size="small" data-testid="suggestion-confidence" color={suggestion.confidence === 'low' ? 'default' : 'success'} label={CONFIDENCE_LABELS[suggestion.confidence]} sx={{ borderRadius: '8px', fontWeight: 700 }} />
-              <Chip size="small" label={`${WEEKDAYS_PY_ORDER.find((d) => d.value === suggestion.weekday)?.label ?? ''} — ${faTime(suggestion.start_time)}`} sx={{ borderRadius: '8px' }} />
-              <Chip size="small" variant="outlined" label={`پنجرهٔ ${toPersianDigits(suggestion.days)} روز`} sx={{ borderRadius: '8px' }} />
+          <div className="mt-5">
+            <Separator className="mb-4" />
+            <div className="mb-3 flex flex-wrap items-center gap-2">
+              <span
+                data-testid="suggestion-confidence"
+                className={
+                  suggestion.confidence === 'low'
+                    ? 'inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-bold text-foreground'
+                    : 'inline-flex items-center rounded-lg bg-emerald-600/15 px-2 py-0.5 text-xs font-bold text-emerald-800 dark:text-emerald-300'
+                }
+              >
+                {CONFIDENCE_LABELS[suggestion.confidence]}
+              </span>
+              <span className={META_CHIP}>
+                {`${WEEKDAYS_PY_ORDER.find((d) => d.value === suggestion.weekday)?.label ?? ''} — ${faTime(suggestion.start_time)}`}
+              </span>
+              <span className={META_CHIP_OUTLINE}>
+                {`پنجرهٔ ${toPersianDigits(suggestion.days)} روز`}
+              </span>
               {suggestion.bucket ? (
-                <Chip size="small" variant="outlined" data-testid="suggestion-occupancy" label={`اشغال این دسته: ${formatPct(suggestion.bucket.occupancy)} — ${toPersianDigits(suggestion.bucket.bookings)}/${toPersianDigits(suggestion.bucket.slots)}`} sx={{ borderRadius: '8px' }} />
+                <span data-testid="suggestion-occupancy" className={META_CHIP_OUTLINE}>
+                  {`اشغال این دسته: ${formatPct(suggestion.bucket.occupancy)} — ${toPersianDigits(suggestion.bucket.bookings)}/${toPersianDigits(suggestion.bucket.slots)}`}
+                </span>
               ) : (
-                <Chip size="small" variant="outlined" data-testid="suggestion-occupancy" label="اشغال این دسته: بدون داده" sx={{ borderRadius: '8px' }} />
+                <span data-testid="suggestion-occupancy" className={META_CHIP_OUTLINE}>
+                  اشغال این دسته: بدون داده
+                </span>
               )}
-            </Box>
+            </div>
 
-            <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'stretch' }}>
-              <Box sx={{ flex: '1 1 160px', p: 1.5, borderRadius: '12px', bgcolor: 'rgba(37,99,235,0.06)' }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>قیمت موتور (لنگر)</Typography>
-                <Typography variant="body1" data-testid="suggestion-engine" sx={{ fontWeight: 800, fontVariantNumeric: 'tabular-nums' }}>{formatRial(suggestion.engine_price)}</Typography>
-              </Box>
-              <Box sx={{ flex: '1 1 160px', p: 1.5, borderRadius: '12px', bgcolor: suggestion.applies ? 'rgba(5,150,105,0.10)' : 'rgba(0,0,0,0.04)' }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>پیشنهاد</Typography>
-                <Typography variant="body1" data-testid="suggestion-recommended" sx={{ fontWeight: 900, fontVariantNumeric: 'tabular-nums', color: suggestion.applies ? '#065f46' : 'text.secondary' }}>{formatRial(suggestion.recommended_price)}</Typography>
-              </Box>
-              <Box sx={{ flex: '1 1 160px', p: 1.5, borderRadius: '12px', bgcolor: 'rgba(0,0,0,0.03)' }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>بازهٔ ایمن</Typography>
-                <Typography variant="body2" data-testid="suggestion-band" sx={{ fontWeight: 700 }}>
+            <div className="flex flex-wrap items-stretch gap-3">
+              <div className="flex-[1_1_160px] rounded-xl bg-blue-600/[0.06] p-3">
+                <span className="text-xs font-bold text-muted-foreground">قیمت موتور (لنگر)</span>
+                <p data-testid="suggestion-engine" className="text-base font-extrabold text-foreground tabular-nums">{formatRial(suggestion.engine_price)}</p>
+              </div>
+              <div
+                className={
+                  suggestion.applies
+                    ? 'flex-[1_1_160px] rounded-xl bg-emerald-600/[0.10] p-3'
+                    : 'flex-[1_1_160px] rounded-xl bg-black/[0.04] p-3 dark:bg-white/[0.04]'
+                }
+              >
+                <span className="text-xs font-bold text-muted-foreground">پیشنهاد</span>
+                <p
+                  data-testid="suggestion-recommended"
+                  className={
+                    suggestion.applies
+                      ? 'text-base font-black text-emerald-800 tabular-nums dark:text-emerald-300'
+                      : 'text-base font-black text-muted-foreground tabular-nums'
+                  }
+                >
+                  {formatRial(suggestion.recommended_price)}
+                </p>
+              </div>
+              <div className="flex-[1_1_160px] rounded-xl bg-black/[0.03] p-3 dark:bg-white/[0.03]">
+                <span className="text-xs font-bold text-muted-foreground">بازهٔ ایمن</span>
+                <p data-testid="suggestion-band" className="text-sm font-bold text-foreground tabular-nums">
                   {formatRial(suggestion.floor_price, false)} تا {formatRial(suggestion.ceiling_price)}
-                </Typography>
-              </Box>
-              <Box sx={{ flex: '0 1 120px', p: 1.5, borderRadius: '12px', bgcolor: 'rgba(0,0,0,0.03)' }}>
-                <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 700 }}>تغییر</Typography>
-                <Typography
-                  variant="body1"
+                </p>
+              </div>
+              <div className="flex-[0_1_120px] rounded-xl bg-black/[0.03] p-3 dark:bg-white/[0.03]">
+                <span className="text-xs font-bold text-muted-foreground">تغییر</span>
+                <p
                   data-testid="suggestion-delta"
-                  sx={{ fontWeight: 800, color: suggestion.delta_percent > 0 ? '#b91c1c' : suggestion.delta_percent < 0 ? '#047857' : 'text.secondary' }}
+                  className={
+                    suggestion.delta_percent > 0
+                      ? 'text-base font-extrabold text-red-700 tabular-nums dark:text-red-400'
+                      : suggestion.delta_percent < 0
+                        ? 'text-base font-extrabold text-emerald-700 tabular-nums dark:text-emerald-400'
+                        : 'text-base font-extrabold text-muted-foreground tabular-nums'
+                  }
                 >
                   {suggestion.delta_percent > 0 ? '+' : suggestion.delta_percent < 0 ? '−' : ''}
                   {faNum(Math.abs(suggestion.delta_percent))}٪
-                </Typography>
-              </Box>
-            </Box>
+                </p>
+              </div>
+            </div>
 
-            <Box component="ul" sx={{ mt: 2, pl: 2, display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+            <ul className="mt-4 flex flex-col gap-1 ps-4">
               {suggestion.reasons.map((r, i) => (
-                <Box component="li" key={`${i}-${r.slice(0, 12)}`} sx={{ display: 'flex', gap: 0.75, alignItems: 'flex-start' }}>
-                  <Icon icon="mdi:information-outline" style={{ width: 15, height: 15, color: '#6b7280', marginTop: 3, flexShrink: 0 }} />
-                  <Typography variant="body2" sx={{ color: 'text.secondary' }}>{r}</Typography>
-                </Box>
+                <li key={`${i}-${r.slice(0, 12)}`} className="flex list-none items-start gap-1.5">
+                  <Icon icon="mdi:information-outline" className="mt-0.5 h-[15px] w-[15px] shrink-0" style={{ color: '#6b7280' }} aria-hidden="true" />
+                  <span className="text-sm text-muted-foreground">{r}</span>
+                </li>
               ))}
-            </Box>
+            </ul>
 
             {suggestion.applies ? (
               <Button
-                variant="outlined"
+                variant="outline"
                 onClick={() => setRuleDraftOpen(true)}
                 data-testid="suggestion-apply"
-                sx={{ mt: 2, borderRadius: '10px', textTransform: 'none', fontWeight: 700 }}
-                startIcon={<Icon icon="mdi:tag-plus-outline" className="h-4 w-4" />}
+                className="mt-4 font-bold"
               >
+                <Icon icon="mdi:tag-plus-outline" className="h-4 w-4" aria-hidden="true" />
                 اعمال به‌عنوان قانون قیمت
               </Button>
             ) : (
-              <Typography variant="body2" data-testid="suggestion-no-action" sx={{ mt: 2, color: 'text.secondary', fontWeight: 600 }}>
+              <p data-testid="suggestion-no-action" className="mt-4 text-sm font-semibold text-muted-foreground">
                 برای این سانس تغییری توصیه نمی‌شود — یا داده کافی نیست یا پیشنهاد با قیمت موتور برابر شد.
-              </Typography>
+              </p>
             )}
-          </Box>
+          </div>
         )}
       </SectionCard>
 
@@ -369,7 +416,7 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
           })
         }}
       />
-    </Box>
+    </div>
   )
 }
 

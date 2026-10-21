@@ -3,7 +3,9 @@
 
 import React, { useState } from 'react'
 import { Icon } from '@iconify/react'
-import { Box, Avatar, Typography, IconButton, Tooltip } from '@mui/material'
+import { cn } from '@/lib/utils'
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 
 import type { Participant } from '@/types/game'
 import { PARTICIPANT_STATUS_LABELS } from '@/types/game'
@@ -30,6 +32,9 @@ const STATUS_COLORS: Record<string, string> = {
   left: '#64748b',
   removed: '#64748b',
 }
+
+const iconButtonClass =
+  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
 
 const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, canManage }) => {
   const toast = useToast()
@@ -63,84 +68,94 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
   }
 
   if (active.length === 0) {
-    return (
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', py: 1 }}>
-        هنوز بازیکنی به بازی نپیوسته است.
-      </Typography>
-    )
+    return <p className="py-2 text-[0.85rem] text-muted-foreground">هنوز بازیکنی به بازی نپیوسته است.</p>
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+    <div className="flex flex-col gap-1">
       {active.map((p) => {
         const isMe = me?.id === p.user_id
         return (
-          <Box
+          <div
             key={p.id}
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1.25,
-              px: 1.25,
-              py: 1,
-              borderRadius: '14px',
-              bgcolor: isMe ? 'rgba(37,99,235,0.05)' : 'transparent',
-              border: '1px solid rgba(15,23,42,0.05)',
-            }}
+            className={cn(
+              'flex items-center gap-2.5 rounded-[14px] border border-border px-2.5 py-2',
+              isMe ? 'bg-blue-600/[0.05] dark:bg-blue-400/[0.07]' : 'bg-transparent'
+            )}
           >
-            <Avatar sx={{ width: 34, height: 34, bgcolor: 'rgba(37,99,235,0.1)', color: '#2563eb', fontSize: '0.85rem', fontWeight: 800 }}>
-              {(p.full_name ?? '؟').trim().charAt(0)}
+            <Avatar className="h-[34px] w-[34px]">
+              <AvatarFallback className="bg-blue-600/10 text-[0.85rem] font-extrabold text-blue-600 dark:text-blue-300">
+                {(p.full_name ?? '؟').trim().charAt(0)}
+              </AvatarFallback>
             </Avatar>
-            <Box sx={{ minWidth: 0, flex: 1 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
-                <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }} noWrap>
+            <div className="min-w-0 flex-1">
+              <div className="flex min-w-0 items-center gap-1.5">
+                <p className="truncate text-[0.85rem] font-bold text-foreground">
                   {p.full_name ?? `کاربر ${p.user_id}`}
-                  {isMe && <span style={{ color: '#2563eb' }}> (شما)</span>}
-                </Typography>
+                  {isMe && <span className="text-blue-600 dark:text-blue-400"> (شما)</span>}
+                </p>
                 <RoleBadge role={p.role} />
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
-                <Typography sx={{ fontSize: '0.75rem', color: STATUS_COLORS[p.status] ?? '#64748b', fontWeight: 600 }}>
+              </div>
+              <div className="mt-0.5 flex items-center gap-2">
+                <span
+                  className="text-xs font-semibold"
+                  style={{ color: STATUS_COLORS[p.status] ?? '#64748b' }}
+                >
                   {PARTICIPANT_STATUS_LABELS[p.status as keyof typeof PARTICIPANT_STATUS_LABELS] ?? p.status}
-                </Typography>
+                </span>
                 {p.payment_status === 'paid' && (
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: 'success.main', fontSize: '0.75rem', fontWeight: 700 }}>
+                  <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
                     <Icon icon="mdi:check-circle" style={{ width: 13, height: 13 }} />
                     پرداخت‌شده
-                  </Box>
+                  </span>
                 )}
                 {p.payment_status === 'pending' && (
-                  <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 1, color: 'warning.main', fontSize: '0.75rem', fontWeight: 700 }}>
+                  <span className="inline-flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
                     <Icon icon="mdi:clock-outline" style={{ width: 13, height: 13 }} />
                     سهم پرداخت‌نشده
-                  </Box>
+                  </span>
                 )}
-              </Box>
-            </Box>
+              </div>
+            </div>
 
             {/* اقدامات مدیریتی */}
             {isOrganizer && p.role !== 'organizer' && p.status === 'accepted' && (
-              <Tooltip title={p.role === 'admin' ? 'برداشتن دسترسی ادمین' : 'منصوب کردن به ادمین'}>
-                <IconButton
-                  size="small"
-                  onClick={() => handleToggleAdmin(p)}
-                  disabled={setRole.isPending}
-                  aria-label={p.role === 'admin' ? `برداشتن ادمین از ${p.full_name ?? ''}` : `منصوب کردن ${p.full_name ?? ''} به ادمین`}
-                  aria-pressed={p.role === 'admin'}
-                  sx={{ color: p.role === 'admin' ? '#7c3aed' : '#2563eb' }}
-                >
-                  <Icon icon={p.role === 'admin' ? 'mdi:crown-cancel-outline' : 'mdi:crown-outline'} style={{ width: 18, height: 18 }} />
-                </IconButton>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => handleToggleAdmin(p)}
+                    disabled={setRole.isPending}
+                    aria-label={p.role === 'admin' ? `برداشتن ادمین از ${p.full_name ?? ''}` : `منصوب کردن ${p.full_name ?? ''} به ادمین`}
+                    aria-pressed={p.role === 'admin'}
+                    className={cn(
+                      iconButtonClass,
+                      'hover:bg-violet-600/10',
+                      p.role === 'admin' ? 'text-violet-600 dark:text-violet-400' : 'text-blue-600 dark:text-blue-400'
+                    )}
+                  >
+                    <Icon icon={p.role === 'admin' ? 'mdi:crown-cancel-outline' : 'mdi:crown-outline'} style={{ width: 18, height: 18 }} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>{p.role === 'admin' ? 'برداشتن دسترسی ادمین' : 'منصوب کردن به ادمین'}</TooltipContent>
               </Tooltip>
             )}
             {canManage && p.role !== 'organizer' && !isMe && (
-              <Tooltip title="حذف از بازی">
-                <IconButton size="small" onClick={() => setConfirmRemove(p)} aria-label={`حذف ${p.full_name ?? ''} از بازی`} sx={{ color: 'error.main' }}>
-                  <Icon icon="mdi:account-remove-outline" style={{ width: 18, height: 18 }} />
-                </IconButton>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <button
+                    type="button"
+                    onClick={() => setConfirmRemove(p)}
+                    aria-label={`حذف ${p.full_name ?? ''} از بازی`}
+                    className={cn(iconButtonClass, 'text-red-600 hover:bg-red-600/10 dark:text-red-400')}
+                  >
+                    <Icon icon="mdi:account-remove-outline" style={{ width: 18, height: 18 }} />
+                  </button>
+                </TooltipTrigger>
+                <TooltipContent>حذف از بازی</TooltipContent>
               </Tooltip>
             )}
-          </Box>
+          </div>
         )
       })}
 
@@ -154,7 +169,7 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
         loading={remove.isPending}
         onConfirm={handleRemove}
       />
-    </Box>
+    </div>
   )
 }
 

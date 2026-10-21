@@ -2,8 +2,9 @@
 // دیالوگ ثبت نتیجه بازی — انتخاب چندگانه برندگان از میان شرکت‌کننده‌های پذیرفته‌شده
 
 import React, { useMemo, useState } from 'react'
-import { Avatar, Box, Checkbox, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
+import { cn } from '@/lib/utils'
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar'
 
 import type { GameResultResponse, Participant } from '@/types/game'
 import { useSetGameResult } from '@/hooks/useGames'
@@ -56,71 +57,67 @@ const GameResultDialog: React.FC<Props> = ({ open, onClose, gameId, participants
 
   return (
     <Dialog open={open} onClose={handleClose} title="ثبت نتیجه بازی" maxWidth="sm">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, pt: 0.5 }}>
-        <Typography sx={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 1 }}>
+      <div className="flex flex-col gap-3 pt-1">
+        <p className="flex items-center gap-2 text-[0.78rem] text-muted-foreground">
           <Icon icon="mdi:information-outline" style={{ width: 16, height: 16, flexShrink: 0 }} />
           برندگان بازی را انتخاب کنید. به هر برنده امتیاز وفاداری اضافه می‌شود و وضعیت بازی «به پایان رسیده» ثبت خواهد شد.
-        </Typography>
+        </p>
 
         {accepted.length === 0 ? (
-          <Box sx={{ py: 3, textAlign: 'center', color: '#64748b', fontSize: '0.85rem' }}>
+          <div className="py-6 text-center text-[0.85rem] text-muted-foreground">
             شرکت‌کننده‌ی پذیرفته‌شده‌ای برای انتخاب وجود ندارد.
-          </Box>
+          </div>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5, maxHeight: 320, overflowY: 'auto' }}>
+          <div className="flex max-h-[320px] flex-col gap-1 overflow-y-auto">
             {accepted.map((p) => {
               const on = selected.includes(p.user_id)
               return (
-                <Box
+                <button
                   key={p.id}
-                  component="button"
                   type="button"
                   aria-pressed={on}
                   onClick={() => toggle(p.user_id)}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1,
-                    px: 1.25,
-                    py: 0.75,
-                    borderRadius: '12px',
-                    cursor: 'pointer',
-                    border: '1px solid',
-                    borderColor: on ? 'rgba(37,99,235,0.4)' : 'rgba(15,23,42,0.06)',
-                    bgcolor: on ? 'rgba(37,99,235,0.06)' : 'transparent',
-                    // Box به‌عنوان <button>: عرض کامل + بازتنظیم پیش‌فرض‌های مرورگر
-                    width: '100%',
-                    textAlign: 'inherit',
-                    fontFamily: 'inherit',
-                    color: 'inherit',
-                    appearance: 'none',
-                    WebkitTapHighlightColor: 'transparent',
+                  className={cn(
+                    'flex w-full cursor-pointer items-center gap-2 rounded-xl border px-2.5 py-1.5 text-start text-foreground transition-colors',
                     // ردیف در لیست اسکرول‌شونده: حلقه فوکوس داخل خود ردیف تا بریده نشود
-                    '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: -2 },
-                  }}
+                    'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-inset',
+                    on ? 'border-blue-600/40 bg-blue-600/[0.06]' : 'border-border bg-transparent'
+                  )}
                 >
                   {/* چک‌باکس فقط بصری است؛ کنترل اصلی همان ردیفِ دکمه است */}
-                  <Checkbox checked={on} size="small" disableRipple tabIndex={-1} aria-hidden="true" sx={{ p: 0.5, pointerEvents: 'none' }} />
-                  <Avatar sx={{ width: 30, height: 30, bgcolor: 'rgba(37,99,235,0.1)', color: '#2563eb', fontSize: '0.8rem', fontWeight: 800 }}>
-                    {(p.full_name ?? '؟').trim().charAt(0)}
+                  <span
+                    aria-hidden="true"
+                    className={cn(
+                      'flex h-5 w-5 shrink-0 items-center justify-center rounded-md border transition-colors',
+                      on ? 'border-blue-600 bg-blue-600 text-white' : 'border-input bg-card text-transparent'
+                    )}
+                  >
+                    <Icon icon="mdi:check" style={{ width: 13, height: 13 }} />
+                  </span>
+                  <Avatar className="h-[30px] w-[30px]">
+                    <AvatarFallback className="bg-blue-600/10 text-[0.8rem] font-extrabold text-blue-600 dark:text-blue-300">
+                      {(p.full_name ?? '؟').trim().charAt(0)}
+                    </AvatarFallback>
                   </Avatar>
-                  <Typography sx={{ flex: 1, minWidth: 0, fontWeight: 700, fontSize: '0.85rem', color: '#0f172a' }} noWrap>
+                  <span className="min-w-0 flex-1 truncate text-[0.85rem] font-bold">
                     {p.full_name ?? `کاربر ${p.user_id}`}
-                  </Typography>
+                  </span>
                   {on && <Icon icon="mdi:trophy" style={{ width: 18, height: 18, color: '#b45309' }} />}
-                </Box>
+                </button>
               )
             })}
-          </Box>
+          </div>
         )}
 
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end', pt: 0.5 }}>
-          <Button variant="outline" onClick={handleClose} disabled={setResult.isPending}>انصراف</Button>
+        <div className="flex justify-end gap-3 pt-1">
+          <Button variant="outline" onClick={handleClose} disabled={setResult.isPending}>
+            انصراف
+          </Button>
           <Button variant="gradient" icon="mdi:flag-checkered" loading={setResult.isPending} disabled={selected.length === 0} onClick={submit}>
             ثبت نتیجه
           </Button>
-        </Box>
-      </Box>
+        </div>
+      </div>
     </Dialog>
   )
 }

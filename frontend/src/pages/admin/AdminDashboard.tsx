@@ -2,27 +2,38 @@ import React, { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box, Typography, Grid, Paper, useTheme, Skeleton, Chip, Button, Avatar, Alert,
-  Table, TableBody, TableCell, TableContainer, TableHead, TableRow,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { adminService } from '@/services/admin'
 import type { UserStats, VenueStats, AdminUser } from '@/services/admin'
 import { formatDate, getInitials } from '@/lib/utils'
 import { toPersianDigits } from '@/lib/jalali'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
+import { cn } from '@/lib/utils'
 import toast from 'react-hot-toast'
 
-const roleConfig: Record<string, { label: string; color: 'default' | 'info' | 'secondary' | 'warning' | 'success' }> = {
-  user: { label: 'کاربر', color: 'default' },
-  venue_manager: { label: 'مدیر سالن', color: 'info' },
-  club_admin: { label: 'مدیر باشگاه', color: 'secondary' },
-  super_admin: { label: 'مدیر کل', color: 'warning' },
-  coach: { label: 'مربی', color: 'success' },
+const roleConfig: Record<string, { label: string; className: string }> = {
+  user: { label: 'کاربر', className: 'bg-muted text-muted-foreground' },
+  venue_manager: { label: 'مدیر سالن', className: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' },
+  club_admin: { label: 'مدیر باشگاه', className: 'bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300' },
+  super_admin: { label: 'مدیر کل', className: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300' },
+  coach: { label: 'مربی', className: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' },
 }
 
+const Card: React.FC<{ className?: string; children: React.ReactNode }> = ({ className, children }) => (
+  <div className={cn('rounded-2xl border border-border bg-card shadow-sm', className)}>{children}</div>
+)
+
 const AdminDashboard: React.FC = () => {
-  const theme = useTheme()
   const [userStats, setUserStats] = useState<UserStats | null>(null)
   const [venueStats, setVenueStats] = useState<VenueStats | null>(null)
   const [users, setUsers] = useState<AdminUser[]>([])
@@ -47,14 +58,13 @@ const AdminDashboard: React.FC = () => {
       setUserStats(uStats)
       setVenueStats(vStats)
       setUsers(allUsers || [])
-      
-      // Fetch pending managers separately with better error handling
+
+      // Endpoint may not exist or user lacks permission - silently ignore
       try {
         const pendingMgrs = await adminService.getPendingManagers()
         setPendingManagers(pendingMgrs || [])
       } catch (err) {
         console.warn('Failed to fetch pending managers:', err)
-        // Endpoint may not exist or user lacks permission - silently ignore
         setPendingManagers([])
       }
     } catch (mainErr) {
@@ -102,277 +112,236 @@ const AdminDashboard: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ mb: 4 }}>
-        <Typography component="h1" variant="h4" sx={{ fontWeight: 800, mb: 1 }}>
-          <Icon icon="mdi:crown" className="h-7 w-7 ml-2" style={{ verticalAlign: 'middle', color: theme.palette.primary.main }} />
+      <div className="mb-8">
+        <h1 className="mb-1 flex items-center gap-2 text-2xl font-extrabold md:text-3xl">
+          <Icon icon="mdi:crown" className="h-7 w-7 text-primary" aria-hidden="true" />
           پنل مدیریت
-        </Typography>
-        <Typography variant="body2" color="text.secondary">
-          نمای کلی کاربران و سالن‌های سیستم
-        </Typography>
-      </Box>
+        </h1>
+        <p className="text-sm text-muted-foreground">نمای کلی کاربران و سالن‌های سیستم</p>
+      </div>
 
       {error && (
-        <Alert
-          severity="error"
-          sx={{ mb: 3, borderRadius: 2 }}
-          action={
-            <Button color="inherit" size="small" onClick={fetchData}>
+        <Alert variant="destructive" className="mb-6">
+          <AlertDescription className="flex flex-1 items-center justify-between gap-3">
+            <span>{error}</span>
+            <button
+              type="button"
+              onClick={fetchData}
+              className="shrink-0 rounded-lg border border-red-300/60 px-3 py-1.5 text-xs font-semibold transition-colors hover:bg-red-500/10 dark:border-red-500/40"
+            >
               تلاش مجدد
-            </Button>
-          }
-        >
-          {error}
+            </button>
+          </AlertDescription>
         </Alert>
       )}
 
-      <Grid container spacing={2} sx={{ mb: 3 }}>
+      <div className="mb-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat, index) => (
-          <Grid size={{ xs: 6, md: 3 }} key={index}>
+          <div key={stat.label}>
             {loading ? (
-              <Skeleton aria-hidden="true" variant="rounded" height={120} sx={{ borderRadius: 2 }} />
+              <Skeleton aria-hidden="true" className="h-[120px] rounded-2xl" />
             ) : (
               <motion.div
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.4, delay: index * 0.08 }}
+                className="h-full"
               >
-                <Paper sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, height: '100%' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <Box>
-                      <Typography variant="body2" color="text.secondary" sx={{ mb: 0.5 }}>{stat.label}</Typography>
-                      <Typography variant="h4" sx={{ fontWeight: 800 }}>
-                        {stat.value == null ? '۰' : toPersianDigits(stat.value)}
-                      </Typography>
-                    </Box>
-                    <Box sx={{
-                      width: 48, height: 48, borderRadius: '14px',
-                      background: stat.gradient,
-                      display: 'flex', alignItems: 'center', justifyContent: 'center',
-                    }}>
-                      <Icon icon={stat.icon} className="h-6 w-6" style={{ color: 'white' }} />
-                    </Box>
-                  </Box>
-                </Paper>
+                <Card className="flex h-full items-center justify-between p-5">
+                  <div>
+                    <p className="mb-1 text-sm text-muted-foreground">{stat.label}</p>
+                    <p className="text-2xl font-extrabold tabular-nums md:text-3xl">
+                      {stat.value == null ? '۰' : toPersianDigits(stat.value)}
+                    </p>
+                  </div>
+                  <span
+                    className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[14px]"
+                    style={{ background: stat.gradient }}
+                  >
+                    <Icon icon={stat.icon} className="h-6 w-6 text-white" aria-hidden="true" />
+                  </span>
+                </Card>
               </motion.div>
             )}
-          </Grid>
+          </div>
         ))}
-      </Grid>
+      </div>
 
       {/* مدیران سالن در انتظار تایید */}
       {!loading && pendingManagers.length > 0 && (
-        <Paper sx={{ p: 2.5, borderRadius: 2, border: '1px solid rgba(245,158,11,0.35)', background: 'rgba(255,247,237,0.9)', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-            <Icon icon="mdi:account-clock-outline" className="h-5 w-5" style={{ color: '#d97706' }} />
-            <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-              مدیران سالن در انتظار تایید
-            </Typography>
-            <Chip label={toPersianDigits(pendingManagers.length)} size="small" color="warning" sx={{ borderRadius: '8px' }} />
-          </Box>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+        <Card className="mb-6 border-amber-200 bg-amber-50/70 p-5 dark:border-amber-500/30 dark:bg-amber-500/10">
+          <div className="mb-4 flex items-center gap-2">
+            <Icon icon="mdi:account-clock-outline" className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+            <h2 className="text-base font-bold">مدیران سالن در انتظار تایید</h2>
+            <span className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-700 tabular-nums dark:text-amber-300">
+              {toPersianDigits(pendingManagers.length)}
+            </span>
+          </div>
+          <div className="flex flex-col gap-3">
             {pendingManagers.map((m) => (
-              <Box
+              <div
                 key={m.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  gap: 2,
-                  flexWrap: 'wrap',
-                  p: 1.5,
-                  borderRadius: 2,
-                  background: 'rgba(255,255,255,0.85)',
-                  border: '1px solid rgba(245,158,11,0.2)',
-                }}
+                className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-amber-200/70 bg-card/85 p-3 dark:border-amber-500/20"
               >
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                  <Avatar sx={{ width: 34, height: 34, fontSize: '0.85rem', bgcolor: 'warning.main' }}>
-                    {getInitials(m.full_name)}
+                <div className="flex min-w-0 items-center gap-3">
+                  <Avatar className="h-9 w-9">
+                    <AvatarFallback className="bg-amber-500 text-xs text-white">
+                      {getInitials(m.full_name)}
+                    </AvatarFallback>
                   </Avatar>
-                  <Box>
-                    <Typography variant="body2" sx={{ fontWeight: 700 }}>{m.full_name}</Typography>
-                    <Typography variant="caption" color="text.secondary" dir="ltr" sx={{ fontFamily: 'monospace', display: 'block' }}>
+                  <div className="min-w-0">
+                    <p className="truncate text-sm font-bold">{m.full_name}</p>
+                    <p className="block font-mono text-xs text-muted-foreground" dir="ltr">
                       {m.phone} • {formatDate(m.created_at)}
-                    </Typography>
-                  </Box>
-                </Box>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    size="small"
-                    variant="contained"
+                    </p>
+                  </div>
+                </div>
+                <div className="flex gap-2">
+                  <button
+                    type="button"
                     disabled={actingId === m.id}
                     onClick={() => handleApprove(m.id)}
-                    sx={{
-                      borderRadius: 1,
-                      textTransform: 'none',
-                      fontWeight: 600,
-                      bgcolor: '#16a34a',
-                      '&:hover': { bgcolor: '#15803d' },
-                    }}
+                    className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-sm font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                   >
-                    <Icon icon="mdi:check" className="h-4 w-4 ml-1" />
+                    <Icon icon="mdi:check" className="h-4 w-4" aria-hidden="true" />
                     تایید
-                  </Button>
-                  <Button
-                    size="small"
-                    variant="outlined"
-                    color="error"
+                  </button>
+                  <button
+                    type="button"
                     disabled={actingId === m.id}
                     onClick={() => handleReject(m.id)}
-                    sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600 }}
+                    className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-destructive/50 px-3 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
                   >
-                    <Icon icon="mdi:close" className="h-4 w-4 ml-1" />
+                    <Icon icon="mdi:close" className="h-4 w-4" aria-hidden="true" />
                     رد
-                  </Button>
-                </Box>
-              </Box>
+                  </button>
+                </div>
+              </div>
             ))}
-          </Box>
-        </Paper>
+          </div>
+        </Card>
       )}
 
-      <Grid container spacing={2}>
-        <Grid size={{ xs: 12, md: 8 }}>
-          <Paper sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, height: '100%' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                <Icon icon="mdi:account-clock-outline" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
-                <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                  آخرین کاربران
-                </Typography>
-              </Box>
-              <Button
-                component={Link}
-                to="/admin/users"
-                size="small"
-                sx={{ textTransform: 'none', fontWeight: 600, color: 'primary.main' }}
-              >
-                مشاهده همه
-              </Button>
-            </Box>
-            {loading ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                {[1, 2, 3, 4, 5].map((i) => (
-                  <Skeleton aria-hidden="true" key={i} variant="rounded" height={48} />
+      <div className="grid gap-4 lg:grid-cols-3">
+        <Card className="p-5 lg:col-span-2">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2">
+              <Icon icon="mdi:account-clock-outline" className="h-[18px] w-[18px] text-primary" aria-hidden="true" />
+              <h2 className="text-base font-bold">آخرین کاربران</h2>
+            </div>
+            <Link to="/admin/users" className="text-sm font-semibold text-primary hover:underline">
+              مشاهده همه
+            </Link>
+          </div>
+          {loading ? (
+            <div className="flex flex-col gap-2">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <Skeleton aria-hidden="true" key={i} className="h-12 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <Table aria-label="کاربران اخیر">
+              <TableHeader>
+                <TableRow>
+                  <TableHead scope="col">کاربر</TableHead>
+                  <TableHead scope="col">شماره موبایل</TableHead>
+                  <TableHead scope="col">نقش</TableHead>
+                  <TableHead scope="col">تاریخ ثبت‌نام</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {recentUsers.map((user) => (
+                  <TableRow key={user.id}>
+                    <TableCell>
+                      <div className="flex items-center gap-2">
+                        <Avatar className="h-8 w-8">
+                          <AvatarFallback className="bg-primary text-[11px] text-white">
+                            {getInitials(user.full_name)}
+                          </AvatarFallback>
+                        </Avatar>
+                        <span className="text-sm font-semibold">{user.full_name}</span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <span className="font-mono text-sm" dir="ltr">{user.phone}</span>
+                    </TableCell>
+                    <TableCell>
+                      <span
+                        className={cn(
+                          'inline-flex rounded-lg px-2 py-0.5 text-xs font-semibold',
+                          roleConfig[user.role]?.className || 'bg-muted text-muted-foreground'
+                        )}
+                      >
+                        {roleConfig[user.role]?.label || user.role}
+                      </span>
+                    </TableCell>
+                    <TableCell>
+                      <span className="text-sm text-muted-foreground">{formatDate(user.created_at)}</span>
+                    </TableCell>
+                  </TableRow>
                 ))}
-              </Box>
-            ) : (
-              <TableContainer>
-                <Table aria-label="کاربران اخیر" size="small">
-                  <TableHead>
-                    <TableRow>
-                      <TableCell scope="col">کاربر</TableCell>
-                      <TableCell scope="col">شماره موبایل</TableCell>
-                      <TableCell scope="col">نقش</TableCell>
-                      <TableCell scope="col">تاریخ ثبت‌نام</TableCell>
-                    </TableRow>
-                  </TableHead>
-                  <TableBody>
-                    {recentUsers.map((user) => (
-                      <TableRow key={user.id} hover>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Avatar sx={{ width: 30, height: 30, fontSize: '0.8rem', bgcolor: 'primary.main' }}>
-                              {getInitials(user.full_name)}
-                            </Avatar>
-                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{user.full_name}</Typography>
-                          </Box>
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" dir="ltr" sx={{ fontFamily: 'monospace' }}>{user.phone}</Typography>
-                        </TableCell>
-                        <TableCell>
-                          <Chip
-                            label={roleConfig[user.role]?.label || user.role}
-                            color={roleConfig[user.role]?.color || 'default'}
-                            size="small"
-                            sx={{ borderRadius: '8px' }}
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Typography variant="body2" color="text.secondary">{formatDate(user.created_at)}</Typography>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                    {recentUsers.length === 0 && (
-                      <TableRow>
-                        <TableCell colSpan={4}>
-                          <Typography variant="body2" color="text.secondary" sx={{ textAlign: 'center', py: 3 }}>
-                            کاربری یافت نشد
-                          </Typography>
-                        </TableCell>
-                      </TableRow>
-                    )}
-                  </TableBody>
-                </Table>
-              </TableContainer>
-            )}
-          </Paper>
-        </Grid>
+                {recentUsers.length === 0 && (
+                  <TableRow>
+                    <TableCell colSpan={4}>
+                      <p className="py-6 text-center text-sm text-muted-foreground">کاربری یافت نشد</p>
+                    </TableCell>
+                  </TableRow>
+                )}
+              </TableBody>
+            </Table>
+          )}
+        </Card>
 
-        <Grid size={{ xs: 12, md: 4 }}>
-          <Paper sx={{ p: 2.5, borderRadius: 2, border: `1px solid ${theme.palette.divider}`, height: '100%' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2 }}>
-              <Icon icon="mdi:chart-donut" className="h-4.5 w-4.5" style={{ color: theme.palette.primary.main }} />
-              <Typography variant="subtitle1" sx={{ fontWeight: 700 }}>
-                کاربران بر اساس نقش
-              </Typography>
-            </Box>
-            {loading ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {[1, 2, 3, 4].map((i) => (
-                  <Skeleton aria-hidden="true" key={i} variant="rounded" height={36} />
-                ))}
-              </Box>
-            ) : (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-                {Object.entries(userStats?.by_role || {}).map(([role, count]) => (
-                  <Box key={role}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                        {roleConfig[role]?.label || role}
-                      </Typography>
-                      <Typography variant="body2" color="text.secondary">{count}</Typography>
-                    </Box>
-                    <Box sx={{ height: 6, borderRadius: 3, bgcolor: 'rgba(0,0,0,0.05)' }}>
-                      <Box sx={{
-                        height: '100%', borderRadius: 3,
+        <Card className="flex flex-col p-5">
+          <div className="mb-4 flex items-center gap-2">
+            <Icon icon="mdi:chart-donut" className="h-[18px] w-[18px] text-primary" aria-hidden="true" />
+            <h2 className="text-base font-bold">کاربران بر اساس نقش</h2>
+          </div>
+          {loading ? (
+            <div className="flex flex-col gap-3">
+              {[1, 2, 3, 4].map((i) => (
+                <Skeleton aria-hidden="true" key={i} className="h-9 rounded-xl" />
+              ))}
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {Object.entries(userStats?.by_role || {}).map(([role, count]) => (
+                <div key={role}>
+                  <div className="mb-1 flex justify-between">
+                    <span className="text-sm font-semibold">{roleConfig[role]?.label || role}</span>
+                    <span className="text-sm text-muted-foreground tabular-nums">{count}</span>
+                  </div>
+                  <div className="h-1.5 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full"
+                      style={{
                         width: `${userStats?.total_users ? Math.max(4, (count / userStats.total_users) * 100) : 0}%`,
                         background: 'linear-gradient(90deg, #2563eb, #7c3aed)',
-                      }} />
-                    </Box>
-                  </Box>
-                ))}
-              </Box>
-            )}
-            <Box sx={{ mt: 3, pt: 2, borderTop: `1px solid ${theme.palette.divider}`, display: 'flex', gap: 1.5 }}>
-              <Button
-                component={Link}
-                to="/admin/users"
-                variant="outlined"
-                fullWidth
-                size="small"
-                startIcon={<Icon icon="mdi:account-group" />}
-                sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600 }}
-              >
-                کاربران
-              </Button>
-              <Button
-                component={Link}
-                to="/admin/venues"
-                variant="outlined"
-                fullWidth
-                size="small"
-                startIcon={<Icon icon="mdi:stadium" />}
-                sx={{ borderRadius: 1, textTransform: 'none', fontWeight: 600 }}
-              >
-                سالن‌ها
-              </Button>
-            </Box>
-          </Paper>
-        </Grid>
-      </Grid>
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+          <div className="mt-6 flex gap-3 border-t border-border pt-4">
+            <Link
+              to="/admin/users"
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-border text-sm font-semibold transition-colors hover:bg-muted"
+            >
+              <Icon icon="mdi:account-group" className="h-4 w-4" aria-hidden="true" />
+              کاربران
+            </Link>
+            <Link
+              to="/admin/venues"
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-border text-sm font-semibold transition-colors hover:bg-muted"
+            >
+              <Icon icon="mdi:stadium" className="h-4 w-4" aria-hidden="true" />
+              سالن‌ها
+            </Link>
+          </div>
+        </Card>
+      </div>
     </Layout>
   )
 }

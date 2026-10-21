@@ -4,23 +4,12 @@
 import React, { useMemo, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Typography,
-  Grid,
-  Tab,
-  Tabs,
-  ToggleButton,
-  ToggleButtonGroup,
-  TextField,
-  MenuItem,
-  Avatar,
-  Chip,
-} from '@mui/material'
 
 import Layout from '@/components/layout/Layout'
 import { EmptyState, ErrorState, Shimmer, SPORTS } from '@/components/mobile'
 import { Button } from '@/components/ui/Button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/shadcn/select'
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
 import { GameCard, getGameError } from '@/components/game'
 import {
   useAcceptInvitation,
@@ -34,6 +23,7 @@ import { useAuthStore } from '@/store/authStore'
 import type { ExploreParams, GameSort, SkillLevel } from '@/types/game'
 import { GAME_SORT_LABELS, SKILL_LEVEL_LABELS } from '@/types/game'
 import { formatPersianDateTime } from '@/utils/helpers'
+import { cn } from '@/lib/utils'
 
 const PAGE_SIZE = 12
 
@@ -87,17 +77,25 @@ const GamesExplore: React.FC = () => {
   const items = data?.items ?? []
   const total = data?.total ?? 0
 
+  const chipClass = (active: boolean) =>
+    cn(
+      'inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-4 text-[0.85rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+      active
+        ? 'border-blue-600/35 bg-blue-600/10 text-blue-600 dark:text-blue-400'
+        : 'border-border text-slate-600 hover:bg-muted dark:text-slate-300',
+    )
+
   return (
     <Layout>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: 1.5, mb: 2 }}>
-        <Box>
-          <Typography component="h1" sx={{ fontWeight: 900, fontSize: { xs: '1.35rem', md: '1.6rem' }, color: '#0f172a' }}>
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+        <div>
+          <h1 className="text-[1.35rem] font-black text-foreground md:text-[1.6rem]">
             🎮 بازی‌های گروهی
-          </Typography>
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 0.5 }}>
+          </h1>
+          <p className="mt-1 text-[0.85rem] text-muted-foreground">
             به بازی‌های باز دیگران بپیوند یا روی رزرو خودت بازی بساز.
-          </Typography>
-        </Box>
+          </p>
+        </div>
         {isAuthenticated && (
           <Button
             variant="gradient"
@@ -107,134 +105,99 @@ const GamesExplore: React.FC = () => {
             ساخت بازی
           </Button>
         )}
-      </Box>
+      </div>
 
-      <Tabs
-        value={tab}
-        onChange={(_, v) => setTab(v)}
-        sx={{
-          mb: 2.5,
-          minHeight: 48,
-          '& .MuiTab-root': {
-            fontWeight: 700,
-            textTransform: 'none',
-            minHeight: 48,
-            py: 1.5,
-            fontSize: '0.9rem',
-          },
-        }}
-      >
-        <Tab label="کشف بازی‌ها" aria-label="تب کشف بازی‌ها" />
-        <Tab label="بازی‌های من" aria-label="تب بازی‌های من" />
-        <Tab label={`دعوت‌نامه‌ها${myInvitations.data?.length ? ` (${myInvitations.data.length})` : ''}`} aria-label="تب دعوت‌نامه‌ها" />
-      </Tabs>
+      <Tabs value={String(tab)} onValueChange={(v) => setTab(Number(v))} className="mb-5">
+        <TabsList className="h-12 w-full justify-start overflow-x-auto">
+          <TabsTrigger value="0" aria-label="تب کشف بازی‌ها" className="h-11 px-4 text-[0.9rem]">کشف بازی‌ها</TabsTrigger>
+          <TabsTrigger value="1" aria-label="تب بازی‌های من" className="h-11 px-4 text-[0.9rem]">بازی‌های من</TabsTrigger>
+          <TabsTrigger value="2" aria-label="تب دعوت‌نامه‌ها" className="h-11 px-4 text-[0.9rem]">
+            {`دعوت‌نامه‌ها${myInvitations.data?.length ? ` (${myInvitations.data.length})` : ''}`}
+          </TabsTrigger>
+        </TabsList>
 
-      {/* ─────────── تب کشف ─────────── */}
-      {tab === 0 && (
-        <>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 2.5 }}>
-            <ToggleButtonGroup
-              size="medium"
-              exclusive
-              value={sport}
-              onChange={(_, v) => { if (v !== null) { setSport(v); setLimit(PAGE_SIZE) } }}
-              sx={{
-                borderRadius: '999px',
-                /* موبایل: گزینه‌ها زیادند و ردیف nowrap سند را تا ۷۲۰px باز می‌کرد؛
-                   wrap باعث می‌شود عرض سند هرگز از viewport نگذرد */
-                flexWrap: 'wrap',
-                rowGap: 1,
-                '& .MuiToggleButton-root': {
-                  border: '1px solid rgba(15,23,42,0.08)',
-                  borderRadius: '999px !important',
-                  px: 2,
-                  py: 1,
-                  minHeight: 44, // Minimum touch target size
-                  minWidth: 44, // Minimum touch target width
-                  fontSize: '0.85rem',
-                  fontWeight: 600,
-                  color: '#475569',
-                  textTransform: 'none',
-                  gap: 0.5,
-                  '&.Mui-selected': {
-                    bgcolor: 'rgba(37,99,235,0.08)',
-                    color: '#2563eb',
-                    borderColor: 'rgba(37,99,235,0.35)',
-                    '&:hover': { bgcolor: 'rgba(37,99,235,0.12)' },
-                  },
-                },
-              }}
+        {/* ─────────── تب کشف ─────────── */}
+        <TabsContent value="0">
+          <div className="mb-5 flex flex-wrap items-center gap-2">
+            <button
+              type="button"
+              aria-label="نمایش همه ورزش‌ها"
+              aria-pressed={sport === ''}
+              onClick={() => { setSport(''); setLimit(PAGE_SIZE) }}
+              className={chipClass(sport === '')}
             >
-              <ToggleButton value="" aria-label="نمایش همه ورزش‌ها">همه</ToggleButton>
-              {SPORTS.map((s) => (
-                <ToggleButton key={s.key} value={s.key} aria-label={`فیلتر ${s.label}`}>
-                  <Box component="span" sx={{ me: 0.5 }} aria-hidden="true">{s.emoji}</Box>
-                  {s.label}
-                </ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          </Box>
+              همه
+            </button>
+            {SPORTS.map((s) => (
+              <button
+                key={s.key}
+                type="button"
+                aria-label={`فیلتر ${s.label}`}
+                aria-pressed={sport === s.key}
+                onClick={() => { setSport(s.key); setLimit(PAGE_SIZE) }}
+                className={chipClass(sport === s.key)}
+              >
+                <span className="me-1" aria-hidden="true">{s.emoji}</span>
+                {s.label}
+              </button>
+            ))}
+          </div>
 
-          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', mb: 3 }}>
-            <TextField
-              select
-              size="medium"
-              label="مرتب‌سازی"
-              value={sort}
-              onChange={(e) => handleSortChange(e.target.value as GameSort)}
-              sx={{
-                minWidth: 180,
-                '& .MuiInputBase-root': { minHeight: 44 },
-              }}
-            >
-              {(Object.keys(GAME_SORT_LABELS) as GameSort[]).map((s) => (
-                <MenuItem key={s} value={s} sx={{ minHeight: 44 }}>{GAME_SORT_LABELS[s]}</MenuItem>
-              ))}
-            </TextField>
-            <TextField
-              select
-              size="medium"
-              label="سطح بازی"
-              value={skill}
-              onChange={(e) => { setSkill(e.target.value as SkillLevel | ''); setLimit(PAGE_SIZE) }}
-              sx={{
-                minWidth: 160,
-                '& .MuiInputBase-root': { minHeight: 44 },
-              }}
-            >
-              <MenuItem value="" sx={{ minHeight: 44 }}>همه</MenuItem>
-              {(Object.keys(SKILL_LEVEL_LABELS) as SkillLevel[]).map((s) => (
-                <MenuItem key={s} value={s} sx={{ minHeight: 44 }}>{SKILL_LEVEL_LABELS[s]}</MenuItem>
-              ))}
-            </TextField>
-            {/* خودِ Chip کنترل است (کلیک + کیبورد) — wrapper با role=button قبلاً دو بار toggle می‌کرد */}
-            <Chip
-              icon={<Icon icon={availabilityOnly ? 'mdi:check-circle' : 'mdi:circle-outline'} style={{ width: 18, height: 18 }} />}
-              label="فقط جای خالی دارد"
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">مرتب‌سازی</span>
+              <Select value={sort} onValueChange={(v) => handleSortChange(v as GameSort)}>
+                <SelectTrigger aria-label="مرتب‌سازی" className="min-h-11 min-w-[180px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {(Object.keys(GAME_SORT_LABELS) as GameSort[]).map((s) => (
+                    <SelectItem key={s} value={s} className="min-h-11">{GAME_SORT_LABELS[s]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold text-muted-foreground">سطح بازی</span>
+              <Select
+                value={skill || 'all'}
+                onValueChange={(v) => { setSkill(v === 'all' ? '' : (v as SkillLevel)); setLimit(PAGE_SIZE) }}
+              >
+                <SelectTrigger aria-label="سطح بازی" className="min-h-11 min-w-[160px]">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all" className="min-h-11">همه</SelectItem>
+                  {(Object.keys(SKILL_LEVEL_LABELS) as SkillLevel[]).map((s) => (
+                    <SelectItem key={s} value={s} className="min-h-11">{SKILL_LEVEL_LABELS[s]}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            {/* خودِ دکمه کنترل است (کلیک + کیبورد) — wrapper با role=button قبلاً دو بار toggle می‌کرد */}
+            <button
+              type="button"
               aria-pressed={availabilityOnly}
               aria-label={availabilityOnly ? 'نمایش همه بازی‌ها' : 'فیلتر بازی‌های دارای ظرفیت'}
               onClick={() => { setAvailabilityOnly((v) => !v); setLimit(PAGE_SIZE) }}
-              color={availabilityOnly ? 'primary' : 'default'}
-              variant={availabilityOnly ? 'filled' : 'outlined'}
-              sx={{
-                borderRadius: '999px',
-                fontWeight: 600,
-                fontSize: '0.8rem',
-                px: 0.5,
-                minHeight: 44,
-                '& .MuiChip-label': { px: 1.5 },
-              }}
-            />
-          </Box>
+              className={cn(
+                'inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-[0.8rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                availabilityOnly
+                  ? 'bg-blue-600/15 text-blue-700 dark:text-blue-300'
+                  : 'border border-border text-slate-600 hover:bg-muted dark:text-slate-300',
+              )}
+            >
+              <Icon icon={availabilityOnly ? 'mdi:check-circle' : 'mdi:circle-outline'} className="h-[18px] w-[18px]" aria-hidden="true" />
+              فقط جای خالی دارد
+            </button>
+          </div>
 
           {isLoading ? (
-            <Grid container spacing={2.5}>
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4].map((i) => (
-                <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={i}>
-                  <Shimmer variant="rounded" sx={{ height: 210 }} />
-                </Grid>
+                <Shimmer key={i} height={210} />
               ))}
-            </Grid>
+            </div>
           ) : isError ? (
             <ErrorState description="دریافت بازی‌ها ممکن نشد." onRetry={() => refetch()} />
           ) : items.length === 0 ? (
@@ -245,158 +208,135 @@ const GamesExplore: React.FC = () => {
             />
           ) : (
             <>
-              <Grid container spacing={2.5}>
+              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((game) => (
-                  <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={game.id}>
+                  <div key={game.id}>
                     <GameCard game={game} />
-                  </Grid>
+                  </div>
                 ))}
-              </Grid>
+              </div>
               {items.length < total && (
-                <Box sx={{ display: 'flex', justifyContent: 'center', mt: 3 }}>
+                <div className="mt-6 flex justify-center">
                   <Button
                     variant="outline"
                     onClick={() => setLimit((l) => l + PAGE_SIZE)}
                   >
                     نمایش بیشتر
                   </Button>
-                </Box>
+                </div>
               )}
             </>
           )}
-        </>
-      )}
+        </TabsContent>
 
-      {/* ─────────── تب بازی‌های من ─────────── */}
-      {tab === 1 && (
-        !isAuthenticated ? (
-          <EmptyState
-            emoji="🔐"
-            title="وارد شوید"
-            description="برای دیدن بازی‌های خود وارد حساب کاربری شوید."
-            actionLabel="ورود"
-            onAction={() => navigate('/login')}
-          />
-        ) : myGames.isLoading ? (
-          <Grid container spacing={2.5}>
-            {[1, 2].map((i) => (
-              <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={i}>
-                <Shimmer variant="rounded" sx={{ height: 210 }} />
-              </Grid>
-            ))}
-          </Grid>
-        ) : (myGames.data?.length ?? 0) === 0 ? (
-          <EmptyState
-            emoji="📭"
-            title="هنوز بازی‌ای ندارید"
-            description="روی رزروهای تأییدشده خود بازی گروهی بسازید."
-            actionLabel="ساخت بازی"
-            onAction={() => navigate('/games/new')}
-          />
-        ) : (
-          <Grid container spacing={2.5}>
-            {myGames.data!.map((game) => (
-              <Grid size={{ xs: 12, sm: 6, lg: 4 }} key={game.id}>
-                <GameCard game={game} />
-              </Grid>
-            ))}
-          </Grid>
-        )
-      )}
+        {/* ─────────── تب بازی‌های من ─────────── */}
+        <TabsContent value="1">
+          {!isAuthenticated ? (
+            <EmptyState
+              emoji="🔐"
+              title="وارد شوید"
+              description="برای دیدن بازی‌های خود وارد حساب کاربری شوید."
+              actionLabel="ورود"
+              onAction={() => navigate('/login')}
+            />
+          ) : myGames.isLoading ? (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {[1, 2].map((i) => (
+                <Shimmer key={i} height={210} />
+              ))}
+            </div>
+          ) : (myGames.data?.length ?? 0) === 0 ? (
+            <EmptyState
+              emoji="📭"
+              title="هنوز بازی‌ای ندارید"
+              description="روی رزروهای تأییدشده خود بازی گروهی بسازید."
+              actionLabel="ساخت بازی"
+              onAction={() => navigate('/games/new')}
+            />
+          ) : (
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              {myGames.data!.map((game) => (
+                <div key={game.id}>
+                  <GameCard game={game} />
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
 
-      {/* ─────────── تب دعوت‌نامه‌ها ─────────── */}
-      {tab === 2 && (
-        !isAuthenticated ? (
-          <EmptyState
-            emoji="🔐"
-            title="وارد شوید"
-            description="برای دیدن دعوت‌نامه‌های خود وارد حساب کاربری شوید."
-            actionLabel="ورود"
-            onAction={() => navigate('/login')}
-          />
-        ) : myInvitations.isLoading ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {[1, 2].map((i) => <Shimmer key={i} variant="rounded" sx={{ height: 74 }} />)}
-          </Box>
-        ) : (myInvitations.data?.length ?? 0) === 0 ? (
-          <EmptyState emoji="✉️" title="دعوت‌نامه‌ای ندارید" description="وقتی کسی شما را به بازی دعوت کند، اینجا نمایش داده می‌شود." />
-        ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            {myInvitations.data!.map((inv) => (
-              <Box
-                key={inv.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1.5,
-                  px: 2,
-                  py: 1.75,
-                  borderRadius: '18px',
-                  border: '1px solid rgba(15,23,42,0.07)',
-                  bgcolor: 'white',
-                  boxShadow: '0 1px 3px rgba(15,23,42,0.05)',
-                  flexWrap: 'wrap',
-                }}
-              >
-                <Avatar sx={{ width: 40, height: 40, bgcolor: 'rgba(37,99,235,0.1)', color: '#2563eb' }}>
-                  <Icon icon="mdi:email-outline" style={{ width: 20, height: 20 }} />
-                </Avatar>
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Typography
-                    component={Link}
-                    to={`/games/${inv.game_id}`}
-                    sx={{
-                      fontSize: '0.9rem',
-                      fontWeight: 700,
-                      color: '#0f172a',
-                      cursor: 'pointer',
-                      textDecoration: 'none',
-                      '&:hover': { color: '#2563eb' },
-                      '&:focus-visible': { outline: '3px solid #f59e0b', outlineOffset: 2 },
-                    }}
-                    noWrap
-                  >
-                    {inv.game_name || `بازی #${inv.game_id.toLocaleString('fa-IR')}`}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
-                    {`دعوت در: ${formatPersianDateTime(inv.created_at)}${inv.expires_at ? ` - اعتبار تا: ${formatPersianDateTime(inv.expires_at)}` : ''}`}
-                  </Typography>
-                </Box>
-                <Box sx={{ display: 'flex', gap: 1 }}>
-                  <Button
-                    size="sm"
-                    variant="gradient"
-                    loading={acceptInv.isPending}
-                    onClick={() =>
-                      acceptInv.mutate(inv.id, {
-                        onSuccess: ({ message }) => toast.success(message),
-                        onError: (err) => toast.error(getGameError(err)),
-                      })
-                    }
-                    className="min-h-[44px] px-4"
-                  >
-                    پذیرفتن
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    disabled={rejectInv.isPending}
-                    onClick={() =>
-                      rejectInv.mutate(inv.id, {
-                        onSuccess: () => toast.info('دعوت رد شد'),
-                        onError: (err) => toast.error(getGameError(err)),
-                      })
-                    }
-                    className="min-h-[44px] px-4"
-                  >
-                    رد
-                  </Button>
-                </Box>
-              </Box>
-            ))}
-          </Box>
-        )
-      )}
+        {/* ─────────── تب دعوت‌نامه‌ها ─────────── */}
+        <TabsContent value="2">
+          {!isAuthenticated ? (
+            <EmptyState
+              emoji="🔐"
+              title="وارد شوید"
+              description="برای دیدن دعوت‌نامه‌های خود وارد حساب کاربری شوید."
+              actionLabel="ورود"
+              onAction={() => navigate('/login')}
+            />
+          ) : myInvitations.isLoading ? (
+            <div className="flex flex-col gap-3">
+              {[1, 2].map((i) => <Shimmer key={i} height={74} />)}
+            </div>
+          ) : (myInvitations.data?.length ?? 0) === 0 ? (
+            <EmptyState emoji="✉️" title="دعوت‌نامه‌ای ندارید" description="وقتی کسی شما را به بازی دعوت کند، اینجا نمایش داده می‌شود." />
+          ) : (
+            <div className="flex flex-col gap-3">
+              {myInvitations.data!.map((inv) => (
+                <div
+                  key={inv.id}
+                  className="flex flex-wrap items-center gap-3 rounded-[18px] border border-border bg-card px-4 py-3.5 shadow-sm"
+                >
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600/10 text-blue-600 dark:text-blue-400" aria-hidden="true">
+                    <Icon icon="mdi:email-outline" className="h-5 w-5" />
+                  </span>
+                  <div className="min-w-0 flex-1">
+                    <Link
+                      to={`/games/${inv.game_id}`}
+                      className="block truncate text-[0.9rem] font-bold text-foreground transition-colors hover:text-blue-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-blue-400"
+                    >
+                      {inv.game_name || `بازی #${inv.game_id.toLocaleString('fa-IR')}`}
+                    </Link>
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      {`دعوت در: ${formatPersianDateTime(inv.created_at)}${inv.expires_at ? ` - اعتبار تا: ${formatPersianDateTime(inv.expires_at)}` : ''}`}
+                    </p>
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="gradient"
+                      loading={acceptInv.isPending}
+                      onClick={() =>
+                        acceptInv.mutate(inv.id, {
+                          onSuccess: ({ message }) => toast.success(message),
+                          onError: (err) => toast.error(getGameError(err)),
+                        })
+                      }
+                      className="min-h-[44px] px-4"
+                    >
+                      پذیرفتن
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      disabled={rejectInv.isPending}
+                      onClick={() =>
+                        rejectInv.mutate(inv.id, {
+                          onSuccess: () => toast.info('دعوت رد شد'),
+                          onError: (err) => toast.error(getGameError(err)),
+                        })
+                      }
+                      className="min-h-[44px] px-4"
+                    >
+                      رد
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </TabsContent>
+      </Tabs>
     </Layout>
   )
 }

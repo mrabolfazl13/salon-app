@@ -5,19 +5,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Card,
-  CardContent,
-  Typography,
-  Box,
-  Chip,
-  Grid,
-  Button,
-  Avatar,
-  Alert,
-  useTheme,
-} from '@mui/material'
-import { formatDate } from '@/lib/utils'
+import { cn, formatDate } from '@/lib/utils'
 import { statusColorToken } from '@/components/finance/shared'
 import {
   contractStatusMeta,
@@ -27,6 +15,8 @@ import {
   pyDayNames,
   RECURRENCE_LABELS,
 } from '@/components/contract/shared'
+import { Button } from '@/components/ui/shadcn/button'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
 import type { ContractData } from '@/services/contract'
 
 interface ContractListProps {
@@ -35,172 +25,158 @@ interface ContractListProps {
   onView?: (id: number) => void
 }
 
-const ContractList: React.FC<ContractListProps> = ({ contracts, venueNames, onView }) => {
-  const theme = useTheme()
-  // رنگ متن چیپ از توکن سمانتیک می‌آید (هگزهای کنفیگ ≈۳٫۲–۳٫۸:۱ برای متن رد می‌شوند)
-  const chipText = (hex: string) => {
-    const token = statusColorToken(hex)
-    return token ? theme.palette[token].main : hex
+/**
+ * رنگ متن چیپ از توکن سمانتیک می‌آید (هگزهای کنفیگ ≈۳٫۲–۳٫۸:۱ برای متن رد می‌شوند)؛
+ * توکن‌های سمانتیک به کلاس‌های Tailwind (با نسخه‌ی دارک) و هگزهای بدون معادل به استایل درجا نگاشت می‌شوند.
+ */
+const chipTone = (hex: string): { className?: string; style?: React.CSSProperties } => {
+  const token = statusColorToken(hex)
+  switch (token) {
+    case 'success':
+      return { className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' }
+    case 'warning':
+      return { className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' }
+    case 'error':
+      return { className: 'bg-red-500/15 text-red-700 dark:text-red-300' }
+    case 'info':
+      return { className: 'bg-blue-500/15 text-blue-700 dark:text-blue-300' }
+    default:
+      return { style: { backgroundColor: `${hex}1f`, color: hex } }
   }
+}
+
+const ContractList: React.FC<ContractListProps> = ({ contracts, venueNames, onView }) => {
   return (
-    <Grid container spacing={3}>
+    <div className="grid grid-cols-1 gap-6">
       {contracts.map((contract, index) => {
         const meta = contractStatusMeta(contract.status)
         const payMeta = paymentStatusMeta(contract.payment_status)
+        const statusTone = chipTone(meta.color)
+        const payTone = chipTone(payMeta.color)
         return (
-          <Grid size={{ xs: 12 }} key={contract.id}>
+          <div key={contract.id}>
             <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: index * 0.05 }}
             >
-              <Card
-                sx={{
-                  borderRadius: '16px',
-                  transition: 'all 0.3s',
-                  '&:hover': { boxShadow: '0 8px 40px rgba(0,0,0,0.08)' },
-                }}
-              >
-                <CardContent>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      flexDirection: { xs: 'column', sm: 'row' },
-                      justifyContent: 'space-between',
-                      alignItems: { xs: 'flex-start', sm: 'center' },
-                      gap: 2,
-                    }}
-                  >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                      <Avatar
-                        sx={{
-                          width: 48,
-                          height: 48,
-                          bgcolor: contract.status === 'pending'
-                            ? 'warning.main'
-                            : contract.status === 'rejected'
-                              ? 'error.main'
-                              : 'primary.main',
-                        }}
-                      >
-                        <Icon
-                          icon={contract.status === 'pending' ? 'mdi:hourglass-top' : 'mdi:file-document'}
-                          style={{ width: 24, height: 24, color: 'white' }}
-                        />
-                      </Avatar>
-                      <Box>
-                        <Typography sx={{ fontWeight: 600 }} variant="subtitle1">
-                          {venueNames[contract.venue_id] || `سالن #${faNum(contract.venue_id)}`}
-                        </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {`${formatDate(contract.start_date)} - ${formatDate(contract.end_date)} | `}
-                          {`${(contract.days && contract.days.length ? contract.days : [contract.day_of_week]).map((d) => pyDayNames[d] ?? '—').join('، ')} ${(contract.start_time || '').slice(0, 5)} | `}
-                          {RECURRENCE_LABELS[contract.recurrence] || contract.recurrence}
-                        </Typography>
+              <div className="rounded-2xl border border-border bg-card p-4 shadow-sm transition-all duration-300 hover:shadow-xl dark:hover:shadow-black/40">
+                <div className="flex flex-col justify-between gap-4 sm:flex-row sm:items-center">
+                  <div className="flex items-center gap-4">
+                    <div
+                      className={cn(
+                        'flex h-12 w-12 shrink-0 items-center justify-center rounded-full text-white',
+                        contract.status === 'pending'
+                          ? 'bg-amber-600'
+                          : contract.status === 'rejected'
+                            ? 'bg-red-600'
+                            : 'bg-blue-600',
+                      )}
+                    >
+                      <Icon
+                        icon={contract.status === 'pending' ? 'mdi:hourglass-top' : 'mdi:file-document'}
+                        style={{ width: 24, height: 24, color: 'white' }}
+                        aria-hidden="true"
+                      />
+                    </div>
+                    <div>
+                      <p className="text-base font-semibold text-foreground">
+                        {venueNames[contract.venue_id] || `سالن #${faNum(contract.venue_id)}`}
+                      </p>
+                      <p className="text-xs text-muted-foreground">
+                        {`${formatDate(contract.start_date)} - ${formatDate(contract.end_date)} | `}
+                        {`${(contract.days && contract.days.length ? contract.days : [contract.day_of_week]).map((d) => pyDayNames[d] ?? '—').join('، ')} ${(contract.start_time || '').slice(0, 5)} | `}
+                        {RECURRENCE_LABELS[contract.recurrence] || contract.recurrence}
+                      </p>
                       {(contract.days?.length ?? 0) > 1 && (
-                        <Box sx={{ display: 'flex', gap: 0.4, mt: 0.75, flexWrap: 'wrap' }}>
+                        <div className="mt-1.5 flex flex-wrap gap-1">
                           {contract.days!.map((d) => (
-                            <Chip
+                            <span
                               key={d}
-                              label={pyDayNames[d] ?? `روز ${d}`}
-                              size="small"
-                              sx={{ height: 18, fontSize: '0.75rem', fontWeight: 700, borderRadius: '6px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb' }}
-                            />
+                              className="inline-flex h-[18px] items-center rounded-md bg-blue-500/10 px-1.5 text-[0.75rem] font-bold text-blue-700 dark:text-blue-300"
+                            >
+                              {pyDayNames[d] ?? `روز ${d}`}
+                            </span>
                           ))}
-                        </Box>
+                        </div>
                       )}
-                      </Box>
-                    </Box>
+                    </div>
+                  </div>
 
-                    <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
-                      {contract.status === 'pending' && (
-                        <Chip
-                          icon={<Icon icon="mdi:account-clock-outline" />}
-                          label="در انتظار تأیید مدیر"
-                          size="small"
-                          color="warning"
-                          variant="outlined"
-                          sx={{ borderRadius: '8px', fontWeight: 600 }}
-                        />
-                      )}
-                      <Chip
-                        label={meta.label}
-                        size="small"
-                        sx={{
-                          borderRadius: '8px',
-                          fontWeight: 700,
-                          bgcolor: `${chipText(meta.color)}1f`,
-                          color: chipText(meta.color),
-                        }}
-                      />
-                    </Box>
-                  </Box>
+                  <div className="flex flex-wrap items-center gap-2">
+                    {contract.status === 'pending' && (
+                      <span className="inline-flex items-center gap-1 rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+                        <Icon icon="mdi:account-clock-outline" className="h-4 w-4" aria-hidden="true" />
+                        در انتظار تأیید مدیر
+                      </span>
+                    )}
+                    <span
+                      className={cn('inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-bold', statusTone.className)}
+                      style={statusTone.style}
+                    >
+                      {meta.label}
+                    </span>
+                  </div>
+                </div>
 
-                  {contract.status === 'rejected' && contract.reject_reason && (
-                    <Alert severity="error" sx={{ mt: 2, borderRadius: '12px', fontSize: '0.8rem' }}>
+                {contract.status === 'rejected' && contract.reject_reason && (
+                  <Alert variant="destructive" className="mt-4 text-[0.8rem]">
+                    <AlertDescription>
                       {`دلیل رد درخواست: ${contract.reject_reason}`}
-                    </Alert>
-                  )}
-                  {contract.status === 'cancelled' && contract.cancel_reason && (
-                    <Alert severity="warning" sx={{ mt: 2, borderRadius: '12px', fontSize: '0.8rem' }}>
+                    </AlertDescription>
+                  </Alert>
+                )}
+                {contract.status === 'cancelled' && contract.cancel_reason && (
+                  <Alert variant="warning" className="mt-4 text-[0.8rem]">
+                    <AlertDescription>
                       {`دلیل لغو: ${contract.cancel_reason}`}
-                    </Alert>
-                  )}
+                    </AlertDescription>
+                  </Alert>
+                )}
 
-                  <Box
-                    sx={{
-                      display: 'grid',
-                      gridTemplateColumns: { xs: '1fr 1fr', sm: 'repeat(4, 1fr)' },
-                      gap: 2,
-                      mt: 2,
-                    }}
-                  >
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">قیمت هر جلسه</Typography>
-                      <Typography sx={{ fontWeight: 600 }} variant="body2">
-                        {formatRial(contract.discounted_price)}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">مبلغ کل</Typography>
-                      <Typography sx={{ fontWeight: 600 }} variant="body2" color="primary">
-                        {formatRial(contract.total_amount)}
-                      </Typography>
-                    </Box>
-                    <Box>
-                      <Typography variant="caption" color="text.secondary">وضعیت پرداخت</Typography>
-                      <Chip
-                        label={payMeta.label}
-                        size="small"
-                        sx={{
-                          height: 22,
-                          fontSize: '0.75rem',
-                          fontWeight: 600,
-                          borderRadius: '8px',
-                          bgcolor: `${chipText(payMeta.color)}1f`,
-                          color: chipText(payMeta.color),
-                        }}
-                      />
-                    </Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Button
-                        variant="outlined"
-                        size="small"
-                        onClick={() => onView?.(contract.id)}
-                        sx={{ borderRadius: '8px', textTransform: 'none' }}
-                      >
-                        مشاهده جزئیات
-                        <Icon icon="mdi:arrow-left" className="h-4 w-4 mr-1" />
-                      </Button>
-                    </Box>
-                  </Box>
-                </CardContent>
-              </Card>
+                <div className="mt-4 grid grid-cols-2 gap-4 sm:grid-cols-4">
+                  <div>
+                    <p className="text-xs text-muted-foreground">قیمت هر جلسه</p>
+                    <p className="text-sm font-semibold text-foreground">
+                      {formatRial(contract.discounted_price)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">مبلغ کل</p>
+                    <p className="text-sm font-semibold text-primary">
+                      {formatRial(contract.total_amount)}
+                    </p>
+                  </div>
+                  <div>
+                    <p className="text-xs text-muted-foreground">وضعیت پرداخت</p>
+                    <span
+                      className={cn(
+                        'inline-flex h-[22px] items-center rounded-lg px-2 text-[0.75rem] font-semibold',
+                        payTone.className,
+                      )}
+                      style={payTone.style}
+                    >
+                      {payMeta.label}
+                    </span>
+                  </div>
+                  <div className="flex items-center">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => onView?.(contract.id)}
+                      className="rounded-lg text-xs"
+                    >
+                      مشاهده جزئیات
+                      <Icon icon="mdi:arrow-left" className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+              </div>
             </motion.div>
-          </Grid>
+          </div>
         )
       })}
-    </Grid>
+    </div>
   )
 }
 

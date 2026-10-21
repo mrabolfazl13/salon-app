@@ -1,19 +1,13 @@
 import React, { useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Typography,
-  TextField,
-  Button,
-  Paper,
-  Container,
-  Alert,
-  CircularProgress,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import { checkinService } from '@/services/checkin'
 import { formatPersianDateTime } from '@/utils/helpers'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/shadcn/alert'
 import toast from 'react-hot-toast'
 
 const ManagerCheckin: React.FC = () => {
@@ -65,113 +59,99 @@ const ManagerCheckin: React.FC = () => {
 
   return (
     <Layout>
-      <Container maxWidth="md" sx={{ py: { xs: 3, md: 4 } }}>
+      <div className="mx-auto max-w-3xl py-6 md:py-8">
         {/* Header */}
-        <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Icon icon="mdi:qrcode-scan" width={40} height={40} />
-            <Box>
-              <Typography component="h1" variant="h5" sx={{ fontWeight: 700 }}>
+        <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+          <div className="flex items-center gap-4">
+            <Icon icon="mdi:qrcode-scan" aria-hidden="true" className="h-10 w-10 text-foreground" />
+            <div>
+              <h1 className="text-xl font-bold text-foreground">
                 ثبت ورود با کد QR
-              </Typography>
-              <Typography variant="body2" color="text.secondary">
+              </h1>
+              <p className="text-sm text-muted-foreground">
                 کد ارائه‌شده توسط کاربر را وارد کنید
-              </Typography>
-            </Box>
-          </Box>
-        </Paper>
+              </p>
+            </div>
+          </div>
+        </div>
 
         {/* Input Section */}
-        <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 }, mb: 3 }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <TextField
-              label="کد Check-in"
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              onKeyDown={handleKeyDown}
-              placeholder="مثال: A3F9K2L7M1X5"
-              fullWidth
-              disabled={loading}
-              autoComplete="off"
-              slotProps={{
-                htmlInput: {
-                  style: {
-                    fontFamily: 'monospace',
-                    letterSpacing: '0.1em',
-                    textTransform: 'uppercase',
-                    fontSize: '1.25rem',
-                    textAlign: 'center',
-                  },
-                },
-              }}
-            />
+        <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+          <div className="flex flex-col gap-4">
+            <div className="space-y-2">
+              <Label htmlFor="checkin-code">کد Check-in</Label>
+              <Input
+                id="checkin-code"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                onKeyDown={handleKeyDown}
+                placeholder="مثال: A3F9K2L7M1X5"
+                disabled={loading}
+                autoComplete="off"
+                dir="ltr"
+                className="text-center"
+                style={{ fontFamily: 'monospace', letterSpacing: '0.1em', textTransform: 'uppercase', fontSize: '1.25rem' }}
+              />
+            </div>
             <Button
-              variant="contained"
               onClick={handleVerify}
               disabled={loading || !code.trim()}
-              startIcon={loading ? <CircularProgress size={20} color="inherit" /> : <Icon icon="mdi:check-circle" />}
-              sx={{
-                borderRadius: 2,
-                textTransform: 'none',
-                fontWeight: 600,
-                py: 1.5,
-                fontSize: '1rem',
-              }}
+              className="gap-2 rounded-xl py-4 text-base font-semibold"
             >
+              {loading ? (
+                <span className="h-5 w-5 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال بررسی" />
+              ) : (
+                <Icon icon="mdi:check-circle" aria-hidden="true" className="h-5 w-5" />
+              )}
               {loading ? 'در حال بررسی...' : 'ثبت ورود'}
             </Button>
-          </Box>
-        </Paper>
+          </div>
+        </div>
 
         {/* Result Section */}
         {result && (
-          <Alert
-            severity={result.success ? 'success' : 'error'}
-            sx={{ borderRadius: 2, mb: 3 }}
-          >
-            <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 1 }}>
-              {result.message}
-            </Typography>
-            {result.success && result.checked_in_at && (
-              <Typography variant="body2">
-                زمان ورود: {formatPersianDateTime(result.checked_in_at)}
-              </Typography>
-            )}
-            {result.success && result.booking_id && (
-              <Button
-                variant="outlined"
-                size="small"
-                onClick={() => navigate(`/bookings/${result.booking_id}`)}
-                sx={{ mt: 1, borderRadius: 1, textTransform: 'none' }}
-                startIcon={<Icon icon="mdi:eye" />}
-              >
-                مشاهده رزرو
-              </Button>
-            )}
+          <Alert variant={result.success ? 'success' : 'destructive'} className="mb-6 rounded-2xl">
+            <div>
+              <AlertTitle className="mb-2">{result.message}</AlertTitle>
+              {result.success && result.checked_in_at && (
+                <AlertDescription>
+                  زمان ورود: {formatPersianDateTime(result.checked_in_at)}
+                </AlertDescription>
+              )}
+              {result.success && result.booking_id && (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => navigate(`/bookings/${result.booking_id}`)}
+                  className="mt-3 gap-2 rounded-lg"
+                >
+                  <Icon icon="mdi:eye" aria-hidden="true" className="h-4 w-4" />
+                  مشاهده رزرو
+                </Button>
+              )}
+            </div>
           </Alert>
         )}
 
         {/* Instructions */}
-        <Paper sx={{ borderRadius: 2, p: { xs: 2, md: 3 } }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 700, mb: 2 }}>
-            راهنما
-          </Typography>
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            <Typography variant="body2" color="text.secondary">
+        <div className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+          <h2 className="mb-4 text-base font-bold text-foreground">راهنما</h2>
+          <div className="flex flex-col gap-3">
+            <p className="text-sm text-muted-foreground">
               • کاربران کد ۱۲ رقمی را از صفحه جزئیات رزرو خود دریافت می‌کنند
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
+            </p>
+            <p className="text-sm text-muted-foreground">
               • هر کد فقط یک بار قابل استفاده است
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
+            </p>
+            <p className="text-sm text-muted-foreground">
               • پس از ثبت موفق، زمان ورود در سیستم ذخیره می‌شود
-            </Typography>
-            <Typography variant="body2" color="text.secondary">
+            </p>
+            <p className="text-sm text-muted-foreground">
               • کد به صورت حروف بزرگ و بدون فاصله وارد شود
-            </Typography>
-          </Box>
-        </Paper>
-      </Container>
+            </p>
+          </div>
+        </div>
+      </div>
     </Layout>
   )
 }

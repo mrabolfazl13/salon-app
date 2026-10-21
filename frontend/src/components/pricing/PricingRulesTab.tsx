@@ -2,23 +2,7 @@
 // قوانین قیمت سالن: لیست + ساخت/ویرایش/حذف، تنظیم مبنای پیش‌فرض قیمت،
 // و پنل پیش‌نمایش موتور قیمت.
 
-import React, { useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  FormControlLabel,
-  Switch,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Paper,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useId, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 
@@ -37,6 +21,18 @@ import PricingRuleDialog from './PricingRuleDialog'
 import PricingPreviewPanel from './PricingPreviewPanel'
 import { MODIFIER_LABELS, parseIntFa, ruleDaysLabel, ruleTimeWindow, ruleValueLabel } from './shared'
 import type { FinanceVenue } from '@/hooks/useFinance'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Switch } from '@/components/ui/shadcn/switch'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
 
 interface Props {
   venues: FinanceVenue[]
@@ -48,6 +44,8 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
   const [editing, setEditing] = useState<PricingRule | null>(null)
   const [deleteTarget, setDeleteTarget] = useState<PricingRule | null>(null)
   const [basePriceInput, setBasePriceInput] = useState('')
+
+  const basePriceId = useId()
 
   const rulesQuery = usePricingRules(venueId, venueId != null)
   const createRule = useCreatePricingRule(venueId)
@@ -95,31 +93,35 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
   }
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+    <div className="flex flex-col gap-6">
       {/* مبنای پیش‌فرض قیمت — ورودی PUT pricing/venue default */}
       <SectionCard title="مبنای پیش‌فرض قیمت سانس" icon="mdi:cash-marker" color="#059669">
-        <Typography variant="body2" sx={{ color: 'text.secondary', mb: 1.5 }}>
+        <p className="mb-3 text-sm text-muted-foreground">
           مبنای تولید خودکار سانس‌ها و نقطه‌ی شروع موتور قیمت (بدون در نظر گرفتن قوانین). خالی = پیش‌فرض سیستم.
           {venues.length > 0 ? ' مقدار فعلی از سرور قابل خواندن نیست؛ با ثبت مقدار جدید جایگزین می‌شود.' : ''}
-        </Typography>
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start' }}>
-          <TextField
-            label="مبلغ پایه (ریال)"
-            value={basePriceInput}
-            onChange={(e) => setBasePriceInput(e.target.value)}
-            size="small"
-            placeholder="مثلاً ۲۰۰۰۰۰"
-            sx={{ flex: 1, '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
-          <Button
-            variant="contained"
-            onClick={saveBasePrice}
-            disabled={setDefault.isPending}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, height: 40, background: 'linear-gradient(135deg, #059669, #10b981)' }}
-          >
-            {setDefault.isPending ? '...' : 'ثبت'}
-          </Button>
-        </Box>
+        </p>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={basePriceId}>مبلغ پایه (ریال)</Label>
+          <div className="flex items-start gap-3">
+            <div className="flex-1">
+              <Input
+                id={basePriceId}
+                value={basePriceInput}
+                onChange={(e) => setBasePriceInput(e.target.value)}
+                placeholder="مثلاً ۲۰۰۰۰۰"
+                inputMode="numeric"
+                className="tabular-nums"
+              />
+            </div>
+            <Button
+              onClick={saveBasePrice}
+              disabled={setDefault.isPending}
+              className="bg-gradient-to-br from-emerald-600 to-emerald-500 font-bold text-white hover:from-emerald-700 hover:to-emerald-600"
+            >
+              {setDefault.isPending ? '...' : 'ثبت'}
+            </Button>
+          </div>
+        </div>
       </SectionCard>
 
       <SectionCard
@@ -128,15 +130,14 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
         color="#d97706"
         action={
           <Button
-            size="small"
-            variant="contained"
+            size="sm"
             onClick={() => {
               setEditing(null)
               setDialogOpen(true)
             }}
-            sx={{ borderRadius: '10px', textTransform: 'none', fontWeight: 700, background: 'linear-gradient(135deg, #d97706, #f59e0b)' }}
-            startIcon={<Icon icon="mdi:plus" className="h-4 w-4" />}
+            className="bg-gradient-to-br from-amber-600 to-amber-500 font-bold text-stone-900 hover:from-amber-700 hover:to-amber-600"
           >
+            <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
             قانون جدید
           </Button>
         }
@@ -152,89 +153,97 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
             text="همه‌ی سانس‌ها با مبنای پیش‌فرض قیمت‌گذاری می‌شوند. برای اوج/کم‌ترافیک یا تعطیلات قانون بسازید."
           />
         ) : (
-          <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid rgba(0,0,0,0.06)', borderRadius: '12px', overflow: 'hidden' }}>
-            <Table aria-label="قوانین قیمت‌گذاری" size="small">
-              <TableHead>
-                <TableRow sx={{ bgcolor: 'rgba(0,0,0,0.02)' }}>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>برچسب</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>روز</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>بازه</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>اثر</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>اولویت</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700 }}>فعال</TableCell>
-                  <TableCell scope="col" align="center" sx={{ fontWeight: 700 }}>عملیات</TableCell>
+          <div className="overflow-hidden rounded-xl border border-border">
+            <Table aria-label="قوانین قیمت‌گذاری">
+              <TableHeader className="bg-muted/40">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead scope="col" className="font-bold">برچسب</TableHead>
+                  <TableHead scope="col" className="font-bold">روز</TableHead>
+                  <TableHead scope="col" className="font-bold">بازه</TableHead>
+                  <TableHead scope="col" className="font-bold">اثر</TableHead>
+                  <TableHead scope="col" className="font-bold">اولویت</TableHead>
+                  <TableHead scope="col" className="font-bold">فعال</TableHead>
+                  <TableHead scope="col" className="text-center font-bold">عملیات</TableHead>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {rules.map((rule) => (
-                  <TableRow key={rule.id} sx={{ opacity: rule.is_active ? 1 : 0.55, '&:hover': { bgcolor: 'rgba(37,99,235,0.02)' } }}>
-                    <TableCell sx={{ fontWeight: 600 }}>{rule.label || `قانون #${toPersianDigits(rule.id)}`}</TableCell>
+                  <TableRow
+                    key={rule.id}
+                    className={
+                      rule.is_active
+                        ? 'hover:bg-blue-600/[0.02]'
+                        : 'opacity-55 hover:bg-blue-600/[0.02]'
+                    }
+                  >
+                    <TableCell className="font-semibold text-foreground">{rule.label || `قانون #${toPersianDigits(rule.id)}`}</TableCell>
                     <TableCell>
-                      <Chip
-                        size="small"
-                        label={ruleDaysLabel(rule)}
-                        color={rule.holiday_applies ? 'warning' : 'default'}
-                        sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 600 }}
-                      />
+                      <span
+                        className={
+                          rule.holiday_applies
+                            ? 'inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300'
+                            : 'inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-semibold text-foreground'
+                        }
+                      >
+                        {ruleDaysLabel(rule)}
+                      </span>
                     </TableCell>
-                    <TableCell sx={{ fontSize: '0.8rem', whiteSpace: 'nowrap' }} dir="rtl">
+                    <TableCell dir="rtl" className="whitespace-nowrap text-[0.8rem] text-foreground tabular-nums">
                       {ruleTimeWindow(rule)}
                     </TableCell>
-                    <TableCell sx={{ whiteSpace: 'nowrap' }}>
-                      <Typography variant="body2" sx={{ fontWeight: 700 }}>{MODIFIER_LABELS[rule.modifier_type]}</Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>{ruleValueLabel(rule.modifier_type, rule.value)}</Typography>
+                    <TableCell className="whitespace-nowrap">
+                      <p className="text-sm font-bold text-foreground">{MODIFIER_LABELS[rule.modifier_type]}</p>
+                      <p className="text-xs text-muted-foreground">{ruleValueLabel(rule.modifier_type, rule.value)}</p>
                     </TableCell>
-                    <TableCell>{toPersianDigits(rule.priority)}</TableCell>
+                    <TableCell className="tabular-nums text-foreground">{toPersianDigits(rule.priority)}</TableCell>
                     <TableCell>
-                      <FormControlLabel
-                        sx={{ m: 0, minHeight: 44, minWidth: 44 }}
-                        label={null}
-                        control={
-                          <Switch
-                            size="small"
-                            checked={rule.is_active}
-                            disabled={updateRule.isPending}
-                            slotProps={{ input: { 'aria-label': rule.is_active ? 'غیرفعال کردن قانون' : 'فعال کردن قانون' } }}
-                            onChange={(e) =>
-                              updateRule.mutate(
-                                { ruleId: rule.id, data: { is_active: e.target.checked } },
-                                {
-                                  onSuccess: () => toast.success(e.target.checked ? 'قانون فعال شد' : 'قانون غیرفعال شد'),
-                                  onError: (err) => toast.error(extractError(err, 'خطا در تغییر وضعیت')),
-                                },
-                              )
-                            }
-                          />
-                        }
-                      />
+                      <div className="flex min-h-11 min-w-11 items-center">
+                        <Switch
+                          checked={rule.is_active}
+                          disabled={updateRule.isPending}
+                          aria-label={rule.is_active ? 'غیرفعال کردن قانون' : 'فعال کردن قانون'}
+                          onCheckedChange={(checked) =>
+                            updateRule.mutate(
+                              { ruleId: rule.id, data: { is_active: checked } },
+                              {
+                                onSuccess: () => toast.success(checked ? 'قانون فعال شد' : 'قانون غیرفعال شد'),
+                                onError: (err) => toast.error(extractError(err, 'خطا در تغییر وضعیت')),
+                              },
+                            )
+                          }
+                        />
+                      </div>
                     </TableCell>
-                    <TableCell align="center">
-                      <Button
-                        size="small"
-                        onClick={() => {
-                          setEditing(rule)
-                          setDialogOpen(true)
-                        }}
-                        sx={{ textTransform: 'none', fontWeight: 600 }}
-                        startIcon={<Icon icon="mdi:pencil-outline" className="h-4 w-4" />}
-                      >
-                        ویرایش
-                      </Button>
-                      <Button
-                        size="small"
-                        color="error"
-                        onClick={() => setDeleteTarget(rule)}
-                        sx={{ textTransform: 'none', fontWeight: 600 }}
-                        startIcon={<Icon icon="mdi:trash-can-outline" className="h-4 w-4" />}
-                      >
-                        حذف
-                      </Button>
+                    <TableCell className="text-center">
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setEditing(rule)
+                            setDialogOpen(true)
+                          }}
+                          className="font-semibold"
+                        >
+                          <Icon icon="mdi:pencil-outline" className="h-4 w-4" aria-hidden="true" />
+                          ویرایش
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => setDeleteTarget(rule)}
+                          className="font-semibold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400"
+                        >
+                          <Icon icon="mdi:trash-can-outline" className="h-4 w-4" aria-hidden="true" />
+                          حذف
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-          </TableContainer>
+          </div>
         )}
       </SectionCard>
 
@@ -271,7 +280,7 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
           })
         }}
       />
-    </Box>
+    </div>
   )
 }
 

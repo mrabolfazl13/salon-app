@@ -4,12 +4,12 @@
 
 import React, { useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
-import { Box, Button as MuiButton, Grid, Typography } from '@mui/material'
 
 import type { Team } from '@/types/team'
 import { TEAM_AUDIT_ACTION_LABELS } from '@/types/team'
 import { useTeamAudit, useTeamBalance } from '@/hooks/useTeams'
 import { KpiCard, ErrorBox, LoadingBox, EmptyBox, formatRial } from '@/components/finance/shared'
+import { Button } from '@/components/ui/Button'
 import { formatJalaliDate, formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 
 const AUDIT_PAGE = 25
@@ -25,19 +25,20 @@ const AuditTimeline: React.FC<{ teamId: number }> = ({ teamId }) => {
   const total = auditQ.data?.total ?? 0
 
   return (
-    <Box>
-      <MuiButton
-        size="small"
+    <div>
+      <Button
+        size="sm"
+        variant="ghost"
         onClick={() => setExpanded((e) => !e)}
         aria-expanded={expanded}
         aria-controls={panelId}
-        endIcon={<Icon icon={expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'} style={{ width: 18, height: 18 }} />}
-        sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', color: '#2563eb' }}
+        className="px-0 text-[0.8rem] font-bold text-blue-600 hover:bg-transparent dark:text-blue-400"
       >
         {`تاریخچه فعالیت‌های تیم${total ? ` (${toPersianDigits(total)} رویداد)` : ''}`}
-      </MuiButton>
+        <Icon icon={expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'} style={{ width: 18, height: 18 }} />
+      </Button>
       {expanded && (
-        <Box id={panelId} sx={{ mt: 1.25 }}>
+        <div id={panelId} className="mt-2.5">
           {auditQ.isPending ? (
             <LoadingBox text="در حال دریافت تاریخچه..." />
           ) : auditQ.isError ? (
@@ -45,56 +46,45 @@ const AuditTimeline: React.FC<{ teamId: number }> = ({ teamId }) => {
           ) : items.length === 0 ? (
             <EmptyBox icon="mdi:history" title="رویدادی ثبت نشده" />
           ) : (
-            <Box sx={{ position: 'relative', ps: '18px' }}>
-              <Box sx={{ position: 'absolute', top: 6, bottom: 6, insetInlineStart: 6, width: '2px', bgcolor: 'rgba(37,99,235,0.15)', borderRadius: 1 }} />
+            <div className="relative ps-[18px]">
+              <div className="absolute top-1.5 bottom-1.5 start-1.5 w-0.5 rounded bg-blue-600/15" />
               {items.map((ev) => (
-                <Box key={ev.id} sx={{ position: 'relative', pb: 1.75 }}>
-                  <Box
-                    sx={{
-                      position: 'absolute',
-                      insetInlineStart: -18,
-                      top: 4,
-                      width: 10,
-                      height: 10,
-                      borderRadius: '50%',
-                      bgcolor: '#2563eb',
-                      border: '2px solid #fff',
-                      boxShadow: '0 0 0 1px rgba(37,99,235,0.3)',
-                    }}
-                  />
-                  <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1, flexWrap: 'wrap' }}>
-                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 800, color: '#0f172a' }}>
+                <div key={ev.id} className="relative pb-3.5">
+                  <div className="absolute -start-[18px] top-1 h-2.5 w-2.5 rounded-full border-2 border-card bg-blue-600 shadow-[0_0_0_1px_rgba(37,99,235,0.3)]" />
+                  <div className="flex flex-wrap items-baseline gap-2">
+                    <p className="text-[0.8rem] font-extrabold text-slate-900 dark:text-slate-100">
                       {TEAM_AUDIT_ACTION_LABELS[ev.action] ?? ev.action}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+                    </p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       {formatJalaliDateTime(ev.created_at, { format: 'numeric' })}
-                    </Typography>
+                    </p>
                     {ev.actor_name && (
-                      <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>{`— ${ev.actor_name}`}</Typography>
+                      <p className="text-xs text-slate-500 dark:text-slate-400">{`— ${ev.actor_name}`}</p>
                     )}
-                  </Box>
+                  </div>
                   {typeof ev.data?.amount === 'number' && (
-                    <Typography sx={{ fontSize: '0.75rem', color: '#475569', mt: 0.25 }} dir="rtl">
+                    <p className="mt-0.5 text-xs text-slate-600 dark:text-slate-300" dir="rtl">
                       مبلغ: {formatRial(Number(ev.data.amount))}
-                    </Typography>
+                    </p>
                   )}
-                </Box>
+                </div>
               ))}
               {items.length < total && (
-                <MuiButton
-                  size="small"
+                <Button
+                  size="sm"
+                  variant="ghost"
                   disabled={auditQ.isFetching}
                   onClick={() => setPages((n) => n + 1)}
-                  sx={{ textTransform: 'none', fontWeight: 700, fontSize: '0.75rem', color: '#2563eb' }}
+                  className="px-0 text-xs font-bold text-blue-600 hover:bg-transparent dark:text-blue-400"
                 >
                   نمایش بیشتر
-                </MuiButton>
+                </Button>
               )}
-            </Box>
+            </div>
           )}
-        </Box>
+        </div>
       )}
-    </Box>
+    </div>
   )
 }
 
@@ -106,21 +96,21 @@ const TeamBalancePanel: React.FC<{ team: Team; isManager: boolean }> = ({ team, 
   if (balanceQ.isError) return <ErrorBox message="دریافت تراز ممکن نشد (فقط اعضای فعال تیم)." onRetry={() => balanceQ.refetch()} />
 
   return (
-    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-      <Grid container spacing={1.5}>
-        <Grid size={{ xs: 6, md: 3 }}>
+    <div className="flex flex-col gap-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div>
           <KpiCard label="مجموع حصه‌ها" value={formatRial(b?.dues_total)} icon="mdi:file-document-multiple-outline" color="#2563eb" />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
+        </div>
+        <div>
           <KpiCard label="پرداخت‌شده" value={formatRial(b?.dues_paid)} icon="mdi:check-circle-outline" color="#059669" />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
+        </div>
+        <div>
           <KpiCard label="پرداخت‌نشده" value={formatRial(b?.dues_unpaid)} icon="mdi:clock-alert-outline" color="#d97706" />
-        </Grid>
-        <Grid size={{ xs: 6, md: 3 }}>
+        </div>
+        <div>
           <KpiCard label="معوق (گذشته از سررسید)" value={formatRial(b?.dues_overdue_amount)} icon="mdi:alarm-light-outline" color="#dc2626" />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+        </div>
+        <div className="col-span-2">
           <KpiCard
             label="حساب تیم (دفتر کل)"
             value={formatRial(b?.team_account_balance)}
@@ -128,8 +118,8 @@ const TeamBalancePanel: React.FC<{ team: Team; isManager: boolean }> = ({ team, 
             icon="mdi:bank-outline"
             color="#0891b2"
           />
-        </Grid>
-        <Grid size={{ xs: 12, md: 6 }}>
+        </div>
+        <div className="col-span-2">
           <KpiCard
             label="تراز خالص (حساب تیم − حصه‌های باز)"
             value={formatRial(b?.net_balance)}
@@ -137,13 +127,13 @@ const TeamBalancePanel: React.FC<{ team: Team; isManager: boolean }> = ({ team, 
             icon="mdi:scale-balance"
             color={(b?.net_balance ?? 0) >= 0 ? '#059669' : '#dc2626'}
           />
-        </Grid>
-      </Grid>
-      <Typography sx={{ fontSize: '0.75rem', color: '#64748b' }}>
+        </div>
+      </div>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
         پرداخت حصه‌ها به‌صورت ردیف درآمدی در دفتر کلِ تیم ثبت می‌شود؛ تراز خالص، مانده حساب منهای تعهدات باز اعضا است.
-      </Typography>
+      </p>
       {isManager && <AuditTimeline teamId={team.id} />}
-    </Box>
+    </div>
   )
 }
 

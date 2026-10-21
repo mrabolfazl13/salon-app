@@ -3,17 +3,12 @@
 // value/onChange contract is Gregorian ISO (YYYY-MM-DD) so API payloads and
 // the data layer are untouched. Empty value = clearable '' (useful for filters).
 
-import React, { useMemo, useRef, useState } from 'react'
-import {
-  Box,
-  Button,
-  Grid,
-  IconButton,
-  Popover,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useId, useMemo, useRef, useState } from 'react'
 import { Icon } from '@iconify/react'
+import { cn } from '@/lib/utils'
+import { Label } from '@/components/ui/shadcn/label'
+import { Button } from '@/components/ui/shadcn/button'
+import { Popover, PopoverAnchor, PopoverContent } from '@/components/ui/shadcn/popover'
 import {
   fromJalali,
   getTodayISO,
@@ -41,6 +36,7 @@ export interface PersianDatePickerProps {
   max?: string
   /** show "پاک کردن" in the panel (default: true) */
   clearable?: boolean
+  /** پشتیبانی قدیمی از پراپ MUI — نادیده گرفته می‌شود (فراخوانی‌های موجود نمی‌شکنند) */
   sx?: object
 }
 
@@ -71,11 +67,14 @@ const cellBase: React.CSSProperties = {
   padding: 0,
 }
 
+/** دکمهٔ آیکونی ۴۴px — همان هدف لمسی IconButton قبلی */
+const navButtonClass =
+  'inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
+
 const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
   value,
   onChange,
   label,
-  size = 'medium',
   fullWidth = true,
   disabled = false,
   readOnly = false,
@@ -84,9 +83,10 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
   min,
   max,
   clearable = true,
-  sx,
 }) => {
   const anchorRef = useRef<HTMLDivElement>(null)
+  const inputId = useId()
+  const helpId = `${inputId}-help`
   const [open, setOpen] = useState(false)
 
   const selected = useMemo(() => toJalali(value), [value])
@@ -123,103 +123,107 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
   const nextYear = shiftMonth({ jy: view.jy + 1, jm: view.jm }, 0)
 
   return (
-    <>
-      <Box ref={anchorRef} sx={{ position: 'relative', ...(sx as object) }}>
-        <TextField
-          fullWidth={fullWidth}
-          size={size}
-          label={label}
-          value={value ? formatJalaliDate(value, { format: 'numeric', digits: 'en' }) : ''}
-          disabled={disabled}
-          error={error}
-          helperText={helperText}
-          onClick={openPanel}
-          slotProps={{
-            inputLabel: { shrink: !!label },
-            htmlInput: {
-              style: { cursor: readOnly ? 'default' : 'pointer', textAlign: 'start' },
-              placeholder: value ? undefined : '—',
-              dir: 'ltr',
-              readOnly: true,
-              'aria-haspopup': 'dialog',
-              'aria-expanded': open,
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverAnchor asChild>
+        <div ref={anchorRef} className={cn('relative', fullWidth ? 'w-full' : 'w-auto')}>
+          {label && (
+            <Label htmlFor={inputId} className="mb-1.5 block text-xs font-semibold text-muted-foreground">
+              {label}
+            </Label>
+          )}
+          <div className="relative">
+            <input
+              id={inputId}
+              value={value ? formatJalaliDate(value, { format: 'numeric', digits: 'en' }) : ''}
+              disabled={disabled}
+              placeholder={value ? undefined : '—'}
+              dir="ltr"
+              readOnly
+              aria-haspopup="dialog"
+              aria-expanded={open}
+              aria-invalid={error || undefined}
+              aria-describedby={helperText ? helpId : undefined}
+              onClick={openPanel}
               /* بدون آیکنِ دکمه‌ای، خودِ فیلد با کیبورد هم باید تقویم را باز کند */
-              onKeyDown: (e: React.KeyboardEvent<HTMLInputElement>) => {
+              onKeyDown={(e: React.KeyboardEvent<HTMLInputElement>) => {
                 if (e.key === 'Enter' || e.key === ' ' || e.key === 'ArrowDown') {
                   e.preventDefault()
                   openPanel()
                 }
-              },
-            },
-            input: {
-              sx: {
-                borderRadius: '10px',
-                minHeight: 44,
-                /* در نیم‌عرض موبایل مقدار ۱۰ کاراکتری (1405/06/28) با پدینگ پیش‌فرض
-                   بریده می‌شد — پدینگ افقی کمتر + فونت کمی کوچک‌تر */
-                '& .MuiOutlinedInput-input': { paddingInline: '10px', fontSize: '0.8rem' },
-              },
-              /* آیکن تنها نشانهٔ بصری است؛ هدف لمسی خودِ فیلد ۴۴px است و دکمهٔ ۴۴px
-                 جداگانه فقط عرض متن را می‌خورد و تاریخ را می‌برید */
-              endAdornment: !readOnly ? (
-                <Box sx={{ display: 'flex', alignItems: 'center', pr: 1, pointerEvents: 'none', color: 'primary.main' }}>
-                  <Icon icon="mdi:calendar-month-outline" style={{ width: 20, height: 20 }} />
-                </Box>
-              ) : undefined,
-            },
-          }}
-        />
-      </Box>
+              }}
+              className={cn(
+                'flex h-11 w-full rounded-[10px] border border-input bg-card px-2.5 text-start text-[0.8rem] text-foreground shadow-sm transition-colors',
+                'placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'disabled:cursor-not-allowed disabled:opacity-50',
+                error && 'border-red-500 focus-visible:ring-red-500',
+                readOnly ? 'cursor-default' : 'cursor-pointer',
+                !readOnly && 'pe-9',
+              )}
+            />
+            {/* آیکن تنها نشانهٔ بصری است؛ هدف لمسی خودِ فیلد ۴۴px است و دکمهٔ ۴۴px
+                جداگانه فقط عرض متن را می‌خورد و تاریخ را می‌برید */}
+            {!readOnly && (
+              <span className="pointer-events-none absolute end-2.5 top-1/2 flex -translate-y-1/2 items-center text-primary">
+                <Icon icon="mdi:calendar-month-outline" className="h-5 w-5" />
+              </span>
+            )}
+          </div>
+          {helperText && (
+            <p
+              id={helpId}
+              className={cn(
+                'mt-1.5 text-xs',
+                error ? 'text-red-600 dark:text-red-400' : 'text-muted-foreground',
+              )}
+            >
+              {helperText}
+            </p>
+          )}
+        </div>
+      </PopoverAnchor>
 
-      <Popover
-        open={open}
-        anchorEl={anchorRef.current}
-        onClose={() => setOpen(false)}
-        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-        slotProps={{ paper: { sx: { p: 1.5, borderRadius: '14px', direction: 'rtl' } } }}
-      >
-        <Box sx={{ width: 308 }} dir="rtl">
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 0.5 }}>
-            <Box sx={{ display: 'flex' }}>
+      <PopoverContent align="start" dir="rtl" className="w-auto rounded-[14px] p-3">
+        <div className="w-[308px]">
+          <div className="mb-1 flex items-center justify-between">
+            <div className="flex">
               {/* convention RTL این پروژه (DateSelector/SlotWeekGrid): «قبل» با شیولرون راست،
                   «بعد» با شیولرون چپ — چون جریان خواندن راست‌به‌چپ است */}
-              <IconButton onClick={() => setView(prevYear)} aria-label="سال قبل" sx={{ width: 44, height: 44 }}>
-                <Icon icon="mdi:chevron-double-right" style={{ width: 18, height: 18 }} />
-              </IconButton>
-              <IconButton onClick={() => setView(shiftMonth(view, -1))} aria-label="ماه قبل" sx={{ width: 44, height: 44 }}>
-                <Icon icon="mdi:chevron-right" style={{ width: 18, height: 18 }} />
-              </IconButton>
-            </Box>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.95rem' }}>
+              <button type="button" onClick={() => setView(prevYear)} aria-label="سال قبل" className={navButtonClass}>
+                <Icon icon="mdi:chevron-double-right" className="h-[18px] w-[18px]" />
+              </button>
+              <button type="button" onClick={() => setView(shiftMonth(view, -1))} aria-label="ماه قبل" className={navButtonClass}>
+                <Icon icon="mdi:chevron-right" className="h-[18px] w-[18px]" />
+              </button>
+            </div>
+            <p className="text-[0.95rem] font-bold text-foreground">
               {toPersianDigits(`${jalaliMonthNames[view.jm - 1]} ${view.jy}`)}
-            </Typography>
-            <Box sx={{ display: 'flex' }}>
-              <IconButton onClick={() => setView(shiftMonth(view, 1))} aria-label="ماه بعد" sx={{ width: 44, height: 44 }}>
-                <Icon icon="mdi:chevron-left" style={{ width: 18, height: 18 }} />
-              </IconButton>
-              <IconButton onClick={() => setView(nextYear)} aria-label="سال بعد" sx={{ width: 44, height: 44 }}>
-                <Icon icon="mdi:chevron-double-left" style={{ width: 18, height: 18 }} />
-              </IconButton>
-            </Box>
-          </Box>
+            </p>
+            <div className="flex">
+              <button type="button" onClick={() => setView(shiftMonth(view, 1))} aria-label="ماه بعد" className={navButtonClass}>
+                <Icon icon="mdi:chevron-left" className="h-[18px] w-[18px]" />
+              </button>
+              <button type="button" onClick={() => setView(nextYear)} aria-label="سال بعد" className={navButtonClass}>
+                <Icon icon="mdi:chevron-double-left" className="h-[18px] w-[18px]" />
+              </button>
+            </div>
+          </div>
 
-          {/* ۷ ستون واقعی — Grid با size={{xs:1}} یک‌دوازدهم عرض می‌دهد و تقویم را
+          {/* ۷ ستون واقعی — گرید CSS به‌جای Grid دوازده‌ستونهٔ MUI که تقویم را
               ۱۲ روز در هر ردیف می‌چید (روزهای هفته با ستون‌ها ناهم‌تراز می‌شد) */}
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', mb: 0.5 }}>
+          <div className="mb-1 grid grid-cols-7">
             {jalaliWeekdayNamesShort.map((d) => (
-              <Typography
+              <span
                 key={d}
-                sx={{ textAlign: 'center', fontSize: '0.75rem', fontWeight: 700, color: 'text.secondary', lineHeight: '28px' }}
+                className="text-center text-xs font-bold leading-7 text-muted-foreground"
               >
                 {d}
-              </Typography>
+              </span>
             ))}
-          </Box>
+          </div>
 
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', rowGap: 2 }}>
+          <div className="grid grid-cols-7 gap-y-4">
             {Array.from({ length: firstWeekday }).map((_, i) => (
-              <Box key={`b${i}`} />
+              <span key={`b${i}`} />
             ))}
             {Array.from({ length: monthLen }).map((_, i) => {
               const jd = i + 1
@@ -228,7 +232,7 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
               const isToday = iso === todayIso
               const enabled = !!iso && canPick(iso)
               return (
-                <Box key={jd} sx={{ display: 'flex', justifyContent: 'center' }}>
+                <div key={jd} className="flex justify-center">
                   <button
                     type="button"
                     disabled={!enabled}
@@ -247,40 +251,43 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
                   >
                     {toPersianDigits(jd)}
                   </button>
-                </Box>
+                </div>
               )
             })}
-          </Box>
+          </div>
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 1 }}>
+          <div className="mt-2 flex justify-between">
             <Button
-              size="small"
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => {
                 const t = toJalali(todayIso)!
                 setView({ jy: t.jy, jm: t.jm })
                 if (canPick(todayIso)) pick(todayIso)
               }}
-              sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', minHeight: 44 }}
+              className="h-11 text-xs font-semibold"
             >
               امروز
             </Button>
             {clearable && value ? (
               <Button
-                size="small"
-                color="error"
+                type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => {
                   onChange('')
                   setOpen(false)
                 }}
-                sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.8rem', minHeight: 44 }}
+                className="h-11 text-xs font-semibold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
               >
                 پاک کردن
               </Button>
             ) : null}
-          </Box>
-        </Box>
-      </Popover>
-    </>
+          </div>
+        </div>
+      </PopoverContent>
+    </Popover>
   )
 }
 
@@ -306,14 +313,14 @@ export const PersianDateRangePicker: React.FC<PersianDateRangePickerProps> = ({
   size = 'medium',
   spacing = 2,
 }) => (
-  <Grid container spacing={spacing}>
-    <Grid size={{ xs: 6 }}>
+  <div className="grid grid-cols-2" style={{ gap: `${spacing * 8}px` }}>
+    <div>
       <PersianDatePicker label={startLabel} value={start} onChange={onStartChange} max={end || undefined} size={size} />
-    </Grid>
-    <Grid size={{ xs: 6 }}>
+    </div>
+    <div>
       <PersianDatePicker label={endLabel} value={end} onChange={onEndChange} min={start || undefined} size={size} />
-    </Grid>
-  </Grid>
+    </div>
+  </div>
 )
 
 export default PersianDatePicker

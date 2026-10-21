@@ -7,24 +7,6 @@ import React, { useMemo, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  Container,
-  Divider,
-  Grid,
-  Paper,
-  Skeleton,
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableRow,
-  Typography,
-  useTheme,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '@/store/authStore'
@@ -50,12 +32,20 @@ import ContractAuditTimeline from '@/components/contract/ContractAuditTimeline'
 import ContractInstallmentPayDialog from '@/components/contract/ContractInstallmentPayDialog'
 import { formatJalaliDate, getTodayISO } from '@/lib/jalali'
 import type { ContractPaymentData, ContractSessionData } from '@/services/contract'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import {
+  Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
+} from '@/components/ui/shadcn/table'
+import { cn } from '@/lib/utils'
+
+const actionBtn =
+  'inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 text-sm font-bold transition-colors'
 
 const ContractDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
   const contractId = Number(id)
   const navigate = useNavigate()
-  const theme = useTheme()
   const user = useAuthStore((s) => s.user)
 
   const detailQuery = useContractDetail(Number.isFinite(contractId) ? contractId : null)
@@ -76,14 +66,25 @@ const ContractDetail: React.FC = () => {
     return cancellableStatus && contract.end_date >= getTodayISO()
   }, [contract])
 
+  const backLink = (
+    <button
+      type="button"
+      onClick={() => navigate('/contracts')}
+      className="mb-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+    >
+      <Icon icon="mdi:arrow-right" className="h-5 w-5" aria-hidden="true" />
+      بازگشت به لیست قراردادها
+    </button>
+  )
+
   if (detailQuery.isLoading) {
     return (
       <Layout>
-        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-          <Skeleton aria-hidden="true" variant="rounded" height={48} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton aria-hidden="true" variant="rounded" height={140} sx={{ borderRadius: 2, mb: 3 }} />
-          <Skeleton aria-hidden="true" variant="rounded" height={300} sx={{ borderRadius: 2 }} />
-        </Container>
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
+          <Skeleton aria-hidden="true" className="mb-6 h-12 rounded-2xl" />
+          <Skeleton aria-hidden="true" className="mb-6 h-[140px] rounded-2xl" />
+          <Skeleton aria-hidden="true" className="h-[300px] rounded-2xl" />
+        </div>
       </Layout>
     )
   }
@@ -91,17 +92,10 @@ const ContractDetail: React.FC = () => {
   if (detailQuery.isError || !contract) {
     return (
       <Layout>
-        <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-          <Button
-            variant="text"
-            onClick={() => navigate('/contracts')}
-            sx={{ mb: 3, textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}
-            startIcon={<Icon icon="mdi:arrow-right" />}
-          >
-            بازگشت به لیست قراردادها
-          </Button>
+        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
+          {backLink}
           <ErrorBox message="قرارداد مورد نظر یافت نشد یا دسترسی شما به آن محدود است." onRetry={() => detailQuery.refetch()} />
-        </Container>
+        </div>
       </Layout>
     )
   }
@@ -121,90 +115,72 @@ const ContractDetail: React.FC = () => {
 
   return (
     <Layout>
-      <Container maxWidth="lg" sx={{ py: { xs: 3, md: 4 } }}>
-        <Button
-          variant="text"
-          onClick={() => navigate('/contracts')}
-          sx={{ mb: 3, borderRadius: 1, textTransform: 'none', fontWeight: 600, color: 'text.secondary' }}
-          startIcon={<Icon icon="mdi:arrow-right" />}
-        >
-          بازگشت به لیست قراردادها
-        </Button>
+      <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
+        {backLink}
 
         {/* هدر */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <Paper sx={{ borderRadius: '16px', p: { xs: 2, md: 3 }, mb: 2, border: `1px solid ${theme.palette.divider}` }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                <Box
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    bgcolor: `${theme.palette.primary.main}08`,
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Icon icon="mdi:file-document-multiple" className="h-5 w-5" style={{ color: theme.palette.primary.main }} />
-                </Box>
-                <Box>
-                  <Typography component="h1" variant="h6" sx={{ fontWeight: 700 }}>
+          <div className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/5">
+                  <Icon icon="mdi:file-document-multiple" className="h-5 w-5 text-primary" aria-hidden="true" />
+                </span>
+                <div>
+                  <h1 className="text-lg font-bold">
                     {contract.venue_name || `سالن #${faNum(contract.venue_id)}`}
-                  </Typography>
-                  <Typography variant="body2" color="text.secondary">
-                    {`قرارداد #${faNum(contract.id)}`}
-                  </Typography>
-                </Box>
-              </Box>
-              <Box sx={{ display: 'flex', gap: 1, alignItems: 'center', flexWrap: 'wrap' }}>
+                  </h1>
+                  <p className="text-sm text-muted-foreground">{`قرارداد #${faNum(contract.id)}`}</p>
+                </div>
+              </div>
+              <div className="flex flex-wrap items-center gap-2">
                 <StatusChip label={payMeta.label} color={payMeta.color} />
-                <Chip
-                  label={meta.label}
-                  size="small"
-                  sx={{
-                    borderRadius: '8px',
-                    fontWeight: 700,
-                    bgcolor: `${meta.color}18`,
-                    color: meta.color,
-                  }}
-                />
-              </Box>
-            </Box>
-          </Paper>
+                <span
+                  className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-bold"
+                  style={{ backgroundColor: `${meta.color}18`, color: meta.color }}
+                >
+                  {meta.label}
+                </span>
+              </div>
+            </div>
+          </div>
         </motion.div>
 
         {/* بنرهای وضعیت */}
         {contract.status === 'pending' && (
-          <Alert
-            severity="warning"
-            icon={<Icon icon="mdi:account-clock-outline" />}
-            sx={{ mb: 2, borderRadius: '14px', fontWeight: 600 }}
-          >
-            در انتظار تأیید مدیر سالن — پس از تأیید، تقویم اقساط صادر و قرارداد فعال می‌شود. سانس‌ها تا آن زمان برای شما رزرو است.
+          <Alert variant="warning" className="mb-4 font-semibold">
+            <Icon icon="mdi:account-clock-outline" className="h-5 w-5" aria-hidden="true" />
+            <AlertDescription>
+              در انتظار تأیید مدیر سالن — پس از تأیید، تقویم اقساط صادر و قرارداد فعال می‌شود. سانس‌ها تا آن زمان برای شما رزرو است.
+            </AlertDescription>
           </Alert>
         )}
         {contract.status === 'rejected' && contract.reject_reason && (
-          <Alert severity="error" icon={<Icon icon="mdi:close-octagon-outline" />} sx={{ mb: 2, borderRadius: '14px' }}>
-            {`درخواست شما رد شد. دلیل مدیر: ${contract.reject_reason}`}
+          <Alert variant="destructive" className="mb-4">
+            <Icon icon="mdi:close-octagon-outline" className="h-5 w-5" aria-hidden="true" />
+            <AlertDescription>
+              {`درخواست شما رد شد. دلیل مدیر: ${contract.reject_reason}`}
+            </AlertDescription>
           </Alert>
         )}
         {contract.status === 'cancelled' && contract.cancel_reason && (
-          <Alert severity="warning" icon={<Icon icon="mdi:cancel" />} sx={{ mb: 2, borderRadius: '14px' }}>
-            {`قرارداد لغو شده است. دلیل: ${contract.cancel_reason}` +
-              ' — سانس‌های آینده آزاد شدند و سانس‌های برگزارشده دست‌نخورده می‌مانند.'}
+          <Alert variant="warning" className="mb-4">
+            <Icon icon="mdi:cancel" className="h-5 w-5" aria-hidden="true" />
+            <AlertDescription>
+              {`قرارداد لغو شده است. دلیل: ${contract.cancel_reason}` +
+                ' — سانس‌های آینده آزاد شدند و سانس‌های برگزارشده دست‌نخورده می‌مانند.'}
+            </AlertDescription>
           </Alert>
         )}
 
         {/* اقتصاد */}
-        <Grid container spacing={3}>
-          <Grid size={{ xs: 12, md: 8 }}>
-            <SectionCard title="وضعیت مالی و سانس‌ها" icon="mdi:chart-line" dense={false}>
+        <div className="grid gap-6 md:grid-cols-3">
+          <div className="md:col-span-2">
+            <SectionCard title="وضعیت مالی و سانس‌ها" icon="mdi:chart-line">
               <ContractEconomics economics={contract.economics} totalAmount={contract.total_amount} />
             </SectionCard>
 
-            <Box sx={{ mt: 3 }}>
+            <div className="mt-6">
               <SectionCard
                 title="اقساط و پرداخت"
                 icon="mdi:calendar-text-outline"
@@ -223,9 +199,9 @@ const ContractDetail: React.FC = () => {
                   onPay={(p) => setPayTarget(p)}
                 />
               </SectionCard>
-            </Box>
+            </div>
 
-            <Box sx={{ mt: 3 }}>
+            <div className="mt-6">
               <SectionCard title="سانس‌های قرارداد" icon="mdi:calendar-multiple">
                 <ContractSessionsTable
                   sessions={contract.sessions}
@@ -234,91 +210,87 @@ const ContractDetail: React.FC = () => {
                   onRequestCancel={(cs) => { setCancelSession(cs); setDialogError(null) }}
                 />
               </SectionCard>
-            </Box>
+            </div>
 
-            <Box sx={{ mt: 3 }}>
+            <div className="mt-6">
               <SectionCard title="تاریخچه" icon="mdi:history">
                 <ContractAuditTimeline contractId={contract.id} />
               </SectionCard>
-            </Box>
-          </Grid>
+            </div>
+          </div>
 
           {/* خلاصه و اقدامات */}
-          <Grid size={{ xs: 12, md: 4 }}>
+          <div>
             <SectionCard title="جزئیات قرارداد" icon="mdi:information-outline">
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.75 }}>
+              <div className="flex flex-col gap-3.5">
                 {infoItems.map((item) => (
-                  <Box key={item.label} sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                    <Icon icon={item.icon} className="h-4 w-4" style={{ color: theme.palette.text.secondary }} />
-                    <Box sx={{ flex: 1 }}>
-                      <Typography variant="caption" color="text.disabled" sx={{ display: 'block' }}>{item.label}</Typography>
-                      <Typography variant="body2" sx={{ fontWeight: 600, fontSize: '0.85rem' }}>{item.value}</Typography>
-                    </Box>
-                  </Box>
+                  <div key={item.label} className="flex items-center gap-2.5">
+                    <Icon icon={item.icon} className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
+                    <div className="flex-1">
+                      <span className="block text-xs text-muted-foreground/70">{item.label}</span>
+                      <p className="text-[0.85rem] font-semibold">{item.value}</p>
+                    </div>
+                  </div>
                 ))}
-              </Box>
+              </div>
 
               {contract.description && (
                 <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>توضیحات</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.85rem', lineHeight: 1.7 }}>
-                    {contract.description}
-                  </Typography>
+                  <hr className="my-4 border-border" />
+                  <p className="mb-1 text-sm font-semibold">توضیحات</p>
+                  <p className="text-[0.85rem] leading-7 text-muted-foreground">{contract.description}</p>
                 </>
               )}
 
               {contract.cancellation_policy && (
                 <>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant="body2" sx={{ fontWeight: 600, mb: 0.5 }}>شرایط لغو (تعیین‌شده توسط مدیر)</Typography>
-                  <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.82rem', lineHeight: 1.7 }}>
-                    {contract.cancellation_policy}
-                  </Typography>
+                  <hr className="my-4 border-border" />
+                  <p className="mb-1 text-sm font-semibold">شرایط لغو (تعیین‌شده توسط مدیر)</p>
+                  <p className="text-[0.82rem] leading-7 text-muted-foreground">{contract.cancellation_policy}</p>
                 </>
               )}
             </SectionCard>
 
-            <Box sx={{ mt: 3 }}>
+            <div className="mt-6">
               <SectionCard title="اعمال قرارداد" icon="mdi:lightning-bolt" dense>
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                  <Button
-                    fullWidth
-                    variant="outlined"
+                <div className="flex flex-col gap-2">
+                  <button
+                    type="button"
                     onClick={() => window.print()}
-                    sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
-                    startIcon={<Icon icon="mdi:printer" className="h-4 w-4" />}
+                    className={cn(actionBtn, 'border-border hover:bg-muted')}
                   >
+                    <Icon icon="mdi:printer" className="h-4 w-4" aria-hidden="true" />
                     چاپ قرارداد
-                  </Button>
+                  </button>
                   {isOwner && contract.status === 'pending' && (
-                    <Typography variant="caption" color="text.disabled">
+                    <span className="text-xs text-muted-foreground/70">
                       امکان ویرایش وجود ندارد — برای انصراف قرارداد را لغو کنید.
-                    </Typography>
+                    </span>
                   )}
-                  <Button
-                    fullWidth
-                    color="error"
-                    variant="outlined"
+                  <button
+                    type="button"
                     disabled={!cancelable}
                     onClick={() => { setCancelContractOpen(true); setDialogError(null) }}
-                    sx={{ textTransform: 'none', borderRadius: '10px', fontWeight: 700 }}
-                    startIcon={<Icon icon="mdi:cancel" className="h-4 w-4" />}
+                    className={cn(
+                      actionBtn,
+                      'border-destructive/50 text-destructive hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent'
+                    )}
                   >
+                    <Icon icon="mdi:cancel" className="h-4 w-4" aria-hidden="true" />
                     لغو قرارداد
-                  </Button>
+                  </button>
                   {!cancelable && contract.status !== 'rejected' && contract.status !== 'cancelled' && (
-                    <Typography variant="caption" color="text.disabled">
+                    <span className="text-xs text-muted-foreground/70">
                       {contract.end_date < getTodayISO()
                         ? 'قرارداد گذشته یا تمام‌شده قابل لغو نیست'
                         : 'این قرارداد در وضعیت قابل لغو نیست'}
-                    </Typography>
+                    </span>
                   )}
-                </Box>
+                </div>
               </SectionCard>
-            </Box>
-          </Grid>
-        </Grid>
+            </div>
+          </div>
+        </div>
 
         {/* بخش چاپ‌پسند — فقط در چاپ دیده می‌شود (الگوی چاپ فاکتور رزرو + CSS محلی) */}
         <style>{`
@@ -328,42 +300,44 @@ const ContractDetail: React.FC = () => {
             .contract-print-root { position: absolute !important; top: 0; left: 0; width: 100%; display: block !important; background: white; }
           }
         `}</style>
-        <Box className="contract-print-root" sx={{ display: { xs: 'none' }, p: 3 }} dir="rtl">
-          <Typography variant="h5" sx={{ fontWeight: 800, mb: 0.5 }}>
+        <div className="contract-print-root hidden p-6" dir="rtl">
+          <h2 className="mb-1 text-xl font-extrabold">
             {`قرارداد سالن ${contract.venue_name || `#${faNum(contract.venue_id)}`} — شماره ${faNum(contract.id)}`}
-          </Typography>
-          <Typography variant="caption" color="text.secondary">
+          </h2>
+          <span className="text-xs text-muted-foreground">
             {`تاریخ چاپ: ${formatJalaliDate(getTodayISO(), { format: 'full' })}`}
-          </Typography>
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, mb: 1 }}>طرفین</Typography>
+          </span>
+          <hr className="my-4 border-border" />
+          <h3 className="mb-2 text-sm font-extrabold">طرفین</h3>
           {infoItems.map((item) => (
-            <Box key={item.label} sx={{ display: 'flex', gap: 1.5, mb: 0.5 }}>
-              <Typography variant="body2" sx={{ fontWeight: 700, minWidth: 160 }}>{item.label}:</Typography>
-              <Typography variant="body2">{item.value}</Typography>
-            </Box>
+            <div key={item.label} className="mb-1 flex gap-3">
+              <span className="min-w-[160px] text-sm font-bold">{item.label}:</span>
+              <span className="text-sm">{item.value}</span>
+            </div>
           ))}
-          <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', my: 1 }}>
+          <div className="my-2 flex flex-wrap gap-1">
             {(contract.days?.length ? contract.days : [contract.day_of_week]).map((d) => (
-              <Chip key={d} label={pyDayNames[d] ?? d} size="small" variant="outlined" sx={{ borderRadius: '6px' }} />
+              <span key={d} className="rounded-md border border-border px-2 py-0.5 text-xs">
+                {pyDayNames[d] ?? d}
+              </span>
             ))}
-          </Box>
-          <Typography variant="subtitle2" sx={{ fontWeight: 800, mt: 2, mb: 1 }}>خلاصه جلسات</Typography>
-          <Typography variant="body2">
+          </div>
+          <h3 className="mb-2 mt-4 text-sm font-extrabold">خلاصه جلسات</h3>
+          <p className="text-sm">
             {`کل سانس‌ها: ${faNum(contract.economics?.total_sessions ?? contract.sessions.length)} — برگزارشده: ${faNum(contract.economics?.completed_sessions ?? 0)} — برنامه‌ریزی‌شده: ${faNum(contract.economics?.scheduled_sessions ?? 0)} — مستثنا: ${faNum(contract.economics?.excluded_sessions ?? 0)}`}
-          </Typography>
+          </p>
           {contract.payments.length > 0 && (
             <>
-              <Typography variant="subtitle2" sx={{ fontWeight: 800, mt: 2, mb: 1 }}>اقساط</Typography>
-              <Table aria-label="اقساط قرارداد" size="small">
-                <TableHead>
+              <h3 className="mb-2 mt-4 text-sm font-extrabold">اقساط</h3>
+              <Table aria-label="اقساط قرارداد">
+                <TableHeader>
                   <TableRow>
-                    <TableCell scope="col" sx={{ fontWeight: 800 }}>عنوان</TableCell>
-                    <TableCell scope="col" sx={{ fontWeight: 800 }}>سررسید</TableCell>
-                    <TableCell scope="col" sx={{ fontWeight: 800 }}>مبلغ</TableCell>
-                    <TableCell scope="col" sx={{ fontWeight: 800 }}>وضعیت</TableCell>
+                    <TableHead scope="col" className="font-extrabold">عنوان</TableHead>
+                    <TableHead scope="col" className="font-extrabold">سررسید</TableHead>
+                    <TableHead scope="col" className="font-extrabold">مبلغ</TableHead>
+                    <TableHead scope="col" className="font-extrabold">وضعیت</TableHead>
                   </TableRow>
-                </TableHead>
+                </TableHeader>
                 <TableBody>
                   {[...contract.payments].sort((a, b) => (a.due_date < b.due_date ? -1 : 1)).map((p) => (
                     <TableRow key={p.id}>
@@ -377,17 +351,17 @@ const ContractDetail: React.FC = () => {
               </Table>
             </>
           )}
-          <Divider sx={{ my: 2 }} />
-          <Typography variant="body2" sx={{ fontWeight: 800 }}>
+          <hr className="my-4 border-border" />
+          <p className="text-sm font-extrabold">
             {`مبلغ کل: ${formatRial(contract.total_amount)} — پرداختی: ${formatRial(contract.economics?.paid_amount ?? 0)} — مانده: ${formatRial(contract.economics?.remaining_amount ?? contract.total_amount - (contract.economics?.paid_amount ?? 0))}`}
-          </Typography>
+          </p>
           {contract.cancellation_policy && (
-            <Typography variant="caption" sx={{ display: 'block', mt: 1 }}>
+            <span className="mt-2 block text-xs">
               {`شرایط لغو: ${contract.cancellation_policy}`}
-            </Typography>
+            </span>
           )}
-        </Box>
-      </Container>
+        </div>
+      </div>
 
       {/* دیالوگ پرداخت قسط (درگاه شبیه‌سازی‌شده) */}
       <ContractInstallmentPayDialog
@@ -420,7 +394,6 @@ const ContractDetail: React.FC = () => {
             toast.success('درخواست حذف سانس برای مدیر ارسال شد')
             setCancelSession(null)
           } catch (err) {
-            setDialogError(err instanceof Error ? 'ثبت درخواست ناموفق بود' : 'ثبت درخواست ناموفق بود')
             setDialogError(extractError(err, 'ثبت درخواست ناموفق بود'))
           }
         }}

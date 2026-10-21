@@ -2,12 +2,12 @@
 // کارت سانس لحظه آخری — قیمت اصلی خط‌خورده + قیمت دیل + نشان صرفه‌جویی + شمارش معکوس.
 
 import React from 'react'
-import { Box, Button, Card, Chip, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
 import { formatRial } from '@/components/finance/shared'
-import { formatTimeFa, getSlotEndTime } from '@/lib/utils'
+import { cn, formatTimeFa, getSlotEndTime } from '@/lib/utils'
 import { parseUtcAware } from '@/components/pricing/shared'
+import { Button } from '@/components/ui/shadcn/button'
 import type { DealAvailableItem } from '@/services/deals'
 import DealCountdown from './DealCountdown'
 
@@ -36,108 +36,75 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
   const hint = dayHint(deal.slot_date)
 
   return (
-    <Card
-      sx={{
-        borderRadius: '16px',
-        border: expired ? '1px solid rgba(0,0,0,0.06)' : '1px solid rgba(245,158,11,0.35)',
-        background: expired ? 'rgba(0,0,0,0.02)' : 'linear-gradient(135deg, rgba(255,251,235,0.9), rgba(254,243,199,0.55))',
-        overflow: 'hidden',
-        position: 'relative',
-        opacity: expired ? 0.65 : 1,
-        transition: 'all 0.25s ease',
-        '&:hover': expired ? undefined : { transform: 'translateY(-3px)', boxShadow: '0 12px 32px rgba(245,158,11,0.18)' },
-      }}
+    <div
+      className={cn(
+        'relative overflow-hidden rounded-2xl border transition-all duration-200',
+        expired
+          ? 'border-border bg-slate-900/[0.02] opacity-[0.65]'
+          : 'border-amber-500/35 bg-gradient-to-br from-amber-50/90 to-amber-100/[0.55] hover:-translate-y-[3px] hover:shadow-[0_12px_32px_rgba(245,158,11,0.18)] dark:from-amber-500/10 dark:to-amber-400/5'
+      )}
     >
-      <Box
-        sx={{
-          position: 'absolute',
-          top: 0,
-          insetInlineStart: 0,
-          px: 1.5,
-          py: 0.5,
-          borderBottomRightRadius: '14px',
-          background: 'linear-gradient(135deg, #f59e0b, #ef4444)',
-          color: 'white',
-          fontSize: '0.75rem',
-          fontWeight: 800,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1,
-        }}
-      >
+      <div className="absolute start-0 top-0 flex items-center gap-2 rounded-es-[14px] bg-gradient-to-br from-amber-500 to-red-500 px-3 py-1 text-xs font-extrabold text-white">
         <Icon icon="mdi:fire" style={{ width: 13, height: 13 }} />
         تا ‪{toPersianDigits(deal.discount_percent)}٪‬ تخفیف
-      </Box>
+      </div>
 
-      <Box sx={{ p: 2.5, pt: 4.5 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, mb: 1 }}>
-          <Typography variant="subtitle1" sx={{ fontWeight: 800, minWidth: 0 }} noWrap>
-            {deal.venue_name}
-          </Typography>
+      <div className="p-5 pt-9">
+        <div className="mb-2 flex items-center justify-between gap-2">
+          <h3 className="min-w-0 truncate text-base font-extrabold text-foreground">{deal.venue_name}</h3>
           {deal.distance_km != null && (
-            <Chip
-              size="small"
-              icon={<Icon icon="mdi:crosshairs-gps" style={{ width: 14, height: 14 }} />}
-              label={`${toPersianDigits(Math.round(deal.distance_km * 10) / 10)} کیلومتر`}
-              sx={{ borderRadius: '8px', fontSize: '0.75rem', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb', fontWeight: 700 }}
-            />
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-blue-600/[0.08] px-2 py-0.5 text-xs font-bold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
+              <Icon icon="mdi:crosshairs-gps" style={{ width: 14, height: 14 }} />
+              {`${toPersianDigits(Math.round(deal.distance_km * 10) / 10)} کیلومتر`}
+            </span>
           )}
-        </Box>
+        </div>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+        <div className="mb-3 flex flex-wrap items-center gap-2">
+          <div className="flex items-center gap-2">
             <Icon icon="mdi:calendar-blank-outline" style={{ width: 15, height: 15, color: '#64748b' }} />
-            <Typography variant="body2" sx={{ color: '#334155', fontWeight: 600 }}>
+            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               {formatJalaliDate(deal.slot_date, { format: 'long' })}
               {hint ? ` (${hint})` : ''}
-            </Typography>
-          </Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            </span>
+          </div>
+          <div className="flex items-center gap-2">
             <Icon icon="mdi:clock-outline" style={{ width: 15, height: 15, color: '#64748b' }} />
-            <Typography variant="body2" dir="rtl" sx={{ color: '#334155', fontWeight: 600 }}>
+            <span dir="rtl" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
               {formatTimeFa(deal.start_time)} – {end}
-            </Typography>
-          </Box>
-        </Box>
+            </span>
+          </div>
+        </div>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap', mb: 1.5 }}>
-          <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1 }}>
-            <Typography variant="h5" sx={{ fontWeight: 900, color: 'success.main' }}>
-              {formatRial(deal.deal_price)}
-            </Typography>
-            <Typography variant="body2" sx={{ color: '#64748b', textDecoration: 'line-through' }}>
-              {formatRial(deal.original_price)}
-            </Typography>
-          </Box>
-          <Chip
-            size="small"
-            label={`${toPersianDigits(deal.savings)} ریال سود شما`}
-            sx={{ borderRadius: '8px', fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.12)', color: 'success.main' }}
-          />
-        </Box>
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+          <div className="flex items-baseline gap-2">
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">{formatRial(deal.deal_price)}</span>
+            <span className="text-sm text-muted-foreground line-through">{formatRial(deal.original_price)}</span>
+          </div>
+          <span className="inline-flex items-center rounded-lg bg-emerald-600/[0.12] px-2 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+            {`${toPersianDigits(deal.savings)} ریال سود شما`}
+          </span>
+        </div>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
+        <div className="flex items-center justify-between gap-2">
           <DealCountdown expiresAt={deal.deal_expires_at} compact />
           <Button
-            variant="contained"
+            size="sm"
             disabled={expired}
             onClick={() => onBook(deal)}
-            sx={{
-              borderRadius: '10px',
-              textTransform: 'none',
-              fontWeight: 800,
-              px: 2.5,
-              background: expired ? 'rgba(0,0,0,0.12)' : 'linear-gradient(135deg, #f59e0b, #ef4444)',
-              boxShadow: expired ? 'none' : '0 4px 14px rgba(239,68,68,0.3)',
-              '&:hover': expired ? undefined : { background: 'linear-gradient(135deg, #d97706, #dc2626)' },
-            }}
-            startIcon={<Icon icon="mdi:lightning-bolt" className="h-4 w-4" />}
+            className={cn(
+              'gap-1 rounded-[10px] px-5 font-extrabold',
+              expired
+                ? 'bg-none bg-slate-900/10 text-slate-500 shadow-none hover:bg-slate-900/10 dark:bg-white/10 dark:text-slate-400'
+                : 'bg-gradient-to-br from-amber-500 to-red-500 text-white shadow-[0_4px_14px_rgba(239,68,68,0.3)] hover:from-amber-600 hover:to-red-600'
+            )}
           >
+            <Icon icon="mdi:lightning-bolt" className="h-4 w-4" />
             رزرو
           </Button>
-        </Box>
-      </Box>
-    </Card>
+        </div>
+      </div>
+    </div>
   )
 }
 

@@ -119,7 +119,7 @@ describe('CoachDashboard', () => {
     getDashboard.mockResolvedValue({ ...dashboardFixture, today: [session({ status: 'attended' })] })
     renderPage()
     const card = within(await screen.findByTestId('coach-today')).getByTestId('coach-session-1')
-    fireEvent.click(card.querySelector('button.MuiButton-root')!)
+    fireEvent.click(within(card).getByRole('button', { name: 'تسویه' }))
     await waitFor(() => expect(setSettled).toHaveBeenCalledWith(1, true))
   })
 

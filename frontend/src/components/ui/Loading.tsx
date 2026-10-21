@@ -1,6 +1,6 @@
 // src/components/ui/Loading.tsx
+// حالت بارگذاری سراسری — اسپینر + پیام فارسی، بدون MUI.
 import React from 'react'
-import { Box, CircularProgress, Typography, Backdrop } from '@mui/material'
 import { motion } from 'framer-motion'
 
 interface LoadingProps {
@@ -21,37 +21,29 @@ const Loading: React.FC<LoadingProps> = ({
   }
 
   const content = (
-    <Box
+    <div
       // role=status: پیشرفت بارگذاری بدون کلیک به صفحه‌خوان اعلام شود (متن با تغییر aria-busy خوانده می‌شود)
       role="status"
       aria-live="polite"
       aria-busy="true"
-      sx={{
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 2,
-      }}
+      className="flex flex-col items-center justify-center gap-4"
     >
       <motion.div
         aria-hidden="true"
         animate={{ rotate: 360 }}
         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-      >
-        <CircularProgress size={sizeMap[size]} />
-      </motion.div>
-      <Typography variant="body2" color="text.secondary">
-        {message}
-      </Typography>
-    </Box>
+        className="rounded-full border-4 border-muted border-t-amber-500"
+        style={{ width: sizeMap[size], height: sizeMap[size] }}
+      />
+      <p className="text-sm text-muted-foreground">{message}</p>
+    </div>
   )
 
   if (fullScreen) {
     return (
-      <Backdrop open sx={{ zIndex: 9999 }}>
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/50 backdrop-blur-sm">
         {content}
-      </Backdrop>
+      </div>
     )
   }
 

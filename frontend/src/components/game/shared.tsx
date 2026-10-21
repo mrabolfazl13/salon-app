@@ -2,10 +2,11 @@
 // اجزای مشترک بازی‌ها: چیپ‌ها، نوار ظرفیت، خطایار — سبک هم‌راستا با VenueCard
 
 import React from 'react'
-import { Box, Chip, LinearProgress, Typography, useTheme } from '@mui/material'
 import { Icon } from '@iconify/react'
 import { isAxiosError } from 'axios'
 import { chipInk } from '@/utils/contrast'
+import { cn } from '@/lib/utils'
+import { Progress } from '@/components/ui/shadcn/progress'
 
 import {
   GAME_STATUS_LABELS,
@@ -64,29 +65,35 @@ const STATUS_COLORS: Record<GameStatus, { bg: string; fg: string; icon: string }
   cancelled: { bg: 'rgba(239,68,68,0.10)', fg: '#dc2626', icon: 'mdi:close-circle-outline' },
 }
 
+// کاغذِ روشن/تیره برای سنجش کنتراست جوهرِ چیپ‌ها (جایگزین palette.background.paper)
+const PAPER_LIGHT = '#ffffff'
+const PAPER_DARK = '#121a2b'
+
+/** جوهرِ خواناتر برای هر دو تم؛ با متغیر CSS تا کلاس dark بتواند جایگزینش کند */
+const chipStyle = (fg: string, bg: string): React.CSSProperties =>
+  ({
+    backgroundColor: bg,
+    '--chip-ink': chipInk(fg, bg, PAPER_LIGHT),
+    '--chip-ink-dark': chipInk(fg, bg, PAPER_DARK),
+  }) as React.CSSProperties
+
 export const GameStatusChip: React.FC<{ status: GameStatus; size?: 'small' | 'medium' }> = ({
   status,
   size = 'small',
 }) => {
-  const paper = useTheme().palette.background.paper
   const c = STATUS_COLORS[status] ?? STATUS_COLORS.draft
   // «باز» با #059669 روی تیغِ خودش ۳٫۴۸:۱ بود — ممیزی axe F-21
-  const ink = chipInk(c.fg, c.bg, paper)
   return (
-    <Chip
-      size={size}
-      icon={<Icon icon={c.icon} style={{ width: 15, height: 15 }} />}
-      label={GAME_STATUS_LABELS[status] ?? status}
-      sx={{
-        height: size === 'small' ? 26 : 32,
-        borderRadius: '999px',
-        fontWeight: 700,
-        fontSize: '0.75rem',
-        bgcolor: c.bg,
-        color: ink,
-        '& .MuiChip-icon': { color: ink },
-      }}
-    />
+    <span
+      className={cn(
+        'inline-flex items-center gap-1 whitespace-nowrap rounded-full font-bold text-xs text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]',
+        size === 'small' ? 'h-[26px] px-2' : 'h-8 px-2.5'
+      )}
+      style={chipStyle(c.fg, c.bg)}
+    >
+      <Icon icon={c.icon} style={{ width: 15, height: 15 }} />
+      {GAME_STATUS_LABELS[status] ?? status}
+    </span>
   )
 }
 
@@ -96,42 +103,22 @@ export const VisibilityChip: React.FC<{ visibility: GameVisibility }> = ({ visib
     public_approval: { icon: 'mdi:shield-check-outline', fg: '#b45309', bg: 'rgba(245,158,11,0.10)' },
     private: { icon: 'mdi:lock-outline', fg: '#64748b', bg: 'rgba(100,116,139,0.10)' },
   }
-  const paper = useTheme().palette.background.paper
   const c = map[visibility]
-  const ink = chipInk(c.fg, c.bg, paper)
   return (
-    <Chip
-      size="small"
-      icon={<Icon icon={c.icon} style={{ width: 14, height: 14 }} />}
-      label={GAME_VISIBILITY_LABELS[visibility] ?? visibility}
-      sx={{
-        height: 24,
-        borderRadius: '999px',
-        fontWeight: 600,
-        fontSize: '0.75rem',
-        bgcolor: c.bg,
-        color: ink,
-        '& .MuiChip-icon': { color: ink },
-        '& .MuiChip-label': { px: 1 },
-      }}
-    />
+    <span
+      className="inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-full ps-1 pe-2 text-xs font-semibold text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]"
+      style={chipStyle(c.fg, c.bg)}
+    >
+      <Icon icon={c.icon} style={{ width: 14, height: 14 }} />
+      {GAME_VISIBILITY_LABELS[visibility] ?? visibility}
+    </span>
   )
 }
 
 export const SkillChip: React.FC<{ level: SkillLevel }> = ({ level }) => (
-  <Chip
-    size="small"
-    label={SKILL_LEVEL_LABELS[level] ?? level}
-    sx={{
-      height: 24,
-      borderRadius: '999px',
-      fontWeight: 600,
-      fontSize: '0.75rem',
-      bgcolor: 'rgba(37,99,235,0.06)',
-      color: '#2563eb',
-      '& .MuiChip-label': { px: 1 },
-    }}
-  />
+  <span className="inline-flex h-6 items-center rounded-full bg-blue-600/[0.06] px-2 text-xs font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
+    {SKILL_LEVEL_LABELS[level] ?? level}
+  </span>
 )
 
 const ROLE_COLORS: Record<ParticipantRole, { fg: string; bg: string; icon: string }> = {
@@ -143,53 +130,40 @@ const ROLE_COLORS: Record<ParticipantRole, { fg: string; bg: string; icon: strin
 export const RoleBadge: React.FC<{ role: ParticipantRole }> = ({ role }) => {
   const c = ROLE_COLORS[role] ?? ROLE_COLORS.member
   return (
-    <Box
-      component="span"
-      sx={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 1,
-        px: 0.9,
-        py: 0.25,
-        borderRadius: '999px',
-        bgcolor: c.bg,
-        color: c.fg,
-        fontSize: '0.75rem',
-        fontWeight: 700,
-        whiteSpace: 'nowrap',
-      }}
+    <span
+      className="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[7px] py-0.5 text-xs font-bold"
+      style={{ backgroundColor: c.bg, color: c.fg }}
     >
       <Icon icon={c.icon} style={{ width: 13, height: 13 }} />
       {PARTICIPANT_ROLE_LABELS[role] ?? role}
-    </Box>
+    </span>
   )
 }
 
 /** نوار ظرفیت — «۳/۸ نفر» + پیشرفت رنگی */
 export const CapacityBar: React.FC<{ current: number; max: number }> = ({ current, max }) => {
   const ratio = max > 0 ? Math.min(current / max, 1) : 0
-  const color = ratio >= 1 ? '#f59e0b' : '#10b981'
   return (
-    <Box sx={{ minWidth: 90 }}>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-        <Icon icon="mdi:account-group-outline" style={{ width: 15, height: 15, color }} />
-        <Typography component="span" sx={{ fontSize: '0.75rem', fontWeight: 700, color: '#334155' }}>
+    <div className="min-w-[90px]">
+      <div className="mb-1 flex items-center gap-2">
+        <Icon
+          icon="mdi:account-group-outline"
+          style={{ width: 15, height: 15, color: ratio >= 1 ? '#f59e0b' : '#10b981' }}
+        />
+        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
           {`${current.toLocaleString('fa-IR')}/${max.toLocaleString('fa-IR')}`}
-        </Typography>
-      </Box>
-      <LinearProgress
-        variant="determinate"
+        </span>
+      </div>
+      <Progress
         value={ratio * 100}
         aria-label="ظرفیت شرکت‌کننده‌ها"
         aria-valuetext={`${current.toLocaleString('fa-IR')} از ${max.toLocaleString('fa-IR')} نفر`}
-        sx={{
-          height: 5,
-          borderRadius: 999,
-          bgcolor: 'rgba(15,23,42,0.06)',
-          '& .MuiLinearProgress-bar': { bgcolor: color, borderRadius: 999 },
-        }}
+        className={cn(
+          'h-[5px] bg-slate-900/[0.06] dark:bg-white/10',
+          ratio >= 1 ? '[&>div]:bg-amber-500' : '[&>div]:bg-emerald-500'
+        )}
       />
-    </Box>
+    </div>
   )
 }
 

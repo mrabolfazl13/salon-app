@@ -6,16 +6,6 @@ import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import {
-  Box,
-  Typography,
-  Button,
-  Tabs,
-  Tab,
-  Skeleton,
-  Alert,
-  Dialog,
-} from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import ContractList from '@/components/contract/ContractList'
 import ContractForm from '@/components/contract/ContractForm'
@@ -24,6 +14,11 @@ import { CONTRACT_TAB_STATUSES } from '@/components/contract/shared'
 import { useMyContracts } from '@/hooks/useContracts'
 import { venueService } from '@/services/venue'
 import { toPersianDigits } from '@/lib/jalali'
+import { Button } from '@/components/ui/shadcn/button'
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
+import Dialog from '@/components/ui/Dialog'
 import toast from 'react-hot-toast'
 
 const PAGE_TABS = ['all', ...CONTRACT_TAB_STATUSES] as const
@@ -76,46 +71,31 @@ const Contracts: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ py: 3 }}>
+      <div className="py-6">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 1 }}>
-            <Typography sx={{ fontWeight: 700 }} component="h1" variant="h4">قراردادهای من</Typography>
+          <div className="mb-1 flex items-center justify-between gap-3">
+            <h1 className="text-2xl font-bold text-foreground">قراردادهای من</h1>
             <Button
-              variant="contained"
               onClick={openCreate}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              }}
+              className="rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-900/20"
             >
-              <Icon icon="mdi:plus" className="h-5 w-5 ml-2" />
+              <Icon icon="mdi:plus" aria-hidden="true" className="h-5 w-5" />
               قرارداد جدید
             </Button>
-          </Box>
-          <Typography color="text.secondary" sx={{ mb: 4 }}>
+          </div>
+          <p className="mb-8 text-muted-foreground">
             درخواست قرارداد بلندمدت ثبت و اقساط آن را پیگیری کنید
-          </Typography>
+          </p>
         </motion.div>
 
-        <Tabs
-          value={tab}
-          onChange={(_, newValue: ContractTab) => setTab(newValue)}
-          variant="scrollable"
-          scrollButtons="auto"
-          sx={{
-            mb: 3,
-            '& .MuiTab-root': { borderRadius: '8px', textTransform: 'none', fontWeight: 600 },
-            '& .Mui-selected': { bgcolor: 'primary.main', color: 'white !important', borderRadius: '8px' },
-          }}
-        >
-          {PAGE_TABS.map((t) => (
-            <Tab
-              key={t}
-              value={t}
-              label={`${TAB_LABELS[t]}${counts && counts[t] !== undefined ? ` (${toPersianDigits(counts[t])})` : ''}`}
-            />
-          ))}
+        <Tabs value={tab} onValueChange={(v) => setTab(v as ContractTab)} className="mb-6">
+          <TabsList className="h-auto w-full justify-start overflow-x-auto p-1">
+            {PAGE_TABS.map((t) => (
+              <TabsTrigger key={t} value={t} className="min-h-10 whitespace-nowrap px-3">
+                {`${TAB_LABELS[t]} (${toPersianDigits(counts[t] ?? 0)})`}
+              </TabsTrigger>
+            ))}
+          </TabsList>
         </Tabs>
 
         {contractsQuery.isError ? (
@@ -124,20 +104,13 @@ const Contracts: React.FC = () => {
             onRetry={() => contractsQuery.refetch()}
           />
         ) : contractsQuery.isLoading ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          <div className="flex flex-col gap-4">
             {[1, 2, 3].map((i) => (
-              <Skeleton aria-hidden="true" key={i} variant="rounded" height={160} sx={{ borderRadius: '16px' }} />
+              <Skeleton key={i} aria-hidden="true" className="h-[160px] rounded-2xl" />
             ))}
-          </Box>
+          </div>
         ) : filtered.length === 0 ? (
-          <Box
-            sx={{
-              textAlign: 'center',
-              py: 8,
-              bgcolor: 'rgba(0,0,0,0.02)',
-              borderRadius: '16px',
-            }}
-          >
+          <div className="rounded-2xl bg-foreground/[0.02] py-16 text-center">
             <EmptyBox
               icon="mdi:file-document-remove-outline"
               title="قراردادی یافت نشد"
@@ -146,18 +119,13 @@ const Contracts: React.FC = () => {
                 : 'هنوز قراردادی در این وضعیت ندارید'}
             />
             <Button
-              variant="contained"
               onClick={openCreate}
-              sx={{
-                borderRadius: '12px',
-                textTransform: 'none',
-                background: 'linear-gradient(135deg, #2563eb, #7c3aed)',
-              }}
+              className="mt-4 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-900/20"
             >
-              <Icon icon="mdi:plus" className="h-5 w-5 ml-2" />
+              <Icon icon="mdi:plus" aria-hidden="true" className="h-5 w-5" />
               ایجاد قرارداد جدید
             </Button>
-          </Box>
+          </div>
         ) : (
           <ContractList
             contracts={filtered}
@@ -167,15 +135,14 @@ const Contracts: React.FC = () => {
         )}
 
         {tab === 'pending' && !contractsQuery.isLoading && (counts.pending ?? 0) > 0 && (
-          <Alert
-            severity="info"
-            icon={<Icon icon="mdi:account-clock-outline" />}
-            sx={{ mt: 3, borderRadius: '12px' }}
-          >
-            درخواست‌های «در انتظار تأیید» برای مدیر سالن ارسال شده‌اند؛ سانس‌های درخواستی تا بررسی نهایی در دست شما رزرو می‌مانند.
+          <Alert variant="info" className="mt-6 rounded-xl">
+            <Icon icon="mdi:account-clock-outline" aria-hidden="true" className="h-5 w-5" />
+            <AlertDescription>
+              درخواست‌های «در انتظار تأیید» برای مدیر سالن ارسال شده‌اند؛ سانس‌های درخواستی تا بررسی نهایی در دست شما رزرو می‌مانند.
+            </AlertDescription>
           </Alert>
         )}
-      </Box>
+      </div>
 
       <Dialog
         open={createOpen}
@@ -183,7 +150,6 @@ const Contracts: React.FC = () => {
         aria-label="ثبت درخواست قرارداد بلندمدت"
         maxWidth="md"
         fullWidth
-        sx={{ '& .MuiDialog-paper': { borderRadius: '20px', maxHeight: '90vh' } }}
       >
         <ContractForm
           venues={venues}

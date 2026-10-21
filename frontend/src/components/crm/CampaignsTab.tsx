@@ -5,22 +5,7 @@
 // می‌دهد؛ پس «قابل‌ارسال» پیش از ارسال دیده می‌شود. فیلتر نهایی همچنان سمت
 // سرور است و در پاسخ sent_count/skipped_no_consent برمی‌گردد.
 
-import React, { useEffect, useMemo, useState } from 'react'
-import {
-  Alert,
-  Box,
-  Button,
-  Chip,
-  CircularProgress,
-  FormControl,
-  FormControlLabel,
-  MenuItem,
-  Radio,
-  RadioGroup,
-  Select,
-  TextField,
-  Typography,
-} from '@mui/material'
+import React, { useEffect, useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import { EmptyBox, ErrorBox, LoadingBox, SectionCard, extractError } from '@/components/finance/shared'
@@ -28,6 +13,19 @@ import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { useCrmCampaigns, useCrmStats, useCreateCampaign } from '@/hooks/useCrm'
 import { crmService, type CrmCustomerRow } from '@/services/crm'
 import { ForbiddenPanel, SEGMENT_LABELS, SEGMENT_ORDER, crmErrorMessage, isForbidden } from './shared'
+import { Alert } from '@/components/ui/shadcn/alert'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/shadcn/radio-group'
+import { Textarea } from '@/components/ui/shadcn/textarea'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
 
 const MAX_SELECTED = 2000
 
@@ -44,6 +42,11 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
   const [title, setTitle] = useState('')
   const [message, setMessage] = useState('')
   const [discount, setDiscount] = useState('')
+
+  const titleId = useId()
+  const messageId = useId()
+  const discountId = useId()
+  const searchId = useId()
 
   const statsQuery = useCrmStats(venueId)
   const campaignsQuery = useCrmCampaigns(venueId)
@@ -115,139 +118,166 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
   const items = campaignsQuery.data?.items ?? []
 
   return (
-    <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', lg: '1.15fr 1fr' }, gap: 2.5, alignItems: 'start' }}>
+    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[1.15fr_1fr]">
       {/* فرم ساخت */}
       <SectionCard title="کمپین جدید" icon="mdi:message-alert-outline" color="#d97706">
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-          <RadioGroup aria-label="روش انتخاب مخاطبان کمپین" row value={targetMode} onChange={(e) => setTargetMode(e.target.value as 'segment' | 'customers')}>
-            <FormControlLabel value="segment" control={<Radio size="small" />} label={<Typography variant="body2" sx={{ fontWeight: 700 }}>بر اساس گروه مشتریان</Typography>} />
-            <FormControlLabel value="customers" control={<Radio size="small" />} label={<Typography variant="body2" sx={{ fontWeight: 700 }}>انتخاب دستی مشتریان</Typography>} />
+        <div className="flex flex-col gap-4">
+          <RadioGroup
+            aria-label="روش انتخاب مخاطبان کمپین"
+            value={targetMode}
+            onValueChange={(v) => setTargetMode(v as 'segment' | 'customers')}
+            className="grid-cols-1 gap-2 sm:grid-cols-2"
+          >
+            <label className="flex cursor-pointer items-center gap-2">
+              <RadioGroupItem value="segment" id="campaign-mode-segment" />
+              <span className="text-sm font-bold text-foreground">بر اساس گروه مشتریان</span>
+            </label>
+            <label className="flex cursor-pointer items-center gap-2">
+              <RadioGroupItem value="customers" id="campaign-mode-customers" />
+              <span className="text-sm font-bold text-foreground">انتخاب دستی مشتریان</span>
+            </label>
           </RadioGroup>
 
           {targetMode === 'segment' ? (
-            <FormControl size="small" fullWidth>
-              <Select value={segment} aria-label="گروه مشتریان" onChange={(e) => setSegment(e.target.value)} sx={{ borderRadius: '10px' }}>
-                {SEGMENT_ORDER.map((s) => (
-                  <MenuItem key={s} value={s}>{SEGMENT_LABELS[s]}</MenuItem>
-                ))}
+            <div>
+              <Select value={segment} onValueChange={setSegment}>
+                <SelectTrigger aria-label="گروه مشتریان" className="w-full">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {SEGMENT_ORDER.map((s) => (
+                    <SelectItem key={s} value={s}>{SEGMENT_LABELS[s]}</SelectItem>
+                  ))}
+                </SelectContent>
               </Select>
-            </FormControl>
+            </div>
           ) : (
-            <Box>
-              <TextField
-                size="small"
-                fullWidth
-                label="جست‌وجوی مشتری"
-                placeholder="جست‌وجوی نام یا موبایل مشتری..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-              />
+            <div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor={searchId}>جست‌وجوی مشتری</Label>
+                <Input
+                  id={searchId}
+                  placeholder="جست‌وجوی نام یا موبایل مشتری..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                />
+              </div>
               {candidates.length > 0 && (
-                <Box sx={{ mt: 1, border: '1px solid rgba(15,23,42,0.08)', borderRadius: '12px', maxHeight: 200, overflow: 'auto' }}>
+                <div className="mt-2 max-h-[200px] overflow-auto rounded-xl border border-border">
                   {candidates.map((c) => {
                     const picked = selected.some((p) => p.user_id === c.user_id)
                     return (
-                      <Box
+                      <button
                         key={c.user_id}
-                        component="button"
                         type="button"
                         aria-pressed={picked}
                         onClick={() => toggle(c)}
-                        sx={{
-                          display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1,
-                          px: 1.5, py: 1, cursor: 'pointer',
-                          bgcolor: picked ? 'rgba(37,99,235,0.06)' : 'transparent',
-                          borderBottom: '1px solid rgba(15,23,42,0.04)',
-                          // Box به‌عنوان <button>: عرض کامل + بازتنظیم پیش‌فرض‌های مرورگر
-                          width: '100%',
-                          textAlign: 'inherit',
-                          fontFamily: 'inherit',
-                          color: 'inherit',
-                          appearance: 'none',
-                          WebkitTapHighlightColor: 'transparent',
-                          '&:focus-visible': { outline: '3px solid', outlineColor: '#f59e0b', outlineOffset: -2 },
-                        }}
+                        className={
+                          picked
+                            ? 'flex w-full cursor-pointer appearance-none items-center justify-between gap-2 border-b border-border/60 bg-blue-600/[0.06] px-3 py-2 text-start font-[inherit] text-inherit transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                            : 'flex w-full cursor-pointer appearance-none items-center justify-between gap-2 border-b border-border/60 bg-transparent px-3 py-2 text-start font-[inherit] text-inherit transition-colors hover:bg-muted/50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        }
                       >
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-                          {picked && <Icon icon="mdi:checkbox-marked" className="h-4 w-4" style={{ color: '#2563eb' }} />}
-                          <Typography variant="body2" sx={{ fontWeight: 600 }}>{c.full_name ?? '—'}</Typography>
-                          <Typography variant="caption" color="text.secondary" dir="ltr">{c.phone}</Typography>
-                        </Box>
+                        <span className="flex min-w-0 items-center gap-2">
+                          {picked && <Icon icon="mdi:checkbox-marked" className="h-4 w-4" style={{ color: '#2563eb' }} aria-hidden="true" />}
+                          <span className="text-sm font-semibold text-foreground">{c.full_name ?? '—'}</span>
+                          <span className="text-xs text-muted-foreground tabular-nums" dir="ltr">{c.phone}</span>
+                        </span>
                         {!c.marketing_consent && (
-                          <Chip label="بدون رضایت" size="small" sx={{ height: 18, fontSize: '0.6rem', bgcolor: 'rgba(239,68,68,0.1)', color: 'error.main', fontWeight: 700 }} />
+                          <span className="inline-flex h-[18px] shrink-0 items-center rounded-md bg-red-500/10 px-1.5 text-[0.6rem] font-bold text-red-700 dark:text-red-400">
+                            بدون رضایت
+                          </span>
                         )}
-                      </Box>
+                      </button>
                     )
                   })}
-                </Box>
+                </div>
               )}
-              <Box sx={{ display: 'flex', gap: 0.5, flexWrap: 'wrap', mt: 1 }}>
+              <div className="mt-2 flex flex-wrap gap-1">
                 {selected.map((s) => (
-                  <Chip
+                  <span
                     key={s.user_id}
-                    label={s.full_name ?? String(s.user_id)}
-                    size="small"
-                    onDelete={() => toggle(s)}
-                    sx={{ borderRadius: '8px', bgcolor: 'rgba(37,99,235,0.08)', color: '#2563eb', fontWeight: 600 }}
-                  />
+                    className="inline-flex items-center gap-1 rounded-lg bg-blue-600/[0.08] py-0.5 pe-1 ps-2 text-xs font-semibold text-blue-700 dark:text-blue-300"
+                  >
+                    {s.full_name ?? String(s.user_id)}
+                    <button
+                      type="button"
+                      onClick={() => toggle(s)}
+                      aria-label={`حذف ${s.full_name ?? String(s.user_id)}`}
+                      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-blue-700/70 transition-colors hover:bg-blue-600/10 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-300/70"
+                    >
+                      <Icon icon="mdi:close" className="h-3.5 w-3.5" aria-hidden="true" />
+                    </button>
+                  </span>
                 ))}
-              </Box>
-            </Box>
+              </div>
+            </div>
           )}
 
           {/* پیش‌نمایش دامنه */}
-          <Box sx={{ p: 1.5, borderRadius: '12px', bgcolor: 'rgba(37,99,235,0.05)', border: '1px solid rgba(37,99,235,0.12)' }}>
-            <Typography variant="body2" sx={{ fontWeight: 700 }}>
-              <Icon icon="mdi:account-multiple-outline" className="h-4 w-4 inline ml-1" />
+          <div className="rounded-xl border border-blue-600/[0.12] bg-blue-600/[0.05] p-3">
+            <p className="text-sm font-bold text-foreground">
+              <Icon icon="mdi:account-multiple-outline" className="inline h-4 w-4 me-1" aria-hidden="true" />
               دامنه پیش‌بینی‌شده: {reachCount === null ? '…' : `${toPersianDigits(reachCount)} مشتری`}
               {targetMode === 'segment' && ` در گروه «${SEGMENT_LABELS[segment]}»`}
-            </Typography>
-            <Typography variant="body2" sx={{ fontWeight: 700, mt: 0.5, color: (t) => ((consentReach ?? 0) > 0 ? t.palette.success.main : t.palette.warning.main) }}>
-              <Icon icon="mdi:email-check-outline" className="h-4 w-4 inline ml-1" />
+            </p>
+            <p
+              className={
+                (consentReach ?? 0) > 0
+                  ? 'mt-1 text-sm font-bold text-emerald-700 dark:text-emerald-400'
+                  : 'mt-1 text-sm font-bold text-amber-700 dark:text-amber-400'
+              }
+            >
+              <Icon icon="mdi:email-check-outline" className="inline h-4 w-4 me-1" aria-hidden="true" />
               {'قابل‌ارسال (دارای رضایت): '}
               {consentReach === null ? '…' : `${toPersianDigits(consentReach)} نفر`}
               {consentReach === 0 && ' — به هیچ‌کس پیام ارسال نمی‌شود'}
-            </Typography>
-            <Typography variant="caption" color="text.secondary">
+            </p>
+            <p className="text-xs text-muted-foreground">
               شمارش نهاییِ دارایانِ رضایت هنگام ارسال سمت سرور اعمال می‌شود؛ سقف روزانه کمپین هر سالن هم اعمال می‌گردد.
-            </Typography>
-          </Box>
+            </p>
+          </div>
 
-          <Alert severity="warning" icon="mdi:shield-lock-outline" sx={{ borderRadius: '12px', fontSize: '0.78rem', fontWeight: 600 }}>
-            فقط به مشتریان با رضایت پیام ارسال می‌شود — مشتریان بدون «رضایت بازاریابی» خودکار رد شده و در گزارش تاریخچه ثبت می‌گردد.
+          <Alert variant="warning" className="rounded-xl text-[0.78rem] font-semibold">
+            <Icon icon="mdi:shield-lock-outline" className="h-5 w-5 shrink-0" aria-hidden="true" />
+            <span>فقط به مشتریان با رضایت پیام ارسال می‌شود — مشتریان بدون «رضایت بازاریابی» خودکار رد شده و در گزارش تاریخچه ثبت می‌گردد.</span>
           </Alert>
 
-          <TextField label="عنوان پیام" size="small" value={title} onChange={(e) => setTitle(e.target.value.slice(0, 200))} fullWidth sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }} />
-          <TextField
-            label="متن پیام"
-            size="small"
-            multiline
-            minRows={3}
-            value={message}
-            onChange={(e) => setMessage(e.target.value.slice(0, 1500))}
-            fullWidth
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
-          <TextField
-            label="کد تخفیف (اختیاری)"
-            size="small"
-            value={discount}
-            onChange={(e) => setDiscount(e.target.value.slice(0, 40))}
-            helperText="در ابتدای پیام به صورت «| کد تخفیف: ...» افزوده می‌شود"
-            fullWidth
-            sx={{ '& .MuiOutlinedInput-root': { borderRadius: '10px' } }}
-          />
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={titleId}>عنوان پیام</Label>
+            <Input id={titleId} value={title} onChange={(e) => setTitle(e.target.value.slice(0, 200))} />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={messageId}>متن پیام</Label>
+            <Textarea
+              id={messageId}
+              rows={3}
+              value={message}
+              onChange={(e) => setMessage(e.target.value.slice(0, 1500))}
+            />
+          </div>
+          <div className="flex flex-col gap-1.5">
+            <Label htmlFor={discountId}>کد تخفیف (اختیاری)</Label>
+            <Input id={discountId} value={discount} onChange={(e) => setDiscount(e.target.value.slice(0, 40))} />
+            <p className="text-xs text-muted-foreground">در ابتدای پیام به صورت «| کد تخفیف: ...» افزوده می‌شود</p>
+          </div>
           <Button
-            variant="contained"
             onClick={submit}
             disabled={createCampaign.isPending}
-            startIcon={createCampaign.isPending ? <CircularProgress size={16} color="inherit" /> : <Icon icon="mdi:send" />}
-            sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 800, background: 'linear-gradient(135deg,#d97706,#f59e0b)', alignSelf: 'flex-start', px: 3 }}
+            className="self-start rounded-xl bg-gradient-to-br from-amber-600 to-amber-500 px-6 font-extrabold text-stone-900 hover:from-amber-700 hover:to-amber-600"
           >
+            {createCampaign.isPending ? (
+              <span
+                className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"
+                role="status"
+                aria-label="در حال بارگذاری"
+              />
+            ) : (
+              <Icon icon="mdi:send" className="h-4 w-4" aria-hidden="true" />
+            )}
             ارسال کمپین
           </Button>
-        </Box>
+        </div>
       </SectionCard>
 
       {/* تاریخچه */}
@@ -259,34 +289,42 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
         ) : items.length === 0 ? (
           <EmptyBox icon="mdi:message-text-outline" title="هنوز کمپینی ارسال نشده" />
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, maxHeight: 560, overflow: 'auto', pe: 0.5 }}>
+          <div className="flex max-h-[560px] flex-col gap-3 overflow-auto pe-1">
             {items.map((c) => (
-              <Box key={c.id} sx={{ p: 1.75, borderRadius: '14px', border: '1px solid rgba(15,23,42,0.06)', bgcolor: 'rgba(248,250,252,0.6)' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1, flexWrap: 'wrap' }}>
-                  <Typography variant="body2" sx={{ fontWeight: 800 }}>{c.title}</Typography>
-                  <Typography variant="caption" color="text.secondary">
+              <div key={c.id} className="rounded-[14px] border border-border/60 bg-slate-50/60 p-3.5 dark:bg-slate-900/40">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-sm font-extrabold text-foreground">{c.title}</p>
+                  <p className="text-xs text-muted-foreground tabular-nums">
                     {c.created_at ? formatJalaliDateTime(c.created_at, { format: 'numeric' }) : '—'} · {c.created_by_name ?? '—'}
-                  </Typography>
-                </Box>
-                <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', mt: 0.5, whiteSpace: 'pre-wrap' }}>
+                  </p>
+                </div>
+                <p className="mt-1 block whitespace-pre-wrap text-xs text-muted-foreground">
                   {c.message.length > 110 ? `${c.message.slice(0, 110)}…` : c.message}
                   {c.discount_code ? ` | کد: ${c.discount_code}` : ''}
-                </Typography>
-                <Box sx={{ display: 'flex', gap: 0.75, mt: 1, flexWrap: 'wrap' }}>
+                </p>
+                <div className="mt-2 flex flex-wrap gap-1.5">
                   {c.segment && (
-                    <Chip label={SEGMENT_LABELS[c.segment] ?? c.segment} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(124,58,237,0.08)', color: '#7c3aed' }} />
+                    <span className="inline-flex h-5 items-center rounded-md bg-violet-600/[0.08] px-1.5 text-xs font-bold text-violet-700 dark:text-violet-300">
+                      {SEGMENT_LABELS[c.segment] ?? c.segment}
+                    </span>
                   )}
-                  <Chip icon={<Icon icon="mdi:email-check" />} label={`${toPersianDigits(c.sent_count)} ارسال`} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(5,150,105,0.1)', color: 'success.main' }} />
+                  <span className="inline-flex h-5 items-center gap-1 rounded-md bg-emerald-600/10 px-1.5 text-xs font-bold text-emerald-700 tabular-nums dark:text-emerald-400">
+                    <Icon icon="mdi:email-check" className="h-3.5 w-3.5" aria-hidden="true" />
+                    {`${toPersianDigits(c.sent_count)} ارسال`}
+                  </span>
                   {c.skipped_no_consent > 0 && (
-                    <Chip icon={<Icon icon="mdi:email-off" />} label={`${toPersianDigits(c.skipped_no_consent)} بدون رضایت`} size="small" sx={{ height: 20, fontSize: '0.75rem', fontWeight: 700, bgcolor: 'rgba(239,68,68,0.1)', color: 'error.main' }} />
+                    <span className="inline-flex h-5 items-center gap-1 rounded-md bg-red-500/10 px-1.5 text-xs font-bold text-red-700 tabular-nums dark:text-red-400">
+                      <Icon icon="mdi:email-off" className="h-3.5 w-3.5" aria-hidden="true" />
+                      {`${toPersianDigits(c.skipped_no_consent)} بدون رضایت`}
+                    </span>
                   )}
-                </Box>
-              </Box>
+                </div>
+              </div>
             ))}
-          </Box>
+          </div>
         )}
       </SectionCard>
-    </Box>
+    </div>
   )
 }
 

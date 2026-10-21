@@ -2,38 +2,37 @@
 // «حساب‌ها» — لیست بدهکاران/اعتبارها با فیلتر نوع و صفحه‌بندی سمت سرور
 // + صورت‌حساب/ثبت پرداخت از طریق StatementDialog.
 
-import React, { useMemo, useState } from 'react'
-import {
-  Box,
-  Button,
-  Chip,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Pagination,
-  PaginationItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material'
+import React, { useId, useMemo, useState } from 'react'
 import { Icon } from '@iconify/react'
 import { useAccounts, type FinanceVenue } from '@/hooks/useFinance'
 import { useAuthStore } from '@/store/authStore'
 import {
   ErrorBox,
   LoadingBox,
+  Pager,
   SectionCard,
   StatusChip,
   extractError,
   formatRial,
 } from './shared'
 import StatementDialog from './StatementDialog'
+import { Button } from '@/components/ui/shadcn/button'
+import { Label } from '@/components/ui/shadcn/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
 import type { AccountKind } from '@/services/finance'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 
@@ -52,6 +51,8 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
   const [page, setPage] = useState(1)
   const [statementUser, setStatementUser] = useState<{ id: number; name: string | null } | null>(null)
 
+  const venueSelectId = useId()
+
   const params = useMemo(
     () => ({
       venue_id: venueSel === 'all' ? undefined : venueSel,
@@ -68,88 +69,96 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
   const totalPages = Math.max(1, Math.ceil(total / PAGE_SIZE))
 
   return (
-    <Box>
+    <div>
       <SectionCard title="حساب‌های اشخاص" icon="mdi:account-group-outline" color="#0891b2">
-        <Grid container spacing={2} sx={{ alignItems: 'center', mb: 2 }}>
-          <Grid size={{ xs: 12, sm: 5 }}>
-            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-              {KIND_FILTERS.map((f) => (
-                <Chip
-                  key={f.value}
-                  label={f.label}
-                  size="small"
-                  icon={<Icon icon={f.icon} className="h-4 w-4" />}
-                  onClick={() => {
-                    setKind(f.value)
-                    setPage(1)
-                  }}
-                  sx={{
-                    borderRadius: '8px',
-                    fontWeight: 700,
-                    fontSize: '0.75rem',
-                    bgcolor: kind === f.value ? 'primary.main' : 'rgba(0,0,0,0.04)',
-                    color: kind === f.value ? 'white' : 'text.primary',
-                  }}
-                />
-              ))}
-            </Box>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 4 }}>
-            <FormControl fullWidth size="small">
-              <InputLabel>سالن</InputLabel>
-              <Select
-                value={venueSel}
-                label="سالن"
-                onChange={(e) => {
-                  setVenueSel(e.target.value as number | 'all')
-                  setPage(1)
-                }}
-                sx={{ borderRadius: '10px' }}
-              >
-                <MenuItem value="all">همه سالن‌ها</MenuItem>
+        <div className="mb-4 grid grid-cols-12 items-center gap-4">
+          <div className="col-span-12 sm:col-span-5">
+            <div className="flex flex-wrap gap-2">
+              {KIND_FILTERS.map((f) => {
+                const active = kind === f.value
+                return (
+                  <button
+                    key={f.value}
+                    type="button"
+                    aria-pressed={active}
+                    onClick={() => {
+                      setKind(f.value)
+                      setPage(1)
+                    }}
+                    className={
+                      active
+                        ? 'inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-blue-600 px-3 text-xs font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        : 'inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-muted px-3 text-xs font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    }
+                  >
+                    <Icon icon={f.icon} className="h-4 w-4" aria-hidden="true" />
+                    {f.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
+          <div className="col-span-12 flex flex-col gap-1.5 sm:col-span-4">
+            <Label htmlFor={venueSelectId}>سالن</Label>
+            <Select
+              value={venueSel === 'all' ? 'all' : String(venueSel)}
+              onValueChange={(v) => {
+                setVenueSel(v === 'all' ? 'all' : Number(v))
+                setPage(1)
+              }}
+            >
+              <SelectTrigger id={venueSelectId}>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">همه سالن‌ها</SelectItem>
                 {venues.map((v) => (
-                  <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
+                  <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
                 ))}
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid size={{ xs: 12, sm: 3 }}>
-            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="col-span-12 sm:col-span-3">
+            <p className="text-xs text-muted-foreground">
               {data ? `مجموع: ${toPersianDigits(total)} شخص` : ''}
-            </Typography>
-          </Grid>
-        </Grid>
+            </p>
+          </div>
+        </div>
 
         {isPending && items.length === 0 ? (
           <LoadingBox text="در حال دریافت حساب‌ها..." />
         ) : isError ? (
           <ErrorBox message={extractError(error, 'خطا در دریافت حساب‌ها')} onRetry={() => refetch()} />
         ) : items.length === 0 ? (
-          <Box sx={{ textAlign: 'center', py: 4 }}>
-            <Icon icon="mdi:shield-check-outline" className="h-9 w-9" style={{ color: '#10b981' }} />
-            <Typography variant="body2" sx={{ color: 'text.secondary', mt: 1 }}>
+          <div className="py-8 text-center">
+            <Icon icon="mdi:shield-check-outline" className="mx-auto h-9 w-9" style={{ color: '#10b981' }} aria-hidden="true" />
+            <p className="mt-2 text-sm text-muted-foreground">
               شخصی در این دسته موجودی ندارد
-            </Typography>
-          </Box>
+            </p>
+          </div>
         ) : (
-          <TableContainer role="region" aria-label="حساب‌های کاربران، قابل پیمایش با کیبورد" tabIndex={0} sx={{ maxHeight: 520 }}>
-            <Table aria-label="حساب‌های کاربران" size="small" stickyHeader>
-              <TableHead>
-                <TableRow>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>شخص</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>نوع</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>موجودی</TableCell>
-                  <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>آخرین فعالیت</TableCell>
-                  <TableCell scope="col" align="left" sx={{ fontWeight: 700, fontSize: '0.8rem' }}>عملیات</TableCell>
+          <div
+            role="region"
+            aria-label="حساب‌های کاربران، قابل پیمایش با کیبورد"
+            tabIndex={0}
+            className="max-h-[520px] overflow-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&>div]:overflow-visible"
+          >
+            <Table aria-label="حساب‌های کاربران">
+              <TableHeader className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-900">
+                <TableRow className="hover:bg-transparent">
+                  <TableHead scope="col" className="text-[0.8rem] font-bold">شخص</TableHead>
+                  <TableHead scope="col" className="text-[0.8rem] font-bold">نوع</TableHead>
+                  <TableHead scope="col" className="text-[0.8rem] font-bold">موجودی</TableHead>
+                  <TableHead scope="col" className="text-[0.8rem] font-bold">آخرین فعالیت</TableHead>
+                  <TableHead scope="col" className="text-end text-[0.8rem] font-bold">عملیات</TableHead>
                 </TableRow>
-              </TableHead>
+              </TableHeader>
               <TableBody>
                 {items.map((acc) => {
                   const debtor = acc.balance > 0
                   return (
                     <TableRow
                       key={acc.user_id}
-                      hover
                       tabIndex={0}
                       onClick={() => setStatementUser({ id: acc.user_id, name: acc.full_name })}
                       onKeyDown={(e) => {
@@ -158,40 +167,33 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                           setStatementUser({ id: acc.user_id, name: acc.full_name })
                         }
                       }}
-                      sx={{
-                        cursor: 'pointer',
-                        '&:hover': { bgcolor: 'rgba(37,99,235,0.03)' },
-                        '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
-                      }}
+                      className="cursor-pointer hover:bg-blue-600/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                     >
                       <TableCell>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
-                          <Box
-                            sx={{
-                              width: 34,
-                              height: 34,
-                              borderRadius: '10px',
-                              bgcolor: debtor ? 'rgba(239,68,68,0.1)' : 'rgba(16,185,129,0.1)',
-                              display: 'flex',
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
+                        <div className="flex items-center gap-2.5">
+                          <span
+                            className={
+                              debtor
+                                ? 'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-red-500/10'
+                                : 'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-emerald-500/10'
+                            }
                           >
                             <Icon
                               icon={debtor ? 'mdi:account-minus-outline' : 'mdi:account-check-outline'}
                               className="h-5 w-5"
                               style={{ color: debtor ? '#ef4444' : '#10b981' }}
+                              aria-hidden="true"
                             />
-                          </Box>
-                          <Box sx={{ minWidth: 0 }}>
-                            <Typography variant="body2" sx={{ fontWeight: 700 }}>
+                          </span>
+                          <div className="min-w-0">
+                            <p className="text-sm font-bold text-foreground">
                               {acc.full_name || 'بدون نام'}
-                            </Typography>
-                            <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                            </p>
+                            <p className="text-xs text-muted-foreground">
                               کاربر #{toPersianDigits(acc.user_id)}
-                            </Typography>
-                          </Box>
-                        </Box>
+                            </p>
+                          </div>
+                        </div>
                       </TableCell>
                       <TableCell>
                         <StatusChip
@@ -200,37 +202,33 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                         />
                       </TableCell>
                       <TableCell>
-                        <Typography
-                          variant="body2"
+                        <span
                           dir="rtl"
-                          sx={{ fontWeight: 800, color: (th) => (debtor ? th.palette.error.main : th.palette.success.main), fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}
+                          className={
+                            debtor
+                              ? 'whitespace-nowrap text-sm font-extrabold text-red-600 tabular-nums dark:text-red-400'
+                              : 'whitespace-nowrap text-sm font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                          }
                         >
                           {formatRial(acc.balance)}
-                        </Typography>
+                        </span>
                       </TableCell>
                       <TableCell>
-                        <Typography variant="caption" sx={{ color: 'text.secondary', whiteSpace: 'nowrap' }}>
+                        <span className="whitespace-nowrap text-xs text-muted-foreground tabular-nums">
                           {acc.last_activity ? formatJalaliDateTime(acc.last_activity, { format: 'numeric' }) : '—'}
-                        </Typography>
+                        </span>
                       </TableCell>
-                      <TableCell align="left">
+                      <TableCell className="text-end">
                         <Button
-                          size="small"
-                          variant="outlined"
+                          size="sm"
+                          variant="outline"
                           onClick={(e) => {
                             e.stopPropagation()
                             setStatementUser({ id: acc.user_id, name: acc.full_name })
                           }}
-                          sx={{
-                            borderRadius: '8px',
-                            textTransform: 'none',
-                            fontWeight: 600,
-                            fontSize: '0.75rem',
-                            borderColor: 'rgba(37,99,235,0.25)',
-                            color: 'primary.main',
-                          }}
-                          startIcon={<Icon icon="mdi:file-document-outline" className="h-3.5 w-3.5" />}
+                          className="border-blue-600/25 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
                         >
+                          <Icon icon="mdi:file-document-outline" className="h-3.5 w-3.5" aria-hidden="true" />
                           صورت‌حساب
                         </Button>
                       </TableCell>
@@ -239,28 +237,13 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                 })}
               </TableBody>
             </Table>
-          </TableContainer>
+          </div>
         )}
 
         {total > PAGE_SIZE && (
-          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-            <Pagination
-              count={totalPages}
-              page={page}
-              onChange={(_, v) => setPage(v)}
-              color="primary"
-              shape="rounded"
-              size="small"
-              renderItem={(item) => (
-                <PaginationItem
-                  {...item}
-                  key={item.type === 'page' ? `p-${item.page}` : item.type}
-                >
-                  {item.type === 'page' ? toPersianDigits(item.page as number) : undefined}
-                </PaginationItem>
-              )}
-            />
-          </Box>
+          <div className="mt-4 flex justify-center">
+            <Pager count={totalPages} page={page} onChange={setPage} />
+          </div>
         )}
       </SectionCard>
 
@@ -272,7 +255,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
         venues={venues}
         venueRequired={!isSuper}
       />
-    </Box>
+    </div>
   )
 }
 

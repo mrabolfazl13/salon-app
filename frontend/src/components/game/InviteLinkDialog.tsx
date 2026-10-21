@@ -1,9 +1,13 @@
 // frontend/src/components/game/InviteLinkDialog.tsx
 // مدیریت لینک دعوت بازی — ساخت، کپی، غیرفعال‌سازی و بازتولید توکن
 
-import React, { useState } from 'react'
+import React, { useId, useState } from 'react'
 import { Icon } from '@iconify/react'
-import { Box, Typography, TextField, MenuItem, IconButton, Tooltip } from '@mui/material'
+import { cn } from '@/lib/utils'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/shadcn/select'
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 
 import type { InviteLink } from '@/types/game'
 import {
@@ -31,6 +35,9 @@ const EXPIRY_OPTIONS = [
   { value: 30, label: '۳۰ روز' },
 ]
 
+const iconButtonClass =
+  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
+
 const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
   const toast = useToast()
   const { data: links = [], isLoading } = useInviteLinks(gameId, open)
@@ -40,6 +47,8 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
 
   const [expiresInDays, setExpiresInDays] = useState<number | ''>(7)
   const [maxUses, setMaxUses] = useState<number | ''>('')
+  const expiryFieldId = useId()
+  const maxUsesFieldId = useId()
 
   const fullUrl = (link: InviteLink) => `${window.location.origin}${link.join_path}`
 
@@ -70,115 +79,129 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
 
   return (
     <Dialog open={open} onClose={onClose} title="لینک دعوت به بازی" maxWidth="sm">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 0.5 }}>
+      <div className="flex flex-col gap-4 pt-1">
         {/* ساخت لینک جدید */}
-        <Box sx={{ display: 'flex', gap: 1.5, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-          <TextField
-            select
-            label="اعتبار"
-            size="small"
-            value={expiresInDays === '' ? 7 : expiresInDays}
-            onChange={(e) => setExpiresInDays(Number(e.target.value))}
-            sx={{ minWidth: 120 }}
-          >
-            {EXPIRY_OPTIONS.map((o) => (
-              <MenuItem key={o.value} value={o.value}>{o.label}</MenuItem>
-            ))}
-          </TextField>
-          <TextField
-            label="حداکثر استفاده (اختیاری)"
-            size="small"
-            type="number"
-            value={maxUses}
-            onChange={(e) => setMaxUses(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
-            sx={{ minWidth: 170 }}
-          />
+        <div className="flex flex-wrap items-start gap-3">
+          <div className="flex min-w-[120px] flex-col gap-1.5">
+            <Label id={expiryFieldId}>اعتبار</Label>
+            <Select
+              value={String(expiresInDays === '' ? 7 : expiresInDays)}
+              onValueChange={(v) => setExpiresInDays(Number(v))}
+            >
+              <SelectTrigger aria-labelledby={expiryFieldId} className="h-11">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                {EXPIRY_OPTIONS.map((o) => (
+                  <SelectItem key={o.value} value={String(o.value)}>
+                    {o.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex min-w-[170px] flex-col gap-1.5">
+            <Label htmlFor={maxUsesFieldId}>حداکثر استفاده (اختیاری)</Label>
+            <Input
+              id={maxUsesFieldId}
+              type="number"
+              inputMode="numeric"
+              min={1}
+              className="h-11"
+              value={maxUses}
+              onChange={(e) => setMaxUses(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
+            />
+          </div>
           <Button
             variant="gradient"
+            className="mt-6"
             onClick={handleCreate}
             loading={createLink.isPending}
             icon="mdi:link-variant-plus"
           >
             ساخت لینک
           </Button>
-        </Box>
+        </div>
 
         {/* لیست لینک‌های فعال */}
         {isLoading ? (
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>در حال بارگذاری...</Typography>
+          <p className="text-[0.85rem] text-muted-foreground">در حال بارگذاری...</p>
         ) : links.length === 0 ? (
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem' }}>
-            هنوز لینک دعوتی ساخته نشده است.
-          </Typography>
+          <p className="text-[0.85rem] text-muted-foreground">هنوز لینک دعوتی ساخته نشده است.</p>
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+          <div className="flex flex-col gap-2">
             {links.map((link) => (
-              <Box
+              <div
                 key={link.id}
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 1.5,
-                  py: 1.25,
-                  borderRadius: '14px',
-                  border: '1px solid rgba(15,23,42,0.07)',
-                  bgcolor: 'rgba(15,23,42,0.015)',
-                }}
+                className="flex items-center gap-2 rounded-[14px] border border-border bg-slate-900/[0.015] px-3 py-2.5 dark:bg-white/[0.02]"
               >
-                <Box sx={{ minWidth: 0, flex: 1 }}>
-                  <Typography
+                <div className="min-w-0 flex-1">
+                  <p
                     dir="ltr"
-                    sx={{ fontSize: '0.78rem', fontWeight: 600, color: '#2563eb', textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                    className="truncate text-start text-[0.78rem] font-semibold text-blue-600 dark:text-blue-400"
                   >
                     {fullUrl(link)}
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.25 }}>
+                  </p>
+                  <p className="mt-0.5 text-xs text-muted-foreground">
                     {`انقضا: ${link.expires_at ? formatPersianDateTime(link.expires_at) : 'بدون انقضا'} - استفاده: ${link.uses_count.toLocaleString('fa-IR')}${link.max_uses ? `/${link.max_uses.toLocaleString('fa-IR')}` : ''}`}
-                  </Typography>
-                </Box>
-                <Tooltip title="کپی لینک">
-                  <IconButton size="small" onClick={() => copy(link)} aria-label="کپی لینک دعوت" sx={{ color: '#2563eb' }}>
-                    <Icon icon="mdi:content-copy" style={{ width: 17, height: 17 }} />
-                  </IconButton>
+                  </p>
+                </div>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      onClick={() => copy(link)}
+                      aria-label="کپی لینک دعوت"
+                      className={cn(iconButtonClass, 'text-blue-600 hover:bg-blue-600/10 dark:text-blue-400')}
+                    >
+                      <Icon icon="mdi:content-copy" style={{ width: 17, height: 17 }} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>کپی لینک</TooltipContent>
                 </Tooltip>
-                <Tooltip title="بازتولید توکن (لینک قبلی از کار می‌افتد)">
-                  <IconButton
-                    size="small"
-                    disabled={regenerateLink.isPending}
-                    onClick={() =>
-                      regenerateLink.mutate(link.id, {
-                        onSuccess: () => toast.success('توکن جدید ساخته شد'),
-                        onError: (err) => toast.error(getGameError(err)),
-                      })
-                    }
-                    aria-label={`بازتولید توکن لینک #${link.id}`}
-                    sx={{ color: '#7c3aed' }}
-                  >
-                    <Icon icon="mdi:sync" style={{ width: 17, height: 17 }} />
-                  </IconButton>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={regenerateLink.isPending}
+                      onClick={() =>
+                        regenerateLink.mutate(link.id, {
+                          onSuccess: () => toast.success('توکن جدید ساخته شد'),
+                          onError: (err) => toast.error(getGameError(err)),
+                        })
+                      }
+                      aria-label={`بازتولید توکن لینک #${link.id}`}
+                      className={cn(iconButtonClass, 'text-violet-600 hover:bg-violet-600/10 dark:text-violet-400')}
+                    >
+                      <Icon icon="mdi:sync" style={{ width: 17, height: 17 }} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>بازتولید توکن (لینک قبلی از کار می‌افتد)</TooltipContent>
                 </Tooltip>
-                <Tooltip title="غیرفعال کردن">
-                  <IconButton
-                    size="small"
-                    disabled={disableLink.isPending}
-                    onClick={() =>
-                      disableLink.mutate(link.id, {
-                        onSuccess: () => toast.success('لینک غیرفعال شد'),
-                        onError: (err) => toast.error(getGameError(err)),
-                      })
-                    }
-                    aria-label={`غیرفعال کردن لینک دعوت #${link.id}`}
-                    sx={{ color: 'error.main' }}
-                  >
-                    <Icon icon="mdi:link-off" style={{ width: 17, height: 17 }} />
-                  </IconButton>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <button
+                      type="button"
+                      disabled={disableLink.isPending}
+                      onClick={() =>
+                        disableLink.mutate(link.id, {
+                          onSuccess: () => toast.success('لینک غیرفعال شد'),
+                          onError: (err) => toast.error(getGameError(err)),
+                        })
+                      }
+                      aria-label={`غیرفعال کردن لینک دعوت #${link.id}`}
+                      className={cn(iconButtonClass, 'text-red-600 hover:bg-red-600/10 dark:text-red-400')}
+                    >
+                      <Icon icon="mdi:link-off" style={{ width: 17, height: 17 }} />
+                    </button>
+                  </TooltipTrigger>
+                  <TooltipContent>غیرفعال کردن</TooltipContent>
                 </Tooltip>
-              </Box>
+              </div>
             ))}
-          </Box>
+          </div>
         )}
-      </Box>
+      </div>
     </Dialog>
   )
 }

@@ -77,7 +77,6 @@ export default defineConfig(({ mode }) => {
           manualChunks: {
             // Split vendor chunks for better caching
             'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-            'vendor-mui': ['@mui/material', '@mui/icons-material'],
             'vendor-charts': ['recharts'],
             'vendor-maps': ['leaflet', 'react-leaflet'],
             'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],

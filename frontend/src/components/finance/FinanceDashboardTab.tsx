@@ -4,24 +4,6 @@
 
 import React, { useMemo, useState } from 'react'
 import {
-  Avatar,
-  Box,
-  Button,
-  Chip,
-  FormControl,
-  Grid,
-  InputLabel,
-  MenuItem,
-  Select,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Typography,
-} from '@mui/material'
-import {
   Area,
   AreaChart,
   Bar,
@@ -69,6 +51,23 @@ import StatementDialog from './StatementDialog'
 import VenueComparisonPanel from './VenueComparisonPanel'
 import { getTodayISO, toPersianDigits } from '@/lib/jalali'
 import PersianDatePicker from '@/components/ui/PersianDatePicker'
+import { Button } from '@/components/ui/shadcn/button'
+import { Label } from '@/components/ui/shadcn/label'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from '@/components/ui/shadcn/table'
 import type { SeriesPoint } from '@/services/finance'
 
 const SOURCE_COLORS = ['#2563eb', '#7c3aed', '#059669', '#d97706', '#0891b2', '#db2777', '#64748b']
@@ -84,6 +83,8 @@ function reorderWeekday(points: SeriesPoint[]): SeriesPoint[] {
   const byKey = new Map(points.map((p) => [Number(p.key) % 7, p]))
   return SAT_FIRST_ORDER.map((w) => byKey.get(w)).filter((p): p is SeriesPoint => Boolean(p))
 }
+
+const CHART_TICK = { fontSize: 10.5, fill: '#64748b' }
 
 const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
   const [venueSel, setVenueSel] = useState<number | 'all'>('all')
@@ -175,98 +176,106 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
   )
 
   return (
-    <Box>
-      <Box sx={{ mb: 3 }}>
-        <Typography variant="h6" component="h2" sx={{ fontWeight: 800, mb: 2 }}>خلاصه عملکرد</Typography>
+    <div>
+      <div className="mb-6">
+        <h2 className="mb-4 text-lg font-extrabold text-foreground">خلاصه عملکرد</h2>
         {dashboard.isError ? (
           <ErrorBox message={extractError(dashboard.error, 'خطا در دریافت داشبورد مالی')} onRetry={() => dashboard.refetch()} />
         ) : (
-          <Grid container spacing={1.5}>
+          <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
             {(dashboard.isPending ? Array.from({ length: 4 }, () => null) : kpis.slice(0, 4)).map((k, i) =>
               k === null ? (
-                <Grid size={{ xs: 6, md: 3 }} key={`sk-${i}`}>
+                <div key={`sk-${i}`}>
                   <KpiCard label="" value="" icon="mdi:chart-line" loading />
-                </Grid>
+                </div>
               ) : (
-                <Grid size={{ xs: 6, md: 3 }} key={k.label}>
+                <div key={k.label}>
                   <KpiCard label={k.label} value={k.value} sub={k.sub} title={k.title} icon={k.icon} color={k.color} end={k.end} />
-                </Grid>
+                </div>
               ),
             )}
-          </Grid>
+          </div>
         )}
-      </Box>
+      </div>
 
       <SectionCard title="فیلتر گزارش‌ها" icon="mdi:filter-variant" color="#7c3aed" dense>
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, alignItems: { xs: 'stretch', md: 'center' } }}>
-          <FormControl size="small" sx={{ minWidth: { xs: '100%', md: 180 } }}>
+        <div className="flex flex-col items-stretch gap-4 md:flex-row md:items-center">
+          <div className="flex w-full flex-col gap-1.5 md:w-[180px]">
             {/* بدون labelId/inputId برچسب به select وصل نمی‌شود — ممیزی axe F-24 */}
-            <InputLabel id="finance-venue-label" htmlFor="finance-venue-select">سالن</InputLabel>
+            <Label id="finance-venue-label" htmlFor="finance-venue-select">سالن</Label>
             <Select
-              value={venueSel}
-              label="سالن"
-              id="finance-venue-select"
-              labelId="finance-venue-label"
-              onChange={(e) => setVenueSel(e.target.value as number | 'all')}
-              sx={{ borderRadius: '10px' }}
+              value={venueSel === 'all' ? 'all' : String(venueSel)}
+              onValueChange={(v) => setVenueSel(v === 'all' ? 'all' : Number(v))}
             >
-              <MenuItem value="all">همه سالن‌های من</MenuItem>
-              {venues.map((v) => (
-                <MenuItem key={v.id} value={v.id}>{v.name}</MenuItem>
-              ))}
+              <SelectTrigger id="finance-venue-select" aria-labelledby="finance-venue-label" className="w-full rounded-xl">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">همه سالن‌های من</SelectItem>
+                {venues.map((v) => (
+                  <SelectItem key={v.id} value={String(v.id)}>{v.name}</SelectItem>
+                ))}
+              </SelectContent>
             </Select>
-          </FormControl>
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', justifyContent: { xs: 'flex-start', md: 'center' } }}>
+          </div>
+          <div className="flex flex-wrap justify-start gap-2 md:justify-center">
             {[
               { label: '۷ روز', days: 6 },
               { label: '۳۰ روز', days: 30 },
               { label: '۹۰ روز', days: 90 },
-            ].map((preset) => (
-              <Chip
-                key={preset.days}
-                label={preset.label}
-                size="small"
-                onClick={() => {
-                  setFrom(isoDaysAgo(preset.days))
-                  setTo(getTodayISO())
-                }}
-                sx={{ borderRadius: '8px', fontWeight: 600, fontSize: '0.75rem', minHeight: 44, minWidth: 44 }}
-                variant={from === isoDaysAgo(preset.days) ? 'filled' : 'outlined'}
-                color="primary"
-              />
-            ))}
-          </Box>
-          <Box sx={{ flex: 1, minWidth: { xs: '100%', md: 0 } }}>
+            ].map((preset) => {
+              const active = from === isoDaysAgo(preset.days)
+              return (
+                <button
+                  key={preset.days}
+                  type="button"
+                  aria-pressed={active}
+                  onClick={() => {
+                    setFrom(isoDaysAgo(preset.days))
+                    setTo(getTodayISO())
+                  }}
+                  className={
+                    active
+                      ? 'inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg bg-blue-600 px-3 text-xs font-semibold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                      : 'inline-flex min-h-11 min-w-11 items-center justify-center rounded-lg border border-border bg-card px-3 text-xs font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                  }
+                >
+                  {preset.label}
+                </button>
+              )
+            })}
+          </div>
+          <div className="w-full min-w-0 flex-1">
             <RangeInputs from={from} to={to} onFrom={setFrom} onTo={setTo} />
-          </Box>
-        </Box>
+          </div>
+        </div>
       </SectionCard>
 
       {!dashboard.isError && !dashboard.isPending && kpis.length > 4 && (
-        <Box sx={{ mt: 3 }}>
-          <Typography variant="subtitle1" component="h2" sx={{ fontWeight: 800, mb: 1.5, color: 'text.secondary' }}>سایر شاخص‌ها</Typography>
-          <Grid container spacing={1.5}>
+        <div className="mt-6">
+          <h2 className="mb-3 text-base font-extrabold text-muted-foreground">سایر شاخص‌ها</h2>
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4">
             {kpis.slice(4).map((k) => (
-              <Grid size={{ xs: 6, sm: 4, md: 3 }} key={k.label}>
+              <div key={k.label}>
                 <KpiCard label={k.label} value={k.value} sub={k.sub} title={k.title} icon={k.icon} color={k.color} end={k.end} />
-              </Grid>
+              </div>
             ))}
-          </Grid>
-        </Box>
+          </div>
+        </div>
       )}
 
       {/* نمودارها — فقط >= sm */}
       {showCharts && (
-        <Box sx={{ mt: 3 }}>
-          <Grid container spacing={2}>
-            <Grid size={{ xs: 12 }}>
+        <div className="mt-6">
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="md:col-span-2">
               <SectionCard
                 title="روند درآمد و هزینه (روزانه)"
                 icon="mdi:chart-area"
                 action={
-                  <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                  <span className="text-xs text-muted-foreground">
                     {daySeries.isFetching ? 'به‌روزرسانی...' : `خالص بازه: ${formatRial(daySeries.data?.total_net ?? 0)}`}
-                  </Typography>
+                  </span>
                 }
               >
                 {daySeries.isPending ? (
@@ -276,7 +285,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                 ) : dayPoints.length === 0 ? (
                   <EmptyBox icon="mdi:chart-line-variant" title="داده‌ای در این بازه نیست" />
                 ) : (
-                  <Box dir="rtl" sx={{ height: 280 }}>
+                  <div dir="rtl" className="h-[280px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <AreaChart data={dayPoints} margin={{ top: 8, right: 6, left: 0, bottom: 0 }}>
                         <defs>
@@ -290,32 +299,32 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                           </linearGradient>
                         </defs>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                        <XAxis dataKey="label" reversed tick={{ fontSize: 10.5, fill: '#64748b' }} interval="preserveStartEnd" minTickGap={18} axisLine={false} tickLine={false} />
-                        <YAxis orientation="right" width={64} tickFormatter={shortRialAxis} tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="label" reversed tick={CHART_TICK} interval="preserveStartEnd" minTickGap={18} axisLine={false} tickLine={false} />
+                        <YAxis orientation="right" width={64} tickFormatter={shortRialAxis} tick={CHART_TICK} axisLine={false} tickLine={false} />
                         <Tooltip content={<FinTooltip />} cursor={{ stroke: '#64748b', strokeDasharray: '4 4' }} />
                         <Area type="monotone" dataKey="income" name="درآمد" stroke="#059669" strokeWidth={2} fill="url(#finIncome)" />
                         <Area type="monotone" dataKey="expense" name="هزینه" stroke="#ef4444" strokeWidth={2} fill="url(#finExpense)" />
                       </AreaChart>
                     </ResponsiveContainer>
-                  </Box>
+                  </div>
                 )}
                 <ChartLegend items={[{ color: '#059669', label: 'درآمد' }, { color: '#ef4444', label: 'هزینه' }]} />
               </SectionCard>
-            </Grid>
+            </div>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <div>
               <SectionCard title="درآمد خالص به تفکیک روز هفته" icon="mdi:weekend">
                 {weekdaySeries.isPending ? (
                   <LoadingBox />
                 ) : weekdayPoints.length === 0 ? (
                   <EmptyBox icon="mdi:chart-bar" title="داده‌ای نیست" />
                 ) : (
-                  <Box dir="rtl" sx={{ height: 240 }}>
+                  <div dir="rtl" className="h-[240px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={weekdayPoints} margin={{ top: 8, right: 6, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
-                        <XAxis dataKey="label" reversed tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
-                        <YAxis orientation="right" width={64} tickFormatter={shortRialAxis} tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="label" reversed tick={CHART_TICK} axisLine={false} tickLine={false} />
+                        <YAxis orientation="right" width={64} tickFormatter={shortRialAxis} tick={CHART_TICK} axisLine={false} tickLine={false} />
                         <Tooltip content={<FinTooltip />} cursor={{ fill: 'rgba(37,99,235,0.06)' }} />
                         <Bar dataKey="net" name="خالص" radius={[6, 6, 0, 0]}>
                           {weekdayPoints.map((p) => (
@@ -324,19 +333,19 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
-                  </Box>
+                  </div>
                 )}
               </SectionCard>
-            </Grid>
+            </div>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <div>
               <SectionCard title="تمرکز درآمد در ساعات روز (اوج‌شناسی)" icon="mdi:clock-outline" color="#d97706">
                 {hourSeries.isPending ? (
                   <LoadingBox />
                 ) : hourPoints.length === 0 ? (
                   <EmptyBox icon="mdi:chart-bar" title="داده‌ای نیست" />
                 ) : (
-                  <Box dir="rtl" sx={{ height: 240 }}>
+                  <div dir="rtl" className="h-[240px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart data={hourPoints} margin={{ top: 8, right: 6, left: 0, bottom: 0 }}>
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" vertical={false} />
@@ -349,17 +358,17 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                           axisLine={false}
                           tickLine={false}
                         />
-                        <YAxis orientation="right" width={64} tickFormatter={shortRialAxis} tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <YAxis orientation="right" width={64} tickFormatter={shortRialAxis} tick={CHART_TICK} axisLine={false} tickLine={false} />
                         <Tooltip content={<FinTooltip />} cursor={{ fill: 'rgba(217,119,6,0.07)' }} />
                         <Bar dataKey="income" name="درآمد" fill="#f59e0b" radius={[6, 6, 0, 0]} />
                       </BarChart>
                     </ResponsiveContainer>
-                  </Box>
+                  </div>
                 )}
               </SectionCard>
-            </Grid>
+            </div>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <div>
               <SectionCard title="درآمد به تفکیک منبع" icon="mdi:slice" color="#7c3aed">
                 {bySource.isPending ? (
                   <LoadingBox />
@@ -367,7 +376,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                   <EmptyBox icon="mdi:chart-pie" title="درآمدی ثبت نشده" />
                 ) : (
                   <>
-                    <Box dir="rtl" sx={{ height: 220 }}>
+                    <div dir="rtl" className="h-[220px]">
                       <ResponsiveContainer width="100%" height="100%">
                         <PieChart>
                           <Tooltip content={<FinTooltip />} />
@@ -388,23 +397,23 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                           </Pie>
                         </PieChart>
                       </ResponsiveContainer>
-                    </Box>
+                    </div>
                     <PieSourceLegend points={sourcePoints} total={bySource.data?.total ?? 0} />
                   </>
                 )}
               </SectionCard>
-            </Grid>
+            </div>
 
-            <Grid size={{ xs: 12, md: 6 }}>
+            <div>
               <SectionCard
                 title="اشغال سانس‌ها به تفکیک سالن"
                 icon="mdi:store-check-outline"
                 color="#0891b2"
                 action={
                   occupancy.data ? (
-                    <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                    <span className="text-xs text-muted-foreground">
                       کل بازه: {formatPct(occupancy.data.occupancy_rate)}
-                    </Typography>
+                    </span>
                   ) : undefined
                 }
               >
@@ -413,7 +422,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                 ) : occupancyPoints.length === 0 ? (
                   <EmptyBox icon="mdi:chart-timeline-variant" title="سانس فعالی در بازه نیست" />
                 ) : (
-                  <Box dir="rtl" sx={{ height: Math.max(160, occupancyPoints.length * 46) }}>
+                  <div dir="rtl" style={{ height: Math.max(160, occupancyPoints.length * 46) }}>
                     <ResponsiveContainer width="100%" height="100%">
                       <BarChart
                         layout="vertical"
@@ -421,7 +430,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                         margin={{ top: 4, right: 6, left: 8, bottom: 0 }}
                       >
                         <CartesianGrid strokeDasharray="3 3" stroke="#e2e8f0" horizontal={false} />
-                        <XAxis type="number" domain={[0, 100]} tickFormatter={(v: number) => `${toPersianDigits(v)}٪`} tick={{ fontSize: 10.5, fill: '#64748b' }} axisLine={false} tickLine={false} />
+                        <XAxis type="number" domain={[0, 100]} tickFormatter={(v: number) => `${toPersianDigits(v)}٪`} tick={CHART_TICK} axisLine={false} tickLine={false} />
                         <YAxis type="category" dataKey="name" orientation="right" width={110} tick={{ fontSize: 11, fill: '#334155' }} axisLine={false} tickLine={false} />
                         <Tooltip content={<FinTooltip unit="pct" />} cursor={{ fill: 'rgba(8,145,178,0.06)' }} />
                         <Bar dataKey="rate" name="اشغال" radius={[0, 8, 8, 0]} barSize={18}>
@@ -431,24 +440,26 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                         </Bar>
                       </BarChart>
                     </ResponsiveContainer>
-                  </Box>
+                  </div>
                 )}
               </SectionCard>
-            </Grid>
-          </Grid>
-        </Box>
+            </div>
+          </div>
+        </div>
       )}
 
       {/* کم‌تقاضا + بدهکاران */}
-      <Grid container spacing={2} sx={{ mt: 0 }}>
-        <Grid size={{ xs: 12, lg: 7 }}>
+      <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
+        <div className="lg:col-span-7">
           <SectionCard
             title="سانس‌های کم‌تقاضا (اشغال ≤ ۴۰٪)"
             icon="mdi:alarm-light-outline"
             color="#d97706"
             action={
               lowDemand.data ? (
-                <Chip size="small" label={toPersianDigits(lowDemand.data.length)} sx={{ borderRadius: '8px', fontWeight: 700 }} />
+                <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-bold text-foreground">
+                  {toPersianDigits(lowDemand.data.length)}
+                </span>
               ) : undefined
             }
           >
@@ -459,28 +470,33 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
             ) : (lowDemand.data?.length ?? 0) === 0 ? (
               <EmptyBox icon="mdi:emoticon-happy-outline" title="سانس کم‌تقاضایی یافت نشد" text="الگوی تقاضا در بازه انتخابی بالای حد آستانه است." />
             ) : (
-              <TableContainer role="region" aria-label="سانس‌های کم‌تقاضا، قابل پیمایش با کیبورد" tabIndex={0} sx={{ maxHeight: 300 }}>
-                <Table aria-label="سانس‌های کم‌تقاضا" size="small" stickyHeader>
-                  <TableHead>
-                    <TableRow>
-                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>روز هفته</TableCell>
-                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>ساعت</TableCell>
-                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>سانس فعال</TableCell>
-                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>رزروشده</TableCell>
-                      <TableCell scope="col" sx={{ fontWeight: 700, fontSize: '0.78rem' }}>اشغال</TableCell>
+              <div
+                role="region"
+                aria-label="سانس‌های کم‌تقاضا، قابل پیمایش با کیبورد"
+                tabIndex={0}
+                className="max-h-[300px] overflow-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&>div]:overflow-visible"
+              >
+                <Table aria-label="سانس‌های کم‌تقاضا">
+                  <TableHeader className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-900">
+                    <TableRow className="hover:bg-transparent">
+                      {['روز هفته', 'ساعت', 'سانس فعال', 'رزروشده', 'اشغال'].map((h) => (
+                        <TableHead key={h} scope="col" className="whitespace-nowrap text-[0.78rem] font-bold">
+                          {h}
+                        </TableHead>
+                      ))}
                     </TableRow>
-                  </TableHead>
+                  </TableHeader>
                   <TableBody>
                     {lowDemand.data!.map((slot) => (
-                      <TableRow key={`${slot.weekday}-${slot.hour}`} hover>
-                        <TableCell>{FIN_WEEKDAY_NAMES[slot.weekday] ?? `روز ${slot.weekday}`}</TableCell>
+                      <TableRow key={`${slot.weekday}-${slot.hour}`} className="hover:bg-muted/50">
+                        <TableCell className="text-foreground">{FIN_WEEKDAY_NAMES[slot.weekday] ?? `روز ${slot.weekday}`}</TableCell>
                         <TableCell>
-                          <Typography variant="body2" sx={{ fontWeight: 700, fontVariantNumeric: 'tabular-nums' }}>
+                          <span className="text-sm font-bold tabular-nums text-foreground">
                             {`${toPersianDigits(String(slot.hour).padStart(2, '0'))}:${toPersianDigits('00')}`}
-                          </Typography>
+                          </span>
                         </TableCell>
-                        <TableCell>{toPersianDigits(slot.total_slots)}</TableCell>
-                        <TableCell>{toPersianDigits(slot.booked_slots)}</TableCell>
+                        <TableCell className="tabular-nums text-foreground">{toPersianDigits(slot.total_slots)}</TableCell>
+                        <TableCell className="tabular-nums text-foreground">{toPersianDigits(slot.booked_slots)}</TableCell>
                         <TableCell>
                           <StatusChip
                             label={formatPct(slot.occupancy_rate)}
@@ -491,12 +507,12 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
                     ))}
                   </TableBody>
                 </Table>
-              </TableContainer>
+              </div>
             )}
           </SectionCard>
-        </Grid>
+        </div>
 
-        <Grid size={{ xs: 12, lg: 5 }}>
+        <div className="lg:col-span-5">
           <SectionCard title="برترین بدهکاران" icon="mdi:account-minus-outline" color="#dc2626">
             {debtors.isPending ? (
               <LoadingBox />
@@ -505,51 +521,49 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
             ) : (debtors.data?.items.length ?? 0) === 0 ? (
               <EmptyBox icon="mdi:shield-check-outline" title="بدهکار فعالی نیست" />
             ) : (
-              <Box>
+              <div>
                 {debtors.data!.items.map((acc, i) => (
-                  <Box
+                  <div
                     key={acc.user_id}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.25,
-                      py: 1,
-                      px: 0.5,
-                      borderBottom: i < debtors.data!.items.length - 1 ? '1px solid rgba(0,0,0,0.05)' : 'none',
-                    }}
+                    className={
+                      i < debtors.data!.items.length - 1
+                        ? 'flex items-center gap-2.5 border-b border-border px-1 py-2'
+                        : 'flex items-center gap-2.5 px-1 py-2'
+                    }
                   >
-                    <Avatar sx={{ width: 32, height: 32, borderRadius: '10px', bgcolor: 'rgba(239,68,68,0.1)', color: 'error.main', fontSize: '0.8rem', fontWeight: 800 }}>
+                    <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-[10px] bg-red-500/10 text-[0.8rem] font-extrabold text-red-600 tabular-nums dark:text-red-400">
                       {toPersianDigits(i + 1)}
-                    </Avatar>
-                    <Box sx={{ minWidth: 0, flex: 1 }}>
-                      <Typography variant="body2" sx={{ fontWeight: 700, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    </span>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-sm font-bold text-foreground">
                         {acc.full_name || 'بدون نام'}
-                      </Typography>
-                      <Typography variant="caption" sx={{ color: 'text.secondary' }}>
+                      </p>
+                      <p className="text-xs text-muted-foreground">
                         کاربر #{toPersianDigits(acc.user_id)}
-                      </Typography>
-                    </Box>
-                    <Typography variant="body2" dir="rtl" sx={{ fontWeight: 800, color: 'error.main', fontVariantNumeric: 'tabular-nums', whiteSpace: 'nowrap' }}>
+                      </p>
+                    </div>
+                    <p dir="rtl" className="whitespace-nowrap text-sm font-extrabold text-red-600 tabular-nums dark:text-red-400">
                       {formatRial(acc.balance)}
-                    </Typography>
+                    </p>
                     <Button
-                      size="small"
+                      variant="ghost"
+                      size="sm"
                       onClick={() => setStatementUser({ id: acc.user_id, name: acc.full_name })}
-                      sx={{ textTransform: 'none', fontWeight: 600, fontSize: '0.75rem', color: 'primary.main' }}
+                      className="text-blue-600 hover:text-blue-700 dark:text-blue-400"
                     >
                       حساب
                     </Button>
-                  </Box>
+                  </div>
                 ))}
-              </Box>
+              </div>
             )}
           </SectionCard>
-        </Grid>
-      </Grid>
+        </div>
+      </div>
 
-      <Box sx={{ mt: 2 }}>
+      <div className="mt-4">
         <VenueComparisonPanel scope={scope} />
-      </Box>
+      </div>
 
       <StatementDialog
         open={statementUser !== null}
@@ -558,7 +572,7 @@ const FinanceDashboardTab: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) =
         userName={statementUser?.name}
         venues={venues}
       />
-    </Box>
+    </div>
   )
 }
 
@@ -570,47 +584,51 @@ const RangeInputs: React.FC<{
   onFrom: (iso: string) => void
   onTo: (iso: string) => void
 }> = ({ from, to, onFrom, onTo }) => (
-  <Box sx={{ display: 'flex', gap: 1, width: '100%' }}>
-    <Box sx={{ flex: 1 }}>
+  <div className="flex w-full gap-2">
+    <div className="flex-1">
       <PersianDatePicker size="small" label="از" value={from} onChange={onFrom} max={to || undefined} />
-    </Box>
-    <Box sx={{ flex: 1 }}>
+    </div>
+    <div className="flex-1">
       <PersianDatePicker size="small" label="تا" value={to} onChange={onTo} min={from || undefined} />
-    </Box>
-  </Box>
+    </div>
+  </div>
 )
 
 const ChartLegend: React.FC<{ items: { color: string; label: string }[] }> = ({ items }) => (
-  <Box sx={{ display: 'flex', gap: 2, justifyContent: 'center', mt: 0.5, flexWrap: 'wrap' }}>
+  <div className="mt-1 flex flex-wrap justify-center gap-4">
     {items.map((it) => (
-      <Box key={it.label} sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
-        <Box sx={{ width: 10, height: 10, borderRadius: '3px', bgcolor: it.color }} />
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600 }}>{it.label}</Typography>
-      </Box>
+      <div key={it.label} className="flex items-center gap-1.5">
+        <span className="h-2.5 w-2.5 rounded-[3px]" style={{ backgroundColor: it.color }} aria-hidden="true" />
+        <span className="text-xs font-semibold text-muted-foreground">{it.label}</span>
+      </div>
     ))}
-  </Box>
+  </div>
 )
 
 const PieSourceLegend: React.FC<{ points: { source: string; income: number; count: number }[]; total: number }> = ({
   points,
   total,
 }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75, mt: 1 }}>
+  <div className="mt-1 flex flex-col gap-1.5">
     {points.map((s, i) => (
-      <Box key={s.source} sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-        <Box sx={{ width: 10, height: 10, borderRadius: '3px', bgcolor: SOURCE_COLORS[i % SOURCE_COLORS.length], flexShrink: 0 }} />
-        <Typography variant="caption" sx={{ fontWeight: 700, minWidth: 90 }}>
+      <div key={s.source} className="flex items-center gap-2">
+        <span
+          className="h-2.5 w-2.5 shrink-0 rounded-[3px]"
+          style={{ backgroundColor: SOURCE_COLORS[i % SOURCE_COLORS.length] }}
+          aria-hidden="true"
+        />
+        <span className="min-w-[90px] text-xs font-bold text-foreground">
           {labelOf(TX_SOURCE_LABELS, s.source)}
-        </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary', fontVariantNumeric: 'tabular-nums' }}>
+        </span>
+        <span className="text-xs text-muted-foreground tabular-nums">
           {formatRial(s.income)}
-        </Typography>
-        <Typography variant="caption" sx={{ color: 'text.secondary', ms: 'auto' }} dir="rtl">
+        </span>
+        <span className="ms-auto text-xs text-muted-foreground tabular-nums" dir="rtl">
           {total > 0 ? formatPct((s.income / total) * 100) : ''} • {toPersianDigits(s.count)} ردیف
-        </Typography>
-      </Box>
+        </span>
+      </div>
     ))}
-  </Box>
+  </div>
 )
 
 export default FinanceDashboardTab

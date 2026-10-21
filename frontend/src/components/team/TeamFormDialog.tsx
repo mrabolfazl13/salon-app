@@ -2,13 +2,23 @@
 // ساخت/ویرایش تیم — نام، ورزش، سطح دسترسی، توضیحات (لوگو: آپلود مدیر گیت است — فعلاً URL اختیاری)
 
 import React, { useEffect, useState } from 'react'
-import { Box, MenuItem, Radio, FormControlLabel, RadioGroup, TextField, Typography } from '@mui/material'
 import { Icon } from '@iconify/react'
 
 import { useCreateTeam, useUpdateTeam } from '@/hooks/useTeams'
 import { useToast } from '@/hooks/useToast'
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/Button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { RadioGroup, RadioGroupItem } from '@/components/ui/shadcn/radio-group'
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/shadcn/select'
+import { Textarea } from '@/components/ui/shadcn/textarea'
 import { SPORTS } from '@/components/mobile'
 import type { Team, TeamCreatePayload, TeamVisibility } from '@/types/team'
 import { TEAM_VISIBILITY_LABELS } from '@/types/team'
@@ -79,86 +89,85 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
 
   return (
     <Dialog open={open} onClose={onClose} title={editing ? 'ویرایش تیم' : 'تیم جدید'} maxWidth="sm">
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.25, pt: 0.5 }}>
-        <TextField
-          label="نام تیم"
-          size="small"
-          required
-          fullWidth
-          value={name}
-          error={!!nameError}
-          helperText={nameError || undefined}
-          onChange={(e) => {
-            setName(e.target.value)
-            if (nameError) setNameError('')
-          }}
-        />
-        <TextField
-          select
-          label="رشته ورزشی"
-          size="small"
-          fullWidth
-          value={sport}
-          onChange={(e) => setSport(e.target.value)}
-        >
-          {SPORTS.map((s) => (
-            <MenuItem key={s.key} value={s.key}>
-              {s.emoji} {s.label}
-            </MenuItem>
-          ))}
-        </TextField>
+      <div className="flex flex-col gap-[18px] pt-1">
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="team-name">
+            نام تیم <span className="text-red-600 dark:text-red-400">*</span>
+          </Label>
+          <Input
+            id="team-name"
+            required
+            value={name}
+            error={nameError || undefined}
+            onChange={(e) => {
+              setName(e.target.value)
+              if (nameError) setNameError('')
+            }}
+          />
+        </div>
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="team-sport">رشته ورزشی</Label>
+          <Select value={sport} onValueChange={setSport}>
+            <SelectTrigger id="team-sport">
+              <SelectValue />
+            </SelectTrigger>
+            <SelectContent>
+              {SPORTS.map((s) => (
+                <SelectItem key={s.key} value={s.key}>
+                  {s.emoji} {s.label}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
 
-        <Box>
-          <Typography sx={{ fontSize: '0.78rem', fontWeight: 700, color: '#64748b', mb: 0.5 }}>
+        <div>
+          <p className="mb-1 text-[0.78rem] font-bold text-slate-500 dark:text-slate-400">
             سطح دسترسی
-          </Typography>
+          </p>
           <RadioGroup
-            row
             value={visibility}
-            onChange={(e) => setVisibility(e.target.value as TeamVisibility)}
-            sx={{ flexWrap: 'wrap', gap: 0.5 }}
+            onValueChange={(v) => setVisibility(v as TeamVisibility)}
+            className="flex flex-wrap gap-2"
           >
             {(Object.keys(TEAM_VISIBILITY_LABELS) as TeamVisibility[]).map((v) => (
-              <FormControlLabel
-                key={v}
-                value={v}
-                control={<Radio size="small" />}
-                label={
-                  <Typography sx={{ fontSize: '0.8rem', fontWeight: 600 }}>
-                    {TEAM_VISIBILITY_LABELS[v]}
-                  </Typography>
-                }
-                sx={{ ms: 0.5 }}
-              />
+              <div key={v} className="flex min-h-11 items-center gap-2">
+                <RadioGroupItem value={v} id={`team-visibility-${v}`} />
+                <Label htmlFor={`team-visibility-${v}`} className="cursor-pointer text-[0.8rem] font-semibold">
+                  {TEAM_VISIBILITY_LABELS[v]}
+                </Label>
+              </div>
             ))}
           </RadioGroup>
-          <Typography sx={{ fontSize: '0.75rem', color: '#64748b', mt: 0.5, lineHeight: 1.8 }}>
+          <p className="mt-1 text-xs leading-[1.8] text-slate-500 dark:text-slate-400">
             {VISIBILITY_HINTS[visibility]}
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
-        <TextField
-          label="توضیحات"
-          size="small"
-          fullWidth
-          multiline
-          minRows={2}
-          slotProps={{ htmlInput: { maxLength: 1000 } }}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-        />
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="team-description">توضیحات</Label>
+          <Textarea
+            id="team-description"
+            rows={2}
+            maxLength={1000}
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            className="min-h-[72px]"
+          />
+        </div>
 
         {/* آپلود لوگو در این فاز پیاده نشده — در صورت وجود، URL مستقیم تصویر پذیرفته می‌شود */}
-        <TextField
-          label="نشانی تصویر لوگو (اختیاری)"
-          size="small"
-          fullWidth
-          value={logoUrl}
-          onChange={(e) => setLogoUrl(e.target.value)}
-          placeholder="https://..."
-        />
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor="team-logo">نشانی تصویر لوگو (اختیاری)</Label>
+          <Input
+            id="team-logo"
+            value={logoUrl}
+            onChange={(e) => setLogoUrl(e.target.value)}
+            placeholder="https://..."
+          />
+        </div>
 
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'flex-end', mt: 0.5 }}>
+        <div className="mt-1 flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={busy}>
             انصراف
           </Button>
@@ -170,14 +179,14 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
           >
             {editing ? 'ذخیره تغییرات' : 'ساخت تیم'}
           </Button>
-        </Box>
+        </div>
         {editing && (
-          <Typography sx={{ fontSize: '0.75rem', color: '#64748b', display: 'flex', alignItems: 'center', gap: 1 }}>
+          <p className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
             <Icon icon="mdi:information-outline" style={{ width: 14, height: 14 }} />
             تغییر نام فقط توسط کاپیتان یا مدیر تیم ذخیره می‌شود.
-          </Typography>
+          </p>
         )}
-      </Box>
+      </div>
     </Dialog>
   )
 }

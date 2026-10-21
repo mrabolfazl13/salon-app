@@ -2,12 +2,9 @@
 import React, { Suspense, lazy, useEffect } from 'react'
 import { BrowserRouter, Routes, Route, useLocation, Link, useNavigate, Navigate } from 'react-router-dom'
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
-import { ThemeProvider } from '@mui/material'
-import CssBaseline from '@mui/material/CssBaseline'
 import { motion, AnimatePresence, MotionConfig } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { Toaster } from 'react-hot-toast'
-import { getTheme } from '@/theme'
 import { Button } from '@/components/ui/shadcn/button'
 import Loading from '@/components/ui/Loading'
 import UpdateDialog from '@/components/modals/UpdateDialog'
@@ -255,10 +252,7 @@ function App() {
   }, [])
 
   return (
-    <ThemeProvider theme={getTheme(mode)}>
-      <CssBaseline />
-      {/* درخواست کاهش حرکت سیستم‌عامل برای همهٔ انیمیشن‌های framer (۶۳ فایل) یک‌جا محترم می‌ماند */}
-      <MotionConfig reducedMotion="user">
+    <MotionConfig reducedMotion="user">
         <QueryClientProvider client={queryClient}>
         <Toaster
           position="top-center"
@@ -283,7 +277,6 @@ function App() {
         </BrowserRouter>
         </QueryClientProvider>
       </MotionConfig>
-    </ThemeProvider>
   )
 }
 
