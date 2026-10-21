@@ -1,9 +1,7 @@
-import React from 'react'
-import { Box, Typography, useTheme } from '@mui/material'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { formatTimeFa, getSlotEndTime } from '@/lib/utils'
-import { gradients, radii } from '@/theme'
+import { cn, formatTimeFa, getSlotEndTime } from '@/lib/utils'
 import Price from './Price'
 
 export interface MobileSlot {
@@ -35,7 +33,6 @@ const HINT_BY_STATUS: Record<string, string> = {
 
 /** سانس قابل‌انتخاب (موبایل) — حالت انتخاب با گرادیان کهربایی برند */
 const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) => {
-  const dark = useTheme().palette.mode === 'dark'
   const st = statusOf(slot)
   const bidable = st === 'in_competition'
   const isReserved = st === 'reserved'
@@ -54,6 +51,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
 
   return (
     <motion.button
+      type="button"
       whileTap={disabled ? undefined : { scale: 0.985 }}
       transition={{ duration: 0.15 }}
       disabled={disabled}
@@ -66,103 +64,69 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
       }}
       aria-pressed={selected}
       title={isReserved ? 'این سانس مربوط به قرارداد است' : undefined}
-      style={{
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 12,
-        minHeight: 64,
-        padding: '10px 14px',
-        borderRadius: radii.button + 2,
-        border: selected
-          ? '1.5px solid transparent'
+      className={cn(
+        'flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl px-3.5 py-2.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        selected
+          ? 'border-[1.5px] border-transparent bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 shadow-lg shadow-amber-500/30'
           : bidable
-            ? `1.5px solid ${dark ? 'rgba(251,191,36,0.45)' : 'rgba(217,119,6,0.45)'}`
-            : `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.08)'}`,
-        background: selected
-          ? gradients.brandEnergy
-          : bidable
-            ? dark ? 'rgba(251,191,36,0.06)' : 'rgba(245,158,11,0.05)'
+            ? 'border-[1.5px] border-amber-600/45 bg-amber-500/5 dark:border-amber-400/45 dark:bg-amber-400/[0.06]'
             : disabled
-              ? dark ? 'rgba(255,255,255,0.03)' : 'rgba(15,23,42,0.03)'
-              : dark ? '#121a2b' : '#ffffff',
-        boxShadow: selected
-          ? dark ? '0 6px 18px rgba(245,158,11,0.25)' : '0 6px 18px rgba(245,158,11,0.35)'
-          : 'none',
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        fontFamily: 'inherit',
-        textAlign: 'start',
-        opacity: disabled ? 0.7 : 1,
-      }}
+              ? 'cursor-not-allowed border border-border bg-slate-900/[0.03] opacity-70 dark:bg-white/[0.03]'
+              : 'border border-border bg-card hover:bg-muted/60'
+      )}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25, minWidth: 0 }}>
-        <Box
-          sx={{
-            width: 38,
-            height: 38,
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            flexShrink: 0,
-            bgcolor: selected
-              ? 'rgba(28,25,23,0.14)'
+      <div className="flex min-w-0 items-center gap-2.5">
+        <div
+          className={cn(
+            'flex h-[38px] w-[38px] shrink-0 items-center justify-center rounded-xl',
+            selected
+              ? 'bg-stone-900/15'
               : bidable
-                ? dark ? 'rgba(251,191,36,0.14)' : 'rgba(245,158,11,0.12)'
-                : dark ? 'rgba(96,165,250,0.12)' : 'rgba(37,99,235,0.07)',
-          }}
+                ? 'bg-amber-500/[0.12] dark:bg-amber-400/15'
+                : disabled
+                  ? 'bg-muted'
+                  : 'bg-blue-600/[0.07] dark:bg-blue-400/[0.12]'
+          )}
         >
           <Icon
             icon={isReserved ? 'mdi:file-lock-outline' : bidable ? 'mdi:gavel' : disabled ? 'mdi:lock-clock' : 'mdi:clock-outline'}
-            style={{
-              width: 20,
-              height: 20,
-              color: selected
-                ? '#1c1917'
-                : bidable
-                  ? dark ? '#fbbf24' : '#d97706'
-                  : disabled
-                    ? dark ? '#5b6879' : '#64748b'
-                    : dark ? '#60a5fa' : '#2563eb',
-            }}
+            style={{ width: 20, height: 20 }}
+            className={cn(
+              selected && 'text-stone-900',
+              !selected && bidable && 'text-amber-600 dark:text-amber-400',
+              !selected && !bidable && disabled && 'text-slate-500',
+              !selected && !bidable && !disabled && 'text-blue-600 dark:text-blue-400'
+            )}
           />
-        </Box>
-        <Box sx={{ minWidth: 0 }}>
-          <Typography
-            sx={{
-              fontSize: '0.92rem',
-              fontWeight: 700,
-              color: selected
-                ? '#1c1917'
-                : disabled
-                  ? dark ? '#5b6879' : '#64748b'
-                  : dark ? '#eef2f7' : '#0f172a',
-              whiteSpace: 'nowrap',
-              fontVariantNumeric: 'tabular-nums',
-            }}
+        </div>
+        <div className="min-w-0">
+          <p
+            className={cn(
+              'whitespace-nowrap text-[0.92rem] font-bold tabular-nums',
+              selected ? 'text-stone-900' : disabled ? 'text-muted-foreground' : 'text-foreground'
+            )}
           >
             {formatTimeFa(slot.startTime)}
             {end ? ` – ${formatTimeFa(end)}` : ''}
-          </Typography>
-          <Typography
-            sx={{
-              fontSize: '0.75rem',
-              color: selected
-                ? 'rgba(28,25,23,0.75)'
+          </p>
+          <p
+            className={cn(
+              'text-xs',
+              selected
+                ? 'text-stone-900/75'
                 : bidable
-                  ? dark ? '#fbbf24' : '#d97706'
+                  ? 'text-amber-700 dark:text-amber-400'
                   : isReserved
-                    ? dark ? '#a78bfa' : '#8b5cf6'
-                    : dark ? '#9aa7b8' : '#64748b',
-            }}
+                    ? 'text-violet-600 dark:text-violet-400'
+                    : 'text-muted-foreground'
+            )}
           >
             {subLabel}
-          </Typography>
-        </Box>
-      </Box>
+          </p>
+        </div>
+      </div>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+      <div className="flex shrink-0 items-center gap-2">
         {!disabled &&
           !bidable &&
           (selected ? (
@@ -171,57 +135,22 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
             <Price value={slot.price} size="sm" />
           ))}
         {bidable && (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: 1,
-              px: 1.25,
-              py: 0.5,
-              borderRadius: '999px',
-              background: dark
-                ? 'linear-gradient(135deg, rgba(251,191,36,0.2), rgba(249,115,22,0.2))'
-                : 'linear-gradient(135deg, rgba(245,158,11,0.16), rgba(249,115,22,0.16))',
-              color: dark ? '#fcd34d' : '#b45309',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-            }}
-          >
-            <Icon icon="mdi:gavel" style={{ width: 13, height: 13 }} />
+          <span className="flex items-center gap-1 rounded-full bg-gradient-to-br from-amber-500/[0.16] to-orange-500/[0.16] px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
+            <Icon icon="mdi:gavel" aria-hidden="true" style={{ width: 13, height: 13 }} />
             رقابت با بقیه
-          </Box>
+          </span>
         )}
         {isReserved && (
-          <Box
-            sx={{
-              px: 1.25,
-              py: 0.5,
-              borderRadius: '999px',
-              bgcolor: dark ? 'rgba(167,139,250,0.16)' : 'rgba(139,92,246,0.12)',
-              color: dark ? '#c4b5fd' : '#7c3aed',
-              fontSize: '0.75rem',
-              fontWeight: 700,
-            }}
-          >
+          <span className="rounded-full bg-violet-500/[0.12] px-2.5 py-1 text-xs font-bold text-violet-700 dark:bg-violet-400/[0.16] dark:text-violet-300">
             قرارداد
-          </Box>
+          </span>
         )}
         {selected && !bidable && (
-          <Box
-            sx={{
-              width: 24,
-              height: 24,
-              borderRadius: '50%',
-              bgcolor: 'rgba(28,25,23,0.18)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-            }}
-          >
+          <span className="flex h-6 w-6 items-center justify-center rounded-full bg-stone-900/[0.18]">
             <Icon icon="mdi:check" style={{ width: 16, height: 16, color: '#1c1917' }} />
-          </Box>
+          </span>
         )}
-      </Box>
+      </div>
     </motion.button>
   )
 }

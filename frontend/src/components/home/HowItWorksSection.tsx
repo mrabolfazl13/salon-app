@@ -1,7 +1,6 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography } from '@mui/material'
 import SectionHeader from '@/components/mobile/SectionHeader'
 
 interface StepProps {
@@ -19,52 +18,25 @@ const Step: React.FC<StepProps> = ({ icon, title, description, color, delay = 0 
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
   >
-    <Box sx={{ position: 'relative', textAlign: 'center' }}>
+    <div className="relative text-center">
       {/* شماره مرحله */}
-      <Box
-        sx={{
-          width: 64,
-          height: 64,
-          borderRadius: '50%',
-          background: `${color}15`,
-          border: `3px solid ${color}`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mx: 'auto',
-          mb: 2,
-          position: 'relative',
-          zIndex: 1,
-        }}
+      <div
+        className="relative z-[1] mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border-[3px]"
+        style={{ backgroundColor: `${color}15`, borderColor: color }}
       >
         <Icon icon={icon} style={{ width: 28, height: 28, color }} />
-      </Box>
+      </div>
 
       {/* عنوان */}
-      <Typography
-        sx={{
-          fontWeight: 800,
-          fontSize: '1.05rem',
-          color: 'text.primary',
-          mb: 1,
-        }}
-      >
+      <h3 className="mb-2 text-[1.05rem] font-extrabold text-foreground">
         {title}
-      </Typography>
+      </h3>
 
       {/* توضیحات */}
-      <Typography
-        sx={{
-          fontSize: '0.82rem',
-          color: 'text.secondary',
-          lineHeight: 1.7,
-          maxWidth: 280,
-          mx: 'auto',
-        }}
-      >
+      <p className="mx-auto max-w-[280px] text-[0.82rem] leading-[1.7] text-muted-foreground">
         {description}
-      </Typography>
-    </Box>
+      </p>
+    </div>
   </motion.div>
 )
 
@@ -108,75 +80,46 @@ const STEPS = [
 
 export const HowItWorksSection: React.FC = () => {
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="چطور کار می‌کنه؟"
         subtitle="در ۵ قدم ساده، زمین رزرو کن"
       />
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)',
-            lg: 'repeat(5, 1fr)',
-          },
-          gap: 3,
-          position: 'relative',
-        }}
-      >
+      <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {STEPS.map((step, index) => (
           <React.Fragment key={step.number}>
             <Step {...step} delay={index * 0.1} />
             {/* خط اتصال بین مراحل (فقط در دسکتاپ) */}
             {index < STEPS.length - 1 && (
-              <Box
-                sx={{
-                  display: { xs: 'none', lg: 'block' },
-                  position: 'absolute',
-                  top: 32,
-                  left: `calc(${(index + 1) * 20}% - 10%)`,
-                  width: '10%',
-                  height: 2,
-                  background: 'linear-gradient(90deg, transparent, rgba(0,0,0,0.1), transparent)',
-                  zIndex: 0,
-                }}
+              <div
+                aria-hidden="true"
+                className="absolute top-8 z-0 hidden h-0.5 w-[10%] bg-gradient-to-r from-transparent via-slate-900/10 to-transparent dark:via-white/10 lg:block"
+                style={{ insetInlineStart: `calc(${(index + 1) * 20}% - 10%)` }}
               />
             )}
           </React.Fragment>
         ))}
-      </Box>
+      </div>
 
       {/* نکته مهم */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.6 }}
-        style={{ marginTop: 32 }}
+        className="mt-8"
       >
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 1.5,
-            p: 2,
-            borderRadius: '12px',
-            bgcolor: 'rgba(59,130,246,0.08)',
-            border: '1px solid rgba(59,130,246,0.2)',
-          }}
-        >
+        <div className="flex items-center gap-3 rounded-xl border border-blue-500/20 bg-blue-500/[0.08] p-4 dark:bg-blue-500/10">
           <Icon icon="mdi:lightbulb-on" style={{ width: 24, height: 24, color: '#3b82f6', flexShrink: 0 }} />
-          <Typography sx={{ fontSize: '0.82rem', color: 'text.primary', flex: 1 }}>
+          <p className="flex-1 text-[0.82rem] text-foreground">
             <strong>نکته:</strong> اولین رزروت با{' '}
-            <Box component="span" sx={{ color: 'info.main', fontWeight: 700 }}>
+            <span className="font-bold text-blue-600 dark:text-blue-400">
               ۵۰٪ تخفیف
-            </Box>{' '}
+            </span>{' '}
             همراهه! همین حالا شروع کن.
-          </Typography>
-        </Box>
+          </p>
+        </div>
       </motion.div>
-    </Box>
+    </section>
   )
 }

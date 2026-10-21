@@ -1,7 +1,6 @@
 import React, { useState } from 'react'
-import { Box, useTheme } from '@mui/material'
 import { Icon } from '@iconify/react'
-import { gradients, radii } from '@/theme'
+import { cn } from '@/lib/utils'
 import { parseList, toFullUrl } from '@/utils/venueMedia'
 
 interface Props {
@@ -14,22 +13,16 @@ interface Props {
 
 /** تصویر بزرگ سالن با نسبت موبایلی + fallback گرادیانی */
 const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, children }) => {
-  const theme = useTheme()
   const [failed, setFailed] = useState(false)
   const imgs = parseList(images)
   const src = imgs[0] ? toFullUrl(imgs[0]) : ''
-  const aspect = ratio === '16:10' ? '16 / 10' : '4 / 3'
 
   return (
-    <Box
-      sx={{
-        position: 'relative',
-        width: '100%',
-        aspectRatio: aspect,
-        overflow: 'hidden',
-        borderRadius: `${radii.image}px`,
-        bgcolor: theme.palette.grey[100],
-      }}
+    <div
+      className={cn(
+        'relative w-full overflow-hidden rounded-2xl bg-muted',
+        ratio === '16:10' ? 'aspect-[16/10]' : 'aspect-[4/3]'
+      )}
     >
       {src && !failed ? (
         <img
@@ -37,53 +30,38 @@ const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, 
           alt={name}
           loading="lazy"
           onError={() => setFailed(true)}
-          style={{ width: '100%', height: '100%', objectFit: 'cover', display: 'block' }}
+          className="block h-full w-full object-cover"
         />
       ) : (
-        <Box
-          sx={{
-            width: '100%',
-            height: '100%',
-            background: gradients.primary,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Icon icon="mdi:stadium-variant" style={{ width: 52, height: 52, color: 'rgba(255,255,255,0.45)' }} />
-        </Box>
+        <div className="flex h-full w-full items-center justify-center bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700">
+          <Icon
+            icon="mdi:stadium-variant"
+            aria-hidden="true"
+            style={{ width: 52, height: 52, color: 'rgba(255,255,255,0.45)' }}
+          />
+        </div>
       )}
 
       {/* بَج تایید — ابتدای خط (سمت راست در RTL) */}
       {verified !== undefined && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 10,
-            insetInlineStart: 10,
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: 1,
-            px: 1,
-            py: 0.5,
-            borderRadius: `${radii.chip}px`,
-            bgcolor: 'rgba(255,255,255,0.92)',
-            backdropFilter: 'blur(6px)',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-            color: verified ? '#047857' : '#b45309',
-          }}
+        <span
+          className={cn(
+            'absolute start-2.5 top-2.5 inline-flex items-center gap-1 rounded-[10px] bg-white/90 px-2 py-1 text-xs font-bold backdrop-blur-md',
+            verified ? 'text-emerald-700' : 'text-amber-700'
+          )}
         >
-          <Icon icon={verified ? 'mdi:shield-check' : 'mdi:shield-alert-outline'} style={{ width: 13, height: 13 }} />
+          <Icon
+            icon={verified ? 'mdi:shield-check' : 'mdi:shield-alert-outline'}
+            aria-hidden="true"
+            style={{ width: 13, height: 13 }}
+          />
           {verified ? 'تایید شده' : 'در انتظار تایید'}
-        </Box>
+        </span>
       )}
 
       {/* انتهای خط (چپ در RTL) — جای FavoriteButton */}
-      {children && (
-        <Box sx={{ position: 'absolute', top: 8, insetInlineEnd: 8 }}>{children}</Box>
-      )}
-    </Box>
+      {children && <div className="absolute end-2 top-2">{children}</div>}
+    </div>
   )
 }
 

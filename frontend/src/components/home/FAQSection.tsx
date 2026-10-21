@@ -1,7 +1,6 @@
 import React, { useId, useState } from 'react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography } from '@mui/material'
 import SectionHeader from '@/components/mobile/SectionHeader'
 
 interface FAQItemProps {
@@ -20,68 +19,37 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.4, delay }}
     >
-      <Box
-        sx={{
-          borderRadius: '12px',
-          bgcolor: 'background.paper',
-          border: '1px solid',
-          borderColor: isOpen ? 'primary.main' : 'divider',
-          overflow: 'hidden',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            boxShadow: '0 4px 12px rgba(0,0,0,0.08)',
-          },
-        }}
+      <div
+        className={`overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-md ${
+          isOpen ? 'border-blue-600 dark:border-blue-400' : 'border-border'
+        }`}
       >
         {/* سوال */}
-        <Box
+        <div
           role="button"
           tabIndex={0}
           aria-expanded={isOpen}
           aria-controls={panelId}
           onClick={() => setIsOpen(!isOpen)}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsOpen(!isOpen) } }}
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            p: 2,
-            cursor: 'pointer',
-            gap: 1.5,
-          }}
+          className="flex cursor-pointer items-center justify-between gap-3 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <Typography
-            sx={{
-              fontWeight: 700,
-              fontSize: '0.92rem',
-              color: 'text.primary',
-              flex: 1,
-            }}
-          >
+          <p className="flex-1 text-[0.92rem] font-bold text-foreground">
             {question}
-          </Typography>
-          <Box
-            sx={{
-              width: 28,
-              height: 28,
-              borderRadius: '50%',
-              bgcolor: isOpen ? 'primary.main' : 'rgba(0,0,0,0.05)',
-              color: isOpen ? 'primary.contrastText' : 'text.secondary',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              transition: 'all 0.3s ease',
-            }}
+          </p>
+          <span
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+              isOpen
+                ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-slate-950'
+                : 'bg-black/5 text-muted-foreground dark:bg-white/10'
+            }`}
           >
             <Icon
               icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
-              style={{
-                width: 18,
-                height: 18,
-              }}
+              style={{ width: 18, height: 18 }}
             />
-          </Box>
-        </Box>
+          </span>
+        </div>
 
         {/* پاسخ */}
         <AnimatePresence>
@@ -95,28 +63,15 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.25 }}
             >
-              <Box
-                sx={{
-                  p: 2,
-                  pt: 0,
-                  borderTop: '1px solid',
-                  borderColor: 'divider',
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: '0.85rem',
-                    lineHeight: 1.8,
-                    color: 'text.secondary',
-                  }}
-                >
+              <div className="border-t border-border p-4 pt-3">
+                <p className="text-[0.85rem] leading-[1.8] text-muted-foreground">
                   {answer}
-                </Typography>
-              </Box>
+                </p>
+              </div>
             </motion.div>
           )}
         </AnimatePresence>
-      </Box>
+      </div>
     </motion.div>
   )
 }
@@ -166,66 +121,39 @@ const FAQS = [
 
 export const FAQSection: React.FC = () => {
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="سوالات متداول"
         subtitle="پاسخ سوالات رایج رو اینجا پیدا کن"
       />
 
-      <Box
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 1.5,
-        }}
-      >
+      <div className="flex flex-col gap-3">
         {FAQS.map((faq, index) => (
           <FAQItem key={index} {...faq} delay={index * 0.05} />
         ))}
-      </Box>
+      </div>
 
       {/* تماس با پشتیبانی */}
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.5 }}
-        style={{ marginTop: 32 }}
+        className="mt-8"
       >
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            p: 2.5,
-            borderRadius: '16px',
-            bgcolor: 'rgba(59,130,246,0.08)',
-            border: '1px solid rgba(59,130,246,0.2)',
-          }}
-        >
-          <Box
-            sx={{
-              width: 48,
-              height: 48,
-              borderRadius: '12px',
-              bgcolor: 'rgba(59,130,246,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
+        <div className="flex items-center gap-4 rounded-2xl border border-blue-500/20 bg-blue-500/[0.08] p-5 dark:bg-blue-500/10">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-500/15">
             <Icon icon="mdi:headset" style={{ width: 24, height: 24, color: '#3b82f6' }} />
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: 'text.primary', mb: 0.25 }}>
+          </span>
+          <div className="flex-1">
+            <p className="mb-0.5 text-[0.92rem] font-bold text-foreground">
               سوال دیگه‌ای داری؟
-            </Typography>
-            <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
+            </p>
+            <p className="text-[0.82rem] text-muted-foreground">
               تیم پشتیبانی ما ۲۴ ساعته آماده کمک هست. از طریق واتساپ، تلگرام یا تماس تلفنی با ما در ارتباط باش.
-            </Typography>
-          </Box>
-        </Box>
+            </p>
+          </div>
+        </div>
       </motion.div>
-    </Box>
+    </section>
   )
 }

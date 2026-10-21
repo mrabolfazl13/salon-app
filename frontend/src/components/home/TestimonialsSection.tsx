@@ -1,7 +1,6 @@
-import React from 'react'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography } from '@mui/material'
 import SectionHeader from '@/components/mobile/SectionHeader'
 
 interface TestimonialProps {
@@ -19,72 +18,31 @@ const TestimonialCard: React.FC<TestimonialProps> = ({ name, avatar, rating, tex
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
     whileHover={{ scale: 1.02 }}
+    className="h-full"
   >
-    <Box
-      sx={{
-        p: 2.5,
-        borderRadius: '20px',
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: 'divider',
-        height: '100%',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 1.5,
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-          borderColor: 'primary.main',
-        },
-      }}
-    >
+    <div className="flex h-full flex-col gap-3 rounded-[20px] border border-border bg-card p-5 transition-all duration-300 hover:border-blue-500 hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] dark:hover:border-blue-400">
       {/* هدر کارت */}
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+      <div className="flex items-center gap-3">
         {/* آواتار */}
-        <Box
-          sx={{
-            width: 48,
-            height: 48,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #fbbf24, #f59e0b)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontSize: '1.3rem',
-            fontWeight: 800,
-            color: '#fff',
-            flexShrink: 0,
-          }}
-        >
+        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-[1.3rem] font-extrabold text-white">
           {avatar}
-        </Box>
+        </span>
 
         {/* اطلاعات کاربر */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Typography
-            sx={{
-              fontWeight: 700,
-              fontSize: '0.9rem',
-              color: 'text.primary',
-            }}
-          >
+        <div className="min-w-0 flex-1">
+          <p className="text-[0.9rem] font-bold text-foreground">
             {name}
-          </Typography>
+          </p>
           {venue && (
-            <Typography
-              sx={{
-                fontSize: '0.75rem',
-                color: 'text.secondary',
-              }}
-            >
+            <p className="text-xs text-muted-foreground">
               {venue}
-            </Typography>
+            </p>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
 
       {/* امتیاز */}
-      <Box sx={{ display: 'flex', gap: 0.25 }}>
+      <div className="flex gap-0.5">
         {[...Array(5)].map((_, i) => (
           <Icon
             key={i}
@@ -96,20 +54,13 @@ const TestimonialCard: React.FC<TestimonialProps> = ({ name, avatar, rating, tex
             }}
           />
         ))}
-      </Box>
+      </div>
 
       {/* متن نظر */}
-      <Typography
-        sx={{
-          fontSize: '0.85rem',
-          lineHeight: 1.8,
-          color: 'text.primary',
-          flex: 1,
-        }}
-      >
+      <p className="flex-1 text-[0.85rem] leading-[1.8] text-foreground">
         "{text}"
-      </Typography>
-    </Box>
+      </p>
+    </div>
   </motion.div>
 )
 
@@ -160,23 +111,13 @@ const TESTIMONIALS = [
 
 export const TestimonialsSection: React.FC = () => {
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="نظرات کاربران"
         subtitle="ببین بقیه چی میگن درباره تجربه‌شون"
       />
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)',
-          },
-          gap: 2.5,
-        }}
-      >
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
         {TESTIMONIALS.map((testimonial, index) => (
           <TestimonialCard
             key={testimonial.name}
@@ -184,7 +125,7 @@ export const TestimonialsSection: React.FC = () => {
             delay={index * 0.1}
           />
         ))}
-      </Box>
-    </Box>
+      </div>
+    </section>
   )
 }

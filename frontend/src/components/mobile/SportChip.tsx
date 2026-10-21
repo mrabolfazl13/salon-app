@@ -1,8 +1,7 @@
-import React from 'react'
-import { Box, Typography, useTheme } from '@mui/material'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { radii } from '@/theme'
+import { cn } from '@/lib/utils'
 
 export interface Sport {
   key: string
@@ -34,81 +33,48 @@ interface Props {
 }
 
 /** چیپ ورزش — اسکرول افقی در Home */
-const SportChip: React.FC<Props> = ({ sport, active = false, onClick }) => {
-  const dark = useTheme().palette.mode === 'dark'
-  return (
-    <motion.button
-      whileTap={{ scale: 0.95 }}
-      transition={{ duration: 0.15 }}
-      onClick={() => onClick?.(sport)}
-      style={{
-        display: 'inline-flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: 6,
-        minWidth: 76,
-        height: 76,
-        padding: '8px 12px',
-        borderRadius: radii.card,
-        border: active
-          ? '1.5px solid transparent'
-          : `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.07)'}`,
-        background: active
-          ? 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)'
-          : dark ? '#121a2b' : '#ffffff',
-        boxShadow: active
-          ? dark ? '0 6px 18px rgba(245,158,11,0.25)' : '0 6px 18px rgba(245,158,11,0.35)'
-          : dark ? '0 1px 3px rgba(0,0,0,0.4)' : '0 1px 3px rgba(15,23,42,0.05)',
-        cursor: 'pointer',
-        fontFamily: 'inherit',
-        flexShrink: 0,
-      }}
-      aria-pressed={active}
+const SportChip: React.FC<Props> = ({ sport, active = false, onClick }) => (
+  <motion.button
+    type="button"
+    whileTap={{ scale: 0.95 }}
+    transition={{ duration: 0.15 }}
+    onClick={() => onClick?.(sport)}
+    aria-pressed={active}
+    className={cn(
+      'inline-flex h-[76px] min-w-[76px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-[20px] px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+      active
+        ? 'border-[1.5px] border-transparent bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 shadow-lg shadow-amber-500/30'
+        : 'border border-border bg-card shadow-sm hover:bg-muted/60'
+    )}
+  >
+    <Icon
+      icon={sport.icon}
+      className={cn(
+        'h-[26px] w-[26px]',
+        active ? 'text-stone-900' : 'text-amber-600 dark:text-amber-400'
+      )}
+    />
+    <span
+      className={cn(
+        'whitespace-nowrap text-xs',
+        active ? 'font-extrabold text-stone-900' : 'font-semibold text-slate-700 dark:text-slate-300'
+      )}
     >
-      <Icon
-        icon={sport.icon}
-        style={{
-          width: 26,
-          height: 26,
-          color: active ? '#1c1917' : dark ? '#fbbf24' : '#d97706',
-        }}
-      />
-      <Typography
-        component="span"
-        sx={{
-          fontSize: '0.75rem',
-          fontWeight: active ? 800 : 600,
-          color: active ? '#1c1917' : dark ? '#bcc7d4' : '#334155',
-          whiteSpace: 'nowrap',
-        }}
-      >
-        {sport.label}
-      </Typography>
-    </motion.button>
-  )
-}
+      {sport.label}
+    </span>
+  </motion.button>
+)
 
 /** ردیف اسکرول افقی چیپ‌ها */
 export const SportChipRow: React.FC<{
   activeKey?: string | null
   onSelect: (sport: Sport) => void
 }> = ({ activeKey, onSelect }) => (
-  <Box
-    sx={{
-      display: 'flex',
-      gap: 1.5,
-      overflowX: 'auto',
-      pb: 1,
-      px: 0.25,
-      WebkitOverflowScrolling: 'touch',
-    }}
-    className="scrollbar-hide"
-  >
+  <div className="scrollbar-hide flex gap-3 overflow-x-auto px-0.5 pb-2">
     {SPORTS.map((s) => (
       <SportChip key={s.key} sport={s} active={activeKey === s.key} onClick={onSelect} />
     ))}
-  </Box>
+  </div>
 )
 
 export default SportChip

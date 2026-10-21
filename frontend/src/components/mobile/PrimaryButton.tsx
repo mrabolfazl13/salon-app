@@ -1,53 +1,42 @@
-import React from 'react'
-import { Button, CircularProgress, useTheme, type ButtonProps } from '@mui/material'
+import type React from 'react'
 import { Icon } from '@iconify/react'
-import { gradients } from '@/theme'
+import { Button } from '@/components/ui/shadcn/button'
+import { cn } from '@/lib/utils'
 
-interface Props extends Omit<ButtonProps, 'variant'> {
+interface Props extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   icon?: string
   fullWidth?: boolean
   loading?: boolean
 }
 
-/** دکمه اصلی — گرادیان navy→blue با متن سفید؛ CTA رزرو */
-const PrimaryButton: React.FC<Props> = ({ icon, children, fullWidth = true, sx, startIcon, loading = false, disabled, ...rest }) => {
-  const dark = useTheme().palette.mode === 'dark'
-  return (
-    <Button
-      variant="contained"
-      fullWidth={fullWidth}
-      disabled={disabled || loading}
-      startIcon={
-        loading ? (
-          <CircularProgress size={18} color="inherit" />
-        ) : icon && !startIcon ? (
-          <Icon icon={icon} style={{ width: 20, height: 20 }} />
-        ) : startIcon
-      }
-      sx={{
-        textTransform: 'none',
-        fontWeight: 700,
-        fontSize: '0.95rem',
-        py: 1.5,
-        minHeight: 50,
-        borderRadius: '14px',
-        background: gradients.primary,
-        boxShadow: dark ? '0 6px 20px rgba(29,78,216,0.35)' : '0 6px 20px rgba(30,58,138,0.28)',
-        transition: 'all 0.2s ease',
-        '&:hover': { background: gradients.primaryHover, boxShadow: dark ? '0 8px 26px rgba(29,78,216,0.45)' : '0 8px 26px rgba(30,58,138,0.36)' },
-        '&:active': { transform: 'scale(0.985)' },
-        '&.Mui-disabled': {
-          background: dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.12)',
-          color: dark ? '#5b6879' : '#64748b',
-          boxShadow: 'none',
-        },
-        ...sx,
-      }}
-      {...rest}
-    >
-      {children}
-    </Button>
-  )
-}
+/** دکمه اصلی — CTA کهربایی برند برای رزرو و اقدام‌های اصلی */
+const PrimaryButton: React.FC<Props> = ({
+  icon,
+  children,
+  fullWidth = true,
+  className,
+  loading = false,
+  disabled,
+  type = 'button',
+  ...rest
+}) => (
+  <Button
+    type={type}
+    disabled={disabled || loading}
+    className={cn('min-h-12 rounded-[14px] py-3 text-[0.95rem] font-bold', fullWidth && 'w-full', className)}
+    {...rest}
+  >
+    {loading ? (
+      <span
+        className="h-[18px] w-[18px] animate-spin rounded-full border-2 border-stone-900/25 border-t-stone-900"
+        role="status"
+        aria-label="در حال بارگذاری"
+      />
+    ) : (
+      icon && <Icon icon={icon} aria-hidden="true" style={{ width: 20, height: 20 }} />
+    )}
+    {children}
+  </Button>
+)
 
 export default PrimaryButton

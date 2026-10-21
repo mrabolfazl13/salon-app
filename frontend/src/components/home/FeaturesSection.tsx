@@ -1,7 +1,6 @@
-import React from 'react'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography } from '@mui/material'
 import SectionHeader from '@/components/mobile/SectionHeader'
 
 interface FeatureItemProps {
@@ -19,61 +18,27 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description, col
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.4, delay }}
     whileHover={{ y: -6, transition: { duration: 0.3 } }}
+    className="h-full"
   >
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'flex-start',
-        gap: 2,
-        p: 2.5,
-        borderRadius: '16px',
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: 'divider',
-        height: '100%',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          boxShadow: '0 8px 24px rgba(0,0,0,0.1)',
-          borderColor: color,
-        },
-      }}
+    <div
+      className="flex h-full items-start gap-4 rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:border-[color:var(--feature-color)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)]"
+      style={{ '--feature-color': color } as React.CSSProperties}
     >
-      <Box
-        sx={{
-          width: 52,
-          height: 52,
-          borderRadius: '12px',
-          background: bgColor,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          flexShrink: 0,
-        }}
+      <span
+        className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl"
+        style={{ background: bgColor }}
       >
         <Icon icon={icon} style={{ width: 26, height: 26, color }} />
-      </Box>
-      <Box sx={{ flex: 1, minWidth: 0 }}>
-        <Typography
-          sx={{
-            fontWeight: 700,
-            fontSize: '0.92rem',
-            color: 'text.primary',
-            mb: 0.5,
-          }}
-        >
+      </span>
+      <div className="min-w-0 flex-1">
+        <h3 className="mb-1 text-[0.92rem] font-bold text-foreground">
           {title}
-        </Typography>
-        <Typography
-          sx={{
-            fontSize: '0.78rem',
-            color: 'text.secondary',
-            lineHeight: 1.7,
-          }}
-        >
+        </h3>
+        <p className="text-[0.78rem] leading-[1.7] text-muted-foreground">
           {description}
-        </Typography>
-      </Box>
-    </Box>
+        </p>
+      </div>
+    </div>
   </motion.div>
 )
 
@@ -138,28 +103,17 @@ const FEATURES = [
 
 export const FeaturesSection: React.FC = () => {
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="امکانات ویژه"
         subtitle="هر چی که برای یه بازی عالی نیاز داری"
       />
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)',
-            lg: 'repeat(4, 1fr)',
-          },
-          gap: 2,
-        }}
-      >
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {FEATURES.map((feature, index) => (
           <FeatureItem key={feature.title} {...feature} delay={index * 0.08} />
         ))}
-      </Box>
-    </Box>
+      </div>
+    </section>
   )
 }

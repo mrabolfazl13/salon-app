@@ -1,8 +1,7 @@
 import React, { useMemo } from 'react'
-import { Box, Typography, IconButton, useTheme } from '@mui/material'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { gradients } from '@/theme'
+import { cn } from '@/lib/utils'
 
 export interface DateOption {
   iso: string // YYYY-MM-DD
@@ -21,7 +20,6 @@ interface Props {
 /** انتخاب تاریخ — اسکرول افقی با فلش‌های قبلی/بعدی (جهت‌دار برای RTL) */
 const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
   const scrollRef = React.useRef<HTMLDivElement>(null)
-  const dark = useTheme().palette.mode === 'dark'
 
   const currentIndex = useMemo(() => Math.max(0, dates.findIndex((d) => d.iso === value)), [dates, value])
 
@@ -32,76 +30,71 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
   }
 
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-      <IconButton
+    <div className="flex items-center gap-1">
+      <button
+        type="button"
         onClick={() => scrollBy(-1)}
         disabled={currentIndex <= 0}
         aria-label="تاریخ قبل"
-        sx={{ width: 44, height: 44, flexShrink: 0, color: 'primary.main', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Icon icon="mdi:chevron-right" style={{ width: 22, height: 22 }} />
-      </IconButton>
+      </button>
 
-      <Box
+      <div
         ref={scrollRef}
-        className="scrollbar-hide"
-        sx={{
-          display: 'flex',
-          gap: 1,
-          overflowX: 'auto',
-          flex: 1,
-          scrollSnapType: 'x mandatory',
-          WebkitOverflowScrolling: 'touch',
-          py: 0.5,
-        }}
+        className="scrollbar-hide flex flex-1 snap-x snap-mandatory gap-2 overflow-x-auto py-1"
       >
         {dates.map((d) => {
           const active = d.iso === value
           return (
             <motion.button
               key={d.iso}
+              type="button"
               whileTap={{ scale: 0.95 }}
               transition={{ duration: 0.15 }}
               onClick={() => onChange(d.iso)}
-              style={{
-                scrollSnapAlign: 'center',
-                flexShrink: 0,
-                minWidth: 62,
-                padding: '10px 8px',
-                borderRadius: 16,
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                border: active ? 'none' : `1px solid ${dark ? 'rgba(255,255,255,0.08)' : 'rgba(15,23,42,0.07)'}`,
-                background: active ? gradients.brandEnergy : dark ? '#121a2b' : '#ffffff',
-                boxShadow: active
-                  ? dark ? '0 6px 18px rgba(245,158,11,0.25)' : '0 6px 18px rgba(245,158,11,0.35)'
-                  : 'none',
-                color: active ? '#1c1917' : dark ? '#eef2f7' : '#0f172a',
-              }}
               aria-pressed={active}
+              className={cn(
+                'flex min-w-[62px] shrink-0 snap-center flex-col items-center rounded-2xl px-2 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                active
+                  ? 'border border-transparent bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-stone-900 shadow-lg shadow-amber-500/25'
+                  : 'border border-border bg-card text-foreground hover:bg-muted/60'
+              )}
             >
               {/* opacity روی متن ۱۲px کنتراست را به ۴٫۰:۱ می‌رساند (مهر = #7b7f8a) — ممیزی axe F-21 */}
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 600, color: active ? 'rgba(28,25,23,0.9)' : dark ? 'rgba(238,242,247,0.82)' : 'rgba(15,23,42,0.78)' }}>
+              <span
+                className={cn(
+                  'text-xs font-semibold',
+                  active ? 'text-stone-900/90' : 'text-foreground/80'
+                )}
+              >
                 {d.isToday ? 'امروز' : d.weekday}
-              </Typography>
-              <Typography sx={{ fontSize: '1.15rem', fontWeight: 800, lineHeight: 1.3 }}>{d.day}</Typography>
-              <Typography sx={{ fontSize: '0.75rem', fontWeight: 500, color: active ? 'rgba(28,25,23,0.9)' : dark ? 'rgba(238,242,247,0.82)' : 'rgba(15,23,42,0.78)' }}>
+              </span>
+              <span className="text-[1.15rem] font-extrabold leading-[1.3]">{d.day}</span>
+              <span
+                className={cn(
+                  'text-xs font-medium',
+                  active ? 'text-stone-900/90' : 'text-foreground/80'
+                )}
+              >
                 {d.month}
-              </Typography>
+              </span>
             </motion.button>
           )
         })}
-      </Box>
+      </div>
 
-      <IconButton
+      <button
+        type="button"
         onClick={() => scrollBy(1)}
         disabled={currentIndex >= dates.length - 1}
         aria-label="تاریخ بعد"
-        sx={{ width: 44, height: 44, flexShrink: 0, color: 'primary.main', bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider' }}
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Icon icon="mdi:chevron-left" style={{ width: 22, height: 22 }} />
-      </IconButton>
-    </Box>
+      </button>
+    </div>
   )
 }
 

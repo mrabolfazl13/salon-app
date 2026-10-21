@@ -1,7 +1,7 @@
-import React from 'react'
-import { Box, Typography } from '@mui/material'
+import type React from 'react'
 import { Icon } from '@iconify/react'
 import { toPersianDigits } from '@/utils/l10n'
+import { cn } from '@/lib/utils'
 
 interface Props {
   value?: number
@@ -12,28 +12,20 @@ interface Props {
 /** ⭐ 4.8 (120) — نمایش فشرده امتیاز */
 const Rating: React.FC<Props> = ({ value = 0, count = 0, size = 'sm' }) => {
   const iconPx = size === 'md' ? 18 : 15
-  const font = size === 'md' ? '0.95rem' : '0.82rem'
+  const font = size === 'md' ? 'text-[0.95rem]' : 'text-[0.82rem]'
   // «4.5» با ارقام لاتین و نقطهٔ اعشار در بقیهٔ رابط فارسی ناهمگون بود.
   const valueText = value ? toPersianDigits(value.toFixed(1)).replace('.', '٫') : '—'
   const label = value
     ? `امتیاز ${valueText} از ۵${count > 0 ? `، ${toPersianDigits(count.toLocaleString('fa-IR'))} نظر` : ''}`
     : 'امتیازی ثبت نشده'
   return (
-    <Box
-      role="img"
-      aria-label={label}
-      sx={{ display: 'inline-flex', alignItems: 'center', gap: 1 }}
-    >
+    <span role="img" aria-label={label} className="inline-flex items-center gap-2">
       <Icon icon="mdi:star" style={{ color: '#f59e0b', width: iconPx, height: iconPx }} />
-      <Typography component="span" sx={{ fontWeight: 700, fontSize: font, color: 'text.primary' }}>
-        {valueText}
-      </Typography>
+      <span className={cn('font-bold text-foreground', font)}>{valueText}</span>
       {count > 0 && (
-        <Typography component="span" sx={{ fontSize: font, color: 'text.secondary' }}>
-          ({count.toLocaleString('fa-IR')})
-        </Typography>
+        <span className={cn('text-muted-foreground', font)}>({count.toLocaleString('fa-IR')})</span>
       )}
-    </Box>
+    </span>
   )
 }
 

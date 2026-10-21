@@ -1,10 +1,10 @@
-import React from 'react'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Button, LinearProgress } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import SectionHeader from '@/components/mobile/SectionHeader'
-import { gradients, radii, shadows } from '@/theme'
+import { Button } from '@/components/ui/shadcn/button'
+import { Progress } from '@/components/ui/shadcn/progress'
 
 interface LevelCardProps {
   icon: string
@@ -32,89 +32,42 @@ const LevelCard: React.FC<LevelCardProps> = ({
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
   >
-    <Box
-      sx={{
-        p: 2.5,
-        borderRadius: '16px',
-        bgcolor: isCurrent ? `${color}15` : 'background.paper',
-        border: '2px solid',
-        borderColor: isCurrent ? color : 'divider',
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: `0 8px 24px ${color}25`,
-        },
+    <div
+      className="relative overflow-hidden rounded-2xl border-2 border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+      style={{
+        backgroundColor: isCurrent ? `${color}15` : undefined,
+        borderColor: isCurrent ? color : undefined,
       }}
     >
       {isCurrent && (
-        <Box
-          sx={{
-            position: 'absolute',
-            top: 12,
-            insetInlineEnd: 12,
-            px: 1,
-            py: 0.3,
-            borderRadius: '6px',
-            bgcolor: color,
-            color: '#fff',
-            fontSize: '0.75rem',
-            fontWeight: 700,
-          }}
+        <span
+          className="absolute end-3 top-3 rounded-md px-2 py-0.5 text-xs font-bold text-white"
+          style={{ backgroundColor: color }}
         >
           سطح فعلی
-        </Box>
+        </span>
       )}
 
-      <Box
-        sx={{
-          width: 56,
-          height: 56,
-          borderRadius: '14px',
-          background: `${color}20`,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mb: 2,
-        }}
+      <span
+        className="mb-4 flex h-14 w-14 items-center justify-center rounded-[14px]"
+        style={{ background: `${color}20` }}
       >
         <Icon icon={icon} style={{ width: 28, height: 28, color }} />
-      </Box>
+      </span>
 
-      <Typography
-        sx={{
-          fontWeight: 800,
-          fontSize: '1rem',
-          color: 'text.primary',
-          mb: 0.5,
-        }}
-      >
+      <h3 className="mb-1 text-base font-extrabold text-foreground">
         {name}
-      </Typography>
+      </h3>
 
-      <Typography
-        sx={{
-          fontSize: '0.78rem',
-          color: 'text.secondary',
-          mb: 1.5,
-          lineHeight: 1.6,
-        }}
-      >
+      <p className="mb-3 text-[0.78rem] leading-relaxed text-muted-foreground">
         {description}
-      </Typography>
+      </p>
 
-      <Typography
-        sx={{
-          fontSize: '0.75rem',
-          color: color,
-          fontWeight: 700,
-        }}
-      >
+      <p className="text-xs font-bold" style={{ color }}>
         از {minPoints.toLocaleString('fa-IR')} امتیاز
         {maxPoints && ` تا ${maxPoints.toLocaleString('fa-IR')} امتیاز`}
-      </Typography>
-    </Box>
+      </p>
+    </div>
   </motion.div>
 )
 
@@ -147,106 +100,53 @@ const RewardCard: React.FC<RewardCardProps> = ({
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.4, delay }}
     >
-      <Box
-        sx={{
-          p: 2.5,
-          borderRadius: '16px',
-          bgcolor: 'background.paper',
-          border: '1px solid',
-          borderColor: canClaim ? color : 'divider',
-          opacity: canClaim ? 1 : 0.7,
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            boxShadow: canClaim ? `0 8px 24px ${color}30` : shadows.card,
-          },
-        }}
+      <div
+        className="rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+        style={{ borderColor: canClaim ? color : undefined, opacity: canClaim ? 1 : 0.7 }}
       >
-        <Box
-          sx={{
-            width: 48,
-            height: 48,
-            borderRadius: '12px',
-            background: canClaim ? `${color}20` : 'rgba(0,0,0,0.05)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mb: 1.5,
-          }}
+        <span
+          className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl"
+          style={{ background: canClaim ? `${color}20` : 'rgba(0,0,0,0.05)' }}
         >
           <Icon icon={icon} style={{ width: 24, height: 24, color: canClaim ? color : '#9ca3af' }} />
-        </Box>
+        </span>
 
-        <Typography
-          sx={{
-            fontWeight: 700,
-            fontSize: '0.9rem',
-            color: 'text.primary',
-            mb: 0.5,
-          }}
-        >
+        <h3 className="mb-1 text-[0.9rem] font-bold text-foreground">
           {title}
-        </Typography>
+        </h3>
 
-        <Typography
-          sx={{
-            fontSize: '0.75rem',
-            color: 'text.secondary',
-            mb: 1.5,
-            lineHeight: 1.6,
-          }}
-        >
+        <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
           {description}
-        </Typography>
+        </p>
 
         {/* نوار پیشرفت */}
-        <Box sx={{ mb: 1 }}>
-          <LinearProgress
-            variant="determinate"
+        <div className="mb-2">
+          <Progress
             value={progress}
             aria-label={`پیشرفت به سطح ${title}`}
             aria-valuetext={`${Math.round(progress)} درصد`}
-            sx={{
-              height: 6,
-              borderRadius: '3px',
-              bgcolor: 'rgba(0,0,0,0.08)',
-              '& .MuiLinearProgress-bar': {
-                bgcolor: canClaim ? color : '#9ca3af',
-              },
-            }}
+            className="h-1.5 bg-black/[0.08] dark:bg-white/10 [&>div]:!bg-[var(--bar-color)]"
+            style={{ '--bar-color': canClaim ? color : '#9ca3af' } as React.CSSProperties}
           />
-        </Box>
+        </div>
 
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography
-            sx={{
-              fontSize: '0.75rem',
-              color: 'text.secondary',
-            }}
-          >
+        <div className="flex items-center justify-between">
+          <span className="text-xs text-muted-foreground">
             {userPoints.toLocaleString('fa-IR')} از {pointsRequired.toLocaleString('fa-IR')}
-          </Typography>
+          </span>
           {canClaim && (
             <Button
-              size="small"
-              sx={{
-                px: 1.5,
-                minHeight: 44,
-                borderRadius: '8px',
-                bgcolor: color,
-                color: '#fff',
-                fontSize: '0.75rem',
-                fontWeight: 700,
-                textTransform: 'none',
-                '&:hover': {
-                  opacity: 0.9,
-                },
-              }}
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="min-h-11 rounded-lg px-3 text-xs font-bold text-white shadow-none hover:opacity-90"
+              style={{ backgroundColor: color }}
             >
               دریافت جایزه
             </Button>
           )}
-        </Box>
-      </Box>
+        </div>
+      </div>
     </motion.div>
   )
 }
@@ -332,7 +232,7 @@ export const LoyaltySection: React.FC = () => {
   const progress = (currentPoints / nextLevelPoints) * 100
 
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="برنامه وفاداری"
         subtitle="هر چی بیشتر بازی کنی، بیشتر سود می‌بری!"
@@ -344,139 +244,69 @@ export const LoyaltySection: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Box
-          sx={{
-            p: 3,
-            borderRadius: `${radii.card}px`,
-            background: gradients.primary,
-            color: '#fff',
-            mb: 3,
-            boxShadow: '0 12px 40px rgba(245,158,11,0.3)',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-              <Box
-                sx={{
-                  width: 56,
-                  height: 56,
-                  borderRadius: '14px',
-                  bgcolor: 'rgba(255,255,255,0.2)',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
+        <div className="mb-6 rounded-[20px] bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700 p-6 text-white shadow-[0_12px_40px_rgba(245,158,11,0.3)]">
+          <div className="mb-4 flex items-center justify-between gap-2">
+            <div className="flex items-center gap-3">
+              <span className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-white/20">
                 <Icon icon="mdi:star" style={{ width: 28, height: 28, color: '#fff' }} />
-              </Box>
-              <Box>
-                <Typography sx={{ fontWeight: 800, fontSize: '1.1rem' }}>سطح برنزی</Typography>
-                <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.8)' }}>
+              </span>
+              <div>
+                <h3 className="text-[1.1rem] font-extrabold">سطح برنزی</h3>
+                <p className="text-[0.82rem] text-white/80">
                   {currentPoints.toLocaleString('fa-IR')} امتیاز جمع‌آوری شده
-                </Typography>
-              </Box>
-            </Box>
+                </p>
+              </div>
+            </div>
             <Button
+              type="button"
+              variant="ghost"
+              size="sm"
               onClick={() => navigate('/profile')}
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.2)',
-                color: '#fff',
-                fontWeight: 700,
-                fontSize: '0.82rem',
-                px: 2,
-                py: 0.8,
-                borderRadius: '10px',
-                textTransform: 'none',
-                '&:hover': {
-                  bgcolor: 'rgba(255,255,255,0.3)',
-                },
-              }}
+              className="h-11 rounded-[10px] bg-white/20 px-4 py-2 text-[0.82rem] font-bold text-white hover:bg-white/30 hover:text-white"
             >
               مشاهده جزئیات
             </Button>
-          </Box>
+          </div>
 
           {/* نوار پیشرفت به سطح بعدی */}
-          <Box sx={{ mb: 1 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0.5 }}>
-              <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.8)' }}>
+          <div className="mb-1">
+            <div className="mb-1 flex justify-between">
+              <span className="text-xs text-white/80">
                 پیشرفت به سطح نقره‌ای
-              </Typography>
-              <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.9)', fontWeight: 700 }}>
+              </span>
+              <span className="text-xs font-bold text-white/90">
                 {(nextLevelPoints - currentPoints).toLocaleString('fa-IR')} امتیاز دیگر
-              </Typography>
-            </Box>
-            <LinearProgress
-              variant="determinate"
+              </span>
+            </div>
+            <Progress
               value={progress}
               aria-label="پیشرفت به سطح نقره‌ای"
               aria-valuetext={`${Math.round(progress)} درصد`}
-              sx={{
-                height: 8,
-                borderRadius: '4px',
-                bgcolor: 'rgba(255,255,255,0.2)',
-                '& .MuiLinearProgress-bar': {
-                  bgcolor: '#fff',
-                },
-              }}
+              className="h-2 bg-white/20 [&>div]:bg-white"
             />
-          </Box>
-        </Box>
+          </div>
+        </div>
       </motion.div>
 
       {/* سطوح کاربری */}
-      <Typography
-        sx={{
-          fontWeight: 700,
-          fontSize: '1rem',
-          color: 'text.primary',
-          mb: 2,
-        }}
-      >
+      <h3 className="mb-4 text-base font-bold text-foreground">
         سطوح وفاداری
-      </Typography>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(4, 1fr)',
-          },
-          gap: 2,
-          mb: 4,
-        }}
-      >
+      </h3>
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
         {LEVELS.map((level, index) => (
           <LevelCard key={level.name} {...level} delay={index * 0.1} />
         ))}
-      </Box>
+      </div>
 
       {/* جوایز قابل دریافت */}
-      <Typography
-        sx={{
-          fontWeight: 700,
-          fontSize: '1rem',
-          color: 'text.primary',
-          mb: 2,
-        }}
-      >
+      <h3 className="mb-4 text-base font-bold text-foreground">
         جوایز ویژه
-      </Typography>
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-          },
-          gap: 2,
-        }}
-      >
+      </h3>
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
         {REWARDS.map((reward, index) => (
           <RewardCard key={reward.title} {...reward} delay={index * 0.1} />
         ))}
-      </Box>
-    </Box>
+      </div>
+    </section>
   )
 }

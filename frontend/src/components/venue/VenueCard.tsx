@@ -1,7 +1,6 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import { Icon } from '@iconify/react';
-import { Card, CardContent, Typography, Box, Chip, useTheme } from '@mui/material';
 import { Link } from 'react-router-dom';
 import type { Venue } from '@/types';
 import { parseList } from '@/utils/venueMedia';
@@ -9,7 +8,6 @@ import VenueImage from '@/components/mobile/VenueImage';
 import FavoriteButton from '@/components/mobile/FavoriteButton';
 import Rating from '@/components/mobile/Rating';
 import Price from '@/components/mobile/Price';
-import { gradients, radii, shadows, shadowsDark } from '@/theme';
 
 interface Props { venue: Venue; onBook?: (id: number) => void; }
 
@@ -18,8 +16,6 @@ interface Props { venue: Venue; onBook?: (id: number) => void; }
  * API قبلی ({ venue, onBook }) حفظ شده تا استفاده‌کننده‌ها نشکنند.
  */
 const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
-  const theme = useTheme();
-  const dark = theme.palette.mode === 'dark';
   const am = parseList(venue.amenities);
   const href = `/venues/${venue.id}`;
 
@@ -33,151 +29,72 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
     <motion.div
       whileHover={{ y: -4 }}
       transition={{ duration: 0.25, ease: 'easeOut' }}
-      style={{ height: '100%' }}
+      className="h-full"
     >
-      <Card
-        component={Link}
+      <Link
         to={href}
         data-testid="venue-card"
-        sx={{
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%',
-          textDecoration: 'none',
-          color: 'inherit',
-          borderRadius: `${radii.card}px`,
-          overflow: 'hidden',
-          border: '1px solid',
-          borderColor: 'divider',
-          boxShadow: dark ? shadowsDark.card : shadows.card,
-          transition: 'box-shadow 0.25s ease, border-color 0.25s ease',
-          '&:hover': {
-            boxShadow: dark ? shadowsDark.cardHover : shadows.cardHover,
-            borderColor: dark ? 'rgba(251,191,36,0.35)' : 'rgba(245,158,11,0.4)',
-            '& .venue-card-img img': { transform: 'scale(1.04)' },
-          },
-        }}
+        className="group flex h-full flex-col overflow-hidden rounded-[16px] border border-border bg-card text-inherit no-underline shadow-sm transition-colors [&_img]:transition-transform [&_img]:duration-300 group-hover:[&_img]:scale-[1.04] hover:border-amber-500/40 dark:hover:border-amber-400/35"
       >
         {/* تصویر بزرگ + قلب روی تصویر */}
-        <Box sx={{ p: 1, pb: 0 }}>
-          <Box className="venue-card-img" sx={{ position: 'relative', overflow: 'hidden', borderRadius: `${radii.image}px` }}>
-            <VenueImage images={venue.images} name={venue.name} ratio="16:10" verified={venue.is_verified}>
-              <FavoriteButton venue={{ id: venue.id, name: venue.name }} size="sm" />
-            </VenueImage>
-          </Box>
-        </Box>
+        <div className="p-2 pb-0">
+          <VenueImage images={venue.images} name={venue.name} ratio="16:10" verified={venue.is_verified}>
+            <FavoriteButton venue={{ id: venue.id, name: venue.name }} size="sm" />
+          </VenueImage>
+        </div>
 
-        <CardContent sx={{ p: 2, pt: 1.5, flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+        <div className="flex flex-1 flex-col gap-2 p-4 pt-3">
           {/* نام + امتیاز */}
-          <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1 }}>
-            <Typography
-              variant="subtitle1"
-              component="h2"
-              sx={{ fontWeight: 800, fontSize: '1rem', lineHeight: 1.4, color: 'text.primary', minWidth: 0 }}
-              noWrap
-            >
+          <div className="flex items-start justify-between gap-2">
+            <h2 className="min-w-0 truncate text-base font-extrabold leading-snug text-foreground">
               {venue.name}
-            </Typography>
-            <Box sx={{ flexShrink: 0, pt: 0.25 }}>
+            </h2>
+            <div className="shrink-0 pt-0.5">
               <Rating value={venue.average_rating} count={venue.total_reviews} />
-            </Box>
-          </Box>
+            </div>
+          </div>
 
           {/* آدرس */}
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
-            <Icon icon="mdi:map-marker-outline" style={{ width: 16, height: 16, color: dark ? '#fbbf24' : '#d97706', flexShrink: 0 }} />
-            <Typography
-              variant="body2"
-              sx={{ fontSize: '0.8rem', color: 'text.secondary', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-            >
-              {venue.address}
-            </Typography>
-          </Box>
+          <div className="flex min-w-0 items-center gap-2">
+            <Icon icon="mdi:map-marker-outline" aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="truncate text-[0.8rem] text-muted-foreground">{venue.address}</p>
+          </div>
 
           {/* تگ امکانات */}
           {am.length > 0 && (
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 0.5 }}>
+            <div className="flex flex-wrap gap-1">
               {am.slice(0, 3).map((a, i) => (
-                <Chip
+                <span
                   key={i}
-                  label={a}
-                  size="small"
-                  sx={{
-                    height: 24,
-                    borderRadius: `${radii.chip}px`,
-                    fontSize: '0.75rem',
-                    fontWeight: 600,
-                    bgcolor: dark ? 'rgba(251,191,36,0.12)' : 'rgba(245,158,11,0.1)',
-                    color: dark ? '#fcd34d' : '#b45309',
-                    '& .MuiChip-label': { px: 1 },
-                  }}
-                />
+                  className="inline-flex h-6 items-center rounded-full bg-amber-500/10 px-2 text-xs font-semibold text-amber-700 dark:bg-amber-400/12 dark:text-amber-300"
+                >
+                  {a}
+                </span>
               ))}
               {am.length > 3 && (
-                <Chip
-                  label={`+${(am.length - 3).toLocaleString('fa-IR')}`}
-                  size="small"
-                  sx={{
-                    height: 24,
-                    borderRadius: `${radii.chip}px`,
-                    fontSize: '0.75rem',
-                    fontWeight: 700,
-                    bgcolor: dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)',
-                    color: 'text.secondary',
-                    '& .MuiChip-label': { px: 1 },
-                  }}
-                />
+                <span className="inline-flex h-6 items-center rounded-full bg-foreground/5 px-2 text-xs font-bold text-muted-foreground">
+                  +{(am.length - 3).toLocaleString('fa-IR')}
+                </span>
               )}
-            </Box>
+            </div>
           )}
 
           {/* فوتر: قیمت + دکمه رزرو */}
-          <Box
-            sx={{
-              mt: 'auto',
-              pt: 1.25,
-              borderTop: '1px solid',
-              borderColor: 'divider',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'space-between',
-              gap: 1,
-            }}
-          >
-            <Box sx={{ minWidth: 0 }}>
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-2.5">
+            <div className="min-w-0">
               <Price value={venue.price} from size="md" />
-            </Box>
-            <Box
-              component="button"
+            </div>
+            <button
+              type="button"
               onClick={handleBook}
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 1,
-                flexShrink: 0,
-                minHeight: 44,
-                minWidth: 44,
-                px: { xs: 1.75, sm: 2.5 },
-                borderRadius: `${radii.button}px`,
-                border: 'none',
-                cursor: 'pointer',
-                fontFamily: 'inherit',
-                fontWeight: 800,
-                fontSize: '0.85rem',
-                color: '#1c1917',
-                background: gradients.brandEnergy,
-                boxShadow: dark ? '0 4px 14px rgba(245,158,11,0.22)' : '0 4px 14px rgba(245,158,11,0.35)',
-                transition: 'all 0.2s ease',
-                '&:hover': { filter: 'brightness(1.06)', boxShadow: '0 6px 18px rgba(245,158,11,0.45)' },
-                '&:active': { transform: 'scale(0.97)' },
-              }}
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center gap-2 rounded-xl border-0 bg-gradient-to-br from-amber-400 to-amber-500 px-4 text-[0.85rem] font-extrabold text-stone-900 shadow-[0_4px_14px_rgba(245,158,11,0.35)] transition hover:brightness-105 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Icon icon="mdi:calendar-check" style={{ width: 17, height: 17 }} />
+              <Icon icon="mdi:calendar-check" aria-hidden="true" className="h-[17px] w-[17px]" />
               رزرو
-            </Box>
-          </Box>
-        </CardContent>
-      </Card>
+            </button>
+          </div>
+        </div>
+      </Link>
     </motion.div>
   );
 };

@@ -1,5 +1,4 @@
-import React from 'react'
-import { Box, Typography, Button, useTheme } from '@mui/material'
+import type React from 'react'
 import { Icon } from '@iconify/react'
 
 interface Props {
@@ -13,51 +12,33 @@ interface Props {
 
 /** عنوان بخش با لینک «همه» — خط تأکید کهربایی برای هویت اسپرت */
 const SectionHeader: React.FC<Props> = ({ title, subtitle, actionLabel, onAction, heading = 'h2' }) => {
-  const dark = useTheme().palette.mode === 'dark'
+  const titleClass = 'text-[1.05rem] font-extrabold text-foreground'
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5, gap: 1 }}>
-      <Box sx={{ minWidth: 0 }}>
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          <Box
-            sx={{
-              width: 4,
-              height: 20,
-              borderRadius: 2,
-              flexShrink: 0,
-              background: 'linear-gradient(180deg, #fbbf24, #f97316)',
-            }}
-          />
-          <Typography component={heading} variant="subtitle1" sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary' }}>
-            {title}
-          </Typography>
-        </Box>
+    <div className="mb-3 flex items-center justify-between gap-2">
+      <div className="min-w-0">
+        <div className="flex items-center gap-2">
+          <span className="h-5 w-1 shrink-0 rounded-full bg-gradient-to-b from-amber-400 to-orange-500" />
+          {heading === 'h1' ? (
+            <h1 className={titleClass}>{title}</h1>
+          ) : (
+            <h2 className={titleClass}>{title}</h2>
+          )}
+        </div>
         {subtitle && (
-          <Typography variant="caption" sx={{ color: 'text.secondary', ps: 1.75, display: 'block' }}>
-            {subtitle}
-          </Typography>
+          <span className="block ps-3.5 text-xs text-muted-foreground">{subtitle}</span>
         )}
-      </Box>
+      </div>
       {actionLabel && (
-        <Button
+        <button
+          type="button"
           onClick={onAction}
-          size="small"
-          sx={{
-            textTransform: 'none',
-            fontWeight: 700,
-            fontSize: '0.8rem',
-            color: dark ? '#fbbf24' : '#b45309',
-            flexShrink: 0,
-            minHeight: 44,
-            minWidth: 44,
-            px: 1,
-            '&:hover': { color: dark ? '#fcd34d' : '#92400e', bgcolor: dark ? 'rgba(251,191,36,0.08)' : 'rgba(245,158,11,0.07)' },
-          }}
+          className="inline-flex min-h-11 min-w-11 shrink-0 items-center gap-0.5 rounded-lg px-2 text-[0.8rem] font-bold text-amber-700 transition-colors hover:bg-amber-500/[0.07] hover:text-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400 dark:hover:bg-amber-400/10 dark:hover:text-amber-300"
         >
           {actionLabel}
-          <Icon icon="mdi:chevron-left" style={{ width: 18, height: 18 }} />
-        </Button>
+          <Icon icon="mdi:chevron-left" aria-hidden="true" style={{ width: 18, height: 18 }} />
+        </button>
       )}
-    </Box>
+    </div>
   )
 }
 

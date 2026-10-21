@@ -1,6 +1,5 @@
-import React from 'react'
-import { Box, Typography } from '@mui/material'
-import { formatPrice } from '@/lib/utils'
+import type React from 'react'
+import { cn, formatPrice } from '@/lib/utils'
 
 interface Props {
   value: number
@@ -10,35 +9,29 @@ interface Props {
 }
 
 const sizes = {
-  sm: { main: '0.85rem', label: '0.75rem' },
-  md: { main: '1.05rem', label: '0.75rem' },
-  lg: { main: '1.35rem', label: '0.78rem' },
+  sm: { main: 'text-[0.85rem]', label: 'text-xs' },
+  md: { main: 'text-[1.05rem]', label: 'text-xs' },
+  lg: { main: 'text-[1.35rem]', label: 'text-[0.78rem]' },
 } as const
 
 /** قیمت برجسته و خوانا — «از: ۳۸۰٬۰۰۰ ریال» */
 const Price: React.FC<Props> = ({ value, from = false, size = 'md', color }) => {
   const s = sizes[size]
   return (
-    <Box sx={{ display: 'inline-flex', alignItems: 'baseline', gap: 0.5, flexWrap: 'wrap' }}>
-      {from && (
-        <Typography component="span" sx={{ fontSize: s.label, color: 'text.secondary' }}>
-          از:
-        </Typography>
-      )}
-      <Typography
-        component="span"
+    <span className="inline-flex flex-wrap items-baseline gap-1">
+      {from && <span className={cn('text-muted-foreground', s.label)}>از:</span>}
+      <span
         dir="rtl"
-        sx={{
-          fontSize: s.main,
-          fontWeight: 800,
-          color: color ?? 'text.primary',
-          letterSpacing: '-0.01em',
-          fontVariantNumeric: 'tabular-nums',
-        }}
+        className={cn(
+          'font-extrabold tracking-[-0.01em] tabular-nums',
+          !color && 'text-foreground',
+          s.main
+        )}
+        style={color ? { color } : undefined}
       >
         {formatPrice(value)}
-      </Typography>
-    </Box>
+      </span>
+    </span>
   )
 }
 

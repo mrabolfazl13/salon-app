@@ -1,7 +1,7 @@
-import React from 'react'
-import { Box, Typography, Button, useTheme } from '@mui/material'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
+import { Button } from '@/components/ui/shadcn/button'
 
 interface Props {
   title?: string
@@ -14,57 +14,29 @@ const ErrorState: React.FC<Props> = ({
   title = 'مشکلی پیش آمد',
   description = 'لطفاً دوباره تلاش کنید.',
   onRetry,
-}) => {
-  const dark = useTheme().palette.mode === 'dark'
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.25 }}
-      style={{ textAlign: 'center', padding: '40px 24px' }}
-    >
-      <Box
-        sx={{
-          width: 84,
-          height: 84,
-          borderRadius: '50%',
-          mx: 'auto',
-          mb: 2.5,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          bgcolor: dark ? 'rgba(248,113,113,0.12)' : 'rgba(239,68,68,0.08)',
-        }}
+}) => (
+  <motion.div
+    initial={{ opacity: 0, y: 12 }}
+    animate={{ opacity: 1, y: 0 }}
+    transition={{ duration: 0.25 }}
+    className="px-6 py-10 text-center"
+  >
+    <div className="mx-auto mb-5 flex h-[84px] w-[84px] items-center justify-center rounded-full bg-red-500/[0.08] dark:bg-red-400/[0.12]">
+      <Icon icon="mdi:alert-circle-outline" className="h-10 w-10 text-red-500 dark:text-red-400" />
+    </div>
+    <p className="mb-1.5 text-[1.05rem] font-extrabold text-foreground">{title}</p>
+    <p className="text-sm text-muted-foreground">{description}</p>
+    {onRetry && (
+      <Button
+        variant="outline"
+        onClick={onRetry}
+        className="mt-6 min-h-12 rounded-[14px] border-primary/40 px-8 font-bold text-primary hover:border-primary hover:bg-primary/5"
       >
-        <Icon icon="mdi:alert-circle-outline" style={{ width: 40, height: 40, color: dark ? '#f87171' : '#ef4444' }} />
-      </Box>
-      <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary', mb: 0.75 }}>{title}</Typography>
-      <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem' }}>{description}</Typography>
-      {onRetry && (
-        <Button
-          variant="outlined"
-          onClick={onRetry}
-          startIcon={<Icon icon="mdi:refresh" style={{ width: 18, height: 18 }} />}
-          sx={{
-            mt: 3,
-            textTransform: 'none',
-            fontWeight: 700,
-            px: 4,
-            py: 1.25,
-            borderRadius: '14px',
-            borderColor: dark ? 'rgba(96,165,250,0.4)' : 'rgba(37,99,235,0.4)',
-            color: 'primary.main',
-            '&:hover': {
-              borderColor: 'primary.main',
-              bgcolor: dark ? 'rgba(96,165,250,0.08)' : 'rgba(37,99,235,0.05)',
-            },
-          }}
-        >
-          تلاش مجدد
-        </Button>
-      )}
-    </motion.div>
-  )
-}
+        <Icon icon="mdi:refresh" aria-hidden="true" style={{ width: 18, height: 18 }} />
+        تلاش مجدد
+      </Button>
+    )}
+  </motion.div>
+)
 
 export default ErrorState

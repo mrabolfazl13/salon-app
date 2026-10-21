@@ -1,9 +1,8 @@
-import React from 'react'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Button } from '@mui/material'
 import SectionHeader from '@/components/mobile/SectionHeader'
-import { gradients, radii } from '@/theme'
+import { Button } from '@/components/ui/shadcn/button'
 
 interface AppFeatureProps {
   icon: string
@@ -13,36 +12,24 @@ interface AppFeatureProps {
 }
 
 const AppFeature: React.FC<AppFeatureProps> = ({ icon, title, description, color }) => (
-  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-    <Box
-      sx={{
-        width: 40,
-        height: 40,
-        borderRadius: '10px',
-        background: `${color}20`,
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-      }}
+  <div className="flex items-center gap-3">
+    <span
+      className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
+      style={{ backgroundColor: `${color}20` }}
     >
       <Icon icon={icon} style={{ width: 20, height: 20, color }} />
-    </Box>
-    <Box>
+    </span>
+    <div>
       {/* کارت این بخش تیره است؛ توکن‌های text.* پالت روشن روی آن ≈۱:۱ می‌شوند */}
-      <Typography sx={{ fontWeight: 700, fontSize: '0.88rem', color: '#fff' }}>
-        {title}
-      </Typography>
-      <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.72)' }}>
-        {description}
-      </Typography>
-    </Box>
-  </Box>
+      <p className="text-[0.88rem] font-bold text-white">{title}</p>
+      <p className="text-xs text-white/[0.72]">{description}</p>
+    </div>
+  </div>
 )
 
 export const AppDownloadSection: React.FC = () => {
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="اپلیکیشن موبایل"
         subtitle="تجربه بهتر با اپلیکیشن اختصاصی ما"
@@ -53,80 +40,30 @@ export const AppDownloadSection: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <Box
-          sx={{
-            position: 'relative',
-            overflow: 'hidden',
-            borderRadius: `${radii.card}px`,
-            background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-            color: '#fff',
-            px: { xs: 2, sm: 3, md: 4 },
-            py: { xs: 4, sm: 5 },
-            boxShadow: '0 20px 60px rgba(0,0,0,0.3)',
-          }}
-        >
+        <div className="relative overflow-hidden rounded-[20px] bg-gradient-to-br from-slate-800 to-slate-900 px-4 py-8 text-white shadow-[0_20px_60px_rgba(0,0,0,0.3)] sm:px-6 sm:py-10 md:px-8">
           {/* پس‌زمینه متحرک */}
-          <Box
-            sx={{
-              position: 'absolute',
-              top: -80,
-              insetInlineStart: -80,
-              width: 250,
-              height: 250,
-              borderRadius: '50%',
-              background: 'radial-gradient(circle, rgba(251,191,36,0.15), transparent)',
-              animation: 'pulse-glow 3s ease-in-out infinite',
-            }}
-          />
+          <div className="pointer-events-none absolute -start-20 -top-20 h-[250px] w-[250px] animate-[pulse-glow_3s_ease-in-out_infinite] rounded-full bg-[radial-gradient(circle,rgba(251,191,36,0.15),transparent)] motion-reduce:animate-none" />
 
-          <Box sx={{ position: 'relative', zIndex: 1 }}>
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: '1fr', md: '1fr 1fr' },
-                gap: 4,
-                alignItems: 'center',
-              }}
-            >
+          <div className="relative z-[1]">
+            <div className="grid items-center gap-8 md:grid-cols-2">
               {/* سمت چپ - اطلاعات */}
-              <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                  <Box
-                    sx={{
-                      width: 64,
-                      height: 64,
-                      borderRadius: '16px',
-                      background: gradients.primary,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
+              <div>
+                <div className="mb-4 flex items-center gap-3">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700">
                     <Icon icon="mdi:cellphone" style={{ width: 32, height: 32, color: '#1c1917' }} />
-                  </Box>
-                  <Box>
-                    <Typography sx={{ fontWeight: 900, fontSize: '1.5rem' }}>
-                      اپلیکیشن فوتسال
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.7)' }}>
-                      نسخه ۲.۰ • رایگان
-                    </Typography>
-                  </Box>
-                </Box>
+                  </span>
+                  <div>
+                    <h3 className="text-2xl font-black">اپلیکیشن فوتسال</h3>
+                    <p className="text-[0.82rem] text-white/70">نسخه ۲.۰ • رایگان</p>
+                  </div>
+                </div>
 
-                <Typography
-                  sx={{
-                    fontSize: '0.95rem',
-                    color: 'rgba(255,255,255,0.85)',
-                    lineHeight: 1.8,
-                    mb: 3,
-                  }}
-                >
+                <p className="mb-6 text-[0.95rem] leading-[1.8] text-white/85">
                   با اپلیکیشن موبایل، سریع‌تر رزرو کن، نوتیفیکیشن دریافت کن و از تمام امکانات استفاده کن. حتی آفلاین هم می‌تونی برنامه‌ریزی کنی!
-                </Typography>
+                </p>
 
                 {/* ویژگی‌ها */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, mb: 3 }}>
+                <div className="mb-6 flex flex-col gap-3">
                   <AppFeature
                     icon="mdi:bell-ring"
                     title="نوتیفیکیشن هوشمند"
@@ -151,85 +88,32 @@ export const AppDownloadSection: React.FC = () => {
                     description="احراز هویت بیومتریک (اثر انگشت/چهره)"
                     color="#8b5cf6"
                   />
-                </Box>
+                </div>
 
                 {/* دکمه‌های دانلود */}
-                <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-                  <Button
-                    sx={{
-                      bgcolor: '#fff',
-                      color: '#1c1917',
-                      fontWeight: 700,
-                      fontSize: '0.88rem',
-                      px: 2.5,
-                      minHeight: 48,
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      '&:hover': {
-                        bgcolor: 'rgba(255,255,255,0.9)',
-                      },
-                    }}
-                    startIcon={<Icon icon="mdi:android" style={{ width: 22, height: 22 }} />}
-                  >
+                <div className="flex flex-wrap gap-4">
+                  <Button className="h-12 gap-2 rounded-xl bg-none bg-white px-5 text-[0.88rem] font-bold text-stone-900 shadow-none hover:bg-white/90 hover:shadow-none">
+                    <Icon icon="mdi:android" style={{ width: 22, height: 22 }} />
                     دانلود برای اندروید
                   </Button>
-                  <Button
-                    sx={{
-                      bgcolor: 'rgba(255,255,255,0.15)',
-                      color: '#fff',
-                      fontWeight: 700,
-                      fontSize: '0.88rem',
-                      px: 2.5,
-                      minHeight: 48,
-                      borderRadius: '12px',
-                      textTransform: 'none',
-                      '&:hover': {
-                        bgcolor: 'rgba(255,255,255,0.25)',
-                      },
-                    }}
-                    startIcon={<Icon icon="mdi:apple" style={{ width: 22, height: 22 }} />}
-                  >
+                  <Button className="h-12 gap-2 rounded-xl bg-none bg-white/15 px-5 text-[0.88rem] font-bold text-white shadow-none hover:bg-white/25 hover:shadow-none">
+                    <Icon icon="mdi:apple" style={{ width: 22, height: 22 }} />
                     دانلود برای iOS
                   </Button>
-                </Box>
-              </Box>
+                </div>
+              </div>
 
               {/* سمت راست - تصویر گوشی */}
-              <Box
-                sx={{
-                  display: { xs: 'none', md: 'flex' },
-                  justifyContent: 'center',
-                  alignItems: 'center',
-                }}
-              >
-                <Box
-                  sx={{
-                    width: 220,
-                    height: 440,
-                    borderRadius: '32px',
-                    border: '8px solid rgba(255,255,255,0.2)',
-                    bgcolor: 'rgba(255,255,255,0.08)',
-                    backdropFilter: 'blur(10px)',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 2,
-                    boxShadow: '0 20px 60px rgba(0,0,0,0.4)',
-                  }}
-                >
+              <div className="hidden items-center justify-center md:flex">
+                <div className="flex h-[440px] w-[220px] flex-col items-center justify-center gap-4 rounded-[32px] border-8 border-white/20 bg-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-[10px]">
                   <Icon icon="mdi:soccer" style={{ width: 64, height: 64, color: '#fbbf24' }} />
-                  <Typography sx={{ fontWeight: 800, fontSize: '1.1rem', color: '#fff' }}>
-                    فوتسال ما
-                  </Typography>
-                  <Typography sx={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.7)' }}>
-                    همین حالا نصب کن!
-                  </Typography>
-                </Box>
-              </Box>
-            </Box>
-          </Box>
-        </Box>
+                  <p className="text-[1.1rem] font-extrabold text-white">فوتسال ما</p>
+                  <p className="text-xs text-white/70">همین حالا نصب کن!</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </motion.div>
 
       {/* استایل انیمیشن */}
@@ -245,6 +129,6 @@ export const AppDownloadSection: React.FC = () => {
           }
         }
       `}</style>
-    </Box>
+    </section>
   )
 }

@@ -1,6 +1,5 @@
 // علاقه‌مندی‌ها — صفحه موبایل‌فرست برای سالن‌های ذخیره‌شده (کلاینت‌ساید)
 import React, { useEffect, useMemo, useState } from 'react'
-import { Box, Typography } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Layout from '@/components/layout/Layout'
@@ -71,7 +70,7 @@ const Favorites: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
+      <div className="mx-auto max-w-[1000px]">
         <SectionHeader
           heading="h1"
           title="علاقه‌مندی‌ها"
@@ -112,29 +111,16 @@ const Favorites: React.FC = () => {
         ) : (
           <>
             {missingCount > 0 && (
-              <Typography
-                variant="caption"
-                sx={{ display: 'block', color: 'text.secondary', mb: 1.5 }}
-              >
+              <p className="mb-3 block text-xs text-muted-foreground">
                 {`${missingCount} مورد از لیست حذف شده‌اند (سالن دیگر موجود نیست)`}
-              </Typography>
+              </p>
             )}
             <motion.div
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25 }}
             >
-              <Box
-                sx={{
-                  display: 'grid',
-                  gridTemplateColumns: {
-                    xs: 'minmax(0, 1fr)',
-                    sm: 'repeat(2, minmax(0, 1fr))',
-                    md: 'repeat(3, minmax(0, 1fr))',
-                  },
-                  gap: { xs: 2, sm: 2.5 },
-                }}
-              >
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3">
                 {favoriteVenues.map((venue) => (
                   <VenueCard
                     key={venue.id}
@@ -142,11 +128,11 @@ const Favorites: React.FC = () => {
                     onBook={(id) => navigate(`/venues/${id}`)}
                   />
                 ))}
-              </Box>
+              </div>
             </motion.div>
           </>
         )}
-      </Box>
+      </div>
     </Layout>
   )
 }

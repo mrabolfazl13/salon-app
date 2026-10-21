@@ -7,7 +7,6 @@ import React, { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Button, Chip, ToggleButton, ToggleButtonGroup, Typography } from '@mui/material'
 import toast from 'react-hot-toast'
 
 import Layout from '@/components/layout/Layout'
@@ -18,6 +17,7 @@ import type { DealAvailableItem, DealSort, DealTimeOfDay } from '@/services/deal
 import { parseAmountInput } from '@/components/finance/shared'
 import { toPersianDigits } from '@/lib/jalali'
 import DealCard from '@/components/deals/DealCard'
+import { Input } from '@/components/ui/shadcn/input'
 
 const TIME_FILTERS: { value: DealTimeOfDay | 'all'; label: string }[] = [
   { value: 'all', label: 'همه' },
@@ -93,101 +93,115 @@ const Deals: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ maxWidth: 1100, mx: 'auto' }}>
+      <div className="mx-auto max-w-[1100px]">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
           {/* هیرو */}
-          <Box
-            sx={{
-              borderRadius: '20px',
-              background: 'linear-gradient(135deg, #f59e0b 0%, #ef4444 70%)',
-              color: 'white',
-              p: { xs: 3, md: 4 },
-              mb: 3,
-              position: 'relative',
-              overflow: 'hidden',
-            }}
-          >
-            <Box sx={{ position: 'absolute', top: -60, insetInlineEnd: -60, width: 220, height: 220, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)' }} />
-            <Typography component="h1" variant="h4" sx={{ fontWeight: 900, mb: 0.5, fontSize: { xs: '1.4rem', md: '1.8rem' } }}>
+          <div className="relative mb-6 overflow-hidden rounded-[20px] bg-gradient-to-br from-amber-500 to-red-500 p-6 text-white md:p-8">
+            <div
+              aria-hidden="true"
+              className="pointer-events-none absolute -top-[60px] end-[-60px] h-[220px] w-[220px] rounded-full bg-white/10"
+            />
+            <h1 className="mb-1 text-[1.4rem] font-black md:text-[1.8rem]">
               🔥 شگفت‌انگیزهای لحظه آخری
-            </Typography>
-            <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.9)', maxWidth: 560 }}>
+            </h1>
+            <p className="max-w-[560px] text-sm text-white/90">
               سانس‌های خالیِ نزدیک سالن‌ها با تخفیف‌های ویژه — تا مهلت تمام نشده رزرو کن؛ قیمت نهایی سمت سرور اعمال می‌شود.
-            </Typography>
-          </Box>
+            </p>
+          </div>
 
           {/* فیلترها */}
-          <Box sx={{ display: 'flex', gap: 1.5, flexWrap: 'wrap', alignItems: 'center', mb: 3 }}>
-            <Box sx={{ flex: '1 1 220px', minWidth: 200 }}>
+          <div className="mb-6 flex flex-wrap items-center gap-3">
+            <div className="min-w-[200px] flex-[1_1_220px]">
               <SearchBar value={search} onChange={setSearch} placeholder="جستجوی سالن…" />
-            </Box>
-            <Box sx={{ flex: '1 1 180px', minWidth: 160 }}>
-              <TextFieldCompact label="حداکثر قیمت (ریال)" value={maxPrice} onChange={setMaxPrice} />
-            </Box>
-            <ToggleButtonGroup
-              size="medium"
-              exclusive
-              value={timeFilter}
-              onChange={(_, v) => v && setTimeFilter(v as DealTimeOfDay | 'all')}
-              sx={{
-                bgcolor: 'rgba(255,255,255,0.9)',
-                borderRadius: '12px',
-                flexWrap: 'wrap',
-                rowGap: 1,
-                '& .MuiToggleButton-root': { px: 2, py: 1, minHeight: 44, minWidth: 44, border: 'none', borderRadius: '12px !important', textTransform: 'none', fontWeight: 700, fontSize: '0.85rem', gap: 0.5 },
-                '& .Mui-selected': { bgcolor: 'linear-gradient(135deg, #f59e0b, #ef4444) !important', color: 'white !important' },
-              }}
+            </div>
+            <div className="min-w-[160px] flex-[1_1_180px]">
+              <Input
+                dir="rtl"
+                value={maxPrice}
+                onChange={(e) => setMaxPrice(e.target.value)}
+                placeholder="حداکثر قیمت (ریال)"
+                aria-label="حداکثر قیمت (ریال)"
+                inputMode="numeric"
+                className="h-[52px] bg-card/90"
+              />
+            </div>
+            <div
+              role="group"
+              aria-label="فیلتر بازه زمانی"
+              className="flex flex-wrap gap-1 rounded-xl bg-card/90 p-1"
             >
-              {TIME_FILTERS.map((t) => (
-                <ToggleButton key={t.value} value={t.value}>{t.label}</ToggleButton>
-              ))}
-            </ToggleButtonGroup>
-          </Box>
+              {TIME_FILTERS.map((t) => {
+                const active = timeFilter === t.value
+                return (
+                  <button
+                    key={t.value}
+                    type="button"
+                    onClick={() => setTimeFilter(t.value)}
+                    aria-pressed={active}
+                    className={
+                      active
+                        ? 'min-h-11 rounded-xl bg-gradient-to-br from-amber-500 to-red-500 px-4 py-2 text-[0.85rem] font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        : 'min-h-11 rounded-xl px-4 py-2 text-[0.85rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    }
+                  >
+                    {t.label}
+                  </button>
+                )
+              })}
+            </div>
+          </div>
 
-          <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', alignItems: 'center', mb: 3 }}>
+          <div className="mb-6 flex flex-wrap items-center gap-2">
             {SORT_LABELS.map((s) => {
               if (s.needsCoords && !coords) {
                 return (
-                  <Button
+                  <button
                     key={s.value}
-                    size="medium"
-                    variant="outlined"
+                    type="button"
                     onClick={requestLocation}
                     disabled={locating}
-                    sx={{ borderRadius: '999px', textTransform: 'none', fontWeight: 700, fontSize: '0.8rem', minHeight: 44, px: 2, borderColor: 'rgba(37,99,235,0.3)', color: '#2563eb' }}
-                    startIcon={<Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} />}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-blue-600/30 px-4 py-2 text-[0.8rem] font-bold text-blue-600 transition-colors hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-500/10"
                   >
+                    <Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} aria-hidden="true" />
                     {locating ? '...' : s.label}
-                  </Button>
+                  </button>
                 )
               }
               const isActive = sort === s.value
               return (
-                <Chip
+                <button
                   key={s.value}
-                  label={s.label}
-                  size="medium"
+                  type="button"
                   onClick={() => setSort(s.value)}
-                  color={isActive ? 'primary' : 'default'}
-                  variant={isActive ? 'filled' : 'outlined'}
-                  icon={s.needsCoords ? <Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} /> : undefined}
-                  sx={{ borderRadius: '999px', fontWeight: isActive ? 700 : 500, fontSize: '0.8rem', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 2 }, cursor: 'pointer' }}
-                />
+                  aria-pressed={isActive}
+                  className={
+                    isActive
+                      ? 'inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-500 px-4 py-2 text-[0.8rem] font-bold text-stone-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                      : 'inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 py-2 text-[0.8rem] font-medium text-foreground transition-colors hover:border-amber-500/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                  }
+                >
+                  {s.needsCoords && (
+                    <Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} aria-hidden="true" />
+                  )}
+                  {s.label}
+                </button>
               )
             })}
             {coords && query.isSuccess && (
-              <Chip
-                size="medium"
-                icon={<Icon icon="mdi:map-marker" style={{ width: 16, height: 16 }} />}
-                label={`${toPersianDigits(deals.length)} دیل نزدیک (۱۰۰ کیلومتر)`}
+              <button
+                type="button"
                 onClick={() => {
                   setCoords(null)
                   if (sort === 'distance') setSort('time')
                 }}
-                sx={{ borderRadius: '999px', bgcolor: 'rgba(5,150,105,0.1)', color: 'success.main', fontWeight: 700, fontSize: '0.8rem', minHeight: 44, px: 0.5, '& .MuiChip-label': { px: 2 } }}
-              />
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-emerald-500/10 px-4 py-2 text-[0.8rem] font-bold text-emerald-700 dark:text-emerald-300"
+                aria-label="حذف فیلتر موقعیت مکانی"
+              >
+                <Icon icon="mdi:map-marker" style={{ width: 16, height: 16 }} aria-hidden="true" />
+                {`${toPersianDigits(deals.length)} دیل نزدیک (۱۰۰ کیلومتر)`}
+              </button>
             )}
-          </Box>
+          </div>
 
           {/* نتایج */}
           {query.isPending ? (
@@ -201,53 +215,18 @@ const Deals: React.FC = () => {
               text={search || maxPrice ? "با این فیلترها موردی پیدا نشد؛ فیلترها را بردارید." : 'مدیران سالن\u200cها هنوز تخفیف لحظه آخری منتشر نکرده\u200cاند. سالن موردعلاقه\u200cات را نشان کن و از پروفایل «اطلاع\u200cرسانی تخفیف‌های لحظه\u200cای» را روشن کن تا اولین نفر باخبر شوی.'}
             />
           ) : (
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: { xs: 'minmax(0, 1fr)', sm: 'repeat(2, minmax(0, 1fr))', lg: 'repeat(3, minmax(0, 1fr))' },
-                gap: 2.5,
-              }}
-            >
+            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
               {visible.map((deal) => (
                 <motion.div key={deal.slot_id} initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
                   <DealCard deal={deal} onBook={handleBook} />
                 </motion.div>
               ))}
-            </Box>
+            </div>
           )}
         </motion.div>
-      </Box>
+      </div>
     </Layout>
   )
 }
-
-const TextFieldCompact: React.FC<{ label: string; value: string; onChange: (v: string) => void }> = ({ label, value, onChange }) => (
-  <Box
-    component="input"
-    dir="rtl"
-    value={value}
-    onChange={(e: React.ChangeEvent<HTMLInputElement>) => onChange(e.target.value)}
-    placeholder={label}
-    aria-label={label}
-    inputMode="numeric"
-    sx={{
-      width: '100%',
-      height: 52,
-      minHeight: 52,
-      border: '1px solid rgba(15,23,42,0.12)',
-      borderRadius: '14px',
-      px: 2.5,
-      fontSize: '0.9rem',
-      fontFamily: 'inherit',
-      background: 'rgba(255,255,255,0.9)',
-      '&:focus-visible': {
-        outline: '3px solid',
-        outlineColor: 'primary.main',
-        outlineOffset: 1,
-        borderColor: 'primary.main',
-      },
-    }}
-  />
-)
 
 export default Deals

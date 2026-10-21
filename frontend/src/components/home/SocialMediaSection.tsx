@@ -1,8 +1,8 @@
-import React from 'react'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Button } from '@mui/material'
 import SectionHeader from '@/components/mobile/SectionHeader'
+import { Button } from '@/components/ui/shadcn/button'
 
 interface SocialPlatformProps {
   icon: string
@@ -27,52 +27,29 @@ const SocialPlatform: React.FC<SocialPlatformProps> = ({
     transition={{ duration: 0.4 }}
     whileHover={{ y: -6 }}
   >
-    <Box
-      component="a"
+    <a
       href={link}
       target="_blank"
       rel="noopener noreferrer"
-      sx={{
-        p: 2.5,
-        borderRadius: '16px',
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: 'divider',
-        textDecoration: 'none',
-        color: 'inherit',
-        display: 'flex',
-        alignItems: 'center',
-        gap: 2,
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          borderColor: color,
-          boxShadow: `0 8px 24px ${color}30`,
-        },
-      }}
+      className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 text-foreground no-underline transition-all duration-300 hover:border-[color:var(--platform-color)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+      style={{ '--platform-color': color } as React.CSSProperties}
     >
-      <Box
-        sx={{
-          width: 56,
-          height: 56,
-          borderRadius: '14px',
-          background: bgColor,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
+      <span
+        className="flex h-14 w-14 shrink-0 items-center justify-center rounded-[14px]"
+        style={{ background: bgColor }}
       >
         <Icon icon={icon} style={{ width: 28, height: 28, color }} />
-      </Box>
-      <Box sx={{ flex: 1 }}>
-        <Typography sx={{ fontWeight: 700, fontSize: '0.95rem', color: 'text.primary' }}>
+      </span>
+      <div className="flex-1">
+        <p className="text-[0.95rem] font-bold text-foreground">
           {name}
-        </Typography>
-        <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>
+        </p>
+        <p className="text-[0.78rem] text-muted-foreground">
           @{handle}
-        </Typography>
-      </Box>
-      <Icon icon="mdi:arrow-top-right" style={{ width: 20, height: 20, color: 'text.secondary' }} />
-    </Box>
+        </p>
+      </div>
+      <Icon icon="mdi:arrow-top-right" className="text-muted-foreground" style={{ width: 20, height: 20 }} />
+    </a>
   </motion.div>
 )
 
@@ -105,29 +82,18 @@ const SOCIAL_PLATFORMS = [
 
 export const SocialMediaSection: React.FC = () => {
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="ما رو دنبال کن"
         subtitle="از آخرین اخبار، تخفیف‌ها و لحظات خاص باخبر شو"
       />
 
       {/* پلتفرم‌های اجتماعی */}
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)',
-          },
-          gap: 2,
-          mb: 4,
-        }}
-      >
+      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {SOCIAL_PLATFORMS.map((platform) => (
           <SocialPlatform key={platform.name} {...platform} />
         ))}
-      </Box>
+      </div>
 
       {/* محتوای ویژه */}
       <motion.div
@@ -135,50 +101,33 @@ export const SocialMediaSection: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.3 }}
       >
-        <Box
-          sx={{
-            p: 3,
-            borderRadius: '20px',
-            bgcolor: 'background.paper',
-            border: '1px solid',
-            borderColor: 'divider',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
+        <div className="rounded-[20px] border border-border bg-card p-6">
+          <div className="mb-4 flex items-center gap-3">
             <Icon icon="mdi:camera" style={{ width: 24, height: 24, color: '#E4405F' }} />
-            <Typography sx={{ fontWeight: 700, fontSize: '1rem', color: 'text.primary' }}>
+            <h3 className="text-base font-bold text-foreground">
               پیج اینستاگرام ما
-            </Typography>
-          </Box>
+            </h3>
+          </div>
 
           {/* گالری پست‌ها حذف شد: بدون Instagram API فقط کادر خالی و عدد ساختگی نمایش داده می‌شد */}
-          <Typography sx={{ fontSize: '0.85rem', color: 'text.secondary' }}>
+          <p className="text-[0.85rem] text-muted-foreground">
             جدیدترین عکس‌ها، فیلم‌های بازی و تخفیف‌ها در پیج ما منتشر می‌شود.
-          </Typography>
+          </p>
 
           <Button
-            fullWidth
-            href="https://instagram.com/futsal.ma"
-            target="_blank"
-            rel="noopener noreferrer"
-            sx={{
-              mt: 2.5,
-              minHeight: 48,
-              py: 1.2,
-              borderRadius: '12px',
-              bgcolor: '#be185d',
-              color: '#fff',
-              fontWeight: 700,
-              textTransform: 'none',
-              '&:hover': {
-                bgcolor: '#9d174d',
-              },
-            }}
-            startIcon={<Icon icon="mdi:instagram" style={{ width: 20, height: 20 }} />}
+            asChild
+            className="mt-5 h-12 w-full rounded-xl bg-none bg-pink-700 font-bold text-white shadow-none hover:bg-pink-800 hover:shadow-none"
           >
-            مشاهده همه پست‌ها در اینستاگرام
+            <a
+              href="https://instagram.com/futsal.ma"
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Icon icon="mdi:instagram" style={{ width: 20, height: 20 }} />
+              مشاهده همه پست‌ها در اینستاگرام
+            </a>
           </Button>
-        </Box>
+        </div>
       </motion.div>
 
       {/* دعوت به اشتراک‌گذاری */}
@@ -186,43 +135,22 @@ export const SocialMediaSection: React.FC = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.5 }}
-        style={{ marginTop: 24 }}
+        className="mt-6"
       >
-        <Box
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2,
-            p: 2.5,
-            borderRadius: '16px',
-            bgcolor: 'rgba(139,92,246,0.08)',
-            border: '1px solid rgba(139,92,246,0.2)',
-          }}
-        >
-          <Box
-            sx={{
-              width: 48,
-              height: 48,
-              borderRadius: '12px',
-              bgcolor: 'rgba(139,92,246,0.15)',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              flexShrink: 0,
-            }}
-          >
+        <div className="flex items-center gap-4 rounded-2xl border border-purple-500/20 bg-purple-500/[0.08] p-5 dark:bg-purple-500/10">
+          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-500/15">
             <Icon icon="mdi:share-variant" style={{ width: 24, height: 24, color: '#8b5cf6' }} />
-          </Box>
-          <Box sx={{ flex: 1 }}>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.92rem', color: 'text.primary', mb: 0.25 }}>
+          </span>
+          <div className="flex-1">
+            <p className="mb-0.5 text-[0.92rem] font-bold text-foreground">
               لحظاتت رو با ما به اشتراک بذار!
-            </Typography>
-            <Typography sx={{ fontSize: '0.82rem', color: 'text.secondary' }}>
+            </p>
+            <p className="text-[0.82rem] text-muted-foreground">
               از بازی‌هات عکس و فیلم بگیر و با هشتگ #فوتسال_ما منتشر کن. بهترین‌ها رو استوری می‌کنیم!
-            </Typography>
-          </Box>
-        </Box>
+            </p>
+          </div>
+        </div>
       </motion.div>
-    </Box>
+    </section>
   )
 }

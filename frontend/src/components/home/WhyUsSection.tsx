@@ -1,7 +1,6 @@
-import React from 'react'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography } from '@mui/material'
 import SectionHeader from '@/components/mobile/SectionHeader'
 
 interface BenefitCardProps {
@@ -19,76 +18,34 @@ const BenefitCard: React.FC<BenefitCardProps> = ({ icon, title, description, col
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
     whileHover={{ y: -8, transition: { duration: 0.3 } }}
+    className="h-full"
   >
-    <Box
-      sx={{
-        p: 3,
-        borderRadius: '20px',
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: 'divider',
-        height: '100%',
-        position: 'relative',
-        overflow: 'hidden',
-        transition: 'all 0.3s ease',
-        '&::before': {
-          content: '""',
-          position: 'absolute',
-          top: 0,
-          insetInlineEnd: 0,
-          insetInlineStart: 0,
-          height: '4px',
-          background: `linear-gradient(90deg, ${color}, transparent)`,
-          opacity: 0,
-          transition: 'opacity 0.3s ease',
-        },
-        '&:hover': {
-          boxShadow: '0 12px 40px rgba(0,0,0,0.12)',
-          '&::before': {
-            opacity: 1,
-          },
-        },
-      }}
-    >
+    <div className="group relative h-full overflow-hidden rounded-[20px] border border-border bg-card p-6 transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
+      {/* نوار رنگی بالای کارت هنگام هاور */}
+      <span
+        aria-hidden="true"
+        className="absolute inset-x-0 top-0 h-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        style={{ background: `linear-gradient(90deg, ${color}, transparent)` }}
+      />
+
       {/* آیکون */}
-      <Box
-        sx={{
-          width: 64,
-          height: 64,
-          borderRadius: '16px',
-          background: bgColor,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mb: 2,
-        }}
+      <span
+        className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+        style={{ background: bgColor }}
       >
         <Icon icon={icon} style={{ width: 32, height: 32, color }} />
-      </Box>
+      </span>
 
       {/* عنوان */}
-      <Typography
-        sx={{
-          fontWeight: 800,
-          fontSize: '1.1rem',
-          mb: 1.5,
-          color: 'text.primary',
-        }}
-      >
+      <h3 className="mb-3 text-[1.1rem] font-extrabold text-foreground">
         {title}
-      </Typography>
+      </h3>
 
       {/* توضیحات */}
-      <Typography
-        sx={{
-          fontSize: '0.88rem',
-          lineHeight: 1.8,
-          color: 'text.secondary',
-        }}
-      >
+      <p className="text-[0.88rem] leading-[1.8] text-muted-foreground">
         {description}
-      </Typography>
-    </Box>
+      </p>
+    </div>
   </motion.div>
 )
 
@@ -139,23 +96,13 @@ const BENEFITS = [
 
 export const WhyUsSection: React.FC = () => {
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="چرا فوتسال ما؟"
         subtitle="مزایایی که تجربه تو رو متحول می‌کنه"
       />
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            sm: 'repeat(2, 1fr)',
-            md: 'repeat(3, 1fr)',
-          },
-          gap: 2.5,
-        }}
-      >
+      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
         {BENEFITS.map((benefit, index) => (
           <BenefitCard
             key={benefit.title}
@@ -163,7 +110,7 @@ export const WhyUsSection: React.FC = () => {
             delay={index * 0.1}
           />
         ))}
-      </Box>
-    </Box>
+      </div>
+    </section>
   )
 }

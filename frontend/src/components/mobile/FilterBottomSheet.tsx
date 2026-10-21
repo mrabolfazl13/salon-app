@@ -1,17 +1,14 @@
 import React, { useEffect, useMemo, useState } from 'react'
-import {
-  Box,
-  Chip,
-  Drawer,
-  IconButton,
-  Slider,
-  Switch,
-  Typography,
-  useTheme,
-} from '@mui/material'
 import { Icon } from '@iconify/react'
-import { formatPrice } from '@/lib/utils'
-import { radii } from '@/theme'
+import { cn, formatPrice } from '@/lib/utils'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogTitle,
+} from '@/components/ui/shadcn/dialog'
+import { Switch } from '@/components/ui/shadcn/switch'
+import { Button } from '@/components/ui/shadcn/button'
 import PrimaryButton from './PrimaryButton'
 import { SPORTS, type Sport } from './SportChip'
 
@@ -37,6 +34,67 @@ interface Props {
 
 const PRICE_FLOOR = 0
 
+/** اسلایدر دو دستگیره‌ای بومی — بدون وابستگی اضافه، سازگار با RTL */
+const PriceRangeSlider: React.FC<{
+  value: [number, number]
+  min: number
+  max: number
+  step: number
+  onChange: (value: [number, number]) => void
+}> = ({ value, min, max, step, onChange }) => {
+  const [lo, hi] = value
+  const span = Math.max(1, max - min)
+  const startPct = ((lo - min) / span) * 100
+  const widthPct = ((hi - lo) / span) * 100
+
+  const inputClass =
+    'pointer-events-none absolute inset-x-0 top-1/2 z-10 h-11 w-full -translate-y-1/2 cursor-pointer appearance-none bg-transparent outline-none ' +
+    '[&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:bg-transparent ' +
+    '[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-brand [&::-webkit-slider-thumb]:bg-card [&::-webkit-slider-thumb]:shadow-md ' +
+    '[&::-moz-range-track]:bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-brand [&::-moz-range-thumb]:bg-card ' +
+    'focus-visible:[&::-webkit-slider-thumb]:ring-2 focus-visible:[&::-webkit-slider-thumb]:ring-ring/50 focus-visible:[&::-webkit-slider-thumb]:ring-offset-2 focus-visible:[&::-webkit-slider-thumb]:ring-offset-background'
+
+  return (
+    <div className="relative mb-6 h-11 w-full">
+      <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-muted" />
+      <div
+        className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand"
+        style={{ insetInlineStart: `${startPct}%`, width: `${widthPct}%` }}
+      />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={lo}
+        onChange={(e) => onChange([Math.min(Number(e.target.value), hi), hi])}
+        aria-label="حداقل قیمت"
+        aria-valuetext={formatPrice(lo)}
+        className={cn(inputClass, 'z-20')}
+      />
+      <input
+        type="range"
+        min={min}
+        max={max}
+        step={step}
+        value={hi}
+        onChange={(e) => onChange([lo, Math.max(Number(e.target.value), lo)])}
+        aria-label="حداکثر قیمت"
+        aria-valuetext={formatPrice(hi)}
+        className={inputClass}
+      />
+    </div>
+  )
+}
+
+const chipClass = (on: boolean) =>
+  cn(
+    'inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+    on
+      ? 'border-amber-500 bg-amber-500/[0.12] text-amber-800 dark:border-amber-400 dark:bg-amber-400/15 dark:text-amber-300'
+      : 'border-transparent bg-slate-900/[0.04] text-foreground hover:bg-slate-900/[0.07] dark:bg-white/[0.06] dark:hover:bg-white/[0.1]'
+  )
+
 /** فیلترها به‌صورت Bottom Sheet در موبایل — هرگز سایدبار نیست */
 const FilterBottomSheet: React.FC<Props> = ({
   open,
@@ -48,7 +106,6 @@ const FilterBottomSheet: React.FC<Props> = ({
 }) => {
   const ceiling = Math.max(priceCeiling, 100000)
   const [draft, setDraft] = useState<VenueFilters>(value)
-  const dark = useTheme().palette.mode === 'dark'
 
   // همگام‌سازی با فیلترهای اعمال‌شده هر بار که شیت باز می‌شود
   useEffect(() => {
@@ -89,203 +146,148 @@ const FilterBottomSheet: React.FC<Props> = ({
   }
 
   return (
-    <Drawer
-      anchor="bottom"
-      open={open}
-      onClose={onClose}
-      slotProps={{
-        paper: {
-          sx: {
-            borderTopLeftRadius: radii.sheet,
-            borderTopRightRadius: radii.sheet,
-            maxHeight: '86dvh',
-            bgcolor: 'background.paper',
-          },
-        },
-      }}
-    >
-      <Box sx={{ px: 2.5, pt: 1.5, pb: 'calc(24px + env(safe-area-inset-bottom))' }}>
-        {/* هندل + هدر */}
-        <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0.5 }}>
-          <Box sx={{ width: 40, height: 4, borderRadius: 2, bgcolor: dark ? 'rgba(255,255,255,0.16)' : 'rgba(15,23,42,0.12)' }} />
-        </Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2 }}>
-          <Typography sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary' }}>
-            فیلترها
-            {activeCount > 0 && (
-              <Box
-                component="span"
-                sx={{
-                  fontSize: '0.75rem',
-                  // #d97706 روی سفید ۳٫۲:۱ بود — متن شمار باید ≥۴٫۵:۱ باشد
-                  color: (t) => (dark ? '#fbbf24' : t.palette.warning.main),
-                  ms: 1,
-                  fontWeight: 700,
-                }}
-              >
-                ({activeCount.toLocaleString('fa-IR')})
-              </Box>
-            )}
-          </Typography>
-          <IconButton onClick={onClose} aria-label="بستن" sx={{ width: 44, height: 44, color: 'text.primary' }}>
-            <Icon icon="mdi:close" style={{ width: 22, height: 22 }} />
-          </IconButton>
-        </Box>
+    <Dialog open={open} onOpenChange={(next) => { if (!next) onClose() }}>
+      <DialogContent className="inset-x-0 bottom-0 top-auto max-h-[86dvh] translate-y-0 gap-0 overflow-y-auto rounded-t-3xl border-x-0 border-b-0 p-0 sm:inset-x-0 sm:bottom-0 sm:start-0 sm:top-auto sm:w-full sm:max-w-none sm:translate-x-0 rtl:sm:translate-x-0">
+        <DialogTitle className="sr-only">فیلترها</DialogTitle>
+        <DialogDescription className="sr-only">
+          فیلتر سالن‌ها بر اساس نوع ورزش، محدوده قیمت و امکانات
+        </DialogDescription>
 
-        {/* نوع ورزش */}
-        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 1.25, color: 'text.primary' }}>
-          نوع ورزش
-        </Typography>
-        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-          {SPORTS.map((sport) => {
-            const on = draft.sportKey === sport.key
-            return (
-              <Chip
-                key={sport.key}
-                aria-pressed={on}
-                icon={
+        <div className="px-5 pb-[calc(24px_+_env(safe-area-inset-bottom))] pt-3">
+          {/* هندل + هدر */}
+          <div className="mb-1 flex justify-center">
+            <div className="h-1 w-10 rounded-full bg-slate-900/[0.12] dark:bg-white/[0.16]" />
+          </div>
+          <div className="mb-4 flex items-center justify-between gap-2 pe-10">
+            <p className="text-[1.05rem] font-extrabold text-foreground">
+              فیلترها
+              {activeCount > 0 && (
+                <span className="ms-2 text-xs font-bold text-amber-700 dark:text-amber-400">
+                  ({activeCount.toLocaleString('fa-IR')})
+                </span>
+              )}
+            </p>
+          </div>
+
+          {/* نوع ورزش */}
+          <p className="mb-2.5 text-[0.85rem] font-bold text-foreground">نوع ورزش</p>
+          <div className="mb-6 flex flex-wrap gap-2">
+            {SPORTS.map((sport) => {
+              const on = draft.sportKey === sport.key
+              return (
+                <button
+                  key={sport.key}
+                  type="button"
+                  aria-pressed={on}
+                  onClick={() => handleSport(sport)}
+                  className={chipClass(on)}
+                >
                   <Icon
                     icon={sport.icon}
-                    style={{ width: 16, height: 16, color: on ? (dark ? '#fcd34d' : '#b45309') : (dark ? '#fbbf24' : '#d97706') }}
+                    aria-hidden="true"
+                    style={{ width: 16, height: 16 }}
+                    className="text-amber-600 dark:text-amber-400"
                   />
-                }
-                // انتخاب فقط با رنگ تفکیک نشود: تیک + حالت فشرده (aria-pressed)
-                label={
-                  <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-                    {sport.label}
-                    {on && <Icon icon="mdi:check" aria-hidden="true" style={{ width: 15, height: 15 }} />}
-                  </Box>
-                }
-                onClick={() => handleSport(sport)}
-                sx={{
-                  borderRadius: '10px',
-                  fontWeight: 600,
-                  bgcolor: on
-                    ? dark ? 'rgba(251,191,36,0.16)' : 'rgba(245,158,11,0.12)'
-                    : dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.04)',
-                  color: on ? (dark ? '#fcd34d' : '#b45309') : 'text.primary',
-                  border: on
-                    ? `1px solid ${dark ? '#fbbf24' : '#f59e0b'}`
-                    : '1px solid transparent',
-                }}
-              />
-            )
-          })}
-        </Box>
+                  {sport.label}
+                  {on && <Icon icon="mdi:check" aria-hidden="true" style={{ width: 15, height: 15 }} />}
+                </button>
+              )
+            })}
+          </div>
 
-        {/* محدوده قیمت */}
-        <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 0.5, color: 'text.primary' }}>
-          محدوده قیمت
-        </Typography>
-        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 1 }}>
-          {formatPrice(priceRange[0])} تا {formatPrice(priceRange[1])}
-        </Typography>
-        <Slider
-          value={priceRange}
-          min={PRICE_FLOOR}
-          max={ceiling}
-          step={50000}
-          onChange={(_, v) => {
-            const [lo, hi] = v as [number, number]
-            setDraft((d) => ({
-              ...d,
-              minPrice: lo <= PRICE_FLOOR ? undefined : lo,
-              maxPrice: hi >= ceiling ? undefined : hi,
-            }))
-          }}
-          valueLabelDisplay="auto"
-          getAriaValueText={(v) => formatPrice(v)}
-          sx={{ mb: 3 }}
-        />
-
-        {/* امکانات */}
-        {amenityOptions.length > 0 && (
-          <>
-            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', mb: 1.25, color: 'text.primary' }}>
-              امکانات
-            </Typography>
-            <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 3 }}>
-              {amenityOptions.slice(0, 12).map((a) => {
-                const on = draft.amenities?.includes(a) ?? false
-                return (
-                  <Chip
-                    key={a}
-                    aria-pressed={on}
-                    label={
-                      <Box component="span" sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5 }}>
-                        {a}
-                        {on && <Icon icon="mdi:check" aria-hidden="true" style={{ width: 15, height: 15 }} />}
-                      </Box>
-                    }
-                    onClick={() => toggleAmenity(a)}
-                    sx={{
-                      borderRadius: '10px',
-                      fontWeight: 600,
-                      bgcolor: on
-                        ? dark ? 'rgba(251,191,36,0.16)' : 'rgba(245,158,11,0.12)'
-                        : dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.04)',
-                      border: on
-                        ? `1px solid ${dark ? '#fbbf24' : '#f59e0b'}`
-                        : '1px solid transparent',
-                      color: on ? (dark ? '#fcd34d' : '#b45309') : 'text.primary',
-                    }}
-                  />
-                )
-              })}
-            </Box>
-          </>
-        )}
-
-        {/* فقط تأیید شده */}
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 3 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Icon icon="mdi:shield-check" style={{ width: 20, height: 20, color: dark ? '#34d399' : '#16a34a' }} />
-            <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'text.primary' }}>
-              فقط سالن‌های تأیید شده
-            </Typography>
-          </Box>
-          <Switch
-            checked={draft.verifiedOnly ?? false}
-            onChange={(e) => setDraft((d) => ({ ...d, verifiedOnly: e.target.checked || undefined }))}
-            slotProps={{ input: { 'aria-label': 'فقط سالن‌های تأیید شده' } }}
+          {/* محدوده قیمت */}
+          <p className="mb-1 text-[0.85rem] font-bold text-foreground">محدوده قیمت</p>
+          <p className="mb-2 text-xs text-muted-foreground">
+            {formatPrice(priceRange[0])} تا {formatPrice(priceRange[1])}
+          </p>
+          <PriceRangeSlider
+            value={priceRange}
+            min={PRICE_FLOOR}
+            max={ceiling}
+            step={50000}
+            onChange={([lo, hi]) =>
+              setDraft((d) => ({
+                ...d,
+                minPrice: lo <= PRICE_FLOOR ? undefined : lo,
+                maxPrice: hi >= ceiling ? undefined : hi,
+              }))
+            }
           />
-        </Box>
 
-        {/* اکشن‌ها */}
-        <Box sx={{ display: 'flex', gap: 1.5 }}>
-          <PrimaryButton
-            onClick={() => {
-              onApply(draft)
-              onClose()
-            }}
-            sx={{ flex: 2 }}
+          {/* امکانات */}
+          {amenityOptions.length > 0 && (
+            <>
+              <p className="mb-2.5 text-[0.85rem] font-bold text-foreground">امکانات</p>
+              <div className="mb-6 flex flex-wrap gap-2">
+                {amenityOptions.slice(0, 12).map((a) => {
+                  const on = draft.amenities?.includes(a) ?? false
+                  return (
+                    <button
+                      key={a}
+                      type="button"
+                      aria-pressed={on}
+                      onClick={() => toggleAmenity(a)}
+                      className={chipClass(on)}
+                    >
+                      {a}
+                      {on && <Icon icon="mdi:check" aria-hidden="true" style={{ width: 15, height: 15 }} />}
+                    </button>
+                  )
+                })}
+              </div>
+            </>
+          )}
+
+          {/* فقط تأیید شده */}
+          <label
+            htmlFor="venue-verified-only"
+            className="mb-6 flex min-h-11 cursor-pointer items-center justify-between gap-3"
           >
-            اعمال فیلتر
-          </PrimaryButton>
-          <PrimaryButton
-            onClick={() => {
-              const empty: VenueFilters = {}
-              setDraft(empty)
-              onApply(empty)
-              onClose()
-            }}
-            sx={{
-              flex: 1,
-              background: 'none',
-              boxShadow: 'none',
-              border: `1.5px solid ${dark ? 'rgba(255,255,255,0.16)' : 'rgba(15,23,42,0.12)'}`,
-              color: 'text.secondary',
-              '&:hover': {
-                background: dark ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.04)',
-                border: `1.5px solid ${dark ? 'rgba(255,255,255,0.24)' : 'rgba(15,23,42,0.2)'}`,
-              },
-            }}
-          >
-            پاک کردن
-          </PrimaryButton>
-        </Box>
-      </Box>
-    </Drawer>
+            <span className="flex items-center gap-2">
+              <Icon
+                icon="mdi:shield-check"
+                aria-hidden="true"
+                className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+              />
+              <span className="text-[0.85rem] font-bold text-foreground">فقط سالن‌های تأیید شده</span>
+            </span>
+            <Switch
+              id="venue-verified-only"
+              checked={draft.verifiedOnly ?? false}
+              onCheckedChange={(checked) =>
+                setDraft((d) => ({ ...d, verifiedOnly: checked || undefined }))
+              }
+              aria-label="فقط سالن‌های تأیید شده"
+            />
+          </label>
+
+          {/* اکشن‌ها */}
+          <div className="flex gap-3">
+            <PrimaryButton
+              className="flex-[2]"
+              onClick={() => {
+                onApply(draft)
+                onClose()
+              }}
+            >
+              اعمال فیلتر
+            </PrimaryButton>
+            <Button
+              variant="outline"
+              className="flex-1 font-bold text-muted-foreground"
+              onClick={() => {
+                const empty: VenueFilters = {}
+                setDraft(empty)
+                onApply(empty)
+                onClose()
+              }}
+            >
+              پاک کردن
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
   )
 }
 

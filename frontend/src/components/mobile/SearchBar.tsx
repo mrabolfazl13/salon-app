@@ -1,7 +1,6 @@
-import React from 'react'
-import { Box, InputBase, IconButton, useTheme } from '@mui/material'
+import type React from 'react'
 import { Icon } from '@iconify/react'
-import { radii, shadows, shadowsDark } from '@/theme'
+import { cn } from '@/lib/utils'
 
 interface Props {
   value?: string
@@ -27,73 +26,53 @@ const SearchBar: React.FC<Props> = ({
   onClick,
   autoFocus = false,
   startAdornment,
-}) => {
-  const theme = useTheme()
-  const dark = theme.palette.mode === 'dark'
-  return (
-    <Box
-      onClick={readOnly ? onClick : undefined}
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        gap: 1,
-        height: 52,
-        px: 2,
-        borderRadius: `${radii.button}px`,
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: 'divider',
-        boxShadow: dark ? shadowsDark.card : shadows.card,
-        cursor: readOnly ? 'pointer' : 'text',
-        transition: 'border-color 0.2s ease, box-shadow 0.2s ease',
-        '&:focus-within': {
-          borderColor: dark ? 'rgba(251,191,36,0.55)' : 'rgba(245,158,11,0.6)',
-          boxShadow: dark ? '0 0 0 3px rgba(251,191,36,0.14)' : '0 0 0 3px rgba(245,158,11,0.14)',
-        },
+}) => (
+  <div
+    onClick={readOnly ? onClick : undefined}
+    className={cn(
+      'flex h-[52px] items-center gap-2 rounded-[14px] border border-border bg-card px-4 shadow-sm transition-[border-color,box-shadow]',
+      'focus-within:border-amber-500/60 focus-within:shadow-[0_0_0_3px_rgba(245,158,11,0.14)] dark:focus-within:border-amber-400/55 dark:focus-within:shadow-[0_0_0_3px_rgba(251,191,36,0.14)]',
+      readOnly ? 'cursor-pointer' : 'cursor-text'
+    )}
+  >
+    {/* #d97706 روی سفید ۳٫۲:۱ است — حتی برای گرافیک غیرمتنی هم زیر ۳:۱؛ نسخهٔ warning.main */}
+    <Icon
+      icon="mdi:magnify"
+      className="h-[22px] w-[22px] shrink-0 text-amber-700 dark:text-amber-400"
+      aria-hidden="true"
+    />
+    <input
+      value={value}
+      onChange={(e) => onChange?.(e.target.value)}
+      // در حالت readOnly باکس با کلیک باز می‌شود؛ کیبورد روی خود input فوکوس است،
+      // پس Enter باید همان کار کلیک را بکند (وگرنه کنترل با کیبورد غیرقابل استفاده است)
+      onKeyDown={(e) => {
+        if (e.key !== 'Enter') return
+        if (readOnly) { if (onClick) { e.preventDefault(); onClick() } return }
+        onSubmit?.()
       }}
-    >
-      {/* #d97706 روی سفید ۳٫۲:۱ است — حتی برای گرافیک غیرمتنی هم زیر ۳:۱؛ نسخهٔ warning.main */}
-      <Icon icon="mdi:magnify" style={{ width: 22, height: 22, color: dark ? '#fbbf24' : '#b45309', flexShrink: 0 }} />
-      <InputBase
-        value={value}
-        onChange={(e) => onChange?.(e.target.value)}
-        // در حالت readOnly باکس با کلیک باز می‌شود؛ کیبورد روی خود input فوکوس است،
-        // پس Enter باید همان کار کلیک را بکند (وگرنه کنترل با کیبورد غیرقابل استفاده است)
-        onKeyDown={(e) => {
-          if (e.key !== 'Enter') return
-          if (readOnly) { if (onClick) { e.preventDefault(); onClick() } return }
-          onSubmit?.()
+      placeholder={placeholder}
+      readOnly={readOnly}
+      autoFocus={autoFocus}
+      aria-label="جستجو"
+      className="h-full min-w-0 flex-1 bg-transparent text-[0.95rem] text-foreground outline-none placeholder:text-muted-foreground placeholder:opacity-80"
+    />
+    {startAdornment}
+    {!readOnly && value && (
+      <button
+        type="button"
+        onClick={(e) => {
+          e.stopPropagation()
+          onClear?.()
+          onChange?.('')
         }}
-        placeholder={placeholder}
-        readOnly={readOnly}
-        autoFocus={autoFocus}
-        fullWidth
-        inputProps={{ 'aria-label': 'جستجو' }}
-        sx={{
-          height: '100%',
-          fontSize: '0.95rem',
-          color: 'text.primary',
-          '& input': { height: '100%', py: 0 },
-          '& ::placeholder': { color: 'text.secondary', opacity: 0.8 },
-        }}
-      />
-      {startAdornment}
-      {!readOnly && value && (
-        <IconButton
-          size="small"
-          onClick={(e) => {
-            e.stopPropagation()
-            onClear?.()
-            onChange?.('')
-          }}
-          aria-label="پاک کردن"
-          sx={{ width: 44, height: 44, color: 'text.secondary' }}
-        >
-          <Icon icon="mdi:close-circle" style={{ width: 20, height: 20 }} />
-        </IconButton>
-      )}
-    </Box>
-  )
-}
+        aria-label="پاک کردن"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <Icon icon="mdi:close-circle" style={{ width: 20, height: 20 }} />
+      </button>
+    )}
+  </div>
+)
 
 export default SearchBar

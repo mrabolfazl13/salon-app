@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { motion, useInView } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography } from '@mui/material'
 import SectionHeader from '@/components/mobile/SectionHeader'
 import { toPersianDigits } from '@/lib/jalali'
 
@@ -15,7 +14,7 @@ interface StatItemProps {
 }
 
 const StatItem: React.FC<StatItemProps> = ({ icon, value, label, suffix = '', color, delay = 0 }) => {
-  const ref = useRef(null)
+  const ref = useRef<HTMLDivElement>(null)
   const isInView = useInView(ref, { once: true, margin: '-100px' })
   const [count, setCount] = useState(0)
 
@@ -43,69 +42,33 @@ const StatItem: React.FC<StatItemProps> = ({ icon, value, label, suffix = '', co
   return (
     <motion.div
       ref={ref}
-      style={{ minWidth: 0 }}
+      className="min-w-0"
       initial={{ opacity: 0, y: 20 }}
       animate={isInView ? { opacity: 1, y: 0 } : {}}
       transition={{ duration: 0.5, delay }}
     >
-      <Box
-        sx={{
-          textAlign: 'center',
-          p: { xs: 2, sm: 3 },
-          minWidth: 0,
-          borderRadius: '20px',
-          bgcolor: 'background.paper',
-          border: '1px solid',
-          borderColor: 'divider',
-          transition: 'all 0.3s ease',
-          '&:hover': {
-            transform: 'translateY(-8px)',
-            boxShadow: `0 12px 40px ${color}20`,
-            borderColor: color,
-          },
-        }}
+      <div
+        className="min-w-0 rounded-[20px] border border-border bg-card p-4 text-center transition-all duration-300 hover:-translate-y-2 hover:border-[color:var(--stat-color)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)] sm:p-6"
+        style={{ '--stat-color': color } as React.CSSProperties}
       >
         {/* آیکون */}
-        <Box
-          sx={{
-            width: 72,
-            height: 72,
-            borderRadius: '18px',
-            background: `${color}15`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            mx: 'auto',
-            mb: 2,
-          }}
+        <span
+          className="mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-[18px]"
+          style={{ background: `${color}15` }}
         >
           <Icon icon={icon} style={{ width: 36, height: 36, color }} />
-        </Box>
+        </span>
 
         {/* شمارنده */}
-        <Typography
-          sx={{
-            fontSize: { xs: '1.65rem', sm: '1.9rem', md: '2.2rem' },
-            fontWeight: 900,
-            color: 'text.primary',
-            fontVariantNumeric: 'tabular-nums',
-            mb: 0.5,
-          }}
-        >
+        <p className="mb-1 text-[1.65rem] font-black tabular-nums text-foreground sm:text-[1.9rem] md:text-[2.2rem]">
           {toPersianDigits(count.toLocaleString())}{suffix}
-        </Typography>
+        </p>
 
         {/* لیبل */}
-        <Typography
-          sx={{
-            fontSize: '0.88rem',
-            color: 'text.secondary',
-            fontWeight: 600,
-          }}
-        >
+        <p className="text-[0.88rem] font-semibold text-muted-foreground">
           {label}
-        </Typography>
-      </Box>
+        </p>
+      </div>
     </motion.div>
   )
 }
@@ -157,27 +120,17 @@ const STATS = [
 
 export const StatsSection: React.FC = () => {
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="آمار و ارقام"
         subtitle="اعتماد هزاران بازیکن، افتخار ماست"
       />
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: 'repeat(2, minmax(0, 1fr))',
-            sm: 'repeat(3, minmax(0, 1fr))',
-            md: 'repeat(6, minmax(0, 1fr))',
-          },
-          gap: 2,
-        }}
-      >
+      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
         {STATS.map((stat, index) => (
           <StatItem key={stat.label} {...stat} delay={index * 0.1} />
         ))}
-      </Box>
-    </Box>
+      </div>
+    </section>
   )
 }

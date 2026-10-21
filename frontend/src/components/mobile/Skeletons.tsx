@@ -1,15 +1,86 @@
-import React from 'react'
-import { Box, Skeleton, type SkeletonProps } from '@mui/material'
+import type React from 'react'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
+import { cn } from '@/lib/utils'
 
 /** اسکلتون‌های استاندارد — جایگزین spinner */
 
-export const Shimmer: React.FC<SkeletonProps> = (props) => (
-  <Skeleton aria-hidden="true"
-    variant="rounded"
-    animation="pulse"
-    sx={{
-      bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.06)'),
-      ...props.sx,
+type ShimmerVariant = 'text' | 'rectangular' | 'rounded' | 'circular'
+
+interface ShimmerProps extends React.HTMLAttributes<HTMLDivElement> {
+  variant?: ShimmerVariant
+  animation?: 'pulse' | 'wave' | false
+  width?: number | string
+  height?: number | string
+  /** پشتیبانی قدیمی از استایل‌های sx — فقط برای سازگاری با فراخوانی‌های موجود */
+  sx?: object
+}
+
+const SPACING_STYLE: Record<string, string> = {
+  m: 'margin',
+  mt: 'marginTop',
+  mr: 'marginRight',
+  mb: 'marginBottom',
+  ml: 'marginLeft',
+  mx: 'marginInline',
+  my: 'marginBlock',
+  p: 'padding',
+  pt: 'paddingTop',
+  pr: 'paddingRight',
+  pb: 'paddingBottom',
+  pl: 'paddingLeft',
+  px: 'paddingInline',
+  py: 'paddingBlock',
+}
+
+const UNITLESS = new Set(['flex', 'flexGrow', 'flexShrink', 'opacity', 'order', 'zIndex', 'lineHeight', 'fontWeight'])
+
+/** تبدیل ساده و محدود sx قدیمی به style — برای سازگاری با صفحاتی که هنوز مهاجرت نکرده‌اند */
+function sxToStyle(sx?: object): React.CSSProperties {
+  if (!sx) return {}
+  const out: Record<string, string | number> = {}
+  for (const [key, raw] of Object.entries(sx as Record<string, unknown>)) {
+    if (raw == null) continue
+    if (SPACING_STYLE[key]) {
+      out[SPACING_STYLE[key]] = typeof raw === 'number' ? `${raw * 8}px` : String(raw)
+    } else if (typeof raw === 'number') {
+      out[key] = UNITLESS.has(key) ? raw : `${raw}px`
+    } else if (typeof raw === 'string') {
+      out[key] = raw
+    }
+  }
+  return out as React.CSSProperties
+}
+
+const VARIANT_CLASS: Record<ShimmerVariant, string> = {
+  text: 'rounded-md',
+  rectangular: 'rounded-none',
+  rounded: 'rounded-xl',
+  circular: 'rounded-full',
+}
+
+export const Shimmer: React.FC<ShimmerProps> = ({
+  variant = 'rounded',
+  animation = 'pulse',
+  width,
+  height,
+  sx,
+  className,
+  style,
+  ...props
+}) => (
+  <Skeleton
+    aria-hidden="true"
+    className={cn(
+      'bg-slate-900/[0.06] dark:bg-white/[0.07]',
+      animation === false ? 'animate-none' : 'animate-pulse',
+      VARIANT_CLASS[variant],
+      className
+    )}
+    style={{
+      ...(width != null ? { width: typeof width === 'number' ? `${width}px` : width } : {}),
+      ...(height != null ? { height: typeof height === 'number' ? `${height}px` : height } : {}),
+      ...sxToStyle(sx),
+      ...style,
     }}
     {...props}
   />
@@ -17,75 +88,67 @@ export const Shimmer: React.FC<SkeletonProps> = (props) => (
 
 /** اسکلتون کارت سالن (موبایل) */
 export const VenueCardSkeleton: React.FC = () => (
-  <Box
-    sx={{
-      borderRadius: '20px',
-      bgcolor: 'background.paper',
-      border: '1px solid',
-      borderColor: 'divider',
-      overflow: 'hidden',
-    }}
-  >
-    <Skeleton aria-hidden="true" variant="rectangular" height={0} sx={{ aspectRatio: '16 / 10', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.05)') }} />
-    <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+  <div className="overflow-hidden rounded-[20px] border border-border bg-card">
+    <Shimmer variant="rectangular" className="aspect-[16/10] w-full bg-slate-900/[0.05] dark:bg-white/[0.05]" />
+    <div className="flex flex-col gap-2.5 p-4">
       <Shimmer width="60%" height={22} />
       <Shimmer width="35%" height={16} />
       <Shimmer width="80%" height={14} />
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mt: 0.5 }}>
+      <div className="mt-1 flex items-center justify-between">
         <Shimmer width={110} height={22} />
-        <Shimmer width={84} height={40} sx={{ borderRadius: '12px' }} />
-      </Box>
-    </Box>
-  </Box>
+        <Shimmer width={84} height={40} className="rounded-xl" />
+      </div>
+    </div>
+  </div>
 )
 
 export const VenueCardSkeletonList: React.FC<{ count?: number }> = ({ count = 3 }) => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+  <div className="flex flex-col gap-5">
     {Array.from({ length: count }).map((_, i) => (
       <VenueCardSkeleton key={i} />
     ))}
-  </Box>
+  </div>
 )
 
 /** اسکلتون صفحه جزئیات سالن */
 export const VenueDetailSkeleton: React.FC = () => (
-  <Box>
-    <Skeleton aria-hidden="true" variant="rectangular" height={260} sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.05)') }} />
-    <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 2 }}>
+  <div>
+    <Shimmer variant="rectangular" height={260} className="w-full bg-slate-900/[0.05] dark:bg-white/[0.05]" />
+    <div className="flex flex-col gap-4 p-4">
       <Shimmer width="55%" height={28} />
       <Shimmer width="40%" height={18} />
       <Shimmer width="75%" height={16} />
-      <Box sx={{ display: 'flex', gap: 1 }}>
+      <div className="flex gap-2">
         {[1, 2, 3, 4].map((i) => (
-          <Shimmer key={i} width={72} height={30} sx={{ borderRadius: '10px' }} />
+          <Shimmer key={i} width={72} height={30} className="rounded-[10px]" />
         ))}
-      </Box>
-      <Shimmer height={90} sx={{ borderRadius: '16px' }} />
-      <Shimmer height={90} sx={{ borderRadius: '16px' }} />
-    </Box>
-  </Box>
+      </div>
+      <Shimmer height={90} className="rounded-2xl" />
+      <Shimmer height={90} className="rounded-2xl" />
+    </div>
+  </div>
 )
 
 /** اسکلتون لیست سانس‌ها */
 export const SlotListSkeleton: React.FC = () => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+  <div className="flex flex-col gap-3">
     {[1, 2, 3, 4].map((i) => (
-      <Shimmer key={i} height={64} sx={{ borderRadius: '16px' }} />
+      <Shimmer key={i} height={64} className="rounded-2xl" />
     ))}
-  </Box>
+  </div>
 )
 
 /** اسکلتون نتایج جستجو */
 export const SearchResultsSkeleton: React.FC = () => (
-  <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
+  <div className="flex flex-col gap-3">
     {[1, 2, 3].map((i) => (
-      <Box key={i} sx={{ display: 'flex', gap: 1.5, alignItems: 'center' }}>
-        <Shimmer width={64} height={64} sx={{ borderRadius: '14px', flexShrink: 0 }} />
-        <Box sx={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 1 }}>
+      <div key={i} className="flex items-center gap-3">
+        <Shimmer width={64} height={64} className="shrink-0 rounded-[14px]" />
+        <div className="flex flex-1 flex-col gap-2">
           <Shimmer width="55%" height={16} />
           <Shimmer width="75%" height={12} />
-        </Box>
-      </Box>
+        </div>
+      </div>
     ))}
-  </Box>
+  </div>
 )

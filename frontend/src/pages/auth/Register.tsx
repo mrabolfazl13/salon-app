@@ -6,9 +6,9 @@ import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import Card, { CardContent } from '@/components/ui/Card'
+import { Button } from '@/components/ui/shadcn/button'
+import { Input } from '@/components/ui/shadcn/input'
+import { Card, CardContent } from '@/components/ui/shadcn/card'
 import { useToast } from '@/hooks/useToast'
 import { authService } from '@/services/auth'
 
@@ -292,9 +292,8 @@ const Register: React.FC = () => {
                     {...register('fullName')}
                     placeholder="نام و نام خانوادگی"
                     aria-label="نام و نام خانوادگی"
-                    icon="mdi:account-outline"
+                    startIcon={<Icon icon="mdi:account-outline" />}
                     error={errors.fullName?.message}
-                    className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
                   />
                   <Input
                     {...register('phone')}
@@ -306,9 +305,8 @@ const Register: React.FC = () => {
                     placeholder="شماره موبایل"
                     aria-label="شماره موبایل"
                     inputMode="tel"
-                    icon="mdi:phone-outline"
+                    startIcon={<Icon icon="mdi:phone-outline" />}
                     error={errors.phone?.message}
-                    className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
                   />
                 </motion.div>
               )}
@@ -327,15 +325,15 @@ const Register: React.FC = () => {
                       type={showPassword ? 'text' : 'password'}
                       placeholder="رمز عبور"
                       aria-label="رمز عبور"
-                      icon="mdi:lock-outline"
+                      startIcon={<Icon icon="mdi:lock-outline" />}
                       error={errors.password?.message}
-                      className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
+                      className="pe-12"
                     />
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
                       aria-label={showPassword ? 'پنهان کردن رمز' : 'نمایش رمز'}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                      className="absolute end-1 top-1 flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <Icon
                         icon={showPassword ? 'mdi:eye-off' : 'mdi:eye'}
@@ -375,15 +373,15 @@ const Register: React.FC = () => {
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="تکرار رمز عبور"
                       aria-label="تکرار رمز عبور"
-                      icon="mdi:lock-check-outline"
+                      startIcon={<Icon icon="mdi:lock-check-outline" />}
                       error={errors.confirmPassword?.message}
-                      className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
+                      className="pe-12"
                     />
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
                       aria-label={showConfirmPassword ? 'پنهان کردن تکرار رمز' : 'نمایش تکرار رمز'}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                      className="absolute end-1 top-1 flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <Icon
                         icon={showConfirmPassword ? 'mdi:eye-off' : 'mdi:eye'}
@@ -440,7 +438,7 @@ const Register: React.FC = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="flex-1 border-gray-300 text-gray-700 hover:bg-gray-50 dark:border-[#33445f] dark:text-gray-200 dark:hover:bg-[#223049]"
+                    className="flex-1"
                     onClick={() => setStep(step - 1)}
                   >
                     <Icon icon="mdi:arrow-right" className="h-5 w-5" />
@@ -451,8 +449,8 @@ const Register: React.FC = () => {
                 {step < 3 ? (
                   <Button
                     type="button"
-                    variant="gradient"
-                    className="flex-1 text-white shadow-2xl shadow-blue-500/25"
+                    variant="primary"
+                    className="flex-1"
                     onClick={handleNext}
                   >
                     بعدی
@@ -461,11 +459,15 @@ const Register: React.FC = () => {
                 ) : (
                   <Button
                     type="submit"
-                    variant="gradient"
-                    className="flex-1 text-white shadow-2xl shadow-blue-500/25"
-                    loading={loading}
+                    variant="primary"
+                    className="flex-1"
+                    disabled={loading}
                   >
-                    <Icon icon="mdi:check" className="h-5 w-5 ml-2" />
+                    {loading ? (
+                      <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white" aria-hidden="true" />
+                    ) : (
+                      <Icon icon="mdi:check" className="h-5 w-5" />
+                    )}
                     ثبت‌نام ({REGISTER_ROLE_LABELS[selectedRole as keyof typeof REGISTER_ROLE_LABELS] ?? 'کاربر'})
                   </Button>
                 )}

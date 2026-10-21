@@ -1,10 +1,9 @@
-import React from 'react'
-import { Box, Typography, Avatar } from '@mui/material'
+import type React from 'react'
 import { Icon } from '@iconify/react'
 import { Link } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
-import { gradients } from '@/theme'
 import ThemeToggle from '@/components/ui/ThemeToggle'
+import { Avatar, AvatarFallback } from '@/components/ui/shadcn/avatar'
 
 interface Props {
   title?: string
@@ -23,73 +22,42 @@ const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true }) 
   const sub = subtitle || 'امروز کجا می‌خوای بازی کنی؟'
 
   return (
-    <Box
-      sx={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: 1.5,
-        pt: { xs: 1.5, md: 0 },
-        pb: 2,
-      }}
-    >
-      <Box sx={{ minWidth: 0 }}>
-        <Typography sx={{ fontWeight: 800, fontSize: '1.35rem', color: 'text.primary', lineHeight: 1.4 }}>
-          {heading}
-        </Typography>
-        <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 0.25 }}>{sub}</Typography>
-      </Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, flexShrink: 0 }}>
-        <Box sx={{ display: { xs: 'block', md: 'none' } }}>
+    <div className="flex items-center justify-between gap-3 pb-4 pt-3 md:pt-0">
+      <div className="min-w-0">
+        <p className="text-[1.35rem] font-extrabold leading-[1.4] text-foreground">{heading}</p>
+        <p className="mt-0.5 text-[0.85rem] text-muted-foreground">{sub}</p>
+      </div>
+      <div className="flex shrink-0 items-center gap-1">
+        <div className="block md:hidden">
           <ThemeToggle size={18} />
-        </Box>
+        </div>
         {showAccount && (
-          <Box sx={{ display: { xs: 'flex', md: 'none' }, flexShrink: 0 }}>
+          <div className="flex shrink-0 md:hidden">
             {isAuthenticated ? (
-              <Link to="/profile" aria-label="پروفایل">
-                <Avatar
-                  sx={{
-                    width: 44,
-                    height: 44,
-                    background: gradients.brandEnergy,
-                    color: '#1c1917',
-                    fontSize: '1rem',
-                    fontWeight: 800,
-                    boxShadow: '0 4px 14px rgba(245,158,11,0.3)',
-                  }}
-                >
-                  {user?.fullName?.[0] || 'ک'}
+              <Link
+                to="/profile"
+                aria-label="پروفایل"
+                className="flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              >
+                <Avatar className="h-11 w-11 shadow-[0_4px_14px_rgba(245,158,11,0.3)]">
+                  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-base font-extrabold text-stone-900">
+                    {user?.fullName?.[0] || 'ک'}
+                  </AvatarFallback>
                 </Avatar>
               </Link>
             ) : (
-              <Box
-                component={Link}
+              <Link
                 to="/login"
                 aria-label="ورود"
-                sx={{
-                  width: 44,
-                  height: 44,
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  borderRadius: '50%',
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  boxShadow: (t) =>
-                    t.palette.mode === 'dark'
-                      ? '0 1px 3px rgba(0,0,0,0.4)'
-                      : '0 1px 3px rgba(15,23,42,0.05)',
-                  color: 'primary.main',
-                }}
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Icon icon="mdi:login-variant" style={{ width: 22, height: 22 }} />
-              </Box>
+              </Link>
             )}
-          </Box>
+          </div>
         )}
-      </Box>
-    </Box>
+      </div>
+    </div>
   )
 }
 

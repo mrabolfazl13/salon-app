@@ -1,7 +1,6 @@
 // src/pages/Search.tsx — صفحه اختصاصی جستجو: چسبان + تاریخچه + محبوب‌ها + نتایج
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Box, IconButton, Typography, useMediaQuery } from '@mui/material'
 import { Icon } from '@iconify/react'
 import Layout from '@/components/layout/Layout'
 import SearchBar from '@/components/mobile/SearchBar'
@@ -17,15 +16,17 @@ import { useSearchHistoryStore } from '@/store/searchHistoryStore'
 import { venueService } from '@/services/venue'
 import { parseList, toFullUrl } from '@/utils/venueMedia'
 import type { Venue } from '@/types'
-import { radii, shadows } from '@/theme'
 
 const POPULAR_SEARCHES = ['فوتسال', 'بدنسازی', 'چمن مصنوعی', 'سرپوشیده', 'قم']
+
+const hasFinePointer = () =>
+  typeof window !== 'undefined' && window.matchMedia('(hover: hover) and (pointer: fine)').matches
 
 const Search: React.FC = () => {
   const navigate = useNavigate()
   const { queries, add, remove, clear } = useSearchHistoryStore()
   // فوکوس خودکار روی موبایل کیبورد را بلافاصله باز می‌کند و پیشنهادها را می‌پوشاند
-  const hasPointer = useMediaQuery('(hover: hover) and (pointer: fine)')
+  const [hasPointer] = useState(hasFinePointer)
 
   const [value, setValue] = useState('')
   const [submitted, setSubmitted] = useState('')
@@ -79,30 +80,21 @@ const Search: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ maxWidth: 720, mx: 'auto' }}>
+      <div className="mx-auto max-w-[720px]">
         {/* سرتیتر صفحه برای فناوری کمکی — ظاهر صفحه تغییری نمی‌کند */}
         <h1 className="sr-only">جستجوی سالن</h1>
         {/* نوار جستجوی چسبان */}
-        <Box
-          sx={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 30,
-            py: 1.5,
-            mb: 1,
-            bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(11,18,32,0.92)' : 'rgba(246,247,249,0.92)'),
-            backdropFilter: 'blur(12px)',
-          }}
-        >
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <IconButton
+        <div className="sticky top-0 z-30 mb-1 bg-[#f6f7f9]/92 py-3 backdrop-blur-md dark:bg-[#0b1220]/92">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
               onClick={() => (value ? setValue('') : navigate(-1))}
               aria-label="بازگشت"
-              sx={{ width: 48, height: 48, minWidth: 48, minHeight: 48, bgcolor: 'background.paper', border: '1px solid', borderColor: 'divider', flexShrink: 0, color: 'text.primary' }}
+              className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Icon icon="mdi:arrow-right" style={{ width: 22, height: 22 }} />
-            </IconButton>
-            <Box sx={{ flex: 1, minWidth: 0 }}>
+              <Icon icon="mdi:arrow-right" style={{ width: 22, height: 22 }} aria-hidden="true" />
+            </button>
+            <div className="min-w-0 flex-1">
               <SearchBar
                 value={value}
                 onChange={setValue}
@@ -111,127 +103,80 @@ const Search: React.FC = () => {
                 placeholder="نام سالن یا محله را بنویسید…"
                 autoFocus={hasPointer}
               />
-            </Box>
-          </Box>
-        </Box>
+            </div>
+          </div>
+        </div>
 
         {showLanding ? (
           <>
             {/* جستجوهای اخیر */}
             {recent.length > 0 && (
-              <Box sx={{ mb: 3.5 }}>
+              <div className="mb-7">
                 <SectionHeader
                   title="جستجوهای اخیر"
                   actionLabel="پاک کردن"
                   onAction={clear}
                 />
-                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                <div className="flex flex-col gap-1">
                   {recent.map((q) => (
-                    <Box
+                    <div
                       key={q}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        borderRadius: `${radii.button}px`,
-                        '&:hover': { bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.05)' : 'rgba(15,23,42,0.04)') },
-                      }}
+                      className="flex items-center rounded-xl transition-colors hover:bg-muted/60"
                     >
-                      <Box
-                        component="button"
+                      <button
                         type="button"
                         onClick={() => pickQuery(q)}
-                        sx={{
-                          flex: 1,
-                          minWidth: 0,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 1,
-                          px: 1.5,
-                          py: 1.25,
-                          minHeight: 48,
-                          borderRadius: 'inherit',
-                          appearance: 'none',
-                          WebkitTapHighlightColor: 'transparent',
-                          bgcolor: 'transparent',
-                          border: 0,
-                          margin: 0,
-                          fontFamily: 'inherit',
-                          fontSize: '0.88rem',
-                          fontWeight: 500,
-                          color: 'text.primary',
-                          textAlign: 'start',
-                          cursor: 'pointer',
-                          '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
-                        }}
+                        className="flex min-h-12 flex-1 items-center gap-2 rounded-xl px-3 py-2.5 text-start text-[0.88rem] font-medium text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <Icon icon="mdi:history" aria-hidden="true" style={{ width: 20, height: 20, color: '#64748b', flexShrink: 0 }} />
-                        <Typography sx={{ flex: 1, fontSize: '0.88rem', fontWeight: 500, color: 'text.primary' }} noWrap>
-                          {q}
-                        </Typography>
-                      </Box>
-                      <IconButton
-                        size="medium"
+                        <Icon
+                          icon="mdi:history"
+                          aria-hidden="true"
+                          style={{ width: 20, height: 20, color: '#64748b', flexShrink: 0 }}
+                        />
+                        <span className="min-w-0 flex-1 truncate">{q}</span>
+                      </button>
+                      <button
+                        type="button"
                         aria-label={`حذف ${q} از جستجوهای اخیر`}
                         onClick={() => remove(q)}
-                        sx={{ width: 44, height: 44, minHeight: 44, minWidth: 44, color: '#cbd5e1', '&:hover': { color: 'error.main' } }}
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-300 transition-colors hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <Icon icon="mdi:close" style={{ width: 20, height: 20 }} />
-                      </IconButton>
-                    </Box>
+                        <Icon icon="mdi:close" style={{ width: 20, height: 20 }} aria-hidden="true" />
+                      </button>
+                    </div>
                   ))}
-                </Box>
-              </Box>
+                </div>
+              </div>
             )}
 
             {/* جستجوهای محبوب */}
-            <Box sx={{ mb: 3.5 }}>
+            <div className="mb-7">
               <SectionHeader title="جستجوهای محبوب" />
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <div className="flex flex-wrap gap-2">
                 {POPULAR_SEARCHES.map((q) => (
-                  <Box
+                  <button
                     key={q}
-                    component="button"
+                    type="button"
                     onClick={() => pickQuery(q)}
-                    sx={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 1,
-                      px: 1.75,
-                      py: 1,
-                      minHeight: 44,
-                      borderRadius: '999px',
-                      border: '1px solid',
-                      borderColor: 'divider',
-                      bgcolor: 'background.paper',
-                      fontFamily: 'inherit',
-                      fontSize: '0.82rem',
-                      fontWeight: 600,
-                      color: 'text.primary',
-                      cursor: 'pointer',
-                      transition: 'all 0.2s ease',
-                      '&:hover': {
-                        borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.5)' : 'rgba(245,158,11,0.55)'),
-                        color: (t) => (t.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
-                      },
-                    }}
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-[0.82rem] font-semibold text-foreground transition-colors hover:border-amber-500/60 hover:text-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-amber-400"
                   >
-                    <Icon icon="mdi:magnify" style={{ width: 16, height: 16, color: '#64748b' }} />
+                    <Icon icon="mdi:magnify" style={{ width: 16, height: 16, color: '#64748b' }} aria-hidden="true" />
                     {q}
-                  </Box>
+                  </button>
                 ))}
-              </Box>
-            </Box>
+              </div>
+            </div>
 
             {/* دسته‌بندی ورزش‌ها */}
-            <Box>
+            <div>
               <SectionHeader title="دسته‌بندی‌ها" />
               <SportChipRow onSelect={handleSport} />
-            </Box>
+            </div>
           </>
         ) : loading ? (
-          <Box sx={{ pt: 1 }}>
+          <div className="pt-1">
             <SearchResultsSkeleton />
-          </Box>
+          </div>
         ) : error ? (
           <ErrorState onRetry={() => setRetryKey((k) => k + 1)} />
         ) : results.length === 0 ? (
@@ -243,81 +188,47 @@ const Search: React.FC = () => {
             onAction={() => navigate('/venues')}
           />
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-            <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary', px: 0.5 }}>
+          <div className="flex flex-col gap-3">
+            <p className="px-1 text-xs text-muted-foreground">
               {results.length.toLocaleString('fa-IR')} نتیجه برای «{submitted}»
-            </Typography>
+            </p>
             {results.map((v) => {
               const imgs = parseList(v.images)
               return (
-                <Box
+                <div
                   key={v.id}
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 1.5,
-                    p: 1.25,
-                    borderRadius: `${radii.card}px`,
-                    bgcolor: 'background.paper',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    boxShadow: shadows.card,
-                    transition: 'border-color 0.2s ease',
-                    '&:hover': { borderColor: (t) => (t.palette.mode === 'dark' ? 'rgba(251,191,36,0.45)' : 'rgba(245,158,11,0.55)') },
-                  }}
+                  className="flex items-center gap-3 rounded-2xl border border-border bg-card p-3 shadow-sm transition-colors hover:border-amber-500/50"
                 >
-                  <Box
-                    component={Link}
+                  <Link
                     to={`/venues/${v.id}`}
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 1.5,
-                      flex: 1,
-                      minWidth: 0,
-                      p: 0,
-                      borderRadius: 'inherit',
-                      color: 'inherit',
-                      textDecoration: 'none',
-                      '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
-                    }}
+                    className="flex min-w-0 flex-1 items-center gap-3 rounded-2xl text-inherit no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                   >
-                    <Box
-                      component="img"
+                    <img
                       src={imgs[0] ? toFullUrl(imgs[0]) : ''}
                       alt={v.name}
                       onError={(e) => {
                         (e.target as HTMLImageElement).style.visibility = 'hidden'
                       }}
                       loading="lazy"
-                      sx={{
-                        width: 64,
-                        height: 64,
-                        borderRadius: '14px',
-                        objectFit: 'cover',
-                        flexShrink: 0,
-                        bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(15,23,42,0.05)'),
-                      }}
+                      className="h-16 w-16 shrink-0 rounded-[14px] bg-muted object-cover"
                     />
-                    <Box sx={{ flex: 1, minWidth: 0 }}>
-                      <Typography sx={{ fontWeight: 700, fontSize: '0.9rem', color: 'text.primary' }} noWrap>
-                        {v.name}
-                      </Typography>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 0.25 }}>
+                    <div className="min-w-0 flex-1">
+                      <p className="truncate text-[0.9rem] font-bold text-foreground">{v.name}</p>
+                      <div className="mt-0.5 flex items-center gap-2">
                         <Rating value={v.average_rating} count={v.total_reviews} size="sm" />
-                      </Box>
-                      <Box sx={{ mt: 0.5 }}>
+                      </div>
+                      <div className="mt-1">
                         <Price value={v.price} from size="sm" />
-                      </Box>
-                    </Box>
-                  </Box>
+                      </div>
+                    </div>
+                  </Link>
                   <FavoriteButton venue={{ id: v.id, name: v.name }} size="sm" onImage={false} />
-                </Box>
+                </div>
               )
             })}
-          </Box>
+          </div>
         )}
-      </Box>
+      </div>
     </Layout>
   )
 }

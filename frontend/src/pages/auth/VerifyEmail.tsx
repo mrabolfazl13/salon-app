@@ -1,14 +1,16 @@
 // src/pages/auth/VerifyEmail.tsx
 import React, { useState } from 'react'
 import { useSearchParams, Link } from 'react-router-dom'
-import {
-  Container, Box, Paper, Typography, Button, TextField, Alert, CircularProgress,
-} from '@mui/material'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { toast } from 'react-hot-toast'
 import { authService } from '@/services/auth'
 import Layout from '@/components/layout/Layout'
+import { Button } from '@/components/ui/shadcn/button'
+import { Card } from '@/components/ui/shadcn/card'
+import { Input } from '@/components/ui/shadcn/input'
+import { Label } from '@/components/ui/shadcn/label'
+import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
 
 const VerifyEmail: React.FC = () => {
   const [params] = useSearchParams()
@@ -67,110 +69,126 @@ const VerifyEmail: React.FC = () => {
 
   return (
     <Layout>
-        <Container maxWidth="xs" sx={{ py: { xs: 6, md: 10 } }}>
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
-            <Paper
-              elevation={0}
-              sx={{
-                p: { xs: 3, md: 4 },
-                borderRadius: '24px',
-                bgcolor: 'background.paper',
-                border: '1px solid',
-                borderColor: 'divider',
-                boxShadow: (t) =>
-                  t.palette.mode === 'dark'
-                    ? '0 4px 24px rgba(0,0,0,0.40)'
-                    : '0 4px 24px rgba(37,99,235,0.08)',
-              }}
-            >
-              <Box sx={{ textAlign: 'center', mb: 4 }}>
-                <Box
-                  sx={{
-                    width: 64, height: 64, mx: 'auto', mb: 2,
-                    borderRadius: '18px',
-                    background: 'linear-gradient(135deg, #fbbf24 0%, #f59e0b 55%, #f97316 100%)',
-                    boxShadow: '0 10px 26px rgba(245,158,11,0.35)',
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}
-                >
-                  <Icon icon="mdi:email-check-outline" style={{ fontSize: 32, color: '#1c1917' }} />
-                </Box>
-                <Typography component="h1" variant="h5" sx={{ fontWeight: 700 }}>تایید شماره و ایمیل</Typography>
-                <Typography variant="body2" color="text.secondary" sx={{ mt: 1 }}>
-                  برای انجام رزرو، باید ایمیل یا شماره موبایل خود را تایید کنید
-                </Typography>
-              </Box>
+      <div className="mx-auto max-w-[420px] py-10 sm:py-16">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.4 }}
+        >
+          <Card className="p-5 shadow-[0_4px_24px_rgba(37,99,235,0.08)] sm:p-6 dark:shadow-[0_4px_24px_rgba(0,0,0,0.4)]">
+            <div className="mb-6 text-center">
+              <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-[18px] bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 shadow-[0_10px_26px_rgba(245,158,11,0.35)]">
+                <Icon
+                  icon="mdi:email-check-outline"
+                  style={{ fontSize: 32, color: '#1c1917' }}
+                  aria-hidden="true"
+                />
+              </div>
+              <h1 className="text-xl font-bold text-foreground">تایید شماره و ایمیل</h1>
+              <p className="mt-1 text-sm text-muted-foreground">
+                برای انجام رزرو، باید ایمیل یا شماره موبایل خود را تایید کنید
+              </p>
+            </div>
 
-              {success ? (
-                <Box sx={{ textAlign: 'center', py: 2 }}>
-                  <Alert severity="success" sx={{ mb: 3, borderRadius: 2 }}>
+            {success ? (
+              <div className="py-2 text-center">
+                <Alert variant="success" className="mb-5">
+                  <Icon icon="mdi:check-circle-outline" aria-hidden="true" />
+                  <AlertDescription>
                     ایمیل شما با موفقیت تایید شد. حالا می‌توانید رزرو کنید.
-                  </Alert>
-                  <Button component={Link} to="/venues" variant="contained" size="large"
-                    sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, px: 4 }}>
-                    مشاهده سالن‌ها
-                  </Button>
-                </Box>
-              ) : step === 1 ? (
-                <form onSubmit={handleRequestCode}>
-                  <TextField
-                    fullWidth label="شماره موبایل" value={phone}
+                  </AlertDescription>
+                </Alert>
+                <Button asChild size="lg" className="px-8">
+                  <Link to="/venues">مشاهده سالن‌ها</Link>
+                </Button>
+              </div>
+            ) : step === 1 ? (
+              <form onSubmit={handleRequestCode}>
+                <div className="mb-4 space-y-1.5">
+                  <Label htmlFor="verify-phone">شماره موبایل</Label>
+                  <Input
+                    id="verify-phone"
+                    dir="ltr"
+                    className="text-right"
+                    value={phone}
                     onChange={(e) => setPhone(e.target.value.replace(/[^0-9]/g, '').slice(0, 11))}
                     placeholder="09xxxxxxxxx"
-                    sx={{ mb: 2, direction: 'ltr', '& input': { textAlign: 'right' } }}
+                    inputMode="tel"
                   />
-                  <TextField
-                    fullWidth label="ایمیل" type="email" value={email}
+                </div>
+                <div className="mb-6 space-y-1.5">
+                  <Label htmlFor="verify-email">ایمیل</Label>
+                  <Input
+                    id="verify-email"
+                    dir="ltr"
+                    className="text-right"
+                    type="email"
+                    value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     placeholder="you@example.com"
-                    sx={{ mb: 3, direction: 'ltr', '& input': { textAlign: 'right' } }}
                   />
-                  <Button
-                    type="submit" fullWidth variant="contained" size="large" disabled={loading}
-                    sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, py: 1.4 }}
-                  >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : 'ارسال کد تایید'}
-                  </Button>
-                </form>
-              ) : (
-                <form onSubmit={handleConfirm}>
-                  <Alert severity="info" sx={{ mb: 2, borderRadius: 2 }}>
+                </div>
+                <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                  {loading ? (
+                    <span
+                      className="h-6 w-6 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    'ارسال کد تایید'
+                  )}
+                </Button>
+              </form>
+            ) : (
+              <form onSubmit={handleConfirm}>
+                <Alert variant="info" className="mb-4">
+                  <Icon icon="mdi:information-outline" aria-hidden="true" />
+                  <AlertDescription>
                     کد ۶ رقمی را که به ایمیل <b>{email}</b> ارسال شد وارد کنید
                     {import.meta.env.DEV && devCode && (
-                      <Box sx={{ mt: 1, fontWeight: 700, direction: 'ltr' }}>
+                      <span className="mt-1 block font-bold" dir="ltr">
                         (حالت توسعه — کد: {devCode})
-                      </Box>
+                      </span>
                     )}
-                  </Alert>
-                  <TextField
-                    fullWidth label="کد تایید" value={code}
+                  </AlertDescription>
+                </Alert>
+                <div className="mb-6 space-y-1.5">
+                  <Label htmlFor="verify-code">کد تایید</Label>
+                  <Input
+                    id="verify-code"
+                    dir="ltr"
+                    className="text-center tracking-[0.5em]"
+                    value={code}
                     onChange={(e) => setCode(e.target.value.replace(/[^0-9]/g, '').slice(0, 6))}
                     placeholder="000000"
-                    sx={{ mb: 3, direction: 'ltr', '& input': { textAlign: 'center', letterSpacing: 8 } }}
+                    inputMode="numeric"
                   />
-                  <Button
-                    type="submit" fullWidth variant="contained" size="large" disabled={loading}
-                    sx={{ borderRadius: '12px', textTransform: 'none', fontWeight: 600, py: 1.4 }}
-                  >
-                    {loading ? <CircularProgress size={24} color="inherit" /> : 'تایید کد'}
-                  </Button>
-                  <Button
-                    fullWidth color="inherit" sx={{ mt: 1, textTransform: 'none' }}
-                    onClick={() => { setStep(1); setCode('') }}
-                    startIcon={<Icon icon="mdi:arrow-right" />}
-                  >
-                    تغییر ایمیل یا شماره
-                  </Button>
-                </form>
-              )}
-            </Paper>
-          </motion.div>
-        </Container>
-      </Layout>
+                </div>
+                <Button type="submit" size="lg" className="w-full" disabled={loading}>
+                  {loading ? (
+                    <span
+                      className="h-6 w-6 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                      aria-hidden="true"
+                    />
+                  ) : (
+                    'تایید کد'
+                  )}
+                </Button>
+                <Button
+                  type="button"
+                  variant="ghost"
+                  className="mt-1 w-full"
+                  onClick={() => { setStep(1); setCode('') }}
+                >
+                  <Icon icon="mdi:arrow-right" className="h-5 w-5" aria-hidden="true" />
+                  تغییر ایمیل یا شماره
+                </Button>
+              </form>
+            )}
+          </Card>
+        </motion.div>
+      </div>
+    </Layout>
   )
 }
 

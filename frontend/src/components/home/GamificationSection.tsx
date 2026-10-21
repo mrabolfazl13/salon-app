@@ -1,11 +1,11 @@
-import React from 'react'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Typography, Button, Skeleton } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { useQuery } from '@tanstack/react-query'
 import SectionHeader from '@/components/mobile/SectionHeader'
-import { gradients, radii, shadows } from '@/theme'
+import { Button } from '@/components/ui/shadcn/button'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
 import { teamService } from '@/services/team'
 import { useAuthStore } from '@/store/authStore'
 
@@ -34,37 +34,15 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.4, delay }}
     >
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          gap: 1.5,
-          p: 1.5,
-          borderRadius: '12px',
-          bgcolor: rank <= 3 ? 'rgba(255,255,255,0.08)' : 'transparent',
-          border: rank <= 3 ? '1px solid rgba(255,255,255,0.15)' : 'none',
-          mb: 1,
-          transition: 'all 0.2s ease',
-          '&:hover': {
-            bgcolor: 'rgba(255,255,255,0.12)',
-          },
-        }}
+      <div
+        className={`mb-2 flex items-center gap-3 rounded-xl p-3 transition-colors duration-200 hover:bg-white/[0.12] ${
+          rank <= 3 ? 'border border-white/15 bg-white/[0.08]' : 'border border-transparent'
+        }`}
       >
         {/* رتبه */}
-        <Box
-          sx={{
-            width: 36,
-            height: 36,
-            borderRadius: '10px',
-            background: style.bg,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            fontWeight: 900,
-            fontSize: '0.9rem',
-            color: style.color,
-            position: 'relative',
-          }}
+        <span
+          className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[0.9rem] font-black"
+          style={{ backgroundColor: style.bg, color: style.color }}
         >
           {style.icon && (
             <Icon
@@ -79,65 +57,28 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
             />
           )}
           {rank}
-        </Box>
+        </span>
 
         {/* آواتار و نام */}
-        <Box sx={{ flex: 1, minWidth: 0 }}>
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-            <Box
-              sx={{
-                width: 32,
-                height: 32,
-                borderRadius: '50%',
-                background: 'linear-gradient(135deg, #3b82f6, #2563eb)',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                fontSize: '0.85rem',
-                fontWeight: 700,
-                color: '#fff',
-              }}
-            >
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2">
+            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-[0.85rem] font-bold text-white">
               {avatar}
-            </Box>
-            <Typography
-              sx={{
-                fontWeight: 700,
-                fontSize: '0.88rem',
-                color: '#fff',
-              }}
-              noWrap
-            >
+            </span>
+            <p className="truncate text-[0.88rem] font-bold text-white">
               {name}
-            </Typography>
-          </Box>
-          <Typography
-            sx={{
-              fontSize: '0.75rem',
-              color: 'rgba(255,255,255,0.6)',
-              mt: 0.25,
-            }}
-          >
+            </p>
+          </div>
+          <p className="mt-0.5 text-xs text-white/60">
             {gamesPlayed} بازی
-          </Typography>
-        </Box>
+          </p>
+        </div>
 
         {/* امتیاز */}
-        <Box
-          sx={{
-            px: 1.5,
-            py: 0.5,
-            borderRadius: '8px',
-            bgcolor: 'rgba(251,191,36,0.15)',
-            color: '#fbbf24',
-            fontWeight: 800,
-            fontSize: '0.85rem',
-            fontVariantNumeric: 'tabular-nums',
-          }}
-        >
+        <span className="rounded-lg bg-amber-400/15 px-3 py-1 text-[0.85rem] font-extrabold tabular-nums text-amber-400">
           {points.toLocaleString('fa-IR')}
-        </Box>
-      </Box>
+        </span>
+      </div>
     </motion.div>
   )
 }
@@ -157,72 +98,28 @@ const Badge: React.FC<BadgeProps> = ({ icon, name, description, color, unlocked,
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.4, delay }}
   >
-    <Box
-      sx={{
-        p: 2,
-        borderRadius: '16px',
-        bgcolor: 'background.paper',
-        border: '1px solid',
-        borderColor: unlocked ? color : 'divider',
-        opacity: unlocked ? 1 : 0.5,
-        textAlign: 'center',
-        transition: 'all 0.3s ease',
-        '&:hover': {
-          transform: 'translateY(-4px)',
-          boxShadow: unlocked ? `0 8px 20px ${color}30` : shadows.card,
-        },
-      }}
+    <div
+      className="rounded-2xl border border-border bg-card p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+      style={{ borderColor: unlocked ? color : undefined, opacity: unlocked ? 1 : 0.5 }}
     >
-      <Box
-        sx={{
-          width: 56,
-          height: 56,
-          borderRadius: '14px',
-          background: unlocked ? `${color}20` : 'rgba(0,0,0,0.05)',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          mx: 'auto',
-          mb: 1.5,
-        }}
+      <span
+        className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-[14px]"
+        style={{ backgroundColor: unlocked ? `${color}20` : 'rgba(0,0,0,0.05)' }}
       >
         <Icon icon={icon} style={{ width: 28, height: 28, color: unlocked ? color : '#9ca3af' }} />
-      </Box>
-      <Typography
-        sx={{
-          fontWeight: 700,
-          fontSize: '0.85rem',
-          color: 'text.primary',
-          mb: 0.5,
-        }}
-      >
+      </span>
+      <h3 className="mb-1 text-[0.85rem] font-bold text-foreground">
         {name}
-      </Typography>
-      <Typography
-        sx={{
-          fontSize: '0.75rem',
-          color: 'text.secondary',
-          lineHeight: 1.6,
-        }}
-      >
+      </h3>
+      <p className="text-xs leading-relaxed text-muted-foreground">
         {description}
-      </Typography>
+      </p>
       {!unlocked && (
-        <Box
-          sx={{
-            mt: 1,
-            px: 1,
-            py: 0.3,
-            borderRadius: '6px',
-            bgcolor: 'rgba(0,0,0,0.05)',
-            fontSize: '0.75rem',
-            color: 'text.secondary',
-          }}
-        >
+        <span className="mt-2 inline-block rounded-md bg-black/5 px-2 py-0.5 text-xs text-muted-foreground dark:bg-white/10">
           قفل شده
-        </Box>
+        </span>
       )}
-    </Box>
+    </div>
   </motion.div>
 )
 
@@ -271,69 +168,44 @@ export const GamificationSection: React.FC = () => {
   const items = q.data?.items ?? []
 
   return (
-    <Box sx={{ mb: 6 }}>
+    <section className="mb-12">
       <SectionHeader
         title="چالش‌ها و جوایز"
         subtitle="بازی کن، امتیاز بگیر، جایزه ببر!"
       />
 
-      <Box
-        sx={{
-          display: 'grid',
-          gridTemplateColumns: {
-            xs: '1fr',
-            lg: '1fr 1fr',
-          },
-          gap: 3,
-        }}
-      >
+      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         {/* جدول امتیازات */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <Box
-            sx={{
-              p: 3,
-              borderRadius: `${radii.card}px`,
-              background: 'linear-gradient(135deg, #1e293b, #0f172a)',
-              color: '#fff',
-              boxShadow: shadows.card,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <div className="rounded-[20px] bg-gradient-to-br from-slate-800 to-slate-900 p-6 text-white shadow-sm">
+            <div className="mb-5 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
                 <Icon icon="mdi:trophy" style={{ width: 24, height: 24, color: '#fbbf24' }} />
-                <Typography sx={{ fontWeight: 800, fontSize: '1.1rem' }}>جدول برترین‌ها</Typography>
-              </Box>
+                <h3 className="text-[1.1rem] font-extrabold">جدول برترین‌ها</h3>
+              </div>
               <Button
-                size="medium"
+                type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => navigate(isAuthenticated ? '/teams' : '/login')}
-                sx={{
-                  color: '#fbbf24',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  minHeight: 44,
-                  minWidth: 44,
-                  textTransform: 'none',
-                  '&:hover': {
-                    bgcolor: 'rgba(251,191,36,0.1)',
-                  },
-                }}
+                className="min-h-11 px-3 text-[0.78rem] font-bold text-amber-400 hover:bg-amber-400/10 hover:text-amber-300"
               >
                 مشاهده همه
               </Button>
-            </Box>
+            </div>
 
             {q.isPending && isAuthenticated ? (
               [1, 2, 3].map((i) => (
-                <Skeleton aria-hidden="true" key={i} variant="rounded" height={62} sx={{ mb: 1 }} />
+                <Skeleton aria-hidden="true" key={i} className="mb-2 h-[62px] w-full rounded-xl bg-white/10" />
               ))
             ) : items.length === 0 ? (
-              <Typography variant="body2" sx={{ color: 'rgba(255,255,255,0.72)', py: 1.5 }}>
+              <p className="py-3 text-sm text-white/[0.72]">
                 هنوز جدولی منتشر نشده — بعد از اولین مسابقات رسمی همین‌جا پر می‌شود.
-              </Typography>
+              </p>
             ) : (
               items.map((player, index) => (
                 <LeaderboardPlayer
@@ -347,7 +219,7 @@ export const GamificationSection: React.FC = () => {
                 />
               ))
             )}
-          </Box>
+          </div>
         </motion.div>
 
         {/* نشان‌های افتخار */}
@@ -356,60 +228,34 @@ export const GamificationSection: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5, delay: 0.2 }}
         >
-          <Box
-            sx={{
-              p: 3,
-              borderRadius: `${radii.card}px`,
-              bgcolor: 'background.paper',
-              border: '1px solid',
-              borderColor: 'divider',
-              boxShadow: shadows.card,
-            }}
-          >
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 2.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <div className="rounded-[20px] border border-border bg-card p-6 shadow-sm">
+            <div className="mb-5 flex items-center justify-between gap-2">
+              <div className="flex items-center gap-2">
                 <Icon icon="mdi:badge-outline" style={{ width: 24, height: 24, color: '#3b82f6' }} />
-                <Typography sx={{ fontWeight: 800, fontSize: '1.1rem' }}>نشان‌های افتخار</Typography>
-              </Box>
-              <Typography sx={{ fontSize: '0.78rem', color: 'text.secondary' }}>
+                <h3 className="text-[1.1rem] font-extrabold text-foreground">نشان‌های افتخار</h3>
+              </div>
+              <p className="text-[0.78rem] text-muted-foreground">
                 {BADGES.filter((b) => b.unlocked).length} از {BADGES.length} باز شده
-              </Typography>
-            </Box>
+              </p>
+            </div>
 
-            <Box
-              sx={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(2, 1fr)',
-                gap: 2,
-              }}
-            >
+            <div className="grid grid-cols-2 gap-4">
               {BADGES.map((badge, index) => (
                 <Badge key={badge.name} {...badge} delay={index * 0.1} />
               ))}
-            </Box>
+            </div>
 
             <Button
-              fullWidth
+              type="button"
+              variant="primary"
               onClick={() => navigate('/profile')}
-              sx={{
-                mt: 2.5,
-                py: 1.2,
-                minHeight: 44,
-                borderRadius: '12px',
-                background: gradients.primary,
-                color: '#fff',
-                fontWeight: 700,
-                textTransform: 'none',
-                '&:hover': {
-                  opacity: 0.9,
-                },
-              }}
+              className="mt-5 w-full py-3 font-bold"
             >
               مشاهده پروفایل من
             </Button>
-          </Box>
+          </div>
         </motion.div>
-      </Box>
-    </Box>
+      </div>
+    </section>
   )
 }

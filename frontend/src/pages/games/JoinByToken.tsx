@@ -3,15 +3,16 @@
 
 import React from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { Box, Typography, Paper, Alert } from '@mui/material'
+import { Icon } from '@iconify/react'
+import { AlertCircle } from 'lucide-react'
 
 import Layout from '@/components/layout/Layout'
 import { EmptyState, ErrorState, Shimmer } from '@/components/mobile'
-import { Button } from '@/components/ui/Button'
+import { Button } from '@/components/ui/shadcn/button'
+import { Card } from '@/components/ui/shadcn/card'
 import { GameCard, getGameError } from '@/components/game'
 import { useJoinByToken, useTokenPreview } from '@/hooks/useGames'
 import { useToast } from '@/hooks/useToast'
-import { radii, shadows } from '@/theme'
 
 const JoinByToken: React.FC = () => {
   const { token } = useParams<{ token: string }>()
@@ -33,19 +34,19 @@ const JoinByToken: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ py: 4, maxWidth: 560, mx: 'auto' }}>
-        <Typography component="h1" sx={{ fontWeight: 800, fontSize: '1.25rem', color: '#0f172a', mb: 0.5, textAlign: 'center' }}>
+      <div className="mx-auto max-w-[560px] py-4">
+        <h1 className="mb-1 text-center text-xl font-extrabold text-foreground">
           دعوت به بازی
-        </Typography>
-        <Typography sx={{ fontSize: '0.82rem', color: '#64748b', mb: 3, textAlign: 'center' }}>
+        </h1>
+        <p className="mb-6 text-center text-[0.82rem] text-muted-foreground">
           با لینک دعوت وارد شدید — جزئیات بازی را بررسی کنید و بپیوندید.
-        </Typography>
+        </p>
 
         {previewQ.isLoading ? (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Shimmer variant="rectangular" height={120} sx={{ borderRadius: `${radii.card}px` }} />
-            <Shimmer variant="rectangular" height={60} sx={{ borderRadius: `${radii.card}px` }} />
-          </Box>
+          <div className="flex flex-col gap-4">
+            <Shimmer variant="rectangular" height={120} className="rounded-2xl" />
+            <Shimmer variant="rectangular" height={60} className="rounded-2xl" />
+          </div>
         ) : previewQ.isError ? (
           <ErrorState
             title="بررسی لینک ممکن نشد"
@@ -61,29 +62,42 @@ const JoinByToken: React.FC = () => {
             onAction={() => navigate('/games')}
           />
         ) : (
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-            <Paper elevation={0} sx={{ boxShadow: shadows.card, borderRadius: `${radii.card}px`, overflow: 'hidden' }}>
+          <div className="flex flex-col gap-4">
+            <Card className="overflow-hidden">
               <GameCard game={previewQ.data.game} />
-            </Paper>
-            <Alert severity="info" sx={{ borderRadius: 2 }}>
-              با کلیک روی «پیوستن به بازی» از طریق این لینک، مستقیماً در بازی ثبت می‌شوید.
-            </Alert>
+            </Card>
+            <div
+              role="status"
+              className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200"
+            >
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-300" aria-hidden="true" />
+              <span>
+                با کلیک روی «پیوستن به بازی» از طریق این لینک، مستقیماً در بازی ثبت می‌شوید.
+              </span>
+            </div>
             <Button
-              variant="gradient"
+              variant="primary"
               size="lg"
-              icon="mdi:account-group"
-              loading={joinByToken.isPending}
+              disabled={joinByToken.isPending}
               onClick={handleJoin}
               className="w-full"
             >
+              {joinByToken.isPending ? (
+                <span
+                  className="h-5 w-5 animate-spin rounded-full border-2 border-white/40 border-t-white"
+                  aria-hidden="true"
+                />
+              ) : (
+                <Icon icon="mdi:account-group" className="h-5 w-5" aria-hidden="true" />
+              )}
               پیوستن به بازی
             </Button>
             <Button variant="ghost" onClick={() => navigate(`/games/${previewQ.data!.game!.id}`)}>
               مشاهده صفحه بازی
             </Button>
-          </Box>
+          </div>
         )}
-      </Box>
+      </div>
     </Layout>
   )
 }

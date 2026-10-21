@@ -3,14 +3,15 @@ import React, { useState, useEffect, useCallback, useMemo } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { Box, Button, Typography } from '@mui/material'
 import Layout from '@/components/layout/Layout'
 import MobileHeader from '@/components/mobile/MobileHeader'
 import SearchBar from '@/components/mobile/SearchBar'
 import { SportChipRow, type Sport } from '@/components/mobile/SportChip'
 import SectionHeader from '@/components/mobile/SectionHeader'
 import VenueCard from '@/components/venue/VenueCard'
-import { VenueCardSkeletonList, Shimmer } from '@/components/mobile/Skeletons'
+import { VenueCardSkeletonList } from '@/components/mobile/Skeletons'
+import { Button } from '@/components/ui/shadcn/button'
+import { Skeleton } from '@/components/ui/shadcn/skeleton'
 import { useAuthStore } from '@/store/authStore'
 import { useRecentlyViewedStore } from '@/store/recentlyViewedStore'
 import { venueService } from '@/services/venue'
@@ -21,7 +22,6 @@ import type { Venue } from '@/types'
 import { parseList, toFullUrl } from '@/utils/venueMedia'
 import { formatPrice } from '@/lib/utils'
 import { toPersianDigits, formatJalaliDate } from '@/lib/jalali'
-import { gradients, radii, shadows } from '@/theme'
 import { HeroSection } from '@/components/home/HeroSection'
 import { WhyUsSection } from '@/components/home/WhyUsSection'
 import { TestimonialsSection } from '@/components/home/TestimonialsSection'
@@ -58,16 +58,8 @@ const FEATURE_TILES = [
   { label: 'وفاداری', sub: 'امتیاز و جوایز', icon: 'mdi:star-four-points-outline', href: '/profile' },
 ] as const
 
-const venueGrid = {
-  display: 'grid',
-  // minmax(0,1fr) — از سرریز min-content کارت‌ها در عرض‌های باریک جلوگیری می‌کند
-  gridTemplateColumns: {
-    xs: 'minmax(0, 1fr)',
-    sm: 'repeat(2, minmax(0, 1fr))',
-    md: 'repeat(3, minmax(0, 1fr))',
-  },
-  gap: { xs: 2, sm: 2.5 },
-} as const
+// minmax(0,1fr) — از سرریز min-content کارت‌ها در عرض‌های باریک جلوگیری می‌کند
+const venueGrid = 'grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3'
 
 const Home: React.FC = () => {
   const navigate = useNavigate()
@@ -242,34 +234,24 @@ const Home: React.FC = () => {
 
   return (
     <Layout>
-      <Box sx={{ maxWidth: 1000, mx: 'auto' }}>
+      <div className="mx-auto max-w-[1000px]">
         {/* Hero Section - بخش جذب کاربر */}
         <HeroSection />
 
         {/* سلام + جستجو */}
         <MobileHeader />
-        <Box sx={{ mb: 3 }}>
+        <div className="mb-6">
           <SearchBar
             value=""
             readOnly
             onClick={() => navigate('/search')}
             placeholder="جستجوی سالن، محله یا ورزش…"
           />
-        </Box>
+        </div>
 
         {/* دسترسی سریع — تیم‌ها / بازی‌ها / رقابت / وفاداری
             روی موبایل ۳ ستون (دو ردیف) تا کاشی‌ها زیر ~۶۰px له نشوند */}
-        <Box
-          sx={{
-            display: 'grid',
-            gridTemplateColumns: {
-              xs: 'repeat(3, minmax(0, 1fr))',
-              sm: 'repeat(5, minmax(0, 1fr))',
-            },
-            gap: { xs: 1.5, sm: 1.25 },
-            mb: 4,
-          }}
-        >
+        <div className="mb-8 grid grid-cols-3 gap-3 sm:grid-cols-5 sm:gap-2.5">
           {FEATURE_TILES.map((t, i) => (
             <motion.div
               key={t.href}
@@ -281,67 +263,27 @@ const Home: React.FC = () => {
                  خودش ایستگاه کیبورد است، پس اینجا -1 تا توقف تکراری ساخته نشود. */
               tabIndex={-1}
             >
-              <Box
-                component={Link}
+              <Link
                 to={t.href}
-                sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 0.75,
-                  py: 2,
-                  px: 1,
-                  minHeight: 96,
-                  borderRadius: '16px',
-                  textDecoration: 'none',
-                  bgcolor: 'background.paper',
-                  border: '1px solid',
-                  borderColor: 'divider',
-                  boxShadow: shadows.card,
-                  transition: 'border-color 0.2s ease',
-                  '&:hover': {
-                    borderColor: (th) => (th.palette.mode === 'dark' ? 'rgba(251,191,36,0.45)' : 'rgba(245,158,11,0.55)'),
-                  },
-                }}
+                className="flex min-h-24 flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-4 text-center no-underline shadow-sm transition-colors hover:border-amber-500/55 dark:hover:border-amber-400/45"
               >
-                <Box
-                  sx={{
-                    width: 40,
-                    height: 40,
-                    borderRadius: '12px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#d97706'),
-                    bgcolor: (th) => (th.palette.mode === 'dark' ? 'rgba(251,191,36,0.12)' : 'rgba(245,158,11,0.10)'),
-                  }}
-                >
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400">
                   <Icon icon={t.icon} style={{ width: 22, height: 22 }} />
-                </Box>
-                <Box sx={{ textAlign: 'center' }}>
-                  <Box sx={{ fontSize: '0.82rem', fontWeight: 800, color: 'text.primary', lineHeight: 1.5 }}>{t.label}</Box>
-                  <Box sx={{ fontSize: '0.68rem', color: 'text.secondary', mt: 0.25, lineHeight: 1.6 }}>{t.sub}</Box>
-                </Box>
-              </Box>
+                </span>
+                <span className="block">
+                  <span className="block text-[0.82rem] font-extrabold leading-normal text-foreground">{t.label}</span>
+                  <span className="mt-1 block text-[0.68rem] leading-relaxed text-muted-foreground">{t.sub}</span>
+                </span>
+              </Link>
             </motion.div>
           ))}
-        </Box>
+        </div>
 
         {/* رقابت‌های داغ — قیمت در حال کاهش، با شمارش معکوس */}
         {liveHotComps.length > 0 && (
-          <Box sx={{ mb: 4 }}>
+          <div className="mb-8">
             <SectionHeader title="رقابت‌های داغ" subtitle="تا پایان مهلت، قیمت پایین می‌آید" />
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 1.5,
-                overflowX: 'auto',
-                pb: 1,
-                scrollSnapType: 'x mandatory',
-                scrollbarWidth: 'none',
-                '&::-webkit-scrollbar': { display: 'none' },
-              }}
-            >
+            <div className="flex gap-3 overflow-x-auto pb-2 [scroll-snap-type:x_mandatory] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
               {liveHotComps.map((c, i) => {
                 const msLeft = new Date(c.expires_at).getTime() - now
                 const offPct = c.current_price > 0 ? Math.max(0, Math.round(((c.current_price - c.best_price) / c.current_price) * 100)) : 0
@@ -355,112 +297,54 @@ const Home: React.FC = () => {
                     tabIndex={-1}
                     style={{ scrollSnapAlign: 'start', flex: '0 0 min(300px, 82vw)' }}
                   >
-                    <Box
-                      component={Link}
+                    <Link
                       to={`/venues/${c.venue_id}`}
-                      sx={{
-                        display: 'block',
-                        textDecoration: 'none',
-                        p: 2,
-                        borderRadius: '16px',
-                        border: '1px solid rgba(245,158,11,0.45)',
-                        bgcolor: 'background.paper',
-                        boxShadow: shadows.card,
-                        background: (th) =>
-                          th.palette.mode === 'dark'
-                            ? 'linear-gradient(135deg, rgba(251,191,36,0.10), rgba(249,115,22,0.06))'
-                            : 'linear-gradient(135deg, rgba(255,247,237,0.9), rgba(255,251,235,0.7))',
-                      }}
+                      className="block rounded-2xl border border-amber-500/45 bg-gradient-to-br from-orange-50/90 to-amber-50/70 p-4 text-inherit no-underline shadow-sm dark:from-amber-400/10 dark:to-orange-500/[0.06]"
                     >
-                      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, minWidth: 0 }}>
+                      <div className="mb-2 flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 items-center gap-1.5">
                           <Icon icon="mdi:trophy" style={{ width: 18, height: 18, color: '#f59e0b', flexShrink: 0 }} />
-                          <Box
-                                sx={{
-                                  fontSize: '0.78rem',
-                                  fontWeight: 800,
-                                  color: 'text.primary',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
-                                  whiteSpace: 'nowrap',
-                                }}
-                              >
+                          <p className="truncate text-[0.78rem] font-extrabold text-foreground">
                             {c.venue_name ?? 'سالن'}
-                          </Box>
-                        </Box>
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            px: 1,
-                            py: 0.4,
-                            borderRadius: '999px',
-                            bgcolor: msLeft < 3 * 3600_000 ? 'rgba(220,38,38,0.12)' : 'rgba(245,158,11,0.14)',
-                            color: msLeft < 3 * 3600_000 ? '#dc2626' : '#b45309',
-                            fontSize: '0.75rem',
-                            fontWeight: 800,
-                            whiteSpace: 'nowrap',
-                            fontVariantNumeric: 'tabular-nums',
-                          }}
+                          </p>
+                        </div>
+                        <span
+                          className={`flex items-center gap-2 whitespace-nowrap rounded-full px-2 py-1 text-xs font-extrabold tabular-nums ${
+                            msLeft < 3 * 3600_000
+                              ? 'bg-red-600/10 text-red-600 dark:bg-red-500/15 dark:text-red-400'
+                              : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
+                          }`}
                         >
                           <Icon icon="mdi:timer-sand" style={{ width: 14, height: 14 }} />
                           {remainingLabel(msLeft)}
-                        </Box>
-                      </Box>
+                        </span>
+                      </div>
 
-                      <Box sx={{ fontSize: '0.75rem', color: 'text.secondary', mb: 1 }}>
+                      <p className="mb-2 text-xs text-muted-foreground">
                         {formatJalaliDate(c.date)} — {toPersianDigits(c.start_time)}
                         {' · '}
                         {toPersianDigits(c.bid_count)} پیشنهاد
-                      </Box>
+                      </p>
 
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap' }}>
-                        <Box
-                          component="span"
-                          sx={{
-                            fontSize: '0.75rem',
-                            color: 'text.secondary',
-                            textDecoration: 'line-through',
-                            fontVariantNumeric: 'tabular-nums',
-                          }}
-                        >
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs tabular-nums text-muted-foreground line-through">
                           {formatPrice(c.current_price)}
-                        </Box>
-                        <Box
-                          component="span"
-                          sx={{
-                            fontSize: '0.95rem',
-                            fontWeight: 900,
-                            color: (th) => (th.palette.mode === 'dark' ? '#fbbf24' : '#b45309'),
-                            fontVariantNumeric: 'tabular-nums',
-                          }}
-                        >
+                        </span>
+                        <span className="text-[0.95rem] font-black tabular-nums text-amber-700 dark:text-amber-400">
                           {formatPrice(c.best_price)}
-                        </Box>
+                        </span>
                         {offPct > 0 && (
-                          <Box
-                            component="span"
-                            sx={{
-                              px: 0.75,
-                              py: 0.15,
-                              borderRadius: '999px',
-                              fontSize: '0.75rem',
-                              fontWeight: 800,
-                              color: '#1c1917',
-                              bgcolor: '#fbbf24',
-                            }}
-                          >
+                          <span className="rounded-full bg-amber-400 px-1.5 py-0.5 text-xs font-extrabold text-stone-900">
                             {toPersianDigits(offPct)}٪ تخفیف
-                          </Box>
+                          </span>
                         )}
-                      </Box>
-                    </Box>
+                      </div>
+                    </Link>
                   </motion.div>
                 )
               })}
-            </Box>
-          </Box>
+            </div>
+          </div>
         )}
 
         {/* چرا ما؟ */}
@@ -486,9 +370,9 @@ const Home: React.FC = () => {
 
         {/* ورزش‌های محبوب */}
         <SectionHeader title="ورزش‌های محبوب" subtitle="زودتر برو سراغ بازی" />
-        <Box sx={{ mb: 4 }}>
+        <div className="mb-8">
           <SportChipRow onSelect={handleSportSelect} />
-        </Box>
+        </div>
 
         {/* بنر CTA — گرادیان برند */}
         <motion.div
@@ -496,156 +380,57 @@ const Home: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
         >
-          <Box
-            component="button"
+          <button
             type="button"
             onClick={() => navigate(isAuthenticated ? '/venues' : '/register')}
-            sx={{
-              position: 'relative',
-              overflow: 'hidden',
-              borderRadius: `${radii.card}px`,
-              background: gradients.primary,
-              color: '#fff',
-              px: 2.5,
-              py: 3,
-              mb: 4,
-              cursor: 'pointer',
-              boxShadow: '0 10px 30px rgba(15,23,42,0.35)',
-              // Box به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر + حفظ چیدمان بلوکی
-              display: 'block',
-              width: '100%',
-              textAlign: 'inherit',
-              fontFamily: 'inherit',
-              appearance: 'none',
-              WebkitTapHighlightColor: 'transparent',
-              '&:focus-visible': { outline: '3px solid', outlineColor: '#f59e0b', outlineOffset: 2 },
-            }}
+            className="relative mb-8 block w-full appearance-none overflow-hidden rounded-[20px] bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700 px-5 py-6 text-start font-[inherit] text-white shadow-[0_10px_30px_rgba(15,23,42,0.35)] [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-amber-500"
           >
-            <Box
-              sx={{
-                position: 'absolute',
-                top: -40,
-                insetInlineEnd: -40,
-                width: 160,
-                height: 160,
-                borderRadius: '50%',
-                bgcolor: 'rgba(245,158,11,0.18)',
-              }}
-            />
-            <Box
-              sx={{
-                position: 'absolute',
-                bottom: -60,
-                insetInlineStart: -30,
-                width: 140,
-                height: 140,
-                borderRadius: '50%',
-                border: '2px dashed rgba(255,255,255,0.14)',
-              }}
-            />
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, mb: 0.75 }}>
-              <Box
-                sx={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: '9px',
-                  background: gradients.brandEnergy,
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  flexShrink: 0,
-                }}
-              >
+            <span className="absolute -end-10 -top-10 h-40 w-40 rounded-full bg-amber-500/[0.18]" />
+            <span className="absolute -bottom-[60px] start-[-30px] h-[140px] w-[140px] rounded-full border-2 border-dashed border-white/[0.14]" />
+            <span className="mb-1.5 flex items-center gap-1.5">
+              <span className="flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-[9px] bg-gradient-to-br from-amber-300 to-orange-500">
                 <Icon icon="mdi:lightning-bolt" style={{ width: 18, height: 18, color: '#1c1917' }} />
-              </Box>
-              <Typography sx={{ fontWeight: 800, fontSize: '1.1rem' }}>
+              </span>
+              <span className="text-[1.1rem] font-extrabold">
                 {isAuthenticated ? 'همین حالا سانس رزرو کن' : 'همین حالا رایگان شروع کن'}
-              </Typography>
-            </Box>
-            <Typography sx={{ fontSize: '0.82rem', color: 'rgba(255,255,255,0.85)' }}>
+              </span>
+            </span>
+            <span className="block text-[0.82rem] text-white/85">
               {isAuthenticated
                 ? 'بهترین سالن‌ها با بهترین قیمت، چند لحظه‌ای'
                 : 'ثبت‌نام کن و در کمتر از یک دقیقه سالن رزرو کن'}
-            </Typography>
-            <Box
-              sx={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 1,
-                mt: 1.5,
-                px: 1.75,
-                py: 0.75,
-                borderRadius: `${radii.button}px`,
-                background: gradients.brandEnergy,
-                color: '#1c1917',
-                fontSize: '0.8rem',
-                fontWeight: 800,
-              }}
-            >
+            </span>
+            <span className="mt-3 inline-flex items-center gap-2 rounded-[14px] bg-gradient-to-br from-amber-300 to-orange-500 px-3.5 py-1.5 text-[0.8rem] font-extrabold text-stone-900">
               {isAuthenticated ? 'مشاهده سالن‌ها' : 'شروع رایگان'}
               <Icon icon="mdi:arrow-left" style={{ width: 16, height: 16 }} />
-            </Box>
-          </Box>
+            </span>
+          </button>
         </motion.div>
 
         {/* بنر شگفت‌انگیزها — سانس‌های لحظه آخری */}
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4, delay: 0.05 }}>
-          <Box
-            component="button"
+          <button
             type="button"
             onClick={() => navigate(isAuthenticated ? '/deals' : '/login')}
-            sx={{
-              position: 'relative',
-              overflow: 'hidden',
-              borderRadius: `${radii.card}px`,
-              background: gradients.deals,
-              // متن سفید روی این گرادیان ۲٫۱–۳٫۸:۱ می‌شود (رد)؛ مرکبِ تیره ۴٫۶۵–۸٫۱:۱
-              color: '#1c1917',
-              px: 2.5,
-              py: 2.25,
-              mb: 4,
-              cursor: 'pointer',
-              boxShadow: '0 10px 30px rgba(239,68,68,0.28)',
-              // Box به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر + حفظ چیدمان بلوکی
-              display: 'block',
-              width: '100%',
-              textAlign: 'inherit',
-              fontFamily: 'inherit',
-              appearance: 'none',
-              WebkitTapHighlightColor: 'transparent',
-              '&:focus-visible': { outline: '3px solid', outlineColor: '#f59e0b', outlineOffset: 2 },
-            }}
+            className="relative mb-8 block w-full appearance-none overflow-hidden rounded-[20px] bg-gradient-to-br from-amber-500 to-red-500 px-5 py-[18px] text-start font-[inherit] text-stone-900 shadow-[0_10px_30px_rgba(239,68,68,0.28)] [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-amber-500"
           >
-            <Box sx={{ position: 'absolute', bottom: -50, left: -30, width: 150, height: 150, borderRadius: '50%', bgcolor: 'rgba(255,255,255,0.12)' }} />
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1.5 }}>
-              <Box sx={{ minWidth: 0 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+            <span className="absolute -bottom-[50px] start-[-30px] h-[150px] w-[150px] rounded-full bg-white/10" />
+            <span className="flex items-center justify-between gap-3">
+              <span className="block min-w-0">
+                <span className="flex items-center gap-2">
                   <Icon icon="mdi:fire" style={{ width: 20, height: 20, flexShrink: 0 }} />
-                  <Typography sx={{ fontWeight: 800, fontSize: '1.02rem' }}>شگفت‌انگیزهای لحظه آخری</Typography>
-                </Box>
-                <Typography sx={{ fontSize: '0.78rem', color: '#1c1917', mt: 0.25 }}>
+                  <span className="text-[1.02rem] font-extrabold">شگفت‌انگیزهای لحظه آخری</span>
+                </span>
+                <span className="mt-1 block text-[0.78rem] text-stone-900">
                   سانس‌های تخفیف‌دار نزدیک تو — تا مهلت تمام نشده رزرو کن
-                </Typography>
-              </Box>
-              <Box
-                sx={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: 1,
-                  px: 1.5,
-                  py: 0.75,
-                  borderRadius: `${radii.button}px`,
-                  bgcolor: 'rgba(255,255,255,0.2)',
-                  fontSize: '0.78rem',
-                  fontWeight: 700,
-                  flexShrink: 0,
-                }}
-              >
+                </span>
+              </span>
+              <span className="inline-flex shrink-0 items-center gap-2 rounded-[14px] bg-white/20 px-3 py-1.5 text-[0.78rem] font-bold">
                 مشاهده
                 <Icon icon="mdi:arrow-left" style={{ width: 15, height: 15 }} />
-              </Box>
-            </Box>
-          </Box>
+              </span>
+            </span>
+          </button>
         </motion.div>
 
         {/* نزدیک شما */}
@@ -655,48 +440,42 @@ const Home: React.FC = () => {
           onAction={() => navigate('/venues')}
         />
         {!coords && (
-          <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 2, px: 0.25 }}>
-            <Typography sx={{ fontSize: '0.8rem', color: 'text.secondary', flex: 1, minWidth: 0 }}>
+          <div className="mb-4 flex items-center gap-2 px-1">
+            <p className="min-w-0 flex-1 text-[0.8rem] text-muted-foreground">
               {locFailed
                 ? 'دسترسی مکان رد شد؛ از تنظیمات مرورگر/برنامه فعالش کنید.'
                 : 'برای پیشنهاد بر اساس نزدیک‌ترین سالن، موقعیت مکانی را فعال کنید.'}
-            </Typography>
+            </p>
             <Button
-              size="medium"
+              type="button"
+              variant="ghost"
+              size="sm"
               disabled={locBusy}
               onClick={() => {
                 setLocFailed(false)
                 requestLocation()
               }}
-              startIcon={<Icon icon="mdi:crosshairs-gps" style={{ width: 18, height: 18 }} />}
-              sx={{
-                textTransform: 'none',
-                fontWeight: 700,
-                borderRadius: '12px',
-                flexShrink: 0,
-                color: 'primary.main',
-                minHeight: 44,
-                px: 2,
-              }}
+              className="min-h-11 shrink-0 gap-1 rounded-xl px-4 font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
             >
+              <Icon icon="mdi:crosshairs-gps" style={{ width: 18, height: 18 }} />
               {locBusy ? 'در حال دریافت…' : 'فعال‌سازی'}
             </Button>
-          </Box>
+          </div>
         )}
         {nearbyLoading ? (
-          <Box sx={{ mb: 4 }}>
+          <div className="mb-8">
             <VenueCardSkeletonList count={2} />
-          </Box>
+          </div>
         ) : nearby.length === 0 ? (
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mb: 4 }}>
+          <p className="mb-8 text-[0.85rem] text-muted-foreground">
             سالنی در نزدیکی شما پیدا نشد.
-          </Typography>
+          </p>
         ) : (
-          <Box sx={{ ...venueGrid, mb: 4 }}>
+          <div className={`${venueGrid} mb-8`}>
             {nearby.slice(0, 3).map((v) => (
               <VenueCard key={v.id} venue={v} onBook={(id) => navigate(`/venues/${id}`)} />
             ))}
-          </Box>
+          </div>
         )}
 
         {/* محبوب‌ترین سالن‌ها */}
@@ -707,19 +486,19 @@ const Home: React.FC = () => {
           onAction={() => navigate('/venues')}
         />
         {venuesLoading ? (
-          <Box sx={{ mb: 4 }}>
+          <div className="mb-8">
             <VenueCardSkeletonList count={3} />
-          </Box>
+          </div>
         ) : venuesError ? (
-          <Box sx={{ mb: 4, textAlign: 'center', py: 3 }}>
+          <div className="mb-8 py-6 text-center">
             <Icon icon="mdi:cloud-alert-outline" style={{ width: 40, height: 40, color: '#ef4444' }} />
-            <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 1 }}>
+            <p className="mt-2 text-[0.85rem] text-muted-foreground">
               دریافت سالن‌ها ممکن نشد
-            </Typography>
+            </p>
             <Button
-              size="medium"
-              variant="outlined"
-              startIcon={<Icon icon="mdi:refresh" style={{ width: 18, height: 18 }} />}
+              type="button"
+              variant="outline"
+              size="sm"
               onClick={() => {
                 setVenuesLoading(true)
                 setVenuesError(false)
@@ -729,21 +508,22 @@ const Home: React.FC = () => {
                   .catch(() => setVenuesError(true))
                   .finally(() => setVenuesLoading(false))
               }}
-              sx={{ mt: 1.5, textTransform: 'none', borderRadius: '999px', minHeight: 44, px: 2.5 }}
+              className="mt-3 gap-1 rounded-full px-5 font-bold"
             >
+              <Icon icon="mdi:refresh" style={{ width: 18, height: 18 }} />
               تلاش مجدد
             </Button>
-          </Box>
+          </div>
         ) : popular.length === 0 ? (
-          <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mb: 4 }}>
+          <p className="mb-8 text-[0.85rem] text-muted-foreground">
             هنوز سالنی ثبت نشده است.
-          </Typography>
+          </p>
         ) : (
-          <Box sx={{ ...venueGrid, mb: 4 }}>
+          <div className={`${venueGrid} mb-8`}>
             {popular.map((v) => (
               <VenueCard key={v.id} venue={v} onBook={(id) => navigate(`/venues/${id}`)} />
             ))}
-          </Box>
+          </div>
         )}
 
         {/* نظرات کاربران */}
@@ -759,64 +539,33 @@ const Home: React.FC = () => {
         {recentVenues.length > 0 && (
           <>
             <SectionHeader title="اخیراً دیده‌شده" />
-            <Box
-              sx={{
-                display: 'flex',
-                gap: 2,
-                overflowX: 'auto',
-                pb: 1,
-                mb: 4,
-                className: 'scrollbar-hide',
-                scrollSnapType: 'x mandatory',
-              }}
-            >
+            <div className="scrollbar-hide mb-8 flex gap-4 overflow-x-auto pb-2 [scroll-snap-type:x_mandatory]">
               {recentVenues.map((v) => (
-                <Box
+                <button
                   key={v.id}
-                  component="button"
                   type="button"
                   onClick={() => navigate(`/venues/${v.id}`)}
-                  sx={{
-                    flexShrink: 0,
-                    width: 210,
-                    scrollSnapAlign: 'start',
-                    borderRadius: `${radii.card}px`,
-                    bgcolor: 'background.paper',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    boxShadow: shadows.card,
-                    overflow: 'hidden',
-                    cursor: 'pointer',
-                    // Box به‌عنوان <button>: بازتنظیم پیش‌فرض‌های مرورگر
-                    display: 'block',
-                    textAlign: 'inherit',
-                    fontFamily: 'inherit',
-                    color: 'inherit',
-                    appearance: 'none',
-                    WebkitTapHighlightColor: 'transparent',
-                    '&:focus-visible': { outline: '3px solid', outlineColor: 'primary.main', outlineOffset: 2 },
-                  }}
+                  className="block w-[210px] shrink-0 appearance-none overflow-hidden rounded-[20px] border border-border bg-card text-start font-[inherit] text-inherit shadow-sm [scroll-snap-align:start] [-webkit-tap-highlight-color:transparent] focus-visible:outline focus-visible:outline-[3px] focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                 >
-                  <Box
-                    component="img"
+                  <img
                     src={parseList(v.images)[0] ? toFullUrl(parseList(v.images)[0]) : ''}
                     alt={v.name}
                     onError={(e) => {
                       (e.target as HTMLImageElement).style.display = 'none'
                     }}
-                    sx={{ width: '100%', height: 100, objectFit: 'cover', display: 'block' }}
+                    className="block h-[100px] w-full object-cover"
                   />
-                  <Box sx={{ p: 1.5 }}>
-                    <Typography sx={{ fontWeight: 700, fontSize: '0.85rem', color: 'text.primary' }} noWrap>
+                  <div className="p-3">
+                    <p className="truncate text-[0.85rem] font-bold text-foreground">
                       {v.name}
-                    </Typography>
-                    <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', mt: 0.25 }} noWrap>
+                    </p>
+                    <p className="mt-1 truncate text-xs text-muted-foreground">
                       {v.address}
-                    </Typography>
-                  </Box>
-                </Box>
+                    </p>
+                  </div>
+                </button>
               ))}
-            </Box>
+            </div>
           </>
         )}
 
@@ -826,84 +575,64 @@ const Home: React.FC = () => {
           initial={{ opacity: 0, y: 16 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.4 }}
-          style={{ borderRadius: radii.card, overflow: 'hidden', boxShadow: shadows.card, marginBottom: 32 }}
+          className="mb-8 overflow-hidden rounded-[20px] shadow-sm"
         >
-          <Box sx={{ background: gradients.primary, p: 2 }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1.5 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: '#fff' }}>
+          <div className="bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700 p-4">
+            <div className="mb-3 flex items-center justify-between">
+              <div className="flex items-center gap-2 text-white">
                 <Icon icon="mdi:soccer" style={{ width: 22, height: 22 }} />
-                <Typography sx={{ fontWeight: 800, color: '#fff' }}>نتایج</Typography>
-              </Box>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75, color: 'rgba(255,255,255,0.85)', fontSize: '0.75rem' }}>
-                <Box sx={{ width: 7, height: 7, borderRadius: '50%', bgcolor: '#f87171', animation: 'pulse 1.5s infinite' }} />
+                <p className="font-extrabold text-white">نتایج</p>
+              </div>
+              <div className="flex items-center gap-1.5 text-xs text-white/85">
+                <span className="h-[7px] w-[7px] rounded-full bg-red-400 motion-safe:animate-[pulse_1.5s_infinite]" />
                 زنده
-              </Box>
-            </Box>
-            <Box sx={{ display: 'flex', bgcolor: 'rgba(255,255,255,0.18)', borderRadius: '12px', p: 0.5, gap: 0.5 }}>
+              </div>
+            </div>
+            <div className="flex gap-1 rounded-xl bg-white/[0.18] p-1">
               {[
                 { id: 'live', label: 'زنده', icon: 'mdi:live-tv' },
                 { id: 'upcoming', label: 'آینده', icon: 'mdi:clock-outline' },
                 { id: 'finished', label: 'پایان', icon: 'mdi:check-circle' },
               ].map((tab) => (
-                <Box
+                <button
                   key={tab.id}
-                  component="button"
                   type="button"
                   onClick={() => setActiveTab(tab.id as typeof activeTab)}
                   aria-label={`تب ${tab.label}`}
-                  sx={{
-                    flex: 1,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: 1,
-                    py: 1.25,
-                    minHeight: 48,
-                    borderRadius: '9px',
-                    border: 'none',
-                    cursor: 'pointer',
-                    fontFamily: 'inherit',
-                    fontSize: '0.8rem',
-                    fontWeight: 700,
-                    transition: 'all 0.2s ease',
-                    bgcolor: activeTab === tab.id ? '#fff' : 'transparent',
-                    color: activeTab === tab.id ? '#2563eb' : 'rgba(255,255,255,0.9)',
-                  }}
+                  className={`flex min-h-12 flex-1 items-center justify-center gap-2 rounded-[9px] py-3 font-[inherit] text-[0.8rem] font-bold transition-all duration-200 ${
+                    activeTab === tab.id
+                      ? 'bg-white text-blue-600'
+                      : 'bg-transparent text-white/90'
+                  }`}
                 >
                   <Icon icon={tab.icon} style={{ width: 16, height: 16 }} />
                   {tab.label}
-                </Box>
+                </button>
               ))}
-            </Box>
-          </Box>
+            </div>
+          </div>
 
-          <Box
+          <div
             role="region"
             aria-label="نتایج زنده، قابل پیمایش با کیبورد"
             tabIndex={0}
-            sx={{
-              bgcolor: 'background.paper',
-              p: 1.5,
-              maxHeight: 340,
-              overflowY: 'auto',
-              '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: -2 },
-            }}
+            className="max-h-[340px] overflow-y-auto bg-card p-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-blue-600"
           >
             {loading ? (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+              <div className="flex flex-col gap-2.5">
                 {[1, 2, 3].map((i) => (
-                  <Shimmer key={i} height={72} sx={{ borderRadius: '16px' }} />
+                  <Skeleton aria-hidden="true" key={i} className="h-[72px] w-full rounded-2xl" />
                 ))}
-              </Box>
+              </div>
             ) : getActiveMatches().length === 0 ? (
-              <Box sx={{ textAlign: 'center', py: 4 }}>
+              <div className="py-8 text-center">
                 <Icon icon="mdi:soccer-field" style={{ width: 44, height: 44, color: '#64748b' }} />
-                <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 1 }}>
+                <p className="mt-2 text-[0.85rem] text-muted-foreground">
                   مسابقه‌ای یافت نشد
-                </Typography>
-              </Box>
+                </p>
+              </div>
             ) : (
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25 }}>
+              <div className="flex flex-col gap-2.5">
                 {getActiveMatches().map((match, index) => (
                   <motion.div
                     key={match.id}
@@ -911,93 +640,92 @@ const Home: React.FC = () => {
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.25, delay: index * 0.04 }}
                   >
-                    <Box sx={{ bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.04)' : 'rgba(15,23,42,0.03)'), borderRadius: '16px', p: 1.5 }}>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mb: 1 }}>
-                        <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary', bgcolor: (t) => (t.palette.mode === 'dark' ? 'rgba(255,255,255,0.07)' : 'rgba(15,23,42,0.06)'), px: 1, py: 0.25, borderRadius: '8px' }}>
+                    <div className="rounded-2xl bg-slate-900/[0.03] p-3 dark:bg-white/[0.04]">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="rounded-lg bg-slate-900/[0.06] px-2 py-0.5 text-xs text-muted-foreground dark:bg-white/[0.07]">
                           {match.league}
-                        </Typography>
+                        </p>
                         {match.status === 'live' ? (
-                          <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, fontSize: '0.75rem', color: 'error.main', fontWeight: 700 }}>
-                            <Box sx={{ width: 6, height: 6, borderRadius: '50%', bgcolor: '#dc2626', animation: 'pulse 1.5s infinite' }} />
+                          <span className="flex items-center gap-1 text-xs font-bold text-red-600 dark:text-red-400">
+                            <span className="h-1.5 w-1.5 rounded-full bg-red-600 motion-safe:animate-[pulse_1.5s_infinite]" />
                             {match.minute}'
-                          </Box>
+                          </span>
                         ) : (
-                          <Typography sx={{ fontSize: '0.75rem', color: 'text.secondary' }}>
+                          <p className="text-xs text-muted-foreground">
                             {formatTime(match.time, match.date)}
-                          </Typography>
+                          </p>
                         )}
-                      </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 1 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0 }}>
+                      </div>
+                      <div className="flex items-center justify-between gap-2">
+                        <div className="flex min-w-0 flex-1 items-center gap-2">
                           {match.homeIcon ? (
-                            <img src={match.homeIcon} alt={match.homeTeam} style={{ width: 24, height: 24, objectFit: 'contain' }} />
+                            <img src={match.homeIcon} alt={match.homeTeam} className="h-6 w-6 object-contain" />
                           ) : (
-                            <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: 'rgba(37,99,235,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-blue-600/10">
                               <Icon icon="mdi:shield" style={{ width: 15, height: 15, color: '#3b82f6' }} />
-                            </Box>
+                            </span>
                           )}
-                          <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }} noWrap>
+                          <p className="truncate text-[0.8rem] font-semibold text-foreground">
                             {match.homeTeam}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, px: 1, flexShrink: 0 }}>
-                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: (th) => (match.status === 'live' ? th.palette.warning.main : th.palette.text.primary), fontVariantNumeric: 'tabular-nums' }}>
+                          </p>
+                        </div>
+                        <div className="flex shrink-0 items-center gap-2 px-2">
+                          <p
+                            className={`text-[1.05rem] font-extrabold tabular-nums ${
+                              match.status === 'live' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'
+                            }`}
+                          >
                             {match.homeScore}
-                          </Typography>
-                          <Typography sx={{ color: 'text.secondary' }}>-</Typography>
-                          <Typography sx={{ fontSize: '1.05rem', fontWeight: 800, color: (th) => (match.status === 'live' ? th.palette.warning.main : th.palette.text.primary), fontVariantNumeric: 'tabular-nums' }}>
+                          </p>
+                          <p className="text-muted-foreground">-</p>
+                          <p
+                            className={`text-[1.05rem] font-extrabold tabular-nums ${
+                              match.status === 'live' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'
+                            }`}
+                          >
                             {match.awayScore}
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flex: 1, minWidth: 0, flexDirection: 'row-reverse' }}>
+                          </p>
+                        </div>
+                        <div className="flex min-w-0 flex-1 flex-row-reverse items-center gap-2">
                           {match.awayIcon ? (
-                            <img src={match.awayIcon} alt={match.awayTeam} style={{ width: 24, height: 24, objectFit: 'contain' }} />
+                            <img src={match.awayIcon} alt={match.awayTeam} className="h-6 w-6 object-contain" />
                           ) : (
-                            <Box sx={{ width: 24, height: 24, borderRadius: '50%', bgcolor: 'rgba(245,158,11,0.14)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-amber-500/[0.14]">
                               <Icon icon="mdi:shield" style={{ width: 15, height: 15, color: '#d97706' }} />
-                            </Box>
+                            </span>
                           )}
-                          <Typography sx={{ fontSize: '0.8rem', fontWeight: 600, color: 'text.primary' }} noWrap>
+                          <p className="truncate text-[0.8rem] font-semibold text-foreground">
                             {match.awayTeam}
-                          </Typography>
-                        </Box>
-                      </Box>
-                    </Box>
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </motion.div>
                 ))}
-              </Box>
+              </div>
             )}
-          </Box>
+          </div>
         </motion.div>
 
         {/* اخبار ورزشی — عملکرد حفظ شده */}
         <SectionHeader title="اخبار ورزشی" />
-        <Box
+        <div
           role="region"
           aria-label="اخبار ورزشی، فهرست افقی قابل پیمایش با کیبورد"
           tabIndex={0}
-          sx={{
-            display: 'flex',
-            gap: 2,
-            overflowX: 'auto',
-            pb: 1,
-            mb: 2,
-            scrollSnapType: 'x mandatory',
-            '&:focus-visible': { outline: '2px solid', outlineColor: 'primary.main', outlineOffset: 2 },
-          }}
-          className="scrollbar-hide"
+          className="scrollbar-hide mb-4 flex gap-4 overflow-x-auto pb-2 [scroll-snap-type:x_mandatory] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
         >
           {loading ? (
             <>
               {[1, 2, 3].map((i) => (
-                <Shimmer key={i} width={240} height={170} sx={{ borderRadius: '20px', flexShrink: 0 }} />
+                <Skeleton aria-hidden="true" key={i} className="h-[170px] w-[240px] shrink-0 rounded-[20px]" />
               ))}
             </>
           ) : news.length === 0 ? (
-            <Box sx={{ textAlign: 'center', py: 4, width: '100%' }}>
+            <div className="w-full py-8 text-center">
               <Icon icon="mdi:newspaper-minus" style={{ width: 40, height: 40, color: '#64748b' }} />
-              <Typography sx={{ color: 'text.secondary', fontSize: '0.85rem', mt: 1 }}>اخباری یافت نشد</Typography>
-            </Box>
+              <p className="mt-2 text-[0.85rem] text-muted-foreground">اخباری یافت نشد</p>
+            </div>
           ) : (
             news.slice(0, 6).map((item, index) => (
               <motion.div
@@ -1006,61 +734,33 @@ const Home: React.FC = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.25, delay: index * 0.04 }}
               >
-                <Box
-                  sx={{
-                    flexShrink: 0,
-                    width: 240,
-                    scrollSnapAlign: 'start',
-                    borderRadius: `${radii.card}px`,
-                    overflow: 'hidden',
-                    bgcolor: 'background.paper',
-                    border: '1px solid',
-                    borderColor: 'divider',
-                    boxShadow: shadows.card,
-                  }}
-                >
-                  <Box className={item.color} sx={{ height: 84, position: 'relative', display: 'flex', alignItems: 'center', justifyContent: 'center', background: gradients.primarySoft }}>
+                <div className="w-[240px] shrink-0 overflow-hidden rounded-[20px] border border-border bg-card shadow-sm [scroll-snap-align:start]">
+                  <div className={`relative flex h-[84px] items-center justify-center bg-[linear-gradient(135deg,rgba(245,158,11,0.08),rgba(37,99,235,0.08))] ${item.color}`}>
                     {item.isLive && (
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: 8,
-                          insetInlineEnd: 8,
-                          px: 1,
-                          py: 0.25,
-                          borderRadius: '8px',
-                          bgcolor: '#dc2626',
-                          color: '#fff',
-                          fontSize: '0.75rem',
-                          fontWeight: 700,
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: 0.5,
-                        }}
-                      >
-                        <Box sx={{ width: 5, height: 5, borderRadius: '50%', bgcolor: '#fff', animation: 'pulse 1.5s infinite' }} />
+                      <span className="absolute end-2 top-2 flex items-center gap-1 rounded-lg bg-red-600 px-2 py-0.5 text-xs font-bold text-white">
+                        <span className="h-[5px] w-[5px] rounded-full bg-white motion-safe:animate-[pulse_1.5s_infinite]" />
                         زنده
-                      </Box>
+                      </span>
                     )}
                     <Icon icon={item.icon} style={{ width: 34, height: 34, color: '#d97706' }} />
-                  </Box>
-                  <Box sx={{ p: 1.5 }}>
-                    <Typography sx={{ fontSize: '0.8rem', fontWeight: 700, color: 'text.primary', lineHeight: 1.5, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden', minHeight: '2.4em' }}>
+                  </div>
+                  <div className="p-3">
+                    <p className="line-clamp-2 min-h-[2.4em] text-[0.8rem] font-bold leading-normal text-foreground">
                       {item.title}
-                    </Typography>
-                    <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 1, fontSize: '0.75rem', color: 'text.secondary' }}>
+                    </p>
+                    <div className="mt-2 flex items-center justify-between text-xs text-muted-foreground">
                       <span>{item.date}</span>
-                    </Box>
-                  </Box>
-                </Box>
+                    </div>
+                  </div>
+                </div>
               </motion.div>
             ))
           )}
-        </Box>
+        </div>
 
         {/* CTA نهایی */}
         <FinalCTA />
-      </Box>
+      </div>
     </Layout>
   )
 }

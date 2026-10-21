@@ -1,8 +1,7 @@
-import React from 'react'
-import { Box, Typography, Button, useTheme } from '@mui/material'
+import type React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { gradients } from '@/theme'
+import { Button } from '@/components/ui/shadcn/button'
 
 interface Props {
   icon?: string
@@ -18,62 +17,32 @@ interface Props {
 
 /** حالت خالی استاندارد — مثل «هنوز سالنی ذخیره نکرده‌اید» */
 const EmptyState: React.FC<Props> = ({ icon, title, description, actionLabel, onAction, asPageHeading }) => {
-  const dark = useTheme().palette.mode === 'dark'
+  const titleClass = 'mb-1.5 text-[1.05rem] font-extrabold text-foreground'
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.25 }}
-      style={{ textAlign: 'center', padding: '40px 24px' }}
+      className="px-6 py-10 text-center"
     >
-      <Box
-        sx={{
-          width: 84,
-          height: 84,
-          borderRadius: '50%',
-          mx: 'auto',
-          mb: 2.5,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          background: dark
-            ? 'linear-gradient(135deg, rgba(251,191,36,0.1), rgba(96,165,250,0.1))'
-            : gradients.primarySoft,
-        }}
-      >
+      <div className="mx-auto mb-5 flex h-[84px] w-[84px] items-center justify-center rounded-full bg-gradient-to-br from-amber-500/10 to-blue-500/10 dark:from-amber-400/10 dark:to-blue-400/10">
         <Icon
           icon={icon || 'mdi:inbox-outline'}
-          style={{ width: 40, height: 40, color: dark ? '#fbbf24' : '#d97706' }}
+          className="h-10 w-10 text-amber-600 dark:text-amber-400"
         />
-      </Box>
-      <Typography
-        component={asPageHeading ? 'h1' : 'p'}
-        sx={{ fontWeight: 800, fontSize: '1.05rem', color: 'text.primary', mb: 0.75 }}
-      >
-        {title}
-      </Typography>
+      </div>
+      {asPageHeading ? (
+        <h1 className={titleClass}>{title}</h1>
+      ) : (
+        <p className={titleClass}>{title}</p>
+      )}
       {description && (
-        <Typography sx={{ color: 'text.secondary', fontSize: '0.875rem', lineHeight: 1.8, maxWidth: 300, mx: 'auto' }}>
+        <p className="mx-auto max-w-[300px] text-sm leading-[1.8] text-muted-foreground">
           {description}
-        </Typography>
+        </p>
       )}
       {actionLabel && (
-        <Button
-          variant="contained"
-          onClick={onAction}
-          sx={{
-            mt: 3,
-            textTransform: 'none',
-            fontWeight: 700,
-            px: 4,
-            minHeight: 48,
-            py: 1.25,
-            borderRadius: '14px',
-            background: gradients.primary,
-            boxShadow: dark ? '0 6px 20px rgba(29,78,216,0.35)' : '0 6px 20px rgba(30,58,138,0.28)',
-            '&:hover': { background: gradients.primaryHover },
-          }}
-        >
+        <Button onClick={onAction} className="mt-6 min-h-12 rounded-[14px] px-8 font-bold">
           {actionLabel}
         </Button>
       )}
