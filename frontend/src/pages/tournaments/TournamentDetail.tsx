@@ -155,35 +155,42 @@ const BracketGrid: React.FC<{
   busy: boolean
   onResult: (match: TournamentMatch) => void
 }> = ({ rounds, testId, canManage, busy, onResult }) => (
-  <Box sx={{ overflowX: 'auto', pb: 1 }} role="region" aria-label="براکت مسابقات، قابل پیمایش با کیبورد" tabIndex={0}>
-    <Box data-testid={testId}
-         sx={{
-           display: 'grid', gridAutoFlow: 'column',
-           gridAutoColumns: 'minmax(232px, max-content)', gap: 2, alignItems: 'stretch',
-         }}>
-      {rounds.map((round) => (
-        <Box key={round.id} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
-          <Typography variant="overline" sx={{
-            fontWeight: 800, color: 'text.secondary', textAlign: 'center',
-            letterSpacing: '0.4px', bgcolor: 'rgba(15,23,42,0.04)', borderRadius: '10px', py: 0.5,
-          }}>
-            {round.name}
-          </Typography>
-          {round.bye_team_name && (
-            <Typography variant="caption" data-testid={`tournament-bye-${round.id}`}
-                        sx={{ textAlign: 'center', color: 'text.secondary' }}>
-              <Icon icon="mdi:sofa-single" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
-              {round.bye_team_name} استراحت می‌کند
+  <Box>
+    <Box sx={{ display: { xs: 'flex', md: 'none' }, alignItems: 'center', gap: 0.5, mb: 1, color: 'text.secondary' }}>
+      <Icon icon="mdi:gesture-swipe-horizontal" style={{ width: 18, height: 18 }} />
+      <Typography variant="caption">برای دیدن دورهای بعد، براکت را افقی بکشید.</Typography>
+    </Box>
+    <Box sx={{ overflowX: 'auto', pb: 1, WebkitOverflowScrolling: 'touch' }} role="region" aria-label="براکت مسابقات، قابل پیمایش با کیبورد" tabIndex={0}>
+      <Box data-testid={testId}
+           sx={{
+             display: 'grid', gridAutoFlow: 'column',
+             gridAutoColumns: 'minmax(232px, max-content)', gap: 2, alignItems: 'stretch',
+             scrollSnapType: 'x proximity',
+           }}>
+        {rounds.map((round) => (
+          <Box key={round.id} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, scrollSnapAlign: 'start' }}>
+            <Typography variant="overline" sx={{
+              fontWeight: 800, color: 'text.secondary', textAlign: 'center',
+              letterSpacing: '0.4px', bgcolor: 'rgba(15,23,42,0.04)', borderRadius: '10px', py: 0.5,
+            }}>
+              {round.name}
             </Typography>
-          )}
-          <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: 2, flexGrow: 1 }}>
-            {round.matches.map((match) => (
-              <MatchCard key={match.id} match={match} canManage={canManage}
-                         busy={busy} onResult={() => onResult(match)} />
-            ))}
+            {round.bye_team_name && (
+              <Typography variant="caption" data-testid={`tournament-bye-${round.id}`}
+                          sx={{ textAlign: 'center', color: 'text.secondary' }}>
+                <Icon icon="mdi:sofa-single" style={{ verticalAlign: 'middle', marginLeft: 4 }} />
+                {round.bye_team_name} استراحت می‌کند
+              </Typography>
+            )}
+            <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-around', gap: 2, flexGrow: 1 }}>
+              {round.matches.map((match) => (
+                <MatchCard key={match.id} match={match} canManage={canManage}
+                           busy={busy} onResult={() => onResult(match)} />
+              ))}
+            </Box>
           </Box>
-        </Box>
-      ))}
+        ))}
+      </Box>
     </Box>
   </Box>
 )

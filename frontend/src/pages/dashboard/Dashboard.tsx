@@ -19,7 +19,7 @@ import { useAuthStore } from '@/store/authStore'
 import { bookingService } from '@/services/booking'
 import { membershipService } from '@/services/membership'
 import { PLAN_TYPE_LABEL, type MembershipPurchase } from '@/types/membership'
-import { formatPrice, formatDateTime, getStatusLabel, getMuiStatusColor } from '@/lib/utils'
+import { formatPrice, formatDate, formatDateTime, getStatusLabel, getMuiStatusColor } from '@/lib/utils'
 
 interface ApiBooking {
   id: number
@@ -28,6 +28,11 @@ interface ApiBooking {
   booked_at: string
   status: 'pending' | 'confirmed' | 'cancelled' | 'completed'
   payment_amount: number
+  // فیلدهای تکمیلی که بک‌اند در همین پاسخ می‌فرستد (همان شکل /bookings)
+  venue_name?: string
+  slot_date?: string
+  start_time?: string
+  duration?: number
 }
 
 const Dashboard: React.FC = () => {
@@ -98,7 +103,7 @@ const Dashboard: React.FC = () => {
       color: '#8b5cf6',
     },
     {
-      title: 'رزروهای لغو شده',
+      title: 'رزرو لغو شده',
       value: new Intl.NumberFormat('fa-IR').format(cancelledCount),
       icon: 'mdi:calendar-remove',
       color: '#f59e0b',
@@ -181,8 +186,9 @@ const Dashboard: React.FC = () => {
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.3, delay: index * 0.06 }}
+                style={{ height: '100%' }}
               >
-                <Paper sx={{ p: 2.5, border: `1px solid ${theme.palette.divider}`, height: '100%' }}>
+                <Paper sx={{ p: 2.5, border: `1px solid ${theme.palette.divider}`, height: '100%', display: 'flex', flexDirection: 'column' }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 1.5 }}>
                     <Typography variant="body2" color="text.secondary" sx={{ fontSize: '0.8rem' }}>
                       {stat.title}
@@ -197,7 +203,7 @@ const Dashboard: React.FC = () => {
                     </Box>
                   </Box>
                   {/* مقدار KPI سرتیتر نیست؛ h6 باعث می‌شد ترتیب سرتیترها بشکند — axe F-22 */}
-                  <Typography variant="h6" component="div" sx={{ fontWeight: 800 }}>
+                  <Typography variant="h6" component="div" sx={{ fontWeight: 800, mt: 'auto' }}>
                     {stat.value}
                   </Typography>
                 </Paper>
@@ -262,16 +268,21 @@ const Dashboard: React.FC = () => {
                         },
                       }}
                     >
-                      <Box>
-                        <Typography variant="body2" sx={{ fontWeight: 600 }}>
-                          رزرو #{b.id}
+                      <Box sx={{ minWidth: 0, flex: 1 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 600 }} noWrap>
+                          {b.venue_name || `رزرو #${b.id}`}
                         </Typography>
-                        <Typography variant="caption" color="text.secondary">
-                          {formatDateTime(b.booked_at)}
+                        <Typography variant="caption" color="text.secondary" component="div" noWrap>
+                          {b.slot_date
+                            ? `${formatDate(b.slot_date)} — ${b.start_time ? String(b.start_time).slice(0, 5) : ''}`
+                            : `ثبت: ${formatDateTime(b.booked_at)}`}
+                        </Typography>
+                        <Typography variant="caption" sx={{ fontWeight: 700, display: { xs: 'block', sm: 'none' } }}>
+                          {formatPrice(b.payment_amount)}
                         </Typography>
                       </Box>
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <Typography variant="body2" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'block' } }}>
+                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, flexShrink: 0 }}>
+                        <Typography variant="body2" sx={{ fontWeight: 700, display: { xs: 'none', sm: 'block' }, whiteSpace: 'nowrap' }}>
                           {formatPrice(b.payment_amount)}
                         </Typography>
                         <Chip

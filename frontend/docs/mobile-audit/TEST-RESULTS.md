@@ -1,6 +1,6 @@
 # نتایج تست‌ها (Test Results)
 
-**تاریخ:** ۲۰۲۶-۱۰-۱۹
+**تاریخ:** ۲۰۲۶-۱۰-۲۲
 
 ---
 
@@ -8,11 +8,13 @@
 
 | دسته | نتیجه | جزئیات |
 |------|--------|--------|
-| TypeScript (`tsc --noEmit`) | ✅ PASS (exit 0) | بدون خطا |
-| ESLint | ✅ PASS (exit 0) | ۰ خطا، ۲۰۱ هشدار (از قبل موجود — `any` types) |
-| Vitest (unit) | ✅ PASS | ۲۰۰ تست در ۲۳ فایل (شامل `contrast.test.ts`) |
+| TypeScript (`tsc --noEmit`) | ✅ PASS (exit 0) | بدون خطا (دور دوم F-45…F-55) |
+| ESLint | ✅ PASS (exit 0) | ۰ خطا |
+| Vitest (unit) | ✅ PASS | ۲۰۳ تست در ۲۴ فایل |
+| Vite build | ✅ PASS | `built in 1m 8s` با heap ۳۰۷۲MB |
 | Playwright E2E (mobile-audit harness) | ✅ PASS | ۴ تست در ۷٫۴m: route sweep + viewport matrix + ۲ تست کیبورد |
 | Playwright keyboard tests | ✅ PASS | `noRing=0` و `dups=0` در ۵ مسیر (assertion سخت‌گیرانه) |
+| تأیید بصری دور دوم | ✅ PASS | ۹ مسیر ۳۷۵px، `scrollWidth=375`، بدون سرریز |
 | Backend pytest | ⏳ PENDING | نیاز به اجرای جداگانه در محیط backend |
 
 ## تست‌های جدید اضافه‌شده
@@ -47,6 +49,7 @@
 |-----|--------|-------|
 | `npx tsc --noEmit` | ✅ | exit 0 |
 | `npx eslint src` | ✅ | 0 errors |
-| `npx vitest run` | ✅ | ۲۰۰/۲۰۰ pass |
-| `vite build` | ✅ | production، `built in 58.84s` |
+| `npx vitest run` | ✅ | ۲۰۳/۲۰۳ pass در ۲۴ فایل |
+| `vite build` | ✅ | production، `built in 1m 8s` |
 | Playwright mobile-audit | ✅ | `4 passed (7.4m)` — route sweep ۱۵۴ ردیف + viewport matrix ۸۱ ردیف + keyboard (`noRing=0`, `dups=0`) |
+| تأیید دور دوم (Playwright، یک پروسه) | ✅ | `/dashboard`, `/venues/1`, `/tournaments/2`, `/finance` — ۳۷۵px، بدون سرریز |

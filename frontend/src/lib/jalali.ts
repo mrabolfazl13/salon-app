@@ -106,6 +106,9 @@ export function formatJalaliDate(
   opts: JalaliFormatOptions = {}
 ): string {
   const { format = 'long', digits = 'fa' } = opts
+  // بعضی endpointها تاریخ اسلات/رزرو را از قبل شمسی برمی‌گردانند
+  // («13 آبان 1405»)؛ parseDate آن را نامعتبر می‌دانست و «—» نمایش می‌داد.
+  if (typeof date === 'string' && /[آ-ی]/.test(date)) return localize(date, digits)
   const dt = parseDate(date)
   const j = toJalali(dt)
   if (!j || !dt) return '—'
@@ -133,6 +136,7 @@ export function formatJalaliDateTime(
   opts: JalaliFormatOptions = {}
 ): string {
   const { format = 'long', digits = 'fa' } = opts
+  if (typeof date === 'string' && /[آ-ی]/.test(date)) return localize(date, digits)
   if (!parseDate(date)) return '—'
   return `${formatJalaliDate(date, { format, digits })} ${formatJalaliTime(date, digits)}`
 }

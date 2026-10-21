@@ -210,6 +210,9 @@ export const KpiCard: React.FC<{
   const { main: accent } = useStatusColor(color)
   // «۰٪» با #0891b2 روی کارت سفید ۳٫۶۸:۱ بود — ممیزی axe F-21
   const valueColor = readableText(accent, theme.palette.background.paper)
+  // «ریال» با همان اندازهٔ رقم در کارت باریک، خط دوم/سوم می‌شد (مثلاً «۸۰۰٬۰۰۰» /
+  // «ریال»)؛ واحد کوچک‌تر می‌شود و بخش رقمی می‌تواند کامل بماند.
+  const unitMatch = /^(.*?)\s(ریال)$/.exec(value)
   return (
     <Card
       sx={{
@@ -219,25 +222,29 @@ export const KpiCard: React.FC<{
         height: '100%',
       }}
     >
-      <Box sx={{ p: 2, display: 'flex', gap: 1.5, alignItems: 'flex-start', flexWrap: 'wrap' }}>
-        <Box
-          sx={{
-            width: 40,
-            height: 40,
-            flexShrink: 0,
-            borderRadius: '12px',
-            bgcolor: `${accent}14`,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-        >
-          <Icon icon={icon} className="h-5 w-5" style={{ color: accent }} />
-        </Box>
-        <Box sx={{ minWidth: 0, flex: 1 }}>
-          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, display: 'block' }}>
+      <Box sx={{ p: 2, display: 'flex', flexDirection: 'column', gap: 1, height: '100%' }}>
+        {/* آیکون روی موبایل کنار مقدار ۷۹px جا می‌گذاشت و «۱۹۵ میلیون ریال»
+            از لبهٔ کارت بیرون می‌زد؛ برچسب+آیکون یک ردیف و مقدار تمام‌عرض. */}
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, minWidth: 0 }}>
+          <Box
+            sx={{
+              width: 36,
+              height: 36,
+              flexShrink: 0,
+              borderRadius: '12px',
+              bgcolor: `${accent}14`,
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Icon icon={icon} className="h-4.5 w-4.5" style={{ color: accent }} />
+          </Box>
+          <Typography variant="caption" sx={{ color: 'text.secondary', fontWeight: 600, minWidth: 0 }}>
             {label}
           </Typography>
+        </Box>
+        <Box sx={{ minWidth: 0 }}>
           {loading ? (
             <Skeleton aria-hidden="true" variant="rounded" width="80%" height={26} sx={{ mt: 0.5 }} />
           ) : (
@@ -256,14 +263,21 @@ export const KpiCard: React.FC<{
                 overflowWrap: 'anywhere',
               }}
             >
-              {value}
+              {unitMatch ? (
+                <>
+                  <Box component="span" sx={{ whiteSpace: 'nowrap' }}>{unitMatch[1]}</Box>{' '}
+                  <Box component="span" sx={{ fontSize: '0.8em', fontWeight: 700, opacity: 0.8 }}>{unitMatch[2]}</Box>
+                </>
+              ) : (
+                value
+              )}
             </Typography>
           )}
           {sub && !loading && (
             <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{sub}</Typography>
           )}
+          {end && !loading && <Box sx={{ mt: 0.75 }}>{end}</Box>}
         </Box>
-        {end && !loading && <Box sx={{ alignSelf: 'center', flexShrink: 0 }}>{end}</Box>}
       </Box>
     </Card>
   )

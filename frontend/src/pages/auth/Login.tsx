@@ -16,6 +16,7 @@ import {
   Paper,
   Alert,
   Link,
+  useMediaQuery,
 } from '@mui/material'
 import { PrimaryButton } from '@/components/mobile'
 import { useToast } from '@/hooks/useToast'
@@ -54,6 +55,8 @@ const Login: React.FC = () => {
   const { success } = useToast()
   const login = useAuthStore((state) => state.login)
   const isLoading = useAuthStore((state) => state.isLoading)
+  // روی صفحه‌های لمسی autoFocus کیبورد را روی عنوان/حساب‌های نمونه باز می‌کند
+  const hasPointer = useMediaQuery('(hover: hover) and (pointer: fine)')
 
   const {
     register,
@@ -218,7 +221,7 @@ const Login: React.FC = () => {
                 {...register('phone')}
                 placeholder="09xxxxxxxxx"
                 autoComplete="tel"
-                autoFocus
+                autoFocus={hasPointer}
                 error={Boolean(errors.phone)}
                 helperText={errors.phone?.message}
                 sx={fieldSx}

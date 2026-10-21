@@ -1,7 +1,7 @@
 // src/pages/Search.tsx — صفحه اختصاصی جستجو: چسبان + تاریخچه + محبوب‌ها + نتایج
 import React, { useEffect, useMemo, useRef, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { Box, IconButton, Typography } from '@mui/material'
+import { Box, IconButton, Typography, useMediaQuery } from '@mui/material'
 import { Icon } from '@iconify/react'
 import Layout from '@/components/layout/Layout'
 import SearchBar from '@/components/mobile/SearchBar'
@@ -19,11 +19,13 @@ import { parseList, toFullUrl } from '@/utils/venueMedia'
 import type { Venue } from '@/types'
 import { radii, shadows } from '@/theme'
 
-const POPULAR_SEARCHES = ['فوتسال', 'بدنسازی', 'چمن مصنوعی', 'سرپوشیده', 'قوم']
+const POPULAR_SEARCHES = ['فوتسال', 'بدنسازی', 'چمن مصنوعی', 'سرپوشیده', 'قم']
 
 const Search: React.FC = () => {
   const navigate = useNavigate()
   const { queries, add, remove, clear } = useSearchHistoryStore()
+  // فوکوس خودکار روی موبایل کیبورد را بلافاصله باز می‌کند و پیشنهادها را می‌پوشاند
+  const hasPointer = useMediaQuery('(hover: hover) and (pointer: fine)')
 
   const [value, setValue] = useState('')
   const [submitted, setSubmitted] = useState('')
@@ -107,7 +109,7 @@ const Search: React.FC = () => {
                 onClear={() => setValue('')}
                 onSubmit={() => add(value)}
                 placeholder="نام سالن یا محله را بنویسید…"
-                autoFocus
+                autoFocus={hasPointer}
               />
             </Box>
           </Box>

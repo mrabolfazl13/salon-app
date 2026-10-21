@@ -4,6 +4,7 @@ import { Icon } from '@iconify/react'
 import { Box, Typography, Button } from '@mui/material'
 import { useNavigate } from 'react-router-dom'
 import { gradients, radii } from '@/theme'
+import { useAuthStore } from '@/store/authStore'
 
 interface StatsItem {
   icon: string
@@ -43,6 +44,16 @@ const FEATURES = [
 export const HeroSection: React.FC = () => {
   const navigate = useNavigate()
   const [currentFeature, setCurrentFeature] = useState(0)
+  const user = useAuthStore((s) => s.user)
+  // «ثبت‌نام رایگان» برای کاربر واردشده به /register می‌رفت و PublicRoute بی‌صدا
+  // به /venues برمی‌گرداند؛ دکمهٔ دوم را با نقش کاربر هم‌راستا می‌کنیم.
+  const secondaryCta = !user
+    ? { label: 'ثبت‌نام رایگان', icon: 'mdi:account-plus', to: '/register' }
+    : user.role === 'super_admin'
+      ? { label: 'پنل مدیریت', icon: 'mdi:shield-account', to: '/admin' }
+      : user.role === 'venue_manager' || user.role === 'club_admin'
+        ? { label: 'داشبورد مدیریت', icon: 'mdi:view-dashboard', to: '/manager-dashboard' }
+        : { label: 'رزروهای من', icon: 'mdi:calendar-check', to: '/bookings' }
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -196,7 +207,7 @@ export const HeroSection: React.FC = () => {
             مشاهده زمین‌ها
           </Button>
           <Button
-            onClick={() => navigate('/register')}
+            onClick={() => navigate(secondaryCta.to)}
             variant="outlined"
             sx={{
               borderColor: 'rgba(255,255,255,0.5)',
@@ -212,9 +223,9 @@ export const HeroSection: React.FC = () => {
                 bgcolor: 'rgba(255,255,255,0.1)',
               },
             }}
-            startIcon={<Icon icon="mdi:account-plus" style={{ width: 20, height: 20 }} />}
+            startIcon={<Icon icon={secondaryCta.icon} style={{ width: 20, height: 20 }} />}
           >
-            ثبت‌نام رایگان
+            {secondaryCta.label}
           </Button>
         </motion.div>
 

@@ -234,7 +234,9 @@ export const TeamQuotaProgress: React.FC<{
   const reached = isOfficial || (total > 0 && memberCount >= total)
   const color = reached ? '#7c3aed' : '#2563eb'
   return (
-    <Box sx={{ minWidth: compact ? 108 : 150 }}>
+    // روی موبایل عرض ۱۵۰px + متن بلندِ راهنما فضای نام تیم را صفر می‌کرد و
+    // هر دو روی هم می‌افتادند؛ در xs کل ردیف را می‌گیرد و زیر عنوان می‌نشیند.
+    <Box sx={{ width: compact ? 108 : { xs: '100%', sm: 150 }, minWidth: 0, flexShrink: 0 }}>
       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 0.75, mb: 0.5 }}>
         <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.4, color: '#334155', fontSize: '0.75rem', fontWeight: 700 }}>
           <Icon icon="mdi:account-group-outline" style={{ width: 14, height: 14 }} />

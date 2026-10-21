@@ -297,8 +297,12 @@ const ManagerShifts: React.FC = () => {
               </Stack>
               <Divider sx={{ my: 1.25 }} />
               <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
-                <Typography variant="body2" sx={{ fontWeight: 700 }}>
-                  {`${formatJalaliDate(`${weekStart}T09:00:00`, { format: 'numeric' })} تا ${formatJalaliDate(`${addDays(weekStart, 6)}T09:00:00`, { format: 'numeric' })}`}
+                <Typography variant="body2" sx={{ fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: 0.75 }}>
+                  {/* دو تاریخ در یک رشتهٔ واحد در RTL برعکس دیده می‌شد؛ هر تاریخ
+                      جدا رندر می‌شود تا شروع همیشه سمت راست بماند */}
+                  <Box component="span" dir="ltr">{formatJalaliDate(`${weekStart}T09:00:00`, { format: 'numeric' })}</Box>
+                  <Box component="span" sx={{ color: 'text.secondary', fontWeight: 600 }}>تا</Box>
+                  <Box component="span" dir="ltr">{formatJalaliDate(`${addDays(weekStart, 6)}T09:00:00`, { format: 'numeric' })}</Box>
                 </Typography>
                 <Box sx={{ flex: 1 }} />
                 <TextField select size="small" label="ماه خروجی" value={exportMonth}

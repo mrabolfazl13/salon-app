@@ -428,15 +428,24 @@ const VenueDetail: React.FC = () => {
               position: 'relative',
               height: 260,
               overflow: 'hidden',
-              bgcolor: 'grey.100',
+              // تا رسیدن تصویر (یا شکست بی‌صدای درخواست) جای خالی خاکستری دیده
+              // نشود؛ پس‌زمینهٔ برند همان لحظه هست و تصویر رویش می‌آید.
+              background: gradients.primary,
             }}
           >
+            {images.length > 0 && (
+              <Box aria-hidden sx={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Icon icon="mdi:stadium-variant" style={{ width: 72, height: 72, color: 'rgba(255,255,255,0.28)' }} />
+              </Box>
+            )}
             {images.length > 0 ? (
               <Box
                 role="region"
                 aria-label="گالری تصاویر سالن، قابل پیمایش با کیبورد"
                 tabIndex={0}
                 sx={{
+                  position: 'relative',
+                  zIndex: 1,
                   display: 'flex',
                   height: '100%',
                   overflowX: 'auto',
@@ -720,7 +729,7 @@ const VenueDetail: React.FC = () => {
 
         {/* ==================== دسکتاپ: هیرو + تب‌ها (بدون تغییر) ==================== */}
         <Box sx={{ display: { xs: 'none', md: 'block' } }}>
-          <Box sx={{ position: 'relative', height: 400, overflow: 'hidden' }}>
+          <Box sx={{ position: 'relative', height: 400, overflow: 'hidden', background: gradients.primary }}>
             {mainImage ? (
               <LoadSafeImage
                 key={mainImage}
@@ -766,10 +775,10 @@ const VenueDetail: React.FC = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, bgcolor: 'rgba(255,255,255,0.15)', borderRadius: '8px', px: 1.5, py: 0.3 }}>
                         <Rating value={venue.average_rating} readOnly precision={0.5} size="small" name="venue-average-rating" aria-label={`امتیاز کاربران ${toPersianDigits(venue.average_rating.toFixed(1))} از ۵`} getLabelText={(v) => `${toPersianDigits(v ?? 0)} از ۵ ستاره`} sx={{ '& .MuiRating-icon': { color: '#fbbf24' } }} />
                         <Typography variant="body2" sx={{ color: 'white', fontWeight: 700, fontSize: '0.85rem' }}>
-                          {venue.average_rating.toFixed(1)}
+                          {toPersianDigits(venue.average_rating.toFixed(1)).replace('.', '٫')}
                         </Typography>
                         <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.75rem' }}>
-                          ({venue.total_reviews})
+                          ({toPersianDigits(venue.total_reviews)})
                         </Typography>
                       </Box>
                     )}

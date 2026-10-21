@@ -45,7 +45,8 @@ const ProtectedRoute: React.FC<ProtectedRouteProps> = ({
 
   useEffect(() => {
     if (roleMismatch) {
-      toast.error('دسترسی شما به این صفحه مجاز نیست')
+      // id ثابت: اجرای دوبارهٔ effect (StrictMode در dev) دو توست پشت‌سرهم نمی‌سازد
+      toast.error('دسترسی شما به این صفحه مجاز نیست', { id: 'role-guard' })
     }
   }, [roleMismatch])
 

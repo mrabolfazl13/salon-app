@@ -146,10 +146,10 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
             getLabelText={(v) => `${toPersianDigits(v ?? 0)} از ۵ ستاره`}
           />
           <Typography variant="body2" sx={{ fontWeight: 700 }}>
-            {averageRating ? averageRating.toFixed(1) : '—'}
+            {averageRating ? toPersianDigits(averageRating.toFixed(1)).replace('.', '٫') : '—'}
           </Typography>
           <Typography variant="caption" sx={{ color: 'text.disabled' }}>
-            ({totalReviews || 0} نظر)
+            ({toPersianDigits(totalReviews || 0)} نظر)
           </Typography>
         </Box>
       </Box>

@@ -291,6 +291,7 @@ const Register: React.FC = () => {
                   <Input
                     {...register('fullName')}
                     placeholder="نام و نام خانوادگی"
+                    aria-label="نام و نام خانوادگی"
                     icon="mdi:account-outline"
                     error={errors.fullName?.message}
                     className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
@@ -303,6 +304,8 @@ const Register: React.FC = () => {
                       register('phone').onChange(e)
                     }}
                     placeholder="شماره موبایل"
+                    aria-label="شماره موبایل"
+                    inputMode="tel"
                     icon="mdi:phone-outline"
                     error={errors.phone?.message}
                     className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
@@ -323,6 +326,7 @@ const Register: React.FC = () => {
                       {...register('password')}
                       type={showPassword ? 'text' : 'password'}
                       placeholder="رمز عبور"
+                      aria-label="رمز عبور"
                       icon="mdi:lock-outline"
                       error={errors.password?.message}
                       className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
@@ -330,7 +334,8 @@ const Register: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowPassword(!showPassword)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                      aria-label={showPassword ? 'پنهان کردن رمز' : 'نمایش رمز'}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                     >
                       <Icon
                         icon={showPassword ? 'mdi:eye-off' : 'mdi:eye'}
@@ -369,6 +374,7 @@ const Register: React.FC = () => {
                       {...register('confirmPassword')}
                       type={showConfirmPassword ? 'text' : 'password'}
                       placeholder="تکرار رمز عبور"
+                      aria-label="تکرار رمز عبور"
                       icon="mdi:lock-check-outline"
                       error={errors.confirmPassword?.message}
                       className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
@@ -376,7 +382,8 @@ const Register: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
+                      aria-label={showConfirmPassword ? 'پنهان کردن تکرار رمز' : 'نمایش تکرار رمز'}
+                      className="absolute left-3 top-1/2 -translate-y-1/2 flex h-11 w-11 items-center justify-center text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 transition-colors"
                     >
                       <Icon
                         icon={showConfirmPassword ? 'mdi:eye-off' : 'mdi:eye'}

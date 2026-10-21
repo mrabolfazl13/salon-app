@@ -91,8 +91,12 @@ beforeEach(() => {
 describe('CoachDashboard', () => {
   it('renders KPI figures taken from the dashboard payload', async () => {
     renderPage()
-    expect(await screen.findByText('۶۰۰٬۰۰۰ ریال')).toBeInTheDocument()
-    expect(screen.getByText('۱۵۰٬۰۰۰ ریال')).toBeInTheDocument()
+    // KpiCard واحد «ریال» را در span جدا و کوچک‌تر رندر می‌کند؛
+    // textContent همان مقدار قابل‌مشاهده است، نه متن مستقیم یک گره.
+    const value = (text: string) => (_: string, el: Element | null) =>
+      el?.tagName === 'P' && el.textContent === text
+    expect(await screen.findByText(value('۶۰۰٬۰۰۰ ریال'))).toBeInTheDocument()
+    expect(screen.getByText(value('۱۵۰٬۰۰۰ ریال'))).toBeInTheDocument()
     expect(screen.getByText(/۳ شاگرد فعال/)).toBeInTheDocument()
   })
 
