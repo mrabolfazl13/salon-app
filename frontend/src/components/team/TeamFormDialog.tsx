@@ -131,7 +131,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
             className="flex flex-wrap gap-2"
           >
             {(Object.keys(TEAM_VISIBILITY_LABELS) as TeamVisibility[]).map((v) => (
-              <div key={v} className="flex min-h-11 items-center gap-2">
+              <div key={v} className="flex min-h-9 items-center gap-2">
                 <RadioGroupItem value={v} id={`team-visibility-${v}`} />
                 <Label htmlFor={`team-visibility-${v}`} className="cursor-pointer text-[0.8rem] font-semibold">
                   {TEAM_VISIBILITY_LABELS[v]}
@@ -139,7 +139,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
               </div>
             ))}
           </RadioGroup>
-          <p className="mt-1 text-xs leading-[1.8] text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-[0.68rem] leading-[1.8] text-slate-500 dark:text-slate-400">
             {VISIBILITY_HINTS[visibility]}
           </p>
         </div>
@@ -181,7 +181,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
           </Button>
         </div>
         {editing && (
-          <p className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
+          <p className="flex items-center gap-2 text-[0.68rem] text-slate-500 dark:text-slate-400">
             <Icon icon="mdi:information-outline" style={{ width: 14, height: 14 }} />
             تغییر نام فقط توسط کاپیتان یا مدیر تیم ذخیره می‌شود.
           </p>

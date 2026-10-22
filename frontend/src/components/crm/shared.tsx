@@ -76,7 +76,7 @@ export const SegmentChip: React.FC<{ segment: string; small?: boolean }> = ({ se
   const { main: text, mapped } = useStatusColor(SEGMENT_COLORS[segment as CrmSegment] ?? '#6b7280')
   return (
     <span
-      className="inline-flex h-[22px] items-center rounded-lg px-2 text-xs font-bold leading-none"
+      className="inline-flex h-[22px] items-center rounded-lg px-2 text-[0.68rem] font-bold leading-none"
       // متن چیپ باید ≥۴٫۵:۱ باشد؛ هگزهای تزئینی از کنفیگ رنگ، توکن سمانتیک می‌شوند
       style={{ backgroundColor: `${text}${mapped ? '1f' : '18'}`, color: text }}
     >
@@ -157,7 +157,7 @@ export const PermissionMatrixRow: React.FC<{
         <span className="text-[0.78rem] font-bold text-foreground">
           {permissionLabel}
         </span>
-        <span className="me-2 text-xs text-muted-foreground" dir="ltr">
+        <span className="me-2 text-[0.68rem] text-muted-foreground" dir="ltr">
           {code}
         </span>
       </div>
@@ -189,7 +189,7 @@ export const BookingStatusChip: React.FC<{ status: string }> = ({ status }) => {
   const { main: text, mapped } = useStatusColor(BOOKING_STATUS_COLORS[status] ?? '#6b7280')
   return (
     <span
-      className="inline-flex h-5 items-center rounded-lg px-2 text-xs font-bold leading-none"
+      className="inline-flex h-5 items-center rounded-lg px-2 text-[0.68rem] font-bold leading-none"
       style={{ backgroundColor: `${text}${mapped ? '1f' : '18'}`, color: text }}
     >
       {BOOKING_STATUS_LABELS[status] ?? status}

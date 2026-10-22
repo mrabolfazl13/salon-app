@@ -112,7 +112,7 @@ const ChallengeCard: React.FC<{
   return (
     <div
       data-testid={`challenge-card-${row.id}`}
-      className="flex flex-col gap-2 rounded-2xl border border-border bg-card p-3.5 shadow-sm"
+      className="flex flex-col gap-2 rounded-lg border border-border bg-card p-3.5 shadow-sm"
     >
       <div className="flex items-center gap-2">
         <Icon icon="mdi:swords" style={{ width: 18, height: 18, color: '#2563eb', flexShrink: 0 }} />
@@ -251,7 +251,7 @@ const TeamChallengePanel: React.FC<{ teamId: number; canRespond: boolean }> = ({
       </div>
 
       {!canRespond && (
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
           شما عضو این تیم هستید؛ فقط کاپیتان و مدیران می‌توانند به چالش پاسخ دهند یا آن را پس بگیرند.
         </p>
       )}

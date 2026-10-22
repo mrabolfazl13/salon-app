@@ -69,7 +69,7 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
   }
 
   return (
-    <div className="flex flex-col overflow-hidden rounded-2xl border border-slate-900/[0.06] bg-slate-50/60 dark:border-white/10 dark:bg-white/[0.02]">
+    <div className="flex flex-col overflow-hidden rounded-lg border border-slate-900/[0.06] bg-slate-50/60 dark:border-white/10 dark:bg-white/[0.02]">
       <div className="flex h-[380px] flex-col gap-2 overflow-y-auto p-2.5 md:h-[460px] md:p-3.5">
         {messagesQ.isPending ? (
           <div className="m-auto text-center">
@@ -94,7 +94,7 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
           <div className="m-auto max-w-[320px] text-center">
             <Icon icon="mdi:message-text-outline" style={{ width: 32, height: 32, color: '#64748b' }} />
             <p className="mt-1.5 text-[0.85rem] font-bold text-slate-500 dark:text-slate-400">هنوز پیامی در چت تیم نیست</p>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">اولین پیام را بنویسید و هم‌تیمی‌ها را هماهنگ کنید.</p>
+            <p className="mt-0.5 text-[0.68rem] text-slate-500 dark:text-slate-400">اولین پیام را بنویسید و هم‌تیمی‌ها را هماهنگ کنید.</p>
           </div>
         ) : (
           <>
@@ -117,7 +117,7 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
                         : 'border-slate-900/[0.06] bg-card/95 dark:border-white/10 dark:bg-white/5',
                     )}
                   >
-                    <p className={cn('mb-0.5 text-xs font-extrabold', mine ? 'text-blue-600 dark:text-blue-400' : 'text-violet-700 dark:text-violet-300')}>
+                    <p className={cn('mb-0.5 text-[0.68rem] font-extrabold', mine ? 'text-blue-600 dark:text-blue-400' : 'text-violet-700 dark:text-violet-300')}>
                       {mine ? 'شما' : (m.full_name ?? `کاربر ${toPersianDigits(m.user_id)}`)}
                     </p>
                     <p className="whitespace-pre-wrap break-words text-[0.85rem] leading-[1.85] text-slate-900 dark:text-slate-100">
@@ -144,7 +144,7 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
-          className="max-h-32 min-h-11 resize-none rounded-xl"
+          className="max-h-32 min-h-9 resize-none rounded-xl"
         />
         <Button
           variant="gradient"

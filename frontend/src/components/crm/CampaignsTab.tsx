@@ -118,7 +118,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
   const items = campaignsQuery.data?.items ?? []
 
   return (
-    <div className="grid grid-cols-1 items-start gap-5 lg:grid-cols-[1.15fr_1fr]">
+    <div className="grid grid-cols-1 items-start gap-3 lg:grid-cols-[1.15fr_1fr]">
       {/* فرم ساخت */}
       <SectionCard title="کمپین جدید" icon="mdi:message-alert-outline" color="#d97706">
         <div className="flex flex-col gap-4">
@@ -130,11 +130,11 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
           >
             <label className="flex cursor-pointer items-center gap-2">
               <RadioGroupItem value="segment" id="campaign-mode-segment" />
-              <span className="text-sm font-bold text-foreground">بر اساس گروه مشتریان</span>
+              <span className="text-[0.68rem] font-bold text-foreground">بر اساس گروه مشتریان</span>
             </label>
             <label className="flex cursor-pointer items-center gap-2">
               <RadioGroupItem value="customers" id="campaign-mode-customers" />
-              <span className="text-sm font-bold text-foreground">انتخاب دستی مشتریان</span>
+              <span className="text-[0.68rem] font-bold text-foreground">انتخاب دستی مشتریان</span>
             </label>
           </RadioGroup>
 
@@ -180,8 +180,8 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
                       >
                         <span className="flex min-w-0 items-center gap-2">
                           {picked && <Icon icon="mdi:checkbox-marked" className="h-4 w-4" style={{ color: '#2563eb' }} aria-hidden="true" />}
-                          <span className="text-sm font-semibold text-foreground">{c.full_name ?? '—'}</span>
-                          <span className="text-xs text-muted-foreground tabular-nums" dir="ltr">{c.phone}</span>
+                          <span className="text-[0.68rem] font-semibold text-foreground">{c.full_name ?? '—'}</span>
+                          <span className="text-[0.68rem] text-muted-foreground tabular-nums" dir="ltr">{c.phone}</span>
                         </span>
                         {!c.marketing_consent && (
                           <span className="inline-flex h-[18px] shrink-0 items-center rounded-md bg-red-500/10 px-1.5 text-[0.6rem] font-bold text-red-700 dark:text-red-400">
@@ -197,7 +197,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
                 {selected.map((s) => (
                   <span
                     key={s.user_id}
-                    className="inline-flex items-center gap-1 rounded-lg bg-blue-600/[0.08] py-0.5 pe-1 ps-2 text-xs font-semibold text-blue-700 dark:text-blue-300"
+                    className="inline-flex items-center gap-1 rounded-lg bg-blue-600/[0.08] py-0.5 pe-1 ps-2 text-[0.68rem] font-semibold text-blue-700 dark:text-blue-300"
                   >
                     {s.full_name ?? String(s.user_id)}
                     <button
@@ -216,7 +216,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
 
           {/* پیش‌نمایش دامنه */}
           <div className="rounded-xl border border-blue-600/[0.12] bg-blue-600/[0.05] p-3">
-            <p className="text-sm font-bold text-foreground">
+            <p className="text-[0.68rem] font-bold text-foreground">
               <Icon icon="mdi:account-multiple-outline" className="inline h-4 w-4 me-1" aria-hidden="true" />
               دامنه پیش‌بینی‌شده: {reachCount === null ? '…' : `${toPersianDigits(reachCount)} مشتری`}
               {targetMode === 'segment' && ` در گروه «${SEGMENT_LABELS[segment]}»`}
@@ -224,8 +224,8 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
             <p
               className={
                 (consentReach ?? 0) > 0
-                  ? 'mt-1 text-sm font-bold text-emerald-700 dark:text-emerald-400'
-                  : 'mt-1 text-sm font-bold text-amber-700 dark:text-amber-400'
+                  ? 'mt-1 text-[0.68rem] font-bold text-emerald-700 dark:text-emerald-400'
+                  : 'mt-1 text-[0.68rem] font-bold text-amber-700 dark:text-amber-400'
               }
             >
               <Icon icon="mdi:email-check-outline" className="inline h-4 w-4 me-1" aria-hidden="true" />
@@ -233,7 +233,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
               {consentReach === null ? '…' : `${toPersianDigits(consentReach)} نفر`}
               {consentReach === 0 && ' — به هیچ‌کس پیام ارسال نمی‌شود'}
             </p>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[0.68rem] text-muted-foreground">
               شمارش نهاییِ دارایانِ رضایت هنگام ارسال سمت سرور اعمال می‌شود؛ سقف روزانه کمپین هر سالن هم اعمال می‌گردد.
             </p>
           </div>
@@ -259,7 +259,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
           <div className="flex flex-col gap-1.5">
             <Label htmlFor={discountId}>کد تخفیف (اختیاری)</Label>
             <Input id={discountId} value={discount} onChange={(e) => setDiscount(e.target.value.slice(0, 40))} />
-            <p className="text-xs text-muted-foreground">در ابتدای پیام به صورت «| کد تخفیف: ...» افزوده می‌شود</p>
+            <p className="text-[0.68rem] text-muted-foreground">در ابتدای پیام به صورت «| کد تخفیف: ...» افزوده می‌شود</p>
           </div>
           <Button
             onClick={submit}
@@ -293,27 +293,27 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
             {items.map((c) => (
               <div key={c.id} className="rounded-[14px] border border-border/60 bg-slate-50/60 p-3.5 dark:bg-slate-900/40">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="text-sm font-extrabold text-foreground">{c.title}</p>
-                  <p className="text-xs text-muted-foreground tabular-nums">
+                  <p className="text-[0.68rem] font-extrabold text-foreground">{c.title}</p>
+                  <p className="text-[0.68rem] text-muted-foreground tabular-nums">
                     {c.created_at ? formatJalaliDateTime(c.created_at, { format: 'numeric' }) : '—'} · {c.created_by_name ?? '—'}
                   </p>
                 </div>
-                <p className="mt-1 block whitespace-pre-wrap text-xs text-muted-foreground">
+                <p className="mt-1 block whitespace-pre-wrap text-[0.68rem] text-muted-foreground">
                   {c.message.length > 110 ? `${c.message.slice(0, 110)}…` : c.message}
                   {c.discount_code ? ` | کد: ${c.discount_code}` : ''}
                 </p>
                 <div className="mt-2 flex flex-wrap gap-1.5">
                   {c.segment && (
-                    <span className="inline-flex h-5 items-center rounded-md bg-violet-600/[0.08] px-1.5 text-xs font-bold text-violet-700 dark:text-violet-300">
+                    <span className="inline-flex h-5 items-center rounded-md bg-violet-600/[0.08] px-1.5 text-[0.68rem] font-bold text-violet-700 dark:text-violet-300">
                       {SEGMENT_LABELS[c.segment] ?? c.segment}
                     </span>
                   )}
-                  <span className="inline-flex h-5 items-center gap-1 rounded-md bg-emerald-600/10 px-1.5 text-xs font-bold text-emerald-700 tabular-nums dark:text-emerald-400">
+                  <span className="inline-flex h-5 items-center gap-1 rounded-md bg-emerald-600/10 px-1.5 text-[0.68rem] font-bold text-emerald-700 tabular-nums dark:text-emerald-400">
                     <Icon icon="mdi:email-check" className="h-3.5 w-3.5" aria-hidden="true" />
                     {`${toPersianDigits(c.sent_count)} ارسال`}
                   </span>
                   {c.skipped_no_consent > 0 && (
-                    <span className="inline-flex h-5 items-center gap-1 rounded-md bg-red-500/10 px-1.5 text-xs font-bold text-red-700 tabular-nums dark:text-red-400">
+                    <span className="inline-flex h-5 items-center gap-1 rounded-md bg-red-500/10 px-1.5 text-[0.68rem] font-bold text-red-700 tabular-nums dark:text-red-400">
                       <Icon icon="mdi:email-off" className="h-3.5 w-3.5" aria-hidden="true" />
                       {`${toPersianDigits(c.skipped_no_consent)} بدون رضایت`}
                     </span>

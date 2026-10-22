@@ -148,7 +148,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
   const activeCount = rows.filter((r) => r.is_active).length
 
   return (
-    <div className="flex flex-col gap-5">
+    <div className="flex flex-col gap-3">
       <SectionCard
         title={`کارکنان سالن (${toPersianDigits(activeCount)} فعال)`}
         icon="mdi:badge-account-outline"
@@ -161,7 +161,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                 checked={includeInactive}
                 onCheckedChange={setIncludeInactive}
               />
-              <Label htmlFor={includeInactiveId} className="cursor-pointer text-xs font-semibold text-foreground">
+              <Label htmlFor={includeInactiveId} className="cursor-pointer text-[0.68rem] font-semibold text-foreground">
                 نمایش حذف‌شده‌ها
               </Label>
             </div>
@@ -201,7 +201,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                             onValueChange={(v) => changePosition(row, v as StaffPosition)}
                             disabled={updateStaff.isPending}
                           >
-                            <SelectTrigger aria-label="سمت" className="h-11 rounded-xl text-[0.8rem] font-bold">
+                            <SelectTrigger aria-label="سمت" className="h-9 rounded-xl text-[0.8rem] font-bold">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -212,7 +212,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                           </Select>
                         </div>
                       ) : (
-                        <span className="inline-flex h-5 items-center rounded-lg border border-border px-2 text-xs font-bold text-foreground">
+                        <span className="inline-flex h-5 items-center rounded-lg border border-border px-2 text-[0.68rem] font-bold text-foreground">
                           {POSITION_LABELS[row.position as StaffPosition] ?? String(row.position)}
                         </span>
                       )}
@@ -238,7 +238,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                                   onClick={() => resetCustomPermissions(row)}
                                   disabled={updateStaff.isPending}
                                   aria-label="بازگرداندن دسترسی به پیش‌فرض"
-                                  className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 dark:text-blue-400"
+                                  className="inline-flex h-9 w-11 items-center justify-center rounded-lg text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 dark:text-blue-400"
                                 >
                                   <Icon icon="mdi:restore" className="h-4 w-4" aria-hidden="true" />
                                 </button>
@@ -248,15 +248,15 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                           <TooltipContent>دسترسی سفارشی — با آیکن بازگشت به پیش‌فرض موقعیت برمی‌گردد</TooltipContent>
                         </Tooltip>
                       ) : (
-                        <span className="text-xs text-muted-foreground">پیش‌فرض {POSITION_LABELS[row.position as StaffPosition] ?? row.position}</span>
+                        <span className="text-[0.68rem] text-muted-foreground">پیش‌فرض {POSITION_LABELS[row.position as StaffPosition] ?? row.position}</span>
                       )}
                     </TableCell>
                     <TableCell>
                       <span
                         className={
                           row.is_active
-                            ? 'inline-flex h-5 items-center rounded-lg bg-emerald-600/[0.12] px-2 text-xs font-bold leading-none text-emerald-700 dark:text-emerald-400'
-                            : 'inline-flex h-5 items-center rounded-lg bg-slate-500/[0.12] px-2 text-xs font-bold leading-none text-muted-foreground'
+                            ? 'inline-flex h-5 items-center rounded-lg bg-emerald-600/[0.12] px-2 text-[0.68rem] font-bold leading-none text-emerald-700 dark:text-emerald-400'
+                            : 'inline-flex h-5 items-center rounded-lg bg-slate-500/[0.12] px-2 text-[0.68rem] font-bold leading-none text-muted-foreground'
                         }
                       >
                         {row.is_active ? 'فعال' : 'حذف‌شده'}
@@ -270,7 +270,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                               type="button"
                               onClick={() => setRemoveTarget(row)}
                               aria-label="حذف انتصاب"
-                              className="inline-flex h-11 w-11 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
+                              className="inline-flex h-9 w-11 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
                             >
                               <Icon icon="mdi:account-remove-outline" className="h-5 w-5" aria-hidden="true" />
                             </button>
@@ -300,16 +300,16 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
         }
       >
         {!showMatrix ? (
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[0.68rem] text-muted-foreground">
             برای شفافیت، لیست کامل کدهای دسترسی هر موقعیت را ببینید. انتصابِ «دسترسی سفارشی» این ماتریس را دور می‌زند.
           </p>
         ) : (
           <div className="overflow-x-auto">
             <div className="min-w-[560px]">
-              <div className="mb-2 grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(44px,0.6fr))] items-center gap-1 rounded-[10px] bg-blue-600/[0.06] px-3 py-2">
-                <span className="text-xs font-extrabold text-foreground">کد دسترسی</span>
+              <div className="mb-1 grid grid-cols-[minmax(0,1.6fr)_repeat(4,minmax(44px,0.6fr))] items-center gap-1 rounded-[10px] bg-blue-600/[0.06] px-3 py-2">
+                <span className="text-[0.68rem] font-extrabold text-foreground">کد دسترسی</span>
                 {POSITION_ORDER.map((pos) => (
-                  <span key={pos} className="text-center text-xs font-extrabold text-foreground">{POSITION_LABELS[pos]}</span>
+                  <span key={pos} className="text-center text-[0.68rem] font-extrabold text-foreground">{POSITION_LABELS[pos]}</span>
                 ))}
               </div>
               {ALL_PERMISSION_CODES.map((code) => (
@@ -333,8 +333,8 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                 onClick={() => { setAuditAction(a); setAuditPage(1) }}
                 className={
                   active
-                    ? 'inline-flex h-[26px] items-center rounded-[9px] bg-blue-600 px-2.5 text-xs font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                    : 'inline-flex h-[26px] items-center rounded-[9px] border border-border bg-card px-2.5 text-xs font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    ? 'inline-flex h-[26px] items-center rounded-[9px] bg-blue-600 px-2.5 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    : 'inline-flex h-[26px] items-center rounded-[9px] border border-border bg-card px-2.5 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                 }
               >
                 {AUDIT_ACTION_LABELS[a]}
@@ -364,16 +364,16 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                   >
                     <Icon icon={ai.icon} className="h-5 w-5 shrink-0" style={{ color: ai.color }} aria-hidden="true" />
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-bold text-foreground">
+                      <p className="text-[0.68rem] font-bold text-foreground">
                         {AUDIT_ACTION_LABELS[e.action] ?? e.action}
                       </p>
-                      <p className="block truncate text-xs text-muted-foreground">
+                      <p className="block truncate text-[0.68rem] text-muted-foreground">
                         {e.data?.actor_name ? e.data.actor_name + ' · ' : ''}
                         {e.target_type ? e.target_type + (e.target_id ? ' #' + toPersianDigits(e.target_id) : '') + ' · ' : ''}
                         {e.ip ? 'IP: ' + e.ip : ''}
                       </p>
                     </div>
-                    <span className="shrink-0 text-xs text-muted-foreground tabular-nums">
+                    <span className="shrink-0 text-[0.68rem] text-muted-foreground tabular-nums">
                       {e.created_at ? formatJalaliDateTime(e.created_at, { format: 'numeric' }) : '—'}
                     </span>
                   </div>
@@ -492,7 +492,7 @@ const AddStaffDialog: React.FC<{
               ))}
             </SelectContent>
           </Select>
-          <p className="mt-1.5 block text-xs text-muted-foreground">
+          <p className="mt-1.5 block text-[0.68rem] text-muted-foreground">
             <Icon icon="mdi:information-outline" className="inline h-3.5 w-3.5 me-1" aria-hidden="true" />
             {POSITION_DESCRIPTIONS[position]}
           </p>
@@ -500,7 +500,7 @@ const AddStaffDialog: React.FC<{
         <Separator />
         <div className="flex items-center gap-2">
           <Switch id={customId} checked={custom} onCheckedChange={setCustom} />
-          <Label htmlFor={customId} className="cursor-pointer text-sm font-extrabold text-foreground">
+          <Label htmlFor={customId} className="cursor-pointer text-[0.68rem] font-extrabold text-foreground">
             دسترسی سفارشی (به‌جای پیش‌فرض موقعیت)
           </Label>
         </div>
@@ -521,7 +521,7 @@ const AddStaffDialog: React.FC<{
           </div>
         ) : (
           <div className="flex flex-wrap items-center gap-1">
-            <span className="text-xs text-muted-foreground">پیش‌فرض «{POSITION_LABELS[position]}»:</span>
+            <span className="text-[0.68rem] text-muted-foreground">پیش‌فرض «{POSITION_LABELS[position]}»:</span>
             {matrixSets[position].size === ALL_PERMISSION_CODES.length ? (
               <span className="inline-flex h-[18px] items-center rounded-md bg-amber-500/10 px-1.5 text-[0.6rem] font-bold text-amber-700 dark:text-amber-400">
                 دسترسی کامل

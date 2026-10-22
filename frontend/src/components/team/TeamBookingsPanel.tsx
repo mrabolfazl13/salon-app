@@ -69,7 +69,7 @@ const BookingsLinkDialog: React.FC<{ team: Team; linkedIds: Set<number>; open: b
   return (
     <Dialog open={open} onClose={onClose} title="اتصال رزرو به تیم" maxWidth="xs">
       <div className="flex flex-col gap-3 pt-1">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           فقط رزروهای پیش‌روی خودتان قابل اتصال است؛ رزرو تغییر نمی‌کند و صرفاً به تاریخچه تیم منتسب می‌شود.
         </p>
         {bookingsQ.isPending ? (
@@ -100,7 +100,7 @@ const BookingsLinkDialog: React.FC<{ team: Team; linkedIds: Set<number>; open: b
                   <p className="truncate text-[0.82rem] font-bold">
                     {b.venue_name ?? `رزرو #${b.id}`}
                   </p>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
                     {`${formatJalaliDate(b.slot_date, { format: 'numeric' })}${b.start_time ? ` - ${formatTimeFa(b.start_time)}` : ''}${b.payment_amount ? ` — ${formatRial(b.payment_amount)}` : ''}`}
                   </p>
                 </div>
@@ -154,20 +154,20 @@ const TeamBookingsPanel: React.FC<{ team: Team }> = ({ team }) => {
           {items.map((b: TeamBookingItem) => (
             <div
               key={b.id}
-              className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-slate-900/[0.06] px-3 py-2.5 dark:border-white/10"
+              className="flex flex-wrap items-center gap-2.5 rounded-lg border border-slate-900/[0.06] px-3 py-2.5 dark:border-white/10"
             >
               <Icon icon="mdi:calendar-outline" style={{ width: 18, height: 18, color: '#2563eb', flexShrink: 0 }} />
               <div className="min-w-0 flex-1">
                 <p className="truncate text-[0.83rem] font-bold">
                   {b.venue_name ?? '—'}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
+                <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
                   {`${formatJalaliDate(b.slot_date, { format: 'numeric' })}${b.start_time ? ` - ${formatTimeFa(b.start_time ?? '')}` : ''}`}
                   {b.booking_user_name ? ` — ثبت‌کننده: ${b.booking_user_name}` : ''}
                 </p>
               </div>
               {b.payment_amount != null && (
-                <p className="text-xs font-extrabold" dir="rtl">
+                <p className="text-[0.68rem] font-extrabold" dir="rtl">
                   {formatRial(b.payment_amount)}
                 </p>
               )}
@@ -177,7 +177,7 @@ const TeamBookingsPanel: React.FC<{ team: Team }> = ({ team }) => {
           {pageCount > 1 && (
             <div className="flex items-center justify-center gap-3 pt-2">
               <Button size="sm" variant="ghost" disabled={page <= 1 || bookingsQ.isFetching} onClick={() => setPage((p) => p - 1)} className="font-bold">قبلی</Button>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-[0.68rem] font-bold text-slate-500 dark:text-slate-400">
                 {`${toPersianDigits(page)} / ${toPersianDigits(pageCount)}`}
               </p>
               <Button size="sm" variant="ghost" disabled={page >= pageCount || bookingsQ.isFetching} onClick={() => setPage((p) => p + 1)} className="font-bold">بعدی</Button>

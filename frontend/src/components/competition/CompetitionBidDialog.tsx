@@ -132,7 +132,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
             </span>
             <span>
               <span className="block text-lg font-extrabold leading-snug">رقابت با بقیه!</span>
-              <span className="block text-xs font-normal text-muted-foreground">
+              <span className="block text-[0.68rem] font-normal text-muted-foreground">
                 کمترین پیشنهاد پس از پایان رقابت برنده می‌شود
               </span>
             </span>
@@ -140,30 +140,30 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
         </DialogHeader>
 
         {/* اطلاعات سانس */}
-        <div className="mb-2.5 rounded-[14px] border border-blue-600/[0.12] bg-blue-600/5 p-4">
+        <div className="mb-1.5 rounded-[14px] border border-blue-600/[0.12] bg-blue-600/5 p-4">
           {venueName && (
-            <div className="mb-2 flex justify-between">
-              <span className="text-sm text-muted-foreground">سالن</span>
-              <span className="text-sm font-semibold">{venueName}</span>
+            <div className="mb-1 flex justify-between">
+              <span className="text-[0.68rem] text-muted-foreground">سالن</span>
+              <span className="text-[0.68rem] font-semibold">{venueName}</span>
             </div>
           )}
-          <div className="mb-2 flex justify-between">
-            <span className="text-sm text-muted-foreground">تاریخ و ساعت</span>
-            <span className="text-sm font-semibold">
+          <div className="mb-1 flex justify-between">
+            <span className="text-[0.68rem] text-muted-foreground">تاریخ و ساعت</span>
+            <span className="text-[0.68rem] font-semibold">
               {formatDate(slot.date + 'T00:00:00')} • {slot.startTime}
               {slot.endTime ? ` - ${slot.endTime}` : ''}
             </span>
           </div>
           <div className="flex justify-between">
-            <span className="text-sm text-muted-foreground">قیمت فعلی سانس</span>
-            <span className="text-sm font-extrabold text-blue-600 dark:text-blue-400">
+            <span className="text-[0.68rem] text-muted-foreground">قیمت فعلی سانس</span>
+            <span className="text-[0.68rem] font-extrabold text-blue-600 dark:text-blue-400">
               {formatPrice(slot.price)}
             </span>
           </div>
           <Separator className="my-3" />
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-1">
-              <span className="text-sm text-muted-foreground">بهترین پیشنهاد فعلی</span>
+              <span className="text-[0.68rem] text-muted-foreground">بهترین پیشنهاد فعلی</span>
               {!loadingBest && !bestError && (
                 <Tooltip>
                   <TooltipTrigger asChild>
@@ -171,7 +171,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
                       type="button"
                       onClick={() => fetchBest(slot.id)}
                       aria-label="به‌روزرسانی بهترین پیشنهاد"
-                      className="inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="inline-flex h-9 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <Icon icon="mdi:refresh" style={{ width: 16, height: 16 }} />
                     </button>
@@ -192,12 +192,12 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
                 variant="ghost"
                 size="sm"
                 onClick={() => fetchBest(slot.id)}
-                className="px-2 text-xs font-bold"
+                className="px-2 text-[0.68rem] font-bold"
               >
                 دریافت نشد — تلاش مجدد
               </Button>
             ) : (
-              <span className="text-sm font-extrabold text-amber-600 dark:text-amber-400">
+              <span className="text-[0.68rem] font-extrabold text-amber-600 dark:text-amber-400">
                 {bestPrice != null ? formatPrice(bestPrice) : 'هنوز پیشنهادی ثبت نشده'}
               </span>
             )}
@@ -220,12 +220,12 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
               startIcon={<Icon icon="mdi:currency-usd" style={{ width: 18, height: 18 }} />}
               className="pe-14"
             />
-            <span className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+            <span className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 text-[0.68rem] text-muted-foreground">
               ریال
             </span>
           </div>
           {!validationError && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[0.68rem] text-muted-foreground">
               {bestPrice != null
                 ? `برای برنده شدن باید کمتر از بهترین پیشنهاد (${formatPrice(bestPrice)}) باشد`
                 : 'حداقل ۱ ریال و کمتر از قیمت فعلی سانس'}

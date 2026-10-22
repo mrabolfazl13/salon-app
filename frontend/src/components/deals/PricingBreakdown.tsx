@@ -70,10 +70,10 @@ const AmountRow: React.FC<{ label: React.ReactNode; amount: number; strong?: boo
         className={cn(
           'min-w-0 truncate',
           subRow
-            ? 'text-xs font-normal text-muted-foreground'
+            ? 'text-[0.68rem] font-normal text-muted-foreground'
             : strong
-              ? 'text-sm font-extrabold text-foreground'
-              : 'text-sm font-semibold text-slate-700 dark:text-slate-300'
+              ? 'text-[0.68rem] font-extrabold text-foreground'
+              : 'text-[0.68rem] font-semibold text-slate-700 dark:text-slate-300'
         )}
       >
         {label}
@@ -82,7 +82,7 @@ const AmountRow: React.FC<{ label: React.ReactNode; amount: number; strong?: boo
         dir="rtl"
         className={cn(
           'whitespace-nowrap tabular-nums',
-          subRow ? 'text-xs' : 'text-sm',
+          subRow ? 'text-[0.68rem]' : 'text-[0.68rem]',
           strong ? 'font-black' : 'font-bold',
           zero ? 'text-muted-foreground' : amount > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
         )}
@@ -111,11 +111,11 @@ const PricingBreakdown: React.FC<{ steps: BreakdownStep[]; payable: number | nul
       >
         <div className="flex items-center gap-2">
           <Icon icon="mdi:receipt-text-outline" style={{ width: 18, height: 18, color: '#2563eb' }} />
-          <span className="text-sm font-extrabold text-foreground">جزئیات قیمت</span>
+          <span className="text-[0.68rem] font-extrabold text-foreground">جزئیات قیمت</span>
         </div>
         <div className="flex items-center gap-1">
           {isNumber(payable) && (
-            <span className="text-sm text-muted-foreground">
+            <span className="text-[0.68rem] text-muted-foreground">
               قابل پرداخت:{' '}
               <b className="tabular-nums text-emerald-700 dark:text-emerald-400">{formatRial(payable)}</b>
             </span>

@@ -45,7 +45,7 @@ const SignalRow: React.FC<{ kind: 'level' | 'region' | 'schedule'; signal: Signa
   return (
     <div className="flex items-center gap-2">
       <Icon icon={meta.icon} style={{ width: 15, height: 15, color: '#64748b', flexShrink: 0 }} />
-      <p className="min-w-[74px] text-xs font-bold text-slate-500 dark:text-slate-400">
+      <p className="min-w-[74px] text-[0.68rem] font-bold text-slate-500 dark:text-slate-400">
         {meta.label}
       </p>
       <div className="min-w-0 flex-1">
@@ -103,7 +103,7 @@ const ChallengeDialog: React.FC<{
   return (
     <Dialog open={!!target} onClose={onClose} title={target ? `چالش بازی با «${target.team_name}»` : ''} maxWidth="xs">
       <div className="flex flex-col gap-4 pt-1">
-        <p className="text-xs leading-[1.9] text-muted-foreground">
+        <p className="text-[0.68rem] leading-[1.9] text-muted-foreground">
           چالش فقط توافق دو تیم را ثبت می‌کند و برای مدیران حریف اعلان می‌فرستد — رزرو سالن و
           پرداخت در همان جریان همیشگی رزرو انجام می‌شود.
         </p>
@@ -159,13 +159,13 @@ const SuggestionCard: React.FC<{
   return (
     <div
       data-testid={`match-suggestion-${row.team_id}`}
-      className="flex flex-col gap-2.5 rounded-2xl border border-border bg-card p-3.5 shadow-sm"
+      className="flex flex-col gap-2.5 rounded-lg border border-border bg-card p-3.5 shadow-sm"
     >
       <div className="flex items-start gap-2.5">
         <div
           role="img"
           aria-label={SPORT_NAME_FA[row.sport] ?? row.sport}
-          className="shrink-0 text-2xl leading-none"
+          className="shrink-0 text-xl leading-none"
         >
           {SPORT_EMOJI[row.sport] ?? '🏅'}
         </div>
@@ -253,14 +253,14 @@ const TeamMatchmakingPanel: React.FC<{ team: Team; canChallenge: boolean }> = ({
 
   return (
     <div className="flex flex-col gap-3">
-      <div className="rounded-2xl bg-blue-600/5 p-3">
+      <div className="rounded-lg bg-blue-600/5 p-3">
         <div className="flex items-center gap-2">
           <Icon icon="mdi:swords" style={{ width: 18, height: 18, color: '#2563eb' }} />
           <p className="text-[0.82rem] font-extrabold text-slate-800 dark:text-slate-200">
             حریف متناسب با تیم شما
           </p>
         </div>
-        <p className="mt-1 text-xs leading-[1.9] text-slate-600 dark:text-slate-400">
+        <p className="mt-1 text-[0.68rem] leading-[1.9] text-slate-600 dark:text-slate-400">
           امتیاز از سه نشانه ساخته می‌شود: سطح نتایج بازی‌ها، نزدیکی سالن اصلی و هم‌پوشانی
           بازه‌های زمانی رزروها. تیمی که داده‌ای ندارد جریمه نمی‌شود.
         </p>

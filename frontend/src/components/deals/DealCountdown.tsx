@@ -35,7 +35,7 @@ const DealCountdown: React.FC<{ expiresAt: string | null; compact?: boolean }> =
 
   if (!deadline) {
     return (
-      <span className="inline-flex items-center gap-2 text-xs text-muted-foreground">
+      <span className="inline-flex items-center gap-2 text-[0.68rem] text-muted-foreground">
         <Icon icon="mdi:infinity" style={{ width: 14, height: 14 }} />
         تخفیف تا شروع سانس معتبر است
       </span>
@@ -44,7 +44,7 @@ const DealCountdown: React.FC<{ expiresAt: string | null; compact?: boolean }> =
   const diff = deadline - now
   if (diff <= 0) {
     return (
-      <span className="inline-flex items-center gap-2 rounded-lg bg-red-500/10 px-2 py-0.5 text-xs font-bold text-red-600 dark:text-red-400">
+      <span className="inline-flex items-center gap-2 rounded-lg bg-red-500/10 px-2 py-0.5 text-[0.68rem] font-bold text-red-600 dark:text-red-400">
         <Icon icon="mdi:timer-off-outline" style={{ width: 14, height: 14 }} />
         تخفیف منقضی شده
       </span>
@@ -54,7 +54,7 @@ const DealCountdown: React.FC<{ expiresAt: string | null; compact?: boolean }> =
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-2 rounded-full py-1 text-xs font-extrabold',
+        'inline-flex items-center gap-2 rounded-full py-1 text-[0.68rem] font-extrabold',
         compact ? 'px-1.5' : 'px-2.5',
         urgent
           ? 'bg-red-600/10 text-red-600 dark:text-red-400'

@@ -78,7 +78,7 @@ const TeamInviteDialog: React.FC<Props> = ({ teamId, open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} title="دعوت به تیم" maxWidth="xs">
       <div className="flex flex-col gap-4 pt-1">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           دعوت فقط برای کاربران ثبت‌نام‌شده ارسال می‌شود؛ پس از ارسال، دعوت در صفحه «تیم‌ها»ی مخاطب نمایش داده می‌شود.
         </p>
         <div className="flex flex-col gap-1.5">

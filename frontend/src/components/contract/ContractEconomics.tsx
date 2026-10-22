@@ -56,8 +56,8 @@ const ContractEconomics: React.FC<{
       </div>
       <div className="px-1">
         <div className="mb-1 flex justify-between">
-          <span className="text-xs text-muted-foreground">پیشرفت مالی</span>
-          <span className="text-xs font-bold text-foreground">{toPersianDigits(paidPct)}٪</span>
+          <span className="text-[0.68rem] text-muted-foreground">پیشرفت مالی</span>
+          <span className="text-[0.68rem] font-bold text-foreground">{toPersianDigits(paidPct)}٪</span>
         </div>
         <Progress
           value={paidPct}

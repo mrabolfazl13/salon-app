@@ -68,7 +68,7 @@ const TransferCaptainDialog: React.FC<{
   return (
     <Dialog open={open} onClose={onClose} title="انتقال کاپیتانی" maxWidth="xs">
       <div className="flex flex-col gap-4 pt-1">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           با انتقال کاپیتانی، نقش شما به «مدیر» تغییر می‌کند. این اقدام قابل بازگشت نیست و فقط کاپیتان فعلی می‌تواند انجامش دهد.
         </p>
         <ul className="m-0 flex list-disc flex-col gap-1.5 ps-5">
@@ -216,12 +216,12 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
               <div className="mt-0.5 flex flex-wrap items-center gap-2">
                 <MemberStatusChip status={m.status} />
                 {m.status === 'active' && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
+                  <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
                     {`عضویت: ${formatPersianDateTime(m.joined_at)}`}
                   </p>
                 )}
                 {m.phone && (
-                  <p className="text-xs text-slate-500 dark:text-slate-400" dir="ltr">
+                  <p className="text-[0.68rem] text-slate-500 dark:text-slate-400" dir="ltr">
                     {m.phone}
                   </p>
                 )}
@@ -248,7 +248,7 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
                         type="button"
                         disabled={setRole.isPending}
                         aria-label={`تغییر نقش ${m.full_name ?? ''}`}
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-blue-400"
+                        className="inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-blue-400"
                       >
                         <Icon icon={m.role === 'admin' ? 'mdi:shield-account' : 'mdi:shield-account-outline'} style={{ width: 18, height: 18 }} />
                       </button>
@@ -273,7 +273,7 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
                     type="button"
                     onClick={() => setConfirmRemove(m)}
                     aria-label={m.status === 'pending' ? `ابطال دعوت ${m.full_name ?? ''}` : `حذف ${m.full_name ?? ''} از تیم`}
-                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
+                    className="inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
                   >
                     <Icon icon={m.status === 'pending' ? 'mdi:email-cancel-outline' : 'mdi:account-remove-outline'} style={{ width: 18, height: 18 }} />
                   </button>

@@ -87,7 +87,7 @@ const DuePayDialog: React.FC<{
             </p>
           </div>
         )}
-        <p className="text-xs text-slate-500 dark:text-slate-400">
+        <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
           توجه: روش «درگاه» در این نسخه همانند بک‌اند به‌صورت قطعی ثبت می‌شود (پرداخت بانکی واقعی انجام نمی‌شود) — برای دریافت لینک پرداخت از flow رزروها استفاده کنید.
         </p>
         <div className="flex flex-col gap-1.5">
@@ -192,7 +192,7 @@ const DuesGenerateDialog: React.FC<{
   return (
     <Dialog open={open} onClose={onClose} title="ایجاد حصه برای اعضا" maxWidth="xs">
       <div className="flex flex-col gap-4 pt-1">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           مبلغ سرانه‌ی هر عضو است و برای همه‌ی اعضای انتخابی (پیش‌فرض: همه) به یکی از همین مبلغ ساخته می‌شود؛ کاپیتان هم شامل می‌شود.
         </p>
         <div className="flex flex-col gap-1.5">
@@ -230,7 +230,7 @@ const DuesGenerateDialog: React.FC<{
           clearable={false}
         />
         <div>
-          <p className="mb-1 text-xs font-bold text-slate-500 dark:text-slate-400">
+          <p className="mb-1 text-[0.68rem] font-bold text-slate-500 dark:text-slate-400">
             اعضا ({toPersianDigits(targets.length)} نفر)
           </p>
           <div className="flex max-h-40 flex-wrap gap-1.5 overflow-y-auto">
@@ -243,7 +243,7 @@ const DuesGenerateDialog: React.FC<{
                   aria-pressed={on}
                   onClick={() => toggle(m.user_id)}
                   className={cn(
-                    'inline-flex min-h-11 items-center gap-1 rounded-full px-2.5 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'inline-flex min-h-9 items-center gap-1 rounded-full px-2.5 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     on
                       ? 'bg-blue-600/10 text-blue-700 dark:text-blue-300'
                       : 'bg-slate-900/5 text-slate-500 hover:bg-slate-900/10 dark:bg-white/5 dark:text-slate-400',
@@ -256,7 +256,7 @@ const DuesGenerateDialog: React.FC<{
             })}
           </div>
         </div>
-        {fieldError && <p role="alert" className="text-xs font-semibold text-red-600 dark:text-red-400">{fieldError}</p>}
+        {fieldError && <p role="alert" className="text-[0.68rem] font-semibold text-red-600 dark:text-red-400">{fieldError}</p>}
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={generate.isPending}>انصراف</Button>
           <Button variant="gradient" loading={generate.isPending} onClick={handleSubmit} icon="mdi:plus-circle-outline">
@@ -325,7 +325,7 @@ const DuesPlanDialog: React.FC<{
   return (
     <Dialog open onClose={onClose} title="برنامه حق‌عضویت" maxWidth="xs">
       <div className="flex flex-col gap-4 pt-1">
-        <div className="flex min-h-11 items-center gap-2">
+        <div className="flex min-h-9 items-center gap-2">
           <Switch
             id="dues-auto"
             checked={auto}
@@ -336,7 +336,7 @@ const DuesPlanDialog: React.FC<{
             سهم خودکار هر ماه
           </Label>
         </div>
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           با روشن بودن این گزینه، سرور هر ماه به‌صورت خودکار برای همه اعضای فعال سهم می‌سازد و
           نیازی به دکمه «ایجاد حصه» نیست؛ با خاموشی، سهم‌ها دستی ساخته می‌شوند.
         </p>
@@ -383,12 +383,12 @@ const DuesPlanDialog: React.FC<{
             value={pctStr}
             onChange={(e) => { setPctStr(e.target.value); setFieldError('') }}
           />
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[0.68rem] text-muted-foreground">
             {`۰ یعنی بدون جریمه — بعد از ${toPersianDigits(graceDays)} روز مهلت، یک‌بار به همان حصه اضافه می‌شود.`}
           </p>
         </div>
         {fieldError && (
-          <p role="alert" className="text-xs font-semibold text-red-600 dark:text-red-400">{fieldError}</p>
+          <p role="alert" className="text-[0.68rem] font-semibold text-red-600 dark:text-red-400">{fieldError}</p>
         )}
         <div className="flex justify-end gap-3">
           <Button variant="outline" onClick={onClose} disabled={setPlan.isPending}>انصراف</Button>
@@ -456,7 +456,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
       {plan && (
         <div
           className={cn(
-            'flex flex-wrap items-center gap-2.5 rounded-2xl border px-3 py-2.5',
+            'flex flex-wrap items-center gap-2.5 rounded-lg border px-3 py-2.5',
             plan.dues_auto
               ? 'border-emerald-500/25 bg-emerald-500/[0.06]'
               : 'border-slate-900/10 bg-slate-900/[0.03] dark:border-white/10 dark:bg-white/5',
@@ -470,7 +470,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
             <p className="text-[0.85rem] font-extrabold text-slate-900 dark:text-slate-100">
               {plan.dues_auto ? 'حق‌عضویت خودکار' : 'حق‌عضویت دستی'}
             </p>
-            <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400" dir="rtl">
+            <p className="mt-0.5 text-[0.68rem] text-slate-500 dark:text-slate-400" dir="rtl">
               {plan.dues_auto && plan.amount
                 ? `هر ماه ${formatRial(plan.amount)} — سررسید روز ${toPersianDigits(plan.due_day)} هر ماه${
                     plan.late_fee_pct > 0
@@ -522,7 +522,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
               <div
                 key={due.id}
                 className={cn(
-                  'flex flex-wrap items-center gap-2.5 rounded-2xl border border-slate-900/[0.06] px-3 py-2.5 dark:border-white/10',
+                  'flex flex-wrap items-center gap-2.5 rounded-lg border border-slate-900/[0.06] px-3 py-2.5 dark:border-white/10',
                   due.is_paid
                     ? 'bg-emerald-500/[0.04]'
                     : due.is_voided
@@ -533,31 +533,31 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
                 <div className="min-w-0 flex-1">
                   <p className="text-[0.85rem] font-bold text-slate-900 dark:text-slate-100">
                     {due.title}
-                    {mine && <span className="text-xs text-blue-600 dark:text-blue-400"> (شما)</span>}
+                    {mine && <span className="text-[0.68rem] text-blue-600 dark:text-blue-400"> (شما)</span>}
                     {due.penalty_for_id && (
                       <span className="text-[0.72rem] font-bold text-amber-700 dark:text-amber-400"> — جریمه دیرکرد</span>
                     )}
                   </p>
                   <div className="mt-0.5 flex flex-wrap items-center gap-2">
-                    <p className="text-xs font-extrabold text-slate-900 dark:text-slate-100" dir="rtl">
+                    <p className="text-[0.68rem] font-extrabold text-slate-900 dark:text-slate-100" dir="rtl">
                       {formatRial(due.amount)}
                     </p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
                       {`سررسید: ${formatJalaliDate(due.due_date, { format: 'numeric' })}`}
                     </p>
                     {isManager && !mine && (
-                      <p className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      <p className="text-[0.68rem] font-semibold text-slate-500 dark:text-slate-400">
                         {due.full_name ?? `کاربر ${due.user_id}`}
                       </p>
                     )}
                     {due.payment_method && (
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
                         {DUE_METHOD_LABELS[due.payment_method] ?? due.payment_method}
                       </p>
                     )}
                   </div>
                   {due.void_reason && (
-                    <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">{`دلیل ابطال: ${due.void_reason}`}</p>
+                    <p className="mt-0.5 text-[0.68rem] text-slate-500 dark:text-slate-400">{`دلیل ابطال: ${due.void_reason}`}</p>
                   )}
                 </div>
                 <DueStatusChip isPaid={due.is_paid} isVoided={due.is_voided} overdue={due.overdue} />
@@ -571,7 +571,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
                     size="sm"
                     variant="ghost"
                     onClick={() => setVoidTarget(due)}
-                    className="text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-400"
+                    className="text-[0.68rem] font-bold text-red-600 hover:text-red-700 dark:text-red-400"
                   >
                     ابطال
                   </Button>
@@ -584,7 +584,7 @@ const TeamDuesPanel: React.FC<{ team: Team; members: TeamMember[]; isManager: bo
               <Button size="sm" variant="ghost" disabled={page <= 1 || duesQ.isFetching} onClick={() => setPage((p) => p - 1)} className="font-bold">
                 قبلی
               </Button>
-              <p className="text-xs font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-[0.68rem] font-bold text-slate-500 dark:text-slate-400">
                 {`${toPersianDigits(page)} / ${toPersianDigits(pageCount)}`}
               </p>
               <Button size="sm" variant="ghost" disabled={page >= pageCount || duesQ.isFetching} onClick={() => setPage((p) => p + 1)} className="font-bold">

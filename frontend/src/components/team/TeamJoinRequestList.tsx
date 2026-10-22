@@ -44,7 +44,7 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
       {requests.map((req) => (
         <div
           key={req.id}
-          className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-amber-500/25 bg-amber-500/5 px-3 py-2.5"
+          className="flex flex-wrap items-center gap-2.5 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5"
         >
           <Avatar className="h-9 w-9">
             <AvatarFallback className="bg-amber-500/15 text-[0.85rem] font-bold text-amber-700 dark:text-amber-300">
@@ -55,7 +55,7 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
             <p className="truncate text-[0.85rem] font-bold text-slate-900 dark:text-slate-100">
               {req.full_name || `کاربر ${req.user_id}`}
             </p>
-            <p className="mt-0.5 truncate text-xs text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 truncate text-[0.68rem] text-slate-500 dark:text-slate-400">
               {`ثبت: ${formatPersianDateTime(req.created_at)}${req.message ? ` - ${req.message}` : ''}`}
             </p>
           </div>
@@ -66,7 +66,7 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
                 disabled={busy}
                 onClick={() => handleDecide(req, true)}
                 aria-label={`تأیید درخواست عضویت ${req.full_name ?? ''}`}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500/[0.12] text-emerald-700 transition-colors hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-emerald-300"
+                className="inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-500/[0.12] text-emerald-700 transition-colors hover:bg-emerald-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-emerald-300"
               >
                 <Icon icon="mdi:check-bold" style={{ width: 18, height: 18 }} />
               </button>
@@ -80,7 +80,7 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
                 disabled={busy}
                 onClick={() => handleDecide(req, false)}
                 aria-label={`رد درخواست عضویت ${req.full_name ?? ''}`}
-                className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-600 transition-colors hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-red-400"
+                className="inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full bg-red-500/10 text-red-600 transition-colors hover:bg-red-500/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-red-400"
               >
                 <Icon icon="mdi:close" style={{ width: 18, height: 18 }} />
               </button>

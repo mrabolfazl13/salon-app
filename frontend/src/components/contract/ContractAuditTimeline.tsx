@@ -33,7 +33,7 @@ const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId })
         onClick={() => setExpanded((v) => !v)}
         aria-expanded={expanded}
         aria-controls={panelId}
-        className="gap-2 text-xs font-bold text-violet-700 hover:bg-violet-50 dark:text-violet-300 dark:hover:bg-violet-500/10"
+        className="gap-2 text-[0.68rem] font-bold text-violet-700 hover:bg-violet-50 dark:text-violet-300 dark:hover:bg-violet-500/10"
       >
         <Icon icon="mdi:file-document-edit-outline" className="h-4 w-4" style={{ color: '#7c3aed' }} aria-hidden="true" />
         {`روند تغییرات (ممیزی)${query.data ? ` — ${faNum(query.data.length)} رویداد` : ''}`}
@@ -51,7 +51,7 @@ const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId })
           ) : query.isError ? (
             <ErrorBox message="روند ممیزی بارگذاری نشد." onRetry={() => query.refetch()} />
           ) : events.length === 0 ? (
-            <p className="py-4 text-center text-sm text-muted-foreground">
+            <p className="py-4 text-center text-[0.68rem] text-muted-foreground">
               رویدادی ثبت نشده است.
             </p>
           ) : (
@@ -67,14 +67,14 @@ const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId })
                       </div>
                       <div className="min-w-0 flex-1 rounded-xl bg-black/[0.02] px-3 py-2.5 dark:bg-white/[0.04]">
                         <div className="mb-1 flex flex-wrap items-center gap-2">
-                          <p className="text-sm font-bold text-foreground">
+                          <p className="text-[0.68rem] font-bold text-foreground">
                             {AUDIT_ACTION_LABELS[ev.action] || ev.action}
                           </p>
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[0.68rem] text-muted-foreground">
                             {formatJalaliDateTime(ev.created_at)}
                           </span>
                           {ev.actor_id != null && (
-                            <span className="text-xs text-muted-foreground">
+                            <span className="text-[0.68rem] text-muted-foreground">
                               {`عامل: کاربر #${faNum(ev.actor_id)}`}
                             </span>
                           )}
@@ -83,10 +83,10 @@ const ContractAuditTimeline: React.FC<{ contractId: number }> = ({ contractId })
                           <div>
                             {rows.map((r, i) => (
                               <div key={i} className="flex gap-2 py-[0.1rem]">
-                                <span className="min-w-24 text-xs text-muted-foreground">
+                                <span className="min-w-24 text-[0.68rem] text-muted-foreground">
                                   {`${r.key}:`}
                                 </span>
-                                <span className="text-xs font-semibold text-foreground">{r.value}</span>
+                                <span className="text-[0.68rem] font-semibold text-foreground">{r.value}</span>
                               </div>
                             ))}
                           </div>

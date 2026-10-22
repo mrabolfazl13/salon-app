@@ -131,32 +131,32 @@ const ContractInstallmentPayDialog: React.FC<Props> = ({
       }
     >
       <div className="-mx-5 -mt-5 mb-1 flex items-center justify-between rounded-t-2xl bg-gradient-to-br from-blue-900 via-blue-600 to-violet-600 py-5 pe-16 ps-6">
-        <p className="flex items-center gap-2 text-base font-bold text-white">
+        <p className="flex items-center gap-2 text-sm font-bold text-white">
           <Icon icon="mdi:bank-outline" className="h-5 w-5" aria-hidden="true" />
           درگاه پرداخت قسط
         </p>
-        <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-xs font-semibold text-white">
+        <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[0.68rem] font-semibold text-white">
           شبیه‌سازی‌شده
         </span>
       </div>
 
-      <div className="rounded-2xl bg-muted p-4">
+      <div className="rounded-lg bg-muted p-4">
         <div className="flex flex-col gap-1.5">
           <div className="flex justify-between">
-            <span className="text-xs text-muted-foreground">سالن</span>
-            <span className="text-sm font-semibold">{venueName || '—'}</span>
+            <span className="text-[0.68rem] text-muted-foreground">سالن</span>
+            <span className="text-[0.68rem] font-semibold">{venueName || '—'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-muted-foreground">قسط</span>
-            <span className="text-sm font-semibold">{payment.label || 'قسط'}</span>
+            <span className="text-[0.68rem] text-muted-foreground">قسط</span>
+            <span className="text-[0.68rem] font-semibold">{payment.label || 'قسط'}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-muted-foreground">سررسید</span>
-            <span className="text-sm font-semibold">{formatJalaliDate(payment.due_date)}</span>
+            <span className="text-[0.68rem] text-muted-foreground">سررسید</span>
+            <span className="text-[0.68rem] font-semibold">{formatJalaliDate(payment.due_date)}</span>
           </div>
           <div className="flex justify-between">
-            <span className="text-xs text-muted-foreground">مبلغ قابل پرداخت</span>
-            <span className="text-sm font-bold text-primary">{formatRial(payment.amount)}</span>
+            <span className="text-[0.68rem] text-muted-foreground">مبلغ قابل پرداخت</span>
+            <span className="text-[0.68rem] font-bold text-primary">{formatRial(payment.amount)}</span>
           </div>
         </div>
       </div>
@@ -187,7 +187,7 @@ const ContractInstallmentPayDialog: React.FC<Props> = ({
                   disabled={step === 'processing'}
                   startIcon={<Icon icon="mdi:credit-card-outline" className="text-muted-foreground" aria-hidden="true" />}
                 />
-                <p className={cardError ? 'text-xs text-red-600 dark:text-red-400' : 'text-xs text-muted-foreground'}>
+                <p className={cardError ? 'text-[0.68rem] text-red-600 dark:text-red-400' : 'text-[0.68rem] text-muted-foreground'}>
                   {cardError || 'برای ثبت به‌صورت کارت‌به‌کارت وارد کنید؛ خالی = پرداخت نقدی'}
                 </p>
               </div>
@@ -201,7 +201,7 @@ const ContractInstallmentPayDialog: React.FC<Props> = ({
               <Icon icon="mdi:check-bold" className="h-8 w-8" style={{ color: 'white' }} aria-hidden="true" />
             </div>
             <h2 className="mb-1 text-lg font-bold text-foreground">پرداخت موفق</h2>
-            <p className="mb-4 text-sm text-muted-foreground">
+            <p className="mb-4 text-[0.68rem] text-muted-foreground">
               «{payment.label || 'قسط'}» با مبلغ {formatRial(payment.amount)} تسویه شد
             </p>
           </motion.div>

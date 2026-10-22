@@ -38,22 +38,22 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
   return (
     <div
       className={cn(
-        'relative overflow-hidden rounded-2xl border transition-all duration-200',
+        'relative overflow-hidden rounded-lg border transition-all duration-200',
         expired
           ? 'border-border bg-slate-900/[0.02] opacity-[0.65]'
           : 'border-amber-500/35 bg-gradient-to-br from-amber-50/90 to-amber-100/[0.55] hover:-translate-y-[3px] hover:shadow-[0_12px_32px_rgba(245,158,11,0.18)] dark:from-amber-500/10 dark:to-amber-400/5'
       )}
     >
-      <div className="absolute start-0 top-0 flex items-center gap-2 rounded-es-[14px] bg-gradient-to-br from-amber-500 to-red-500 px-3 py-1 text-xs font-extrabold text-white">
+      <div className="absolute start-0 top-0 flex items-center gap-2 rounded-es-[14px] bg-gradient-to-br from-amber-500 to-red-500 px-3 py-1 text-[0.68rem] font-extrabold text-white">
         <Icon icon="mdi:fire" style={{ width: 13, height: 13 }} />
         تا ‪{toPersianDigits(deal.discount_percent)}٪‬ تخفیف
       </div>
 
-      <div className="p-5 pt-9">
-        <div className="mb-2 flex items-center justify-between gap-2">
-          <h3 className="min-w-0 truncate text-base font-extrabold text-foreground">{deal.venue_name}</h3>
+      <div className="p-3 pt-9">
+        <div className="mb-1 flex items-center justify-between gap-2">
+          <h3 className="min-w-0 truncate text-[0.68rem] font-extrabold text-foreground">{deal.venue_name}</h3>
           {deal.distance_km != null && (
-            <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-blue-600/[0.08] px-2 py-0.5 text-xs font-bold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
+            <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-blue-600/[0.08] px-2 py-0.5 text-[0.68rem] font-bold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
               <Icon icon="mdi:crosshairs-gps" style={{ width: 14, height: 14 }} />
               {`${toPersianDigits(Math.round(deal.distance_km * 10) / 10)} کیلومتر`}
             </span>
@@ -63,14 +63,14 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
         <div className="mb-3 flex flex-wrap items-center gap-2">
           <div className="flex items-center gap-2">
             <Icon icon="mdi:calendar-blank-outline" style={{ width: 15, height: 15, color: '#64748b' }} />
-            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <span className="text-[0.68rem] font-semibold text-slate-700 dark:text-slate-300">
               {formatJalaliDate(deal.slot_date, { format: 'long' })}
               {hint ? ` (${hint})` : ''}
             </span>
           </div>
           <div className="flex items-center gap-2">
             <Icon icon="mdi:clock-outline" style={{ width: 15, height: 15, color: '#64748b' }} />
-            <span dir="rtl" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+            <span dir="rtl" className="text-[0.68rem] font-semibold text-slate-700 dark:text-slate-300">
               {formatTimeFa(deal.start_time)} – {end}
             </span>
           </div>
@@ -79,9 +79,9 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-baseline gap-2">
             <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">{formatRial(deal.deal_price)}</span>
-            <span className="text-sm text-muted-foreground line-through">{formatRial(deal.original_price)}</span>
+            <span className="text-[0.68rem] text-muted-foreground line-through">{formatRial(deal.original_price)}</span>
           </div>
-          <span className="inline-flex items-center rounded-lg bg-emerald-600/[0.12] px-2 py-0.5 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+          <span className="inline-flex items-center rounded-lg bg-emerald-600/[0.12] px-2 py-0.5 text-[0.68rem] font-bold text-emerald-600 dark:text-emerald-400">
             {`${toPersianDigits(deal.savings)} ریال سود شما`}
           </span>
         </div>

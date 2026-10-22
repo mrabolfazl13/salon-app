@@ -46,7 +46,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
 }) => {
   if (sessions.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-muted-foreground">
+      <p className="py-4 text-center text-[0.68rem] text-muted-foreground">
         هنوز سانسی برای این قرارداد ثبت نشده است.
       </p>
     )
@@ -84,12 +84,12 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                 <div className="flex flex-col gap-0.5">
                   <p className="text-[0.82rem] font-bold">
                     {formatJalaliDate(cs.session_date)}
-                    {moved && <span className="text-xs font-normal text-muted-foreground"> (اصلی)</span>}
+                    {moved && <span className="text-[0.68rem] font-normal text-muted-foreground"> (اصلی)</span>}
                   </p>
                   {moved && (
                     <div className="flex items-center gap-1">
                       <Icon icon="mdi:arrow-conditional-right" className="h-3.5 w-3.5" style={{ color: '#d97706' }} />
-                      <span className="text-xs font-bold text-amber-700 dark:text-amber-300">
+                      <span className="text-[0.68rem] font-bold text-amber-700 dark:text-amber-300">
                         جدید: {formatJalaliDate(eff.date)}
                       </span>
                     </div>
@@ -99,7 +99,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
               <TableCell className="whitespace-nowrap" dir="ltr">
                 {moved ? (
                   <div className="flex flex-col items-start">
-                    <span className="text-xs text-muted-foreground line-through">
+                    <span className="text-[0.68rem] text-muted-foreground line-through">
                       {cs.start_time?.slice(0, 5)}
                     </span>
                     <span className="text-[0.82rem] font-bold text-amber-700 dark:text-amber-300">
@@ -123,14 +123,14 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                 {cs.exclusion_reason ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="text-xs text-red-600 dark:text-red-400">استثنا: {cs.exclusion_reason}</span>
+                      <span className="text-[0.68rem] text-red-600 dark:text-red-400">استثنا: {cs.exclusion_reason}</span>
                     </TooltipTrigger>
                     <TooltipContent>{cs.exclusion_reason}</TooltipContent>
                   </Tooltip>
                 ) : cs.cancel_requested ? (
                   <StatusChip label="درخواست لغو ثبت شده" color="#d97706" />
                 ) : (
-                  <span className="text-xs text-muted-foreground">—</span>
+                  <span className="text-[0.68rem] text-muted-foreground">—</span>
                 )}
               </TableCell>
               <TableCell className="whitespace-nowrap text-end">
@@ -143,7 +143,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                           variant="outline"
                           disabled={busySessionId === cs.id}
                           onClick={() => onReschedule?.(cs)}
-                          className="text-xs font-semibold"
+                          className="text-[0.68rem] font-semibold"
                         >
                           جابه‌جایی
                         </Button>
@@ -152,13 +152,13 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                           variant="ghost"
                           disabled={busySessionId === cs.id}
                           onClick={() => onExclude?.(cs)}
-                          className="ms-1 text-xs font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                          className="ms-1 text-[0.68rem] font-semibold text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
                         >
                           استثنا/لغو
                         </Button>
                       </>
                     )}
-                    {!mutable && <span className="text-xs text-muted-foreground">—</span>}
+                    {!mutable && <span className="text-[0.68rem] text-muted-foreground">—</span>}
                   </>
                 )}
                 {mode === 'user' && (
@@ -169,13 +169,13 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                         variant="outline"
                         disabled={busySessionId === cs.id}
                         onClick={() => onRequestCancel?.(cs)}
-                        className="text-xs font-semibold text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-500/10"
+                        className="text-[0.68rem] font-semibold text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-500/10"
                       >
                         درخواست حذف سانس
                       </Button>
                     )}
                     {(!mutable || cs.cancel_requested) && (
-                      <span className="text-xs text-muted-foreground">
+                      <span className="text-[0.68rem] text-muted-foreground">
                         {cs.cancel_requested ? 'در انتظار اقدام مدیر' : '—'}
                       </span>
                     )}

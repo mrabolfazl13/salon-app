@@ -126,14 +126,14 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
           </DialogHeader>
         </div>
         <div className="flex flex-col gap-4 px-6 pt-6">
-          <p className="text-sm text-muted-foreground">
+          <p className="text-[0.68rem] text-muted-foreground">
             {toPersianDigits(slots.length)} سانس انتخابی — قیمت نهایی توسط سرور کنترل می‌شود و حتماً باید ارزان‌تر از قیمت مصوب قوانین باشد.
             به کاربرانِ «علاقه‌مندی + اشتراک تخفیف» همان سالن اعلان می‌رود.
           </p>
           {grouped.length > 1 && (
             <div className="flex flex-wrap gap-1.5">
               {grouped.map(([vid, ss]) => (
-                <span key={vid} className="inline-flex items-center rounded-lg border border-border px-2 py-0.5 text-xs font-semibold text-foreground">
+                <span key={vid} className="inline-flex items-center rounded-lg border border-border px-2 py-0.5 text-[0.68rem] font-semibold text-foreground">
                   {`${venueNameOf(vid)} — ${toPersianDigits(ss.length)} سانس`}
                 </span>
               ))}
@@ -146,7 +146,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               aria-pressed={mode === 'percent'}
               onClick={() => setMode('percent')}
               className={cn(
-                'min-h-11 flex-1 rounded-[10px] border px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'min-h-9 flex-1 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 mode === 'percent'
                   ? 'border-blue-600 bg-blue-600 text-white'
                   : 'border-border bg-card text-foreground hover:bg-muted'
@@ -159,7 +159,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               aria-pressed={mode === 'price'}
               onClick={() => setMode('price')}
               className={cn(
-                'min-h-11 flex-1 rounded-[10px] border px-3 text-sm font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'min-h-9 flex-1 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 mode === 'price'
                   ? 'border-blue-600 bg-blue-600 text-white'
                   : 'border-border bg-card text-foreground hover:bg-muted'
@@ -175,7 +175,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               <Input
                 id="deal-publish-percent"
                 inputMode="numeric"
-                className="h-11 rounded-[10px]"
+                className="h-9 rounded-[10px]"
                 value={percent}
                 onChange={(e) => setPercent(e.target.value)}
               />
@@ -186,11 +186,11 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               <Input
                 id="deal-publish-price"
                 inputMode="numeric"
-                className="h-11 rounded-[10px]"
+                className="h-9 rounded-[10px]"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[0.68rem] text-muted-foreground">
                 یک قیمت برای همه سانس‌های انتخابی؛ سانس‌های گران‌تر که این قیمت از آنها بیشتر باشد رد می‌شوند
               </p>
             </div>
@@ -202,7 +202,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               value={expiry === '' ? 'none' : expiry}
               onValueChange={(v) => setExpiry(v === 'none' ? '' : v)}
             >
-              <SelectTrigger aria-labelledby="dp-expiry-label" className="h-11 rounded-[10px]">
+              <SelectTrigger aria-labelledby="dp-expiry-label" className="h-9 rounded-[10px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -217,7 +217,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
           </div>
 
           {localError && (
-            <p role="alert" className="text-sm font-bold text-red-600 dark:text-red-400">{localError}</p>
+            <p role="alert" className="text-[0.68rem] font-bold text-red-600 dark:text-red-400">{localError}</p>
           )}
         </div>
         <DialogFooter className="gap-2 px-6 pb-6 pt-4">

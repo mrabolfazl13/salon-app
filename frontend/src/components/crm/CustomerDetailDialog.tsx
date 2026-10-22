@@ -100,23 +100,23 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
       ) : !detail ? (
         <EmptyBox icon="mdi:account-off-outline" title="مشتری یافت نشد" />
       ) : (
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3">
           {/* هدر پروفایل */}
           <div className="flex flex-wrap items-center gap-3">
             <span className="flex h-[46px] w-[46px] shrink-0 items-center justify-center rounded-[14px] bg-blue-600/[0.08]">
               <Icon icon="mdi:account" className="h-6 w-6" style={{ color: '#2563eb' }} aria-hidden="true" />
             </span>
             <div className="min-w-0">
-              <p className="text-base font-extrabold text-foreground">
+              <p className="text-sm font-extrabold text-foreground">
                 {detail.customer.full_name ?? '—'}
               </p>
-              <p className="text-xs text-muted-foreground tabular-nums" dir="ltr">
+              <p className="text-[0.68rem] text-muted-foreground tabular-nums" dir="ltr">
                 {detail.customer.phone ?? '—'}
               </p>
             </div>
             <div className="ms-auto flex items-center gap-1.5">
               {detail.customer.is_vip && (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 px-2 py-0.5 text-xs font-bold text-amber-700 dark:text-amber-400">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 px-2 py-0.5 text-[0.68rem] font-bold text-amber-700 dark:text-amber-400">
                   <Icon icon="mdi:star" className="h-3.5 w-3.5" aria-hidden="true" />
                   VIP
                 </span>
@@ -135,8 +135,8 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
               { label: 'آخرین بازدید', value: detail.customer.last_booking_date ? formatJalaliDate(detail.customer.last_booking_date, { format: 'numeric' }) : '—', icon: 'mdi:eye' },
             ].map((s) => (
               <div key={s.label} className="rounded-xl border border-border/60 bg-slate-50/60 p-3 dark:bg-slate-900/40">
-                <span className="block text-xs text-muted-foreground">{s.label}</span>
-                <span className="mt-0.5 block text-sm font-extrabold text-foreground tabular-nums">{s.value}</span>
+                <span className="block text-[0.68rem] text-muted-foreground">{s.label}</span>
+                <span className="mt-0.5 block text-[0.68rem] font-extrabold text-foreground tabular-nums">{s.value}</span>
               </div>
             ))}
           </div>
@@ -147,21 +147,21 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
               <div className="flex items-center gap-2">
                 <Switch id={vipId} checked={isVip} onCheckedChange={setIsVip} />
                 <Label htmlFor={vipId} className="cursor-pointer">
-                  <span className="inline-flex items-center gap-2 text-sm font-bold text-foreground">
+                  <span className="inline-flex items-center gap-2 text-[0.68rem] font-bold text-foreground">
                     <Icon icon="mdi:star" className="h-4 w-4" style={{ color: '#d97706' }} aria-hidden="true" />
                     مشتری ویژه (VIP)
                   </span>
                 </Label>
               </div>
               <div>
-                <span className="text-xs font-semibold text-muted-foreground">
+                <span className="text-[0.68rem] font-semibold text-muted-foreground">
                   برچسب‌ها (حداکثر ۱۰)
                 </span>
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {tags.map((t) => (
                     <span
                       key={t}
-                      className="inline-flex items-center gap-1 rounded-lg bg-blue-600/[0.08] py-0.5 pe-1 ps-2 text-xs font-semibold text-blue-700 dark:text-blue-300"
+                      className="inline-flex items-center gap-1 rounded-lg bg-blue-600/[0.08] py-0.5 pe-1 ps-2 text-[0.68rem] font-semibold text-blue-700 dark:text-blue-300"
                     >
                       {t}
                       <button
@@ -175,7 +175,7 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
                     </span>
                   ))}
                   {tags.length === 0 && (
-                    <span className="text-xs text-muted-foreground">بدون برچسب</span>
+                    <span className="text-[0.68rem] text-muted-foreground">بدون برچسب</span>
                   )}
                 </div>
                 <div className="mt-2 flex gap-2">
@@ -225,22 +225,22 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <SectionCard title={`رزروهای اخیر (${detail.recent_bookings.length})`} icon="mdi:calendar-month" dense>
               {detail.recent_bookings.length === 0 ? (
-                <p className="text-sm text-muted-foreground">رزروی ثبت نشده است.</p>
+                <p className="text-[0.68rem] text-muted-foreground">رزروی ثبت نشده است.</p>
               ) : (
                 <div className="flex flex-col gap-1.5">
                   {detail.recent_bookings.map((b) => (
                     <div key={b.id} className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground">
+                        <p className="text-[0.68rem] font-semibold text-foreground">
                           {formatJalaliDate(b.slot_date, { format: 'numeric' })} — {b.start_time}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[0.68rem] text-muted-foreground">
                           ثبت: {formatJalaliDateTime(b.booked_at, { format: 'numeric' })}
                         </p>
                       </div>
                       <div className="flex shrink-0 items-center gap-2">
                         {b.payment_amount !== null && (
-                          <span className="text-xs font-bold text-foreground tabular-nums">
+                          <span className="text-[0.68rem] font-bold text-foreground tabular-nums">
                             {formatRial(b.payment_amount)}
                           </span>
                         )}
@@ -253,16 +253,16 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
             </SectionCard>
             <SectionCard title={`پرداخت‌های اخیر (${detail.recent_payments.length})`} icon="mdi:cash-sync" color="#059669" dense>
               {detail.recent_payments.length === 0 ? (
-                <p className="text-sm text-muted-foreground">تراکنشی ثبت نشده است.</p>
+                <p className="text-[0.68rem] text-muted-foreground">تراکنشی ثبت نشده است.</p>
               ) : (
                 <div className="flex flex-col gap-1.5">
                   {detail.recent_payments.map((t) => (
                     <div key={t.id} className="flex items-center justify-between gap-2">
                       <div className="min-w-0">
-                        <p className="text-sm font-semibold text-foreground">
+                        <p className="text-[0.68rem] font-semibold text-foreground">
                           {labelOf(TX_TYPE_LABELS, t.type)}
                         </p>
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[0.68rem] text-muted-foreground">
                           {formatJalaliDate(t.occurred_at, { format: 'numeric' })}
                           {t.status === 'voided' ? ' — باطل' : ''}
                         </p>
@@ -271,8 +271,8 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
                         dir="rtl"
                         className={
                           t.direction === 'income'
-                            ? 'text-xs font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
-                            : 'text-xs font-extrabold text-red-600 tabular-nums dark:text-red-400'
+                            ? 'text-[0.68rem] font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                            : 'text-[0.68rem] font-extrabold text-red-600 tabular-nums dark:text-red-400'
                         }
                       >
                         {t.direction === 'income' ? '＋' : '−'}{formatRial(t.amount)}
@@ -283,10 +283,10 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
               )}
               <Separator className="my-2" />
               <div className="flex justify-between">
-                <span className="text-xs text-muted-foreground">
+                <span className="text-[0.68rem] text-muted-foreground">
                   خلاصه صورتحساب · {toPersianDigits(detail.statement.entries.length)} ردیف
                 </span>
-                <span className="text-xs font-bold text-foreground tabular-nums">
+                <span className="text-[0.68rem] font-bold text-foreground tabular-nums">
                   موجودی: {formatRial(detail.statement.closing_balance)}
                 </span>
               </div>

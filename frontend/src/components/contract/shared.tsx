@@ -347,7 +347,7 @@ export const ReasonDialog: React.FC<ReasonDialogProps> = ({
             )}
           />
           {touched && invalid && (
-            <p id={reasonErrId} className="mt-1 text-xs text-red-600 dark:text-red-400">
+            <p id={reasonErrId} className="mt-1 text-[0.68rem] text-red-600 dark:text-red-400">
               دلیل باید بین ۳ تا ۵۰۰ کاراکتر باشد
             </p>
           )}

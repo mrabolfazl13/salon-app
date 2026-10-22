@@ -46,7 +46,7 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
 }) => {
   if (payments.length === 0) {
     return (
-      <p className="py-4 text-center text-sm text-muted-foreground">
+      <p className="py-4 text-center text-[0.68rem] text-muted-foreground">
         تقویم اقساط هنوز تولید نشده است — پس از تأیید قرارداد توسط مدیر صادر می‌شود.
       </p>
     )
@@ -95,7 +95,7 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
               <TableCell><StatusChip label={state.label} color={state.color} /></TableCell>
               <TableCell className="max-w-[240px]">
                 {p.is_paid && !p.is_voided ? (
-                  <span className="text-xs text-muted-foreground">
+                  <span className="text-[0.68rem] text-muted-foreground">
                     پرداخت {formatJalaliDateTime(p.paid_at)}
                     {p.transaction_id && (
                       <> — کد تراکنش <span dir="ltr" className="text-[0.75rem]">{p.transaction_id.slice(0, 8)}</span></>
@@ -104,12 +104,12 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
                 ) : p.is_voided ? (
                   <Tooltip>
                     <TooltipTrigger asChild>
-                      <span className="text-xs text-red-600 dark:text-red-400">باطل: {p.void_reason || '—'}</span>
+                      <span className="text-[0.68rem] text-red-600 dark:text-red-400">باطل: {p.void_reason || '—'}</span>
                     </TooltipTrigger>
                     <TooltipContent>{p.void_reason || ''}</TooltipContent>
                   </Tooltip>
                 ) : (
-                  <span className="text-xs text-muted-foreground">—</span>
+                  <span className="text-[0.68rem] text-muted-foreground">—</span>
                 )}
               </TableCell>
               <TableCell className="whitespace-nowrap text-end">
@@ -118,7 +118,7 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
                     size="sm"
                     disabled={busyPaymentId === p.id}
                     onClick={() => onPay?.(p)}
-                    className="text-xs font-bold"
+                    className="text-[0.68rem] font-bold"
                   >
                     {busyPaymentId === p.id ? '...' : (
                       <>
@@ -133,7 +133,7 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
                     size="sm"
                     disabled={busyMarkPaidId === p.id}
                     onClick={() => onMarkPaid?.(p)}
-                    className="me-1 text-xs font-bold !bg-none bg-emerald-600 text-white hover:bg-emerald-700"
+                    className="me-1 text-[0.68rem] font-bold !bg-none bg-emerald-600 text-white hover:bg-emerald-700"
                   >
                     {busyMarkPaidId === p.id ? '...' : (
                       <>
@@ -149,7 +149,7 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
                     variant="ghost"
                     disabled={busyPaymentId === p.id}
                     onClick={() => onVoid?.(p)}
-                    className="text-xs font-bold text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
+                    className="text-[0.68rem] font-bold text-red-600 hover:bg-red-50 hover:text-red-700 dark:text-red-400 dark:hover:bg-red-500/10 dark:hover:text-red-300"
                   >
                     ابطال
                   </Button>

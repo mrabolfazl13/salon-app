@@ -40,12 +40,12 @@ const PlanCards: React.FC<Props> = ({ plans, onBuy, compact = false }) => {
           <div
             key={plan.id}
             className={cn(
-              'relative flex flex-col gap-2 rounded-2xl border bg-card p-4',
+              'relative flex flex-col gap-2 rounded-lg border bg-card p-4',
               isBest ? 'border-[1.5px] border-violet-600/40' : 'border-slate-900/10 dark:border-white/10',
             )}
           >
             {isBest && (
-              <span className="absolute -top-2.5 end-3 inline-flex h-5 items-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 px-2 text-xs font-extrabold text-white">
+              <span className="absolute -top-2.5 end-3 inline-flex h-5 items-center rounded-full bg-gradient-to-br from-blue-600 to-violet-600 px-2 text-[0.68rem] font-extrabold text-white">
                 بهترین مقدار
               </span>
             )}
@@ -58,13 +58,13 @@ const PlanCards: React.FC<Props> = ({ plans, onBuy, compact = false }) => {
               </div>
               <div className="min-w-0">
                 <p className="text-[0.95rem] font-extrabold">{plan.title}</p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[0.68rem] text-muted-foreground">
                   {PLAN_TYPE_LABEL[plan.plan_type]}
                 </p>
               </div>
             </div>
             {plan.description && (
-              <p className="text-xs leading-[1.7] text-muted-foreground">
+              <p className="text-[0.68rem] leading-[1.7] text-muted-foreground">
                 {plan.description}
               </p>
             )}
@@ -76,7 +76,7 @@ const PlanCards: React.FC<Props> = ({ plans, onBuy, compact = false }) => {
                 type="button"
                 size="sm"
                 onClick={() => onBuy(plan)}
-                className="rounded-[10px] px-4 text-xs font-bold text-white shadow-none hover:shadow-[0_4px_12px_rgba(37,99,235,0.25)]"
+                className="rounded-[10px] px-4 text-[0.68rem] font-bold text-white shadow-none hover:shadow-[0_4px_12px_rgba(37,99,235,0.25)]"
                 style={{ background: `linear-gradient(135deg, ${color.fg}, #7c3aed)` }}
               >
                 خرید

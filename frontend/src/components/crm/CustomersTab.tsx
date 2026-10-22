@@ -39,7 +39,7 @@ const SORT_OPTIONS: { value: CrmSort; label: string }[] = [
 ]
 
 const TAG_CHIP = 'inline-flex h-4 items-center rounded-md bg-violet-600/[0.08] px-1.5 text-[0.6rem] font-semibold text-violet-700 dark:text-violet-300'
-const MOBILE_CHIP = 'inline-flex h-[22px] items-center rounded-lg px-2 text-xs font-bold leading-none'
+const MOBILE_CHIP = 'inline-flex h-[22px] items-center rounded-lg px-2 text-[0.68rem] font-bold leading-none'
 
 interface Props {
   venueId: number
@@ -96,10 +96,10 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
   }
 
   const inactiveBadge = (row: CrmCustomerRow) => {
-    if (row.inactive_days === null) return <span className="text-xs text-muted-foreground">بدون بازدید</span>
+    if (row.inactive_days === null) return <span className="text-[0.68rem] text-muted-foreground">بدون بازدید</span>
     const color = row.segment === 'dormant' ? '#64748b' : row.segment === 'at_risk' ? '#ef4444' : '#059669'
     return (
-      <span className="ms-1.5 text-xs font-bold tabular-nums" style={{ color }}>
+      <span className="ms-1.5 text-[0.68rem] font-bold tabular-nums" style={{ color }}>
         {toPersianDigits(row.inactive_days)} روز
       </span>
     )
@@ -108,7 +108,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
   return (
     <div>
       {/* نوار فیلتر */}
-      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+      <div className="mb-4 flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4 shadow-sm">
         <div className="flex min-w-full flex-col gap-1.5 sm:min-w-[260px] sm:flex-1 md:flex-none">
           <Label htmlFor={searchId}>جست‌وجوی مشتری</Label>
           <Input
@@ -129,8 +129,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                 onClick={() => { setSegment(active ? null : s); setPage(1) }}
                 className={
                   active
-                    ? 'inline-flex min-h-11 items-center rounded-[9px] bg-blue-600 px-3 text-xs font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                    : 'inline-flex min-h-11 items-center rounded-[9px] bg-muted px-3 text-xs font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    ? 'inline-flex min-h-9 items-center rounded-[9px] bg-blue-600 px-3 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    : 'inline-flex min-h-9 items-center rounded-[9px] bg-muted px-3 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                 }
               >
                 {SEGMENT_LABELS[s]}
@@ -144,8 +144,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
           onClick={() => { setVipOnly((v) => !v); setPage(1) }}
           className={
             vipOnly
-              ? 'inline-flex h-11 items-center gap-1.5 rounded-[9px] bg-amber-500 px-3 text-xs font-bold text-stone-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-              : 'inline-flex h-11 items-center gap-1.5 rounded-[9px] border border-border bg-card px-3 text-xs font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              ? 'inline-flex h-9 items-center gap-1.5 rounded-[9px] bg-amber-500 px-3 text-[0.68rem] font-bold text-stone-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              : 'inline-flex h-9 items-center gap-1.5 rounded-[9px] border border-border bg-card px-3 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
           }
         >
           <Icon icon="mdi:star" className="h-4 w-4" aria-hidden="true" />
@@ -153,7 +153,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
         </button>
         <div className="ms-auto min-w-[150px]">
           <Select value={sort} onValueChange={(v) => { setSort(v as CrmSort); setPage(1) }}>
-            <SelectTrigger aria-label="مرتب‌سازی مشتریان" className="h-11 rounded-xl">
+            <SelectTrigger aria-label="مرتب‌سازی مشتریان" className="h-9 rounded-xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -175,7 +175,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
         <EmptyBox icon="mdi:account-group-outline" title="مشتری‌ای با این فیلترها پیدا نشد" text="ابتدا در سالن خود رزرو ثبت کنید تا مشتریان اینجا نمایش داده شوند." />
       ) : (
         <>
-          <div className="hidden overflow-auto rounded-2xl border border-border bg-card shadow-sm md:block">
+          <div className="hidden overflow-auto rounded-lg border border-border bg-card shadow-sm md:block">
             <Table aria-label="لیست مشتریان" className="min-w-[880px]">
               <TableHeader className="bg-slate-50/80 dark:bg-slate-900/80">
                 <TableRow className="hover:bg-transparent">
@@ -201,7 +201,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                   >
                     <TableCell>
                       <div className="flex items-center gap-1.5">
-                        <span className="text-sm font-bold text-foreground">
+                        <span className="text-[0.68rem] font-bold text-foreground">
                           {row.full_name ?? '—'}
                         </span>
                         {row.tags.slice(0, 2).map((t) => (
@@ -227,7 +227,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span
-                            className="inline-flex h-[22px] items-center gap-1 rounded-lg bg-amber-500/10 px-2 text-xs font-extrabold text-amber-700 tabular-nums dark:text-amber-400"
+                            className="inline-flex h-[22px] items-center gap-1 rounded-lg bg-amber-500/10 px-2 text-[0.68rem] font-extrabold text-amber-700 tabular-nums dark:text-amber-400"
                             tabIndex={0}
                           >
                             <Icon icon="mdi:star-four-points" className="h-3.5 w-3.5" aria-hidden="true" />
@@ -238,7 +238,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                       </Tooltip>
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      <span className="block text-xs font-semibold text-foreground tabular-nums">
+                      <span className="block text-[0.68rem] font-semibold text-foreground tabular-nums">
                         {row.last_booking_date ? formatJalaliDate(row.last_booking_date, { format: 'numeric' }) : '—'}
                       </span>
                       {inactiveBadge(row)}
@@ -264,8 +264,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                               aria-pressed={row.is_vip}
                               className={
                                 row.is_vip
-                                  ? 'inline-flex h-11 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
-                                  : 'inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
+                                  ? 'inline-flex h-9 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
+                                  : 'inline-flex h-9 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
                               }
                             >
                               <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" aria-hidden="true" />
@@ -285,7 +285,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
             {items.map((row) => (
               <div
                 key={row.user_id}
-                className="relative overflow-hidden rounded-2xl border border-border bg-card p-4 shadow-sm active:scale-[0.98]"
+                className="relative overflow-hidden rounded-lg border border-border bg-card p-4 shadow-sm active:scale-[0.98]"
               >
                 {/* کنترل‌های تعاملی بیرون از دکمهٔ کارت‌اند: دکمهٔ تودرتو در HTML مجاز نیست
                     و روی نامِ دکمه هم سایه می‌اندازد */}
@@ -299,8 +299,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                     aria-pressed={row.is_vip}
                     className={
                       row.is_vip
-                        ? 'inline-flex h-11 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                        : 'inline-flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        ? 'inline-flex h-9 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        : 'inline-flex h-9 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                     }
                   >
                     <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" aria-hidden="true" />
@@ -315,10 +315,10 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                   className="block w-full cursor-pointer appearance-none rounded-xl border-0 bg-transparent p-0 m-0 text-start font-[inherit] text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <div className="mb-3 min-w-0 pe-[92px]">
-                    <p className="truncate text-sm font-extrabold text-foreground">
+                    <p className="truncate text-[0.68rem] font-extrabold text-foreground">
                       {row.full_name ?? '—'}
                     </p>
-                    <p className="block text-xs text-muted-foreground" dir="ltr">
+                    <p className="block text-[0.68rem] text-muted-foreground" dir="ltr">
                       {row.phone ?? '—'}
                     </p>
                   </div>
@@ -340,28 +340,28 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
 
                   <div className="flex items-center justify-between border-t border-dashed border-border pt-3">
                     <div>
-                      <span className="block text-xs text-muted-foreground">پرداختی</span>
-                      <span className="block text-sm font-extrabold text-foreground tabular-nums">
+                      <span className="block text-[0.68rem] text-muted-foreground">پرداختی</span>
+                      <span className="block text-[0.68rem] font-extrabold text-foreground tabular-nums">
                         {formatRial(row.total_spend)}
                       </span>
                     </div>
                     <div className="text-center">
-                      <span className="block text-xs text-muted-foreground">مانده</span>
+                      <span className="block text-[0.68rem] text-muted-foreground">مانده</span>
                       <span
                         className={
                           row.balance_due > 0
-                            ? 'block text-sm font-extrabold text-red-600 tabular-nums dark:text-red-400'
+                            ? 'block text-[0.68rem] font-extrabold text-red-600 tabular-nums dark:text-red-400'
                             : row.balance_due < 0
-                              ? 'block text-sm font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
-                              : 'block text-sm font-extrabold text-muted-foreground tabular-nums'
+                              ? 'block text-[0.68rem] font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                              : 'block text-[0.68rem] font-extrabold text-muted-foreground tabular-nums'
                         }
                       >
                         {row.balance_due > 0 ? formatRial(row.balance_due) : row.balance_due < 0 ? formatRial(-row.balance_due) : '—'}
                       </span>
                     </div>
                     <div className="text-end">
-                      <span className="block text-xs text-muted-foreground">بازدید</span>
-                      <span className="block text-xs font-bold text-foreground tabular-nums">
+                      <span className="block text-[0.68rem] text-muted-foreground">بازدید</span>
+                      <span className="block text-[0.68rem] font-bold text-foreground tabular-nums">
                         {row.last_booking_date ? formatJalaliDate(row.last_booking_date, { format: 'numeric' }) : '—'}
                       </span>
                       {inactiveBadge(row)}
@@ -380,7 +380,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
         </div>
       )}
       {!query.isPending && !query.isError && total > 0 && (
-        <p className="mt-2 block text-center text-xs text-muted-foreground">
+        <p className="mt-2 block text-center text-[0.68rem] text-muted-foreground">
           {toPersianDigits(total)} مشتری — صفحه {toPersianDigits(page)} از {toPersianDigits(totalPages)}
         </p>
       )}

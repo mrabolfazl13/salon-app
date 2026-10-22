@@ -117,7 +117,7 @@ export const TeamVisibilityChip: React.FC<{ visibility: TeamVisibility }> = ({ v
   return (
     <span
       className={cn(
-        'inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-full ps-1.5 pe-2 text-xs font-semibold',
+        'inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-full ps-1.5 pe-2 text-[0.68rem] font-semibold',
         CHIP_INK,
       )}
       style={chipStyle(c.fg, c.bg)}
@@ -139,7 +139,7 @@ export const TeamRoleBadge: React.FC<{ role: TeamRole }> = ({ role }) => {
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[7px] py-0.5 text-xs font-bold',
+        'inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[7px] py-0.5 text-[0.68rem] font-bold',
         CHIP_INK,
       )}
       style={chipStyle(c.fg, c.bg)}
@@ -161,7 +161,7 @@ export const MemberStatusChip: React.FC<{ status: TeamMemberStatus }> = ({ statu
   const m = MEMBER_STATUS_META[status] ?? MEMBER_STATUS_META.active
   return (
     <span
-      className={cn('inline-flex items-center gap-1 text-xs font-bold', CHIP_INK)}
+      className={cn('inline-flex items-center gap-1 text-[0.68rem] font-bold', CHIP_INK)}
       style={inkStyle(m.fg)}
     >
       <Icon icon={m.icon} style={{ width: 13, height: 13 }} />
@@ -186,7 +186,7 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
   return (
     <span
       className={cn(
-        'inline-flex h-6 items-center whitespace-nowrap rounded-full px-2 text-xs font-bold',
+        'inline-flex h-6 items-center whitespace-nowrap rounded-full px-2 text-[0.68rem] font-bold',
         CHIP_INK,
       )}
       style={chipStyle(meta.fg, meta.bg)}
@@ -202,7 +202,7 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
 export const TeamOfficialBadge: React.FC<{ size?: 'small' | 'medium' }> = ({ size = 'small' }) => (
   <span
     className={cn(
-      'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-[7px] py-0.5 text-xs font-extrabold',
+      'inline-flex items-center gap-1 whitespace-nowrap rounded-full px-[7px] py-0.5 text-[0.68rem] font-extrabold',
       CHIP_INK,
     )}
     style={chipStyle('#7c3aed', 'rgba(124,58,237,0.10)')}
@@ -231,7 +231,7 @@ export const TeamQuotaProgress: React.FC<{
     // هر دو روی هم می‌افتادند؛ در xs کل ردیف را می‌گیرد و زیر عنوان می‌نشیند.
     <div className={cn('min-w-0 shrink-0', compact ? 'w-[108px]' : 'w-full sm:w-[150px]')}>
       <div className="mb-1 flex items-center justify-between gap-1.5">
-        <div className="inline-flex items-center gap-1 text-xs font-bold text-slate-700 dark:text-slate-300">
+        <div className="inline-flex items-center gap-1 text-[0.68rem] font-bold text-slate-700 dark:text-slate-300">
           <Icon icon="mdi:account-group-outline" style={{ width: 14, height: 14 }} />
           {total > 0
             ? `${toPersianDigits(memberCount)} از ${toPersianDigits(total)} عضو`
@@ -251,7 +251,7 @@ export const TeamQuotaProgress: React.FC<{
         />
       )}
       {showHint && !isOfficial && total > 0 && (
-        <p className="mt-1 text-xs font-semibold text-amber-700 dark:text-amber-400">
+        <p className="mt-1 text-[0.68rem] font-semibold text-amber-700 dark:text-amber-400">
           {`برای رسمی‌شدن تیم به حداقل ${toPersianDigits(total)} عضو نیاز دارید`}
         </p>
       )}

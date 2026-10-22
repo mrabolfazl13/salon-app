@@ -121,43 +121,43 @@ const MembershipPurchaseDialog: React.FC<Props> = ({ plan, venueName, open, onCl
               <Icon icon="mdi:card-account-details-star" style={{ width: 22, height: 22, color: '#2563eb' }} />
               <span className="text-lg font-extrabold">خرید اشتراک</span>
             </span>
-            <span className="rounded-lg bg-violet-600/10 px-2.5 py-1 text-xs font-bold text-violet-700 dark:text-violet-300">
+            <span className="rounded-lg bg-violet-600/10 px-2.5 py-1 text-[0.68rem] font-bold text-violet-700 dark:text-violet-300">
               {PLAN_TYPE_LABEL[plan.plan_type]}
             </span>
           </DialogTitle>
         </DialogHeader>
 
         {/* خلاصه پلن */}
-        <div className="mb-2.5 rounded-[14px] border border-blue-600/[0.12] bg-blue-600/5 p-4">
+        <div className="mb-1.5 rounded-[14px] border border-blue-600/[0.12] bg-blue-600/5 p-4">
           {venueName && (
-            <div className="mb-2 flex justify-between">
-              <span className="text-sm text-muted-foreground">سالن</span>
-              <span className="text-sm font-semibold">{venueName}</span>
+            <div className="mb-1 flex justify-between">
+              <span className="text-[0.68rem] text-muted-foreground">سالن</span>
+              <span className="text-[0.68rem] font-semibold">{venueName}</span>
             </div>
           )}
-          <div className="mb-2 flex justify-between">
-            <span className="text-sm text-muted-foreground">پلن</span>
-            <span className="text-sm font-semibold">{plan.title}</span>
+          <div className="mb-1 flex justify-between">
+            <span className="text-[0.68rem] text-muted-foreground">پلن</span>
+            <span className="text-[0.68rem] font-semibold">{plan.title}</span>
           </div>
           {plan.sessions_count ? (
-            <div className="mb-2 flex justify-between">
-              <span className="text-sm text-muted-foreground">تعداد جلسات</span>
-              <span className="text-sm font-semibold">
+            <div className="mb-1 flex justify-between">
+              <span className="text-[0.68rem] text-muted-foreground">تعداد جلسات</span>
+              <span className="text-[0.68rem] font-semibold">
                 {plan.sessions_count.toLocaleString('fa-IR')} جلسه
               </span>
             </div>
           ) : null}
           {plan.duration_days ? (
-            <div className="mb-2 flex justify-between">
-              <span className="text-sm text-muted-foreground">مدت اعتبار</span>
-              <span className="text-sm font-semibold">
+            <div className="mb-1 flex justify-between">
+              <span className="text-[0.68rem] text-muted-foreground">مدت اعتبار</span>
+              <span className="text-[0.68rem] font-semibold">
                 {plan.duration_days.toLocaleString('fa-IR')} روز
               </span>
             </div>
           ) : null}
           <Separator className="my-2" />
           <div className="flex items-center justify-between">
-            <span className="text-sm text-muted-foreground">مبلغ قابل پرداخت</span>
+            <span className="text-[0.68rem] text-muted-foreground">مبلغ قابل پرداخت</span>
             <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
               {formatPrice(plan.price)}
             </span>
@@ -174,7 +174,7 @@ const MembershipPurchaseDialog: React.FC<Props> = ({ plan, venueName, open, onCl
               />
             ) : (
               <>
-                <p className="mb-4 text-sm text-muted-foreground">
+                <p className="mb-4 text-[0.68rem] text-muted-foreground">
                   فاکتور شما آماده است. برای ادامه، اطلاعات کارت بانکی را وارد کنید.
                 </p>
                 <Button
@@ -244,31 +244,31 @@ const MembershipPurchaseDialog: React.FC<Props> = ({ plan, venueName, open, onCl
             <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-500/[0.12]">
               <Icon icon="mdi:check-circle" style={{ width: 34, height: 34, color: '#22c55e' }} />
             </div>
-            <p className="mb-0.5 text-base font-extrabold">
+            <p className="mb-0.5 text-[0.68rem] font-extrabold">
               اشتراک فعال شد!
             </p>
-            <p className="mb-4 text-sm text-muted-foreground">
+            <p className="mb-4 text-[0.68rem] text-muted-foreground">
               {plan.plan_type === 'monthly'
                 ? 'اعتبار اشتراک ماهانه از همین حالا آغاز شده است.'
                 : 'برای استفاده، در ورود به باشگاه به مدیر سالن نشان دهید.'}
             </p>
             <div className="flex flex-col gap-1.5 rounded-xl bg-slate-900/[0.03] p-3 text-start dark:bg-white/5">
               <div className="flex justify-between">
-                <span className="text-xs text-muted-foreground">کد پیگیری</span>
-                <span className="text-xs font-bold" dir="ltr">{purchase.transaction_id}</span>
+                <span className="text-[0.68rem] text-muted-foreground">کد پیگیری</span>
+                <span className="text-[0.68rem] font-bold" dir="ltr">{purchase.transaction_id}</span>
               </div>
               {purchase.sessions_remaining != null && (
                 <div className="flex justify-between">
-                  <span className="text-xs text-muted-foreground">جلسات باقی‌مانده</span>
-                  <span className="text-xs font-bold">
+                  <span className="text-[0.68rem] text-muted-foreground">جلسات باقی‌مانده</span>
+                  <span className="text-[0.68rem] font-bold">
                     {purchase.sessions_remaining.toLocaleString('fa-IR')}
                   </span>
                 </div>
               )}
               {purchase.expires_at && (
                 <div className="flex justify-between">
-                  <span className="text-xs text-muted-foreground">انقضا</span>
-                  <span className="text-xs font-bold">
+                  <span className="text-[0.68rem] text-muted-foreground">انقضا</span>
+                  <span className="text-[0.68rem] font-bold">
                     {new Date(purchase.expires_at).toLocaleDateString('fa-IR')}
                   </span>
                 </div>

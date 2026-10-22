@@ -124,8 +124,8 @@ interface ContractFormProps {
   onError?: (msg: string) => void
 }
 
-const helperCls = 'mt-1.5 text-xs text-muted-foreground'
-const helperErrCls = 'mt-1.5 text-xs text-red-600 dark:text-red-400'
+const helperCls = 'mt-1.5 text-[0.68rem] text-muted-foreground'
+const helperErrCls = 'mt-1.5 text-[0.68rem] text-red-600 dark:text-red-400'
 
 const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError }) => {
   const [serverError, setServerError] = useState<string | null>(null)
@@ -205,11 +205,11 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
   }
 
   return (
-    <div className="rounded-2xl border border-border bg-card p-5 shadow-sm md:p-8">
+    <div className="rounded-lg border border-border bg-card p-3 shadow-sm md:p-8">
       <h2 className="mb-1 text-lg font-extrabold text-foreground">
         ثبت درخواست قرارداد بلندمدت
       </h2>
-      <p className="mb-6 text-sm text-muted-foreground">
+      <p className="mb-4 text-[0.68rem] text-muted-foreground">
         درخواست شما در وضعیت «در انتظار تأیید» برای مدیر سالن ارسال می‌شود؛ سانس‌ها از همین لحظه رزرو می‌مانند
       </p>
 
@@ -221,7 +221,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
               type="button"
               onClick={() => setServerError(null)}
               aria-label="بستن"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
+              className="flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
             >
               <Icon icon="mdi:close" className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -230,7 +230,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
       )}
 
       <form onSubmit={handleSubmit(onSubmit)}>
-        <div className="grid grid-cols-1 gap-5 sm:grid-cols-2">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <div className="space-y-1.5 sm:col-span-2">
             <Label htmlFor="contract-venue">انتخاب سالن</Label>
             <Controller
@@ -244,7 +244,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
                   <SelectTrigger
                     id="contract-venue"
                     aria-invalid={errors.venueId ? true : undefined}
-                    className={cn('h-11', errors.venueId && 'border-red-500')}
+                    className={cn('h-9', errors.venueId && 'border-red-500')}
                     onBlur={field.onBlur}
                   >
                     <SelectValue placeholder="انتخاب سالن" />
@@ -258,7 +258,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
               )}
             />
             {errors.venueId && (
-              <p className="text-xs text-red-600 dark:text-red-400">{errors.venueId.message}</p>
+              <p className="text-[0.68rem] text-red-600 dark:text-red-400">{errors.venueId.message}</p>
             )}
           </div>
 
@@ -297,8 +297,8 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
           </div>
 
           <div className="sm:col-span-2">
-            <p className="mb-1 text-sm font-semibold text-foreground">روز هفته سانس‌ها</p>
-            <p className="mb-2 block text-xs text-muted-foreground">
+            <p className="mb-1 text-[0.68rem] font-semibold text-foreground">روز هفته سانس‌ها</p>
+            <p className="mb-1 block text-[0.68rem] text-muted-foreground">
               حداکثر ۳ روز انتخاب کنید — اولین روز، روز اصلی قرارداد است
             </p>
             <Controller
@@ -326,7 +326,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
                           onClick={() => toggle(idx)}
                           aria-pressed={pos >= 0}
                           className={cn(
-                            'inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                            'inline-flex min-h-9 items-center justify-center rounded-xl border px-4 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                             pos >= 0
                               ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-500'
                               : 'border-border bg-card text-foreground hover:bg-muted',
@@ -341,7 +341,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
               }}
             />
             {errors.dayOrder && (
-              <p className="mt-1.5 text-xs text-red-600 dark:text-red-400">{errors.dayOrder.message}</p>
+              <p className="mt-1.5 text-[0.68rem] text-red-600 dark:text-red-400">{errors.dayOrder.message}</p>
             )}
           </div>
 
@@ -351,7 +351,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
               id="contract-start-time"
               {...register('startTime')}
               type="time"
-              className={errors.startTime ? 'h-11 border-red-500' : 'h-11'}
+              className={errors.startTime ? 'h-9 border-red-500' : 'h-9'}
             />
             <p className={errors.startTime ? helperErrCls : helperCls}>{errors.startTime?.message}</p>
           </div>
@@ -362,7 +362,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
               id="contract-end-time"
               {...register('endTime')}
               type="time"
-              className={errors.endTime ? 'h-11 border-red-500' : 'h-11'}
+              className={errors.endTime ? 'h-9 border-red-500' : 'h-9'}
             />
             <p className={errors.endTime ? helperErrCls : helperCls}>
               {errors.endTime?.message || 'پیش‌فرض ۹۰ دقیقه'}
@@ -376,7 +376,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
               control={control}
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="contract-recurrence" className="h-11">
+                  <SelectTrigger id="contract-recurrence" className="h-9">
                     <SelectValue placeholder="نوع تکرار" />
                   </SelectTrigger>
                   <SelectContent>
@@ -394,7 +394,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
             <Input
               id="contract-price"
               {...register('discountedPrice')}
-              className={errors.discountedPrice ? 'h-11 border-red-500' : 'h-11'}
+              className={errors.discountedPrice ? 'h-9 border-red-500' : 'h-9'}
             />
             <p className={errors.discountedPrice ? helperErrCls : helperCls}>
               {errors.discountedPrice?.message || 'پیشنهاد شما؛ باید کمتر از قیمت اصلی سانس باشد'}
@@ -406,7 +406,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
             <Input
               id="contract-down-payment"
               {...register('downPayment')}
-              className={errors.downPayment ? 'h-11 border-red-500' : 'h-11'}
+              className={errors.downPayment ? 'h-9 border-red-500' : 'h-9'}
             />
             <p className={errors.downPayment ? helperErrCls : helperCls}>{errors.downPayment?.message}</p>
           </div>
@@ -416,7 +416,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
             <Input
               id="contract-due-day"
               {...register('dueDayOfMonth')}
-              className={errors.dueDayOfMonth ? 'h-11 border-red-500' : 'h-11'}
+              className={errors.dueDayOfMonth ? 'h-9 border-red-500' : 'h-9'}
             />
             <p className={errors.dueDayOfMonth ? helperErrCls : helperCls}>
               {errors.dueDayOfMonth?.message || 'اختیاری — پیش‌فرض ماهانه'}
@@ -428,7 +428,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
             <Input
               id="contract-installments"
               {...register('desiredInstallments')}
-              className={errors.desiredInstallments ? 'h-11 border-red-500' : 'h-11'}
+              className={errors.desiredInstallments ? 'h-9 border-red-500' : 'h-9'}
             />
             <p className={errors.desiredInstallments ? helperErrCls : helperCls}>
               {errors.desiredInstallments?.message || 'به‌صورت پیشنهاد در توضیحات به مدیر ارسال می‌شود'}
@@ -470,7 +470,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
               <Alert variant="info" className="rounded-xl">
                 <AlertDescription className="w-full">
                   <div className="flex items-center justify-between">
-                    <p className="text-sm">
+                    <p className="text-[0.68rem]">
                       {`تعداد جلسات: ${toPersianDigits(totalInfo.count)} جلسه — جمع کل (محاسبه سمت سرور): `}
                     </p>
                     <h3 className="text-lg font-bold text-primary">
