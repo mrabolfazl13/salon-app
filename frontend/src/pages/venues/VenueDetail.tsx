@@ -398,10 +398,10 @@ const VenueDetail: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-night dark:to-night">
         {/* ==================== موبایل: گالری هیرو ==================== */}
         <div className="block md:hidden">
-          <div className={cn('relative h-[260px] overflow-hidden', PRIMARY_GRADIENT)}>
+          <div className={cn('relative h-[200px] overflow-hidden', PRIMARY_GRADIENT)}>
             {images.length > 0 && (
               <div aria-hidden className="absolute inset-0 flex items-center justify-center">
-                <Icon icon="mdi:stadium-variant" className="h-[72px] w-[72px] text-white/30" />
+                <Icon icon="mdi:stadium-variant" className="h-12 w-12 text-white/30" />
               </div>
             )}
             {images.length > 0 ? (
@@ -422,7 +422,7 @@ const VenueDetail: React.FC = () => {
               </div>
             ) : (
               <div className={cn('flex h-full w-full items-center justify-center', PRIMARY_GRADIENT)}>
-                <Icon icon="mdi:stadium-variant" className="h-[72px] w-[72px] text-white/35" />
+                <Icon icon="mdi:stadium-variant" className="h-12 w-12 text-white/35" />
               </div>
             )}
             {/* هدر شیشه‌ای روی گالری: بازگشت + قلب */}
@@ -441,16 +441,16 @@ const VenueDetail: React.FC = () => {
           </div>
 
           {/* ==================== موبایل: اطلاعات اصلی ==================== */}
-          <div className="mx-auto max-w-[640px] px-4 pb-52 pt-4">
+          <div className="mx-auto max-w-[640px] px-4 pb-48 pt-4">
             {/* روی موبایل هیرو دسکتاپ display:none است؛ بدون این h1 صفحه سرتیتر سطح یک نداشت — axe F-25 */}
-            <h1 className="text-[1.3rem] font-extrabold leading-normal text-foreground">
+            <h1 className="text-[1.1rem] font-extrabold leading-normal text-foreground">
               {venue.name}
             </h1>
-            <div className="mt-1.5 flex flex-wrap items-center gap-3">
+            <div className="mt-1 flex flex-wrap items-center gap-3">
               <MobileRating value={venue.average_rating || 0} count={venue.total_reviews || 0} size="md" />
               <div className="flex min-w-0 items-center gap-2">
-                <Icon icon="mdi:map-marker-outline" className="h-[18px] w-[18px] shrink-0 text-slate-500 dark:text-slate-400" />
-                <p className="min-w-0 text-sm text-muted-foreground">
+                <Icon icon="mdi:map-marker-outline" className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" />
+                <p className="min-w-0 text-xs text-muted-foreground">
                   {venue.address}
                 </p>
               </div>
@@ -471,9 +471,9 @@ const VenueDetail: React.FC = () => {
             )}
 
             {venue.description && (
-              <section className="mt-4 rounded-2xl border border-border bg-card p-4 shadow-sm">
-                <h2 className="mb-1.5 text-sm font-extrabold text-foreground">درباره سالن</h2>
-                <p className="text-sm leading-[1.9] text-muted-foreground">
+              <section className="mt-4 rounded-lg border border-border bg-card p-3 shadow-sm">
+                <h2 className="mb-1 text-xs font-extrabold text-foreground">درباره سالن</h2>
+                <p className="text-xs leading-[1.9] text-muted-foreground">
                   {venue.description}
                 </p>
               </section>
@@ -481,7 +481,7 @@ const VenueDetail: React.FC = () => {
 
             {isGym ? (
               /* باشگاه: پلن‌های اشتراک (جلسه‌ای / پک / ماهانه) به‌جای سانس */
-              <div className="mt-6">
+              <div className="mt-4">
                 <SectionHeader title="خرید اشتراک" subtitle="بدون نیاز به رزرو سانس" />
                 {plans.length === 0 ? (
                   <EmptyState
@@ -496,13 +496,13 @@ const VenueDetail: React.FC = () => {
             ) : (
               <>
                 {/* انتخاب تاریخ — اسکرول افقی */}
-                <div className="mt-6">
+                <div className="mt-4">
                   <SectionHeader title="انتخاب تاریخ" subtitle="۱۴ روز آینده" />
                   <DateSelector dates={dates} value={selectedDate} onChange={setSelectedDate} />
                 </div>
 
                 {/* سانس‌های روز انتخابی */}
-                <div className="mt-6">
+                <div className="mt-4">
                   <SectionHeader
                     title="سانس‌ها"
                     subtitle={daySlots.length > 0 ? `${daySlots.length} سانس در ${dateLabel}` : dateLabel}
@@ -531,22 +531,22 @@ const VenueDetail: React.FC = () => {
             )}
 
             {/* تماس و موقعیت — اطلاعات ثانویه */}
-            <div className="mt-6 overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+            <div className="mt-4 overflow-hidden rounded-lg border border-border bg-card shadow-sm">
               <div>
                 {venue.phone && (
                   <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
-                        <Icon icon="mdi:phone-outline" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
+                        <Icon icon="mdi:phone-outline" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                       </span>
                       <div>
-                        <p className="text-sm font-bold text-foreground">{venue.phone}</p>
+                        <p className="text-xs font-bold text-foreground">{venue.phone}</p>
                         <span className="text-xs text-muted-foreground">شماره تماس سالن</span>
                       </div>
                     </div>
                     <a
                       href={`tel:${venue.phone}`}
-                      className="inline-flex min-h-11 items-center rounded-lg px-3 text-sm font-bold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-bold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       تماس
                     </a>
@@ -554,10 +554,10 @@ const VenueDetail: React.FC = () => {
                 )}
                 <div className="flex items-center gap-3 px-4 py-3.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
-                    <Icon icon="mdi:map-marker-outline" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
+                    <Icon icon="mdi:map-marker-outline" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                   </span>
                   <div>
-                    <p className="text-sm font-semibold text-foreground">{venue.address}</p>
+                    <p className="text-xs font-semibold text-foreground">{venue.address}</p>
                     <span className="text-xs text-muted-foreground">آدرس سالن</span>
                   </div>
                 </div>
@@ -565,7 +565,7 @@ const VenueDetail: React.FC = () => {
             </div>
 
             {/* نظرات */}
-            <div className="mt-6">
+            <div className="mt-4">
               <SectionHeader title="نظرات کاربران" />
               <ReviewSection
                 venueId={venue.id}
@@ -635,10 +635,10 @@ const VenueDetail: React.FC = () => {
                   <h1 className="mb-2 text-3xl font-extrabold text-white [text-shadow:0_2px_10px_rgba(0,0,0,0.3)]">
                     {venue.name}
                   </h1>
-                  <div className="flex flex-wrap items-center gap-4">
+                  <div className="flex flex-wrap items-center gap-3">
                     <div className="flex items-center gap-2">
                       <Icon icon="mdi:map-marker" className="h-5 w-5 text-white/70" />
-                      <p className="text-sm text-white/80">{venue.address}</p>
+                      <p className="text-xs text-white/80">{venue.address}</p>
                     </div>
                     {venue.average_rating > 0 && (
                       <div className="flex items-center gap-1 rounded-lg bg-white/15 px-3 py-0.5">
@@ -646,7 +646,7 @@ const VenueDetail: React.FC = () => {
                           value={venue.average_rating}
                           label={`امتیاز کاربران ${toPersianDigits(venue.average_rating.toFixed(1))} از ۵`}
                         />
-                        <span className="text-sm font-bold text-white">
+                        <span className="text-xs font-bold text-white">
                           {toPersianDigits(venue.average_rating.toFixed(1)).replace('.', '٫')}
                         </span>
                         <span className="text-xs text-white/70">
@@ -681,21 +681,21 @@ const VenueDetail: React.FC = () => {
                         <TabsList className="mb-6 grid h-auto min-h-12 w-full grid-cols-3 gap-1 p-1">
                           <TabsTrigger
                             value="0"
-                            className="h-12 gap-1 rounded-[10px] text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+                            className="h-12 gap-1 rounded-[10px] text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
                           >
                             <Icon icon="mdi:information" className="h-4 w-4" />
                             اطلاعات
                           </TabsTrigger>
                           <TabsTrigger
                             value="1"
-                            className="h-12 gap-1 rounded-[10px] text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+                            className="h-12 gap-1 rounded-[10px] text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
                           >
                             <Icon icon={isGym ? 'mdi:card-account-details-star' : 'mdi:calendar-clock'} className="h-4 w-4" />
                             {isGym ? 'اشتراک‌ها' : 'سانس‌ها'}
                           </TabsTrigger>
                           <TabsTrigger
                             value="2"
-                            className="h-12 gap-1 rounded-[10px] text-sm font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
+                            className="h-12 gap-1 rounded-[10px] text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
                           >
                             <Icon icon="mdi:star" className="h-4 w-4" />
                             نظرات
@@ -719,7 +719,7 @@ const VenueDetail: React.FC = () => {
                             {amenities.map((amenity: string) => (
                               <span
                                 key={amenity}
-                                className="inline-flex min-h-11 items-center gap-1 rounded-[10px] bg-blue-500/10 px-4 text-sm font-medium text-blue-700 dark:bg-blue-400/10 dark:text-blue-300"
+                                className="inline-flex min-h-11 items-center gap-1 rounded-[10px] bg-blue-500/10 px-4 text-xs font-medium text-blue-700 dark:bg-blue-400/10 dark:text-blue-300"
                               >
                                 <Icon icon="mdi:check-circle" className="h-4 w-4" />
                                 {amenity}
@@ -731,17 +731,17 @@ const VenueDetail: React.FC = () => {
 
                           {/* Price & Manager Info */}
                           <div className="flex flex-wrap gap-8">
-                            <div className="min-w-[150px] flex-1 rounded-2xl bg-amber-500/10 p-5 dark:bg-amber-400/10">
+                            <div className="min-w-[150px] flex-1 rounded-lg bg-amber-500/10 p-5 dark:bg-amber-400/10">
                               <span className="mb-1 block text-xs text-muted-foreground">قیمت هر جلسه</span>
                               <p className="text-xl font-extrabold text-amber-700 dark:text-amber-400">{formatPrice(venue.price)}</p>
                             </div>
-                            <div className="min-w-[150px] flex-1 rounded-2xl bg-blue-500/5 p-5 dark:bg-white/5">
+                            <div className="min-w-[150px] flex-1 rounded-lg bg-blue-500/5 p-5 dark:bg-white/5">
                               <span className="mb-1 block text-xs text-muted-foreground">مدیر سالن</span>
                               <div className="flex items-center gap-2">
                                 <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white dark:bg-blue-500">
                                   {(venue.manager_name || 'ن')[0]}
                                 </span>
-                                <p className="text-sm font-semibold text-foreground">{venue.manager_name || 'نامشخص'}</p>
+                                <p className="text-xs font-semibold text-foreground">{venue.manager_name || 'نامشخص'}</p>
                               </div>
                             </div>
                           </div>
@@ -752,13 +752,13 @@ const VenueDetail: React.FC = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                           <div className="mb-6">
                             <h2 className="mb-1 text-base font-bold text-foreground">خرید اشتراک</h2>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                               در باشگاه‌ها رزرو سانس وجود ندارد — پلن مورد نظر (جلسه‌ای، پک یا ماهانه) را بخرید و با نشان دادن کد اشتراک در باشگاه استفاده کنید.
                             </p>
                           </div>
                           {plans.length === 0 ? (
                             <div className="py-10 text-center">
-                              <p className="text-sm text-muted-foreground">
+                              <p className="text-xs text-muted-foreground">
                                 هنوز پلن اشتراکی برای این باشگاه تعریف نشده است.
                               </p>
                             </div>
@@ -772,7 +772,7 @@ const VenueDetail: React.FC = () => {
                         <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.3 }}>
                           <div className="mb-6">
                             <h2 className="mb-1 text-base font-bold text-foreground">انتخاب سانس</h2>
-                            <p className="text-sm text-muted-foreground">
+                            <p className="text-xs text-muted-foreground">
                               سانس مورد نظر خود را انتخاب کنید و با کلیک روی دکمه رزرو، آن را برای خود رزرو کنید
                             </p>
                           </div>
@@ -788,21 +788,21 @@ const VenueDetail: React.FC = () => {
                               animate={{ opacity: 1, y: 0 }}
                               transition={{ duration: 0.3 }}
                             >
-                              <div className="mt-6 rounded-2xl border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/5 p-6 dark:border-amber-400/30">
-                                <div className="mb-4 flex items-center gap-4">
+                              <div className="mt-4 rounded-lg border border-amber-500/30 bg-gradient-to-br from-amber-500/10 to-orange-500/5 p-6 dark:border-amber-400/30">
+                                <div className="mb-4 flex items-center gap-3">
                                   <span className={cn('flex h-12 w-12 items-center justify-center rounded-xl', PRIMARY_GRADIENT)}>
                                     <Icon icon="mdi:calendar-check" className="h-6 w-6 text-white" />
                                   </span>
                                   <div>
-                                    <p className="text-sm font-bold text-foreground">سانس انتخاب شده</p>
-                                    <p className="text-sm text-muted-foreground">
+                                    <p className="text-xs font-bold text-foreground">سانس انتخاب شده</p>
+                                    <p className="text-xs text-muted-foreground">
                                       {selectedSlot.startTime} - {selectedSlot.endTime}
                                     </p>
                                   </div>
                                 </div>
                                 <Separator className="my-4" />
                                 <div className="flex items-center justify-between">
-                                  <p className="text-sm text-muted-foreground">قیمت:</p>
+                                  <p className="text-xs text-muted-foreground">قیمت:</p>
                                   <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400">{formatPrice(selectedSlot.price)}</p>
                                 </div>
 
@@ -884,14 +884,14 @@ const VenueDetail: React.FC = () => {
                               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
                                 <Icon icon="mdi:phone" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                               </span>
-                              <p className="text-sm font-semibold text-foreground">{venue.phone}</p>
+                              <p className="text-xs font-semibold text-foreground">{venue.phone}</p>
                             </div>
                           )}
                           <div className="flex items-center gap-2.5 py-3">
                             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
                               <Icon icon="mdi:map-marker" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
                             </span>
-                            <p className="text-sm font-semibold text-foreground">{venue.address}</p>
+                            <p className="text-xs font-semibold text-foreground">{venue.address}</p>
                           </div>
                         </div>
                       </div>
@@ -934,15 +934,15 @@ const VenueDetail: React.FC = () => {
       {/* نوار شناور تایید دسکتاپ — بدون نیاز به اسکرول بعد از انتخاب سانس */}
       {!isGym && selectedSlot && tab === 1 && (
         <div className="fixed bottom-7 left-1/2 z-[60] hidden w-full max-w-[560px] -translate-x-1/2 px-6 md:block">
-          <div className="flex items-center gap-4 rounded-2xl border border-border bg-white/95 px-5 py-3.5 shadow-[0_8px_30px_rgba(2,8,23,0.14)] backdrop-blur-md dark:bg-slate-900/95">
+          <div className="flex items-center gap-3 rounded-lg border border-border bg-white/95 px-5 py-3.5 shadow-[0_8px_30px_rgba(2,8,23,0.14)] backdrop-blur-md dark:bg-slate-900/95">
             <div className="flex min-w-0 items-center gap-2">
               <Icon icon="mdi:clock-outline" className="h-5 w-5 shrink-0 text-amber-500" />
-              <p className="truncate text-sm font-bold text-foreground">
+              <p className="truncate text-xs font-bold text-foreground">
                 {selectedSlot.startTime} - {selectedSlot.endTime}
               </p>
             </div>
             <div className="min-w-0 flex-1">
-              <p className="truncate text-sm font-extrabold text-foreground">
+              <p className="truncate text-xs font-extrabold text-foreground">
                 {formatPrice(selectedSlot.price)}
               </p>
             </div>
@@ -979,7 +979,7 @@ const VenueDetail: React.FC = () => {
           {bookingResult ? (
             <div>
               <div className="mb-4 text-center">
-                <p className="mb-1 text-sm font-extrabold text-emerald-700 dark:text-emerald-400">
+                <p className="mb-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
                   رزرو ثبت شد — در انتظار تأیید مدیر سالن
                 </p>
                 <p className="text-lg font-black text-blue-600 dark:text-blue-400">
@@ -999,8 +999,8 @@ const VenueDetail: React.FC = () => {
           ) : (
             <>
               <div className="mb-4 text-center">
-                <p className="mb-2 text-sm text-muted-foreground">سالن: {venue.name}</p>
-                <p className="mb-2 text-sm text-muted-foreground">
+                <p className="mb-2 text-xs text-muted-foreground">سالن: {venue.name}</p>
+                <p className="mb-2 text-xs text-muted-foreground">
                   سانس: {selectedSlot?.startTime} - {selectedSlot?.endTime}
                 </p>
                 <p className="mt-2 text-lg font-extrabold text-blue-600 dark:text-blue-400">
@@ -1013,7 +1013,7 @@ const VenueDetail: React.FC = () => {
               {isAuthenticated && (
                 <div className="flex flex-col gap-2">
                   <div>
-                    <Label htmlFor={`${loyaltyCheckboxId}-discount`} className="mb-1.5 block text-xs">
+                    <Label htmlFor={`${loyaltyCheckboxId}-discount`} className="mb-1 block text-xs">
                       کد تخفیف (اختیاری)
                     </Label>
                     <Input
@@ -1033,7 +1033,7 @@ const VenueDetail: React.FC = () => {
                       className="mt-0.5"
                     />
                     <div>
-                      <Label htmlFor={loyaltyCheckboxId} className="text-sm font-semibold">
+                      <Label htmlFor={loyaltyCheckboxId} className="text-xs font-semibold">
                         استفاده از امتیازها (تا ۵۰٪)
                       </Label>
                       {loyalty ? (
