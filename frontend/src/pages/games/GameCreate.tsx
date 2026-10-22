@@ -29,7 +29,7 @@ interface ApiBooking {
 }
 
 const BookingRow: React.FC<{ booking: ApiBooking; onSelect: () => void }> = ({ booking, onSelect }) => (
-  <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-card p-4 shadow-sm">
+  <div className="flex flex-wrap items-center gap-3 rounded-lg border border-border bg-card p-4 shadow-sm">
     <span className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-emerald-600">
       <Icon icon="mdi:calendar-check" aria-hidden="true" className="h-[22px] w-[22px] text-white" />
     </span>
@@ -38,11 +38,11 @@ const BookingRow: React.FC<{ booking: ApiBooking; onSelect: () => void }> = ({ b
         {booking.venue_name || `رزرو #${booking.id}`}
       </p>
       <div className="mt-1 flex flex-wrap items-center gap-2">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           {formatGameDateTime(booking.slot_date, booking.start_time)}
           {booking.duration ? ` · ${booking.duration} دقیقه` : ''}
         </p>
-        <span className="inline-flex h-5 items-center rounded-full bg-emerald-50 px-2 text-xs font-bold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+        <span className="inline-flex h-5 items-center rounded-full bg-emerald-50 px-2 text-[0.68rem] font-bold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
           {formatPrice(booking.payment_amount)}
         </span>
       </div>
@@ -81,7 +81,7 @@ const GameCreate: React.FC = () => {
 
   return (
     <Layout>
-      <div className="py-6">
+      <div className="py-4">
         <div className="mb-4 flex items-center gap-3">
           <IconButtonBack onClick={() => navigate(-1)} />
           <div className="min-w-0">
@@ -101,7 +101,7 @@ const GameCreate: React.FC = () => {
         ) : loading ? (
           <div className="flex flex-col gap-4">
             {[1, 2, 3].map((i) => (
-              <Shimmer key={i} variant="rectangular" height={86} className="rounded-2xl" />
+              <Shimmer key={i} variant="rectangular" height={86} className="rounded-lg" />
             ))}
           </div>
         ) : bookings.length === 0 ? (
@@ -144,7 +144,7 @@ const IconButtonBack: React.FC<{ onClick: () => void }> = ({ onClick }) => (
     type="button"
     aria-label="بازگشت"
     onClick={onClick}
-    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    className="flex h-9 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
   >
     <Icon icon="mdi:arrow-right" aria-hidden="true" className="h-5 w-5" />
   </button>

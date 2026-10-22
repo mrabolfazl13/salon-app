@@ -30,13 +30,13 @@ const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
   const busy = accept.isPending || decline.isPending
 
   return (
-    <div className="flex flex-wrap items-center gap-2.5 rounded-2xl border border-violet-600/25 bg-violet-600/5 px-4 py-3">
+    <div className="flex flex-wrap items-center gap-2.5 rounded-lg border border-violet-600/25 bg-violet-600/5 px-4 py-3">
       <Icon icon="mdi:email-open-outline" className="h-5 w-5 shrink-0 text-violet-600 dark:text-violet-400" aria-hidden="true" />
       <div className="min-w-0 flex-1">
         <p className="text-[0.85rem] font-extrabold text-foreground">
           دعوت به تیم «{inv.team_name ?? `#${inv.team_id}`}»
         </p>
-        <p className="truncate text-xs text-muted-foreground">
+        <p className="truncate text-[0.68rem] text-muted-foreground">
           {inv.team_name ? 'پس از پذیرش، عضو فعال تیم می‌شوید.' : ''}
         </p>
       </div>
@@ -70,13 +70,13 @@ const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
           </Button>
         </div>
       ) : (
-        <span className="rounded-full bg-muted px-2.5 py-0.5 text-xs font-semibold text-muted-foreground">
+        <span className="rounded-full bg-muted px-2.5 py-0.5 text-[0.68rem] font-semibold text-muted-foreground">
           بدون شناسه عضویت
         </span>
       )}
       {!busy && inv.member_id && (
         <Link to={`/teams/${inv.team_id}`} className="no-underline">
-          <span className="text-xs font-bold text-blue-600 dark:text-blue-400">مشاهده تیم</span>
+          <span className="text-[0.68rem] font-bold text-blue-600 dark:text-blue-400">مشاهده تیم</span>
         </Link>
       )}
     </div>
@@ -89,7 +89,7 @@ const JoinRequestsBadge: React.FC<{ team: Team }> = ({ team }) => {
   const n = q.data?.length ?? 0
   if (!isManager || n === 0) return null
   return (
-    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-1 text-xs font-extrabold text-amber-700 dark:text-amber-400">
+    <span className="inline-flex items-center gap-1 rounded-full bg-amber-500/15 px-2 py-1 text-[0.68rem] font-extrabold text-amber-700 dark:text-amber-400">
       <Icon icon="mdi:hand-back-right" className="h-[13px] w-[13px]" aria-hidden="true" />
       {`${toPersianDigits(n)} درخواست`}
     </span>
@@ -108,7 +108,7 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
       <Link to={`/teams/${team.id}`} className="block h-full no-underline">
         <div
           className={cn(
-            'h-full rounded-2xl border bg-card shadow-sm transition-opacity',
+            'h-full rounded-lg border bg-card shadow-sm transition-opacity',
             team.is_active ? 'border-border' : 'border-dashed border-slate-500/40 opacity-75',
           )}
         >
@@ -119,21 +119,21 @@ const TeamCard: React.FC<{ team: Team }> = ({ team }) => {
                 <p className="truncate text-[0.98rem] font-black text-foreground">
                   {team.name}
                 </p>
-                <p className="mt-1 truncate text-xs text-muted-foreground">
+                <p className="mt-1 truncate text-[0.68rem] text-muted-foreground">
                   {`کاپیتان: ${team.captain_name ?? '—'}`}
                 </p>
               </div>
               {!team.is_active && (
-                <span className="rounded-full bg-slate-500/10 px-2.5 py-0.5 text-xs font-bold text-muted-foreground">غیرفعال</span>
+                <span className="rounded-full bg-slate-500/10 px-2.5 py-0.5 text-[0.68rem] font-bold text-muted-foreground">غیرفعال</span>
               )}
             </div>
             <div className="flex flex-wrap items-center gap-1.5">
               <TeamVisibilityChip visibility={team.visibility} />
-              <span className="inline-flex h-6 items-center rounded-full bg-blue-600/10 px-2.5 text-xs font-bold text-blue-600 dark:text-blue-400">
+              <span className="inline-flex h-6 items-center rounded-full bg-blue-600/10 px-2.5 text-[0.68rem] font-bold text-blue-600 dark:text-blue-400">
                 {statusLabel}
               </span>
               {team.my_status === 'pending' && (
-                <p className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                <p className="text-[0.68rem] font-bold text-amber-600 dark:text-amber-400">
                   {TEAM_MEMBER_STATUS_LABELS.pending}
                 </p>
               )}
@@ -171,19 +171,19 @@ const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
   if (!q.isSuccess || items.length === 0) return null
 
   return (
-    <div className="mb-6 rounded-2xl border border-border bg-card shadow-sm">
+    <div className="mb-4 rounded-lg border border-border bg-card shadow-sm">
       <div className="flex flex-col gap-2 p-4">
         <div className="flex items-center gap-2">
           <Icon icon="mdi:trophy-outline" className="h-[18px] w-[18px] text-amber-500" aria-hidden="true" />
           <h2 className="text-[0.85rem] font-black text-foreground">جدول لیگ</h2>
           {q.data?.my_rank && (
-            <span className="ms-auto inline-flex h-[22px] items-center rounded-full bg-amber-500/15 px-2.5 text-xs font-extrabold text-amber-700 dark:text-amber-400">
+            <span className="ms-auto inline-flex h-[22px] items-center rounded-full bg-amber-500/15 px-2.5 text-[0.68rem] font-extrabold text-amber-700 dark:text-amber-400">
               {`رتبه شما: ${toPersianDigits(q.data.my_rank)}`}
             </span>
           )}
         </div>
         {/* هدر ستون‌ها */}
-        <div className={cn(STANDINGS_GRID, 'px-1 text-xs font-extrabold text-muted-foreground')}>
+        <div className={cn(STANDINGS_GRID, 'px-1 text-[0.68rem] font-extrabold text-muted-foreground')}>
           <div>#</div><div>تیم</div><div className="text-center">بازی</div>
           <div className="text-center">برد</div><div className="text-center">باخت</div>
           <div className="text-center">امتیاز</div>
@@ -208,13 +208,13 @@ const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
                     <Icon icon="mdi:shield-check" className="ms-1 inline-block h-3 w-3 align-[-2px]" style={{ color: '#059669' }} aria-hidden="true" />
                   )}
                 </p>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[0.68rem] text-muted-foreground">
                   {`${toPersianDigits(row.win_rate)}٪ برد · ${toPersianDigits(row.member_count)} عضو`}
                 </p>
               </div>
-              <div className="text-center text-xs text-slate-700 tabular-nums dark:text-slate-300">{toPersianDigits(row.played)}</div>
-              <div className="text-center text-xs font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400">{toPersianDigits(row.won)}</div>
-              <div className="text-center text-xs text-red-600 tabular-nums dark:text-red-400">{toPersianDigits(row.lost)}</div>
+              <div className="text-center text-[0.68rem] text-slate-700 tabular-nums dark:text-slate-300">{toPersianDigits(row.played)}</div>
+              <div className="text-center text-[0.68rem] font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400">{toPersianDigits(row.won)}</div>
+              <div className="text-center text-[0.68rem] text-red-600 tabular-nums dark:text-red-400">{toPersianDigits(row.lost)}</div>
               <div className="text-center text-[0.8rem] font-black text-foreground tabular-nums">{toPersianDigits(row.points)}</div>
             </Link>
           </motion.div>
@@ -238,8 +238,8 @@ const Teams: React.FC = () => {
     <Layout>
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-extrabold text-foreground md:text-3xl">تیم‌ها</h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h1 className="text-xl font-extrabold text-foreground md:text-3xl">تیم‌ها</h1>
+          <p className="mt-1 text-[0.68rem] text-muted-foreground">
             تیم‌های ماندگار شما — اعضا، حصه‌ها، تاریخچه رزروها و تراز مالی تیم.
           </p>
         </div>
@@ -256,7 +256,7 @@ const Teams: React.FC = () => {
       <LeagueStandingsPanel enabled={isAuthenticated} />
 
       {invites.length > 0 && (
-        <div className="mb-6 flex flex-col gap-2">
+        <div className="mb-4 flex flex-col gap-2">
           <p className="flex items-center gap-2 text-[0.8rem] font-extrabold text-violet-600 dark:text-violet-400">
             <Icon icon="mdi:email-fast-outline" className="h-4 w-4" aria-hidden="true" />
             {`دعوت‌نامه‌های شما (${toPersianDigits(invites.length)})`}
@@ -268,7 +268,7 @@ const Teams: React.FC = () => {
       {teamsQ.isPending ? (
         <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <Shimmer key={i} height={150} className="rounded-2xl" />
+            <Shimmer key={i} height={150} className="rounded-lg" />
           ))}
         </div>
       ) : teamsQ.isError ? (

@@ -143,13 +143,13 @@ const Competitions: React.FC = () => {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.4 }}
           >
-            <div className="mx-auto mb-6 flex h-24 w-24 items-center justify-center rounded-full bg-blue-600/10">
+            <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-blue-600/10">
               <Icon icon="mdi:trophy-outline" className="h-12 w-12 text-blue-600 dark:text-blue-400" aria-hidden="true" />
             </div>
-            <h1 className="mb-2 text-xl font-bold text-foreground">
+            <h1 className="mb-1 text-xl font-bold text-foreground">
               رقابت قیمت
             </h1>
-            <p className="mb-8 text-sm leading-[1.8] text-muted-foreground">
+            <p className="mb-4 text-[0.68rem] leading-[1.8] text-muted-foreground">
               مدیران سالن برای سانس‌های آزادشان رقابت قیمت راه‌اندازی می‌کنند. شما می‌توانید در
               صفحهٔ هر سالن، سانس‌های «در حال رقابت» را با برچسب «رقابت با بقیه» پیدا کنید و
               پیشنهاد قیمت کمتری ثبت کنید؛ در پایان رقابت، کمترین پیشنهاد برنده می‌شود.
@@ -169,21 +169,21 @@ const Competitions: React.FC = () => {
   // ===== حالت مدیر =====
   return (
     <Layout>
-      <div className="py-6">
+      <div className="py-4">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.5 }}
         >
-          <h1 className="mb-1 text-2xl font-bold text-foreground md:text-3xl">
+          <h1 className="mb-1 text-xl font-bold text-foreground md:text-3xl">
             رقابت قیمت
           </h1>
-          <p className="mb-6 text-muted-foreground">
+          <p className="mb-4 text-muted-foreground">
             برای سانس‌های آزاد سالن خود رقابت قیمت راه‌اندازی کنید
           </p>
         </motion.div>
 
-        <Alert variant="info" className="mb-6 rounded-2xl">
+        <Alert variant="info" className="mb-4 rounded-lg">
           <Icon icon="mdi:information-outline" aria-hidden="true" />
           <AlertDescription>
             رقابت ۲۴ ساعت ادامه دارد و در پایان آن، کمترین قیمت پیشنهادی برنده می‌شود و قیمت سانس
@@ -192,7 +192,7 @@ const Competitions: React.FC = () => {
         </Alert>
 
         {/* Controls */}
-        <Card className="mb-6">
+        <Card className="mb-4">
           <CardContent className="p-4">
             <div className="grid grid-cols-1 items-center gap-4 sm:grid-cols-12">
               <div className="sm:col-span-6">
@@ -252,11 +252,11 @@ const Competitions: React.FC = () => {
         {loadingSlots ? (
           <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} aria-hidden="true" className="h-[190px] rounded-2xl" />
+              <Skeleton key={i} aria-hidden="true" className="h-[190px] rounded-lg" />
             ))}
           </div>
         ) : slots.length === 0 ? (
-          <Card className="py-6 text-center">
+          <Card className="py-4 text-center">
             <CardContent className="px-4 text-center">
               <Icon
                 icon="mdi:calendar-clock-outline"
@@ -266,7 +266,7 @@ const Competitions: React.FC = () => {
               <h2 className="mb-1 mt-4 text-lg font-semibold text-foreground">
                 سانسی برای این تاریخ ثبت نشده است
               </h2>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[0.68rem] text-muted-foreground">
                 از پنل مدیریت سالن‌ها، سانس‌های روز مورد نظر را تولید کنید
               </p>
             </CardContent>
@@ -282,7 +282,7 @@ const Competitions: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.3, delay: index * 0.05 }}
                 >
-                  <Card className="h-full rounded-2xl">
+                  <Card className="h-full rounded-lg">
                     <CardContent className="p-4">
                       <div className="flex items-start justify-between gap-2">
                         <h3 className="text-lg font-bold text-foreground">
@@ -291,12 +291,12 @@ const Competitions: React.FC = () => {
                         <Badge variant={conf.variant} className="rounded-lg">{conf.label}</Badge>
                       </div>
 
-                      <p className="mb-4 text-sm text-muted-foreground">
+                      <p className="mb-4 text-[0.68rem] text-muted-foreground">
                         مدت: {slot.duration} دقیقه
                       </p>
 
                       <div className="mb-4">
-                        <p className="text-xs text-muted-foreground">
+                        <p className="text-[0.68rem] text-muted-foreground">
                           قیمت فعلی سانس
                         </p>
                         <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
@@ -306,10 +306,10 @@ const Competitions: React.FC = () => {
 
                       {slot.status === 'in_competition' && (
                         <div className="mb-4 flex items-center justify-between rounded-[10px] bg-amber-500/10 p-3">
-                          <p className="text-xs text-muted-foreground">
+                          <p className="text-[0.68rem] text-muted-foreground">
                             بهترین پیشنهاد
                           </p>
-                          <p className="text-sm font-bold text-amber-600 dark:text-amber-400">
+                          <p className="text-[0.68rem] font-bold text-amber-600 dark:text-amber-400">
                             {bestBids[slot.id] != null
                               ? formatPrice(bestBids[slot.id] as number)
                               : 'هنوز پیشنهادی ثبت نشده'}
@@ -370,11 +370,11 @@ const Competitions: React.FC = () => {
       >
         {startTarget && (
           <div>
-            <div className="mb-6 text-center">
-              <p className="mb-1 text-sm text-muted-foreground">
+            <div className="mb-4 text-center">
+              <p className="mb-1 text-[0.68rem] text-muted-foreground">
                 سانس {startTarget.start_time} - {slotEndTime(startTarget)}
               </p>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[0.68rem] text-muted-foreground">
                 قیمت فعلی: {formatPrice(startTarget.current_price)}
               </p>
             </div>
@@ -389,7 +389,7 @@ const Competitions: React.FC = () => {
                 onChange={(e) => setOfferPrice(Number(e.target.value))}
                 className="rounded-[10px]"
               />
-              <p className="text-xs text-muted-foreground">هرچه قیمت پیشنهادی کمتر باشد، شانس برنده شدن بیشتر است</p>
+              <p className="text-[0.68rem] text-muted-foreground">هرچه قیمت پیشنهادی کمتر باشد، شانس برنده شدن بیشتر است</p>
             </div>
           </div>
         )}

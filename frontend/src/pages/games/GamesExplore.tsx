@@ -79,7 +79,7 @@ const GamesExplore: React.FC = () => {
 
   const chipClass = (active: boolean) =>
     cn(
-      'inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-4 text-[0.85rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+      'inline-flex min-h-9 min-w-11 items-center justify-center rounded-full border px-4 text-[0.85rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
       active
         ? 'border-blue-600/35 bg-blue-600/10 text-blue-600 dark:text-blue-400'
         : 'border-border text-slate-600 hover:bg-muted dark:text-slate-300',
@@ -109,9 +109,9 @@ const GamesExplore: React.FC = () => {
 
       <Tabs value={String(tab)} onValueChange={(v) => setTab(Number(v))} className="mb-5">
         <TabsList className="h-12 w-full justify-start overflow-x-auto">
-          <TabsTrigger value="0" aria-label="تب کشف بازی‌ها" className="h-11 px-4 text-[0.9rem]">کشف بازی‌ها</TabsTrigger>
-          <TabsTrigger value="1" aria-label="تب بازی‌های من" className="h-11 px-4 text-[0.9rem]">بازی‌های من</TabsTrigger>
-          <TabsTrigger value="2" aria-label="تب دعوت‌نامه‌ها" className="h-11 px-4 text-[0.9rem]">
+          <TabsTrigger value="0" aria-label="تب کشف بازی‌ها" className="h-9 px-4 text-[0.9rem]">کشف بازی‌ها</TabsTrigger>
+          <TabsTrigger value="1" aria-label="تب بازی‌های من" className="h-9 px-4 text-[0.9rem]">بازی‌های من</TabsTrigger>
+          <TabsTrigger value="2" aria-label="تب دعوت‌نامه‌ها" className="h-9 px-4 text-[0.9rem]">
             {`دعوت‌نامه‌ها${myInvitations.data?.length ? ` (${myInvitations.data.length})` : ''}`}
           </TabsTrigger>
         </TabsList>
@@ -143,33 +143,33 @@ const GamesExplore: React.FC = () => {
             ))}
           </div>
 
-          <div className="mb-6 flex flex-wrap items-center gap-3">
+          <div className="mb-4 flex flex-wrap items-center gap-3">
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground">مرتب‌سازی</span>
+              <span className="text-[0.68rem] font-semibold text-muted-foreground">مرتب‌سازی</span>
               <Select value={sort} onValueChange={(v) => handleSortChange(v as GameSort)}>
-                <SelectTrigger aria-label="مرتب‌سازی" className="min-h-11 min-w-[180px]">
+                <SelectTrigger aria-label="مرتب‌سازی" className="min-h-9 min-w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(GAME_SORT_LABELS) as GameSort[]).map((s) => (
-                    <SelectItem key={s} value={s} className="min-h-11">{GAME_SORT_LABELS[s]}</SelectItem>
+                    <SelectItem key={s} value={s} className="min-h-9">{GAME_SORT_LABELS[s]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-semibold text-muted-foreground">سطح بازی</span>
+              <span className="text-[0.68rem] font-semibold text-muted-foreground">سطح بازی</span>
               <Select
                 value={skill || 'all'}
                 onValueChange={(v) => { setSkill(v === 'all' ? '' : (v as SkillLevel)); setLimit(PAGE_SIZE) }}
               >
-                <SelectTrigger aria-label="سطح بازی" className="min-h-11 min-w-[160px]">
+                <SelectTrigger aria-label="سطح بازی" className="min-h-9 min-w-[160px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all" className="min-h-11">همه</SelectItem>
+                  <SelectItem value="all" className="min-h-9">همه</SelectItem>
                   {(Object.keys(SKILL_LEVEL_LABELS) as SkillLevel[]).map((s) => (
-                    <SelectItem key={s} value={s} className="min-h-11">{SKILL_LEVEL_LABELS[s]}</SelectItem>
+                    <SelectItem key={s} value={s} className="min-h-9">{SKILL_LEVEL_LABELS[s]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -181,7 +181,7 @@ const GamesExplore: React.FC = () => {
               aria-label={availabilityOnly ? 'نمایش همه بازی‌ها' : 'فیلتر بازی‌های دارای ظرفیت'}
               onClick={() => { setAvailabilityOnly((v) => !v); setLimit(PAGE_SIZE) }}
               className={cn(
-                'inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-[0.8rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'inline-flex min-h-9 items-center gap-2 rounded-full px-4 text-[0.8rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 availabilityOnly
                   ? 'bg-blue-600/15 text-blue-700 dark:text-blue-300'
                   : 'border border-border text-slate-600 hover:bg-muted dark:text-slate-300',
@@ -193,7 +193,7 @@ const GamesExplore: React.FC = () => {
           </div>
 
           {isLoading ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {[1, 2, 3, 4].map((i) => (
                 <Shimmer key={i} height={210} />
               ))}
@@ -208,7 +208,7 @@ const GamesExplore: React.FC = () => {
             />
           ) : (
             <>
-              <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
                 {items.map((game) => (
                   <div key={game.id}>
                     <GameCard game={game} />
@@ -240,7 +240,7 @@ const GamesExplore: React.FC = () => {
               onAction={() => navigate('/login')}
             />
           ) : myGames.isLoading ? (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {[1, 2].map((i) => (
                 <Shimmer key={i} height={210} />
               ))}
@@ -254,7 +254,7 @@ const GamesExplore: React.FC = () => {
               onAction={() => navigate('/games/new')}
             />
           ) : (
-            <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
               {myGames.data!.map((game) => (
                 <div key={game.id}>
                   <GameCard game={game} />
@@ -297,7 +297,7 @@ const GamesExplore: React.FC = () => {
                     >
                       {inv.game_name || `بازی #${inv.game_id.toLocaleString('fa-IR')}`}
                     </Link>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-[0.68rem] text-muted-foreground">
                       {`دعوت در: ${formatPersianDateTime(inv.created_at)}${inv.expires_at ? ` - اعتبار تا: ${formatPersianDateTime(inv.expires_at)}` : ''}`}
                     </p>
                   </div>

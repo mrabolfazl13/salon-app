@@ -38,14 +38,14 @@ const JoinByToken: React.FC = () => {
         <h1 className="mb-1 text-center text-xl font-extrabold text-foreground">
           دعوت به بازی
         </h1>
-        <p className="mb-6 text-center text-[0.82rem] text-muted-foreground">
+        <p className="mb-4 text-center text-[0.82rem] text-muted-foreground">
           با لینک دعوت وارد شدید — جزئیات بازی را بررسی کنید و بپیوندید.
         </p>
 
         {previewQ.isLoading ? (
           <div className="flex flex-col gap-4">
-            <Shimmer variant="rectangular" height={120} className="rounded-2xl" />
-            <Shimmer variant="rectangular" height={60} className="rounded-2xl" />
+            <Shimmer variant="rectangular" height={120} className="rounded-lg" />
+            <Shimmer variant="rectangular" height={60} className="rounded-lg" />
           </div>
         ) : previewQ.isError ? (
           <ErrorState
@@ -68,7 +68,7 @@ const JoinByToken: React.FC = () => {
             </Card>
             <div
               role="status"
-              className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-sm text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200"
+              className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-[0.68rem] text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200"
             >
               <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-300" aria-hidden="true" />
               <span>

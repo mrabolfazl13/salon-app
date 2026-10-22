@@ -78,14 +78,14 @@ const TeamLine: React.FC<{
 }> = ({ name, score, isWinner, muted }) => (
   <div className={cn('flex items-center justify-between gap-2', muted && 'opacity-50')}>
     <p className={cn(
-      'min-w-0 truncate text-sm',
+      'min-w-0 truncate text-[0.68rem]',
       isWinner ? 'font-extrabold text-foreground' : 'font-semibold text-muted-foreground',
     )}>
       {name ?? '—'}
     </p>
     <div className="flex items-center gap-1">
       {isWinner && <Icon icon="mdi:chevron-right" className="h-4 w-4" style={{ color: '#16a34a' }} aria-hidden="true" />}
-      <span className="min-w-[14px] text-center text-sm font-extrabold tabular-nums">
+      <span className="min-w-[14px] text-center text-[0.68rem] font-extrabold tabular-nums">
         {score === null || score === undefined ? '' : toPersianDigits(score)}
       </span>
     </div>
@@ -103,7 +103,7 @@ const MatchCard: React.FC<{
     <div
       data-testid={`bracket-match-${match.id}`}
       className={cn(
-        'rounded-2xl border bg-card/95 p-2.5 shadow-sm',
+        'rounded-lg border bg-card/95 p-2.5 shadow-sm',
         match.status === 'ready' ? 'border-blue-600/35' : 'border-border',
       )}
     >
@@ -140,20 +140,20 @@ const BracketGrid: React.FC<{
   onResult: (match: TournamentMatch) => void
 }> = ({ rounds, testId, canManage, busy, onResult }) => (
   <div>
-    <div className="mb-2 flex items-center gap-1 text-muted-foreground md:hidden">
+    <div className="mb-1 flex items-center gap-1 text-muted-foreground md:hidden">
       <Icon icon="mdi:gesture-swipe-horizontal" className="h-[18px] w-[18px]" aria-hidden="true" />
-      <p className="text-xs">برای دیدن دورهای بعد، براکت را افقی بکشید.</p>
+      <p className="text-[0.68rem]">برای دیدن دورهای بعد، براکت را افقی بکشید.</p>
     </div>
     <div className="overflow-x-auto pb-2 [scrollbar-width:thin]" role="region" aria-label="براکت مسابقات، قابل پیمایش با کیبورد" tabIndex={0}>
       <div data-testid={testId}
            className="grid snap-x snap-proximity grid-flow-col auto-cols-[minmax(232px,max-content)] items-stretch gap-4">
         {rounds.map((round) => (
           <div key={round.id} className="flex snap-start flex-col gap-3">
-            <p className="rounded-[10px] bg-muted py-1 text-center text-xs font-extrabold uppercase tracking-[0.4px] text-muted-foreground">
+            <p className="rounded-[10px] bg-muted py-1 text-center text-[0.68rem] font-extrabold uppercase tracking-[0.4px] text-muted-foreground">
               {round.name}
             </p>
             {round.bye_team_name && (
-              <p className="text-center text-xs text-muted-foreground" data-testid={`tournament-bye-${round.id}`}>
+              <p className="text-center text-[0.68rem] text-muted-foreground" data-testid={`tournament-bye-${round.id}`}>
                 <Icon icon="mdi:sofa-single" className="me-1 inline-block h-4 w-4 align-middle" aria-hidden="true" />
                 {round.bye_team_name} استراحت می‌کند
               </p>
@@ -315,8 +315,8 @@ const TournamentDetailPage: React.FC = () => {
 
       {bracketQ.isPending ? (
         <div className="flex flex-col gap-3">
-          <Shimmer height={96} className="rounded-2xl" />
-          {[1, 2, 3].map((i) => <Shimmer key={i} height={120} className="rounded-2xl" />)}
+          <Shimmer height={96} className="rounded-lg" />
+          {[1, 2, 3].map((i) => <Shimmer key={i} height={120} className="rounded-lg" />)}
         </div>
       ) : bracketQ.isError ? (
         bracketHttpStatus === 404 ? (
@@ -336,7 +336,7 @@ const TournamentDetailPage: React.FC = () => {
       ) : (
         <div className="flex flex-col gap-6">
           <div>
-            <h1 className="flex flex-wrap items-center gap-2 text-2xl font-extrabold text-foreground md:text-3xl">
+            <h1 className="flex flex-wrap items-center gap-2 text-xl font-extrabold text-foreground md:text-3xl">
               <Icon icon="mdi:trophy" className="h-7 w-7" style={{ color: '#d97706' }} aria-hidden="true" />
               {tournament.name}
               <StatusChip label={TOURNAMENT_STATUS_LABELS[tournament.status]}
@@ -344,7 +344,7 @@ const TournamentDetailPage: React.FC = () => {
               <StatusChip label={TOURNAMENT_FORMAT_LABELS[tournament.format]} color="#7c3aed" />
             </h1>
             {tournament.description && (
-              <p className="mt-1.5 text-sm text-muted-foreground">
+              <p className="mt-1.5 text-[0.68rem] text-muted-foreground">
                 {tournament.description}
               </p>
             )}
@@ -421,11 +421,11 @@ const TournamentDetailPage: React.FC = () => {
             <div>
               <h2 className="mb-3 text-lg font-bold text-foreground">تیم‌های ثبت‌نام‌شده</h2>
               {participants.length === 0 ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[0.68rem] text-muted-foreground">
                   هنوز تیمی ثبت‌نام نکرده است؛ کاپیتان‌ها با «ثبت تیم من» وارد می‌شوند.
                 </p>
               ) : (
-                <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+                <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                   <Table aria-label="تیم‌های ثبت‌نام‌شده در تورنمنت" data-testid="tournament-participants">
                     <TableHeader>
                       <TableRow>
@@ -465,14 +465,14 @@ const TournamentDetailPage: React.FC = () => {
               )}
               {tournament.status === 'registration' && (
                 <div className="mt-2">
-                  <p className="block text-xs text-muted-foreground">
+                  <p className="block text-[0.68rem] text-muted-foreground">
                     برای قرعه‌کشی حداقل {toPersianDigits(2)} تیم لازم است.{' '}
                     {isLeague
                       ? `در لیگ هر تیم با همه بازی می‌کند ⇒ ${toPersianDigits(totalMatches || 0)} دیدار.`
                       : `تعداد دیدارهای براکت: ${toPersianDigits(totalMatches || 0)}`}
                   </p>
                   {isDouble && (
-                    <p className="block text-xs text-muted-foreground"
+                    <p className="block text-[0.68rem] text-muted-foreground"
                        data-testid="double-elim-plan-hint">
                       <Icon icon="mdi:information-outline" className="me-1 inline-block h-4 w-4 align-middle" aria-hidden="true" />
                       با {toPersianDigits(tournament.team_count)} تیم و حذفِ دوباختی، {toPersianDigits(Math.max(0, (tournament.team_count - 1) * 2))} دیدار
@@ -498,7 +498,7 @@ const TournamentDetailPage: React.FC = () => {
                     <Icon icon="mdi:arrow-down-bold-circle-outline" className="me-1.5 inline-block h-5 w-5 align-middle" aria-hidden="true" />
                     براکت بازندگان
                   </h2>
-                  <p className="mb-3 block text-xs text-muted-foreground"
+                  <p className="mb-3 block text-[0.68rem] text-muted-foreground"
                      data-testid="double-elim-note">
                     تیمی که اینجا می‌بازد دومین باختش را داشته و حذف شده است. برندهٔ آخرین
                     دیدارِ این براکت به فینالِ بزرگ می‌رود؛ فینالِ بزرگ یک دیدار است و
@@ -516,7 +516,7 @@ const TournamentDetailPage: React.FC = () => {
               <h2 className="mb-3 text-lg font-bold text-foreground">
                 {isLeague ? (tournament.status === 'completed' ? 'جدول نهایی' : 'جدول امتیازها') : 'رده‌بندی نهایی'}
               </h2>
-              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                 <Table aria-label={isLeague ? 'جدول امتیازهای تورنمنت' : 'رده‌بندی نهایی تورنمنت'}
                        data-testid="tournament-standings">
                   <TableHeader>
@@ -581,12 +581,12 @@ const TournamentDetailPage: React.FC = () => {
                   <div className="p-4"><Shimmer height={48} className="rounded-xl" /></div>
                 ) : standingsRows.length === 0 ? (
                   <div className="p-4">
-                    <p className="text-sm text-muted-foreground">رتبه‌ای ثبت نشده است.</p>
+                    <p className="text-[0.68rem] text-muted-foreground">رتبه‌ای ثبت نشده است.</p>
                   </div>
                 ) : null}
                 {isLeague && leagueRows.some((row) => row.tied && row.rank === 1) && (
                   <div className="p-3">
-                    <p className="text-xs text-amber-700 dark:text-amber-400" data-testid="league-tie-note">
+                    <p className="text-[0.68rem] text-amber-700 dark:text-amber-400" data-testid="league-tie-note">
                       <Icon icon="mdi:information-outline" className="me-1 inline-block h-4 w-4 align-middle" aria-hidden="true" />
                       رتبهٔ ۱ مشترک است؛ با امتیاز، تفاضل گل و گل زده جدا نشد. برای تعیین قهرمان به پلی‌آف نیاز است.
                     </p>
@@ -597,7 +597,7 @@ const TournamentDetailPage: React.FC = () => {
           )}
 
           {drawn && totalMatches > 0 && tournament.status !== 'completed' && (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[0.68rem] text-muted-foreground">
               <Icon icon="mdi:information-outline" className="me-1 inline-block h-4 w-4 align-middle" aria-hidden="true" />
               {isLeague
                 ? 'فقط برگزارکننده نتیجه ثبت می‌کند؛ تساوی مجاز است و جدول امتیازها خودکار به‌روز می‌شود.'
@@ -622,7 +622,7 @@ const TournamentDetailPage: React.FC = () => {
               }>
         <div className="flex flex-col gap-4 pt-1">
           {eligibleTeams.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[0.68rem] text-muted-foreground">
               تیمی که کاپیتان آن باشی و هنوز در این تورنمنت ثبت نشده باشد پیدا نشد.
             </p>
           ) : (
@@ -633,7 +633,7 @@ const TournamentDetailPage: React.FC = () => {
                   id="tournament-team"
                   value={teamId}
                   onChange={(e) => setTeamId(e.target.value ? Number(e.target.value) : '')}
-                  className="h-12 w-full rounded-xl border border-input bg-card px-4 text-sm text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                  className="h-12 w-full rounded-xl border border-input bg-card px-4 text-[0.68rem] text-foreground shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
                 >
                   {eligibleTeams.map((t) => (
                     // کلیک روی گزینه هم انتخاب را ثبت می‌کند (هم‌رفتار با انتخاب بومی)
@@ -649,7 +649,7 @@ const TournamentDetailPage: React.FC = () => {
                   onChange={(e) => setSeed(e.target.value.replace(/[^\d]/g, ''))}
                   inputMode="numeric"
                 />
-                <p className="text-xs text-muted-foreground">۱ = بهترین. خالی بگذار تا ترتیب ورود ملاک باشد.</p>
+                <p className="text-[0.68rem] text-muted-foreground">۱ = بهترین. خالی بگذار تا ترتیب ورود ملاک باشد.</p>
               </div>
             </>
           )}
@@ -670,26 +670,26 @@ const TournamentDetailPage: React.FC = () => {
               }>
         <div className="flex flex-col gap-4 pt-1">
           <div className="flex items-center gap-3">
-            <p className="min-w-0 flex-1 truncate text-sm text-foreground">
+            <p className="min-w-0 flex-1 truncate text-[0.68rem] text-foreground">
               {resultMatch?.team_a_name ?? '—'}
             </p>
             <div className="flex w-24 flex-col gap-1">
-              <Label htmlFor="tournament-score-a" className="text-xs">گل</Label>
+              <Label htmlFor="tournament-score-a" className="text-[0.68rem]">گل</Label>
               <Input id="tournament-score-a" value={scoreA} onChange={(e) => setScoreA(e.target.value.replace(/[^\d]/g, ''))}
                      inputMode="numeric" className="text-center" />
             </div>
           </div>
           <div className="flex items-center gap-3">
-            <p className="min-w-0 flex-1 truncate text-sm text-foreground">
+            <p className="min-w-0 flex-1 truncate text-[0.68rem] text-foreground">
               {resultMatch?.team_b_name ?? '—'}
             </p>
             <div className="flex w-24 flex-col gap-1">
-              <Label htmlFor="tournament-score-b" className="text-xs">گل</Label>
+              <Label htmlFor="tournament-score-b" className="text-[0.68rem]">گل</Label>
               <Input id="tournament-score-b" value={scoreB} onChange={(e) => setScoreB(e.target.value.replace(/[^\d]/g, ''))}
                      inputMode="numeric" className="text-center" />
             </div>
           </div>
-          <p className="text-xs text-muted-foreground">
+          <p className="text-[0.68rem] text-muted-foreground">
             {isLeague
               ? 'تساوی مجاز است؛ هر تیم یک امتیاز می‌گیرد.'
               : isDouble && dialogHalf === 'grand_final'

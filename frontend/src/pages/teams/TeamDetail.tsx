@@ -196,7 +196,7 @@ const TeamDetail: React.FC = () => {
   return (
     <Layout>
       <div className="mb-4">
-        <Link to="/teams" className="inline-flex min-h-11 items-center no-underline">
+        <Link to="/teams" className="inline-flex min-h-9 items-center no-underline">
           <span className="inline-flex items-center gap-2 text-[0.8rem] font-bold text-blue-600 dark:text-blue-400">
             <Icon icon="mdi:arrow-right" className="h-4 w-4" aria-hidden="true" />
             بازگشت به تیم‌ها
@@ -252,11 +252,11 @@ const TeamDetail: React.FC = () => {
         </Alert>
       )}
 
-      <div className="mb-5 rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
+      <div className="mb-5 rounded-lg border border-border bg-card p-3 shadow-sm md:p-6">
         <div className="flex flex-wrap items-start gap-3">
           <div role="img" aria-label={SPORT_NAME_FA[team.sport] ?? team.sport} className="text-[2rem] leading-none md:text-[2.4rem]">{SPORT_EMOJI[team.sport] ?? '🏅'}</div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-black text-foreground md:text-2xl">
+            <h1 className="text-xl font-black text-foreground md:text-xl">
               {team.name}
             </h1>
             <div className="mt-2 flex flex-wrap items-center gap-1.5">
@@ -333,11 +333,11 @@ const TeamDetail: React.FC = () => {
             <TabsTrigger
               key={t.label}
               value={t.label}
-              className="h-11 shrink-0 gap-1.5 px-3 text-[0.85rem] font-bold data-[state=active]:bg-blue-600/10 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+              className="h-9 shrink-0 gap-1.5 px-3 text-[0.85rem] font-bold data-[state=active]:bg-blue-600/10 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
             >
               {t.label}
               {!!t.badge && (
-                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-extrabold text-amber-700 dark:text-amber-400">
+                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-extrabold text-amber-700 dark:text-amber-400">
                   {toPersianDigits(t.badge)}
                 </span>
               )}
@@ -377,7 +377,7 @@ const TeamDetail: React.FC = () => {
         </TabsContent>
       </Tabs>
 
-      <p className="mt-6 text-xs text-muted-foreground">
+      <p className="mt-6 text-[0.68rem] text-muted-foreground">
         {`شناسه تیم ${toPersianDigits(team.id)} — ساخته‌شده در ${formatPersianDate(team.created_at)}`}
       </p>
 

@@ -91,19 +91,19 @@ const TournamentCard: React.FC<{
   return (
     <div
       data-testid={`tournament-card-${tournament.id}`}
-      className="rounded-2xl border border-border bg-card p-4 shadow-sm"
+      className="rounded-lg border border-border bg-card p-4 shadow-sm"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0 cursor-pointer" onClick={() => navigate(`/tournaments/${tournament.id}`)}>
-          <h2 className="text-base font-extrabold text-foreground">{tournament.name}</h2>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <h2 className="text-sm font-extrabold text-foreground">{tournament.name}</h2>
+          <p className="mt-1 text-[0.68rem] text-muted-foreground">
             {TOURNAMENT_FORMAT_LABELS[tournament.format]}
             {` · ${toPersianDigits(tournament.team_count)} تیم`}
             {tournament.starts_at ? ` · ${formatJalaliDateTime(tournament.starts_at)}` : ''}
             {tournament.entry_fee > 0 ? ` · ورودی ${formatRial(tournament.entry_fee)}` : ''}
           </p>
           {tournament.winner_team_name && (
-            <p className="mt-2 flex items-center gap-1 text-sm font-bold text-emerald-700 dark:text-emerald-400">
+            <p className="mt-2 flex items-center gap-1 text-[0.68rem] font-bold text-emerald-700 dark:text-emerald-400">
               <Icon icon="mdi:trophy" aria-hidden="true" className="h-4 w-4" />
               {tournament.winner_team_name}
             </p>
@@ -113,7 +113,7 @@ const TournamentCard: React.FC<{
           <StatusChip label={TOURNAMENT_STATUS_LABELS[tournament.status]}
                       color={TOURNAMENT_STATUS_COLORS[tournament.status]} />
           {canManage && tournament.status === 'draft' && (
-            <Button size="sm" variant="outline" disabled={busy} onClick={onOpen} className="min-h-11 rounded-[10px]">
+            <Button size="sm" variant="outline" disabled={busy} onClick={onOpen} className="min-h-9 rounded-[10px]">
               بازکردن ثبت‌نام
             </Button>
           )}
@@ -121,7 +121,7 @@ const TournamentCard: React.FC<{
             <Tooltip>
               <TooltipTrigger asChild>
                 <span>
-                  <Button size="sm" disabled={busy || tournament.team_count < 2} onClick={onDraw} className="min-h-11 rounded-[10px]">
+                  <Button size="sm" disabled={busy || tournament.team_count < 2} onClick={onDraw} className="min-h-9 rounded-[10px]">
                     قرعه‌کشی
                   </Button>
                 </span>
@@ -142,7 +142,7 @@ const TournamentCard: React.FC<{
                   aria-label="لغو تورنمنت"
                   disabled={busy}
                   onClick={onCancel}
-                  className="h-11 w-11 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+                  className="h-9 w-11 text-red-600 hover:bg-red-500/10 dark:text-red-400"
                 >
                   <Icon icon="mdi:cancel" aria-hidden="true" className="h-5 w-5" />
                 </Button>
@@ -232,13 +232,13 @@ const TournamentsPage: React.FC = () => {
 
   return (
     <Layout>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-foreground">
+          <h1 className="flex items-center gap-2 text-xl font-extrabold text-foreground">
             <Icon icon="mdi:trophy-outline" aria-hidden="true" className="h-[30px] w-[30px] text-amber-600 dark:text-amber-400" />
             تورنمنت‌ها
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-[0.68rem] text-muted-foreground">
             جام‌های حذفی و لیگِ همه‌با‌همه با قرعهٔ خودکار — تیمت را ثبت کن و نتیجه‌ها را وارد کن.
           </p>
         </div>
@@ -252,7 +252,7 @@ const TournamentsPage: React.FC = () => {
 
       {listQ.isPending ? (
         <div className="flex flex-col gap-2">
-          {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" className="h-[92px] rounded-2xl" />)}
+          {[1, 2, 3].map((i) => <Shimmer key={i} variant="rounded" className="h-[92px] rounded-lg" />)}
         </div>
       ) : listQ.isError ? (
         <ErrorBox message="دریافت فهرست تورنمنت‌ها ممکن نشد." onRetry={() => listQ.refetch()} />
@@ -280,7 +280,7 @@ const TournamentsPage: React.FC = () => {
                      placeholder="جام بهارانه" autoFocus />
             </div>
             <div>
-              <p className="mb-2 text-[0.78rem] font-bold text-muted-foreground">فرمت مسابقات</p>
+              <p className="mb-1 text-[0.78rem] font-bold text-muted-foreground">فرمت مسابقات</p>
               <RadioGroup
                 value={format}
                 onValueChange={(v) => setFormat(v as TournamentFormat)}
@@ -289,13 +289,13 @@ const TournamentsPage: React.FC = () => {
               >
                 {(Object.keys(TOURNAMENT_FORMAT_LABELS) as TournamentFormat[]).map((f) => (
                   <label key={f} htmlFor={`format-${f}`}
-                         className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-3 text-[0.8rem] font-semibold has-[:checked]:border-amber-500/60 has-[:checked]:bg-amber-500/10">
+                         className="flex min-h-9 cursor-pointer items-center gap-2 rounded-xl border border-border px-3 text-[0.8rem] font-semibold has-[:checked]:border-amber-500/60 has-[:checked]:bg-amber-500/10">
                     <RadioGroupItem id={`format-${f}`} value={f} />
                     {TOURNAMENT_FORMAT_LABELS[f]}
                   </label>
                 ))}
               </RadioGroup>
-              <p className="mt-2 text-xs leading-[1.8] text-muted-foreground">{TOURNAMENT_FORMAT_HINTS[format]}</p>
+              <p className="mt-2 text-[0.68rem] leading-[1.8] text-muted-foreground">{TOURNAMENT_FORMAT_HINTS[format]}</p>
             </div>
             <div className="space-y-2">
               <Label htmlFor="tournament-start">زمان شروع</Label>
@@ -312,7 +312,7 @@ const TournamentsPage: React.FC = () => {
               <Textarea id="tournament-desc" value={description} onChange={(e) => setDescription(e.target.value)}
                         rows={2} placeholder="قوانین، زمان بازی‌ها، جوایز" />
             </div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[0.68rem] text-muted-foreground">
               پس از ساخت، ثبت‌نام را باز کن و تیم‌ها را دعوت کن؛ قرعه‌کشی براکت را می‌سازد.
             </p>
           </div>

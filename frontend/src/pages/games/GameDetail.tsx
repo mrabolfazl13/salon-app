@@ -66,12 +66,12 @@ const InfoRow: React.FC<{ icon: string; label: string; value: React.ReactNode }>
 const SectionCard: React.FC<{ title: string; icon: string; badge?: number; children: React.ReactNode }> = ({
   title, icon, badge, children,
 }) => (
-  <section className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
+  <section className="rounded-lg border border-border bg-card p-4 shadow-sm md:p-3">
     <div className="mb-3 flex items-center gap-2">
       <Icon icon={icon} className="h-[19px] w-[19px] text-blue-600 dark:text-blue-400" aria-hidden="true" />
       <h2 className="text-[0.95rem] font-extrabold text-foreground">{title}</h2>
       {badge !== undefined && badge > 0 && (
-        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-xs font-extrabold text-amber-700 dark:text-amber-400">
+        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-extrabold text-amber-700 dark:text-amber-400">
           {badge.toLocaleString('fa-IR')}
         </span>
       )}
@@ -285,7 +285,7 @@ const GameDetail: React.FC = () => {
   return (
     <Layout>
       <div className="mb-4">
-        <Link to="/games" className="inline-flex min-h-11 items-center no-underline">
+        <Link to="/games" className="inline-flex min-h-9 items-center no-underline">
           <span className="inline-flex items-center gap-2 text-[0.8rem] font-bold text-blue-600 dark:text-blue-400">
             <Icon icon="mdi:arrow-right" className="h-4 w-4" aria-hidden="true" />
             بازگشت به بازی‌ها
@@ -344,11 +344,11 @@ const GameDetail: React.FC = () => {
       )}
 
       {/* ─────────── کارت اصلی ─────────── */}
-      <div className="mb-5 rounded-2xl border border-border bg-card p-5 shadow-sm md:p-6">
+      <div className="mb-5 rounded-lg border border-border bg-card p-3 shadow-sm md:p-6">
         <div className="flex flex-wrap items-start gap-3">
           <div role="img" aria-label={SPORT_NAME_FA[game.sport] ?? game.sport} className="text-[2rem] leading-none md:text-[2.4rem]">{SPORT_EMOJI[game.sport] ?? '🎮'}</div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-xl font-black text-foreground md:text-2xl">
+            <h1 className="text-xl font-black text-foreground md:text-xl">
               {game.name}
             </h1>
             <div className="mt-2 flex flex-wrap gap-1.5">
@@ -463,7 +463,7 @@ const GameDetail: React.FC = () => {
       </div>
 
       {/* ─────────── بخش‌ها ─────────── */}
-      <div className="flex flex-col gap-5">
+      <div className="flex flex-col gap-3">
         {canManage && (joinRequestsQ.data?.length ?? 0) > 0 && (
           <SectionCard title="درخواست‌های پیوستن" icon="mdi:hand-back-right" badge={joinRequestsQ.data?.length}>
             <JoinRequestList gameId={gameId} requests={joinRequestsQ.data ?? []} />
@@ -475,12 +475,12 @@ const GameDetail: React.FC = () => {
             {game.result_set ? (
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-2 py-0.5 text-xs font-extrabold text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[0.68rem] font-extrabold text-emerald-600 dark:text-emerald-400">
                     <Icon icon="mdi:check-decagram" className="h-[14px] w-[14px]" aria-hidden="true" />
                     نتیجه ثبت شده
                   </span>
                   {game.result_set_at && (
-                    <p className="text-xs text-muted-foreground">
+                    <p className="text-[0.68rem] text-muted-foreground">
                       {formatPersianDateTime(game.result_set_at)}
                     </p>
                   )}
@@ -557,7 +557,7 @@ const GameDetail: React.FC = () => {
           </div>
         )}
 
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           {`شناسه بازی ${game.id.toLocaleString('fa-IR')} - ساخته‌شده در ${formatPersianDate(game.created_at)}`}
         </p>
       </div>
