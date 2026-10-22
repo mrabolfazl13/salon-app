@@ -35,24 +35,24 @@ export function KPICard({ data, className }: KPICardProps) {
 
   return (
     <Card className={className}>
-      <CardContent className="p-3">
-        <div className="flex items-start justify-between gap-2">
+      <CardContent className="p-2">
+        <div className="flex items-start justify-between gap-1.5">
           <div className="flex-1 min-w-0">
-            <p className="mb-0.5 text-xs font-medium text-muted-foreground truncate">{label}</p>
-            <p className="text-lg font-bold tracking-tight">{formatToman(value)}</p>
+            <p className="mb-0.5 text-[0.68rem] font-medium text-muted-foreground truncate">{label}</p>
+            <p className="text-base font-bold tracking-tight">{formatToman(value)}</p>
             {change !== undefined && (
-              <div className="mt-1 flex items-center gap-1">
-                <Icon icon={trendIcon} className={cn('h-3 w-3', trendColor)} />
-                <span className={cn('text-[10px] font-medium', trendColor)}>
+              <div className="mt-0.5 flex items-center gap-0.5">
+                <Icon icon={trendIcon} className={cn('h-2.5 w-2.5', trendColor)} />
+                <span className={cn('text-[9px] font-medium', trendColor)}>
                   {toPersianDigits(Math.abs(change))}%
                 </span>
               </div>
             )}
           </div>
           <div
-            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${color}`}
+            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md ${color}`}
           >
-            <Icon icon={icon} className="h-4 w-4 text-white" />
+            <Icon icon={icon} className="h-3.5 w-3.5 text-white" />
           </div>
         </div>
       </CardContent>
@@ -109,7 +109,7 @@ export function KPICardsContainer({
   ]
 
   return (
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
       {kpis.map((kpi, idx) => (
         <KPICard key={idx} data={kpi} />
       ))}

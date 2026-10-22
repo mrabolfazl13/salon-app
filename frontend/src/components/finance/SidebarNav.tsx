@@ -36,7 +36,7 @@ export function SidebarNav({ activeTab = 'overview' }: SidebarNavProps) {
   const currentActive = activeTab || getActiveFromPath()
 
   return (
-    <nav className="flex h-full w-full flex-col gap-1 p-2 md:w-48 md:border-r md:bg-card/50">
+    <nav className="flex h-full w-full flex-col gap-0.5 p-1 md:w-48 md:border-r md:bg-card/50">
       {NAV_ITEMS.map((item) => {
         const isActive = currentActive === item.id
         return (
@@ -44,7 +44,7 @@ export function SidebarNav({ activeTab = 'overview' }: SidebarNavProps) {
             key={item.id}
             to={item.path}
             className={cn(
-              'group flex min-h-[40px] items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all',
+              'group flex min-h-[36px] items-center gap-2 rounded-md px-2 py-1.5 text-[0.68rem] font-medium transition-all',
               'hover:bg-accent hover:text-accent-foreground',
               isActive
                 ? 'bg-primary text-primary-foreground shadow-sm'
@@ -54,7 +54,7 @@ export function SidebarNav({ activeTab = 'overview' }: SidebarNavProps) {
             <Icon
               icon={item.icon}
               className={cn(
-                'h-4 w-4 shrink-0 transition-transform group-hover:scale-110',
+                'h-3.5 w-3.5 shrink-0 transition-transform group-hover:scale-110',
                 isActive && 'animate-pulse'
               )}
             />
@@ -64,9 +64,9 @@ export function SidebarNav({ activeTab = 'overview' }: SidebarNavProps) {
       })}
       
       {/* Quick Stats Summary */}
-      <div className="mt-auto hidden rounded-lg border bg-muted/30 p-2 md:block">
-        <p className="mb-1 text-[10px] font-semibold text-muted-foreground">راهنما</p>
-        <p className="text-[9px] leading-tight text-muted-foreground">
+      <div className="mt-auto hidden rounded-md border bg-muted/30 p-1.5 md:block">
+        <p className="mb-0.5 text-[0.6rem] font-semibold text-muted-foreground">راهنما</p>
+        <p className="text-[0.55rem] leading-tight text-muted-foreground">
           برای مشاهده جزئیات هر بخش کلیک کنید
         </p>
       </div>

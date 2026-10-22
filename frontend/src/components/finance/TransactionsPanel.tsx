@@ -124,8 +124,8 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
   return (
     <div>
       {/* ردیف اقدامات */}
-      <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex flex-wrap gap-2">
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap gap-1.5">
           {DIRECTION_CHIPS.map((chip) => {
             const active = direction === chip.value
             const pair = statusPairOf(null, chip.color)
@@ -134,7 +134,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                 key={chip.value}
                 type="button"
                 onClick={() => resetPageAnd(setDirection)(chip.value)}
-                className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex min-h-[40px] items-center rounded-md px-2 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 style={{
                   backgroundColor: active ? pair.main : 'rgba(0,0,0,0.04)',
                   color: active ? pair.on : undefined,
@@ -145,21 +145,21 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
             )
           })}
         </div>
-        <div className="flex gap-2">
-          <Button size="sm" variant="outline" onClick={handleExport} disabled={exportCsv.isPending}>
+        <div className="flex gap-1.5">
+          <Button size="sm" variant="outline" onClick={handleExport} disabled={exportCsv.isPending} className="h-7 px-2 text-[0.68rem]">
             {exportCsv.isPending ? (
               <span
-                className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-current border-t-transparent"
+                className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"
                 role="status"
                 aria-label="در حال بارگذاری"
               />
             ) : (
-              <Icon icon="mdi:file-download-outline" className="h-4 w-4" aria-hidden="true" />
+              <Icon icon="mdi:file-download-outline" className="h-3.5 w-3.5" aria-hidden="true" />
             )}
             خروجی CSV
           </Button>
-          <Button size="sm" onClick={() => setCreateOpen(true)}>
-            <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="h-7 px-2 text-[0.68rem]">
+            <Icon icon="mdi:plus" className="h-3.5 w-3.5" aria-hidden="true" />
             ثبت ردیف دستی
           </Button>
         </div>
@@ -167,14 +167,14 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
 
       <SectionCard title="دفتر کل تراکنش‌ها" icon="mdi:book-ledger-outline" color="#2563eb" dense>
         {/* فیلترها */}
-        <div className="mb-3 grid grid-cols-2 gap-3 sm:grid-cols-12">
+        <div className="mb-2 grid grid-cols-2 gap-2 sm:grid-cols-12">
           <div className="col-span-2 sm:col-span-4">
             <PersianDateRangePicker size="small" start={from} end={to} onStartChange={resetPageAnd(setFrom)} onEndChange={resetPageAnd(setTo)} />
           </div>
           <div className="col-span-1 sm:col-span-3">
-            <Label id="tx-type-label" className="mb-1.5 block">نوع</Label>
+            <Label id="tx-type-label" className="mb-1 block text-[0.68rem]">نوع</Label>
             <Select value={type} onValueChange={(v) => resetPageAnd(setType)(v)}>
-              <SelectTrigger className="h-11" aria-labelledby="tx-type-label">
+              <SelectTrigger className="h-9 text-[0.68rem]" aria-labelledby="tx-type-label">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -186,9 +186,9 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
             </Select>
           </div>
           <div className="col-span-1 sm:col-span-3">
-            <Label id="tx-status-label" className="mb-1.5 block">وضعیت</Label>
+            <Label id="tx-status-label" className="mb-1 block text-[0.68rem]">وضعیت</Label>
             <Select value={status} onValueChange={(v) => resetPageAnd(setStatus)(v as StatusFilter)}>
-              <SelectTrigger className="h-11" aria-labelledby="tx-status-label">
+              <SelectTrigger className="h-9 text-[0.68rem]" aria-labelledby="tx-status-label">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -199,12 +199,12 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
             </Select>
           </div>
           <div className="col-span-2 sm:col-span-2">
-            <Label id="tx-venue-label" className="mb-1.5 block">سالن</Label>
+            <Label id="tx-venue-label" className="mb-1 block text-[0.68rem]">سالن</Label>
             <Select
               value={venueSel === 'all' ? 'all' : String(venueSel)}
               onValueChange={(v) => resetPageAnd(setVenueSel)(v === 'all' ? 'all' : Number(v))}
             >
-              <SelectTrigger className="h-11" aria-labelledby="tx-venue-label">
+              <SelectTrigger className="h-9 text-[0.68rem]" aria-labelledby="tx-venue-label">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -217,8 +217,8 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
           </div>
         </div>
 
-        <div className="mb-2 flex items-center justify-between gap-2 px-0.5">
-          <span className="text-xs text-muted-foreground">
+        <div className="mb-1.5 flex items-center justify-between gap-2 px-0.5">
+          <span className="text-[0.65rem] text-muted-foreground">
             {data ? `مجموع ${toPersianDigits(total)} ردیف — صفحه ${toPersianDigits(page)} از ${toPersianDigits(totalPages)}` : ''}
             {isFetching && data ? ' — به‌روزرسانی...' : ''}
           </span>
@@ -235,9 +235,9 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                 setTo('')
                 setPage(1)
               }}
-              className="text-xs"
+              className="text-[0.65rem] h-6 px-1.5"
             >
-              <Icon icon="mdi:filter-remove-outline" className="h-4 w-4" aria-hidden="true" />
+              <Icon icon="mdi:filter-remove-outline" className="h-3.5 w-3.5" aria-hidden="true" />
               پاک‌سازی فیلترها
             </Button>
           )}
@@ -248,9 +248,9 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
         ) : isError ? (
           <ErrorBox message={extractError(error, 'خطا در دریافت تراکنش‌ها')} onRetry={() => refetch()} />
         ) : items.length === 0 ? (
-          <div className="py-8 text-center">
-            <Icon icon="mdi:book-open-page-variant-outline" className="h-9 w-9" style={{ color: '#64748b' }} />
-            <p className="mt-2 text-sm text-muted-foreground">
+          <div className="py-4 text-center">
+            <Icon icon="mdi:book-open-page-variant-outline" className="h-7 w-7" style={{ color: '#64748b' }} />
+            <p className="mt-1.5 text-xs text-muted-foreground">
               ردیفی با این فیلترها یافت نشد
             </p>
           </div>
@@ -259,20 +259,20 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
             role="region"
             aria-label="تراکنش‌های مالی، قابل پیمایش با کیبورد"
             tabIndex={0}
-            className="max-h-[560px] overflow-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            className="max-h-[480px] overflow-auto rounded-lg border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
             <Table aria-label="تراکنش‌های مالی">
               <TableHeader>
                 <TableRow>
-                  <TableHead scope="col" className="text-[0.78rem]">ردیف</TableHead>
-                  <TableHead scope="col" className="text-[0.78rem]">تاریخ</TableHead>
-                  <TableHead scope="col" className="text-[0.78rem]">نوع / منبع</TableHead>
-                  <TableHead scope="col" className="text-[0.78rem]">طرف‌حساب / شرح</TableHead>
-                  <TableHead scope="col" className="text-[0.78rem]">سالن</TableHead>
-                  <TableHead scope="col" className="text-[0.78rem]">روش</TableHead>
-                  <TableHead scope="col" className="text-[0.78rem]">وضعیت</TableHead>
-                  <TableHead scope="col" className="text-[0.78rem]">مبلغ</TableHead>
-                  <TableHead scope="col" className="text-end text-[0.78rem]">عملیات</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem]">ردیف</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem]">تاریخ</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem]">نوع / منبع</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem]">طرف‌حساب / شرح</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem]">سالن</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem]">روش</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem]">وضعیت</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem]">مبلغ</TableHead>
+                  <TableHead scope="col" className="text-end text-[0.65rem]">عملیات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -286,36 +286,36 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                       className={voided ? 'bg-red-500/[0.04] hover:bg-red-500/[0.07]' : 'hover:bg-blue-600/[0.03]'}
                     >
                       <TableCell>
-                        <span className="font-mono text-xs font-bold">
+                        <span className="font-mono text-[0.68rem] font-bold">
                           #{toPersianDigits(tx.id)}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="whitespace-nowrap text-xs">
+                        <span className="whitespace-nowrap text-[0.68rem]">
                           {formatJalaliDateTime(tx.occurred_at, { format: 'numeric' })}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <div className="flex flex-col items-start gap-1">
+                        <div className="flex flex-col items-start gap-0.5">
                           <StatusChip label={labelOf(TX_TYPE_LABELS, tx.type)} color={income ? '#059669' : '#d97706'} />
-                          <span className="text-xs text-muted-foreground">
+                          <span className="text-[0.65rem] text-muted-foreground">
                             {labelOf(TX_SOURCE_LABELS, tx.source_type)}
                           </span>
                         </div>
                       </TableCell>
-                      <TableCell className="max-w-[220px]">
-                        <p className="overflow-hidden text-ellipsis whitespace-nowrap text-sm font-semibold text-foreground" title={tx.counterparty_name ?? ''}>
+                      <TableCell className="max-w-[180px]">
+                        <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[0.75rem] font-semibold text-foreground" title={tx.counterparty_name ?? ''}>
                           {tx.counterparty_name || (tx.expense_category_name ? `دسته: ${tx.expense_category_name}` : '—')}
                         </p>
-                        <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-xs text-muted-foreground" title={tx.description}>
+                        <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[0.65rem] text-muted-foreground" title={tx.description}>
                           {voided && tx.void_reason ? `ابطال: ${tx.void_reason}` : tx.description || ''}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="whitespace-nowrap text-xs">{venueName}</span>
+                        <span className="whitespace-nowrap text-[0.68rem]">{venueName}</span>
                       </TableCell>
                       <TableCell>
-                        <span className="whitespace-nowrap text-xs">{labelOf(TX_METHOD_LABELS, tx.method)}</span>
+                        <span className="whitespace-nowrap text-[0.68rem]">{labelOf(TX_METHOD_LABELS, tx.method)}</span>
                       </TableCell>
                       <TableCell>
                         <StatusChip label={labelOf(TX_STATUS_LABELS, tx.status)} color={TX_STATUS_COLORS[tx.status] ?? '#6b7280'} />
@@ -323,7 +323,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                       <TableCell>
                         <p
                           dir="rtl"
-                          className={`whitespace-nowrap text-sm font-extrabold tabular-nums ${
+                          className={`whitespace-nowrap text-[0.75rem] font-extrabold tabular-nums ${
                             voided
                               ? 'text-gray-400 line-through dark:text-gray-500'
                               : income
@@ -340,7 +340,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                             size="sm"
                             variant="ghost"
                             onClick={() => setVoidTx(tx)}
-                            className="text-xs font-bold text-red-600 hover:text-red-700 dark:text-red-400"
+                            className="text-[0.68rem] font-bold text-red-600 hover:text-red-700 dark:text-red-400 h-6 px-1.5"
                           >
                             ابطال
                           </Button>
@@ -355,11 +355,11 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
         )}
 
         {total > PAGE_SIZE && (
-          <Pager className="mt-4" count={totalPages} page={page} onChange={setPage} />
+          <Pager className="mt-3" count={totalPages} page={page} onChange={setPage} />
         )}
       </SectionCard>
 
-      <div className="mt-6">
+      <div className="mt-4">
         <ExpenseCategoriesPanel venues={venues} />
       </div>
 
@@ -403,23 +403,23 @@ const VoidTransactionDialog: React.FC<{ tx: FinanceTransaction | null; onClose: 
     <Dialog open={tx !== null} onClose={close} maxWidth="xs" title="ابطال ردیف دفتر کل">
       {tx && (
         <>
-          <div className="mb-4 flex items-center gap-3 rounded-xl bg-red-500/[0.06] p-3">
-            <Icon icon="mdi:cash-remove" className="h-6 w-6" style={{ color: '#ef4444' }} />
+          <div className="mb-3 flex items-center gap-2.5 rounded-lg bg-red-500/[0.06] p-2.5">
+            <Icon icon="mdi:cash-remove" className="h-5 w-5" style={{ color: '#ef4444' }} />
             <div className="min-w-0">
-              <p className="text-sm font-extrabold text-foreground">
+              <p className="text-[0.75rem] font-extrabold text-foreground">
                 {formatRial(tx.amount)} · {labelOf(TX_TYPE_LABELS, tx.type)} ({labelOf(TX_DIRECTION_LABELS, tx.direction)})
               </p>
-              <span className="text-xs text-muted-foreground">
+              <span className="text-[0.65rem] text-muted-foreground">
                 ردیف #{toPersianDigits(tx.id)} — {formatJalaliDateTime(tx.occurred_at, { format: 'numeric' })}
               </span>
             </div>
           </div>
           {!isSuper && tx.venue_id === null && (
-            <p className="mb-2 block text-xs text-amber-700 dark:text-amber-400">
+            <p className="mb-1.5 block text-[0.65rem] text-amber-700 dark:text-amber-400">
               توجه: ردیف بدون سالن برای مدیران قابل ابطال نیست (۴۰۳).
             </p>
           )}
-          <Label htmlFor={reasonId} className="mb-1.5 block">
+          <Label htmlFor={reasonId} className="mb-1 block text-[0.68rem]">
             دلیل ابطال <span className="text-red-600">*</span>
           </Label>
           <Textarea
@@ -431,16 +431,17 @@ const VoidTransactionDialog: React.FC<{ tx: FinanceTransaction | null; onClose: 
             rows={2}
             aria-invalid={reason.length > 0 && !valid ? true : undefined}
           />
-          <p className={reason.length > 0 && !valid ? 'mt-1.5 text-xs text-red-600 dark:text-red-400' : 'mt-1.5 text-xs text-muted-foreground'}>
+          <p className={reason.length > 0 && !valid ? 'mt-1 text-[0.6rem] text-red-600 dark:text-red-400' : 'mt-1 text-[0.6rem] text-muted-foreground'}>
             {valid ? '' : 'حداقل ۳ و حداکثر ۳۰۰ نویسه (اجباری)'}
           </p>
-          <Separator className="mt-4" />
-          <div className="mt-3 flex justify-end gap-2">
-            <Button variant="outline" onClick={close} disabled={voidTx.isPending}>انصراف</Button>
+          <Separator className="mt-3" />
+          <div className="mt-2.5 flex justify-end gap-2">
+            <Button variant="outline" onClick={close} disabled={voidTx.isPending} className="h-7 px-2 text-[0.68rem]">انصراف</Button>
             <Button
               variant="destructive"
               onClick={submit}
               disabled={!valid || voidTx.isPending}
+              className="h-7 px-2 text-[0.68rem]"
             >
               {voidTx.isPending ? 'در حال ابطال...' : 'ابطال قطعی'}
             </Button>

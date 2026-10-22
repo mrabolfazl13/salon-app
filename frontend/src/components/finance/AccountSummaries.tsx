@@ -22,9 +22,9 @@ export function AccountSummaries({ accounts }: AccountSummariesProps) {
   if (accounts.length === 0) {
     return (
       <Card>
-        <CardContent className="flex flex-col items-center justify-center py-12">
-          <Icon icon="mdi:account-multiple-outline" className="mb-4 h-16 w-16 text-muted-foreground/50" />
-          <p className="text-sm font-medium text-muted-foreground">حسابی یافت نشد</p>
+        <CardContent className="flex flex-col items-center justify-center py-6">
+          <Icon icon="mdi:account-multiple-outline" className="mb-2 h-10 w-10 text-muted-foreground/50" />
+          <p className="text-xs font-medium text-muted-foreground">حسابی یافت نشد</p>
         </CardContent>
       </Card>
     )
@@ -45,40 +45,40 @@ export function AccountSummaries({ accounts }: AccountSummariesProps) {
   }
 
   return (
-    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
       {accounts.map((account) => (
         <Card key={account.id} className="overflow-hidden">
-          <CardHeader className="pb-2 px-3 py-2">
+          <CardHeader className="pb-1.5 px-2.5 py-2">
             <div className="flex items-start justify-between">
-              <div className="flex items-center gap-2">
+              <div className="flex items-center gap-1.5">
                 <div
-                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${getAccountColor(account.type)}`}
+                  className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${getAccountColor(account.type)}`}
                 >
-                  <Icon icon={account.icon} className="h-3.5 w-3.5 text-white" />
+                  <Icon icon={account.icon} className="h-3 w-3 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-xs font-semibold">{account.name}</CardTitle>
-                  <p className="text-[10px] text-muted-foreground capitalize">{account.type}</p>
+                  <CardTitle className="text-[0.7rem] font-semibold">{account.name}</CardTitle>
+                  <p className="text-[0.58rem] text-muted-foreground capitalize">{account.type}</p>
                 </div>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="px-3 pb-3 pt-0">
-            <div className="space-y-2">
+          <CardContent className="px-2.5 pb-2.5 pt-0">
+            <div className="space-y-1.5">
               <div>
-                <p className="text-[10px] text-muted-foreground">موجودی فعلی</p>
-                <p className="text-base font-bold">{formatToman(account.balance)}</p>
+                <p className="text-[0.58rem] text-muted-foreground">موجودی فعلی</p>
+                <p className="text-sm font-bold">{formatToman(account.balance)}</p>
               </div>
               
               {account.limit && (
-                <div className="space-y-1.5">
-                  <div className="flex items-center justify-between text-[10px]">
+                <div className="space-y-1">
+                  <div className="flex items-center justify-between text-[0.58rem]">
                     <span className="text-muted-foreground">استفاده شده</span>
                     <span className="font-medium">
                       {toPersianDigits(Math.round(getProgressValue(account)))}%
                     </span>
                   </div>
-                  <Progress value={getProgressValue(account)} className="h-1.5" />
+                  <Progress value={getProgressValue(account)} className="h-1" />
                 </div>
               )}
             </div>

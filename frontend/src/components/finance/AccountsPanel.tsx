@@ -71,9 +71,9 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
   return (
     <div>
       <SectionCard title="حساب‌های اشخاص" icon="mdi:account-group-outline" color="#0891b2">
-        <div className="mb-4 grid grid-cols-12 items-center gap-4">
+        <div className="mb-3 grid grid-cols-12 items-center gap-3">
           <div className="col-span-12 sm:col-span-5">
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-1.5">
               {KIND_FILTERS.map((f) => {
                 const active = kind === f.value
                 return (
@@ -87,19 +87,19 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                     }}
                     className={
                       active
-                        ? 'inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-blue-600 px-3 text-xs font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                        : 'inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-muted px-3 text-xs font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        ? 'inline-flex min-h-[40px] items-center gap-1.5 rounded-md bg-blue-600 px-2 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        : 'inline-flex min-h-[40px] items-center gap-1.5 rounded-md bg-muted px-2 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                     }
                   >
-                    <Icon icon={f.icon} className="h-4 w-4" aria-hidden="true" />
+                    <Icon icon={f.icon} className="h-3.5 w-3.5" aria-hidden="true" />
                     {f.label}
                   </button>
                 )
               })}
             </div>
           </div>
-          <div className="col-span-12 flex flex-col gap-1.5 sm:col-span-4">
-            <Label htmlFor={venueSelectId}>سالن</Label>
+          <div className="col-span-12 flex flex-col gap-1 sm:col-span-4">
+            <Label htmlFor={venueSelectId} className="text-[0.68rem]">سالن</Label>
             <Select
               value={venueSel === 'all' ? 'all' : String(venueSel)}
               onValueChange={(v) => {
@@ -107,7 +107,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                 setPage(1)
               }}
             >
-              <SelectTrigger id={venueSelectId}>
+              <SelectTrigger id={venueSelectId} className="h-9 text-[0.68rem]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -119,7 +119,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
             </Select>
           </div>
           <div className="col-span-12 sm:col-span-3">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[0.65rem] text-muted-foreground">
               {data ? `مجموع: ${toPersianDigits(total)} شخص` : ''}
             </p>
           </div>
@@ -130,9 +130,9 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
         ) : isError ? (
           <ErrorBox message={extractError(error, 'خطا در دریافت حساب‌ها')} onRetry={() => refetch()} />
         ) : items.length === 0 ? (
-          <div className="py-8 text-center">
-            <Icon icon="mdi:shield-check-outline" className="mx-auto h-9 w-9" style={{ color: '#10b981' }} aria-hidden="true" />
-            <p className="mt-2 text-sm text-muted-foreground">
+          <div className="py-4 text-center">
+            <Icon icon="mdi:shield-check-outline" className="mx-auto h-7 w-7" style={{ color: '#10b981' }} aria-hidden="true" />
+            <p className="mt-1.5 text-xs text-muted-foreground">
               شخصی در این دسته موجودی ندارد
             </p>
           </div>
@@ -141,16 +141,16 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
             role="region"
             aria-label="حساب‌های کاربران، قابل پیمایش با کیبورد"
             tabIndex={0}
-            className="max-h-[520px] overflow-auto rounded-xl border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&>div]:overflow-visible"
+            className="max-h-[480px] overflow-auto rounded-lg border border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring [&>div]:overflow-visible"
           >
             <Table aria-label="حساب‌های کاربران">
               <TableHeader className="sticky top-0 z-10 bg-slate-50 dark:bg-slate-900">
                 <TableRow className="hover:bg-transparent">
-                  <TableHead scope="col" className="text-[0.8rem] font-bold">شخص</TableHead>
-                  <TableHead scope="col" className="text-[0.8rem] font-bold">نوع</TableHead>
-                  <TableHead scope="col" className="text-[0.8rem] font-bold">موجودی</TableHead>
-                  <TableHead scope="col" className="text-[0.8rem] font-bold">آخرین فعالیت</TableHead>
-                  <TableHead scope="col" className="text-end text-[0.8rem] font-bold">عملیات</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem] font-bold">شخص</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem] font-bold">نوع</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem] font-bold">موجودی</TableHead>
+                  <TableHead scope="col" className="text-[0.65rem] font-bold">آخرین فعالیت</TableHead>
+                  <TableHead scope="col" className="text-end text-[0.65rem] font-bold">عملیات</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -170,26 +170,26 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                       className="cursor-pointer hover:bg-blue-600/[0.03] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
                     >
                       <TableCell>
-                        <div className="flex items-center gap-2.5">
+                        <div className="flex items-center gap-2">
                           <span
                             className={
                               debtor
-                                ? 'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-red-500/10'
-                                : 'flex h-[34px] w-[34px] shrink-0 items-center justify-center rounded-[10px] bg-emerald-500/10'
+                                ? 'flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-red-500/10'
+                                : 'flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-lg bg-emerald-500/10'
                             }
                           >
                             <Icon
                               icon={debtor ? 'mdi:account-minus-outline' : 'mdi:account-check-outline'}
-                              className="h-5 w-5"
+                              className="h-4 w-4"
                               style={{ color: debtor ? '#ef4444' : '#10b981' }}
                               aria-hidden="true"
                             />
                           </span>
                           <div className="min-w-0">
-                            <p className="text-sm font-bold text-foreground">
+                            <p className="text-[0.75rem] font-bold text-foreground">
                               {acc.full_name || 'بدون نام'}
                             </p>
-                            <p className="text-xs text-muted-foreground">
+                            <p className="text-[0.65rem] text-muted-foreground">
                               کاربر #{toPersianDigits(acc.user_id)}
                             </p>
                           </div>
@@ -206,15 +206,15 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                           dir="rtl"
                           className={
                             debtor
-                              ? 'whitespace-nowrap text-sm font-extrabold text-red-600 tabular-nums dark:text-red-400'
-                              : 'whitespace-nowrap text-sm font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                              ? 'whitespace-nowrap text-[0.75rem] font-extrabold text-red-600 tabular-nums dark:text-red-400'
+                              : 'whitespace-nowrap text-[0.75rem] font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
                           }
                         >
                           {formatRial(acc.balance)}
                         </span>
                       </TableCell>
                       <TableCell>
-                        <span className="whitespace-nowrap text-xs text-muted-foreground tabular-nums">
+                        <span className="whitespace-nowrap text-[0.65rem] text-muted-foreground tabular-nums">
                           {acc.last_activity ? formatJalaliDateTime(acc.last_activity, { format: 'numeric' }) : '—'}
                         </span>
                       </TableCell>
@@ -226,9 +226,9 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                             e.stopPropagation()
                             setStatementUser({ id: acc.user_id, name: acc.full_name })
                           }}
-                          className="border-blue-600/25 text-xs font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+                          className="border-blue-600/25 text-[0.68rem] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 h-7 px-2"
                         >
-                          <Icon icon="mdi:file-document-outline" className="h-3.5 w-3.5" aria-hidden="true" />
+                          <Icon icon="mdi:file-document-outline" className="h-3 w-3" aria-hidden="true" />
                           صورت‌حساب
                         </Button>
                       </TableCell>
@@ -241,7 +241,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
         )}
 
         {total > PAGE_SIZE && (
-          <div className="mt-4 flex justify-center">
+          <div className="mt-3 flex justify-center">
             <Pager count={totalPages} page={page} onChange={setPage} />
           </div>
         )}
