@@ -188,7 +188,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
 
         {/* Amount Input */}
         <div className="space-y-1.5">
-          <Label htmlFor="split-amount">مبلغ کل (ریال)</Label>
+          <Label htmlFor="split-amount">مبلغ کل (تومان)</Label>
           <Input
             id="split-amount"
             type="number"
@@ -218,15 +218,15 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
                     onChange={(e) => handleUpdateCustomShare(share.user_id, Number(e.target.value) || 0)}
                     className="h-9 w-[150px]"
                   />
-                  <span className="text-[0.68rem] text-muted-foreground">ریال</span>
+                  <span className="text-[0.68rem] text-muted-foreground">تومان</span>
                 </div>
               )
             })}
             <Alert variant={getTotalCustomAmount() === (typeof amount === 'number' ? amount : 0) ? 'success' : 'destructive'}>
               <AlertDescription>
-                جمع: {getTotalCustomAmount().toLocaleString()} ریال
+                جمع: {getTotalCustomAmount().toLocaleString()} تومان
                 {typeof amount === 'number' && amount > 0 && (
-                  <> از {amount.toLocaleString()} ریال</>
+                  <> از {amount.toLocaleString()} تومان</>
                 )}
               </AlertDescription>
             </Alert>
