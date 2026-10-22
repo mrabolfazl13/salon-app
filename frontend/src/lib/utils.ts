@@ -7,7 +7,9 @@ export function cn(...inputs: ClassValue[]) {
 }
 
 export function formatPrice(price: number): string {
-  return new Intl.NumberFormat('fa-IR').format(price) + ' ریال'
+  // Convert Rials to Toman and format with Persian digits
+  const toman = Math.round(price / 10)
+  return new Intl.NumberFormat('fa-IR').format(toman) + ' تومان'
 }
 
 // نمایش جلالی یکنواخت (منطق مشترک در src/lib/jalali.ts)
