@@ -23,6 +23,8 @@ import { parseList, toFullUrl } from '@/utils/venueMedia'
 import { formatPrice } from '@/lib/utils'
 import { toPersianDigits, formatJalaliDate } from '@/lib/jalali'
 import { HeroSection } from '@/components/home/HeroSection'
+import UserDashboard from '@/components/home/UserDashboard'
+import React, { lazy, Suspense } from 'react'
 
 // Lazy-load heavy sections to improve initial load performance
 const WhyUsSection = lazy(() => import('@/components/home/WhyUsSection').then(m => ({ default: m.WhyUsSection })))
@@ -78,6 +80,13 @@ const venueGrid = 'grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3
 const Home: React.FC = () => {
   const navigate = useNavigate()
   const { isAuthenticated } = useAuthStore()
+  
+  // If user is authenticated, show personalized dashboard
+  if (isAuthenticated) {
+    return <UserDashboard />
+  }
+  
+  // Otherwise show marketing home page for guests
   const viewed = useRecentlyViewedStore((s) => s.viewed)
 
   // ---- سالن‌ها ----
