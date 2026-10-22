@@ -17,24 +17,24 @@ const TestimonialCard: React.FC<TestimonialProps> = ({ name, avatar, rating, tex
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
-    whileHover={{ scale: 1.02 }}
+    whileHover={{ scale: 1.01 }}
     className="h-full"
   >
-    <div className="flex h-full flex-col gap-3 rounded-[20px] border border-border bg-card p-5 transition-all duration-300 hover:border-blue-500 hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)] dark:hover:border-blue-400">
+    <div className="flex h-full flex-col gap-2 rounded-xl border border-border bg-card p-3 transition-all duration-300 hover:border-blue-500 hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)] dark:hover:border-blue-400">
       {/* هدر کارت */}
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         {/* آواتار */}
-        <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-[1.3rem] font-extrabold text-white">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-base font-extrabold text-white">
           {avatar}
         </span>
 
         {/* اطلاعات کاربر */}
         <div className="min-w-0 flex-1">
-          <p className="text-[0.9rem] font-bold text-foreground">
+          <p className="text-[0.78rem] font-bold text-foreground">
             {name}
           </p>
           {venue && (
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[0.65rem] text-muted-foreground">
               {venue}
             </p>
           )}
@@ -48,8 +48,8 @@ const TestimonialCard: React.FC<TestimonialProps> = ({ name, avatar, rating, tex
             key={i}
             icon="mdi:star"
             style={{
-              width: 16,
-              height: 16,
+              width: 13,
+              height: 13,
               color: i < rating ? '#fbbf24' : '#d1d5db',
             }}
           />
@@ -57,7 +57,7 @@ const TestimonialCard: React.FC<TestimonialProps> = ({ name, avatar, rating, tex
       </div>
 
       {/* متن نظر */}
-      <p className="flex-1 text-[0.85rem] leading-[1.8] text-foreground">
+      <p className="flex-1 text-[0.75rem] leading-[1.7] text-foreground">
         "{text}"
       </p>
     </div>
@@ -111,13 +111,13 @@ const TESTIMONIALS = [
 
 export const TestimonialsSection: React.FC = () => {
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="نظرات کاربران"
         subtitle="ببین بقیه چی میگن درباره تجربه‌شون"
       />
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
         {TESTIMONIALS.map((testimonial, index) => (
           <TestimonialCard
             key={testimonial.name}

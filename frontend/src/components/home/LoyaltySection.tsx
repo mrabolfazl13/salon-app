@@ -232,7 +232,7 @@ export const LoyaltySection: React.FC = () => {
   const progress = (currentPoints / nextLevelPoints) * 100
 
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="برنامه وفاداری"
         subtitle="هر چی بیشتر بازی کنی، بیشتر سود می‌بری!"

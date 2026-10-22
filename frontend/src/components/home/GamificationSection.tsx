@@ -35,24 +35,24 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
       transition={{ duration: 0.4, delay }}
     >
       <div
-        className={`mb-2 flex items-center gap-3 rounded-xl p-3 transition-colors duration-200 hover:bg-white/[0.12] ${
+        className={`mb-2 flex items-center gap-2 rounded-lg p-2 transition-colors duration-200 hover:bg-white/[0.12] ${
           rank <= 3 ? 'border border-white/15 bg-white/[0.08]' : 'border border-transparent'
         }`}
       >
         {/* رتبه */}
         <span
-          className="relative flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] text-[0.9rem] font-black"
+          className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[0.75rem] font-black"
           style={{ backgroundColor: style.bg, color: style.color }}
         >
           {style.icon && (
             <Icon
               icon={style.icon}
               style={{
-                width: rank === 1 ? 20 : 18,
-                height: rank === 1 ? 20 : 18,
+                width: rank === 1 ? 16 : 14,
+                height: rank === 1 ? 16 : 14,
                 position: 'absolute',
-                top: -8,
-                insetInlineStart: -8,
+                top: -6,
+                insetInlineStart: -6,
               }}
             />
           )}
@@ -61,21 +61,21 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
 
         {/* آواتار و نام */}
         <div className="min-w-0 flex-1">
-          <div className="flex items-center gap-2">
-            <span className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-[0.85rem] font-bold text-white">
+          <div className="flex items-center gap-1.5">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-[0.72rem] font-bold text-white">
               {avatar}
             </span>
-            <p className="truncate text-[0.88rem] font-bold text-white">
+            <p className="truncate text-[0.78rem] font-bold text-white">
               {name}
             </p>
           </div>
-          <p className="mt-0.5 text-xs text-white/60">
+          <p className="mt-0.5 text-[0.65rem] text-white/60">
             {gamesPlayed} بازی
           </p>
         </div>
 
         {/* امتیاز */}
-        <span className="rounded-lg bg-amber-400/15 px-3 py-1 text-[0.85rem] font-extrabold tabular-nums text-amber-400">
+        <span className="rounded-md bg-amber-400/15 px-2 py-0.5 text-[0.75rem] font-extrabold tabular-nums text-amber-400">
           {points.toLocaleString('fa-IR')}
         </span>
       </div>
@@ -168,7 +168,7 @@ export const GamificationSection: React.FC = () => {
   const items = q.data?.items ?? []
 
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="چالش‌ها و جوایز"
         subtitle="بازی کن، امتیاز بگیر، جایزه ببر!"

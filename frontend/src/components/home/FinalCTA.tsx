@@ -24,7 +24,7 @@ export const FinalCTA: React.FC = () => {
   const formatTime = (num: number) => toPersianDigits(num.toString().padStart(2, '0'))
 
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

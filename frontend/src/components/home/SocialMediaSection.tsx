@@ -82,7 +82,7 @@ const SOCIAL_PLATFORMS = [
 
 export const SocialMediaSection: React.FC = () => {
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="ما رو دنبال کن"
         subtitle="از آخرین اخبار، تخفیف‌ها و لحظات خاص باخبر شو"

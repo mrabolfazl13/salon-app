@@ -29,7 +29,7 @@ const AppFeature: React.FC<AppFeatureProps> = ({ icon, title, description, color
 
 export const AppDownloadSection: React.FC = () => {
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="اپلیکیشن موبایل"
         subtitle="تجربه بهتر با اپلیکیشن اختصاصی ما"
