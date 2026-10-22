@@ -35,7 +35,7 @@ const Segmented: React.FC<{
 }> = ({ options, value, onChange, fullWidth = false }) => (
   <div
     className={cn(
-      'flex gap-1 rounded-xl bg-foreground/5 p-1 dark:bg-white/5',
+      'flex gap-0.5 rounded-lg bg-foreground/5 p-0.5 dark:bg-white/5',
       fullWidth ? 'w-full' : 'w-auto'
     )}
   >
@@ -49,14 +49,14 @@ const Segmented: React.FC<{
           aria-label={o.label}
           aria-pressed={active}
           className={cn(
-            'inline-flex min-h-12 min-w-12 items-center justify-center gap-2 rounded-lg px-4 py-2 text-[0.85rem] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+            'inline-flex min-h-[40px] min-w-10 items-center justify-center gap-1.5 rounded-md px-2 py-1 text-[0.68rem] transition-all focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
             fullWidth && 'flex-1',
             active
-              ? 'bg-card font-extrabold text-amber-800 shadow-[0_2px_8px_rgba(15,23,42,0.10)] dark:bg-amber-400 dark:text-amber-950 dark:shadow-[0_2px_10px_rgba(251,191,36,0.25)]'
+              ? 'bg-card font-extrabold text-amber-800 shadow-sm dark:bg-amber-400 dark:text-amber-950'
               : 'font-semibold text-muted-foreground hover:text-foreground'
           )}
         >
-          {o.icon && <Icon icon={o.icon} aria-hidden="true" className="h-[18px] w-[18px]" />}
+          {o.icon && <Icon icon={o.icon} aria-hidden="true" className="h-3.5 w-3.5" />}
           {o.label}
         </button>
       )
@@ -197,16 +197,16 @@ const Venues: React.FC = () => {
       <div className="mx-auto max-w-[1000px]">
         {/* هدر صفحه — هم‌سبک سلام Home */}
         <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
-          <div className="mb-5">
+          <div className="mb-4">
             <div className="flex items-center gap-2">
-              <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-300 via-amber-500 to-orange-500 text-stone-900 shadow-[0_4px_12px_rgba(245,158,11,0.30)]">
-                <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} aria-hidden="true" className="h-[22px] w-[22px]" />
+              <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-amber-300 via-amber-500 to-orange-500 text-stone-900 shadow-sm">
+                <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} aria-hidden="true" className="h-4 w-4" />
               </span>
-              <h1 className="text-[1.35rem] font-extrabold leading-snug text-foreground">
+              <h1 className="text-[1.1rem] font-extrabold leading-snug text-foreground">
                 {category === 'futsal' ? 'سالن‌های فوتسال' : 'باشگاه‌های بدنسازی'}
               </h1>
             </div>
-            <p className="mt-1 text-[0.85rem] text-muted-foreground">
+            <p className="mt-0.5 text-[0.72rem] text-muted-foreground">
               {category === 'futsal'
                 ? 'سالن مورد نظر خود را در قم پیدا و رزرو کنید'
                 : 'باشگاه بدنسازی مورد نظر خود را در قم پیدا کنید'}
@@ -215,7 +215,7 @@ const Venues: React.FC = () => {
         </motion.div>
 
         {/* دسته‌بندی — قطعه‌ای تمام‌عرض */}
-        <div className="mb-5">
+        <div className="mb-4">
           <Segmented
             fullWidth
             value={category}
@@ -228,7 +228,7 @@ const Venues: React.FC = () => {
         </div>
 
         {/* جستجو + دکمه فیلتر */}
-        <div className="mb-4 flex items-center gap-3">
+        <div className="mb-3 flex items-center gap-2">
           <div className="min-w-0 flex-1">
             <SearchBar
               value={search}
@@ -242,15 +242,15 @@ const Venues: React.FC = () => {
             onClick={() => setFilterOpen(true)}
             aria-label={`فیلترها${activeFilterCount > 0 ? ` (${activeFilterCount} فعال)` : ''}`}
             className={cn(
-              'relative flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl border bg-card shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+              'relative flex h-[44px] w-[44px] shrink-0 items-center justify-center rounded-lg border bg-card shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               hasFilters
                 ? 'border-amber-500/60 text-amber-700 dark:border-amber-400/55 dark:text-amber-400'
                 : 'border-border text-muted-foreground'
             )}
           >
-            <Icon icon="mdi:tune-variant" aria-hidden="true" className="h-6 w-6" />
+            <Icon icon="mdi:tune-variant" aria-hidden="true" className="h-5 w-5" />
             {activeFilterCount > 0 && (
-              <span className="absolute -top-1.5 -end-1.5 flex h-[18px] min-w-[18px] items-center justify-center rounded-full bg-amber-500 px-1 text-[0.65rem] font-bold text-stone-900">
+              <span className="absolute -top-1 -end-1 flex h-[16px] min-w-[16px] items-center justify-center rounded-full bg-amber-500 px-0.5 text-[0.6rem] font-bold text-stone-900">
                 {activeFilterCount.toLocaleString('fa-IR')}
               </span>
             )}
@@ -259,20 +259,20 @@ const Venues: React.FC = () => {
 
         {/* چیپ‌های فیلتر فعال */}
         {activeChips.length > 0 && (
-          <div className="mb-4 flex flex-wrap items-center gap-2">
+          <div className="mb-3 flex flex-wrap items-center gap-1.5">
             {activeChips.map((c) => (
               <span
                 key={c.key}
-                className="inline-flex min-h-11 items-center gap-1 rounded-[10px] bg-amber-500/10 px-3 text-[0.8rem] font-bold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300"
+                className="inline-flex min-h-[36px] items-center gap-1 rounded-md bg-amber-500/10 px-2 text-[0.68rem] font-bold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300"
               >
                 {c.label}
                 <button
                   type="button"
                   onClick={c.onRemove}
                   aria-label={`حذف فیلتر ${c.label}`}
-                  className="flex h-6 w-6 items-center justify-center rounded-full text-amber-700 hover:bg-amber-500/15 dark:text-amber-400"
+                  className="flex h-5 w-5 items-center justify-center rounded-full text-amber-700 hover:bg-amber-500/15 dark:text-amber-400"
                 >
-                  <Icon icon="mdi:close" aria-hidden="true" className="h-[18px] w-[18px]" />
+                  <Icon icon="mdi:close" aria-hidden="true" className="h-3.5 w-3.5" />
                 </button>
               </span>
             ))}
@@ -280,18 +280,18 @@ const Venues: React.FC = () => {
               type="button"
               onClick={() => setFilters({})}
               aria-label="پاک کردن همه فیلترها"
-              className="inline-flex min-h-11 items-center gap-2 px-2 text-[0.8rem] font-semibold text-muted-foreground transition-colors hover:text-red-600 dark:hover:text-red-400"
+              className="inline-flex min-h-[36px] items-center gap-1.5 px-1.5 text-[0.68rem] font-semibold text-muted-foreground transition-colors hover:text-red-600 dark:hover:text-red-400"
             >
-              <Icon icon="mdi:filter-remove-outline" aria-hidden="true" className="h-[18px] w-[18px]" />
+              <Icon icon="mdi:filter-remove-outline" aria-hidden="true" className="h-3.5 w-3.5" />
               پاک کردن همه
             </button>
           </div>
         )}
 
         {/* ردیف نتیجه: شمارش + سوییچ لیست/نقشه */}
-        <div className="mb-4 flex items-center justify-between gap-2">
-          <span className="inline-flex min-h-11 min-w-0 items-center gap-2 rounded-[10px] bg-amber-500/10 px-3 py-2 text-[0.8rem] font-bold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300">
-            <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} aria-hidden="true" className="h-[18px] w-[18px] shrink-0" />
+        <div className="mb-3 flex items-center justify-between gap-2">
+          <span className="inline-flex min-h-[36px] min-w-0 items-center gap-1.5 rounded-md bg-amber-500/10 px-2 py-1.5 text-[0.68rem] font-bold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300">
+            <Icon icon={category === 'futsal' ? 'mdi:stadium' : 'mdi:dumbbell'} aria-hidden="true" className="h-3.5 w-3.5 shrink-0" />
             <span className="truncate">
               {filteredVenues.length.toLocaleString('fa-IR')} {category === 'futsal' ? 'سالن' : 'باشگاه'}
             </span>
@@ -324,14 +324,14 @@ const Venues: React.FC = () => {
               onAction={hasFilters ? () => { setFilters({}); setSearch('') } : undefined}
             />
           ) : (
-            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 sm:gap-4 md:grid-cols-3">
               {filteredVenues.map((venue) => (
                 <VenueCard key={venue.id} venue={venue} onBook={(id) => navigate(`/venues/${id}`)} />
               ))}
             </div>
           )
         ) : (
-          <div className="h-[62dvh] min-h-[340px] overflow-hidden rounded-2xl border border-border shadow-sm md:h-[calc(100vh-300px)]">
+          <div className="h-[50dvh] min-h-[280px] overflow-hidden rounded-lg border border-border shadow-sm md:h-[calc(100vh-260px)]">
             <VenueMap
               venues={filteredVenues.map((v) => ({
                 id: v.id, name: v.name, lat: v.latitude, lng: v.longitude,
