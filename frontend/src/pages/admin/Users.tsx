@@ -107,18 +107,18 @@ const Users: React.FC = () => {
 
   return (
     <Layout>
-      <div className="mb-8">
-        <h1 className="mb-1 flex items-center gap-2 text-2xl font-extrabold text-foreground">
+      <div className="mb-4">
+        <h1 className="mb-1 flex items-center gap-2 text-xl font-extrabold text-foreground">
           <Icon icon="mdi:account-group" aria-hidden="true" className="h-7 w-7 text-primary" />
           مدیریت کاربران
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           {users.length} کاربر در سیستم ثبت‌نام کرده‌اند
         </p>
       </div>
 
       {error && (
-        <Alert variant="destructive" className="mb-6 rounded-lg">
+        <Alert variant="destructive" className="mb-4 rounded-lg">
           <AlertDescription className="flex flex-wrap items-center justify-between gap-2">
             {error}
             <Button variant="outline" size="sm" onClick={fetchData}>
@@ -128,7 +128,7 @@ const Users: React.FC = () => {
         </Alert>
       )}
 
-      <div className="mb-6 flex flex-wrap gap-3">
+      <div className="mb-4 flex flex-wrap gap-3">
         {miniStats.map((stat, index) => (
           <motion.div
             key={index}
@@ -138,8 +138,8 @@ const Users: React.FC = () => {
           >
             <div className="flex items-center gap-2 rounded-xl border border-border bg-card px-4 py-2.5">
               <Icon icon={stat.icon} aria-hidden="true" className={`h-4 w-4 ${stat.color}`} />
-              <p className="text-sm text-muted-foreground">{stat.label}</p>
-              <p className={`text-sm font-extrabold ${stat.color}`}>
+              <p className="text-[0.68rem] text-muted-foreground">{stat.label}</p>
+              <p className={`text-[0.68rem] font-extrabold ${stat.color}`}>
                 {(stat.value ?? 0).toLocaleString('fa-IR')}
               </p>
             </div>
@@ -147,7 +147,7 @@ const Users: React.FC = () => {
         ))}
       </div>
 
-      <div className="mb-6 rounded-lg border border-border bg-card p-4">
+      <div className="mb-4 rounded-lg border border-border bg-card p-4">
         <div className="flex flex-wrap items-center gap-4">
           <div className="relative min-w-[220px] flex-1">
             <Icon icon="mdi:magnify" aria-hidden="true" className="pointer-events-none absolute end-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -203,14 +203,14 @@ const Users: React.FC = () => {
                           {getInitials(user.full_name)}
                         </AvatarFallback>
                       </Avatar>
-                      <p className="text-sm font-semibold text-foreground">{user.full_name}</p>
+                      <p className="text-[0.68rem] font-semibold text-foreground">{user.full_name}</p>
                     </div>
                   </TableCell>
                   <TableCell>
-                    <p className="font-mono text-sm text-foreground" dir="ltr">{user.phone}</p>
+                    <p className="font-mono text-[0.68rem] text-foreground" dir="ltr">{user.phone}</p>
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold ${ROLE_BADGE_CLASS[roleConfig[user.role]?.color || 'default']}`}>
+                    <span className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[0.68rem] font-semibold ${ROLE_BADGE_CLASS[roleConfig[user.role]?.color || 'default']}`}>
                       <Icon icon={roleConfig[user.role]?.icon || 'mdi:account'} aria-hidden="true" className="h-3.5 w-3.5" />
                       {roleConfig[user.role]?.label || user.role}
                     </span>
@@ -224,7 +224,7 @@ const Users: React.FC = () => {
                       <SelectTrigger
                         aria-label={`تخصیص نقش برای ${user.full_name}`}
                         data-testid={`user-role-${user.id}`}
-                        className="min-h-11 min-w-[128px] text-[0.8rem]"
+                        className="min-h-9 min-w-[128px] text-[0.8rem]"
                       >
                         <SelectValue />
                       </SelectTrigger>
@@ -236,7 +236,7 @@ const Users: React.FC = () => {
                     </Select>
                   </TableCell>
                   <TableCell>
-                    <span className={`inline-flex items-center rounded-lg border px-2 py-1 text-xs font-semibold ${
+                    <span className={`inline-flex items-center rounded-lg border px-2 py-1 text-[0.68rem] font-semibold ${
                       user.is_active
                         ? 'border-emerald-500/30 text-emerald-700 dark:text-emerald-400'
                         : 'border-red-500/30 text-red-700 dark:text-red-400'
@@ -252,7 +252,7 @@ const Users: React.FC = () => {
                     />
                   </TableCell>
                   <TableCell>
-                    <p className="text-sm text-muted-foreground">{formatDate(user.created_at)}</p>
+                    <p className="text-[0.68rem] text-muted-foreground">{formatDate(user.created_at)}</p>
                   </TableCell>
                 </TableRow>
               ))}
@@ -261,7 +261,7 @@ const Users: React.FC = () => {
                   <TableCell colSpan={7}>
                     <div className="py-12 text-center">
                       <Icon icon="mdi:account-search-outline" aria-hidden="true" className="mx-auto h-8 w-8 text-muted-foreground/40" />
-                      <p className="mt-2 text-sm text-muted-foreground">
+                      <p className="mt-2 text-[0.68rem] text-muted-foreground">
                         کاربری با این مشخصات یافت نشد
                       </p>
                     </div>

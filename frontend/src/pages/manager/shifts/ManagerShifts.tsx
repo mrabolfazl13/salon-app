@@ -232,11 +232,11 @@ const ManagerShifts: React.FC = () => {
     <Layout userRole="venue_manager">
       <div className="flex flex-col gap-4 pb-8 pt-2">
         <div>
-          <h1 className="flex items-center gap-2 text-xl font-extrabold md:text-2xl">
+          <h1 className="flex items-center gap-2 text-xl font-extrabold md:text-xl">
             <Icon icon="mdi:calendar-clock" className="h-6 w-6 text-primary" aria-hidden="true" />
             شیفت پرسنل
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-[0.68rem] text-muted-foreground">
             برنامه‌ریزی هفتگی با تشخیص خودکار تداخل — یک نفر نمی‌تواند هم‌زمان دو شیفت داشته باشد.
           </p>
         </div>
@@ -254,7 +254,7 @@ const ManagerShifts: React.FC = () => {
                       description="در کنسول CRM کارمند را با موقعیت «مدیر شعبه» انتصاب کنید تا بتوانید شیفت بچینید." />
         ) : (
           <>
-            <div className="rounded-2xl border border-border bg-card p-3 shadow-sm">
+            <div className="rounded-lg border border-border bg-card p-3 shadow-sm">
               <div className="flex flex-wrap items-center gap-2">
                 {venues.map((v) => (
                   <button
@@ -263,7 +263,7 @@ const ManagerShifts: React.FC = () => {
                     data-testid={`shift-venue-${v.id}`}
                     aria-pressed={activeVenue === v.id}
                     onClick={() => setVenueId(v.id)}
-                    className={`min-h-11 rounded-[10px] px-3 text-sm font-semibold transition-colors ${
+                    className={`min-h-9 rounded-[10px] px-3 text-[0.68rem] font-semibold transition-colors ${
                       activeVenue === v.id
                         ? 'bg-primary text-white shadow-sm'
                         : 'border border-border text-foreground hover:bg-muted'
@@ -279,14 +279,14 @@ const ManagerShifts: React.FC = () => {
                     aria-label="هفتهٔ قبل"
                     data-testid="shift-prev-week"
                     onClick={() => setWeekStart(addDays(weekStart, -7))}
-                    className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
+                    className="flex h-9 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
                   >
                     <Icon icon="mdi:chevron-right" className="h-[22px] w-[22px]" aria-hidden="true" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setWeekStart(startOfWeek(today))}
-                    className="min-h-11 rounded-[10px] px-3 text-sm font-semibold transition-colors hover:bg-muted"
+                    className="min-h-9 rounded-[10px] px-3 text-[0.68rem] font-semibold transition-colors hover:bg-muted"
                   >
                     این هفته
                   </button>
@@ -295,7 +295,7 @@ const ManagerShifts: React.FC = () => {
                     aria-label="هفتهٔ بعد"
                     data-testid="shift-next-week"
                     onClick={() => setWeekStart(addDays(weekStart, 7))}
-                    className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
+                    className="flex h-9 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
                   >
                     <Icon icon="mdi:chevron-left" className="h-[22px] w-[22px]" aria-hidden="true" />
                   </button>
@@ -303,7 +303,7 @@ const ManagerShifts: React.FC = () => {
               </div>
               <hr className="my-3 border-border" />
               <div className="flex flex-wrap items-center gap-2">
-                <p className="inline-flex items-center gap-1.5 text-sm font-bold">
+                <p className="inline-flex items-center gap-1.5 text-[0.68rem] font-bold">
                   {/* دو تاریخ در یک رشتهٔ واحد در RTL برعکس دیده می‌شد؛ هر تاریخ
                       جدا رندر می‌شود تا شروع همیشه سمت راست بماند */}
                   <span dir="ltr">{formatJalaliDate(`${weekStart}T09:00:00`, { format: 'numeric' })}</span>
@@ -312,7 +312,7 @@ const ManagerShifts: React.FC = () => {
                 </p>
                 <div className="flex-1" />
                 <div className="flex items-center gap-2">
-                  <Label htmlFor="shift-export-month" className="text-xs text-muted-foreground">ماه خروجی</Label>
+                  <Label htmlFor="shift-export-month" className="text-[0.68rem] text-muted-foreground">ماه خروجی</Label>
                   <Select value={exportMonth} onValueChange={setExportMonth}>
                     <SelectTrigger id="shift-export-month" aria-label="ماه خروجی" className="min-w-[170px]">
                       <SelectValue />
@@ -329,7 +329,7 @@ const ManagerShifts: React.FC = () => {
                   data-testid="shift-export"
                   disabled={exportShifts.isPending || !/^\d{4}-\d{2}$/.test(exportMonth)}
                   onClick={doExport}
-                  className="min-h-11 rounded-[10px] border border-border px-3 text-sm font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-h-9 rounded-[10px] border border-border px-3 text-[0.68rem] font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {exportShifts.isPending ? 'در حال آماده‌سازی…' : 'خروجی CSV ماهانه'}
                 </button>
@@ -364,15 +364,15 @@ const ManagerShifts: React.FC = () => {
             ) : shiftsQuery.isError ? null : shiftsQuery.isPending ? (
               <Shimmer height={320} />
             ) : (
-              <div data-testid="shift-week-grid" className="overflow-x-auto rounded-2xl border border-border bg-card p-3 shadow-sm">
+              <div data-testid="shift-week-grid" className="overflow-x-auto rounded-lg border border-border bg-card p-3 shadow-sm">
                 <div className="grid gap-2" style={{ gridTemplateColumns: gridColumns, minWidth: 980 }}>
                   <div className="px-2 py-1">
-                    <span className="text-xs font-extrabold">پرسنل</span>
+                    <span className="text-[0.68rem] font-extrabold">پرسنل</span>
                   </div>
                   {days.map((day, i) => (
                     <div key={day} data-testid={`shift-day-${day}`} className="px-2 py-1 text-center">
-                      <span className="text-xs font-extrabold">{WEEKDAY_LABELS[i]}</span>
-                      <span className="block text-xs text-muted-foreground">
+                      <span className="text-[0.68rem] font-extrabold">{WEEKDAY_LABELS[i]}</span>
+                      <span className="block text-[0.68rem] text-muted-foreground">
                         {formatJalaliDate(`${day}T09:00:00`, { format: 'numeric' }).split('/').slice(1).join('/')}
                       </span>
                     </div>
@@ -380,8 +380,8 @@ const ManagerShifts: React.FC = () => {
                   {roster.map((person) => (
                     <React.Fragment key={person.user_id}>
                       <div className="border-e border-border px-2 py-2">
-                        <p className="text-sm font-bold">{person.user_name ?? '—'}</p>
-                        <span className="text-xs text-muted-foreground">
+                        <p className="text-[0.68rem] font-bold">{person.user_name ?? '—'}</p>
+                        <span className="text-[0.68rem] text-muted-foreground">
                           {POSITION_LABELS[person.position as StaffPosition] ?? person.position}
                         </span>
                       </div>
@@ -412,18 +412,18 @@ const ManagerShifts: React.FC = () => {
                                     openEdit(s)
                                   }
                                 }}
-                                className={`flex min-h-11 cursor-pointer items-center justify-between gap-1 rounded-[10px] border-r-4 px-2 py-1.5 ${
+                                className={`flex min-h-9 cursor-pointer items-center justify-between gap-1 rounded-[10px] border-r-4 px-2 py-1.5 ${
                                   s.status === 'cancelled'
                                     ? 'bg-gray-500/10 line-through'
                                     : 'bg-primary/10'
                                 }`}
                                 style={{ borderRightColor: SHIFT_STATUS_COLORS[s.status] }}
                               >
-                                <span className="text-xs font-extrabold tabular-nums">
+                                <span className="text-[0.68rem] font-extrabold tabular-nums">
                                   {toPersianDigits(`${s.starts_at.slice(11, 16)}–${s.ends_at.slice(11, 16)}`)}
                                 </span>
                                 {cellMinutes > 0 && cell.length === 1 && (
-                                  <span className="text-xs text-muted-foreground">
+                                  <span className="text-[0.68rem] text-muted-foreground">
                                     {hoursLabel(cellMinutes)}
                                   </span>
                                 )}
@@ -434,7 +434,7 @@ const ManagerShifts: React.FC = () => {
                               data-testid={`shift-add-${person.user_id}-${day}`}
                               onClick={() => openNew(person.user_id, day)}
                               disabled={!activeVenue}
-                              className="inline-flex min-h-11 items-center justify-start gap-1 rounded-[10px] px-2 text-[0.72rem] font-semibold text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                              className="inline-flex min-h-9 items-center justify-start gap-1 rounded-[10px] px-2 text-[0.72rem] font-semibold text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
                             >
                               <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
                               افزودن
@@ -445,7 +445,7 @@ const ManagerShifts: React.FC = () => {
                     </React.Fragment>
                   ))}
                 </div>
-                <p className="mt-2 block text-xs text-muted-foreground">
+                <p className="mt-2 block text-[0.68rem] text-muted-foreground">
                   روزهای آینده قابل ویرایش‌اند؛ تداخل با سالن‌های دیگرِ همان شخص هم رد می‌شود.
                 </p>
               </div>
@@ -461,7 +461,7 @@ const ManagerShifts: React.FC = () => {
           </DialogHeader>
           {dialog && (
             <div className="flex flex-col gap-4">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[0.68rem] text-muted-foreground">
                 پرسنل: <strong className="text-foreground">{roster.find((r) => r.user_id === dialog.user_id)?.user_name ?? `#${toPersianDigits(dialog.user_id)}`}</strong>
               </p>
               <div className="flex flex-col gap-3 sm:flex-row">
@@ -481,7 +481,7 @@ const ManagerShifts: React.FC = () => {
                          onChange={(e) => setDialog({ ...dialog, end: e.target.value })} />
                 </div>
               </div>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[0.68rem] text-muted-foreground">
                 مدت: {hoursLabel(Math.max(0, minutesBetween(dialog.start, dialog.end)))}
                 {' '}· مجاز: {toPersianDigits(MIN_MIN)} دقیقه تا {toPersianDigits(MAX_MIN / 60)} ساعت
               </p>
@@ -492,7 +492,7 @@ const ManagerShifts: React.FC = () => {
                   rows={2}
                   value={dialog.notes}
                   onChange={(e) => setDialog({ ...dialog, notes: e.target.value })}
-                  className="flex min-h-[72px] w-full rounded-xl border border-input bg-card px-4 py-2 text-sm shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
+                  className="flex min-h-[72px] w-full rounded-xl border border-input bg-card px-4 py-2 text-[0.68rem] shadow-sm transition-colors placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background disabled:cursor-not-allowed disabled:opacity-50"
                 />
               </div>
               {dialog.id ? (
@@ -525,7 +525,7 @@ const ManagerShifts: React.FC = () => {
                       const current = shifts.find((s) => s.id === dialog.id)
                       if (current) setStatus(current, 'cancelled')
                     }}
-                    className="min-h-11 rounded-xl border border-destructive/50 px-3 text-sm font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                    className="min-h-9 rounded-xl border border-destructive/50 px-3 text-[0.68rem] font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
                   >
                     لغو شیفت
                   </button>
@@ -537,7 +537,7 @@ const ManagerShifts: React.FC = () => {
             <button
               type="button"
               onClick={closeDialog}
-              className="min-h-11 rounded-xl px-4 text-sm font-semibold transition-colors hover:bg-muted"
+              className="min-h-9 rounded-xl px-4 text-[0.68rem] font-semibold transition-colors hover:bg-muted"
             >
               بستن
             </button>
@@ -546,7 +546,7 @@ const ManagerShifts: React.FC = () => {
               data-testid="shift-save"
               disabled={busy || !dialog?.date}
               onClick={submit}
-              className="min-h-11 rounded-xl bg-primary px-4 text-sm font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-9 rounded-xl bg-primary px-4 text-[0.68rem] font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? 'در حال ثبت…' : dialog?.id ? 'ذخیره تغییرات' : 'ثبت شیفت'}
             </button>

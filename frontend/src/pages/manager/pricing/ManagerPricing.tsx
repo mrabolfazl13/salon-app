@@ -69,16 +69,16 @@ const ManagerPricing: React.FC = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h1 className="mb-2 text-2xl font-extrabold text-white md:text-[1.9rem]">
+                  <h1 className="mb-1 text-xl font-extrabold text-white md:text-[1.9rem]">
                     قیمت‌گذاری
                   </h1>
-                  <p className="text-sm text-white/70">
+                  <p className="text-[0.68rem] text-white/70">
                     قوانین داینامیک قیمت، تقویم تعطیلات و کدهای تخفیف — قیمت فقط سمت سرور محاسبه می‌شود
                   </p>
                 </div>
                 <Link
                   to="/manager-dashboard"
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-5 py-2 text-[0.85rem] font-bold text-white transition-colors hover:bg-white/25"
+                  className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-5 py-2 text-[0.85rem] font-bold text-white transition-colors hover:bg-white/25"
                 >
                   <Icon icon="mdi:store-outline" aria-hidden="true" className="h-4 w-4" />
                   پنل مدیریت
@@ -109,7 +109,7 @@ const ManagerPricing: React.FC = () => {
                 </div>
               )}
 
-              <div className="mb-6 flex flex-wrap items-center gap-4 rounded-2xl border border-border bg-card/95 px-4 py-3 shadow-[0_8px_28px_rgba(15,23,42,0.06)] md:px-5">
+              <div className="mb-4 flex flex-wrap items-center gap-4 rounded-lg border border-border bg-card/95 px-4 py-3 shadow-[0_8px_28px_rgba(15,23,42,0.06)] md:px-5">
                 <Tabs value={tab} onValueChange={(v) => changeTab(v as TabKey)} className="min-w-[260px] flex-1">
                   <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                     {TAB_ITEMS.map((item) => (

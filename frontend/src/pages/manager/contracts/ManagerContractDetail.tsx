@@ -93,7 +93,7 @@ const ManagerContractDetail: React.FC = () => {
     <button
       type="button"
       onClick={() => navigate('/manager/contracts')}
-      className="mb-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+      className="mb-4 inline-flex min-h-9 items-center gap-2 text-[0.68rem] font-semibold text-muted-foreground transition-colors hover:text-foreground"
     >
       <Icon icon="mdi:arrow-right" className="h-5 w-5" aria-hidden="true" />
       بازگشت به مدیریت قراردادها
@@ -104,9 +104,9 @@ const ManagerContractDetail: React.FC = () => {
     return (
       <Layout>
         <div className="mx-auto max-w-5xl px-4 py-8">
-          <Skeleton aria-hidden="true" className="mb-6 h-12 rounded-2xl" />
-          <Skeleton aria-hidden="true" className="mb-6 h-[140px] rounded-2xl" />
-          <Skeleton aria-hidden="true" className="h-[320px] rounded-2xl" />
+          <Skeleton aria-hidden="true" className="mb-4 h-12 rounded-lg" />
+          <Skeleton aria-hidden="true" className="mb-4 h-[140px] rounded-lg" />
+          <Skeleton aria-hidden="true" className="h-[320px] rounded-lg" />
         </div>
       </Layout>
     )
@@ -146,20 +146,20 @@ const ManagerContractDetail: React.FC = () => {
 
   return (
     <Layout>
-      <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
+      <div className="mx-auto max-w-5xl px-4 py-4 md:py-8">
         {backLink}
 
-        <div className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+        <div className="mb-4 rounded-lg border border-border bg-card p-4 shadow-sm md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/5">
+              <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/5">
                 <Icon icon="mdi:file-document-check-outline" className="h-5 w-5 text-primary" aria-hidden="true" />
               </span>
               <div className="min-w-0">
                 <h1 className="truncate text-lg font-bold">
                   {contract.venue_name || `سالن #${faNum(contract.venue_id)}`}
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[0.68rem] text-muted-foreground">
                   {`قرارداد #${faNum(contract.id)} — ${contract.user_full_name || '—'}`}
                 </p>
               </div>
@@ -167,7 +167,7 @@ const ManagerContractDetail: React.FC = () => {
             <div className="flex flex-wrap gap-2">
               <StatusChip label={payMeta.label} color={payMeta.color} />
               <span
-                className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-bold"
+                className="inline-flex items-center rounded-lg px-2 py-0.5 text-[0.68rem] font-bold"
                 style={{ backgroundColor: `${meta.color}18`, color: meta.color }}
               >
                 {meta.label}
@@ -180,7 +180,7 @@ const ManagerContractDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setApproveOpen(true)}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-emerald-600 to-emerald-700 px-3 text-sm font-bold text-white transition-opacity hover:opacity-90"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-emerald-600 to-emerald-700 px-3 text-[0.68rem] font-bold text-white transition-opacity hover:opacity-90"
               >
                 <Icon icon="mdi:check-decagram" className="h-4 w-4" aria-hidden="true" />
                 تأیید با تغییرات
@@ -188,7 +188,7 @@ const ManagerContractDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => { setRejectOpen(true); setDialogError(null) }}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-destructive/50 px-3 text-sm font-bold text-destructive transition-colors hover:bg-destructive/10"
+                className="inline-flex min-h-9 items-center gap-1.5 rounded-[10px] border border-destructive/50 px-3 text-[0.68rem] font-bold text-destructive transition-colors hover:bg-destructive/10"
               >
                 <Icon icon="mdi:close-octagon-outline" className="h-4 w-4" aria-hidden="true" />
                 رد درخواست
@@ -232,7 +232,7 @@ const ManagerContractDetail: React.FC = () => {
                 icon="mdi:calendar-text-outline"
                 action={
                   <span
-                    className="text-xs text-muted-foreground/70"
+                    className="text-[0.68rem] text-muted-foreground/70"
                     title="تسویه نقدی در محل توسط صندوقدار/مدیر شعبه — در دفتر کل با روش نقدی و idempotent ثبت می‌شود"
                   >
                     دریافت نقدی توسط کارکنان سالن
@@ -267,7 +267,7 @@ const ManagerContractDetail: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => { setMoveOpen(true); setDialogError(null) }}
-                      className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-border px-3 text-xs font-bold transition-colors hover:bg-muted"
+                      className="inline-flex min-h-9 items-center gap-1.5 rounded-[10px] border border-border px-3 text-[0.68rem] font-bold transition-colors hover:bg-muted"
                     >
                       <Icon icon="mdi:calendar-move" className="h-4 w-4" aria-hidden="true" />
                       جابه‌جایی کل قرارداد
@@ -299,7 +299,7 @@ const ManagerContractDetail: React.FC = () => {
                   <div key={item.label} className="flex items-center gap-2.5">
                     <Icon icon={item.icon} className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                     <div className="flex-1">
-                      <span className="block text-xs text-muted-foreground/70">{item.label}</span>
+                      <span className="block text-[0.68rem] text-muted-foreground/70">{item.label}</span>
                       <p className="text-[0.85rem] font-semibold">{item.value}</p>
                     </div>
                   </div>
@@ -308,14 +308,14 @@ const ManagerContractDetail: React.FC = () => {
               {contract.description && (
                 <>
                   <hr className="my-4 border-border" />
-                  <p className="mb-1 text-sm font-semibold">یادداشت درخواست کاربر</p>
+                  <p className="mb-1 text-[0.68rem] font-semibold">یادداشت درخواست کاربر</p>
                   <p className="text-[0.85rem] leading-7 text-muted-foreground">{contract.description}</p>
                 </>
               )}
               {contract.cancellation_policy && (
                 <>
                   <hr className="my-4 border-border" />
-                  <p className="mb-1 text-sm font-semibold">شرایط لغو</p>
+                  <p className="mb-1 text-[0.68rem] font-semibold">شرایط لغو</p>
                   <p className="text-[0.82rem] leading-7 text-muted-foreground">{contract.cancellation_policy}</p>
                 </>
               )}
@@ -328,7 +328,7 @@ const ManagerContractDetail: React.FC = () => {
                   disabled={!cancelable}
                   onClick={() => { setCancelOpen(true); setDialogError(null) }}
                   className={cn(
-                    'inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 text-sm font-bold transition-colors',
+                    'inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors',
                     'border-destructive/50 text-destructive hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent'
                   )}
                 >
@@ -336,7 +336,7 @@ const ManagerContractDetail: React.FC = () => {
                   لغو قرارداد
                 </button>
                 {!cancelable && (
-                  <span className="mt-2 block text-xs text-muted-foreground/70">
+                  <span className="mt-2 block text-[0.68rem] text-muted-foreground/70">
                     قرارداد در وضعیت یا بازه قابل لغو نیست
                   </span>
                 )}

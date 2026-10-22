@@ -76,16 +76,16 @@ const ManagerCrm: React.FC = () => {
             <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
               <div className="flex flex-wrap items-start justify-between gap-4">
                 <div>
-                  <h1 className="mb-2 text-2xl font-extrabold text-white md:text-[1.9rem]">
+                  <h1 className="mb-1 text-xl font-extrabold text-white md:text-[1.9rem]">
                     مشتریان و پرسنل
                   </h1>
-                  <p className="text-sm text-white/70">
+                  <p className="text-[0.68rem] text-white/70">
                     CRM سالن — گروه‌بندی مشتریان، کمپین پیامکی بازاریابی و مدیریت کارکنان
                   </p>
                 </div>
                 <Link
                   to="/manager-dashboard"
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-5 py-2 text-[0.85rem] font-bold text-white transition-colors hover:bg-white/25"
+                  className="inline-flex min-h-9 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-5 py-2 text-[0.85rem] font-bold text-white transition-colors hover:bg-white/25"
                 >
                   <Icon icon="mdi:store-outline" aria-hidden="true" className="h-4 w-4" />
                   پنل مدیریت
@@ -125,7 +125,7 @@ const ManagerCrm: React.FC = () => {
                         onClick={() => setVenueId(v.id)}
                         aria-pressed={venueId === v.id}
                         className={cn(
-                          'min-h-11 shrink-0 whitespace-nowrap rounded-[10px] border px-3 text-[0.78rem] font-bold transition-colors',
+                          'min-h-9 shrink-0 whitespace-nowrap rounded-[10px] border px-3 text-[0.78rem] font-bold transition-colors',
                           venueId === v.id
                             ? 'border-transparent bg-gradient-to-br from-blue-600 to-violet-600 text-white'
                             : 'border-violet-600/25 text-violet-700 hover:bg-violet-500/10 dark:text-violet-400'
@@ -136,7 +136,7 @@ const ManagerCrm: React.FC = () => {
                     ))}
                   </div>
 
-                  <div className="mb-6 rounded-2xl border border-border bg-card/95 px-1 shadow-[0_8px_28px_rgba(15,23,42,0.06)] md:px-2">
+                  <div className="mb-4 rounded-lg border border-border bg-card/95 px-1 shadow-[0_8px_28px_rgba(15,23,42,0.06)] md:px-2">
                     <Tabs value={tab} onValueChange={(v) => changeTab(v as TabKey)}>
                       <TabsList className="h-auto w-full justify-start gap-1 overflow-x-auto bg-transparent p-1 [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
                         {TAB_ITEMS.map((item) => (

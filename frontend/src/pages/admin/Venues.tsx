@@ -69,21 +69,21 @@ const AdminVenues: React.FC = () => {
 
   return (
     <Layout>
-      <div className="mb-8">
-        <h1 className="mb-1 flex items-center gap-2 text-2xl font-extrabold text-foreground">
+      <div className="mb-4">
+        <h1 className="mb-1 flex items-center gap-2 text-xl font-extrabold text-foreground">
           <Icon icon="mdi:stadium" aria-hidden="true" className="h-7 w-7 text-primary" />
           مدیریت سالن‌ها
         </h1>
-        <p className="text-sm text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           {venues.length} سالن در سیستم | {pending.length} سالن در انتظار تایید
         </p>
       </div>
 
       {/* Pending venues */}
-      <div className="mb-8">
+      <div className="mb-4">
         <div className="mb-4 flex items-center gap-2">
           <Icon icon="mdi:shield-question-outline" aria-hidden="true" className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-          <h2 className="text-base font-bold text-foreground">
+          <h2 className="text-sm font-bold text-foreground">
             سالن‌های در انتظار تایید
           </h2>
         </div>
@@ -92,7 +92,7 @@ const AdminVenues: React.FC = () => {
         ) : pending.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-6 text-center">
             <Icon icon="mdi:check-all" aria-hidden="true" className="mx-auto h-6 w-6 text-emerald-600 dark:text-emerald-400" />
-            <p className="mt-2 text-sm text-muted-foreground">
+            <p className="mt-2 text-[0.68rem] text-muted-foreground">
               سالنی در انتظار تایید نیست
             </p>
           </div>
@@ -107,12 +107,12 @@ const AdminVenues: React.FC = () => {
               >
                 <div className="flex flex-wrap items-center gap-4 rounded-lg border border-amber-500/30 bg-amber-500/[0.04] p-4">
                   <div className="min-w-[200px] flex-1">
-                    <p className="text-sm font-bold text-foreground">{venue.name}</p>
-                    <p className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
+                    <p className="text-[0.68rem] font-bold text-foreground">{venue.name}</p>
+                    <p className="mt-1 flex items-center gap-1 text-[0.68rem] text-muted-foreground">
                       <Icon icon="mdi:map-marker-outline" aria-hidden="true" className="h-3.5 w-3.5" />
                       {venue.address}
                     </p>
-                    <p className="mt-1 text-xs text-muted-foreground">
+                    <p className="mt-1 text-[0.68rem] text-muted-foreground">
                       ثبت‌نام: {formatDate(venue.created_at)}
                     </p>
                   </div>
@@ -138,7 +138,7 @@ const AdminVenues: React.FC = () => {
       {/* All venues */}
       <div className="mb-4 flex items-center gap-2">
         <Icon icon="mdi:stadium-variant" aria-hidden="true" className="h-5 w-5 text-primary" />
-        <h2 className="text-base font-bold text-foreground">
+        <h2 className="text-sm font-bold text-foreground">
           همه سالن‌ها
         </h2>
       </div>
@@ -165,24 +165,24 @@ const AdminVenues: React.FC = () => {
               {venues.map((venue) => (
                 <TableRow key={venue.id} className="hover:bg-muted/50">
                   <TableCell>
-                    <p className="text-sm font-semibold text-foreground">{venue.name}</p>
+                    <p className="text-[0.68rem] font-semibold text-foreground">{venue.name}</p>
                   </TableCell>
                   <TableCell>
-                    <p className="max-w-[220px] truncate text-sm text-muted-foreground">
+                    <p className="max-w-[220px] truncate text-[0.68rem] text-muted-foreground">
                       {venue.address}
                     </p>
                   </TableCell>
                   <TableCell>
-                    <p className="font-mono text-sm text-foreground" dir="ltr">{venue.phone}</p>
+                    <p className="font-mono text-[0.68rem] text-foreground" dir="ltr">{venue.phone}</p>
                   </TableCell>
                   <TableCell>
-                    <p className="text-sm font-bold text-primary">
+                    <p className="text-[0.68rem] font-bold text-primary">
                       {formatPrice(venue.price)}
                     </p>
                   </TableCell>
                   <TableCell>
                     <span
-                      className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-bold ${
+                      className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[0.68rem] font-bold ${
                         venue.is_verified
                           ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
                           : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
@@ -193,7 +193,7 @@ const AdminVenues: React.FC = () => {
                     </span>
                   </TableCell>
                   <TableCell>
-                    <p className="text-sm text-muted-foreground">{formatDate(venue.created_at)}</p>
+                    <p className="text-[0.68rem] text-muted-foreground">{formatDate(venue.created_at)}</p>
                   </TableCell>
                 </TableRow>
               ))}
@@ -202,7 +202,7 @@ const AdminVenues: React.FC = () => {
                   <TableCell colSpan={6}>
                     <div className="py-12 text-center">
                       <Icon icon="mdi:stadium-outline" aria-hidden="true" className="mx-auto h-8 w-8 text-muted-foreground/40" />
-                      <p className="mt-2 text-sm text-muted-foreground">
+                      <p className="mt-2 text-[0.68rem] text-muted-foreground">
                         سالنی ثبت نشده است
                       </p>
                     </div>

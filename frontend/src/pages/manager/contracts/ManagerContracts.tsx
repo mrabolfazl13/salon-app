@@ -60,7 +60,7 @@ const dayNamesOf = (c: { day_of_week: number; days?: number[] }): string => {
 }
 
 const actionBtn =
-  'inline-flex min-h-11 items-center gap-1.5 rounded-[10px] px-3 text-sm font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex min-h-9 items-center gap-1.5 rounded-[10px] px-3 text-[0.68rem] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50'
 
 const ManagerContracts: React.FC = () => {
   const navigate = useNavigate()
@@ -104,13 +104,13 @@ const ManagerContracts: React.FC = () => {
 
   return (
     <Layout>
-      <div className="py-6">
-        <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
-          <h1 className="text-2xl font-extrabold md:text-3xl">مدیریت قراردادها</h1>
-          <p className="text-sm text-muted-foreground">صف تأیید و پرونده قراردادهای سالن‌های شما</p>
+      <div className="py-4">
+        <div className="mb-1 flex flex-wrap items-center justify-between gap-2">
+          <h1 className="text-xl font-extrabold md:text-3xl">مدیریت قراردادها</h1>
+          <p className="text-[0.68rem] text-muted-foreground">صف تأیید و پرونده قراردادهای سالن‌های شما</p>
         </div>
 
-        <Tabs value={String(tab)} onValueChange={(v) => setTab(Number(v))} className="mb-6">
+        <Tabs value={String(tab)} onValueChange={(v) => setTab(Number(v))} className="mb-4">
           <TabsList>
             <TabsTrigger value="0" className="gap-2">
               <Icon icon="mdi:inbox-arrow-up" className="h-5 w-5" aria-hidden="true" />
@@ -127,7 +127,7 @@ const ManagerContracts: React.FC = () => {
         {tab === 0 && (
           pendingQuery.isLoading ? (
             <div className="flex flex-col gap-4">
-              {[1, 2].map((i) => <Skeleton aria-hidden="true" key={i} className="h-[190px] rounded-2xl" />)}
+              {[1, 2].map((i) => <Skeleton aria-hidden="true" key={i} className="h-[190px] rounded-lg" />)}
             </div>
           ) : pendingQuery.isError ? (
             isForbidden(pendingQuery.error) ? (
@@ -148,13 +148,13 @@ const ManagerContracts: React.FC = () => {
                 const diffPct = c.original_price > 0
                   ? Math.round((1 - c.discounted_price / c.original_price) * 100) : 0
                 return (
-                  <div key={c.id} className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-5">
+                  <div key={c.id} className="rounded-lg border border-border bg-card p-4 shadow-sm md:p-3">
                     <div className="flex flex-wrap justify-between gap-4">
                       <div className="min-w-0">
-                        <h2 className="text-base font-extrabold">
+                        <h2 className="text-sm font-extrabold">
                           {row.user_full_name || `کاربر #${faNum(c.user_id)}`}
                         </h2>
-                        <p className="text-xs text-muted-foreground" dir="ltr">
+                        <p className="text-[0.68rem] text-muted-foreground" dir="ltr">
                           {`${row.user_phone || '—'} — ${row.venue_name}`}
                         </p>
                       </div>
@@ -172,14 +172,14 @@ const ManagerContracts: React.FC = () => {
 
                     <div className="mt-4 grid grid-cols-2 gap-4 md:grid-cols-4">
                       <div>
-                        <span className="text-xs text-muted-foreground">زمان هفتگی</span>
-                        <p className="text-sm font-bold">
+                        <span className="text-[0.68rem] text-muted-foreground">زمان هفتگی</span>
+                        <p className="text-[0.68rem] font-bold">
                           {`${dayNamesOf(c)} — ${timeWindow(c.start_time, c.duration)}`}
                         </p>
                         {(c.days?.length ?? 0) > 1 && (
                           <div className="mt-1 flex flex-wrap gap-1">
                             {c.days!.map((d) => (
-                              <span key={d} className="rounded-md bg-primary/10 px-1.5 py-0.5 text-xs font-bold text-primary">
+                              <span key={d} className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[0.68rem] font-bold text-primary">
                                 {pyDayNames[d] ?? d}
                               </span>
                             ))}
@@ -187,27 +187,27 @@ const ManagerContracts: React.FC = () => {
                         )}
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground">بازه و سانس‌ها</span>
-                        <p className="text-sm font-bold">
+                        <span className="text-[0.68rem] text-muted-foreground">بازه و سانس‌ها</span>
+                        <p className="text-[0.68rem] font-bold">
                           {`${formatJalaliDate(c.start_date)} تا ${formatJalaliDate(c.end_date)}`}
                         </p>
-                        <span className="text-xs text-muted-foreground/70">
+                        <span className="text-[0.68rem] text-muted-foreground/70">
                           {`${toPersianDigits(row.total_sessions)} سانس درخواستی`}
                         </span>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground">قیمت پیشنهادی / قیمت پایه سانس</span>
-                        <p className="text-sm font-bold text-primary">
+                        <span className="text-[0.68rem] text-muted-foreground">قیمت پیشنهادی / قیمت پایه سانس</span>
+                        <p className="text-[0.68rem] font-bold text-primary">
                           {formatRial(c.discounted_price)}
                         </p>
-                        <span className="text-xs text-muted-foreground/70">
+                        <span className="text-[0.68rem] text-muted-foreground/70">
                           {`پایه: ${formatRial(c.original_price)}`}
                         </span>
                       </div>
                       <div>
-                        <span className="text-xs text-muted-foreground">مبلغ کل / پیش‌پرداخت درخواستی</span>
-                        <p className="text-sm font-bold">{formatRial(c.total_amount)}</p>
-                        <span className="text-xs text-muted-foreground/70">
+                        <span className="text-[0.68rem] text-muted-foreground">مبلغ کل / پیش‌پرداخت درخواستی</span>
+                        <p className="text-[0.68rem] font-bold">{formatRial(c.total_amount)}</p>
+                        <span className="text-[0.68rem] text-muted-foreground/70">
                           {c.down_payment_amount ? `پیش‌پرداخت: ${formatRial(c.down_payment_amount)}` : 'بدون پیش‌پرداخت'}
                         </span>
                       </div>
@@ -267,7 +267,7 @@ const ManagerContracts: React.FC = () => {
                   aria-pressed={statusFilter === ''}
                   onClick={() => setStatusFilter('')}
                   className={cn(
-                    'min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors',
+                    'min-h-9 rounded-lg px-3 text-[0.68rem] font-semibold transition-colors',
                     statusFilter === ''
                       ? 'bg-primary text-white'
                       : 'border border-border hover:bg-muted'
@@ -282,7 +282,7 @@ const ManagerContracts: React.FC = () => {
                     aria-pressed={statusFilter === s}
                     onClick={() => setStatusFilter(s)}
                     className={cn(
-                      'min-h-11 rounded-lg px-3 text-sm font-semibold transition-colors',
+                      'min-h-9 rounded-lg px-3 text-[0.68rem] font-semibold transition-colors',
                       statusFilter === s
                         ? 'bg-primary text-white'
                         : 'border border-border hover:bg-muted'
@@ -335,7 +335,7 @@ const ManagerContracts: React.FC = () => {
                     <TableHeader>
                       <TableRow>
                         {['#', 'متقاضی', 'سالن', 'بازه / برنامه', 'سانس', 'قیمت و کل', 'پرداخت', 'وضعیت', ''].map((h, i) => (
-                          <TableHead scope="col" key={i} className="whitespace-nowrap text-xs font-bold">{h}</TableHead>
+                          <TableHead scope="col" key={i} className="whitespace-nowrap text-[0.68rem] font-bold">{h}</TableHead>
                         ))}
                       </TableRow>
                     </TableHeader>
@@ -363,7 +363,7 @@ const ManagerContracts: React.FC = () => {
                               {row.user_full_name || `کاربر #${faNum(c.user_id)}`}
                             </TableCell>
                             <TableCell className="whitespace-nowrap text-[0.8rem]">{row.venue_name}</TableCell>
-                            <TableCell className="whitespace-nowrap text-xs">
+                            <TableCell className="whitespace-nowrap text-[0.68rem]">
                               {`${formatJalaliDate(c.start_date)} تا ${formatJalaliDate(c.end_date)}`}
                               <span className="block text-muted-foreground/70">
                                 {`${dayNamesOf(c)} ${(c.start_time || '').slice(0, 5)}`}

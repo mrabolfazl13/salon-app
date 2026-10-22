@@ -73,13 +73,13 @@ const ManagerTeams: React.FC = () => {
 
   return (
     <Layout>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-foreground">
+          <h1 className="flex items-center gap-2 text-xl font-extrabold text-foreground">
             <Icon icon="mdi:handshake-outline" aria-hidden="true" className="h-[30px] w-[30px] text-blue-600 dark:text-blue-400" />
             تیم‌های همکار
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-[0.68rem] text-muted-foreground">
             تیم‌هایی که اعضا یا رزروهای منتسب‌شان در سالن(های) شما رزرو داشته‌اند — فقط‌خواندنی.
           </p>
         </div>
@@ -108,7 +108,7 @@ const ManagerTeams: React.FC = () => {
       ) : items.length === 0 ? (
         <EmptyState icon="mdi:handshake-outline" title="تیم همکاری ثبت نشده" description="وقتی اعضای یک تیم در سالن(های) شما رزرو کنند، اینجا نمایش داده می‌شوند." />
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+        <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
           <Table aria-label="لیست تیم‌های همکار" className="min-w-[720px]">
             <TableHeader>
               <TableRow>
@@ -129,7 +129,7 @@ const ManagerTeams: React.FC = () => {
                       type="button"
                       onClick={() => toggleSort(h.key)}
                       className={cn(
-                        'inline-flex min-h-11 min-w-11 items-center gap-2 bg-transparent p-0 text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
+                        'inline-flex min-h-9 min-w-11 items-center gap-2 bg-transparent p-0 text-inherit focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500',
                         h.numeric ? 'justify-end' : 'justify-start'
                       )}
                     >
@@ -170,7 +170,7 @@ const ManagerTeams: React.FC = () => {
                   <TableCell>
                     <p className="truncate text-[0.8rem] font-bold text-foreground">{p.captain_name ?? '—'}</p>
                     {p.captain_phone && (
-                      <p className="truncate text-xs text-muted-foreground" dir="ltr">{p.captain_phone}</p>
+                      <p className="truncate text-[0.68rem] text-muted-foreground" dir="ltr">{p.captain_phone}</p>
                     )}
                   </TableCell>
                   <TableCell className="hidden text-end md:table-cell">
