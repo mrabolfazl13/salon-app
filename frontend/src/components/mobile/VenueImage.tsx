@@ -1,21 +1,25 @@
 import React, { useState } from 'react'
 import { Icon } from '@iconify/react'
 import { cn } from '@/lib/utils'
-import { parseList, toFullUrl } from '@/utils/venueMedia'
+import { parseList, toFullUrl, getPlaceholderImage } from '@/utils/venueMedia'
 
 interface Props {
   images: unknown
   name: string
   ratio?: '16:10' | '4:3'
   verified?: boolean
+  venueId?: number // برای placeholder
   children?: React.ReactNode // overlay مثل FavoriteButton
 }
 
-/** تصویر بزرگ سالن با نسبت موبایلی + fallback گرادیانی */
-const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, children }) => {
+/** تصویر بزرگ سالن با نسبت موبایلی + fallback به placeholder */
+const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, venueId, children }) => {
   const [failed, setFailed] = useState(false)
   const imgs = parseList(images)
   const src = imgs[0] ? toFullUrl(imgs[0]) : ''
+  
+  // اگر عکس واقعی نیست یا لود نشد، از placeholder استفاده کن
+  const displaySrc = src && !failed ? src : getPlaceholderImage(venueId, 0)
 
   return (
     <div
@@ -24,9 +28,9 @@ const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, 
         ratio === '16:10' ? 'aspect-[16/10]' : 'aspect-[4/3]'
       )}
     >
-      {src && !failed ? (
+      {displaySrc ? (
         <img
-          src={src}
+          src={displaySrc}
           alt={name}
           loading="lazy"
           onError={() => setFailed(true)}

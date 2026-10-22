@@ -38,7 +38,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
       >
         {/* تصویر بزرگ + قلب روی تصویر */}
         <div className="p-1.5 pb-0">
-          <VenueImage images={venue.images} name={venue.name} ratio="16:10" verified={venue.is_verified}>
+          <VenueImage images={venue.images} name={venue.name} ratio="16:10" verified={venue.is_verified} venueId={venue.id}>
             <FavoriteButton venue={{ id: venue.id, name: venue.name }} size="sm" />
           </VenueImage>
         </div>
