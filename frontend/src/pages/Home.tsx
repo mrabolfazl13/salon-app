@@ -24,7 +24,6 @@ import { formatPrice } from '@/lib/utils'
 import { toPersianDigits, formatJalaliDate } from '@/lib/jalali'
 import { HeroSection } from '@/components/home/HeroSection'
 import UserDashboard from '@/components/home/UserDashboard'
-import React, { lazy, Suspense } from 'react'
 
 // Lazy-load heavy sections to improve initial load performance
 const WhyUsSection = lazy(() => import('@/components/home/WhyUsSection').then(m => ({ default: m.WhyUsSection })))
