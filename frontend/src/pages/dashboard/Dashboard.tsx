@@ -127,7 +127,7 @@ const Dashboard: React.FC = () => {
           <h1 className="text-xl font-bold text-foreground">
             سلام{user?.fullName ? `، ${user.fullName.split(' ')[0]}` : ''} 👋
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-[0.68rem] text-muted-foreground">
             به داشبورد سیستم رزرو سالن فوتسال خوش آمدید
           </p>
         </div>
@@ -163,7 +163,7 @@ const Dashboard: React.FC = () => {
           >
             <Card className="flex h-full flex-col p-4">
               <div className="mb-3 flex items-start justify-between gap-2">
-                <span className="text-xs font-medium text-muted-foreground">{stat.title}</span>
+                <span className="text-[0.68rem] font-medium text-muted-foreground">{stat.title}</span>
                 <span
                   className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl"
                   style={{ backgroundColor: `${stat.color}18` }}
@@ -186,11 +186,11 @@ const Dashboard: React.FC = () => {
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
               <Icon icon="mdi:calendar-history" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
-              <h2 className="text-base font-bold text-foreground">آخرین رزروها</h2>
+              <h2 className="text-sm font-bold text-foreground">آخرین رزروها</h2>
             </div>
             <Link
               to="/bookings"
-              className="inline-flex min-h-11 items-center rounded-lg px-2 text-sm font-semibold text-blue-600 hover:underline dark:text-blue-400"
+              className="inline-flex min-h-9 items-center rounded-lg px-2 text-[0.68rem] font-semibold text-blue-600 hover:underline dark:text-blue-400"
             >
               مشاهده همه
             </Link>
@@ -199,7 +199,7 @@ const Dashboard: React.FC = () => {
           {recentBookings.length === 0 ? (
             <div className="py-10 text-center">
               <Icon icon="mdi:calendar-remove-outline" className="mx-auto h-8 w-8 text-muted-foreground/40" />
-              <p className="mt-2 text-sm text-muted-foreground">هنوز رزروی ندارید</p>
+              <p className="mt-2 text-[0.68rem] text-muted-foreground">هنوز رزروی ندارید</p>
             </div>
           ) : (
             <div className="flex flex-col gap-1.5">
@@ -207,23 +207,23 @@ const Dashboard: React.FC = () => {
                 <Link
                   key={b.id}
                   to={`/bookings/${b.id}`}
-                  className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/50 p-3 text-inherit no-underline transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-blue-500/10"
+                  className="flex min-h-9 items-center justify-between gap-3 rounded-xl bg-muted/50 p-3 text-inherit no-underline transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-blue-500/10"
                 >
                   <div className="min-w-0 flex-1">
-                    <p className="truncate text-sm font-semibold text-foreground">
+                    <p className="truncate text-[0.68rem] font-semibold text-foreground">
                       {b.venue_name || `رزرو #${b.id}`}
                     </p>
-                    <p className="truncate text-xs text-muted-foreground">
+                    <p className="truncate text-[0.68rem] text-muted-foreground">
                       {b.slot_date
                         ? `${formatDate(b.slot_date)} — ${b.start_time ? String(b.start_time).slice(0, 5) : ''}`
                         : `ثبت: ${formatDateTime(b.booked_at)}`}
                     </p>
-                    <p className="text-xs font-bold text-foreground sm:hidden">
+                    <p className="text-[0.68rem] font-bold text-foreground sm:hidden">
                       {formatPrice(b.payment_amount)}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
-                    <span className="hidden whitespace-nowrap text-sm font-bold text-foreground sm:block">
+                    <span className="hidden whitespace-nowrap text-[0.68rem] font-bold text-foreground sm:block">
                       {formatPrice(b.payment_amount)}
                     </span>
                     <Badge variant={statusVariant(b.status)}>{getStatusLabel(b.status)}</Badge>
@@ -238,7 +238,7 @@ const Dashboard: React.FC = () => {
         <Card className="p-4 md:col-span-4">
           <div className="mb-4 flex items-center gap-2">
             <Icon icon="mdi:lightning-bolt" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
-            <h2 className="text-base font-bold text-foreground">دسترسی سریع</h2>
+            <h2 className="text-sm font-bold text-foreground">دسترسی سریع</h2>
           </div>
           <div className="grid grid-cols-2 gap-2.5">
             {quickActions.map((action) => (
@@ -267,7 +267,7 @@ const Dashboard: React.FC = () => {
               icon="mdi:card-account-details-star"
               className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400"
             />
-            <h2 className="text-base font-bold text-foreground">اشتراک‌های من</h2>
+            <h2 className="text-sm font-bold text-foreground">اشتراک‌های من</h2>
           </div>
           <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3">
             {purchases.slice(0, 6).map((p) => {
@@ -276,8 +276,8 @@ const Dashboard: React.FC = () => {
                 <div key={p.id} className="rounded-xl border border-border bg-muted/40 p-3.5">
                   <div className="flex items-start justify-between gap-2">
                     <div className="min-w-0">
-                      <p className="truncate text-sm font-bold text-foreground">{p.plan_title}</p>
-                      <p className="truncate text-xs text-muted-foreground">
+                      <p className="truncate text-[0.68rem] font-bold text-foreground">{p.plan_title}</p>
+                      <p className="truncate text-[0.68rem] text-muted-foreground">
                         {p.venue_name} · {p.plan_type ? PLAN_TYPE_LABEL[p.plan_type] : ''}
                       </p>
                     </div>
@@ -286,7 +286,7 @@ const Dashboard: React.FC = () => {
                     </Badge>
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-2">
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[0.68rem] text-muted-foreground">
                       {p.status === 'paid' && p.plan_type === 'monthly' && p.expires_at
                         ? `اعتبار تا ${new Date(p.expires_at).toLocaleDateString('fa-IR')}`
                         : p.status === 'paid' && p.sessions_remaining != null
@@ -296,7 +296,7 @@ const Dashboard: React.FC = () => {
                     {p.status === 'pending' && (
                       <Link
                         to={`/venues/${p.venue_id}`}
-                        className="inline-flex min-h-11 items-center text-sm font-bold text-blue-600 hover:underline dark:text-blue-400"
+                        className="inline-flex min-h-9 items-center text-[0.68rem] font-bold text-blue-600 hover:underline dark:text-blue-400"
                       >
                         پرداخت
                       </Link>

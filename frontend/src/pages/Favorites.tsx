@@ -111,7 +111,7 @@ const Favorites: React.FC = () => {
         ) : (
           <>
             {missingCount > 0 && (
-              <p className="mb-3 block text-xs text-muted-foreground">
+              <p className="mb-3 block text-[0.68rem] text-muted-foreground">
                 {`${missingCount} مورد از لیست حذف شده‌اند (سالن دیگر موجود نیست)`}
               </p>
             )}
@@ -120,7 +120,7 @@ const Favorites: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25 }}
             >
-              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3">
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-3 md:grid-cols-3">
                 {favoriteVenues.map((venue) => (
                   <VenueCard
                     key={venue.id}
