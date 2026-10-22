@@ -48,24 +48,24 @@ const StatItem: React.FC<StatItemProps> = ({ icon, value, label, suffix = '', co
       transition={{ duration: 0.5, delay }}
     >
       <div
-        className="min-w-0 rounded-[20px] border border-border bg-card p-4 text-center transition-all duration-300 hover:-translate-y-2 hover:border-[color:var(--stat-color)] hover:shadow-[0_12px_40px_rgba(0,0,0,0.1)] sm:p-6"
+        className="min-w-0 rounded-xl border border-border bg-card p-3 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[color:var(--stat-color)] hover:shadow-[0_6px_16px_rgba(0,0,0,0.08)] sm:p-4"
         style={{ '--stat-color': color } as React.CSSProperties}
       >
         {/* آیکون */}
         <span
-          className="mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-[18px]"
+          className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-lg"
           style={{ background: `${color}15` }}
         >
-          <Icon icon={icon} style={{ width: 36, height: 36, color }} />
+          <Icon icon={icon} style={{ width: 24, height: 24, color }} />
         </span>
 
         {/* شمارنده */}
-        <p className="mb-1 text-[1.65rem] font-black tabular-nums text-foreground sm:text-[1.9rem] md:text-[2.2rem]">
+        <p className="mb-1 text-[1.1rem] font-black tabular-nums text-foreground sm:text-[1.25rem]">
           {toPersianDigits(count.toLocaleString())}{suffix}
         </p>
 
         {/* لیبل */}
-        <p className="text-[0.88rem] font-semibold text-muted-foreground">
+        <p className="text-[0.72rem] font-semibold text-muted-foreground">
           {label}
         </p>
       </div>
@@ -120,13 +120,13 @@ const STATS = [
 
 export const StatsSection: React.FC = () => {
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="آمار و ارقام"
         subtitle="اعتماد هزاران بازیکن، افتخار ماست"
       />
 
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-6">
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-6">
         {STATS.map((stat, index) => (
           <StatItem key={stat.label} {...stat} delay={index * 0.1} />
         ))}

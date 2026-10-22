@@ -17,32 +17,32 @@ const BenefitCard: React.FC<BenefitCardProps> = ({ icon, title, description, col
     initial={{ opacity: 0, y: 20 }}
     animate={{ opacity: 1, y: 0 }}
     transition={{ duration: 0.5, delay }}
-    whileHover={{ y: -8, transition: { duration: 0.3 } }}
+    whileHover={{ y: -4, transition: { duration: 0.25 } }}
     className="h-full"
   >
-    <div className="group relative h-full overflow-hidden rounded-[20px] border border-border bg-card p-6 transition-all duration-300 hover:shadow-[0_12px_40px_rgba(0,0,0,0.12)]">
+    <div className="group relative h-full overflow-hidden rounded-xl border border-border bg-card p-4 transition-all duration-300 hover:shadow-[0_6px_20px_rgba(0,0,0,0.08)]">
       {/* نوار رنگی بالای کارت هنگام هاور */}
       <span
         aria-hidden="true"
-        className="absolute inset-x-0 top-0 h-1 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+        className="absolute inset-x-0 top-0 h-0.5 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
         style={{ background: `linear-gradient(90deg, ${color}, transparent)` }}
       />
 
       {/* آیکون */}
       <span
-        className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
+        className="mb-3 flex h-12 w-12 items-center justify-center rounded-xl"
         style={{ background: bgColor }}
       >
-        <Icon icon={icon} style={{ width: 32, height: 32, color }} />
+        <Icon icon={icon} style={{ width: 24, height: 24, color }} />
       </span>
 
       {/* عنوان */}
-      <h3 className="mb-3 text-[1.1rem] font-extrabold text-foreground">
+      <h3 className="mb-2 text-[0.88rem] font-extrabold text-foreground">
         {title}
       </h3>
 
       {/* توضیحات */}
-      <p className="text-[0.88rem] leading-[1.8] text-muted-foreground">
+      <p className="text-[0.75rem] leading-[1.7] text-muted-foreground">
         {description}
       </p>
     </div>
@@ -96,13 +96,13 @@ const BENEFITS = [
 
 export const WhyUsSection: React.FC = () => {
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="چرا فوتسال ما؟"
         subtitle="مزایایی که تجربه تو رو متحول می‌کنه"
       />
 
-      <div className="grid grid-cols-1 gap-5 sm:grid-cols-2 md:grid-cols-3">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3">
         {BENEFITS.map((benefit, index) => (
           <BenefitCard
             key={benefit.title}

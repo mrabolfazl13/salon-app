@@ -21,19 +21,19 @@ const Step: React.FC<StepProps> = ({ icon, title, description, color, delay = 0 
     <div className="relative text-center">
       {/* شماره مرحله */}
       <div
-        className="relative z-[1] mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full border-[3px]"
+        className="relative z-[1] mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-full border-[2.5px]"
         style={{ backgroundColor: `${color}15`, borderColor: color }}
       >
-        <Icon icon={icon} style={{ width: 28, height: 28, color }} />
+        <Icon icon={icon} style={{ width: 22, height: 22, color }} />
       </div>
 
       {/* عنوان */}
-      <h3 className="mb-2 text-[1.05rem] font-extrabold text-foreground">
+      <h3 className="mb-1.5 text-[0.88rem] font-extrabold text-foreground">
         {title}
       </h3>
 
       {/* توضیحات */}
-      <p className="mx-auto max-w-[280px] text-[0.82rem] leading-[1.7] text-muted-foreground">
+      <p className="mx-auto max-w-[240px] text-[0.72rem] leading-[1.6] text-muted-foreground">
         {description}
       </p>
     </div>
@@ -80,13 +80,13 @@ const STEPS = [
 
 export const HowItWorksSection: React.FC = () => {
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="چطور کار می‌کنه؟"
         subtitle="در ۵ قدم ساده، زمین رزرو کن"
       />
 
-      <div className="relative grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
+      <div className="relative grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5">
         {STEPS.map((step, index) => (
           <React.Fragment key={step.number}>
             <Step {...step} delay={index * 0.1} />
@@ -94,7 +94,7 @@ export const HowItWorksSection: React.FC = () => {
             {index < STEPS.length - 1 && (
               <div
                 aria-hidden="true"
-                className="absolute top-8 z-0 hidden h-0.5 w-[10%] bg-gradient-to-r from-transparent via-slate-900/10 to-transparent dark:via-white/10 lg:block"
+                className="absolute top-6 z-0 hidden h-0.5 w-[10%] bg-gradient-to-r from-transparent via-slate-900/10 to-transparent dark:via-white/10 lg:block"
                 style={{ insetInlineStart: `calc(${(index + 1) * 20}% - 10%)` }}
               />
             )}

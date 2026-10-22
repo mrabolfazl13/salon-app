@@ -17,24 +17,24 @@ const FeatureItem: React.FC<FeatureItemProps> = ({ icon, title, description, col
     initial={{ opacity: 0, scale: 0.95 }}
     animate={{ opacity: 1, scale: 1 }}
     transition={{ duration: 0.4, delay }}
-    whileHover={{ y: -6, transition: { duration: 0.3 } }}
+    whileHover={{ y: -3, transition: { duration: 0.25 } }}
     className="h-full"
   >
     <div
-      className="flex h-full items-start gap-4 rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:border-[color:var(--feature-color)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.1)]"
+      className="flex h-full items-start gap-3 rounded-xl border border-border bg-card p-3 transition-all duration-300 hover:border-[color:var(--feature-color)] hover:shadow-[0_4px_12px_rgba(0,0,0,0.08)]"
       style={{ '--feature-color': color } as React.CSSProperties}
     >
       <span
-        className="flex h-[52px] w-[52px] shrink-0 items-center justify-center rounded-xl"
+        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
         style={{ background: bgColor }}
       >
-        <Icon icon={icon} style={{ width: 26, height: 26, color }} />
+        <Icon icon={icon} style={{ width: 20, height: 20, color }} />
       </span>
       <div className="min-w-0 flex-1">
-        <h3 className="mb-1 text-[0.92rem] font-bold text-foreground">
+        <h3 className="mb-0.5 text-[0.82rem] font-bold text-foreground">
           {title}
         </h3>
-        <p className="text-[0.78rem] leading-[1.7] text-muted-foreground">
+        <p className="text-[0.7rem] leading-[1.6] text-muted-foreground">
           {description}
         </p>
       </div>
@@ -103,13 +103,13 @@ const FEATURES = [
 
 export const FeaturesSection: React.FC = () => {
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="امکانات ویژه"
         subtitle="هر چی که برای یه بازی عالی نیاز داری"
       />
 
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
         {FEATURES.map((feature, index) => (
           <FeatureItem key={feature.title} {...feature} delay={index * 0.08} />
         ))}

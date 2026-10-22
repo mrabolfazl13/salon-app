@@ -20,7 +20,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
       transition={{ duration: 0.4, delay }}
     >
       <div
-        className={`overflow-hidden rounded-xl border bg-card transition-all duration-300 hover:shadow-md ${
+        className={`overflow-hidden rounded-lg border bg-card transition-all duration-300 hover:shadow-sm ${
           isOpen ? 'border-blue-600 dark:border-blue-400' : 'border-border'
         }`}
       >
@@ -32,13 +32,13 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
           aria-controls={panelId}
           onClick={() => setIsOpen(!isOpen)}
           onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); setIsOpen(!isOpen) } }}
-          className="flex cursor-pointer items-center justify-between gap-3 p-4 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex cursor-pointer items-center justify-between gap-2 p-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
-          <p className="flex-1 text-[0.92rem] font-bold text-foreground">
+          <p className="flex-1 text-[0.82rem] font-bold text-foreground">
             {question}
           </p>
           <span
-            className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
+            className={`flex h-6 w-6 shrink-0 items-center justify-center rounded-full transition-all duration-300 ${
               isOpen
                 ? 'bg-blue-600 text-white dark:bg-blue-500 dark:text-slate-950'
                 : 'bg-black/5 text-muted-foreground dark:bg-white/10'
@@ -46,7 +46,7 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
           >
             <Icon
               icon={isOpen ? 'mdi:chevron-up' : 'mdi:chevron-down'}
-              style={{ width: 18, height: 18 }}
+              style={{ width: 15, height: 15 }}
             />
           </span>
         </div>
@@ -56,15 +56,13 @@ const FAQItem: React.FC<FAQItemProps> = ({ question, answer, delay = 0 }) => {
           {isOpen && (
             <motion.div
               id={panelId}
-              /* انیمیشن ارتفاع (property چیدمانی) حذف شد: فقط opacity/transform تا
-                 reflow و CLS نداشته باشیم و reduced-motion به‌درستی اعمال شود */
               initial={{ opacity: 0, y: -6 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -6 }}
               transition={{ duration: 0.25 }}
             >
-              <div className="border-t border-border p-4 pt-3">
-                <p className="text-[0.85rem] leading-[1.8] text-muted-foreground">
+              <div className="border-t border-border p-3 pt-2">
+                <p className="text-[0.75rem] leading-[1.7] text-muted-foreground">
                   {answer}
                 </p>
               </div>
@@ -121,13 +119,13 @@ const FAQS = [
 
 export const FAQSection: React.FC = () => {
   return (
-    <section className="mb-12">
+    <section className="mb-6">
       <SectionHeader
         title="سوالات متداول"
         subtitle="پاسخ سوالات رایج رو اینجا پیدا کن"
       />
 
-      <div className="flex flex-col gap-3">
+      <div className="flex flex-col gap-2">
         {FAQS.map((faq, index) => (
           <FAQItem key={index} {...faq} delay={index * 0.05} />
         ))}
@@ -138,17 +136,17 @@ export const FAQSection: React.FC = () => {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, delay: 0.5 }}
-        className="mt-8"
+        className="mt-6"
       >
-        <div className="flex items-center gap-4 rounded-2xl border border-blue-500/20 bg-blue-500/[0.08] p-5 dark:bg-blue-500/10">
-          <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-blue-500/15">
-            <Icon icon="mdi:headset" style={{ width: 24, height: 24, color: '#3b82f6' }} />
+        <div className="flex items-center gap-3 rounded-lg border border-blue-500/20 bg-blue-500/[0.08] p-3 dark:bg-blue-500/10">
+          <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-blue-500/15">
+            <Icon icon="mdi:headset" style={{ width: 18, height: 18, color: '#3b82f6' }} />
           </span>
           <div className="flex-1">
-            <p className="mb-0.5 text-[0.92rem] font-bold text-foreground">
+            <p className="mb-0.5 text-[0.82rem] font-bold text-foreground">
               سوال دیگه‌ای داری؟
             </p>
-            <p className="text-[0.82rem] text-muted-foreground">
+            <p className="text-[0.72rem] text-muted-foreground">
               تیم پشتیبانی ما ۲۴ ساعته آماده کمک هست. از طریق واتساپ، تلگرام یا تماس تلفنی با ما در ارتباط باش.
             </p>
           </div>
