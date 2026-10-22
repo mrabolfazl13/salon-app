@@ -96,17 +96,17 @@ const ForgotPassword: React.FC = () => {
 
           <CardContent className="p-8">
             {/* Logo */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-4">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                className="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-amber-500/30 mb-4"
+                className="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-lg flex items-center justify-center shadow-2xl shadow-amber-500/30 mb-4"
               >
                 <Icon icon="mdi:lock-reset" className="h-10 w-10 text-stone-900" />
               </motion.div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">بازیابی رمز عبور</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+              <p className="text-[0.68rem] text-gray-500 dark:text-gray-400 mt-1">
                 {success
                   ? 'رمز عبور شما با موفقیت بازنشانی شد'
                   : step === 1
@@ -121,13 +121,13 @@ const ForgotPassword: React.FC = () => {
                 animate={{ opacity: 1, scale: 1 }}
                 className="space-y-4"
               >
-                <div className="p-4 bg-green-50 border border-green-200 rounded-2xl text-green-700 dark:bg-green-500/10 dark:border-green-500/30 dark:text-green-300 text-sm flex items-center gap-3">
+                <div className="p-4 bg-green-50 border border-green-200 rounded-lg text-green-700 dark:bg-green-500/10 dark:border-green-500/30 dark:text-green-300 text-[0.68rem] flex items-center gap-3">
                   <div className="w-10 h-10 bg-green-500 rounded-full flex items-center justify-center flex-shrink-0">
                     <Icon icon="mdi:check" className="h-6 w-6 text-white" />
                   </div>
                   <div>
                     <p className="font-medium">رمز عبور تغییر کرد!</p>
-                    <p className="text-green-700 text-xs mt-0.5">
+                    <p className="text-green-700 text-[0.68rem] mt-0.5">
                       اکنون می‌توانید با رمز عبور جدید وارد شوید.
                     </p>
                   </div>
@@ -149,7 +149,7 @@ const ForgotPassword: React.FC = () => {
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 text-sm flex items-center gap-2"
+                    className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 text-[0.68rem] flex items-center gap-2"
                   >
                     <Icon icon="mdi:alert-circle" className="h-5 w-5 flex-shrink-0" />
                     {error}
@@ -168,8 +168,8 @@ const ForgotPassword: React.FC = () => {
                 />
 
                 {/* Info Box */}
-                <div className="bg-blue-50/50 rounded-2xl p-4 border border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20">
-                  <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                <div className="bg-blue-50/50 rounded-lg p-4 border border-blue-100 dark:bg-blue-500/10 dark:border-blue-500/20">
+                  <div className="flex items-center gap-2 text-[0.68rem] text-gray-600 dark:text-gray-300">
                     <Icon icon="mdi:information" className="h-5 w-5 text-blue-600 flex-shrink-0" />
                     <span>
                       کد بازیابی ۶ رقمی به شماره موبایل شما ارسال می‌شود. این کد تا ۱۰ دقیقه معتبر است.
@@ -193,7 +193,7 @@ const ForgotPassword: React.FC = () => {
                 <div className="text-center pt-2">
                   <Link
                     to="/login"
-                    className="inline-flex items-center min-h-[44px] px-2 text-sm text-gray-600 dark:text-gray-300 hover:text-amber-700 dark:hover:text-amber-400 transition-colors gap-2"
+                    className="inline-flex items-center min-h-[44px] px-2 text-[0.68rem] text-gray-600 dark:text-gray-300 hover:text-amber-700 dark:hover:text-amber-400 transition-colors gap-2"
                   >
                     <Icon icon="mdi:arrow-right" className="h-4 w-4" />
                     بازگشت به صفحه ورود
@@ -207,7 +207,7 @@ const ForgotPassword: React.FC = () => {
                   <motion.div
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
-                    className="p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 text-sm flex items-center gap-2"
+                    className="p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 text-[0.68rem] flex items-center gap-2"
                   >
                     <Icon icon="mdi:alert-circle" className="h-5 w-5 flex-shrink-0" />
                     {error}
@@ -216,7 +216,7 @@ const ForgotPassword: React.FC = () => {
 
                 {/* Dev Code Hint — فقط در حالت توسعه و فقط وقتی API کد را برگرداند */}
                 {import.meta.env.DEV && devCode && (
-                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-2xl text-amber-800 text-sm flex items-center gap-2">
+                  <div className="p-4 bg-amber-50 border border-amber-200 rounded-lg text-amber-800 text-[0.68rem] flex items-center gap-2">
                     <Icon icon="mdi:lightbulb-on-outline" className="h-5 w-5 flex-shrink-0" />
                     <span>
                       حالت توسعه — کد بازیابی شما:
@@ -274,7 +274,7 @@ const ForgotPassword: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => { setStep(1); setCode(''); setError(null) }}
-                    className="inline-flex items-center min-h-[44px] px-2 text-sm text-gray-600 dark:text-gray-300 hover:text-amber-700 dark:hover:text-amber-400 transition-colors gap-2"
+                    className="inline-flex items-center min-h-[44px] px-2 text-[0.68rem] text-gray-600 dark:text-gray-300 hover:text-amber-700 dark:hover:text-amber-400 transition-colors gap-2"
                   >
                     <Icon icon="mdi:arrow-right" className="h-4 w-4" />
                     تغییر شماره موبایل

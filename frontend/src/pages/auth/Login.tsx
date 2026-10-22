@@ -114,13 +114,13 @@ const Login: React.FC = () => {
           >
             <Icon icon="mdi:soccer" style={{ width: 40, height: 40, color: '#1c1917' }} />
           </motion.div>
-          <h1 className="text-2xl font-extrabold text-foreground">خوش آمدید</h1>
-          <p className="mt-1 text-sm text-muted-foreground">برای رزرو سالن فوتسال وارد شوید</p>
+          <h1 className="text-xl font-extrabold text-foreground">خوش آمدید</h1>
+          <p className="mt-1 text-[0.68rem] text-muted-foreground">برای رزرو سالن فوتسال وارد شوید</p>
         </div>
 
-        <Card className="bg-card/90 p-5 shadow-xl backdrop-blur-md">
+        <Card className="bg-card/90 p-3 shadow-xl backdrop-blur-md">
           {error && (
-            <Alert variant="destructive" className="mb-4 text-sm">
+            <Alert variant="destructive" className="mb-4 text-[0.68rem]">
               <Icon icon="mdi:alert-circle-outline" aria-hidden="true" />
               <AlertDescription>{error}</AlertDescription>
             </Alert>
@@ -178,7 +178,7 @@ const Login: React.FC = () => {
               <div className="flex justify-end">
                 <RouterLink
                   to="/forgot-password"
-                  className="inline-flex min-h-11 items-center px-2 text-sm font-bold text-amber-700 hover:underline dark:text-amber-400"
+                  className="inline-flex min-h-9 items-center px-2 text-[0.68rem] font-bold text-amber-700 hover:underline dark:text-amber-400"
                 >
                   رمز عبور را فراموش کردید؟
                 </RouterLink>
@@ -198,21 +198,21 @@ const Login: React.FC = () => {
 
         <section aria-labelledby="quick-access-title" className="mt-7">
           <div className="flex items-baseline justify-between gap-2">
-            <h2 id="quick-access-title" className="text-base font-extrabold text-foreground">
+            <h2 id="quick-access-title" className="text-sm font-extrabold text-foreground">
               دسترسی سریع
             </h2>
-            <span className="text-xs text-muted-foreground">حساب‌های نمونه</span>
+            <span className="text-[0.68rem] text-muted-foreground">حساب‌های نمونه</span>
           </div>
-          <p className="mb-3 mt-1 text-xs text-muted-foreground">
+          <p className="mb-3 mt-1 text-[0.68rem] text-muted-foreground">
             با یک کلیک با هر نقش وارد شوید — فقط برای آزمون و دمو.
           </p>
 
           <div className="grid gap-3 sm:grid-cols-3">
             {QUICK_ACCESS_GROUPS.map((group) => (
               <Card key={group.key} className="bg-card/75 p-3">
-                <div className="mb-2 flex items-center gap-1.5" style={{ color: group.color }}>
+                <div className="mb-1 flex items-center gap-1.5" style={{ color: group.color }}>
                   <Icon icon={group.icon} aria-hidden="true" style={{ width: 18, height: 18 }} />
-                  <h3 className="text-sm font-bold">{group.label}</h3>
+                  <h3 className="text-[0.68rem] font-bold">{group.label}</h3>
                 </div>
                 <div className="flex flex-col gap-2">
                   {group.users.map((u) => (
@@ -244,11 +244,11 @@ const Login: React.FC = () => {
           </div>
         </section>
 
-        <p className="mt-7 text-center text-sm text-muted-foreground">
+        <p className="mt-7 text-center text-[0.68rem] text-muted-foreground">
           حساب ندارید؟{' '}
           <RouterLink
             to="/register"
-            className="inline-flex min-h-11 items-center px-1 font-extrabold text-amber-700 hover:underline dark:text-amber-400"
+            className="inline-flex min-h-9 items-center px-1 font-extrabold text-amber-700 hover:underline dark:text-amber-400"
           >
             ثبت‌نام کنید
           </RouterLink>

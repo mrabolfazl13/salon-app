@@ -145,7 +145,7 @@ const Register: React.FC = () => {
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-              className="w-24 h-24 mx-auto bg-gradient-to-r from-green-500 to-emerald-600 rounded-2xl flex items-center justify-center shadow-2xl shadow-green-500/30"
+              className="w-24 h-24 mx-auto bg-gradient-to-r from-green-500 to-emerald-600 rounded-lg flex items-center justify-center shadow-2xl shadow-green-500/30"
             >
               <Icon icon="mdi:check" className="h-12 w-12 text-white" />
             </motion.div>
@@ -185,25 +185,25 @@ const Register: React.FC = () => {
 
           <CardContent className="p-8">
             {/* Logo */}
-            <div className="text-center mb-8">
+            <div className="text-center mb-4">
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 500, damping: 30 }}
-                className="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-2xl flex items-center justify-center shadow-2xl shadow-amber-500/30 mb-4"
+                className="w-20 h-20 mx-auto bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 rounded-lg flex items-center justify-center shadow-2xl shadow-amber-500/30 mb-4"
               >
                 <Icon icon="mdi:soccer" className="h-10 w-10 text-stone-900" />
               </motion.div>
               <h1 className="text-3xl font-bold text-gray-900 dark:text-gray-50">ثبت‌نام</h1>
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">حساب کاربری خود را بسازید</p>
+              <p className="text-[0.68rem] text-gray-500 dark:text-gray-400 mt-1">حساب کاربری خود را بسازید</p>
             </div>
 
             {/* Step Indicator */}
-            <div className="flex items-center justify-between mb-8 px-2">
+            <div className="flex items-center justify-between mb-4 px-2">
               {[1, 2, 3].map((s) => (
                 <div key={s} className="flex items-center gap-3 flex-1">
                   <div
-                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all duration-300 ${
+                    className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-[0.68rem] transition-all duration-300 ${
                       s <= step
                         ? 'bg-gradient-to-br from-amber-400 to-orange-500 text-stone-900 shadow-lg shadow-amber-500/30 scale-105'
                         : 'bg-gray-100 text-gray-400 dark:bg-[#223049] dark:text-gray-500'
@@ -227,7 +227,7 @@ const Register: React.FC = () => {
               <motion.div
                 initial={{ opacity: 0, x: -10 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="mb-4 p-4 bg-red-50 border border-red-200 rounded-2xl text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 text-sm flex items-center gap-2"
+                className="mb-4 p-4 bg-red-50 border border-red-200 rounded-lg text-red-700 dark:bg-red-500/10 dark:border-red-500/30 dark:text-red-300 text-[0.68rem] flex items-center gap-2"
               >
                 <Icon icon="mdi:alert-circle" className="h-5 w-5 flex-shrink-0" />
                 {error}
@@ -244,7 +244,7 @@ const Register: React.FC = () => {
                   className="space-y-4"
                 >
                   <div>
-                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-200 mb-2">نوع حساب</label>
+                    <label className="block text-[0.68rem] font-medium text-gray-700 dark:text-gray-200 mb-1">نوع حساب</label>
                     <div className="grid grid-cols-3 gap-2">
                       <button
                         type="button"
@@ -257,7 +257,7 @@ const Register: React.FC = () => {
                         }`}
                       >
                         <Icon icon="mdi:account" className="h-6 w-6" />
-                        <span className="text-sm font-medium">کاربر عادی</span>
+                        <span className="text-[0.68rem] font-medium">کاربر عادی</span>
                       </button>
                       <button
                         type="button"
@@ -270,7 +270,7 @@ const Register: React.FC = () => {
                         }`}
                       >
                         <Icon icon="mdi:school-outline" className="h-6 w-6" />
-                        <span className="text-sm font-medium">مربی</span>
+                        <span className="text-[0.68rem] font-medium">مربی</span>
                       </button>
                       <button
                         type="button"
@@ -283,7 +283,7 @@ const Register: React.FC = () => {
                         }`}
                       >
                         <Icon icon="mdi:store" className="h-6 w-6" />
-                        <span className="text-sm font-medium">مدیر سالن</span>
+                        <span className="text-[0.68rem] font-medium">مدیر سالن</span>
                       </button>
                     </div>
                   </div>
@@ -355,7 +355,7 @@ const Register: React.FC = () => {
                               : 'bg-green-500'
                           }`}
                         />
-                        <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+                        <span className="text-[0.68rem] font-medium text-gray-600 dark:text-gray-300">
                           {password.length < 6
                             ? 'ضعیف'
                             : password.length < 10
@@ -363,7 +363,7 @@ const Register: React.FC = () => {
                             : 'قوی'}
                         </span>
                       </div>
-                      <p className="text-xs text-gray-500 dark:text-gray-400">حداقل ۴ کاراکتر</p>
+                      <p className="text-[0.68rem] text-gray-500 dark:text-gray-400">حداقل ۴ کاراکتر</p>
                     </div>
                   )}
 
@@ -400,7 +400,7 @@ const Register: React.FC = () => {
                   transition={{ duration: 0.3 }}
                   className="space-y-4"
                 >
-                  <div className="bg-amber-50/60 rounded-2xl p-4 border border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/25">
+                  <div className="bg-amber-50/60 rounded-lg p-4 border border-amber-100 dark:bg-amber-500/10 dark:border-amber-500/25">
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input
                         type="checkbox"
@@ -408,21 +408,21 @@ const Register: React.FC = () => {
                         className="w-5 h-5 rounded-md border-2 border-gray-300 dark:border-[#33445f] text-amber-500 focus:ring-amber-500 mt-0.5 accent-amber-500"
                       />
                       <div>
-                        <p className="text-sm text-gray-700 dark:text-gray-200 font-medium">
+                        <p className="text-[0.68rem] text-gray-700 dark:text-gray-200 font-medium">
                           قوانین و مقررات را می‌پذیرم
                         </p>
-                        <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
+                        <p className="text-[0.68rem] text-gray-500 dark:text-gray-400 mt-0.5">
                           با ثبت‌نام، اطلاعات شما نزد ما محفوظ است
                         </p>
                       </div>
                     </label>
                     {errors.terms && (
-                      <p className="text-sm text-red-500 mt-2">{errors.terms.message}</p>
+                      <p className="text-[0.68rem] text-red-500 mt-2">{errors.terms.message}</p>
                     )}
                   </div>
 
-                  <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-2xl p-4 border border-blue-100/50 dark:from-blue-500/10 dark:to-sky-500/10 dark:border-blue-500/20">
-                    <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
+                  <div className="bg-gradient-to-r from-blue-50 to-sky-50 rounded-lg p-4 border border-blue-100/50 dark:from-blue-500/10 dark:to-sky-500/10 dark:border-blue-500/20">
+                    <div className="flex items-center gap-2 text-[0.68rem] text-gray-600 dark:text-gray-300">
                       <Icon icon="mdi:information" className="h-5 w-5 text-blue-600 flex-shrink-0" />
                       <span>
                         {roleHints[selectedRole]}
@@ -474,7 +474,7 @@ const Register: React.FC = () => {
               </div>
 
               {/* Login Link */}
-              <p className="text-center text-sm text-gray-600 dark:text-gray-300">
+              <p className="text-center text-[0.68rem] text-gray-600 dark:text-gray-300">
                 قبلاً ثبت‌نام کردید؟{' '}
                 <Link
                   to="/login"
