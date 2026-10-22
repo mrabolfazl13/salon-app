@@ -40,7 +40,7 @@ import {
 import { cn } from '@/lib/utils'
 
 const actionBtn =
-  'inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 text-sm font-bold transition-colors'
+  'inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors'
 
 const ContractDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -70,7 +70,7 @@ const ContractDetail: React.FC = () => {
     <button
       type="button"
       onClick={() => navigate('/contracts')}
-      className="mb-6 inline-flex min-h-11 items-center gap-2 text-sm font-semibold text-muted-foreground transition-colors hover:text-foreground"
+      className="mb-4 inline-flex min-h-9 items-center gap-2 text-[0.68rem] font-semibold text-muted-foreground transition-colors hover:text-foreground"
     >
       <Icon icon="mdi:arrow-right" className="h-5 w-5" aria-hidden="true" />
       بازگشت به لیست قراردادها
@@ -80,10 +80,10 @@ const ContractDetail: React.FC = () => {
   if (detailQuery.isLoading) {
     return (
       <Layout>
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
-          <Skeleton aria-hidden="true" className="mb-6 h-12 rounded-2xl" />
-          <Skeleton aria-hidden="true" className="mb-6 h-[140px] rounded-2xl" />
-          <Skeleton aria-hidden="true" className="h-[300px] rounded-2xl" />
+        <div className="mx-auto max-w-5xl px-4 py-4 md:py-8">
+          <Skeleton aria-hidden="true" className="mb-4 h-12 rounded-lg" />
+          <Skeleton aria-hidden="true" className="mb-4 h-[140px] rounded-lg" />
+          <Skeleton aria-hidden="true" className="h-[300px] rounded-lg" />
         </div>
       </Layout>
     )
@@ -92,7 +92,7 @@ const ContractDetail: React.FC = () => {
   if (detailQuery.isError || !contract) {
     return (
       <Layout>
-        <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
+        <div className="mx-auto max-w-5xl px-4 py-4 md:py-8">
           {backLink}
           <ErrorBox message="قرارداد مورد نظر یافت نشد یا دسترسی شما به آن محدود است." onRetry={() => detailQuery.refetch()} />
         </div>
@@ -115,28 +115,28 @@ const ContractDetail: React.FC = () => {
 
   return (
     <Layout>
-      <div className="mx-auto max-w-5xl px-4 py-6 md:py-8">
+      <div className="mx-auto max-w-5xl px-4 py-4 md:py-8">
         {backLink}
 
         {/* هدر */}
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
-          <div className="mb-4 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+          <div className="mb-4 rounded-lg border border-border bg-card p-4 shadow-sm md:p-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/5">
+                <span className="flex h-9 w-11 items-center justify-center rounded-xl bg-primary/5">
                   <Icon icon="mdi:file-document-multiple" className="h-5 w-5 text-primary" aria-hidden="true" />
                 </span>
                 <div>
                   <h1 className="text-lg font-bold">
                     {contract.venue_name || `سالن #${faNum(contract.venue_id)}`}
                   </h1>
-                  <p className="text-sm text-muted-foreground">{`قرارداد #${faNum(contract.id)}`}</p>
+                  <p className="text-[0.68rem] text-muted-foreground">{`قرارداد #${faNum(contract.id)}`}</p>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-2">
                 <StatusChip label={payMeta.label} color={payMeta.color} />
                 <span
-                  className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-bold"
+                  className="inline-flex items-center rounded-lg px-2 py-0.5 text-[0.68rem] font-bold"
                   style={{ backgroundColor: `${meta.color}18`, color: meta.color }}
                 >
                   {meta.label}
@@ -227,7 +227,7 @@ const ContractDetail: React.FC = () => {
                   <div key={item.label} className="flex items-center gap-2.5">
                     <Icon icon={item.icon} className="h-4 w-4 shrink-0 text-muted-foreground" aria-hidden="true" />
                     <div className="flex-1">
-                      <span className="block text-xs text-muted-foreground/70">{item.label}</span>
+                      <span className="block text-[0.68rem] text-muted-foreground/70">{item.label}</span>
                       <p className="text-[0.85rem] font-semibold">{item.value}</p>
                     </div>
                   </div>
@@ -237,7 +237,7 @@ const ContractDetail: React.FC = () => {
               {contract.description && (
                 <>
                   <hr className="my-4 border-border" />
-                  <p className="mb-1 text-sm font-semibold">توضیحات</p>
+                  <p className="mb-1 text-[0.68rem] font-semibold">توضیحات</p>
                   <p className="text-[0.85rem] leading-7 text-muted-foreground">{contract.description}</p>
                 </>
               )}
@@ -245,7 +245,7 @@ const ContractDetail: React.FC = () => {
               {contract.cancellation_policy && (
                 <>
                   <hr className="my-4 border-border" />
-                  <p className="mb-1 text-sm font-semibold">شرایط لغو (تعیین‌شده توسط مدیر)</p>
+                  <p className="mb-1 text-[0.68rem] font-semibold">شرایط لغو (تعیین‌شده توسط مدیر)</p>
                   <p className="text-[0.82rem] leading-7 text-muted-foreground">{contract.cancellation_policy}</p>
                 </>
               )}
@@ -263,7 +263,7 @@ const ContractDetail: React.FC = () => {
                     چاپ قرارداد
                   </button>
                   {isOwner && contract.status === 'pending' && (
-                    <span className="text-xs text-muted-foreground/70">
+                    <span className="text-[0.68rem] text-muted-foreground/70">
                       امکان ویرایش وجود ندارد — برای انصراف قرارداد را لغو کنید.
                     </span>
                   )}
@@ -280,7 +280,7 @@ const ContractDetail: React.FC = () => {
                     لغو قرارداد
                   </button>
                   {!cancelable && contract.status !== 'rejected' && contract.status !== 'cancelled' && (
-                    <span className="text-xs text-muted-foreground/70">
+                    <span className="text-[0.68rem] text-muted-foreground/70">
                       {contract.end_date < getTodayISO()
                         ? 'قرارداد گذشته یا تمام‌شده قابل لغو نیست'
                         : 'این قرارداد در وضعیت قابل لغو نیست'}
@@ -304,31 +304,31 @@ const ContractDetail: React.FC = () => {
           <h2 className="mb-1 text-xl font-extrabold">
             {`قرارداد سالن ${contract.venue_name || `#${faNum(contract.venue_id)}`} — شماره ${faNum(contract.id)}`}
           </h2>
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[0.68rem] text-muted-foreground">
             {`تاریخ چاپ: ${formatJalaliDate(getTodayISO(), { format: 'full' })}`}
           </span>
           <hr className="my-4 border-border" />
-          <h3 className="mb-2 text-sm font-extrabold">طرفین</h3>
+          <h3 className="mb-1 text-[0.68rem] font-extrabold">طرفین</h3>
           {infoItems.map((item) => (
             <div key={item.label} className="mb-1 flex gap-3">
-              <span className="min-w-[160px] text-sm font-bold">{item.label}:</span>
-              <span className="text-sm">{item.value}</span>
+              <span className="min-w-[160px] text-[0.68rem] font-bold">{item.label}:</span>
+              <span className="text-[0.68rem]">{item.value}</span>
             </div>
           ))}
           <div className="my-2 flex flex-wrap gap-1">
             {(contract.days?.length ? contract.days : [contract.day_of_week]).map((d) => (
-              <span key={d} className="rounded-md border border-border px-2 py-0.5 text-xs">
+              <span key={d} className="rounded-md border border-border px-2 py-0.5 text-[0.68rem]">
                 {pyDayNames[d] ?? d}
               </span>
             ))}
           </div>
-          <h3 className="mb-2 mt-4 text-sm font-extrabold">خلاصه جلسات</h3>
-          <p className="text-sm">
+          <h3 className="mb-1 mt-4 text-[0.68rem] font-extrabold">خلاصه جلسات</h3>
+          <p className="text-[0.68rem]">
             {`کل سانس‌ها: ${faNum(contract.economics?.total_sessions ?? contract.sessions.length)} — برگزارشده: ${faNum(contract.economics?.completed_sessions ?? 0)} — برنامه‌ریزی‌شده: ${faNum(contract.economics?.scheduled_sessions ?? 0)} — مستثنا: ${faNum(contract.economics?.excluded_sessions ?? 0)}`}
           </p>
           {contract.payments.length > 0 && (
             <>
-              <h3 className="mb-2 mt-4 text-sm font-extrabold">اقساط</h3>
+              <h3 className="mb-1 mt-4 text-[0.68rem] font-extrabold">اقساط</h3>
               <Table aria-label="اقساط قرارداد">
                 <TableHeader>
                   <TableRow>
@@ -352,11 +352,11 @@ const ContractDetail: React.FC = () => {
             </>
           )}
           <hr className="my-4 border-border" />
-          <p className="text-sm font-extrabold">
+          <p className="text-[0.68rem] font-extrabold">
             {`مبلغ کل: ${formatRial(contract.total_amount)} — پرداختی: ${formatRial(contract.economics?.paid_amount ?? 0)} — مانده: ${formatRial(contract.economics?.remaining_amount ?? contract.total_amount - (contract.economics?.paid_amount ?? 0))}`}
           </p>
           {contract.cancellation_policy && (
-            <span className="mt-2 block text-xs">
+            <span className="mt-2 block text-[0.68rem]">
               {`شرایط لغو: ${contract.cancellation_policy}`}
             </span>
           )}

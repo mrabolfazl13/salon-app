@@ -84,7 +84,7 @@ function defaultStartsAt(): string {
 
 /** دکمهٔ آیکونی ۴۴px با tooltip — همان IconButton قبلی */
 const iconButtonClass =
-  'inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40'
+  'inline-flex h-9 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40'
 
 const SessionRow: React.FC<{
   session: CoachSession
@@ -94,19 +94,19 @@ const SessionRow: React.FC<{
 }> = ({ session, onAttendance, onSettle, busy }) => (
   <div
     data-testid={`coach-session-${session.id}`}
-    className="rounded-2xl border border-border bg-card p-3 shadow-sm"
+    className="rounded-lg border border-border bg-card p-3 shadow-sm"
   >
     <div className="flex flex-wrap items-center justify-between gap-2">
       <div className="min-w-0">
-        <p className="text-sm font-bold text-foreground">
+        <p className="text-[0.68rem] font-bold text-foreground">
           {session.client_name ?? 'شاگرد'}
           {session.fee > 0 && (
-            <span className="ms-2 text-xs font-normal text-muted-foreground">
+            <span className="ms-2 text-[0.68rem] font-normal text-muted-foreground">
               — {formatRial(session.fee)}
             </span>
           )}
         </p>
-        <p className="mt-1 text-sm text-muted-foreground">
+        <p className="mt-1 text-[0.68rem] text-muted-foreground">
           {formatJalaliDateTime(session.starts_at)} · {toPersianDigits(session.duration_min)} دقیقه
           {session.fee_settled && ' · تسویه شده'}
         </p>
@@ -161,7 +161,7 @@ const SessionRow: React.FC<{
             variant="outline"
             disabled={busy}
             onClick={onSettle}
-            className="min-h-11 rounded-[10px]"
+            className="min-h-9 rounded-[10px]"
           >
             تسویه
           </Button>
@@ -250,17 +250,17 @@ const CoachDashboard: React.FC = () => {
 
   return (
     <Layout>
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-4">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
-          <h1 className="flex items-center gap-2 text-2xl font-extrabold text-foreground">
+          <h1 className="flex items-center gap-2 text-xl font-extrabold text-foreground">
             <Icon icon="mdi:school-outline" className="h-[30px] w-[30px] text-blue-600 dark:text-blue-400" />
             پنل مربی
           </h1>
-          <p className="mt-1 text-sm text-muted-foreground">
+          <p className="mt-1 text-[0.68rem] text-muted-foreground">
             جلسات تمرینی، حضور/غیبت شاگردها و درآمد ماه — بر پایهٔ داده‌های واقعی.
           </p>
         </div>
-        <Button variant="primary" data-testid="coach-new-session" onClick={() => setDialogOpen(true)} className="min-h-11 rounded-xl">
+        <Button variant="primary" data-testid="coach-new-session" onClick={() => setDialogOpen(true)} className="min-h-9 rounded-xl">
           <Icon icon="mdi:plus" className="h-5 w-5" />
           جلسه جدید
         </Button>
@@ -269,7 +269,7 @@ const CoachDashboard: React.FC = () => {
       {dashQ.isPending ? (
         <div className="flex flex-col gap-2">
           {[1, 2, 3, 4].map((i) => (
-            <Skeleton key={i} aria-hidden="true" className="h-[72px] rounded-2xl" />
+            <Skeleton key={i} aria-hidden="true" className="h-[72px] rounded-lg" />
           ))}
         </div>
       ) : dashQ.isError ? (
@@ -311,7 +311,7 @@ const CoachDashboard: React.FC = () => {
           <div>
             <h2 className="mb-3 text-lg font-bold text-foreground">پیش‌رو</h2>
             {upcoming.length === 0 ? (
-              <p className="text-sm text-muted-foreground">جلسهٔ زمان‌بندی‌شده‌ای در آینده نیست.</p>
+              <p className="text-[0.68rem] text-muted-foreground">جلسهٔ زمان‌بندی‌شده‌ای در آینده نیست.</p>
             ) : (
               <div className="flex flex-col gap-2" data-testid="coach-upcoming">
                 {upcoming.map((s) => (
@@ -319,8 +319,8 @@ const CoachDashboard: React.FC = () => {
                     key={s.id}
                     className="flex items-center justify-between gap-3 rounded-xl border border-border bg-card p-2.5"
                   >
-                    <p className="text-sm font-semibold text-foreground">{s.client_name ?? 'شاگرد'}</p>
-                    <span className="text-xs text-muted-foreground">
+                    <p className="text-[0.68rem] font-semibold text-foreground">{s.client_name ?? 'شاگرد'}</p>
+                    <span className="text-[0.68rem] text-muted-foreground">
                       {formatJalaliDateTime(s.starts_at)} · {toPersianDigits(s.duration_min)} دقیقه
                     </span>
                   </div>
@@ -347,8 +347,8 @@ const CoachDashboard: React.FC = () => {
                     onClick={() => setStatusFilter(value)}
                     className={
                       active
-                        ? 'inline-flex min-h-11 items-center rounded-[10px] border border-blue-600 bg-blue-600 px-4 text-sm font-bold text-white transition-colors dark:border-blue-500 dark:bg-blue-500'
-                        : 'inline-flex min-h-11 items-center rounded-[10px] border border-border bg-card px-4 text-sm font-semibold text-foreground transition-colors hover:bg-muted'
+                        ? 'inline-flex min-h-9 items-center rounded-[10px] border border-blue-600 bg-blue-600 px-4 text-[0.68rem] font-bold text-white transition-colors dark:border-blue-500 dark:bg-blue-500'
+                        : 'inline-flex min-h-9 items-center rounded-[10px] border border-border bg-card px-4 text-[0.68rem] font-semibold text-foreground transition-colors hover:bg-muted'
                     }
                   >
                     {value === 'all' ? 'همه' : STATUS_LABELS[value]}
@@ -365,7 +365,7 @@ const CoachDashboard: React.FC = () => {
                 ))}
               </div>
             ) : sessionsQ.data.items.length === 0 ? (
-              <p className="text-sm text-muted-foreground">جلسه‌ای با این وضعیت یافت نشد.</p>
+              <p className="text-[0.68rem] text-muted-foreground">جلسه‌ای با این وضعیت یافت نشد.</p>
             ) : (
               <div className="flex flex-col gap-2" data-testid="coach-history">
                 {sessionsQ.data.items.map((s) => (
@@ -386,7 +386,7 @@ const CoachDashboard: React.FC = () => {
             {clientsQ.isError ? (
               <ErrorBox message="دریافت فهرست شاگردها ممکن نشد." onRetry={() => clientsQ.refetch()} />
             ) : (
-              <div className="overflow-hidden rounded-2xl border border-border bg-card shadow-sm">
+              <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
                 <Table aria-label="فهرست شاگردهای مربی" data-testid="coach-clients">
                   <TableHeader>
                     <TableRow>
@@ -413,7 +413,7 @@ const CoachDashboard: React.FC = () => {
                   <div className="p-4"><Skeleton aria-hidden="true" className="h-12 rounded-xl" /></div>
                 ) : (clientsQ.data?.items.length ?? 0) === 0 ? (
                   <div className="p-4">
-                    <p className="text-sm text-muted-foreground">هنوز شاگردی ثبت نشده است.</p>
+                    <p className="text-[0.68rem] text-muted-foreground">هنوز شاگردی ثبت نشده است.</p>
                   </div>
                 ) : null}
               </div>
@@ -443,7 +443,7 @@ const CoachDashboard: React.FC = () => {
                 inputMode="tel"
                 aria-describedby={`${phoneId}-help`}
               />
-              <p id={`${phoneId}-help`} className="mt-1.5 text-xs text-muted-foreground">
+              <p id={`${phoneId}-help`} className="mt-1.5 text-[0.68rem] text-muted-foreground">
                 باید حساب فعال در سامانه داشته باشد.
               </p>
             </div>
@@ -490,10 +490,10 @@ const CoachDashboard: React.FC = () => {
             </div>
           </div>
           <DialogFooter className="px-1 pb-1">
-            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="min-h-11">
+            <Button variant="ghost" onClick={() => setDialogOpen(false)} className="min-h-9">
               انصراف
             </Button>
-            <Button variant="primary" onClick={submit} disabled={createMut.isPending} className="min-h-11 rounded-xl">
+            <Button variant="primary" onClick={submit} disabled={createMut.isPending} className="min-h-9 rounded-xl">
               {createMut.isPending ? 'در حال ثبت…' : 'ثبت جلسه'}
             </Button>
           </DialogFooter>

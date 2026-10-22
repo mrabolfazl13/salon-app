@@ -71,10 +71,10 @@ const Contracts: React.FC = () => {
 
   return (
     <Layout>
-      <div className="py-6">
+      <div className="py-4">
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
           <div className="mb-1 flex items-center justify-between gap-3">
-            <h1 className="text-2xl font-bold text-foreground">قراردادهای من</h1>
+            <h1 className="text-xl font-bold text-foreground">قراردادهای من</h1>
             <Button
               onClick={openCreate}
               className="rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-white shadow-lg shadow-blue-900/20"
@@ -83,12 +83,12 @@ const Contracts: React.FC = () => {
               قرارداد جدید
             </Button>
           </div>
-          <p className="mb-8 text-muted-foreground">
+          <p className="mb-4 text-muted-foreground">
             درخواست قرارداد بلندمدت ثبت و اقساط آن را پیگیری کنید
           </p>
         </motion.div>
 
-        <Tabs value={tab} onValueChange={(v) => setTab(v as ContractTab)} className="mb-6">
+        <Tabs value={tab} onValueChange={(v) => setTab(v as ContractTab)} className="mb-4">
           <TabsList className="h-auto w-full justify-start overflow-x-auto p-1">
             {PAGE_TABS.map((t) => (
               <TabsTrigger key={t} value={t} className="min-h-10 whitespace-nowrap px-3">
@@ -106,11 +106,11 @@ const Contracts: React.FC = () => {
         ) : contractsQuery.isLoading ? (
           <div className="flex flex-col gap-4">
             {[1, 2, 3].map((i) => (
-              <Skeleton key={i} aria-hidden="true" className="h-[160px] rounded-2xl" />
+              <Skeleton key={i} aria-hidden="true" className="h-[160px] rounded-lg" />
             ))}
           </div>
         ) : filtered.length === 0 ? (
-          <div className="rounded-2xl bg-foreground/[0.02] py-16 text-center">
+          <div className="rounded-lg bg-foreground/[0.02] py-16 text-center">
             <EmptyBox
               icon="mdi:file-document-remove-outline"
               title="قراردادی یافت نشد"
