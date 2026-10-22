@@ -73,7 +73,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
       return
     }
     if (mode === 'price' && (fixed === null || fixed <= 0)) {
-      setLocalError('قیمت دیل (ریال) نامعتبر است')
+      setLocalError('قیمت دیل (تومان) نامعتبر است')
       return
     }
     const exp = parseIntFa(expiry)
@@ -165,7 +165,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
                   : 'border-border bg-card text-foreground hover:bg-muted'
               )}
             >
-              قیمت نهایی (ریال)
+              قیمت نهایی (تومان)
             </button>
           </div>
 
@@ -182,7 +182,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
             </div>
           ) : (
             <div className="flex flex-col gap-1.5">
-              <Label htmlFor="deal-publish-price">قیمت نهایی سانس (ریال)</Label>
+              <Label htmlFor="deal-publish-price">قیمت نهایی سانس (تومان)</Label>
               <Input
                 id="deal-publish-price"
                 inputMode="numeric"

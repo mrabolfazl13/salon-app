@@ -42,7 +42,7 @@ const VenueDialog: React.FC<VenueDialogProps> = ({ venue, open, onOpenChange }) 
             <div className="flex items-center justify-between rounded-lg bg-muted/50 p-2">
               <span className="text-[0.68rem] text-muted-foreground">قیمت هر سانس:</span>
               <span className="font-bold tabular-nums">
-                {new Intl.NumberFormat('fa-IR').format(venue.price)} ریال
+                {Math.round(venue.price / 10).toLocaleString('fa-IR')} تومان
               </span>
             </div>
           )}
@@ -270,7 +270,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
                       )}
                       {venue.price != null && venue.price > 0 && (
                         <p className="mt-1 text-[0.68rem] font-medium">
-                          {new Intl.NumberFormat('fa-IR').format(venue.price)} ریال
+                          {Math.round(venue.price / 10).toLocaleString('fa-IR')} تومان
                         </p>
                       )}
                       <span

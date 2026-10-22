@@ -110,9 +110,9 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
               ) : (
                 <div className="inline-flex items-baseline gap-1">
                   <span dir="rtl" className="text-sm font-extrabold tabular-nums text-foreground">
-                    {game.price_per_player.toLocaleString('fa-IR')}
+                    {Math.round(game.price_per_player / 10).toLocaleString('fa-IR')}
                   </span>
-                  <span className="text-[0.68rem] text-muted-foreground">ریال / نفر</span>
+                  <span className="text-[0.68rem] text-muted-foreground">تومان / نفر</span>
                 </div>
               )}
             </div>

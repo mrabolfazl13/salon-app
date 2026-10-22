@@ -4,8 +4,7 @@
 import React from 'react'
 import { Icon } from '@iconify/react'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
-import { formatRial } from '@/components/finance/shared'
-import { cn, formatTimeFa, getSlotEndTime } from '@/lib/utils'
+import { cn, formatPrice, formatTimeFa, getSlotEndTime } from '@/lib/utils'
 import { parseUtcAware } from '@/components/pricing/shared'
 import { Button } from '@/components/ui/shadcn/button'
 import type { DealAvailableItem } from '@/services/deals'
@@ -78,11 +77,11 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
 
         <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
           <div className="flex items-baseline gap-2">
-            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">{formatRial(deal.deal_price)}</span>
-            <span className="text-[0.68rem] text-muted-foreground line-through">{formatRial(deal.original_price)}</span>
+            <span className="text-xl font-black text-emerald-600 dark:text-emerald-400">{formatPrice(deal.deal_price)}</span>
+            <span className="text-[0.68rem] text-muted-foreground line-through">{formatPrice(deal.original_price)}</span>
           </div>
           <span className="inline-flex items-center rounded-lg bg-emerald-600/[0.12] px-2 py-0.5 text-[0.68rem] font-bold text-emerald-600 dark:text-emerald-400">
-            {`${toPersianDigits(deal.savings)} ریال سود شما`}
+            {`${toPersianDigits(Math.round(deal.savings / 10))} تومان سود شما`}
           </span>
         </div>
 

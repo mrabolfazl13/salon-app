@@ -174,7 +174,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
                   type="button"
                   disabled={!clickable}
                   aria-pressed={isSelected}
-                  aria-label={`سانس ${slot.startTime} تا ${slot.endTime}، ${formatPrice(slot.price)} ریال، ${STATUS_LABEL[st]}`}
+                  aria-label={`سانس ${slot.startTime} تا ${slot.endTime}، ${formatPrice(slot.price)} تومان، ${STATUS_LABEL[st]}`}
                   onClick={() => {
                     if (isAvailableSlot(slot)) handleSelect(slot)
                     else if (bidable) onBid?.(slot)

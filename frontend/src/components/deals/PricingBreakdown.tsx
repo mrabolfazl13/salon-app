@@ -4,8 +4,7 @@
 
 import React, { useId, useState } from 'react'
 import { Icon } from '@iconify/react'
-import { cn } from '@/lib/utils'
-import { formatRial } from '@/components/finance/shared'
+import { cn, formatPrice } from '@/lib/utils'
 import { toPersianDigits } from '@/lib/jalali'
 
 export interface BreakdownRuleEntry {
@@ -40,7 +39,7 @@ const STEP_LABELS: Record<string, string> = {
 
 const MODIFIER_FA: Record<string, string> = {
   percent: '٪',
-  fixed: 'ریال',
+  fixed: 'تومان',
   absolute: 'قیمت قطعی',
 }
 
@@ -87,7 +86,7 @@ const AmountRow: React.FC<{ label: React.ReactNode; amount: number; strong?: boo
           zero ? 'text-muted-foreground' : amount > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
         )}
       >
-        {amount > 0 ? `+${formatRial(amount)}` : amount < 0 ? `−${formatRial(Math.abs(amount))}` : formatRial(0)}
+        {amount > 0 ? `+${formatPrice(amount)}` : amount < 0 ? `−${formatPrice(Math.abs(amount))}` : formatPrice(0)}
       </span>
     </div>
   )
@@ -117,7 +116,7 @@ const PricingBreakdown: React.FC<{ steps: BreakdownStep[]; payable: number | nul
           {isNumber(payable) && (
             <span className="text-[0.68rem] text-muted-foreground">
               قابل پرداخت:{' '}
-              <b className="tabular-nums text-emerald-700 dark:text-emerald-400">{formatRial(payable)}</b>
+              <b className="tabular-nums text-emerald-700 dark:text-emerald-400">{formatPrice(payable)}</b>
             </span>
           )}
           {/* ردیف خودش role=button است؛ دکمهٔ تودرتو یک tab stop تکراری می‌سازد */}
