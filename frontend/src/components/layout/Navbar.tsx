@@ -102,7 +102,7 @@ const Navbar: React.FC<NavbarProps> = () => {
         <Link
           to="/"
           aria-label="صفحه اصلی فوتسال"
-          className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-9 shrink-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_4px_14px_rgba(245,158,11,0.3)]">
             <Icon icon="mdi:soccer" className="h-6 w-6" style={{ color: '#1c1917' }} />
@@ -128,7 +128,7 @@ const Navbar: React.FC<NavbarProps> = () => {
                 to={item.href}
                 aria-current={isActive(item.href) ? 'page' : undefined}
                 className={cn(
-                  'inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-2.5 text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-2.5 text-[0.68rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                   isActive(item.href)
                     ? 'bg-accent text-accent-foreground'
                     : 'text-foreground/80 hover:bg-muted hover:text-foreground'
@@ -152,9 +152,9 @@ const Navbar: React.FC<NavbarProps> = () => {
               <button
                 type="button"
                 aria-label="منوی حساب کاربری"
-                className="ms-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="ms-0.5 inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-xs font-extrabold text-stone-900 transition-transform hover:scale-105">
+                <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-[0.68rem] font-extrabold text-stone-900 transition-transform hover:scale-105">
                   {user?.fullName ? getInitials(user.fullName) : <Icon icon="mdi:account" className="h-5 w-5" />}
                 </span>
               </button>
@@ -162,8 +162,8 @@ const Navbar: React.FC<NavbarProps> = () => {
 
             <DropdownMenuContent align="end" className="max-h-[calc(100dvh-5rem)] w-60 overflow-y-auto">
               <DropdownMenuLabel className="px-3 py-2">
-                <span className="block text-sm font-bold text-foreground">{user?.fullName || 'کاربر'}</span>
-                <span className="block text-xs font-normal text-muted-foreground">
+                <span className="block text-[0.68rem] font-bold text-foreground">{user?.fullName || 'کاربر'}</span>
+                <span className="block text-[0.68rem] font-normal text-muted-foreground">
                   {user ? roleLabels[user.role] || user.role : ''}
                 </span>
               </DropdownMenuLabel>

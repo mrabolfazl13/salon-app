@@ -98,7 +98,7 @@ const NotificationPanel: React.FC = () => {
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
           aria-label={unreadCount > 0 ? `اعلان‌ها، ${unreadCount} خوانده‌نشده` : 'اعلان‌ها'}
-          className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="relative flex h-9 w-11 items-center justify-center rounded-xl border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
@@ -114,14 +114,14 @@ const NotificationPanel: React.FC = () => {
 
       <PopoverContent className="w-[380px] max-w-[calc(100vw-32px)] overflow-hidden p-0">
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
-          <h2 className="text-sm font-bold">
+          <h2 className="text-[0.68rem] font-bold">
             اعلان‌ها {unreadCount > 0 && `(${unreadCount} خوانده‌نشده)`}
           </h2>
           {unreadCount > 0 && (
             <button
               type="button"
               onClick={markAllAsRead}
-              className="min-h-11 rounded-lg px-2 text-xs font-semibold text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="min-h-9 rounded-lg px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               خواندن همه
             </button>
@@ -130,17 +130,17 @@ const NotificationPanel: React.FC = () => {
 
         <div className="max-h-[420px] overflow-y-auto" role="log" aria-busy={loading} aria-live="polite">
           {loading && notifications.length === 0 ? (
-            <p className="py-8 text-center text-sm text-muted-foreground" role="status">
+            <p className="py-8 text-center text-[0.68rem] text-muted-foreground" role="status">
               در حال بارگذاری...
             </p>
           ) : fetchError && notifications.length === 0 ? (
             <div className="py-10 text-center">
               <CloudAlert className="mx-auto h-10 w-10 text-red-500" aria-hidden="true" />
-              <p className="mt-2 text-sm text-muted-foreground">دریافت اعلان‌ها ممکن نشد</p>
+              <p className="mt-2 text-[0.68rem] text-muted-foreground">دریافت اعلان‌ها ممکن نشد</p>
               <button
                 type="button"
                 onClick={fetchNotifications}
-                className="mt-2 min-h-11 rounded-lg px-3 text-sm font-semibold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="mt-2 min-h-9 rounded-lg px-3 text-[0.68rem] font-semibold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 تلاش مجدد
               </button>
@@ -148,7 +148,7 @@ const NotificationPanel: React.FC = () => {
           ) : notifications.length === 0 ? (
             <div className="py-10 text-center">
               <BellOff className="mx-auto h-10 w-10 text-muted-foreground" aria-hidden="true" />
-              <p className="mt-2 text-sm text-muted-foreground">اعلانی وجود ندارد</p>
+              <p className="mt-2 text-[0.68rem] text-muted-foreground">اعلانی وجود ندارد</p>
             </div>
           ) : (
             <AnimatePresence initial={false}>
@@ -192,15 +192,15 @@ const NotificationPanel: React.FC = () => {
                       <span className="min-w-0 flex-1">
                         <span
                           className={
-                            n.is_read ? 'block text-sm font-medium' : 'block text-sm font-bold'
+                            n.is_read ? 'block text-[0.68rem] font-medium' : 'block text-[0.68rem] font-bold'
                           }
                         >
                           {n.title}
                         </span>
-                        <span className="block truncate text-xs text-muted-foreground">
+                        <span className="block truncate text-[0.68rem] text-muted-foreground">
                           {n.message}
                         </span>
-                        <span className="mt-0.5 block text-xs text-muted-foreground/70">
+                        <span className="mt-0.5 block text-[0.68rem] text-muted-foreground/70">
                           {timeAgo(n.created_at)}
                         </span>
                       </span>

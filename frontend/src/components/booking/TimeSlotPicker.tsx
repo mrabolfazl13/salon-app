@@ -54,7 +54,7 @@ const formatDate = (dateStr: string) => {
   return `${dayName} ${dayNumber} ${monthName}`
 }
 
-const chipBase = 'mt-1.5 inline-flex h-5 items-center gap-1 rounded-md px-2 text-xs'
+const chipBase = 'mt-1.5 inline-flex h-5 items-center gap-1 rounded-md px-2 text-[0.68rem]'
 
 const StatusChip: React.FC<{ status: string }> = ({ status }) => {
   switch (status) {
@@ -125,12 +125,12 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
 
   if (!slots || slots.length === 0) {
     return (
-      <div className="rounded-2xl bg-slate-900/[0.02] px-4 py-12 text-center dark:bg-white/[0.02]">
+      <div className="rounded-lg bg-slate-900/[0.02] px-4 py-12 text-center dark:bg-white/[0.02]">
         <div className="mx-auto mb-4 flex h-20 w-20 items-center justify-center rounded-full bg-blue-600/[0.08]">
           <Icon icon="mdi:calendar-remove" className="h-10 w-10" style={{ color: '#2563eb' }} />
         </div>
-        <p className="mb-1 text-base font-semibold text-foreground">سانسی موجود نیست</p>
-        <p className="text-sm text-muted-foreground">برای تاریخ انتخاب شده سانسی یافت نشد</p>
+        <p className="mb-1 text-sm font-semibold text-foreground">سانسی موجود نیست</p>
+        <p className="text-[0.68rem] text-muted-foreground">برای تاریخ انتخاب شده سانسی یافت نشد</p>
       </div>
     )
   }
@@ -138,24 +138,24 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
   return (
     <div>
       <div className="mb-5 flex items-center justify-between">
-        <h3 className="flex items-center gap-2 text-sm font-bold text-foreground">
+        <h3 className="flex items-center gap-2 text-[0.68rem] font-bold text-foreground">
           <Icon icon="mdi:clock-outline" className="h-5 w-5" style={{ color: '#2563eb' }} />
           سانس‌های موجود
         </h3>
-        <span className="inline-flex items-center rounded-lg bg-green-500/10 px-2 py-0.5 text-xs font-semibold text-emerald-600 dark:text-emerald-400">
+        <span className="inline-flex items-center rounded-lg bg-green-500/10 px-2 py-0.5 text-[0.68rem] font-semibold text-emerald-600 dark:text-emerald-400">
           {`${slots.filter(isAvailableSlot).length} سانس آزاد`}
         </span>
       </div>
 
       {groupedSlots.map((group, groupIndex) => (
-        <div key={group.date} className={groupIndex < groupedSlots.length - 1 ? 'mb-6' : 'mb-0'}>
+        <div key={group.date} className={groupIndex < groupedSlots.length - 1 ? 'mb-4' : 'mb-0'}>
           {/* Date Header */}
           <div className={cn('mb-4 flex items-center gap-3', groupIndex > 0 && 'mt-2')}>
             <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-blue-600/10 to-violet-600/10">
               <Icon icon="mdi:calendar" className="h-[18px] w-[18px]" style={{ color: '#2563eb' }} />
             </div>
-            <h4 className="text-sm font-bold text-foreground">{formatDate(group.date)}</h4>
-            <span className="inline-flex h-[22px] items-center rounded-md bg-blue-600/[0.08] px-2 text-xs font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
+            <h4 className="text-[0.68rem] font-bold text-foreground">{formatDate(group.date)}</h4>
+            <span className="inline-flex h-[22px] items-center rounded-md bg-blue-600/[0.08] px-2 text-[0.68rem] font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
               {`${group.slots.filter(isAvailableSlot).length} سانس`}
             </span>
           </div>
@@ -203,10 +203,10 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
 
                   {/* Time */}
                   <p className="mb-0.5 text-[0.85rem] font-bold text-foreground">{slot.startTime}</p>
-                  <span className="mb-2 block text-xs text-slate-400 dark:text-slate-500">{slot.endTime}</span>
+                  <span className="mb-1 block text-[0.68rem] text-slate-400 dark:text-slate-500">{slot.endTime}</span>
 
                   {/* Divider */}
-                  <div className="mb-2 h-px bg-slate-900/[0.06] dark:bg-white/10" />
+                  <div className="mb-1 h-px bg-slate-900/[0.06] dark:bg-white/10" />
 
                   {/* Price */}
                   <p

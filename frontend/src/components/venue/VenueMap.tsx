@@ -33,14 +33,14 @@ const VenueDialog: React.FC<VenueDialogProps> = ({ venue, open, onOpenChange }) 
         </DialogHeader>
         <div className="space-y-3 p-4 pt-2">
           {venue.address && (
-            <div className="flex items-start gap-2 text-sm text-muted-foreground">
+            <div className="flex items-start gap-2 text-[0.68rem] text-muted-foreground">
               <Icon icon="mdi:map-marker" className="mt-0.5 h-4 w-4 shrink-0" />
               <span>{venue.address}</span>
             </div>
           )}
           {venue.price != null && venue.price > 0 && (
             <div className="flex items-center justify-between rounded-lg bg-muted/50 p-2">
-              <span className="text-sm text-muted-foreground">قیمت هر سانس:</span>
+              <span className="text-[0.68rem] text-muted-foreground">قیمت هر سانس:</span>
               <span className="font-bold tabular-nums">
                 {new Intl.NumberFormat('fa-IR').format(venue.price)} ریال
               </span>
@@ -49,7 +49,7 @@ const VenueDialog: React.FC<VenueDialogProps> = ({ venue, open, onOpenChange }) 
           <div className="flex items-center justify-between">
             <span
               className={cn(
-                'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold',
+                'inline-flex items-center rounded-full px-2.5 py-1 text-[0.68rem] font-semibold',
                 venue.isVerified
                   ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
                   : 'bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-300',
@@ -218,7 +218,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
       style={{ height: '100%' }}
     >
       <div
-        className="relative overflow-hidden rounded-2xl border border-border shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
+        className="relative overflow-hidden rounded-lg border border-border shadow-[0_4px_24px_rgba(0,0,0,0.04)]"
         style={{ height }}
       >
         {isLoading ? (
@@ -259,23 +259,23 @@ const VenueMap: React.FC<VenueMapProps> = ({
                 >
                   <Popup>
                     <div className="min-w-[220px] p-2" style={{ direction: 'rtl' }}>
-                      <p className="text-base font-semibold">
+                      <p className="text-sm font-semibold">
                         {venue.name}
                       </p>
                       {venue.address && (
-                        <p className="my-1 flex items-start gap-1 text-xs text-muted-foreground">
+                        <p className="my-1 flex items-start gap-1 text-[0.68rem] text-muted-foreground">
                           <Icon icon="mdi:map-marker" className="mt-0.5 h-3 w-3 shrink-0" />
                           {venue.address}
                         </p>
                       )}
                       {venue.price != null && venue.price > 0 && (
-                        <p className="mt-1 text-sm font-medium">
+                        <p className="mt-1 text-[0.68rem] font-medium">
                           {new Intl.NumberFormat('fa-IR').format(venue.price)} ریال
                         </p>
                       )}
                       <span
                         className={cn(
-                          'mt-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold',
+                          'mt-1 inline-flex items-center rounded-full px-2.5 py-0.5 text-[0.68rem] font-semibold',
                           venue.isVerified
                             ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
                             : 'bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-300',
@@ -293,13 +293,13 @@ const VenueMap: React.FC<VenueMapProps> = ({
             <div className="absolute bottom-4 start-4 z-[1000] flex flex-col gap-1 rounded-xl bg-card p-3 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full border-2 border-white bg-[#22c55e] shadow-[0_2px_6px_rgba(34,197,94,0.4)]" />
-                <span className="text-xs">
+                <span className="text-[0.68rem]">
                   تأیید شده
                 </span>
               </div>
               <div className="flex items-center gap-2">
                 <span className="h-3 w-3 rounded-full border-2 border-white bg-[#f59e0b] shadow-[0_2px_6px_rgba(245,158,11,0.4)]" />
-                <span className="text-xs">
+                <span className="text-[0.68rem]">
                   در انتظار تایید
                 </span>
               </div>
@@ -308,7 +308,7 @@ const VenueMap: React.FC<VenueMapProps> = ({
             {/* Venue count badge */}
             <div className="absolute top-4 start-4 z-[1000] flex items-center gap-2 rounded-xl bg-card px-4 py-2 shadow-[0_4px_12px_rgba(0,0,0,0.08)]">
               <Icon icon="mdi:map-marker" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-              <span className="text-xs font-semibold">
+              <span className="text-[0.68rem] font-semibold">
                 {venues.length} سالن
               </span>
             </div>

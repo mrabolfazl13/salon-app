@@ -147,7 +147,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
   return (
     <div>
       {/* Header with summary */}
-      <div className="mb-6 flex flex-wrap items-center justify-between gap-2">
+      <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
         <h3 className="flex items-center gap-2 font-bold">
           <Icon icon="mdi:star" className="h-5 w-5" style={{ color: '#f59e0b' }} />
           نظرات کاربران
@@ -160,10 +160,10 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
           >
             <StarMeter value={averageRating || 0} />
           </span>
-          <span className="text-sm font-bold">
+          <span className="text-[0.68rem] font-bold">
             {averageRating ? toPersianDigits(averageRating.toFixed(1)).replace('.', '٫') : '—'}
           </span>
-          <span className="text-xs text-slate-400 dark:text-slate-500">
+          <span className="text-[0.68rem] text-slate-400 dark:text-slate-500">
             ({toPersianDigits(totalReviews || 0)} نظر)
           </span>
         </div>
@@ -171,12 +171,12 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
 
       {/* Review form */}
       {isNormalUser ? (
-        <div className="mb-6 rounded-2xl border border-blue-600/[0.12] bg-blue-600/[0.03] p-5">
+        <div className="mb-4 rounded-lg border border-blue-600/[0.12] bg-blue-600/[0.03] p-3">
           <h3 className="mb-3 font-bold">
             {editing ? 'ویرایش نظر شما' : 'نظر خود را ثبت کنید'}
           </h3>
           <div className="mb-4 flex flex-wrap items-center gap-3">
-            <span id={ratingLabelId} className="text-sm text-muted-foreground">امتیاز شما:</span>
+            <span id={ratingLabelId} className="text-[0.68rem] text-muted-foreground">امتیاز شما:</span>
             <div
               role="radiogroup"
               aria-labelledby={ratingLabelId}
@@ -191,7 +191,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                   aria-checked={rating === v}
                   aria-label={`${toPersianDigits(v)} ستاره از ۵`}
                   onClick={() => setRating(v)}
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="inline-flex h-9 w-11 items-center justify-center rounded-full transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span className="relative inline-block h-6 w-6" aria-hidden="true">
                     <Icon icon="mdi:star-outline" className="absolute inset-0 h-6 w-6 text-slate-400/50 dark:text-slate-500" />
@@ -259,9 +259,9 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
           </div>
         </div>
       ) : (
-        <div className="mb-6 rounded-2xl border border-dashed border-slate-900/10 bg-slate-900/[0.015] p-5 text-center dark:border-white/10 dark:bg-white/[0.02]">
-          <Icon icon="mdi:star-outline" className="mx-auto mb-2 block h-8 w-8" style={{ color: '#f59e0b' }} />
-          <p className="mb-2 text-sm text-muted-foreground">
+        <div className="mb-4 rounded-lg border border-dashed border-slate-900/10 bg-slate-900/[0.015] p-3 text-center dark:border-white/10 dark:bg-white/[0.02]">
+          <Icon icon="mdi:star-outline" className="mx-auto mb-1 block h-8 w-8" style={{ color: '#f59e0b' }} />
+          <p className="mb-1 text-[0.68rem] text-muted-foreground">
             برای ثبت نظر، وارد حساب کاربری شوید
           </p>
           <Button
@@ -269,7 +269,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
             size="sm"
             variant="primary"
             onClick={() => navigate('/login')}
-            className="min-h-11 rounded-[10px] px-4 font-semibold"
+            className="min-h-9 rounded-[10px] px-4 font-semibold"
           >
             ورود / ثبت‌نام
           </Button>
@@ -289,8 +289,8 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
         </div>
       ) : reviews.length === 0 ? (
         <div className="py-10 text-center">
-          <Icon icon="mdi:comment-quote-outline" className="mx-auto mb-2 block h-10 w-10 text-slate-400/50 dark:text-slate-600" />
-          <p className="text-sm text-muted-foreground">
+          <Icon icon="mdi:comment-quote-outline" className="mx-auto mb-1 block h-10 w-10 text-slate-400/50 dark:text-slate-600" />
+          <p className="text-[0.68rem] text-muted-foreground">
             هنوز نظری برای این مجموعه ثبت نشده است. اولین نفر باشید!
           </p>
         </div>
@@ -299,7 +299,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
           {reviews.map((review) => (
             <motion.div key={review.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
               <div className="rounded-[14px] border border-slate-900/[0.07] bg-card p-4 dark:border-white/10">
-                <div className="mb-2 flex items-start justify-between">
+                <div className="mb-1 flex items-start justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-[34px] w-[34px]">
                       <AvatarFallback className="bg-blue-600/10 text-[0.8rem] font-bold text-blue-700 dark:text-blue-300">
@@ -307,15 +307,15 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="text-sm font-semibold">
+                      <p className="text-[0.68rem] font-semibold">
                         {review.user_name || 'کاربر'}
                         {review.user_id === user?.id && (
-                          <span className="ms-2 inline-flex h-[18px] items-center rounded-full bg-blue-600/10 px-2 text-xs font-bold text-blue-700 dark:text-blue-300">
+                          <span className="ms-2 inline-flex h-[18px] items-center rounded-full bg-blue-600/10 px-2 text-[0.68rem] font-bold text-blue-700 dark:text-blue-300">
                             شما
                           </span>
                         )}
                       </p>
-                      <p className="text-xs text-slate-400 dark:text-slate-500">
+                      <p className="text-[0.68rem] text-slate-400 dark:text-slate-500">
                         {formatDateTime(review.created_at)}
                       </p>
                     </div>
@@ -325,7 +325,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                   </span>
                 </div>
                 {review.comment && (
-                  <p className="mt-2 whitespace-pre-wrap text-sm leading-[1.8] text-muted-foreground">
+                  <p className="mt-2 whitespace-pre-wrap text-[0.68rem] leading-[1.8] text-muted-foreground">
                     {review.comment}
                   </p>
                 )}
@@ -336,7 +336,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                       variant="ghost"
                       size="sm"
                       onClick={() => handleEditStart(review)}
-                      className="px-2 text-xs"
+                      className="px-2 text-[0.68rem]"
                     >
                       <Icon icon="mdi:pencil-outline" className="h-3.5 w-3.5" />
                       ویرایش
@@ -347,7 +347,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                       size="sm"
                       disabled={deletingId === review.id}
                       onClick={() => handleDelete(review.id)}
-                      className="px-2 text-xs text-red-600 hover:text-red-700 dark:text-red-400"
+                      className="px-2 text-[0.68rem] text-red-600 hover:text-red-700 dark:text-red-400"
                     >
                       {deletingId === review.id ? (
                         <span
