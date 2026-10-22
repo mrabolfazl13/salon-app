@@ -236,10 +236,10 @@ const BookingDetail: React.FC = () => {
   if (loading) {
     return (
       <Layout>
-        <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 md:py-8">
-          <Skeleton aria-hidden="true" className="mb-6 h-12 rounded-2xl" />
-          <Skeleton aria-hidden="true" className="mb-6 h-[120px] rounded-2xl" />
-          <Skeleton aria-hidden="true" className="h-[260px] rounded-2xl" />
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 md:py-8">
+          <Skeleton aria-hidden="true" className="mb-4 h-12 rounded-lg" />
+          <Skeleton aria-hidden="true" className="mb-4 h-[120px] rounded-lg" />
+          <Skeleton aria-hidden="true" className="h-[260px] rounded-lg" />
         </div>
       </Layout>
     )
@@ -248,16 +248,16 @@ const BookingDetail: React.FC = () => {
   if (notFound || !booking) {
     return (
       <Layout>
-        <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 md:py-8">
+        <div className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 md:py-8">
           <Button
             variant="ghost"
             onClick={() => navigate('/bookings')}
-            className="mb-6 min-h-11 font-semibold text-muted-foreground"
+            className="mb-4 min-h-9 font-semibold text-muted-foreground"
           >
             <Icon icon="mdi:arrow-right" className="h-5 w-5" />
             بازگشت به لیست رزروها
           </Button>
-          <Alert variant="destructive" className="rounded-2xl">
+          <Alert variant="destructive" className="rounded-lg">
             <AlertDescription>
               رزرو مورد نظر یافت نشد یا دسترسی شما به آن محدود است.
             </AlertDescription>
@@ -289,19 +289,19 @@ const BookingDetail: React.FC = () => {
 
   return (
     <Layout>
-      <div className="mx-auto w-full max-w-[1200px] px-4 py-6 sm:px-6 md:py-8">
+      <div className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 md:py-8">
         {/* Back Button */}
         <Button
           variant="ghost"
           onClick={() => navigate('/bookings')}
-          className="mb-6 min-h-11 font-semibold text-muted-foreground"
+          className="mb-4 min-h-9 font-semibold text-muted-foreground"
         >
           <Icon icon="mdi:arrow-right" className="h-5 w-5" />
           بازگشت به لیست رزروها
         </Button>
 
         {/* Header */}
-        <div className="mb-6 rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
+        <div className="mb-4 rounded-lg border border-border bg-card p-4 shadow-sm md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <VenueThumb
@@ -314,7 +314,7 @@ const BookingDetail: React.FC = () => {
                 <h1 className="text-lg font-bold text-foreground">
                   {booking.venue_name || `سالن #${booking.slot_id}`}
                 </h1>
-                <p className="text-sm text-muted-foreground">
+                <p className="text-[0.68rem] text-muted-foreground">
                   رزرو #{booking.id}
                   {booking.slot_date &&
                     ` — ${formatDate(booking.slot_date)}، ${formatTimeFa(booking.start_time)} تا ${getSlotEndTime(booking.start_time || '', booking.duration || 90)}`}
@@ -323,7 +323,7 @@ const BookingDetail: React.FC = () => {
             </div>
             <Badge
               variant={statusBadgeVariant(booking.status)}
-              className="min-h-8 rounded-lg px-3 text-sm font-semibold"
+              className="min-h-8 rounded-lg px-3 text-[0.68rem] font-semibold"
             >
               {getStatusLabel(booking.status)}
             </Badge>
@@ -333,24 +333,24 @@ const BookingDetail: React.FC = () => {
         <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
           {/* Main Info */}
           <div className="md:col-span-8">
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
-              <h2 className="mb-4 text-base font-bold text-foreground">جزئیات رزرو</h2>
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm md:p-6">
+              <h2 className="mb-4 text-sm font-bold text-foreground">جزئیات رزرو</h2>
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 <div>
-                  <span className="mb-1 block text-xs text-muted-foreground">مبلغ پرداختی</span>
+                  <span className="mb-1 block text-[0.68rem] text-muted-foreground">مبلغ پرداختی</span>
                   <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
                     {formatPrice(booking.payment_amount)}
                   </p>
                 </div>
                 <div>
-                  <span className="mb-1 block text-xs text-muted-foreground">تاریخ ثبت</span>
-                  <p className="text-sm font-semibold text-foreground">
+                  <span className="mb-1 block text-[0.68rem] text-muted-foreground">تاریخ ثبت</span>
+                  <p className="text-[0.68rem] font-semibold text-foreground">
                     {formatDateTime(booking.booked_at)}
                   </p>
                 </div>
                 <div>
-                  <span className="mb-1 block text-xs text-muted-foreground">وضعیت</span>
-                  <p className="text-sm font-semibold text-foreground">
+                  <span className="mb-1 block text-[0.68rem] text-muted-foreground">وضعیت</span>
+                  <p className="text-[0.68rem] font-semibold text-foreground">
                     {getStatusLabel(booking.status)}
                   </p>
                 </div>
@@ -369,7 +369,7 @@ const BookingDetail: React.FC = () => {
               {booking.payment && (() => {
                 const meta = paymentStatusMeta[booking.payment.status] ?? { label: booking.payment.status, variant: 'default' as BadgeVariant }
                 return (
-                  <div className="mt-4 rounded-2xl bg-foreground/5 p-4">
+                  <div className="mt-4 rounded-lg bg-foreground/5 p-4">
                     <div className="flex flex-wrap items-center justify-between gap-3">
                       <div className="flex items-center gap-2">
                         <Icon
@@ -379,33 +379,33 @@ const BookingDetail: React.FC = () => {
                             : 'mdi:clock-outline'}
                           className={`h-5 w-5 ${PAYMENT_ICON_CLASS[meta.variant] ?? PAYMENT_ICON_CLASS.default}`}
                         />
-                        <p className="text-sm font-bold text-foreground">فاکتور پرداخت</p>
+                        <p className="text-[0.68rem] font-bold text-foreground">فاکتور پرداخت</p>
                       </div>
-                      <Badge variant={meta.variant} className="rounded-lg px-2.5 py-1 text-xs font-semibold">
+                      <Badge variant={meta.variant} className="rounded-lg px-2.5 py-1 text-[0.68rem] font-semibold">
                         {meta.label}
                       </Badge>
                     </div>
                     <div className="mt-3 flex flex-wrap gap-6">
                       <div>
-                        <span className="block text-xs text-muted-foreground">مبلغ فاکتور</span>
-                        <p className="text-sm font-semibold text-foreground">{formatPrice(booking.payment.amount)}</p>
+                        <span className="block text-[0.68rem] text-muted-foreground">مبلغ فاکتور</span>
+                        <p className="text-[0.68rem] font-semibold text-foreground">{formatPrice(booking.payment.amount)}</p>
                       </div>
                       {booking.payment.paid_at && (
                         <div>
-                          <span className="block text-xs text-muted-foreground">زمان پرداخت</span>
-                          <p className="text-sm font-semibold text-foreground">{formatDateTime(booking.payment.paid_at)}</p>
+                          <span className="block text-[0.68rem] text-muted-foreground">زمان پرداخت</span>
+                          <p className="text-[0.68rem] font-semibold text-foreground">{formatDateTime(booking.payment.paid_at)}</p>
                         </div>
                       )}
                       {booking.payment.card_pan && (
                         <div>
-                          <span className="block text-xs text-muted-foreground">کارت</span>
-                          <p className="text-sm font-semibold text-foreground" dir="ltr">**** {booking.payment.card_pan}</p>
+                          <span className="block text-[0.68rem] text-muted-foreground">کارت</span>
+                          <p className="text-[0.68rem] font-semibold text-foreground" dir="ltr">**** {booking.payment.card_pan}</p>
                         </div>
                       )}
                       {booking.payment.transaction_id && (
                         <div>
-                          <span className="block text-xs text-muted-foreground">شناسه تراکنش</span>
-                          <p className="text-sm font-semibold text-foreground" dir="ltr">{booking.payment.transaction_id}</p>
+                          <span className="block text-[0.68rem] text-muted-foreground">شناسه تراکنش</span>
+                          <p className="text-[0.68rem] font-semibold text-foreground" dir="ltr">{booking.payment.transaction_id}</p>
                         </div>
                       )}
                     </div>
@@ -419,11 +419,11 @@ const BookingDetail: React.FC = () => {
                   <Separator className="my-6" />
 
                   <div className="mb-4 flex items-center justify-between">
-                    <h2 className="text-base font-bold text-foreground">
+                    <h2 className="text-sm font-bold text-foreground">
                       کد ورود (Check-in)
                     </h2>
                     {checkedInAt && (
-                      <Badge variant="success" className="gap-1.5 rounded-lg px-2.5 py-1 text-xs font-semibold">
+                      <Badge variant="success" className="gap-1.5 rounded-lg px-2.5 py-1 text-[0.68rem] font-semibold">
                         <Icon icon="mdi:check-circle" className="h-4 w-4" />
                         {`ورود ثبت شد: ${formatDateTime(checkedInAt)}`}
                       </Badge>
@@ -431,18 +431,18 @@ const BookingDetail: React.FC = () => {
                   </div>
 
                   {checkinLoading ? (
-                    <Skeleton aria-hidden="true" className="h-20 rounded-2xl" />
+                    <Skeleton aria-hidden="true" className="h-20 rounded-lg" />
                   ) : qrCodeData ? (
                     <button
                       type="button"
                       aria-label="مشاهده کد حضور"
                       onClick={() => setQrDialogOpen(true)}
-                      className="block w-full cursor-pointer appearance-none rounded-2xl border-2 border-dashed border-blue-600 bg-indigo-500/5 p-6 text-center text-inherit transition-colors [font-family:inherit] hover:bg-indigo-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-blue-400 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/15"
+                      className="block w-full cursor-pointer appearance-none rounded-lg border-2 border-dashed border-blue-600 bg-indigo-500/5 p-6 text-center text-inherit transition-colors [font-family:inherit] hover:bg-indigo-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-blue-400 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/15"
                     >
                       <span className="block select-all font-mono text-3xl font-bold tracking-[0.2em] text-blue-600 dark:text-blue-400">
                         {qrCodeData}
                       </span>
-                      <span className="mt-2 block text-xs text-muted-foreground">
+                      <span className="mt-2 block text-[0.68rem] text-muted-foreground">
                         برای نمایش کد بزرگ کلیک کنید
                       </span>
                     </button>
@@ -452,7 +452,7 @@ const BookingDetail: React.FC = () => {
 
               <Separator className="my-6" />
 
-              <h2 className="mb-4 text-base font-bold text-foreground">
+              <h2 className="mb-4 text-sm font-bold text-foreground">
                 خط زمانی
               </h2>
               <div className="flex flex-col gap-3">
@@ -465,10 +465,10 @@ const BookingDetail: React.FC = () => {
                           : 'h-2.5 w-2.5 shrink-0 rounded-full bg-slate-300 dark:bg-slate-600'
                       }
                     />
-                    <p className="flex-1 text-sm font-semibold text-foreground">
+                    <p className="flex-1 text-[0.68rem] font-semibold text-foreground">
                       {item.label}
                     </p>
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-[0.68rem] text-muted-foreground">
                       {item.time}
                     </span>
                   </div>
@@ -479,8 +479,8 @@ const BookingDetail: React.FC = () => {
 
           {/* Actions */}
           <div className="md:col-span-4">
-            <div className="rounded-2xl border border-border bg-card p-4 shadow-sm md:p-6">
-              <h2 className="mb-4 text-base font-bold text-foreground">
+            <div className="rounded-lg border border-border bg-card p-4 shadow-sm md:p-6">
+              <h2 className="mb-4 text-sm font-bold text-foreground">
                 عملیات
               </h2>
               <div className="flex flex-col gap-3">
@@ -491,7 +491,7 @@ const BookingDetail: React.FC = () => {
                   <Button
                     variant="outline"
                     onClick={() => setCancelModalOpen(true)}
-                    className="min-h-11 justify-start border-red-500/40 font-semibold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                    className="min-h-9 justify-start border-red-500/40 font-semibold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                   >
                     <Icon icon="mdi:close-circle" className="h-5 w-5" />
                     لغو رزرو
@@ -500,7 +500,7 @@ const BookingDetail: React.FC = () => {
                 <Button
                   onClick={handleRebook}
                   disabled={rebookBusy || !booking.slot_date}
-                  className="min-h-11 font-extrabold"
+                  className="min-h-9 font-extrabold"
                 >
                   {rebookBusy ? (
                     <span
@@ -516,7 +516,7 @@ const BookingDetail: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={handlePrint}
-                  className="min-h-11 justify-start font-semibold"
+                  className="min-h-9 justify-start font-semibold"
                 >
                   <Icon icon="mdi:printer" className="h-5 w-5" />
                   چاپ فاکتور
@@ -525,7 +525,7 @@ const BookingDetail: React.FC = () => {
                   variant="outline"
                   onClick={handleAddToCalendar}
                   disabled={!booking.slot_date || !booking.start_time}
-                  className="min-h-11 justify-start font-semibold"
+                  className="min-h-9 justify-start font-semibold"
                 >
                   <Icon icon="mdi:calendar-plus" className="h-5 w-5" />
                   افزودن به تقویم
@@ -533,7 +533,7 @@ const BookingDetail: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={handleShare}
-                  className="min-h-11 justify-start font-semibold"
+                  className="min-h-9 justify-start font-semibold"
                 >
                   <Icon icon="mdi:share" className="h-5 w-5" />
                   اشتراک‌گذاری
@@ -541,7 +541,7 @@ const BookingDetail: React.FC = () => {
                 <Button
                   variant="ghost"
                   onClick={fetchBooking}
-                  className="min-h-11 justify-start font-semibold text-muted-foreground"
+                  className="min-h-9 justify-start font-semibold text-muted-foreground"
                 >
                   <Icon icon="mdi:refresh" className="h-5 w-5" />
                   به‌روزرسانی
@@ -571,11 +571,11 @@ const BookingDetail: React.FC = () => {
             <DialogTitle className="text-center font-bold">کد ورود به سالن</DialogTitle>
           </DialogHeader>
           {qrCodeData && (
-            <div className="py-6 text-center">
+            <div className="py-4 text-center">
               <p className="mb-4 select-all font-mono text-4xl font-extrabold tracking-[0.15em] text-blue-600 dark:text-blue-400">
                 {qrCodeData}
               </p>
-              <p className="mb-6 text-sm text-muted-foreground">
+              <p className="mb-4 text-[0.68rem] text-muted-foreground">
                 این کد را به مسئول سالن ارائه دهید
               </p>
               {checkedInAt ? (
@@ -593,7 +593,7 @@ const BookingDetail: React.FC = () => {
               )}
               <Button
                 onClick={() => setQrDialogOpen(false)}
-                className="mt-6 min-h-11 rounded-xl font-semibold"
+                className="mt-6 min-h-9 rounded-xl font-semibold"
               >
                 بستن
               </Button>
