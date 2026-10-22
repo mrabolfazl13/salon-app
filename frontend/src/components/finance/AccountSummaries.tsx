@@ -45,43 +45,40 @@ export function AccountSummaries({ accounts }: AccountSummariesProps) {
   }
 
   return (
-    <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
       {accounts.map((account) => (
         <Card key={account.id} className="overflow-hidden">
-          <CardHeader className="pb-3">
+          <CardHeader className="pb-2 px-3 py-2">
             <div className="flex items-start justify-between">
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2">
                 <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${getAccountColor(account.type)}`}
+                  className={`flex h-7 w-7 shrink-0 items-center justify-center rounded-md bg-gradient-to-br ${getAccountColor(account.type)}`}
                 >
-                  <Icon icon={account.icon} className="h-5 w-5 text-white" />
+                  <Icon icon={account.icon} className="h-3.5 w-3.5 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-sm font-semibold">{account.name}</CardTitle>
-                  <p className="text-xs text-muted-foreground capitalize">{account.type}</p>
+                  <CardTitle className="text-xs font-semibold">{account.name}</CardTitle>
+                  <p className="text-[10px] text-muted-foreground capitalize">{account.type}</p>
                 </div>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-3">
+          <CardContent className="px-3 pb-3 pt-0">
+            <div className="space-y-2">
               <div>
-                <p className="text-xs text-muted-foreground">موجودی فعلی</p>
-                <p className="text-xl font-bold">{formatToman(account.balance)}</p>
+                <p className="text-[10px] text-muted-foreground">موجودی فعلی</p>
+                <p className="text-base font-bold">{formatToman(account.balance)}</p>
               </div>
               
               {account.limit && (
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between text-xs">
-                    <span className="text-muted-foreground">استفاده شده از سقف</span>
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between text-[10px]">
+                    <span className="text-muted-foreground">استفاده شده</span>
                     <span className="font-medium">
                       {toPersianDigits(Math.round(getProgressValue(account)))}%
                     </span>
                   </div>
-                  <Progress value={getProgressValue(account)} className="h-2" />
-                  <p className="text-[11px] text-muted-foreground">
-                    سقف اعتبار: {formatToman(account.limit)}
-                  </p>
+                  <Progress value={getProgressValue(account)} className="h-1.5" />
                 </div>
               )}
             </div>

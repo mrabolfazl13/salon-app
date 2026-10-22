@@ -69,38 +69,38 @@ export function RecentTransactions({ transactions, onViewAll }: RecentTransactio
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-4">
-        <CardTitle className="text-base font-semibold">تراکنش‌های اخیر</CardTitle>
+      <CardHeader className="flex flex-row items-center justify-between pb-2 px-4 py-3">
+        <CardTitle className="text-sm font-semibold">تراکنش‌های اخیر</CardTitle>
         {onViewAll && (
-          <Button variant="ghost" size="sm" onClick={onViewAll} className="gap-2 text-xs">
+          <Button variant="ghost" size="sm" onClick={onViewAll} className="gap-1.5 h-7 px-2 text-[10px]">
             مشاهده همه
-            <Icon icon="mdi:chevron-left" className="h-4 w-4" />
+            <Icon icon="mdi:chevron-left" className="h-3 w-3" />
           </Button>
         )}
       </CardHeader>
-      <CardContent>
+      <CardContent className="p-0">
         <div className="overflow-x-auto">
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-[50px]"></TableHead>
-                <TableHead>نوع</TableHead>
-                <TableHead>مبلغ</TableHead>
-                <TableHead className="hidden md:table-cell">توضیحات</TableHead>
-                <TableHead className="hidden sm:table-cell">تاریخ</TableHead>
-                <TableHead>وضعیت</TableHead>
+                <TableHead className="w-[40px]"></TableHead>
+                <TableHead className="text-xs">نوع</TableHead>
+                <TableHead className="text-xs">مبلغ</TableHead>
+                <TableHead className="hidden md:table-cell text-xs">توضیحات</TableHead>
+                <TableHead className="hidden sm:table-cell text-xs">تاریخ</TableHead>
+                <TableHead className="text-xs">وضعیت</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {transactions.slice(0, 8).map((txn) => (
+              {transactions.slice(0, 6).map((txn) => (
                 <TableRow key={txn.id} className="group hover:bg-muted/30">
                   <TableCell>{getTypeIcon(txn.type)}</TableCell>
-                  <TableCell className="font-medium capitalize">{txn.type}</TableCell>
-                  <TableCell className="font-bold">{formatToman(txn.amount)}</TableCell>
-                  <TableCell className="hidden max-w-[200px] truncate text-sm text-muted-foreground md:table-cell">
+                  <TableCell className="font-medium capitalize text-xs">{txn.type}</TableCell>
+                  <TableCell className="font-bold text-xs">{formatToman(txn.amount)}</TableCell>
+                  <TableCell className="hidden max-w-[150px] truncate text-[11px] text-muted-foreground md:table-cell">
                     {txn.description}
                   </TableCell>
-                  <TableCell className="hidden whitespace-nowrap text-sm text-muted-foreground sm:table-cell">
+                  <TableCell className="hidden whitespace-nowrap text-[11px] text-muted-foreground sm:table-cell">
                     {toPersianDigits(txn.date)}
                   </TableCell>
                   <TableCell>{getStatusBadge(txn.status)}</TableCell>

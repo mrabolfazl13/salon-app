@@ -35,24 +35,24 @@ export function KPICard({ data, className }: KPICardProps) {
 
   return (
     <Card className={className}>
-      <CardContent className="p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex-1">
-            <p className="mb-1 text-sm font-medium text-muted-foreground">{label}</p>
-            <p className="text-2xl font-bold tracking-tight">{formatToman(value)}</p>
+      <CardContent className="p-3">
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <p className="mb-0.5 text-xs font-medium text-muted-foreground truncate">{label}</p>
+            <p className="text-lg font-bold tracking-tight">{formatToman(value)}</p>
             {change !== undefined && (
-              <div className="mt-2 flex items-center gap-1.5">
-                <Icon icon={trendIcon} className={cn('h-4 w-4', trendColor)} />
-                <span className={cn('text-xs font-medium', trendColor)}>
-                  {toPersianDigits(Math.abs(change))}% نسبت به ماه قبل
+              <div className="mt-1 flex items-center gap-1">
+                <Icon icon={trendIcon} className={cn('h-3 w-3', trendColor)} />
+                <span className={cn('text-[10px] font-medium', trendColor)}>
+                  {toPersianDigits(Math.abs(change))}%
                 </span>
               </div>
             )}
           </div>
           <div
-            className={`flex h-12 w-12 items-center justify-center rounded-xl ${color}`}
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-lg ${color}`}
           >
-            <Icon icon={icon} className="h-6 w-6 text-white" />
+            <Icon icon={icon} className="h-4 w-4 text-white" />
           </div>
         </div>
       </CardContent>

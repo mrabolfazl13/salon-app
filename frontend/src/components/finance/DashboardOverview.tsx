@@ -45,20 +45,20 @@ export function DashboardOverview({ venues }: DashboardOverviewProps) {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-4">
       {/* Venue Selector */}
       {venues.length > 1 && (
         <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-wrap items-center gap-3">
-              <Icon icon="mdi:store-marker" className="h-5 w-5 text-muted-foreground" />
-              <span className="text-sm font-medium">انتخاب سالن:</span>
-              <div className="flex flex-wrap gap-2">
+          <CardContent className="p-3">
+            <div className="flex flex-wrap items-center gap-2">
+              <Icon icon="mdi:store-marker" className="h-4 w-4 text-muted-foreground" />
+              <span className="text-xs font-medium">انتخاب سالن:</span>
+              <div className="flex flex-wrap gap-1.5">
                 <Button
                   variant={selectedVenue === 'all' ? 'default' : 'outline'}
                   size="sm"
                   onClick={() => setSelectedVenue('all')}
-                  className="text-xs"
+                  className="h-7 px-2.5 text-[10px]"
                 >
                   همه سالن‌ها
                 </Button>
@@ -68,7 +68,7 @@ export function DashboardOverview({ venues }: DashboardOverviewProps) {
                     variant={selectedVenue === venue.id ? 'default' : 'outline'}
                     size="sm"
                     onClick={() => setSelectedVenue(venue.id)}
-                    className="text-xs"
+                    className="h-7 px-2.5 text-[10px] max-w-[120px] truncate"
                   >
                     {venue.name}
                   </Button>
@@ -91,19 +91,19 @@ export function DashboardOverview({ venues }: DashboardOverviewProps) {
 
       {/* Quick Actions */}
       <Card>
-        <CardContent className="p-4">
-          <div className="flex flex-wrap gap-3">
-            <Button className="gap-2" size="sm">
-              <Icon icon="mdi:cash-plus" className="h-4 w-4" />
-              ثبت درآمد جدید
+        <CardContent className="p-3">
+          <div className="flex flex-wrap gap-2">
+            <Button className="gap-1.5 h-8 text-xs" size="sm">
+              <Icon icon="mdi:cash-plus" className="h-3.5 w-3.5" />
+              ثبت درآمد
             </Button>
-            <Button variant="outline" className="gap-2" size="sm">
-              <Icon icon="mdi:cash-minus" className="h-4 w-4" />
-              ثبت هزینه جدید
+            <Button variant="outline" className="gap-1.5 h-8 text-xs" size="sm">
+              <Icon icon="mdi:cash-minus" className="h-3.5 w-3.5" />
+              ثبت هزینه
             </Button>
-            <Button variant="outline" className="gap-2" size="sm">
-              <Icon icon="mdi:file-document-outline" className="h-4 w-4" />
-              گزارش مالی
+            <Button variant="outline" className="gap-1.5 h-8 text-xs" size="sm">
+              <Icon icon="mdi:file-document-outline" className="h-3.5 w-3.5" />
+              گزارش
             </Button>
           </div>
         </CardContent>
@@ -114,7 +114,7 @@ export function DashboardOverview({ venues }: DashboardOverviewProps) {
 
       {/* Account Summaries */}
       <div>
-        <h3 className="mb-4 text-lg font-semibold">خلاصه حساب‌ها</h3>
+        <h3 className="mb-3 text-sm font-semibold">خلاصه حساب‌ها</h3>
         <AccountSummaries accounts={accounts.slice(0, 6)} />
       </div>
     </div>

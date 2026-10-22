@@ -36,7 +36,7 @@ export function SidebarNav({ activeTab = 'overview' }: SidebarNavProps) {
   const currentActive = activeTab || getActiveFromPath()
 
   return (
-    <nav className="flex h-full w-full flex-col gap-2 p-3 md:w-64 md:border-r md:bg-card/50">
+    <nav className="flex h-full w-full flex-col gap-1 p-2 md:w-48 md:border-r md:bg-card/50">
       {NAV_ITEMS.map((item) => {
         const isActive = currentActive === item.id
         return (
@@ -44,7 +44,7 @@ export function SidebarNav({ activeTab = 'overview' }: SidebarNavProps) {
             key={item.id}
             to={item.path}
             className={cn(
-              'group flex min-h-[52px] items-center gap-3 rounded-xl px-4 py-3 text-sm font-medium transition-all',
+              'group flex min-h-[40px] items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all',
               'hover:bg-accent hover:text-accent-foreground',
               isActive
                 ? 'bg-primary text-primary-foreground shadow-sm'
@@ -54,20 +54,20 @@ export function SidebarNav({ activeTab = 'overview' }: SidebarNavProps) {
             <Icon
               icon={item.icon}
               className={cn(
-                'h-5 w-5 transition-transform group-hover:scale-110',
+                'h-4 w-4 shrink-0 transition-transform group-hover:scale-110',
                 isActive && 'animate-pulse'
               )}
             />
-            <span className="hidden md:inline">{item.label}</span>
+            <span className="hidden md:inline truncate">{item.label}</span>
           </Link>
         )
       })}
       
       {/* Quick Stats Summary */}
-      <div className="mt-auto hidden rounded-xl border bg-muted/30 p-4 md:block">
-        <p className="mb-2 text-xs font-semibold text-muted-foreground">راهنما</p>
-        <p className="text-[11px] leading-relaxed text-muted-foreground">
-          برای مشاهده جزئیات هر بخش، روی منوی سمت راست کلیک کنید
+      <div className="mt-auto hidden rounded-lg border bg-muted/30 p-2 md:block">
+        <p className="mb-1 text-[10px] font-semibold text-muted-foreground">راهنما</p>
+        <p className="text-[9px] leading-tight text-muted-foreground">
+          برای مشاهده جزئیات هر بخش کلیک کنید
         </p>
       </div>
     </nav>
