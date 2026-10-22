@@ -82,6 +82,10 @@ const UserDashboard: React.FC = () => {
         color: 'from-amber-500 to-amber-600',
         description: 'مدیریت سالن و پرسنل'
       })
+    }
+
+    // Finance is only accessible to venue_manager (not club_admin)
+    if (user?.role === 'venue_manager') {
       base.push({
         label: 'امور مالی',
         icon: 'mdi:wallet',
