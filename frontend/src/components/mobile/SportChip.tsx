@@ -41,22 +41,22 @@ const SportChip: React.FC<Props> = ({ sport, active = false, onClick }) => (
     onClick={() => onClick?.(sport)}
     aria-pressed={active}
     className={cn(
-      'inline-flex h-[76px] min-w-[76px] shrink-0 flex-col items-center justify-center gap-1.5 rounded-[20px] px-3 py-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+      'inline-flex h-[64px] min-w-[68px] shrink-0 flex-col items-center justify-center gap-1 rounded-xl px-2.5 py-1.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
       active
-        ? 'border-[1.5px] border-transparent bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 shadow-lg shadow-amber-500/30'
+        ? 'border-[1.5px] border-transparent bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 shadow-md shadow-amber-500/25'
         : 'border border-border bg-card shadow-sm hover:bg-muted/60'
     )}
   >
     <Icon
       icon={sport.icon}
       className={cn(
-        'h-[26px] w-[26px]',
+        'h-[22px] w-[22px]',
         active ? 'text-stone-900' : 'text-amber-600 dark:text-amber-400'
       )}
     />
     <span
       className={cn(
-        'whitespace-nowrap text-xs',
+        'whitespace-nowrap text-[0.7rem]',
         active ? 'font-extrabold text-stone-900' : 'font-semibold text-slate-700 dark:text-slate-300'
       )}
     >
@@ -70,7 +70,7 @@ export const SportChipRow: React.FC<{
   activeKey?: string | null
   onSelect: (sport: Sport) => void
 }> = ({ activeKey, onSelect }) => (
-  <div className="scrollbar-hide flex gap-3 overflow-x-auto px-0.5 pb-2">
+  <div className="scrollbar-hide flex gap-2 overflow-x-auto px-0.5 pb-1">
     {SPORTS.map((s) => (
       <SportChip key={s.key} sport={s} active={activeKey === s.key} onClick={onSelect} />
     ))}

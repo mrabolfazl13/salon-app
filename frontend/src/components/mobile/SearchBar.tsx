@@ -15,7 +15,7 @@ interface Props {
   startAdornment?: React.ReactNode
 }
 
-/** نوار جستجوی مدرن — ارتفاع ۵۲px، target لمسی ≥44 */
+/** نوار جستجوی مدرن — ارتفاع ۴۴px، target لمسی ≥44 */
 const SearchBar: React.FC<Props> = ({
   value = '',
   onChange,
@@ -30,15 +30,15 @@ const SearchBar: React.FC<Props> = ({
   <div
     onClick={readOnly ? onClick : undefined}
     className={cn(
-      'flex h-[52px] items-center gap-2 rounded-[14px] border border-border bg-card px-4 shadow-sm transition-[border-color,box-shadow]',
-      'focus-within:border-amber-500/60 focus-within:shadow-[0_0_0_3px_rgba(245,158,11,0.14)] dark:focus-within:border-amber-400/55 dark:focus-within:shadow-[0_0_0_3px_rgba(251,191,36,0.14)]',
+      'flex h-[44px] items-center gap-1.5 rounded-xl border border-border bg-card px-3 shadow-sm transition-[border-color,box-shadow]',
+      'focus-within:border-amber-500/60 focus-within:shadow-[0_0_0_2px_rgba(245,158,11,0.12)] dark:focus-within:border-amber-400/55 dark:focus-within:shadow-[0_0_0_2px_rgba(251,191,36,0.12)]',
       readOnly ? 'cursor-pointer' : 'cursor-text'
     )}
   >
     {/* #d97706 روی سفید ۳٫۲:۱ است — حتی برای گرافیک غیرمتنی هم زیر ۳:۱؛ نسخهٔ warning.main */}
     <Icon
       icon="mdi:magnify"
-      className="h-[22px] w-[22px] shrink-0 text-amber-700 dark:text-amber-400"
+      className="h-[18px] w-[18px] shrink-0 text-amber-700 dark:text-amber-400"
       aria-hidden="true"
     />
     <input
@@ -55,7 +55,7 @@ const SearchBar: React.FC<Props> = ({
       readOnly={readOnly}
       autoFocus={autoFocus}
       aria-label="جستجو"
-      className="h-full min-w-0 flex-1 bg-transparent text-[0.95rem] text-foreground outline-none placeholder:text-muted-foreground placeholder:opacity-80"
+      className="h-full min-w-0 flex-1 bg-transparent text-[0.82rem] text-foreground outline-none placeholder:text-muted-foreground placeholder:opacity-80"
     />
     {startAdornment}
     {!readOnly && value && (
@@ -67,9 +67,9 @@ const SearchBar: React.FC<Props> = ({
           onChange?.('')
         }}
         aria-label="پاک کردن"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
-        <Icon icon="mdi:close-circle" style={{ width: 20, height: 20 }} />
+        <Icon icon="mdi:close-circle" style={{ width: 16, height: 16 }} />
       </button>
     )}
   </div>

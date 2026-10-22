@@ -27,37 +27,37 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
 
   return (
     <motion.div
-      whileHover={{ y: -4 }}
-      transition={{ duration: 0.25, ease: 'easeOut' }}
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.2, ease: 'easeOut' }}
       className="h-full"
     >
       <Link
         to={href}
         data-testid="venue-card"
-        className="group flex h-full flex-col overflow-hidden rounded-[16px] border border-border bg-card text-inherit no-underline shadow-sm transition-colors [&_img]:transition-transform [&_img]:duration-300 group-hover:[&_img]:scale-[1.04] hover:border-amber-500/40 dark:hover:border-amber-400/35"
+        className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-card text-inherit no-underline shadow-sm transition-colors [&_img]:transition-transform [&_img]:duration-300 group-hover:[&_img]:scale-[1.02] hover:border-amber-500/40 dark:hover:border-amber-400/35"
       >
         {/* تصویر بزرگ + قلب روی تصویر */}
-        <div className="p-2 pb-0">
+        <div className="p-1.5 pb-0">
           <VenueImage images={venue.images} name={venue.name} ratio="16:10" verified={venue.is_verified}>
             <FavoriteButton venue={{ id: venue.id, name: venue.name }} size="sm" />
           </VenueImage>
         </div>
 
-        <div className="flex flex-1 flex-col gap-2 p-4 pt-3">
+        <div className="flex flex-1 flex-col gap-1.5 p-3 pt-2">
           {/* نام + امتیاز */}
           <div className="flex items-start justify-between gap-2">
-            <h2 className="min-w-0 truncate text-base font-extrabold leading-snug text-foreground">
+            <h2 className="min-w-0 truncate text-[0.9rem] font-extrabold leading-snug text-foreground">
               {venue.name}
             </h2>
-            <div className="shrink-0 pt-0.5">
+            <div className="shrink-0">
               <Rating value={venue.average_rating} count={venue.total_reviews} />
             </div>
           </div>
 
           {/* آدرس */}
-          <div className="flex min-w-0 items-center gap-2">
-            <Icon icon="mdi:map-marker-outline" aria-hidden="true" className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400" />
-            <p className="truncate text-[0.8rem] text-muted-foreground">{venue.address}</p>
+          <div className="flex min-w-0 items-center gap-1.5">
+            <Icon icon="mdi:map-marker-outline" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <p className="truncate text-[0.7rem] text-muted-foreground">{venue.address}</p>
           </div>
 
           {/* تگ امکانات */}
@@ -66,13 +66,13 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
               {am.slice(0, 3).map((a, i) => (
                 <span
                   key={i}
-                  className="inline-flex h-6 items-center rounded-full bg-amber-500/10 px-2 text-xs font-semibold text-amber-700 dark:bg-amber-400/10 dark:text-amber-300"
+                  className="inline-flex h-5 items-center rounded-full bg-amber-500/10 px-1.5 text-[0.65rem] font-semibold text-amber-700 dark:bg-amber-400/10 dark:text-amber-300"
                 >
                   {a}
                 </span>
               ))}
               {am.length > 3 && (
-                <span className="inline-flex h-6 items-center rounded-full bg-foreground/5 px-2 text-xs font-bold text-muted-foreground">
+                <span className="inline-flex h-5 items-center rounded-full bg-foreground/5 px-1.5 text-[0.65rem] font-bold text-muted-foreground">
                   +{(am.length - 3).toLocaleString('fa-IR')}
                 </span>
               )}
@@ -80,16 +80,16 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
           )}
 
           {/* فوتر: قیمت + دکمه رزرو */}
-          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-2.5">
+          <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-2">
             <div className="min-w-0">
-              <Price value={venue.price} from size="md" />
+              <Price value={venue.price} from size="sm" />
             </div>
             <button
               type="button"
               onClick={handleBook}
-              className="inline-flex min-h-11 min-w-11 shrink-0 items-center gap-2 rounded-xl border-0 bg-gradient-to-br from-amber-400 to-amber-500 px-4 text-[0.85rem] font-extrabold text-stone-900 shadow-[0_4px_14px_rgba(245,158,11,0.35)] transition hover:brightness-105 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex min-h-9 min-w-9 shrink-0 items-center gap-1.5 rounded-lg border-0 bg-gradient-to-br from-amber-400 to-amber-500 px-3 text-[0.75rem] font-extrabold text-stone-900 shadow-[0_2px_8px_rgba(245,158,11,0.3)] transition hover:brightness-105 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
-              <Icon icon="mdi:calendar-check" aria-hidden="true" className="h-[17px] w-[17px]" />
+              <Icon icon="mdi:calendar-check" aria-hidden="true" className="h-[14px] w-[14px]" />
               رزرو
             </button>
           </div>

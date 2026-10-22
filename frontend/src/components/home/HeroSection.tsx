@@ -62,11 +62,11 @@ export const HeroSection: React.FC = () => {
   }, [])
 
   return (
-    <section className="relative mb-4 overflow-hidden rounded-2xl bg-gradient-to-bl from-slate-900 via-blue-900 to-blue-700 px-4 py-8 text-white shadow-[0_20px_60px_rgba(15,23,42,0.4)] sm:px-6 sm:py-10 md:px-8 md:py-12">
+    <section className="relative mb-3 overflow-hidden rounded-xl bg-gradient-to-bl from-slate-900 via-blue-900 to-blue-700 px-3 py-5 text-white shadow-[0_12px_40px_rgba(15,23,42,0.3)] sm:px-6 sm:py-8 md:px-8 md:py-10">
       {/* پس‌زمینه متحرک */}
-      <div className="pointer-events-none absolute -start-20 -top-20 h-[250px] w-[250px] animate-float rounded-full bg-white/[0.08]" />
-      <div className="pointer-events-none absolute -bottom-16 -end-16 h-[200px] w-[200px] rounded-full border-[3px] border-dashed border-white/10 [animation:spin_20s_linear_infinite]" />
-      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[300px] w-[300px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/[0.06] blur-[60px]" />
+      <div className="pointer-events-none absolute -start-20 -top-20 h-[200px] w-[200px] animate-float rounded-full bg-white/[0.08]" />
+      <div className="pointer-events-none absolute -bottom-16 -end-16 h-[160px] w-[160px] rounded-full border-[3px] border-dashed border-white/10 [animation:spin_20s_linear_infinite]" />
+      <div className="pointer-events-none absolute left-1/2 top-1/2 h-[240px] w-[240px] -translate-x-1/2 -translate-y-1/2 rounded-full bg-amber-500/[0.06] blur-[50px]" />
 
       {/* محتوای اصلی */}
       <div className="relative z-10">
@@ -76,7 +76,7 @@ export const HeroSection: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6 }}
         >
-          <h1 className="mb-4 text-balance text-center text-[1.8rem] font-black leading-[1.3] sm:text-[2.2rem] md:text-[2.8rem]">
+          <h1 className="mb-3 text-balance text-center text-[1.4rem] font-black leading-[1.3] sm:text-[1.8rem] md:text-[2.2rem]">
             فوتسال رو{' '}
             <span className="bg-gradient-to-br from-amber-300 to-amber-500 bg-clip-text text-transparent">
               حرفه‌ای‌تر
@@ -91,7 +91,7 @@ export const HeroSection: React.FC = () => {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.1 }}
         >
-          <p className="mx-auto mb-6 max-w-[600px] text-balance text-center text-[0.95rem] leading-[1.8] text-white/90 sm:text-[1.05rem]">
+          <p className="mx-auto mb-4 max-w-[500px] text-balance text-center text-[0.78rem] leading-[1.7] text-white/90 sm:text-[0.9rem]">
             بهترین زمین‌ها، راحت‌ترین رزرو، هیجان‌انگیزترین بازی‌ها
             <br className="hidden sm:block" />
             همین حالا شروع کن و به هزاران بازیکن بپیوند
@@ -103,21 +103,21 @@ export const HeroSection: React.FC = () => {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.6, delay: 0.2 }}
-          className="mb-8 flex flex-wrap justify-center gap-3"
+          className="mb-5 flex flex-wrap justify-center gap-2"
         >
           <Button
             onClick={() => navigate('/venues')}
-            className="h-12 bg-gradient-to-br from-amber-300 to-amber-500 px-6 text-[0.95rem] font-extrabold text-stone-900 shadow-[0_8px_24px_rgba(251,191,36,0.35)] hover:shadow-[0_12px_32px_rgba(251,191,36,0.45)]"
+            className="h-10 bg-gradient-to-br from-amber-300 to-amber-500 px-5 text-[0.82rem] font-extrabold text-stone-900 shadow-[0_4px_16px_rgba(251,191,36,0.3)] hover:shadow-[0_6px_20px_rgba(251,191,36,0.4)]"
           >
-            <Icon icon="mdi:soccer" style={{ width: 20, height: 20 }} />
+            <Icon icon="mdi:soccer" style={{ width: 16, height: 16 }} />
             مشاهده زمین‌ها
           </Button>
           <Button
             onClick={() => navigate(secondaryCta.to)}
             variant="outline"
-            className="h-12 border-white/50 bg-transparent px-6 text-[0.95rem] font-bold text-white hover:border-white hover:bg-white/10 hover:text-white"
+            className="h-10 border-white/50 bg-transparent px-5 text-[0.82rem] font-bold text-white hover:border-white hover:bg-white/10 hover:text-white"
           >
-            <Icon icon={secondaryCta.icon} style={{ width: 20, height: 20 }} />
+            <Icon icon={secondaryCta.icon} style={{ width: 16, height: 16 }} />
             {secondaryCta.label}
           </Button>
         </motion.div>
@@ -128,25 +128,25 @@ export const HeroSection: React.FC = () => {
           initial={{ opacity: 0, x: 20 }}
           animate={{ opacity: 1, x: 0 }}
           transition={{ duration: 0.4 }}
-          className="mb-8 flex items-center justify-center gap-3 rounded-xl bg-white/10 px-5 py-3 backdrop-blur-md"
+          className="mb-5 flex items-center justify-center gap-2 rounded-lg bg-white/10 px-3 py-2 backdrop-blur-md"
         >
           <span
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-[10px]"
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
             style={{ background: FEATURES[currentFeature].gradient }}
           >
             <Icon
               icon={FEATURES[currentFeature].icon}
-              style={{ width: 22, height: 22, color: '#fff' }}
+              style={{ width: 18, height: 18, color: '#fff' }}
             />
           </span>
           <div>
-            <p className="text-sm font-extrabold">{FEATURES[currentFeature].title}</p>
-            <p className="text-xs text-white/80">{FEATURES[currentFeature].desc}</p>
+            <p className="text-xs font-extrabold">{FEATURES[currentFeature].title}</p>
+            <p className="text-[0.65rem] text-white/80">{FEATURES[currentFeature].desc}</p>
           </div>
         </motion.div>
 
         {/* آمار اجتماعی */}
-        <div className="mt-3 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div className="mt-2 grid grid-cols-2 gap-2 md:grid-cols-4">
           {STATS.map((stat, index) => (
             <motion.div
               key={stat.label}
@@ -154,16 +154,16 @@ export const HeroSection: React.FC = () => {
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4, delay: index * 0.1 }}
             >
-              <div className="flex items-center gap-3 rounded-xl border border-white/[0.12] bg-white/[0.08] p-3 backdrop-blur-md">
+              <div className="flex items-center gap-2 rounded-lg border border-white/[0.12] bg-white/[0.08] p-2 backdrop-blur-md">
                 <span
-                  className="flex h-[42px] w-[42px] shrink-0 items-center justify-center rounded-[10px]"
+                  className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg"
                   style={{ backgroundColor: `${stat.color}20` }}
                 >
-                  <Icon icon={stat.icon} style={{ width: 22, height: 22, color: stat.color }} />
+                  <Icon icon={stat.icon} style={{ width: 16, height: 16, color: stat.color }} />
                 </span>
                 <div>
-                  <p className="text-[1.1rem] font-black tabular-nums">{stat.value}</p>
-                  <p className="text-xs text-white/85">{stat.label}</p>
+                  <p className="text-[0.85rem] font-black tabular-nums">{stat.value}</p>
+                  <p className="text-[0.62rem] text-white/85">{stat.label}</p>
                 </div>
               </div>
             </motion.div>

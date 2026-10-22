@@ -80,9 +80,9 @@ const BottomNavigation: React.FC = () => {
   return (
     <nav
       aria-label="ناوبری اصلی"
-      className="fixed inset-x-0 bottom-0 z-[60] border-t border-border bg-background/95 pb-safe backdrop-blur-xl shadow-[0_-4px_20px_rgba(15,23,42,0.06)] md:hidden dark:shadow-[0_-4px_20px_rgba(0,0,0,0.45)]"
+      className="fixed inset-x-0 bottom-0 z-[60] border-t border-border bg-background/95 pb-safe backdrop-blur-xl shadow-[0_-2px_12px_rgba(15,23,42,0.05)] md:hidden dark:shadow-[0_-2px_12px_rgba(0,0,0,0.4)]"
     >
-      <div className="flex h-[62px]">
+      <div className="flex h-[56px]">
         {filteredItems.map((item) => {
           const active = isActive(pathname, item.href)
           const to = item.requiresAuth && !isAuthenticated ? '/login' : item.href
@@ -90,15 +90,15 @@ const BottomNavigation: React.FC = () => {
             <Link
               key={item.href}
               to={to}
-              className="flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-[3px] no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              className="flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-[2px] no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               aria-current={active ? 'page' : undefined}
             >
               <NavIcon active={active} icon={item.icon} />
               <span
                 className={
                   active
-                    ? 'text-xs font-bold text-amber-700 dark:text-amber-400'
-                    : 'text-xs font-medium text-slate-500 dark:text-slate-400'
+                    ? 'text-[0.65rem] font-bold text-amber-700 dark:text-amber-400'
+                    : 'text-[0.65rem] font-medium text-slate-500 dark:text-slate-400'
                 }
               >
                 {item.label}
@@ -118,16 +118,16 @@ const NavIcon: React.FC<{ active: boolean; icon: string }> = ({ active, icon }) 
     transition={{ duration: 0.2 }}
     className={
       active
-        ? 'flex h-[30px] w-[46px] items-center justify-center rounded-full bg-gradient-to-br from-amber-500/15 to-orange-500/15 dark:from-amber-400/20 dark:to-orange-400/20'
-        : 'flex h-[30px] w-[46px] items-center justify-center rounded-full'
+        ? 'flex h-[26px] w-[40px] items-center justify-center rounded-full bg-gradient-to-br from-amber-500/15 to-orange-500/15 dark:from-amber-400/20 dark:to-orange-400/20'
+        : 'flex h-[26px] w-[40px] items-center justify-center rounded-full'
     }
   >
     <Icon
       icon={`mdi:${icon.endsWith('-outline') || !active ? icon : icon + '-outline'}`}
       className={
         active
-          ? 'h-[22px] w-[22px] text-amber-600 dark:text-amber-400'
-          : 'h-[22px] w-[22px] text-slate-500 dark:text-slate-400'
+          ? 'h-[20px] w-[20px] text-amber-600 dark:text-amber-400'
+          : 'h-[20px] w-[20px] text-slate-500 dark:text-slate-400'
       }
     />
   </motion.span>

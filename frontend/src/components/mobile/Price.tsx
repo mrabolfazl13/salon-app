@@ -9,16 +9,16 @@ interface Props {
 }
 
 const sizes = {
-  sm: { main: 'text-[0.85rem]', label: 'text-xs' },
-  md: { main: 'text-[1.05rem]', label: 'text-xs' },
-  lg: { main: 'text-[1.35rem]', label: 'text-[0.78rem]' },
+  sm: { main: 'text-[0.75rem]', label: 'text-[0.65rem]' },
+  md: { main: 'text-[0.88rem]', label: 'text-[0.68rem]' },
+  lg: { main: 'text-[1.1rem]', label: 'text-[0.72rem]' },
 } as const
 
 /** قیمت برجسته و خوانا — «از: ۳۸۰٬۰۰۰ ریال» */
 const Price: React.FC<Props> = ({ value, from = false, size = 'md', color }) => {
   const s = sizes[size]
   return (
-    <span className="inline-flex flex-wrap items-baseline gap-1">
+    <span className="inline-flex flex-wrap items-baseline gap-0.5">
       {from && <span className={cn('text-muted-foreground', s.label)}>از:</span>}
       <span
         dir="rtl"

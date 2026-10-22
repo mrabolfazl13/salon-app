@@ -22,14 +22,14 @@ const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true }) 
   const sub = subtitle || 'امروز کجا می‌خوای بازی کنی؟'
 
   return (
-    <div className="flex items-center justify-between gap-3 pb-4 pt-3 md:pt-0">
+    <div className="flex items-center justify-between gap-2 pb-2 pt-1 md:pt-0">
       <div className="min-w-0">
-        <p className="text-[1.35rem] font-extrabold leading-[1.4] text-foreground">{heading}</p>
-        <p className="mt-0.5 text-[0.85rem] text-muted-foreground">{sub}</p>
+        <p className="text-[1.1rem] font-extrabold leading-[1.3] text-foreground">{heading}</p>
+        <p className="mt-0.5 text-[0.72rem] text-muted-foreground">{sub}</p>
       </div>
-      <div className="flex shrink-0 items-center gap-1">
+      <div className="flex shrink-0 items-center gap-0.5">
         <div className="block md:hidden">
-          <ThemeToggle size={18} />
+          <ThemeToggle size={16} />
         </div>
         {showAccount && (
           <div className="flex shrink-0 md:hidden">
@@ -37,10 +37,10 @@ const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true }) 
               <Link
                 to="/profile"
                 aria-label="پروفایل"
-                className="flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-9 w-9 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <Avatar className="h-11 w-11 shadow-[0_4px_14px_rgba(245,158,11,0.3)]">
-                  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-base font-extrabold text-stone-900">
+                <Avatar className="h-9 w-9 shadow-[0_2px_8px_rgba(245,158,11,0.2)]">
+                  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-sm font-extrabold text-stone-900">
                     {user?.fullName?.[0] || 'ک'}
                   </AvatarFallback>
                 </Avatar>
@@ -49,9 +49,9 @@ const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true }) 
               <Link
                 to="/login"
                 aria-label="ورود"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
-                <Icon icon="mdi:login-variant" style={{ width: 22, height: 22 }} />
+                <Icon icon="mdi:login-variant" style={{ width: 18, height: 18 }} />
               </Link>
             )}
           </div>
