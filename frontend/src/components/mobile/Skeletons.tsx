@@ -103,7 +103,7 @@ export const VenueCardSkeleton: React.FC = () => (
 )
 
 export const VenueCardSkeletonList: React.FC<{ count?: number }> = ({ count = 3 }) => (
-  <div className="flex flex-col gap-5">
+  <div className="flex flex-col gap-3">
     {Array.from({ length: count }).map((_, i) => (
       <VenueCardSkeleton key={i} />
     ))}
@@ -123,8 +123,8 @@ export const VenueDetailSkeleton: React.FC = () => (
           <Shimmer key={i} width={72} height={30} className="rounded-[10px]" />
         ))}
       </div>
-      <Shimmer height={90} className="rounded-2xl" />
-      <Shimmer height={90} className="rounded-2xl" />
+      <Shimmer height={90} className="rounded-lg" />
+      <Shimmer height={90} className="rounded-lg" />
     </div>
   </div>
 )
@@ -133,7 +133,7 @@ export const VenueDetailSkeleton: React.FC = () => (
 export const SlotListSkeleton: React.FC = () => (
   <div className="flex flex-col gap-3">
     {[1, 2, 3, 4].map((i) => (
-      <Shimmer key={i} height={64} className="rounded-2xl" />
+      <Shimmer key={i} height={64} className="rounded-lg" />
     ))}
   </div>
 )

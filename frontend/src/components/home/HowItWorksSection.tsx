@@ -80,7 +80,7 @@ const STEPS = [
 
 export const HowItWorksSection: React.FC = () => {
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="چطور کار می‌کنه؟"
         subtitle="در ۵ قدم ساده، زمین رزرو کن"

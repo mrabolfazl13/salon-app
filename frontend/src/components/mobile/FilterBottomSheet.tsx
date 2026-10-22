@@ -48,14 +48,14 @@ const PriceRangeSlider: React.FC<{
   const widthPct = ((hi - lo) / span) * 100
 
   const inputClass =
-    'pointer-events-none absolute inset-x-0 top-1/2 z-10 h-11 w-full -translate-y-1/2 cursor-pointer appearance-none bg-transparent outline-none ' +
+    'pointer-events-none absolute inset-x-0 top-1/2 z-10 h-9 w-full -translate-y-1/2 cursor-pointer appearance-none bg-transparent outline-none ' +
     '[&::-webkit-slider-runnable-track]:h-1.5 [&::-webkit-slider-runnable-track]:bg-transparent ' +
     '[&::-webkit-slider-thumb]:pointer-events-auto [&::-webkit-slider-thumb]:h-5 [&::-webkit-slider-thumb]:w-5 [&::-webkit-slider-thumb]:appearance-none [&::-webkit-slider-thumb]:rounded-full [&::-webkit-slider-thumb]:border-2 [&::-webkit-slider-thumb]:border-brand [&::-webkit-slider-thumb]:bg-card [&::-webkit-slider-thumb]:shadow-md ' +
     '[&::-moz-range-track]:bg-transparent [&::-moz-range-thumb]:pointer-events-auto [&::-moz-range-thumb]:h-5 [&::-moz-range-thumb]:w-5 [&::-moz-range-thumb]:rounded-full [&::-moz-range-thumb]:border-2 [&::-moz-range-thumb]:border-brand [&::-moz-range-thumb]:bg-card ' +
     'focus-visible:[&::-webkit-slider-thumb]:ring-2 focus-visible:[&::-webkit-slider-thumb]:ring-ring/50 focus-visible:[&::-webkit-slider-thumb]:ring-offset-2 focus-visible:[&::-webkit-slider-thumb]:ring-offset-background'
 
   return (
-    <div className="relative mb-6 h-11 w-full">
+    <div className="relative mb-4 h-9 w-full">
       <div className="absolute inset-x-0 top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-muted" />
       <div
         className="absolute top-1/2 h-1.5 -translate-y-1/2 rounded-full bg-brand"
@@ -89,7 +89,7 @@ const PriceRangeSlider: React.FC<{
 
 const chipClass = (on: boolean) =>
   cn(
-    'inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border px-3 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+    'inline-flex min-h-9 items-center gap-1.5 rounded-[10px] border px-3 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
     on
       ? 'border-amber-500 bg-amber-500/[0.12] text-amber-800 dark:border-amber-400 dark:bg-amber-400/15 dark:text-amber-300'
       : 'border-transparent bg-slate-900/[0.04] text-foreground hover:bg-slate-900/[0.07] dark:bg-white/[0.06] dark:hover:bg-white/[0.1]'
@@ -162,7 +162,7 @@ const FilterBottomSheet: React.FC<Props> = ({
             <p className="text-[1.05rem] font-extrabold text-foreground">
               فیلترها
               {activeCount > 0 && (
-                <span className="ms-2 text-xs font-bold text-amber-700 dark:text-amber-400">
+                <span className="ms-2 text-[0.68rem] font-bold text-amber-700 dark:text-amber-400">
                   ({activeCount.toLocaleString('fa-IR')})
                 </span>
               )}
@@ -170,8 +170,8 @@ const FilterBottomSheet: React.FC<Props> = ({
           </div>
 
           {/* نوع ورزش */}
-          <p className="mb-2.5 text-[0.85rem] font-bold text-foreground">نوع ورزش</p>
-          <div className="mb-6 flex flex-wrap gap-2">
+          <p className="mb-1.5 text-[0.85rem] font-bold text-foreground">نوع ورزش</p>
+          <div className="mb-4 flex flex-wrap gap-2">
             {SPORTS.map((sport) => {
               const on = draft.sportKey === sport.key
               return (
@@ -197,7 +197,7 @@ const FilterBottomSheet: React.FC<Props> = ({
 
           {/* محدوده قیمت */}
           <p className="mb-1 text-[0.85rem] font-bold text-foreground">محدوده قیمت</p>
-          <p className="mb-2 text-xs text-muted-foreground">
+          <p className="mb-1 text-[0.68rem] text-muted-foreground">
             {formatPrice(priceRange[0])} تا {formatPrice(priceRange[1])}
           </p>
           <PriceRangeSlider
@@ -217,8 +217,8 @@ const FilterBottomSheet: React.FC<Props> = ({
           {/* امکانات */}
           {amenityOptions.length > 0 && (
             <>
-              <p className="mb-2.5 text-[0.85rem] font-bold text-foreground">امکانات</p>
-              <div className="mb-6 flex flex-wrap gap-2">
+              <p className="mb-1.5 text-[0.85rem] font-bold text-foreground">امکانات</p>
+              <div className="mb-4 flex flex-wrap gap-2">
                 {amenityOptions.slice(0, 12).map((a) => {
                   const on = draft.amenities?.includes(a) ?? false
                   return (
@@ -241,7 +241,7 @@ const FilterBottomSheet: React.FC<Props> = ({
           {/* فقط تأیید شده */}
           <label
             htmlFor="venue-verified-only"
-            className="mb-6 flex min-h-11 cursor-pointer items-center justify-between gap-3"
+            className="mb-4 flex min-h-9 cursor-pointer items-center justify-between gap-3"
           >
             <span className="flex items-center gap-2">
               <Icon

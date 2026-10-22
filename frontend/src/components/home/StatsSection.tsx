@@ -53,7 +53,7 @@ const StatItem: React.FC<StatItemProps> = ({ icon, value, label, suffix = '', co
       >
         {/* آیکون */}
         <span
-          className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-lg"
+          className="mx-auto mb-1 flex h-12 w-12 items-center justify-center rounded-lg"
           style={{ background: `${color}15` }}
         >
           <Icon icon={icon} style={{ width: 24, height: 24, color }} />
@@ -120,7 +120,7 @@ const STATS = [
 
 export const StatsSection: React.FC = () => {
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="آمار و ارقام"
         subtitle="اعتماد هزاران بازیکن، افتخار ماست"

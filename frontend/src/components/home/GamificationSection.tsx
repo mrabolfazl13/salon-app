@@ -35,7 +35,7 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
       transition={{ duration: 0.4, delay }}
     >
       <div
-        className={`mb-2 flex items-center gap-2 rounded-lg p-2 transition-colors duration-200 hover:bg-white/[0.12] ${
+        className={`mb-1 flex items-center gap-2 rounded-lg p-2 transition-colors duration-200 hover:bg-white/[0.12] ${
           rank <= 3 ? 'border border-white/15 bg-white/[0.08]' : 'border border-transparent'
         }`}
       >
@@ -99,7 +99,7 @@ const Badge: React.FC<BadgeProps> = ({ icon, name, description, color, unlocked,
     transition={{ duration: 0.4, delay }}
   >
     <div
-      className="rounded-2xl border border-border bg-card p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
+      className="rounded-lg border border-border bg-card p-4 text-center transition-all duration-300 hover:-translate-y-1 hover:shadow-lg"
       style={{ borderColor: unlocked ? color : undefined, opacity: unlocked ? 1 : 0.5 }}
     >
       <span
@@ -111,11 +111,11 @@ const Badge: React.FC<BadgeProps> = ({ icon, name, description, color, unlocked,
       <h3 className="mb-1 text-[0.85rem] font-bold text-foreground">
         {name}
       </h3>
-      <p className="text-xs leading-relaxed text-muted-foreground">
+      <p className="text-[0.68rem] leading-relaxed text-muted-foreground">
         {description}
       </p>
       {!unlocked && (
-        <span className="mt-2 inline-block rounded-md bg-black/5 px-2 py-0.5 text-xs text-muted-foreground dark:bg-white/10">
+        <span className="mt-2 inline-block rounded-md bg-black/5 px-2 py-0.5 text-[0.68rem] text-muted-foreground dark:bg-white/10">
           قفل شده
         </span>
       )}
@@ -168,7 +168,7 @@ export const GamificationSection: React.FC = () => {
   const items = q.data?.items ?? []
 
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="چالش‌ها و جوایز"
         subtitle="بازی کن، امتیاز بگیر، جایزه ببر!"
@@ -192,7 +192,7 @@ export const GamificationSection: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate(isAuthenticated ? '/teams' : '/login')}
-                className="min-h-11 px-3 text-[0.78rem] font-bold text-amber-400 hover:bg-amber-400/10 hover:text-amber-300"
+                className="min-h-9 px-3 text-[0.78rem] font-bold text-amber-400 hover:bg-amber-400/10 hover:text-amber-300"
               >
                 مشاهده همه
               </Button>
@@ -200,10 +200,10 @@ export const GamificationSection: React.FC = () => {
 
             {q.isPending && isAuthenticated ? (
               [1, 2, 3].map((i) => (
-                <Skeleton aria-hidden="true" key={i} className="mb-2 h-[62px] w-full rounded-xl bg-white/10" />
+                <Skeleton aria-hidden="true" key={i} className="mb-1 h-[62px] w-full rounded-xl bg-white/10" />
               ))
             ) : items.length === 0 ? (
-              <p className="py-3 text-sm text-white/[0.72]">
+              <p className="py-3 text-[0.68rem] text-white/[0.72]">
                 هنوز جدولی منتشر نشده — بعد از اولین مسابقات رسمی همین‌جا پر می‌شود.
               </p>
             ) : (

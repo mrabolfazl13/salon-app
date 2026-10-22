@@ -24,7 +24,7 @@ export const FinalCTA: React.FC = () => {
   const formatTime = (num: number) => toPersianDigits(num.toString().padStart(2, '0'))
 
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
@@ -42,13 +42,13 @@ export const FinalCTA: React.FC = () => {
               <span className="flex h-14 w-14 animate-[bounce_2s_ease-in-out_infinite] items-center justify-center rounded-[14px] bg-gradient-to-br from-amber-400 to-amber-500 motion-reduce:animate-none">
                 <Icon icon="mdi:gift-outline" style={{ width: 32, height: 32, color: '#1c1917' }} />
               </span>
-              <h2 className="text-center text-2xl font-black sm:text-[1.8rem] md:text-[2.2rem]">
+              <h2 className="text-center text-xl font-black sm:text-[1.8rem] md:text-[2.2rem]">
                 پیشنهاد ویژه برای تازه‌واردها!
               </h2>
             </div>
 
             {/* توضیحات */}
-            <p className="mx-auto mb-6 max-w-[600px] text-center text-[0.95rem] leading-[1.8] text-white/85 sm:text-[1.05rem]">
+            <p className="mx-auto mb-4 max-w-[600px] text-center text-[0.95rem] leading-[1.8] text-white/85 sm:text-[1.05rem]">
               همین حالا ثبت‌نام کن و{' '}
               <span className="font-extrabold text-amber-400">
                 ۵۰٪ تخفیف
@@ -57,7 +57,7 @@ export const FinalCTA: React.FC = () => {
             </p>
 
             {/* شمارش معکوس */}
-            <div className="mb-6 flex justify-center gap-4">
+            <div className="mb-4 flex justify-center gap-4">
               {[
                 { value: formatTime(hours), label: 'ساعت' },
                 { value: formatTime(minutes), label: 'دقیقه' },
@@ -70,7 +70,7 @@ export const FinalCTA: React.FC = () => {
                   <p className="text-[1.8rem] font-black tabular-nums text-amber-400">
                     {item.value}
                   </p>
-                  <p className="text-xs text-white/70">
+                  <p className="text-[0.68rem] text-white/70">
                     {item.label}
                   </p>
                 </div>
@@ -78,7 +78,7 @@ export const FinalCTA: React.FC = () => {
             </div>
 
             {/* مزایا */}
-            <div className="mb-6 flex flex-wrap justify-center gap-4">
+            <div className="mb-4 flex flex-wrap justify-center gap-4">
               {[
                 'ثبت‌نام رایگان',
                 'بدون نیاز به کارت اعتباری',
@@ -100,7 +100,7 @@ export const FinalCTA: React.FC = () => {
               <Button
                 onClick={() => navigate('/register')}
                 style={{ background: 'linear-gradient(135deg, #fbbf24, #f59e0b)' }}
-                className="h-12 rounded-xl px-8 text-base font-extrabold text-stone-900 shadow-[0_8px_24px_rgba(251,191,36,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(251,191,36,0.45)]"
+                className="h-12 rounded-xl px-8 text-sm font-extrabold text-stone-900 shadow-[0_8px_24px_rgba(251,191,36,0.35)] transition-all duration-300 hover:-translate-y-0.5 hover:shadow-[0_12px_32px_rgba(251,191,36,0.45)]"
               >
                 <Icon icon="mdi:account-plus" style={{ width: 22, height: 22 }} />
                 ثبت‌نام و دریافت تخفیف
@@ -108,7 +108,7 @@ export const FinalCTA: React.FC = () => {
               <Button
                 onClick={() => navigate('/venues')}
                 variant="outline"
-                className="h-12 rounded-xl border-white/40 bg-transparent px-8 text-base font-bold text-white hover:border-white hover:bg-white/10 hover:text-white"
+                className="h-12 rounded-xl border-white/40 bg-transparent px-8 text-sm font-bold text-white hover:border-white hover:bg-white/10 hover:text-white"
               >
                 <Icon icon="mdi:soccer" style={{ width: 22, height: 22 }} />
                 مشاهده زمین‌ها

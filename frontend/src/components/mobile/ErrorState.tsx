@@ -25,7 +25,7 @@ const ErrorState: React.FC<Props> = ({
       <Icon icon="mdi:alert-circle-outline" className="h-10 w-10 text-red-500 dark:text-red-400" />
     </div>
     <p className="mb-1.5 text-[1.05rem] font-extrabold text-foreground">{title}</p>
-    <p className="text-sm text-muted-foreground">{description}</p>
+    <p className="text-[0.68rem] text-muted-foreground">{description}</p>
     {onRetry && (
       <Button
         variant="outline"

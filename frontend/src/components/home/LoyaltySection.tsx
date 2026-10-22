@@ -33,7 +33,7 @@ const LevelCard: React.FC<LevelCardProps> = ({
     transition={{ duration: 0.5, delay }}
   >
     <div
-      className="relative overflow-hidden rounded-2xl border-2 border-border bg-card p-5 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+      className="relative overflow-hidden rounded-lg border-2 border-border bg-card p-3 transition-all duration-300 hover:-translate-y-1 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
       style={{
         backgroundColor: isCurrent ? `${color}15` : undefined,
         borderColor: isCurrent ? color : undefined,
@@ -41,7 +41,7 @@ const LevelCard: React.FC<LevelCardProps> = ({
     >
       {isCurrent && (
         <span
-          className="absolute end-3 top-3 rounded-md px-2 py-0.5 text-xs font-bold text-white"
+          className="absolute end-3 top-3 rounded-md px-2 py-0.5 text-[0.68rem] font-bold text-white"
           style={{ backgroundColor: color }}
         >
           سطح فعلی
@@ -55,7 +55,7 @@ const LevelCard: React.FC<LevelCardProps> = ({
         <Icon icon={icon} style={{ width: 28, height: 28, color }} />
       </span>
 
-      <h3 className="mb-1 text-base font-extrabold text-foreground">
+      <h3 className="mb-1 text-sm font-extrabold text-foreground">
         {name}
       </h3>
 
@@ -63,7 +63,7 @@ const LevelCard: React.FC<LevelCardProps> = ({
         {description}
       </p>
 
-      <p className="text-xs font-bold" style={{ color }}>
+      <p className="text-[0.68rem] font-bold" style={{ color }}>
         از {minPoints.toLocaleString('fa-IR')} امتیاز
         {maxPoints && ` تا ${maxPoints.toLocaleString('fa-IR')} امتیاز`}
       </p>
@@ -101,7 +101,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
       transition={{ duration: 0.4, delay }}
     >
       <div
-        className="rounded-2xl border border-border bg-card p-5 transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+        className="rounded-lg border border-border bg-card p-3 transition-all duration-300 hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
         style={{ borderColor: canClaim ? color : undefined, opacity: canClaim ? 1 : 0.7 }}
       >
         <span
@@ -115,12 +115,12 @@ const RewardCard: React.FC<RewardCardProps> = ({
           {title}
         </h3>
 
-        <p className="mb-3 text-xs leading-relaxed text-muted-foreground">
+        <p className="mb-3 text-[0.68rem] leading-relaxed text-muted-foreground">
           {description}
         </p>
 
         {/* نوار پیشرفت */}
-        <div className="mb-2">
+        <div className="mb-1">
           <Progress
             value={progress}
             aria-label={`پیشرفت به سطح ${title}`}
@@ -131,7 +131,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
         </div>
 
         <div className="flex items-center justify-between">
-          <span className="text-xs text-muted-foreground">
+          <span className="text-[0.68rem] text-muted-foreground">
             {userPoints.toLocaleString('fa-IR')} از {pointsRequired.toLocaleString('fa-IR')}
           </span>
           {canClaim && (
@@ -139,7 +139,7 @@ const RewardCard: React.FC<RewardCardProps> = ({
               type="button"
               variant="ghost"
               size="sm"
-              className="min-h-11 rounded-lg px-3 text-xs font-bold text-white shadow-none hover:opacity-90"
+              className="min-h-9 rounded-lg px-3 text-[0.68rem] font-bold text-white shadow-none hover:opacity-90"
               style={{ backgroundColor: color }}
             >
               دریافت جایزه
@@ -232,7 +232,7 @@ export const LoyaltySection: React.FC = () => {
   const progress = (currentPoints / nextLevelPoints) * 100
 
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="برنامه وفاداری"
         subtitle="هر چی بیشتر بازی کنی، بیشتر سود می‌بری!"
@@ -244,7 +244,7 @@ export const LoyaltySection: React.FC = () => {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5 }}
       >
-        <div className="mb-6 rounded-[20px] bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700 p-6 text-white shadow-[0_12px_40px_rgba(245,158,11,0.3)]">
+        <div className="mb-4 rounded-[20px] bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700 p-6 text-white shadow-[0_12px_40px_rgba(245,158,11,0.3)]">
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex items-center gap-3">
               <span className="flex h-14 w-14 items-center justify-center rounded-[14px] bg-white/20">
@@ -262,7 +262,7 @@ export const LoyaltySection: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/profile')}
-              className="h-11 rounded-[10px] bg-white/20 px-4 py-2 text-[0.82rem] font-bold text-white hover:bg-white/30 hover:text-white"
+              className="h-9 rounded-[10px] bg-white/20 px-4 py-2 text-[0.82rem] font-bold text-white hover:bg-white/30 hover:text-white"
             >
               مشاهده جزئیات
             </Button>
@@ -271,10 +271,10 @@ export const LoyaltySection: React.FC = () => {
           {/* نوار پیشرفت به سطح بعدی */}
           <div className="mb-1">
             <div className="mb-1 flex justify-between">
-              <span className="text-xs text-white/80">
+              <span className="text-[0.68rem] text-white/80">
                 پیشرفت به سطح نقره‌ای
               </span>
-              <span className="text-xs font-bold text-white/90">
+              <span className="text-[0.68rem] font-bold text-white/90">
                 {(nextLevelPoints - currentPoints).toLocaleString('fa-IR')} امتیاز دیگر
               </span>
             </div>
@@ -289,17 +289,17 @@ export const LoyaltySection: React.FC = () => {
       </motion.div>
 
       {/* سطوح کاربری */}
-      <h3 className="mb-4 text-base font-bold text-foreground">
+      <h3 className="mb-4 text-sm font-bold text-foreground">
         سطوح وفاداری
       </h3>
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-4">
         {LEVELS.map((level, index) => (
           <LevelCard key={level.name} {...level} delay={index * 0.1} />
         ))}
       </div>
 
       {/* جوایز قابل دریافت */}
-      <h3 className="mb-4 text-base font-bold text-foreground">
+      <h3 className="mb-4 text-sm font-bold text-foreground">
         جوایز ویژه
       </h3>
       <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">

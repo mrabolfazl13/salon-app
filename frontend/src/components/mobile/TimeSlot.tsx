@@ -65,7 +65,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
       aria-pressed={selected}
       title={isReserved ? 'این سانس مربوط به قرارداد است' : undefined}
       className={cn(
-        'flex min-h-16 w-full items-center justify-between gap-3 rounded-2xl px-3.5 py-2.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'flex min-h-16 w-full items-center justify-between gap-3 rounded-lg px-3.5 py-2.5 text-start transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         selected
           ? 'border-[1.5px] border-transparent bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 shadow-lg shadow-amber-500/30'
           : bidable
@@ -111,7 +111,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
           </p>
           <p
             className={cn(
-              'text-xs',
+              'text-[0.68rem]',
               selected
                 ? 'text-stone-900/75'
                 : bidable
@@ -135,13 +135,13 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
             <Price value={slot.price} size="sm" />
           ))}
         {bidable && (
-          <span className="flex items-center gap-1 rounded-full bg-gradient-to-br from-amber-500/[0.16] to-orange-500/[0.16] px-2.5 py-1 text-xs font-bold text-amber-700 dark:text-amber-300">
+          <span className="flex items-center gap-1 rounded-full bg-gradient-to-br from-amber-500/[0.16] to-orange-500/[0.16] px-2.5 py-1 text-[0.68rem] font-bold text-amber-700 dark:text-amber-300">
             <Icon icon="mdi:gavel" aria-hidden="true" style={{ width: 13, height: 13 }} />
             رقابت با بقیه
           </span>
         )}
         {isReserved && (
-          <span className="rounded-full bg-violet-500/[0.12] px-2.5 py-1 text-xs font-bold text-violet-700 dark:bg-violet-400/[0.16] dark:text-violet-300">
+          <span className="rounded-full bg-violet-500/[0.12] px-2.5 py-1 text-[0.68rem] font-bold text-violet-700 dark:bg-violet-400/[0.16] dark:text-violet-300">
             قرارداد
           </span>
         )}

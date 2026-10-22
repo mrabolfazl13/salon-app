@@ -40,7 +40,7 @@ const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true }) 
                 className="flex h-9 w-9 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Avatar className="h-9 w-9 shadow-[0_2px_8px_rgba(245,158,11,0.2)]">
-                  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-sm font-extrabold text-stone-900">
+                  <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-[0.68rem] font-extrabold text-stone-900">
                     {user?.fullName?.[0] || 'ک'}
                   </AvatarFallback>
                 </Avatar>

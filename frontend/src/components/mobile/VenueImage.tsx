@@ -20,7 +20,7 @@ const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, 
   return (
     <div
       className={cn(
-        'relative w-full overflow-hidden rounded-2xl bg-muted',
+        'relative w-full overflow-hidden rounded-lg bg-muted',
         ratio === '16:10' ? 'aspect-[16/10]' : 'aspect-[4/3]'
       )}
     >
@@ -46,7 +46,7 @@ const VenueImage: React.FC<Props> = ({ images, name, ratio = '16:10', verified, 
       {verified !== undefined && (
         <span
           className={cn(
-            'absolute start-2.5 top-2.5 inline-flex items-center gap-1 rounded-[10px] bg-white/90 px-2 py-1 text-xs font-bold backdrop-blur-md',
+            'absolute start-2.5 top-2.5 inline-flex items-center gap-1 rounded-[10px] bg-white/90 px-2 py-1 text-[0.68rem] font-bold backdrop-blur-md',
             verified ? 'text-emerald-700' : 'text-amber-700'
           )}
         >

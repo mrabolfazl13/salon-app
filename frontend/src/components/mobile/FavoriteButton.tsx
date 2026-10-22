@@ -34,7 +34,7 @@ const FavoriteButton: React.FC<Props> = ({ venue, size = 'md', onImage = true })
       onClick={handleClick}
       aria-label={isFav ? 'حذف از علاقه‌مندی' : 'افزودن به علاقه‌مندی'}
       className={cn(
-        'flex h-11 w-11 min-h-11 min-w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+        'flex h-9 w-11 min-h-9 min-w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
         onImage
           ? 'bg-white/90 shadow-md backdrop-blur-md hover:bg-white dark:bg-slate-950/70 dark:hover:bg-slate-950/85'
           : 'bg-transparent hover:bg-red-500/10'

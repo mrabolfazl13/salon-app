@@ -140,7 +140,7 @@ export const HeroSection: React.FC = () => {
             />
           </span>
           <div>
-            <p className="text-xs font-extrabold">{FEATURES[currentFeature].title}</p>
+            <p className="text-[0.68rem] font-extrabold">{FEATURES[currentFeature].title}</p>
             <p className="text-[0.65rem] text-white/80">{FEATURES[currentFeature].desc}</p>
           </div>
         </motion.div>

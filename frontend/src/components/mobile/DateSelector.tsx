@@ -36,7 +36,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
         onClick={() => scrollBy(-1)}
         disabled={currentIndex <= 0}
         aria-label="تاریخ قبل"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Icon icon="mdi:chevron-right" style={{ width: 22, height: 22 }} />
       </button>
@@ -56,7 +56,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
               onClick={() => onChange(d.iso)}
               aria-pressed={active}
               className={cn(
-                'flex min-w-[62px] shrink-0 snap-center flex-col items-center rounded-2xl px-2 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'flex min-w-[62px] shrink-0 snap-center flex-col items-center rounded-lg px-2 py-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 active
                   ? 'border border-transparent bg-gradient-to-br from-amber-400 via-amber-500 to-orange-500 text-stone-900 shadow-lg shadow-amber-500/25'
                   : 'border border-border bg-card text-foreground hover:bg-muted/60'
@@ -65,7 +65,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
               {/* opacity روی متن ۱۲px کنتراست را به ۴٫۰:۱ می‌رساند (مهر = #7b7f8a) — ممیزی axe F-21 */}
               <span
                 className={cn(
-                  'text-xs font-semibold',
+                  'text-[0.68rem] font-semibold',
                   active ? 'text-stone-900/90' : 'text-foreground/80'
                 )}
               >
@@ -74,7 +74,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
               <span className="text-[1.15rem] font-extrabold leading-[1.3]">{d.day}</span>
               <span
                 className={cn(
-                  'text-xs font-medium',
+                  'text-[0.68rem] font-medium',
                   active ? 'text-stone-900/90' : 'text-foreground/80'
                 )}
               >
@@ -90,7 +90,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
         onClick={() => scrollBy(1)}
         disabled={currentIndex >= dates.length - 1}
         aria-label="تاریخ بعد"
-        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Icon icon="mdi:chevron-left" style={{ width: 22, height: 22 }} />
       </button>

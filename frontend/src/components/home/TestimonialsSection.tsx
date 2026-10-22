@@ -24,7 +24,7 @@ const TestimonialCard: React.FC<TestimonialProps> = ({ name, avatar, rating, tex
       {/* هدر کارت */}
       <div className="flex items-center gap-2">
         {/* آواتار */}
-        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-base font-extrabold text-white">
+        <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-amber-500 text-sm font-extrabold text-white">
           {avatar}
         </span>
 
@@ -111,7 +111,7 @@ const TESTIMONIALS = [
 
 export const TestimonialsSection: React.FC = () => {
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="نظرات کاربران"
         subtitle="ببین بقیه چی میگن درباره تجربه‌شون"

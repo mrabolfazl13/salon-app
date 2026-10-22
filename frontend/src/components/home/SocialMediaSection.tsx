@@ -31,7 +31,7 @@ const SocialPlatform: React.FC<SocialPlatformProps> = ({
       href={link}
       target="_blank"
       rel="noopener noreferrer"
-      className="flex items-center gap-4 rounded-2xl border border-border bg-card p-5 text-foreground no-underline transition-all duration-300 hover:border-[color:var(--platform-color)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
+      className="flex items-center gap-4 rounded-lg border border-border bg-card p-3 text-foreground no-underline transition-all duration-300 hover:border-[color:var(--platform-color)] hover:shadow-[0_8px_24px_rgba(0,0,0,0.12)]"
       style={{ '--platform-color': color } as React.CSSProperties}
     >
       <span
@@ -82,14 +82,14 @@ const SOCIAL_PLATFORMS = [
 
 export const SocialMediaSection: React.FC = () => {
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="ما رو دنبال کن"
         subtitle="از آخرین اخبار، تخفیف‌ها و لحظات خاص باخبر شو"
       />
 
       {/* پلتفرم‌های اجتماعی */}
-      <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
+      <div className="mb-4 grid grid-cols-1 gap-4 sm:grid-cols-2 md:grid-cols-3">
         {SOCIAL_PLATFORMS.map((platform) => (
           <SocialPlatform key={platform.name} {...platform} />
         ))}
@@ -104,7 +104,7 @@ export const SocialMediaSection: React.FC = () => {
         <div className="rounded-[20px] border border-border bg-card p-6">
           <div className="mb-4 flex items-center gap-3">
             <Icon icon="mdi:camera" style={{ width: 24, height: 24, color: '#E4405F' }} />
-            <h3 className="text-base font-bold text-foreground">
+            <h3 className="text-sm font-bold text-foreground">
               پیج اینستاگرام ما
             </h3>
           </div>
@@ -137,7 +137,7 @@ export const SocialMediaSection: React.FC = () => {
         transition={{ duration: 0.5, delay: 0.5 }}
         className="mt-6"
       >
-        <div className="flex items-center gap-4 rounded-2xl border border-purple-500/20 bg-purple-500/[0.08] p-5 dark:bg-purple-500/10">
+        <div className="flex items-center gap-4 rounded-lg border border-purple-500/20 bg-purple-500/[0.08] p-3 dark:bg-purple-500/10">
           <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-purple-500/15">
             <Icon icon="mdi:share-variant" style={{ width: 24, height: 24, color: '#8b5cf6' }} />
           </span>

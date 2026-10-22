@@ -14,7 +14,7 @@ interface Props {
 const SectionHeader: React.FC<Props> = ({ title, subtitle, actionLabel, onAction, heading = 'h2' }) => {
   const titleClass = 'text-[0.9rem] font-extrabold text-foreground'
   return (
-    <div className="mb-2 flex items-center justify-between gap-1.5">
+    <div className="mb-1 flex items-center justify-between gap-1.5">
       <div className="min-w-0">
         <div className="flex items-center gap-1.5">
           <span className="h-4 w-0.5 shrink-0 rounded-full bg-gradient-to-b from-amber-400 to-orange-500" />

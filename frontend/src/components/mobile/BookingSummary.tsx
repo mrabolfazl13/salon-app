@@ -33,7 +33,7 @@ const BookingSummary: React.FC<Props> = ({
           <p className="text-[0.85rem] font-semibold text-muted-foreground">سانسی انتخاب نشده</p>
         )}
         {subtitle && (
-          <p className="mt-0.5 truncate text-xs text-muted-foreground">{subtitle}</p>
+          <p className="mt-0.5 truncate text-[0.68rem] text-muted-foreground">{subtitle}</p>
         )}
       </div>
       <div className="w-36 shrink-0 sm:w-40">

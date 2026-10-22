@@ -22,14 +22,14 @@ const AppFeature: React.FC<AppFeatureProps> = ({ icon, title, description, color
     <div>
       {/* کارت این بخش تیره است؛ توکن‌های text.* پالت روشن روی آن ≈۱:۱ می‌شوند */}
       <p className="text-[0.88rem] font-bold text-white">{title}</p>
-      <p className="text-xs text-white/[0.72]">{description}</p>
+      <p className="text-[0.68rem] text-white/[0.72]">{description}</p>
     </div>
   </div>
 )
 
 export const AppDownloadSection: React.FC = () => {
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="اپلیکیشن موبایل"
         subtitle="تجربه بهتر با اپلیکیشن اختصاصی ما"
@@ -49,21 +49,21 @@ export const AppDownloadSection: React.FC = () => {
               {/* سمت چپ - اطلاعات */}
               <div>
                 <div className="mb-4 flex items-center gap-3">
-                  <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700">
+                  <span className="flex h-16 w-16 items-center justify-center rounded-lg bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700">
                     <Icon icon="mdi:cellphone" style={{ width: 32, height: 32, color: '#1c1917' }} />
                   </span>
                   <div>
-                    <h3 className="text-2xl font-black">اپلیکیشن فوتسال</h3>
+                    <h3 className="text-xl font-black">اپلیکیشن فوتسال</h3>
                     <p className="text-[0.82rem] text-white/70">نسخه ۲.۰ • رایگان</p>
                   </div>
                 </div>
 
-                <p className="mb-6 text-[0.95rem] leading-[1.8] text-white/85">
+                <p className="mb-4 text-[0.95rem] leading-[1.8] text-white/85">
                   با اپلیکیشن موبایل، سریع‌تر رزرو کن، نوتیفیکیشن دریافت کن و از تمام امکانات استفاده کن. حتی آفلاین هم می‌تونی برنامه‌ریزی کنی!
                 </p>
 
                 {/* ویژگی‌ها */}
-                <div className="mb-6 flex flex-col gap-3">
+                <div className="mb-4 flex flex-col gap-3">
                   <AppFeature
                     icon="mdi:bell-ring"
                     title="نوتیفیکیشن هوشمند"
@@ -108,7 +108,7 @@ export const AppDownloadSection: React.FC = () => {
                 <div className="flex h-[440px] w-[220px] flex-col items-center justify-center gap-4 rounded-[32px] border-8 border-white/20 bg-white/[0.08] shadow-[0_20px_60px_rgba(0,0,0,0.4)] backdrop-blur-[10px]">
                   <Icon icon="mdi:soccer" style={{ width: 64, height: 64, color: '#fbbf24' }} />
                   <p className="text-[1.1rem] font-extrabold text-white">فوتسال ما</p>
-                  <p className="text-xs text-white/70">همین حالا نصب کن!</p>
+                  <p className="text-[0.68rem] text-white/70">همین حالا نصب کن!</p>
                 </div>
               </div>
             </div>

@@ -90,7 +90,7 @@ const BottomNavigation: React.FC = () => {
             <Link
               key={item.href}
               to={to}
-              className="flex min-h-11 min-w-11 flex-1 flex-col items-center justify-center gap-[2px] no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
+              className="flex min-h-9 min-w-11 flex-1 flex-col items-center justify-center gap-[2px] no-underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               aria-current={active ? 'page' : undefined}
             >
               <NavIcon active={active} icon={item.icon} />

@@ -37,7 +37,7 @@ const BenefitCard: React.FC<BenefitCardProps> = ({ icon, title, description, col
       </span>
 
       {/* عنوان */}
-      <h3 className="mb-2 text-[0.88rem] font-extrabold text-foreground">
+      <h3 className="mb-1 text-[0.88rem] font-extrabold text-foreground">
         {title}
       </h3>
 
@@ -96,7 +96,7 @@ const BENEFITS = [
 
 export const WhyUsSection: React.FC = () => {
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="چرا فوتسال ما؟"
         subtitle="مزایایی که تجربه تو رو متحول می‌کنه"

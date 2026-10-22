@@ -103,7 +103,7 @@ const FEATURES = [
 
 export const FeaturesSection: React.FC = () => {
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="امکانات ویژه"
         subtitle="هر چی که برای یه بازی عالی نیاز داری"

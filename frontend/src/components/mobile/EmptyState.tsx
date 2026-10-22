@@ -37,7 +37,7 @@ const EmptyState: React.FC<Props> = ({ icon, title, description, actionLabel, on
         <p className={titleClass}>{title}</p>
       )}
       {description && (
-        <p className="mx-auto max-w-[300px] text-sm leading-[1.8] text-muted-foreground">
+        <p className="mx-auto max-w-[300px] text-[0.68rem] leading-[1.8] text-muted-foreground">
           {description}
         </p>
       )}

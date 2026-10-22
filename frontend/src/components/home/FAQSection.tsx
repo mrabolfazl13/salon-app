@@ -119,7 +119,7 @@ const FAQS = [
 
 export const FAQSection: React.FC = () => {
   return (
-    <section className="mb-6">
+    <section className="mb-4">
       <SectionHeader
         title="سوالات متداول"
         subtitle="پاسخ سوالات رایج رو اینجا پیدا کن"

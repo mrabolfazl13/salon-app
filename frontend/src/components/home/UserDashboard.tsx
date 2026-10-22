@@ -112,7 +112,7 @@ const UserDashboard: React.FC = () => {
       <MobileHeader />
 
       {/* Quick Search */}
-      <div className="mb-6">
+      <div className="mb-4">
         <SearchBar
           value=""
           readOnly
@@ -122,7 +122,7 @@ const UserDashboard: React.FC = () => {
       </div>
 
       {/* Quick Actions Grid */}
-      <div className="mb-8">
+      <div className="mb-4">
         <h2 className="mb-3 text-[0.9rem] font-extrabold text-foreground">دسترسی سریع</h2>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
           {quickActions.map((action, i) => (
@@ -150,7 +150,7 @@ const UserDashboard: React.FC = () => {
 
       {/* Recently Viewed Venues */}
       {recentVenues.length > 0 && (
-        <div className="mb-8">
+        <div className="mb-4">
           <div className="mb-3 flex items-center justify-between">
             <h2 className="text-[0.9rem] font-extrabold text-foreground">اخیراً دیده‌شده</h2>
             <Button
