@@ -340,7 +340,6 @@ const Venues: React.FC = () => {
               center={{ lat: 34.6427, lng: 50.8814 }}
               zoom={12}
               height="100%"
-              onVenueClick={(venue) => navigate(`/venues/${venue.id}`)}
             />
           </div>
         )}

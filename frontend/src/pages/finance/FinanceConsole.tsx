@@ -70,7 +70,7 @@ const FinanceConsole: React.FC = () => {
           ) : (
             <div className="flex flex-col md:flex-row">
               {/* Sidebar Navigation */}
-              <div className="hidden md:block md:w-48 md:flex-shrink-0">
+              <div className="hidden md:block md:w-48 md:flex-shrink-0 md:self-start md:sticky md:top-16 md:max-h-[calc(100vh-4rem)] md:overflow-y-auto">
                 <SidebarNav activeTab="overview" />
               </div>
               

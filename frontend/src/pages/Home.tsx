@@ -1,5 +1,5 @@
 // src/pages/Home.tsx — موبایل‌فرست: سلام + جستجو + ورزش‌های محبوب + نزدیک شما + محبوب‌ها + اخیراً دیده‌شده
-import React, { useState, useEffect, useCallback, useMemo } from 'react'
+import React, { useState, useEffect, useCallback, useMemo, lazy, Suspense } from 'react'
 import { useNavigate, Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
@@ -23,17 +23,31 @@ import { parseList, toFullUrl } from '@/utils/venueMedia'
 import { formatPrice } from '@/lib/utils'
 import { toPersianDigits, formatJalaliDate } from '@/lib/jalali'
 import { HeroSection } from '@/components/home/HeroSection'
-import { WhyUsSection } from '@/components/home/WhyUsSection'
-import { TestimonialsSection } from '@/components/home/TestimonialsSection'
-import { FinalCTA } from '@/components/home/FinalCTA'
-import { GamificationSection } from '@/components/home/GamificationSection'
-import { LoyaltySection } from '@/components/home/LoyaltySection'
-import { FeaturesSection } from '@/components/home/FeaturesSection'
-import { HowItWorksSection } from '@/components/home/HowItWorksSection'
-import { StatsSection } from '@/components/home/StatsSection'
-import { FAQSection } from '@/components/home/FAQSection'
-import { AppDownloadSection } from '@/components/home/AppDownloadSection'
-import { SocialMediaSection } from '@/components/home/SocialMediaSection'
+
+// Lazy-load heavy sections to improve initial load performance
+const WhyUsSection = lazy(() => import('@/components/home/WhyUsSection').then(m => ({ default: m.WhyUsSection })))
+const TestimonialsSection = lazy(() => import('@/components/home/TestimonialsSection').then(m => ({ default: m.TestimonialsSection })))
+const FinalCTA = lazy(() => import('@/components/home/FinalCTA').then(m => ({ default: m.FinalCTA })))
+const GamificationSection = lazy(() => import('@/components/home/GamificationSection').then(m => ({ default: m.GamificationSection })))
+const LoyaltySection = lazy(() => import('@/components/home/LoyaltySection').then(m => ({ default: m.LoyaltySection })))
+const FeaturesSection = lazy(() => import('@/components/home/FeaturesSection').then(m => ({ default: m.FeaturesSection })))
+const HowItWorksSection = lazy(() => import('@/components/home/HowItWorksSection').then(m => ({ default: m.HowItWorksSection })))
+const StatsSection = lazy(() => import('@/components/home/StatsSection').then(m => ({ default: m.StatsSection })))
+const FAQSection = lazy(() => import('@/components/home/FAQSection').then(m => ({ default: m.FAQSection })))
+const AppDownloadSection = lazy(() => import('@/components/home/AppDownloadSection').then(m => ({ default: m.AppDownloadSection })))
+const SocialMediaSection = lazy(() => import('@/components/home/SocialMediaSection').then(m => ({ default: m.SocialMediaSection })))
+
+// Skeleton for lazy-loaded sections
+const SectionSkeleton = () => (
+  <div className="mb-8 animate-pulse rounded-2xl bg-card p-6">
+    <div className="mb-4 h-6 w-48 rounded bg-muted" />
+    <div className="space-y-3">
+      <div className="h-4 w-full rounded bg-muted" />
+      <div className="h-4 w-3/4 rounded bg-muted" />
+      <div className="h-4 w-1/2 rounded bg-muted" />
+    </div>
+  </div>
+)
 
 // برچسب زمان باقی‌مانده برای بنر رقابت‌های داغ
 function remainingLabel(ms: number): string {
@@ -81,6 +95,7 @@ const Home: React.FC = () => {
   const [news, setNews] = useState<NewsItem[]>([])
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'live' | 'upcoming' | 'finished'>('live')
+  const [sportsDataLoaded, setSportsDataLoaded] = useState(false)
 
   // ---- رقابت‌های داغ (بنر) ----
   const [hotComps, setHotComps] = useState<ActiveCompetition[]>([])
@@ -203,11 +218,24 @@ const Home: React.FC = () => {
     }
   }, [])
 
+  // Only load sports data when user scrolls to that section or after a delay
   useEffect(() => {
-    fetchSportsData()
+    if (sportsDataLoaded) return
+    
+    const timer = setTimeout(() => {
+      setSportsDataLoaded(true)
+      fetchSportsData()
+    }, 2000) // Delay by 2 seconds to prioritize initial render
+    
+    return () => clearTimeout(timer)
+  }, [fetchSportsData, sportsDataLoaded])
+
+  // Auto-refresh every 30 seconds once loaded
+  useEffect(() => {
+    if (!sportsDataLoaded) return
     const interval = setInterval(fetchSportsData, 30000)
     return () => clearInterval(interval)
-  }, [fetchSportsData])
+  }, [fetchSportsData, sportsDataLoaded])
 
   const getActiveMatches = () => {
     switch (activeTab) {
@@ -348,25 +376,39 @@ const Home: React.FC = () => {
         )}
 
         {/* چرا ما؟ */}
-        <WhyUsSection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <WhyUsSection />
+        </Suspense>
 
         {/* امکانات ویژه */}
-        <FeaturesSection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <FeaturesSection />
+        </Suspense>
 
         {/* چطور کار می‌کنه؟ */}
-        <HowItWorksSection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <HowItWorksSection />
+        </Suspense>
 
         {/* آمار و ارقام */}
-        <StatsSection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <StatsSection />
+        </Suspense>
 
         {/* سوالات متداول */}
-        <FAQSection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <FAQSection />
+        </Suspense>
 
         {/* دانلود اپلیکیشن */}
-        <AppDownloadSection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <AppDownloadSection />
+        </Suspense>
 
         {/* شبکه‌های اجتماعی */}
-        <SocialMediaSection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <SocialMediaSection />
+        </Suspense>
 
         {/* ورزش‌های محبوب */}
         <SectionHeader title="ورزش‌های محبوب" subtitle="زودتر برو سراغ بازی" />
@@ -527,13 +569,19 @@ const Home: React.FC = () => {
         )}
 
         {/* نظرات کاربران */}
-        <TestimonialsSection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <TestimonialsSection />
+        </Suspense>
 
         {/* چالش‌ها و جوایز */}
-        <GamificationSection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <GamificationSection />
+        </Suspense>
 
         {/* برنامه وفاداری */}
-        <LoyaltySection />
+        <Suspense fallback={<SectionSkeleton />}>
+          <LoyaltySection />
+        </Suspense>
 
         {/* اخیراً دیده‌شده */}
         {recentVenues.length > 0 && (
@@ -759,7 +807,9 @@ const Home: React.FC = () => {
         </div>
 
         {/* CTA نهایی */}
-        <FinalCTA />
+        <Suspense fallback={<SectionSkeleton />}>
+          <FinalCTA />
+        </Suspense>
       </div>
     </Layout>
   )

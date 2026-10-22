@@ -1060,19 +1060,21 @@ const ManagerDashboard: React.FC = () => {
           {/* Tabs */}
           <div className="mb-6">
             <Tabs value={String(tab)} onValueChange={(v) => setTab(Number(v))}>
-              <TabsList className="h-auto w-full flex-wrap justify-start gap-1 bg-transparent p-0">
-                {TAB_ITEMS.map((item, index) => (
-                  <TabsTrigger
-                    key={item.text}
-                    value={String(index)}
-                    className="min-h-12 gap-2 rounded-[10px] px-6 py-3 text-[0.9rem] font-semibold text-muted-foreground transition-all hover:bg-muted data-[state=active]:shadow-none"
-                    style={tab === index ? { background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: 'white', boxShadow: '0 4px 15px rgba(37,99,235,0.3)' } : undefined}
-                  >
-                    <Icon icon={item.icon} aria-hidden="true" className="h-4 w-4" />
-                    {item.text}
-                  </TabsTrigger>
-                ))}
-              </TabsList>
+              <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
+                <TabsList className="h-auto w-max flex-nowrap gap-1 bg-transparent p-0">
+                  {TAB_ITEMS.map((item, index) => (
+                    <TabsTrigger
+                      key={item.text}
+                      value={String(index)}
+                      className="min-h-12 shrink-0 gap-2 rounded-[10px] px-5 py-3 text-[0.85rem] font-semibold text-muted-foreground transition-all hover:bg-muted data-[state=active]:shadow-none whitespace-nowrap"
+                      style={tab === index ? { background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: 'white', boxShadow: '0 4px 15px rgba(37,99,235,0.3)' } : undefined}
+                    >
+                      <Icon icon={item.icon} aria-hidden="true" className="h-4 w-4" />
+                      {item.text}
+                    </TabsTrigger>
+                  ))}
+                </TabsList>
+              </div>
             </Tabs>
           </div>
 

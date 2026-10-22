@@ -10,7 +10,85 @@ import markerIcon2x from 'leaflet/dist/images/marker-icon-2x.png'
 import markerIcon from 'leaflet/dist/images/marker-icon.png'
 import markerShadow from 'leaflet/dist/images/marker-shadow.png'
 import { Button } from '@/components/ui/shadcn/button'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/shadcn/dialog'
 import { cn } from '@/lib/utils'
+import { useNavigate } from 'react-router-dom'
+
+interface VenueDialogProps {
+  venue: Venue | null
+  open: boolean
+  onOpenChange: (open: boolean) => void
+}
+
+const VenueDialog: React.FC<VenueDialogProps> = ({ venue, open, onOpenChange }) => {
+  const navigate = useNavigate()
+  
+  if (!venue) return null
+  
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="max-w-sm p-0">
+        <DialogHeader className="p-4 pb-0">
+          <DialogTitle className="text-right">{venue.name}</DialogTitle>
+        </DialogHeader>
+        <div className="space-y-3 p-4 pt-2">
+          {venue.address && (
+            <div className="flex items-start gap-2 text-sm text-muted-foreground">
+              <Icon icon="mdi:map-marker" className="mt-0.5 h-4 w-4 shrink-0" />
+              <span>{venue.address}</span>
+            </div>
+          )}
+          {venue.price != null && venue.price > 0 && (
+            <div className="flex items-center justify-between rounded-lg bg-muted/50 p-2">
+              <span className="text-sm text-muted-foreground">قیمت هر سانس:</span>
+              <span className="font-bold tabular-nums">
+                {new Intl.NumberFormat('fa-IR').format(venue.price)} ریال
+              </span>
+            </div>
+          )}
+          <div className="flex items-center justify-between">
+            <span
+              className={cn(
+                'inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold',
+                venue.isVerified
+                  ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-300'
+                  : 'bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-300',
+              )}
+            >
+              {venue.isVerified ? 'تایید شده' : 'در انتظار تایید'}
+            </span>
+          </div>
+          <div className="flex gap-2 pt-2">
+            <Button
+              type="button"
+              variant="default"
+              size="sm"
+              onClick={() => {
+                onOpenChange(false)
+                navigate(`/venues/${venue.id}`)
+              }}
+              className="flex-1"
+            >
+              مشاهده جزئیات
+            </Button>
+            <Button
+              type="button"
+              variant="secondary"
+              size="sm"
+              onClick={() => {
+                onOpenChange(false)
+                navigate(`/venues/${venue.id}/booking`)
+              }}
+              className="flex-1"
+            >
+              رزرو کنید
+            </Button>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
+  )
+}
 
 // Fix Leaflet marker icons in React
 // @ts-ignore
@@ -36,7 +114,6 @@ interface VenueMapProps {
   center?: { lat: number; lng: number }
   zoom?: number
   height?: number | string
-  onVenueClick?: (venue: Venue) => void
 }
 
 // Component to handle map center updates
@@ -87,10 +164,11 @@ const VenueMap: React.FC<VenueMapProps> = ({
   center = { lat: 34.6427, lng: 50.8814 },
   zoom = 13,
   height = 400,
-  onVenueClick,
 }) => {
   const [isLoading, setIsLoading] = useState(true)
   const [, setMapReady] = useState(false)
+  const [selectedVenue, setSelectedVenue] = useState<Venue | null>(null)
+  const [dialogOpen, setDialogOpen] = useState(false)
 
   useEffect(() => {
     // Simulate map loading
@@ -173,7 +251,10 @@ const VenueMap: React.FC<VenueMapProps> = ({
                   position={[venue.lat, venue.lng]}
                   icon={getMarkerIcon(Boolean(venue.isVerified))}
                   eventHandlers={{
-                    click: () => onVenueClick?.(venue),
+                    click: () => {
+                      setSelectedVenue(venue)
+                      setDialogOpen(true)
+                    },
                   }}
                 >
                   <Popup>
@@ -202,17 +283,6 @@ const VenueMap: React.FC<VenueMapProps> = ({
                       >
                         {venue.isVerified ? 'تایید شده' : 'در انتظار تایید'}
                       </span>
-                      {onVenueClick && (
-                        <Button
-                          type="button"
-                          variant="primary"
-                          size="sm"
-                          onClick={() => onVenueClick(venue)}
-                          className="mt-2 w-full rounded-lg font-semibold"
-                        >
-                          مشاهده سالن
-                        </Button>
-                      )}
                     </div>
                   </Popup>
                 </Marker>
@@ -245,6 +315,13 @@ const VenueMap: React.FC<VenueMapProps> = ({
           </>
         )}
       </div>
+
+      {/* Venue Details Dialog */}
+      <VenueDialog
+        venue={selectedVenue}
+        open={dialogOpen}
+        onOpenChange={setDialogOpen}
+      />
     </motion.div>
   )
 }
