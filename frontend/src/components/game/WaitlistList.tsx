@@ -40,12 +40,12 @@ const WaitlistList: React.FC<Props> = ({ entries }) => {
             <p className="truncate text-[0.82rem] font-semibold text-foreground">
               {`کاربر ${entry.user_id.toLocaleString('fa-IR')}`}
             </p>
-            <p className="mt-px truncate text-xs text-muted-foreground">
+            <p className="mt-px truncate text-[0.68rem] text-muted-foreground">
               {`در صف از: ${formatPersianDateTime(entry.created_at)}`}
             </p>
           </div>
           {entry.position === 1 && (
-            <div className="flex items-center gap-1 text-xs font-bold text-amber-600 dark:text-amber-400">
+            <div className="flex items-center gap-1 text-[0.68rem] font-bold text-amber-600 dark:text-amber-400">
               <Icon icon="mdi:star-four-points" style={{ width: 13, height: 13 }} />
               نوبت بعدی
             </div>

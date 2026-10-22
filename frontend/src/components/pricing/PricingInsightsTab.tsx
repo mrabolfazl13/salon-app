@@ -68,8 +68,8 @@ function occTone(pct: number | null): { bg: string; fg: string } {
   return { bg: 'rgba(0,0,0,0.04)', fg: '#374151' }
 }
 
-const META_CHIP = 'inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs text-foreground tabular-nums'
-const META_CHIP_OUTLINE = 'inline-flex items-center rounded-lg border border-border bg-card px-2 py-0.5 text-xs text-foreground tabular-nums'
+const META_CHIP = 'inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] text-foreground tabular-nums'
+const META_CHIP_OUTLINE = 'inline-flex items-center rounded-lg border border-border bg-card px-2 py-0.5 text-[0.68rem] text-foreground tabular-nums'
 
 const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
   const [days, setDays] = useState<number>(90)
@@ -139,9 +139,9 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
         color="#7c3aed"
         action={
           <div className="flex min-w-[150px] flex-col gap-1.5">
-            <Label id="pi-window-label" htmlFor="pi-window-select" className="text-xs">پنجرهٔ تاریخچه</Label>
+            <Label id="pi-window-label" htmlFor="pi-window-select" className="text-[0.68rem]">پنجرهٔ تاریخچه</Label>
             <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
-              <SelectTrigger id="pi-window-select" aria-labelledby="pi-window-label" className="h-11">
+              <SelectTrigger id="pi-window-select" aria-labelledby="pi-window-label" className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -153,7 +153,7 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
           </div>
         }
       >
-        <p className="mb-3 text-sm text-muted-foreground">
+        <p className="mb-3 text-[0.68rem] text-muted-foreground">
           نرخ اشغال از رزروهای تأییدشدهٔ گذشته شمرده می‌شود (رزرو لغوشده شمار نمی‌شود)؛
           «—» یعنی سانسِ فعالی برای آن روز و ساعت در این بازه ثبت نشده، نه اینکه اشغال صفر باشد.
         </p>
@@ -171,13 +171,13 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
         ) : (
           <>
             <div className="mb-4 flex flex-wrap gap-2">
-              <span data-testid="insight-overall" className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-bold text-foreground tabular-nums">
+              <span data-testid="insight-overall" className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] font-bold text-foreground tabular-nums">
                 {`میانگین اشغال: ${formatPct(report.overall_occupancy)}`}
               </span>
-              <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs text-foreground tabular-nums">
+              <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] text-foreground tabular-nums">
                 {`${toPersianDigits(report.total_bookings)} رزرو از ${toPersianDigits(report.total_slots)} سانس`}
               </span>
-              <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs text-foreground tabular-nums">
+              <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] text-foreground tabular-nums">
                 {`میانگین پرداخت: ${formatRial(report.overall_avg_paid)}`}
               </span>
               <span className={META_CHIP_OUTLINE}>
@@ -212,15 +212,15 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
                                 className="min-w-[58px] rounded-lg px-1.5 py-1"
                                 style={{ backgroundColor: tone.bg, color: tone.fg }}
                               >
-                                <p className="text-sm font-extrabold leading-tight tabular-nums">
+                                <p className="text-[0.68rem] font-extrabold leading-tight tabular-nums">
                                   {formatPct(b.occupancy)}
                                 </p>
-                                <p className="block text-xs leading-tight tabular-nums">
+                                <p className="block text-[0.68rem] leading-tight tabular-nums">
                                   {toPersianDigits(b.bookings)}/{toPersianDigits(b.slots)}
                                 </p>
                               </div>
                             ) : (
-                              <div data-testid={`insight-empty-${d.value}-${h}`} className="text-sm text-muted-foreground/60">
+                              <div data-testid={`insight-empty-${d.value}-${h}`} className="text-[0.68rem] text-muted-foreground/60">
                                 —
                               </div>
                             )}
@@ -237,7 +237,7 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
       </SectionCard>
 
       <SectionCard title="پیشنهاد قیمت بر پایهٔ تاریخچه" icon="mdi:lightbulb-on-outline" color="#059669">
-        <p className="mb-3 text-sm text-muted-foreground">
+        <p className="mb-3 text-[0.68rem] text-muted-foreground">
           پیشنهاد همیشه کنارِ قیمت موتور محاسبه می‌شود و هرگز خودش را جای قیمت نمی‌گذارد؛
           تا قانون نسازید، هیچ رزرویی با این عدد فروش نمی‌رود.
         </p>
@@ -288,8 +288,8 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
                 data-testid="suggestion-confidence"
                 className={
                   suggestion.confidence === 'low'
-                    ? 'inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-bold text-foreground'
-                    : 'inline-flex items-center rounded-lg bg-emerald-600/15 px-2 py-0.5 text-xs font-bold text-emerald-800 dark:text-emerald-300'
+                    ? 'inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] font-bold text-foreground'
+                    : 'inline-flex items-center rounded-lg bg-emerald-600/15 px-2 py-0.5 text-[0.68rem] font-bold text-emerald-800 dark:text-emerald-300'
                 }
               >
                 {CONFIDENCE_LABELS[suggestion.confidence]}
@@ -313,8 +313,8 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
 
             <div className="flex flex-wrap items-stretch gap-3">
               <div className="flex-[1_1_160px] rounded-xl bg-blue-600/[0.06] p-3">
-                <span className="text-xs font-bold text-muted-foreground">قیمت موتور (لنگر)</span>
-                <p data-testid="suggestion-engine" className="text-base font-extrabold text-foreground tabular-nums">{formatRial(suggestion.engine_price)}</p>
+                <span className="text-[0.68rem] font-bold text-muted-foreground">قیمت موتور (لنگر)</span>
+                <p data-testid="suggestion-engine" className="text-sm font-extrabold text-foreground tabular-nums">{formatRial(suggestion.engine_price)}</p>
               </div>
               <div
                 className={
@@ -323,34 +323,34 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
                     : 'flex-[1_1_160px] rounded-xl bg-black/[0.04] p-3 dark:bg-white/[0.04]'
                 }
               >
-                <span className="text-xs font-bold text-muted-foreground">پیشنهاد</span>
+                <span className="text-[0.68rem] font-bold text-muted-foreground">پیشنهاد</span>
                 <p
                   data-testid="suggestion-recommended"
                   className={
                     suggestion.applies
-                      ? 'text-base font-black text-emerald-800 tabular-nums dark:text-emerald-300'
-                      : 'text-base font-black text-muted-foreground tabular-nums'
+                      ? 'text-sm font-black text-emerald-800 tabular-nums dark:text-emerald-300'
+                      : 'text-sm font-black text-muted-foreground tabular-nums'
                   }
                 >
                   {formatRial(suggestion.recommended_price)}
                 </p>
               </div>
               <div className="flex-[1_1_160px] rounded-xl bg-black/[0.03] p-3 dark:bg-white/[0.03]">
-                <span className="text-xs font-bold text-muted-foreground">بازهٔ ایمن</span>
-                <p data-testid="suggestion-band" className="text-sm font-bold text-foreground tabular-nums">
+                <span className="text-[0.68rem] font-bold text-muted-foreground">بازهٔ ایمن</span>
+                <p data-testid="suggestion-band" className="text-[0.68rem] font-bold text-foreground tabular-nums">
                   {formatRial(suggestion.floor_price, false)} تا {formatRial(suggestion.ceiling_price)}
                 </p>
               </div>
               <div className="flex-[0_1_120px] rounded-xl bg-black/[0.03] p-3 dark:bg-white/[0.03]">
-                <span className="text-xs font-bold text-muted-foreground">تغییر</span>
+                <span className="text-[0.68rem] font-bold text-muted-foreground">تغییر</span>
                 <p
                   data-testid="suggestion-delta"
                   className={
                     suggestion.delta_percent > 0
-                      ? 'text-base font-extrabold text-red-700 tabular-nums dark:text-red-400'
+                      ? 'text-sm font-extrabold text-red-700 tabular-nums dark:text-red-400'
                       : suggestion.delta_percent < 0
-                        ? 'text-base font-extrabold text-emerald-700 tabular-nums dark:text-emerald-400'
-                        : 'text-base font-extrabold text-muted-foreground tabular-nums'
+                        ? 'text-sm font-extrabold text-emerald-700 tabular-nums dark:text-emerald-400'
+                        : 'text-sm font-extrabold text-muted-foreground tabular-nums'
                   }
                 >
                   {suggestion.delta_percent > 0 ? '+' : suggestion.delta_percent < 0 ? '−' : ''}
@@ -363,7 +363,7 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
               {suggestion.reasons.map((r, i) => (
                 <li key={`${i}-${r.slice(0, 12)}`} className="flex list-none items-start gap-1.5">
                   <Icon icon="mdi:information-outline" className="mt-0.5 h-[15px] w-[15px] shrink-0" style={{ color: '#6b7280' }} aria-hidden="true" />
-                  <span className="text-sm text-muted-foreground">{r}</span>
+                  <span className="text-[0.68rem] text-muted-foreground">{r}</span>
                 </li>
               ))}
             </ul>
@@ -379,7 +379,7 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
                 اعمال به‌عنوان قانون قیمت
               </Button>
             ) : (
-              <p data-testid="suggestion-no-action" className="mt-4 text-sm font-semibold text-muted-foreground">
+              <p data-testid="suggestion-no-action" className="mt-4 text-[0.68rem] font-semibold text-muted-foreground">
                 برای این سانس تغییری توصیه نمی‌شود — یا داده کافی نیست یا پیشنهاد با قیمت موتور برابر شد.
               </p>
             )}

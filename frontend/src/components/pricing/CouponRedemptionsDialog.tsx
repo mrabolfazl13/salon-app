@@ -72,14 +72,14 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
       <DialogContent aria-label="مصرف‌های کد تخفیف" aria-describedby={undefined} className="sm:max-w-[760px]">
         <DialogHeader>
           <div className="flex items-start gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-400 text-white">
+            <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-400 text-white">
               <Icon icon="mdi:ticket-percent-outline" className="h-5 w-5" aria-hidden="true" />
             </span>
             <div className="min-w-0">
               <DialogTitle className="text-lg font-extrabold text-foreground">
                 مصرف‌های کد {coupon?.code ?? ''}
               </DialogTitle>
-              <p className="mt-1 text-xs text-muted-foreground tabular-nums">
+              <p className="mt-1 text-[0.68rem] text-muted-foreground tabular-nums">
                 {coupon ? `سقف ${coupon.max_uses == null ? 'نامحدود' : toPersianDigits(coupon.max_uses)} مصرف · ` : ''}
                 تخفیفِ زنده: {formatRial(stats?.active_discount ?? 0)}
                 {(stats?.released_discount ?? 0) > 0 &&
@@ -98,7 +98,7 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
                 type="button"
                 aria-pressed={selected}
                 onClick={() => pick(c.key)}
-                className={`inline-flex h-11 min-w-11 items-center rounded-xl border px-3 text-xs font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                className={`inline-flex h-9 min-w-11 items-center rounded-xl border px-3 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   selected
                     ? 'border-pink-600 bg-pink-600 text-white'
                     : 'border-border bg-card text-foreground hover:bg-muted'
@@ -120,14 +120,14 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
         ) : rows.length === 0 ? (
           <div className="py-8 text-center">
             <Icon icon="mdi:account-clock-outline" className="h-8 w-8 text-slate-400" aria-hidden="true" />
-            <p className="mt-2 text-sm font-semibold text-foreground">
+            <p className="mt-2 text-[0.68rem] font-semibold text-foreground">
               {filter === 'ALL'
                 ? 'هنوز کسی این کد را مصرف نکرده است'
                 : filter === 'ACTIVE'
                   ? 'مصرفِ زنده‌ای ثبت نشده است'
                   : 'مصرفِ لغوشده‌ای ثبت نشده است'}
             </p>
-            <p className="mt-1 text-xs text-muted-foreground">
+            <p className="mt-1 text-[0.68rem] text-muted-foreground">
               هر رزروِ موفق با این کد، یک ردیف با نام کاربر و مبلغ تخفیف می‌سازد.
             </p>
           </div>
@@ -151,19 +151,19 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
                       className={`hover:bg-pink-600/[0.03] ${releasedRow ? 'bg-slate-500/[0.05]' : ''}`}
                     >
                       <TableCell>
-                        <span className="block text-sm font-bold text-foreground">
+                        <span className="block text-[0.68rem] font-bold text-foreground">
                           {r.user_full_name || '—'}
                         </span>
-                        <span dir="ltr" className="block text-xs text-muted-foreground [font-family:ui-monospace,monospace]">
+                        <span dir="ltr" className="block text-[0.68rem] text-muted-foreground [font-family:ui-monospace,monospace]">
                           {r.user_phone ?? '—'}
                         </span>
                       </TableCell>
-                      <TableCell className="whitespace-nowrap text-sm text-muted-foreground tabular-nums">
+                      <TableCell className="whitespace-nowrap text-[0.68rem] text-muted-foreground tabular-nums">
                         {formatJalaliDateTime(r.created_at)}
                       </TableCell>
                       <TableCell>
                         <span
-                          className={`whitespace-nowrap text-sm font-extrabold tabular-nums ${
+                          className={`whitespace-nowrap text-[0.68rem] font-extrabold tabular-nums ${
                             releasedRow ? 'text-muted-foreground line-through' : 'text-pink-700 dark:text-pink-300'
                           }`}
                         >
@@ -173,11 +173,11 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
                       <TableCell>
                         <div className="flex flex-wrap items-center gap-1">
                           {r.booking_id == null ? (
-                            <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                            <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-800 dark:text-amber-300">
                               در انتظار تأیید
                             </span>
                           ) : (
-                            <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">
+                            <span className="inline-flex items-center gap-1 rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] font-semibold text-foreground">
                               <Icon icon="mdi:clipboard-check-outline" className="h-3.5 w-3.5" aria-hidden="true" />
                               {`رزرو ${toPersianDigits(r.booking_id)}`}
                             </span>
@@ -185,7 +185,7 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
                           {releasedRow && (
                             <span
                               title={r.released_at ? `لغو در ${formatJalaliDateTime(r.released_at)}` : undefined}
-                              className="inline-flex items-center gap-1 rounded-lg bg-slate-500/15 px-2 py-0.5 text-xs font-bold text-slate-700 dark:text-slate-300"
+                              className="inline-flex items-center gap-1 rounded-lg bg-slate-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-slate-700 dark:text-slate-300"
                             >
                               <Icon icon="mdi:bookmark-off-outline" className="h-3.5 w-3.5" aria-hidden="true" />
                               لغوشده
@@ -203,7 +203,7 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
 
         {total > 0 && (
           <div className="flex flex-wrap items-center gap-2">
-            <p className="text-xs text-muted-foreground tabular-nums" aria-live="polite">
+            <p className="text-[0.68rem] text-muted-foreground tabular-nums" aria-live="polite">
               {`${toPersianDigits(Math.min(offset + 1, total))}–${toPersianDigits(offset + shown)} از ${toPersianDigits(total)} ردیف`}
               {query.isPlaceholderData ? ' · در حال بارگذاری…' : ''}
             </p>
@@ -221,7 +221,7 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
             )}
           </div>
         )}
-        <p className={`text-xs leading-relaxed text-muted-foreground ${rows.length ? 'mt-2' : ''}`}>
+        <p className={`text-[0.68rem] leading-relaxed text-muted-foreground ${rows.length ? 'mt-2' : ''}`}>
           رزروی که پیش از پرداخت لغو شود ظرفیت کد را برمی‌گرداند، اما ردیفش با برچسب
           «لغوشده» در همین تاریخچه می‌ماند و در «تخفیفِ زنده» شمرده نمی‌شود. سرجمع‌های
           بالای همین پنجره کلِ کد را می‌پایند، نه فقط صفحۀ جاری را.

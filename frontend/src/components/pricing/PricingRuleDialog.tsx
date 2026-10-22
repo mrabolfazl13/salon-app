@@ -46,7 +46,7 @@ interface Props {
   onSubmit: (payload: PricingRulePayload) => void
 }
 
-const DAY_CHIP = 'inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+const DAY_CHIP = 'inline-flex min-h-9 items-center rounded-lg px-3 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null, saving, onClose, onSubmit }) => {
   const [day, setDay] = useState<number | null>(null)
@@ -168,7 +168,7 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null,
       <DialogContent aria-describedby={undefined} className="sm:max-w-[600px]">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 text-stone-900">
+            <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 text-stone-900">
               <Icon icon="mdi:tag-percent" className="h-5 w-5" aria-hidden="true" />
             </span>
             <DialogTitle className="text-lg font-extrabold text-foreground">
@@ -177,11 +177,11 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null,
           </div>
         </DialogHeader>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3">
           <div>
             <div className="flex items-center gap-2">
               <Switch id={holidayId} checked={holidayApplies} onCheckedChange={setHolidayApplies} />
-              <Label htmlFor={holidayId} className="cursor-pointer text-sm font-semibold text-foreground">
+              <Label htmlFor={holidayId} className="cursor-pointer text-[0.68rem] font-semibold text-foreground">
                 فقط در روزهای تعطیل اعمال شود (قانونِ تعطیل شرط روز هفته را نادیده می‌گیرد)
               </Label>
             </div>
@@ -246,7 +246,7 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null,
                 />
               </div>
             </div>
-            <p className="mt-1.5 text-xs text-muted-foreground">
+            <p className="mt-1.5 text-[0.68rem] text-muted-foreground">
               بازه با پنجره‌ی سانس همپوشانی داشته باشد؛ خالی = کل روز (اثر پیک/آف‌پیک)
             </p>
           </div>
@@ -305,7 +305,7 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null,
                 </div>
               )}
             </div>
-            <p className="mt-1.5 text-xs text-muted-foreground">
+            <p className="mt-1.5 text-[0.68rem] text-muted-foreground">
               {modifierType === 'percent' && 'درصدی = گرانی/تخفیف نسبی روی قیمت لحظه‌ای؛ مبلغ در دیتابیس ×۱۰۰ ذخیره می‌شود.'}
               {modifierType === 'fixed' && 'مبلغ ثابت = اضافه/کم کردن ریالی به قیمت (مثلاً −۵۰٬۰۰۰ ریال).'}
               {modifierType === 'absolute' && 'قیمت قطعی = کل قیمت را با این مبلغ جایگزین می‌کند.'}
@@ -333,17 +333,17 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null,
               />
             </div>
           </div>
-          <p className="-mt-3 text-xs text-muted-foreground">
+          <p className="-mt-3 text-[0.68rem] text-muted-foreground">
             اعمال به ترتیب اولویت صعودی؛ اولویت بالاتر دیرتر اعمال می‌شود و برنده است
           </p>
 
           <div className="flex items-center gap-2">
             <Switch id={activeId} checked={active} onCheckedChange={setActive} />
-            <Label htmlFor={activeId} className="cursor-pointer text-sm font-semibold text-foreground">فعال</Label>
+            <Label htmlFor={activeId} className="cursor-pointer text-[0.68rem] font-semibold text-foreground">فعال</Label>
           </div>
 
           {localError && (
-            <p role="alert" className="text-sm font-semibold text-red-600 dark:text-red-400">{localError}</p>
+            <p role="alert" className="text-[0.68rem] font-semibold text-red-600 dark:text-red-400">{localError}</p>
           )}
 
           <div className="flex justify-end gap-2 border-t border-border pt-4">

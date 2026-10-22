@@ -19,7 +19,7 @@ interface Props {
 }
 
 const iconButtonClass =
-  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
+  'inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
 
 const JoinRequestList: React.FC<Props> = ({ gameId, requests }) => {
   const toast = useToast()
@@ -44,7 +44,7 @@ const JoinRequestList: React.FC<Props> = ({ gameId, requests }) => {
       {requests.map((req) => (
         <div
           key={req.id}
-          className="flex items-center gap-2.5 rounded-2xl border border-amber-500/25 bg-amber-500/[0.05] px-3 py-2.5"
+          className="flex items-center gap-2.5 rounded-lg border border-amber-500/25 bg-amber-500/[0.05] px-3 py-2.5"
         >
           <Avatar className="h-9 w-9">
             <AvatarFallback className="bg-amber-500/[0.15] text-[0.85rem] font-bold text-amber-700 dark:text-amber-400">
@@ -53,7 +53,7 @@ const JoinRequestList: React.FC<Props> = ({ gameId, requests }) => {
           </Avatar>
           <div className="min-w-0 flex-1">
             <p className="truncate text-[0.85rem] font-bold text-foreground">{req.full_name || `کاربر ${req.user_id}`}</p>
-            <p className="mt-0.5 truncate text-xs text-muted-foreground">
+            <p className="mt-0.5 truncate text-[0.68rem] text-muted-foreground">
               {`ثبت: ${formatPersianDateTime(req.created_at)}${req.message ? ` - ${req.message}` : ''}`}
             </p>
           </div>

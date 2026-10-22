@@ -160,7 +160,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
     <div className="flex flex-col gap-4">
       {/* Header with Create Button */}
       <div className="flex items-center justify-between">
-        <p className="text-base font-bold text-foreground">
+        <p className="text-sm font-bold text-foreground">
           پرداخت‌های اشتراکی
         </p>
         {isManager && (
@@ -184,7 +184,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
               type="button"
               onClick={() => setError(null)}
               aria-label="بستن"
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
+              className="flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
             >
               <Icon icon="mdi:close" className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -203,9 +203,9 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
           />
         </div>
       ) : payments.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-slate-300 bg-muted/50 p-8 text-center dark:border-slate-600">
+        <div className="rounded-lg border border-dashed border-slate-300 bg-muted/50 p-8 text-center dark:border-slate-600">
           <Icon icon="mdi:wallet-outline" className="mx-auto h-12 w-12 text-muted-foreground" aria-hidden="true" />
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-[0.68rem] text-muted-foreground">
             هنوز پرداخت اشتراکی ایجاد نشده است.
           </p>
           {isManager && (
@@ -228,11 +228,11 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
             return (
               <div
                 key={payment.id}
-                className="rounded-2xl border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
+                className="rounded-lg border border-border bg-card p-4 shadow-sm transition-shadow hover:shadow-md"
               >
                 <div className="flex items-start justify-between gap-4">
                   <div className="flex-1">
-                    <div className="mb-2 flex flex-wrap items-center gap-3">
+                    <div className="mb-1 flex flex-wrap items-center gap-3">
                       <p className="text-[0.95rem] font-bold text-foreground">
                         پرداخت #{payment.id}
                       </p>
@@ -274,7 +274,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                         type="button"
                         onClick={() => handleViewDetails(payment.id)}
                         aria-label={`مشاهده جزئیات پرداخت #${payment.id}`}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-400 dark:hover:bg-blue-500/10"
+                        className="flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-400 dark:hover:bg-blue-500/10"
                       >
                         <Icon icon="mdi:eye-outline" className="h-5 w-5" aria-hidden="true" />
                       </button>
@@ -299,11 +299,11 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
           <div className="flex flex-col gap-4">
             {/* Summary */}
             <div className="rounded-xl bg-muted p-4">
-              <div className="mb-2 flex justify-between">
+              <div className="mb-1 flex justify-between">
                 <span className="text-[0.8rem] text-muted-foreground">مبلغ کل:</span>
                 <span className="font-bold text-foreground">{Number(selectedPayment.amount).toLocaleString()} ریال</span>
               </div>
-              <div className="mb-2 flex justify-between">
+              <div className="mb-1 flex justify-between">
                 <span className="text-[0.8rem] text-muted-foreground">روش تقسیم:</span>
                 <span className="font-semibold text-foreground">{METHOD_LABELS[selectedPayment.method as keyof typeof METHOD_LABELS]}</span>
               </div>

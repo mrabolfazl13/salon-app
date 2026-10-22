@@ -96,7 +96,7 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
     <div className="flex flex-col gap-6">
       {/* مبنای پیش‌فرض قیمت — ورودی PUT pricing/venue default */}
       <SectionCard title="مبنای پیش‌فرض قیمت سانس" icon="mdi:cash-marker" color="#059669">
-        <p className="mb-3 text-sm text-muted-foreground">
+        <p className="mb-3 text-[0.68rem] text-muted-foreground">
           مبنای تولید خودکار سانس‌ها و نقطه‌ی شروع موتور قیمت (بدون در نظر گرفتن قوانین). خالی = پیش‌فرض سیستم.
           {venues.length > 0 ? ' مقدار فعلی از سرور قابل خواندن نیست؛ با ثبت مقدار جدید جایگزین می‌شود.' : ''}
         </p>
@@ -181,8 +181,8 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
                       <span
                         className={
                           rule.holiday_applies
-                            ? 'inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300'
-                            : 'inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-semibold text-foreground'
+                            ? 'inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-semibold text-amber-800 dark:text-amber-300'
+                            : 'inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] font-semibold text-foreground'
                         }
                       >
                         {ruleDaysLabel(rule)}
@@ -192,12 +192,12 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
                       {ruleTimeWindow(rule)}
                     </TableCell>
                     <TableCell className="whitespace-nowrap">
-                      <p className="text-sm font-bold text-foreground">{MODIFIER_LABELS[rule.modifier_type]}</p>
-                      <p className="text-xs text-muted-foreground">{ruleValueLabel(rule.modifier_type, rule.value)}</p>
+                      <p className="text-[0.68rem] font-bold text-foreground">{MODIFIER_LABELS[rule.modifier_type]}</p>
+                      <p className="text-[0.68rem] text-muted-foreground">{ruleValueLabel(rule.modifier_type, rule.value)}</p>
                     </TableCell>
                     <TableCell className="tabular-nums text-foreground">{toPersianDigits(rule.priority)}</TableCell>
                     <TableCell>
-                      <div className="flex min-h-11 min-w-11 items-center">
+                      <div className="flex min-h-9 min-w-11 items-center">
                         <Switch
                           checked={rule.is_active}
                           disabled={updateRule.isPending}

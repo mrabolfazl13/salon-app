@@ -48,7 +48,7 @@ const UpdateDialog: React.FC = () => {
         >
           <div
             className={cn(
-              'w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4',
+              'w-16 h-16 rounded-lg flex items-center justify-center mx-auto mb-4',
               phase === 'error'
                 ? 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400'
                 : phase === 'up-to-date'
@@ -85,7 +85,7 @@ const UpdateDialog: React.FC = () => {
         {phase === 'up-to-date' && (
           <>
             <h2 className="text-lg font-bold text-foreground mb-1">همه‌چیز به‌روز است</h2>
-            <p className="text-sm text-muted-foreground">
+            <p className="text-[0.68rem] text-muted-foreground">
               نسخهٔ فعلی شما {currentVersion || manifest?.version} است و نسخهٔ جدیدتری منتشر نشده.
             </p>
             <div className="flex justify-center mt-5">
@@ -97,7 +97,7 @@ const UpdateDialog: React.FC = () => {
         {phase === 'error' && !manifest && (
           <>
             <h2 className="text-lg font-bold text-foreground mb-1">بروزرسانی ممکن نشد</h2>
-            <p className="text-sm text-muted-foreground leading-6">{error}</p>
+            <p className="text-[0.68rem] text-muted-foreground leading-6">{error}</p>
             <div className="flex justify-center mt-5">
               <Button onClick={closeDialog}>بستن</Button>
             </div>
@@ -109,12 +109,12 @@ const UpdateDialog: React.FC = () => {
             <h2 className="text-lg font-bold text-foreground mb-1">
               نسخهٔ جدید {manifest.version}
             </h2>
-            <p className="text-xs text-muted-foreground/70 mb-3">
+            <p className="text-[0.68rem] text-muted-foreground/70 mb-3">
               {faDate(manifest.pub_date)} · {mb(manifest.size)}
               {force ? ' · نصب این بروزرسانی الزامی است' : ''}
             </p>
 
-            <ul className="text-start text-sm text-muted-foreground space-y-1.5 mb-3 px-2">
+            <ul className="text-start text-[0.68rem] text-muted-foreground space-y-1.5 mb-3 px-2">
               {manifest.notes.map((n, i) => (
                 <li key={i} className="flex items-start gap-2">
                   <Icon icon="mdi:soccer-ball" className="h-4 w-4 mt-0.5 shrink-0 text-emerald-700" />
@@ -131,20 +131,20 @@ const UpdateDialog: React.FC = () => {
                   aria-valuetext={`${Math.round(pct)}٪ دانلود شد`}
                   className="rounded-full"
                 />
-                <p className="text-xs text-muted-foreground/70 mt-2 tabular-nums">
+                <p className="text-[0.68rem] text-muted-foreground/70 mt-2 tabular-nums">
                   {mb(progress.received)} از {mb(progress.total || manifest.size)}
                 </p>
               </div>
             )}
 
             {phase === 'ready' && (
-              <p className="text-xs text-emerald-700 dark:text-emerald-400 mb-2">
+              <p className="text-[0.68rem] text-emerald-700 dark:text-emerald-400 mb-1">
                 دانلود تمام شد — در حال باز کردن نصب‌کننده…
               </p>
             )}
 
             {error && (
-              <p className="text-xs text-red-500 dark:text-red-400 mb-2 leading-5">{error}</p>
+              <p className="text-[0.68rem] text-red-500 dark:text-red-400 mb-1 leading-5">{error}</p>
             )}
 
             <div className="flex gap-2 justify-center mt-4 flex-wrap">

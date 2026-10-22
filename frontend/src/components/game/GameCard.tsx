@@ -57,7 +57,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
             <div
               role="img"
               aria-label={SPORT_NAME_FA[game.sport] ?? game.sport}
-              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-blue-600/[0.08] to-violet-600/[0.08] text-[1.4rem]"
+              className="flex h-9 w-11 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-blue-600/[0.08] to-violet-600/[0.08] text-[1.4rem]"
             >
               {SPORT_EMOJI[game.sport] ?? '⚽'}
             </div>
@@ -85,7 +85,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                 {formatGameDateTime(game.slot_date, game.start_time)}
               </span>
               {game.distance_km != null && (
-                <span className="inline-flex h-[22px] items-center rounded-full bg-violet-600/[0.08] px-2 text-xs font-bold text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                <span className="inline-flex h-[22px] items-center rounded-full bg-violet-600/[0.08] px-2 text-[0.68rem] font-bold text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
                   {`${game.distance_km.toLocaleString('fa-IR')} کیلومتر`}
                 </span>
               )}
@@ -97,7 +97,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
           <div className="flex flex-wrap gap-1">
             <SkillChip level={game.skill_level} />
             <VisibilityChip visibility={game.visibility} />
-            <span className="inline-flex h-6 items-center rounded-full bg-slate-900/[0.05] px-2 text-xs font-semibold text-muted-foreground dark:bg-white/[0.07]">
+            <span className="inline-flex h-6 items-center rounded-full bg-slate-900/[0.05] px-2 text-[0.68rem] font-semibold text-muted-foreground dark:bg-white/[0.07]">
               {PAYMENT_MODE_LABELS[game.payment_mode] ?? game.payment_mode}
             </span>
           </div>
@@ -109,30 +109,30 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                 <p className="text-[0.85rem] font-extrabold text-emerald-600 dark:text-emerald-400">رایگان</p>
               ) : (
                 <div className="inline-flex items-baseline gap-1">
-                  <span dir="rtl" className="text-base font-extrabold tabular-nums text-foreground">
+                  <span dir="rtl" className="text-sm font-extrabold tabular-nums text-foreground">
                     {game.price_per_player.toLocaleString('fa-IR')}
                   </span>
-                  <span className="text-xs text-muted-foreground">ریال / نفر</span>
+                  <span className="text-[0.68rem] text-muted-foreground">ریال / نفر</span>
                 </div>
               )}
             </div>
             {myBadge ? (
               <span
-                className="whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-extrabold"
+                className="whitespace-nowrap rounded-full px-2.5 py-1 text-[0.68rem] font-extrabold"
                 style={{ backgroundColor: myBadge.bg, color: myBadge.fg }}
               >
                 {myBadge.label}
               </span>
             ) : game.my_waitlist_position ? (
-              <span className="whitespace-nowrap rounded-full bg-amber-500/[0.14] px-2.5 py-1 text-xs font-extrabold text-amber-600 dark:text-amber-400">
+              <span className="whitespace-nowrap rounded-full bg-amber-500/[0.14] px-2.5 py-1 text-[0.68rem] font-extrabold text-amber-600 dark:text-amber-400">
                 {`رتبه انتظار ${game.my_waitlist_position.toLocaleString('fa-IR')}`}
               </span>
             ) : (
               <p
                 className={
                   remaining > 0
-                    ? 'whitespace-nowrap text-xs font-bold text-emerald-600 dark:text-emerald-400'
-                    : 'whitespace-nowrap text-xs font-bold text-amber-600 dark:text-amber-400'
+                    ? 'whitespace-nowrap text-[0.68rem] font-bold text-emerald-600 dark:text-emerald-400'
+                    : 'whitespace-nowrap text-[0.68rem] font-bold text-amber-600 dark:text-amber-400'
                 }
               >
                 {remaining > 0 ? `${remaining.toLocaleString('fa-IR')} جای خالی` : 'تکمیل — لیست انتظار'}

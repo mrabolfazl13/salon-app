@@ -57,7 +57,7 @@ const InviteUserDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
   return (
     <Dialog open={open} onClose={onClose} title="دعوت مستقیم بازیکن" maxWidth="xs">
       <div className="flex flex-col gap-4 pt-1">
-        <p className="text-xs text-muted-foreground">
+        <p className="text-[0.68rem] text-muted-foreground">
           شناسه‌ی کاربری مخاطب را وارد کنید؛ پس از ارسال، دعوت در بخش «دعوت‌نامه‌های من» برای او نمایش داده می‌شود.
         </p>
         <div className="flex flex-col gap-1.5">
@@ -77,7 +77,7 @@ const InviteUserDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
         <div className="flex flex-col gap-1.5">
           <Label id={expiryLabelId}>اعتبار دعوت</Label>
           <Select value={String(expiresInDays)} onValueChange={(v) => setExpiresInDays(Number(v))}>
-            <SelectTrigger aria-labelledby={expiryLabelId} className="h-11">
+            <SelectTrigger aria-labelledby={expiryLabelId} className="h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -91,7 +91,7 @@ const InviteUserDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
         </div>
         {pending.length > 0 && (
           <div className="flex flex-col gap-1.5">
-            <p className="text-xs font-bold text-muted-foreground">
+            <p className="text-[0.68rem] font-bold text-muted-foreground">
               دعوت‌های در انتظار پاسخ ({pending.length.toLocaleString('fa-IR')})
             </p>
             {pending.map((inv) => (
@@ -101,7 +101,7 @@ const InviteUserDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                   {inv.invited_user_name || `کاربر #${inv.invited_user_id}`}
                 </p>
                 {inv.expires_at && (
-                  <p className="text-xs text-muted-foreground">
+                  <p className="text-[0.68rem] text-muted-foreground">
                     {formatGameDateTime(inv.expires_at.slice(0, 10), inv.expires_at.slice(11, 16))}
                   </p>
                 )}

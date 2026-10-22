@@ -36,7 +36,7 @@ const EXPIRY_OPTIONS = [
 ]
 
 const iconButtonClass =
-  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
+  'inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
 
 const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
   const toast = useToast()
@@ -88,7 +88,7 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
               value={String(expiresInDays === '' ? 7 : expiresInDays)}
               onValueChange={(v) => setExpiresInDays(Number(v))}
             >
-              <SelectTrigger aria-labelledby={expiryFieldId} className="h-11">
+              <SelectTrigger aria-labelledby={expiryFieldId} className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -107,7 +107,7 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
               type="number"
               inputMode="numeric"
               min={1}
-              className="h-11"
+              className="h-9"
               value={maxUses}
               onChange={(e) => setMaxUses(e.target.value === '' ? '' : Math.max(1, Number(e.target.value)))}
             />
@@ -142,7 +142,7 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                   >
                     {fullUrl(link)}
                   </p>
-                  <p className="mt-0.5 text-xs text-muted-foreground">
+                  <p className="mt-0.5 text-[0.68rem] text-muted-foreground">
                     {`انقضا: ${link.expires_at ? formatPersianDateTime(link.expires_at) : 'بدون انقضا'} - استفاده: ${link.uses_count.toLocaleString('fa-IR')}${link.max_uses ? `/${link.max_uses.toLocaleString('fa-IR')}` : ''}`}
                   </p>
                 </div>

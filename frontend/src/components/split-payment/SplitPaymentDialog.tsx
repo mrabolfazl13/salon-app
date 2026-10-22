@@ -175,10 +175,10 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
                 className="mt-1 h-5 w-5 shrink-0"
               />
               <Label htmlFor={`split-method-${opt.value}`} className="cursor-pointer font-normal">
-                <span className="block text-sm font-semibold text-foreground">
+                <span className="block text-[0.68rem] font-semibold text-foreground">
                   {opt.label}
                 </span>
-                <span className="block text-xs text-muted-foreground">
+                <span className="block text-[0.68rem] text-muted-foreground">
                   {opt.description}
                 </span>
               </Label>
@@ -196,29 +196,29 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
             min={0}
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value) || '')}
-            className="h-11"
+            className="h-9"
           />
         </div>
 
         {/* Custom Shares Editor */}
         {method === 'CUSTOM' && customShares.length > 0 && (
           <div className="flex flex-col gap-4">
-            <p className="text-sm font-semibold text-foreground">
+            <p className="text-[0.68rem] font-semibold text-foreground">
               سهم هر عضو:
             </p>
             {customShares.map((share) => {
               const member = members.find((m) => m.user_id === share.user_id)
               return (
                 <div key={share.user_id} className="flex items-center gap-4">
-                  <p className="flex-1 text-sm text-foreground">{member?.full_name || `کاربر ${share.user_id}`}</p>
+                  <p className="flex-1 text-[0.68rem] text-foreground">{member?.full_name || `کاربر ${share.user_id}`}</p>
                   <Input
                     aria-label={`سهم ${member?.full_name || `کاربر ${share.user_id}`}`}
                     type="number"
                     value={share.amount}
                     onChange={(e) => handleUpdateCustomShare(share.user_id, Number(e.target.value) || 0)}
-                    className="h-11 w-[150px]"
+                    className="h-9 w-[150px]"
                   />
-                  <span className="text-xs text-muted-foreground">ریال</span>
+                  <span className="text-[0.68rem] text-muted-foreground">ریال</span>
                 </div>
               )
             })}
@@ -236,14 +236,14 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
         {/* Percentage Shares Editor */}
         {method === 'PERCENTAGE' && percentageShares.length > 0 && (
           <div className="flex flex-col gap-4">
-            <p className="text-sm font-semibold text-foreground">
+            <p className="text-[0.68rem] font-semibold text-foreground">
               درصد سهم هر عضو:
             </p>
             {percentageShares.map((share) => {
               const member = members.find((m) => m.user_id === share.user_id)
               return (
                 <div key={share.user_id} className="flex items-center gap-4">
-                  <p className="flex-1 text-sm text-foreground">{member?.full_name || `کاربر ${share.user_id}`}</p>
+                  <p className="flex-1 text-[0.68rem] text-foreground">{member?.full_name || `کاربر ${share.user_id}`}</p>
                   <Input
                     aria-label={`درصد ${member?.full_name || `کاربر ${share.user_id}`}`}
                     type="number"
@@ -251,9 +251,9 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
                     max={100}
                     value={share.percentage}
                     onChange={(e) => handleUpdatePercentageShare(share.user_id, Number(e.target.value) || 0)}
-                    className="h-11 w-[100px]"
+                    className="h-9 w-[100px]"
                   />
-                  <span className="text-xs text-muted-foreground">٪</span>
+                  <span className="text-[0.68rem] text-muted-foreground">٪</span>
                 </div>
               )
             })}
@@ -286,7 +286,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
             type="datetime-local"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className="h-11"
+            className="h-9"
           />
         </div>
 

@@ -196,7 +196,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
           </div>
         }
       >
-        <p className="mb-4 text-sm text-muted-foreground">
+        <p className="mb-4 text-[0.68rem] text-muted-foreground">
           روزهای تعطیل روی موتور قیمت اثر می‌گذارند (قوانین «فقط تعطیلات» فعال و قوانین عادی غیرفعال می‌شوند).
           مناسبت سراسری همه‌ی سالن‌ها را تعطیل می‌کند و فقط سرپرست سیستم می‌تواند آن را ثبت کند.
         </p>
@@ -229,11 +229,11 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
                       <TableCell className="text-foreground">{h.name}</TableCell>
                       <TableCell>
                         {h.venue_id == null ? (
-                          <span className="inline-flex items-center rounded-lg bg-red-500/15 px-2 py-0.5 text-xs font-bold text-red-700 dark:text-red-400">
+                          <span className="inline-flex items-center rounded-lg bg-red-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-red-700 dark:text-red-400">
                             سراسری
                           </span>
                         ) : (
-                          <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-semibold text-foreground">
+                          <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] font-semibold text-foreground">
                             {venueNameById(h.venue_id) ?? '—'}
                           </span>
                         )}
@@ -267,7 +267,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
         <DialogContent aria-describedby={undefined} className="sm:max-w-[420px]">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
+              <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
                 <Icon icon="mdi:calendar-multiple" className="h-5 w-5" aria-hidden="true" />
               </span>
               <DialogTitle className="text-lg font-extrabold text-foreground">افزودن مناسبت</DialogTitle>
@@ -287,13 +287,13 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
             {isSuper && (
               <div className="flex items-center gap-2">
                 <Switch id={globalId} checked={globalScope} onCheckedChange={setGlobalScope} />
-                <Label htmlFor={globalId} className="cursor-pointer text-sm font-normal text-foreground">
+                <Label htmlFor={globalId} className="cursor-pointer text-[0.68rem] font-normal text-foreground">
                   سراسری (روی همه سالن‌ها)
                 </Label>
               </div>
             )}
             {!isSuper && venueId != null && (
-              <p className="text-xs text-muted-foreground">ثبت برای: {venueNameById(venueId)}</p>
+              <p className="text-[0.68rem] text-muted-foreground">ثبت برای: {venueNameById(venueId)}</p>
             )}
             <div className="flex justify-end gap-2 pt-2">
               <Button onClick={closeAdd} disabled={createHoliday.isPending} variant="outline">
@@ -321,14 +321,14 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
         <DialogContent aria-describedby={undefined} className="sm:max-w-[600px]">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
+              <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
                 <Icon icon="mdi:calendar-multiple" className="h-5 w-5" aria-hidden="true" />
               </span>
               <DialogTitle className="text-lg font-extrabold text-foreground">افزودن دسته‌ای مناسبت‌ها</DialogTitle>
             </div>
           </DialogHeader>
           <div className="flex flex-col gap-4">
-            <p className="text-xs text-muted-foreground">
+            <p className="text-[0.68rem] text-muted-foreground">
               هر خط: «نام | تاریخ» — تاریخ جلالی (۱۴۰۵/۰۷/۰۱) یا میلادی (2026-09-23). ردیف‌های تکراری/موجود با پیام سرور رد می‌شوند.
             </p>
             <div className="flex flex-col gap-1.5">
@@ -345,7 +345,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
             {isSuper && (
               <div className="flex items-center gap-2">
                 <Switch id={bulkGlobalId} checked={bulkGlobal} onCheckedChange={setBulkGlobal} />
-                <Label htmlFor={bulkGlobalId} className="cursor-pointer text-sm font-normal text-foreground">
+                <Label htmlFor={bulkGlobalId} className="cursor-pointer text-[0.68rem] font-normal text-foreground">
                   سراسری (فقط سرپرست)
                 </Label>
               </div>

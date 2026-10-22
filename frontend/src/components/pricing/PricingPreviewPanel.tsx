@@ -74,10 +74,10 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
   }
 
   return (
-    <div className="rounded-2xl border border-blue-600/[0.18] bg-gradient-to-br from-blue-600/[0.04] to-violet-600/[0.04] p-5">
+    <div className="rounded-lg border border-blue-600/[0.18] bg-gradient-to-br from-blue-600/[0.04] to-violet-600/[0.04] p-3">
       <div className="mb-4 flex items-center gap-2">
         <Icon icon="mdi:eye-outline" className="h-5 w-5" style={{ color: '#2563eb' }} aria-hidden="true" />
-        <h2 className="text-sm font-extrabold text-foreground">پیش‌نمایش قیمت — همان موتور لحظه‌ی رزرو</h2>
+        <h2 className="text-[0.68rem] font-extrabold text-foreground">پیش‌نمایش قیمت — همان موتور لحظه‌ی رزرو</h2>
       </div>
       <div className="flex flex-wrap items-start gap-4">
         <div className="min-w-[170px] flex-[1_1_180px]">
@@ -138,23 +138,23 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
         <div className="mt-5">
           <Separator className="mb-4" />
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs font-semibold text-foreground tabular-nums">
+            <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] font-semibold text-foreground tabular-nums">
               {`مبنا: ${formatRial(result.base_price)}`}
             </span>
-            <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-xs text-foreground tabular-nums">
+            <span className="inline-flex items-center rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] text-foreground tabular-nums">
               {`زمان بررسی: ${toPersianDigits(result.slot_date)} — ${faTime(result.start_time)}`}
             </span>
             {result.is_holiday && (
-              <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+              <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-800 dark:text-amber-300">
                 این تاریخ تعطیل است 🔔
               </span>
             )}
           </div>
           {result.rules.length === 0 ? (
-            <p className="text-sm text-muted-foreground">هیچ قانونی روی این سانس اعمال نشد — قیمت = مبنا.</p>
+            <p className="text-[0.68rem] text-muted-foreground">هیچ قانونی روی این سانس اعمال نشد — قیمت = مبنا.</p>
           ) : (
             <div className="flex flex-col gap-1.5">
-              <p className="text-xs font-bold text-muted-foreground">زنجیره‌ی قوانین اعمال‌شده (به ترتیب اجرا):</p>
+              <p className="text-[0.68rem] font-bold text-muted-foreground">زنجیره‌ی قوانین اعمال‌شده (به ترتیب اجرا):</p>
               {result.rules.map((r, idx) => (
                 <div
                   key={`${r.rule_id}-${idx}`}
@@ -162,10 +162,10 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
                 >
                   <div className="flex min-w-0 items-center gap-2">
                     <Icon icon="mdi:tag-outline" className="h-[15px] w-[15px] shrink-0" style={{ color: '#2563eb' }} aria-hidden="true" />
-                    <p className="min-w-0 truncate text-sm font-bold text-foreground">
+                    <p className="min-w-0 truncate text-[0.68rem] font-bold text-foreground">
                       {r.label || `قانون #${toPersianDigits(r.rule_id)}`}
                     </p>
-                    <span className="inline-flex h-5 shrink-0 items-center rounded-md bg-muted px-1.5 text-xs text-foreground tabular-nums">
+                    <span className="inline-flex h-5 shrink-0 items-center rounded-md bg-muted px-1.5 text-[0.68rem] text-foreground tabular-nums">
                       {`${MODIFIER_LABELS[r.modifier_type] ?? r.modifier_type} ${toPersianDigits(Math.abs(r.modifier_type === 'percent' ? r.value / 100 : r.value))}${r.modifier_type === 'percent' ? '٪' : ' ریال'}`}
                     </span>
                   </div>
@@ -173,10 +173,10 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
                     dir="rtl"
                     className={
                       r.delta > 0
-                        ? 'whitespace-nowrap text-sm font-extrabold text-red-600 tabular-nums dark:text-red-400'
+                        ? 'whitespace-nowrap text-[0.68rem] font-extrabold text-red-600 tabular-nums dark:text-red-400'
                         : r.delta < 0
-                          ? 'whitespace-nowrap text-sm font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
-                          : 'whitespace-nowrap text-sm font-extrabold text-muted-foreground tabular-nums'
+                          ? 'whitespace-nowrap text-[0.68rem] font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                          : 'whitespace-nowrap text-[0.68rem] font-extrabold text-muted-foreground tabular-nums'
                     }
                   >
                     {r.delta >= 0 ? '+' : '−'}{formatRial(Math.abs(r.delta))}
@@ -186,7 +186,7 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
             </div>
           )}
           <div className="mt-4 flex items-center justify-between rounded-xl bg-emerald-600/[0.08] p-4">
-            <span className="text-sm font-extrabold text-emerald-900 dark:text-emerald-300">قیمت نهایی این سانس</span>
+            <span className="text-[0.68rem] font-extrabold text-emerald-900 dark:text-emerald-300">قیمت نهایی این سانس</span>
             <span className="text-lg font-black text-emerald-700 tabular-nums dark:text-emerald-400">{formatRial(result.final_price)}</span>
           </div>
           {preview.isPending && <LoadingBoxCompact />}

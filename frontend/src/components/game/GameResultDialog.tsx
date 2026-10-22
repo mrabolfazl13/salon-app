@@ -64,7 +64,7 @@ const GameResultDialog: React.FC<Props> = ({ open, onClose, gameId, participants
         </p>
 
         {accepted.length === 0 ? (
-          <div className="py-6 text-center text-[0.85rem] text-muted-foreground">
+          <div className="py-4 text-center text-[0.85rem] text-muted-foreground">
             شرکت‌کننده‌ی پذیرفته‌شده‌ای برای انتخاب وجود ندارد.
           </div>
         ) : (

@@ -86,7 +86,7 @@ export const GameStatusChip: React.FC<{ status: GameStatus; size?: 'small' | 'me
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 whitespace-nowrap rounded-full font-bold text-xs text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]',
+        'inline-flex items-center gap-1 whitespace-nowrap rounded-full font-bold text-[0.68rem] text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]',
         size === 'small' ? 'h-[26px] px-2' : 'h-8 px-2.5'
       )}
       style={chipStyle(c.fg, c.bg)}
@@ -106,7 +106,7 @@ export const VisibilityChip: React.FC<{ visibility: GameVisibility }> = ({ visib
   const c = map[visibility]
   return (
     <span
-      className="inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-full ps-1 pe-2 text-xs font-semibold text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]"
+      className="inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-full ps-1 pe-2 text-[0.68rem] font-semibold text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]"
       style={chipStyle(c.fg, c.bg)}
     >
       <Icon icon={c.icon} style={{ width: 14, height: 14 }} />
@@ -116,7 +116,7 @@ export const VisibilityChip: React.FC<{ visibility: GameVisibility }> = ({ visib
 }
 
 export const SkillChip: React.FC<{ level: SkillLevel }> = ({ level }) => (
-  <span className="inline-flex h-6 items-center rounded-full bg-blue-600/[0.06] px-2 text-xs font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
+  <span className="inline-flex h-6 items-center rounded-full bg-blue-600/[0.06] px-2 text-[0.68rem] font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
     {SKILL_LEVEL_LABELS[level] ?? level}
   </span>
 )
@@ -131,7 +131,7 @@ export const RoleBadge: React.FC<{ role: ParticipantRole }> = ({ role }) => {
   const c = ROLE_COLORS[role] ?? ROLE_COLORS.member
   return (
     <span
-      className="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[7px] py-0.5 text-xs font-bold"
+      className="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[7px] py-0.5 text-[0.68rem] font-bold"
       style={{ backgroundColor: c.bg, color: c.fg }}
     >
       <Icon icon={c.icon} style={{ width: 13, height: 13 }} />
@@ -150,7 +150,7 @@ export const CapacityBar: React.FC<{ current: number; max: number }> = ({ curren
           icon="mdi:account-group-outline"
           style={{ width: 15, height: 15, color: ratio >= 1 ? '#f59e0b' : '#10b981' }}
         />
-        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+        <span className="text-[0.68rem] font-bold text-slate-700 dark:text-slate-300">
           {`${current.toLocaleString('fa-IR')}/${max.toLocaleString('fa-IR')}`}
         </span>
       </div>

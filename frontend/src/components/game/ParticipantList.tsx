@@ -34,7 +34,7 @@ const STATUS_COLORS: Record<string, string> = {
 }
 
 const iconButtonClass =
-  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
+  'inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
 
 const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, canManage }) => {
   const toast = useToast()
@@ -98,19 +98,19 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
               </div>
               <div className="mt-0.5 flex items-center gap-2">
                 <span
-                  className="text-xs font-semibold"
+                  className="text-[0.68rem] font-semibold"
                   style={{ color: STATUS_COLORS[p.status] ?? '#64748b' }}
                 >
                   {PARTICIPANT_STATUS_LABELS[p.status as keyof typeof PARTICIPANT_STATUS_LABELS] ?? p.status}
                 </span>
                 {p.payment_status === 'paid' && (
-                  <span className="inline-flex items-center gap-2 text-xs font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-2 text-[0.68rem] font-bold text-emerald-600 dark:text-emerald-400">
                     <Icon icon="mdi:check-circle" style={{ width: 13, height: 13 }} />
                     پرداخت‌شده
                   </span>
                 )}
                 {p.payment_status === 'pending' && (
-                  <span className="inline-flex items-center gap-2 text-xs font-bold text-amber-600 dark:text-amber-400">
+                  <span className="inline-flex items-center gap-2 text-[0.68rem] font-bold text-amber-600 dark:text-amber-400">
                     <Icon icon="mdi:clock-outline" style={{ width: 13, height: 13 }} />
                     سهم پرداخت‌نشده
                   </span>

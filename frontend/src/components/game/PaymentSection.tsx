@@ -56,7 +56,7 @@ const PaymentRow: React.FC<{ payment: GamePayment; participants: Participant[] }
       </div>
       <span className="text-[0.78rem] tabular-nums text-slate-600 dark:text-slate-300">{formatPrice(payment.amount)}</span>
       <span
-        className="inline-flex h-[22px] items-center rounded-full px-2 text-xs font-bold"
+        className="inline-flex h-[22px] items-center rounded-full px-2 text-[0.68rem] font-bold"
         style={{
           backgroundColor: paid ? 'rgba(22,163,74,0.1)' : 'rgba(245,158,11,0.12)',
           color: ink,
@@ -149,10 +149,10 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
         <>
           <div className="flex flex-wrap items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <span className="inline-flex h-6 items-center rounded-full bg-blue-600/[0.08] px-2 text-xs font-extrabold text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
+              <span className="inline-flex h-6 items-center rounded-full bg-blue-600/[0.08] px-2 text-[0.68rem] font-extrabold text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
                 {`سهم هر نفر: ${formatPrice(summary.price_per_player ?? game.price_per_player ?? 0)}`}
               </span>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-[0.68rem] text-muted-foreground">
                 {`${paidCount.toLocaleString('fa-IR')} پرداخت‌شده از ${total.toLocaleString('fa-IR')}`}
               </p>
             </div>
@@ -184,7 +184,7 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
             )}
             {!canPay && myPayment?.status === 'paid' && (
               <span
-                className="inline-flex h-6 items-center rounded-full px-2 text-xs font-extrabold"
+                className="inline-flex h-6 items-center rounded-full px-2 text-[0.68rem] font-extrabold"
                 style={{ backgroundColor: 'rgba(22,163,74,0.1)', color: chipInk('#15803d', 'rgba(22,163,74,0.1)') }}
               >
                 سهم شما پرداخت شده ✓

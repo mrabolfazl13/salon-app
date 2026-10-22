@@ -171,7 +171,7 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
       <DialogContent aria-describedby={undefined} className="sm:max-w-[560px]">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-400 text-white">
+            <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-400 text-white">
               <Icon icon="mdi:ticket-percent-outline" className="h-5 w-5" aria-hidden="true" />
             </span>
             <DialogTitle className="text-lg font-extrabold text-foreground">
@@ -180,7 +180,7 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
           </div>
         </DialogHeader>
 
-        <div className="flex flex-col gap-5">
+        <div className="flex flex-col gap-3">
           {!isEdit && (
             <div className="flex flex-col gap-1.5">
               <Label htmlFor={codeId}>کد تخفیف</Label>
@@ -216,12 +216,12 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
                 </Select>
               </div>
             ) : (
-              <span className="inline-flex items-center gap-1 self-start rounded-xl border border-border bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+              <span className="inline-flex items-center gap-1 self-start rounded-xl border border-border bg-muted px-3 py-1 text-[0.68rem] font-semibold text-foreground">
                 {scopeChip}
               </span>
             )
           ) : (
-            <span className="inline-flex items-center gap-1 self-start rounded-xl border border-border bg-muted px-3 py-1 text-xs font-semibold text-foreground">
+            <span className="inline-flex items-center gap-1 self-start rounded-xl border border-border bg-muted px-3 py-1 text-[0.68rem] font-semibold text-foreground">
               {scopeChip}
             </span>
           )}
@@ -312,19 +312,19 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
               <PersianDatePicker label="اعتبار تا" value={validUntil} onChange={setValidUntil} size="small" min={validFrom || undefined} />
             </div>
           </div>
-          <p className="-mt-2 text-xs text-muted-foreground">خالی‌گذاری = بدون محدودیت زمانی. سرور این تاریخ‌ها را به میلادی تبدیل و ذخیره می‌کند.</p>
+          <p className="-mt-2 text-[0.68rem] text-muted-foreground">خالی‌گذاری = بدون محدودیت زمانی. سرور این تاریخ‌ها را به میلادی تبدیل و ذخیره می‌کند.</p>
 
           {isEdit && (
             <div className="flex items-center gap-3">
               <Switch id={activeId} checked={active} onCheckedChange={setActive} />
-              <Label htmlFor={activeId} className="cursor-pointer text-sm font-semibold text-foreground">
+              <Label htmlFor={activeId} className="cursor-pointer text-[0.68rem] font-semibold text-foreground">
                 کد فعال باشد
               </Label>
             </div>
           )}
 
           {localError && (
-            <p role="alert" className="text-sm font-semibold text-red-600 dark:text-red-400">{localError}</p>
+            <p role="alert" className="text-[0.68rem] font-semibold text-red-600 dark:text-red-400">{localError}</p>
           )}
         </div>
 

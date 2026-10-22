@@ -51,8 +51,8 @@ const ConfirmModal: React.FC<ConfirmModalProps> = ({
             />
           </div>
         </motion.div>
-        <h2 className="text-lg font-semibold mb-2 text-gray-900 dark:text-gray-100">{title}</h2>
-        <p className="text-sm text-gray-500 dark:text-gray-400">{description}</p>
+        <h2 className="text-lg font-semibold mb-1 text-gray-900 dark:text-gray-100">{title}</h2>
+        <p className="text-[0.68rem] text-gray-500 dark:text-gray-400">{description}</p>
       </div>
       <div className="flex gap-2 justify-center mt-4">
         <Button

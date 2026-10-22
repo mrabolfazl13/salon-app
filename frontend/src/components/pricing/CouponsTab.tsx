@@ -37,12 +37,12 @@ const scopeLabel = (ven: FinanceVenue[], venueId: number | null) =>
 const CouponValueLabel: React.FC<{ c: Coupon }> = ({ c }) => {
   if (c.discount_type === 'percent') {
     return (
-      <span className="inline-flex items-center rounded-lg bg-pink-600/10 px-2 py-0.5 text-xs font-extrabold text-pink-700 dark:bg-pink-400/15 dark:text-pink-300">
+      <span className="inline-flex items-center rounded-lg bg-pink-600/10 px-2 py-0.5 text-[0.68rem] font-extrabold text-pink-700 dark:bg-pink-400/15 dark:text-pink-300">
         {toPersianDigits(Math.round(c.value / 100))}٪
       </span>
     )
   }
-  return <span className="text-sm font-extrabold text-pink-700 tabular-nums dark:text-pink-300">{formatRial(c.value)}</span>
+  return <span className="text-[0.68rem] font-extrabold text-pink-700 tabular-nums dark:text-pink-300">{formatRial(c.value)}</span>
 }
 
 const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
@@ -129,14 +129,14 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                     className={`hover:bg-pink-600/[0.03] ${!c.is_active || exhausted ? 'opacity-60' : ''}`}
                   >
                     <TableCell>
-                      <span dir="auto" className="text-sm font-extrabold text-foreground [font-family:ui-monospace,monospace]">
+                      <span dir="auto" className="text-[0.68rem] font-extrabold text-foreground [font-family:ui-monospace,monospace]">
                         {c.code}
                       </span>
                     </TableCell>
                     <TableCell><CouponValueLabel c={c} /></TableCell>
                     <TableCell>
                       <span
-                        className={`inline-flex max-w-[140px] items-center truncate rounded-lg px-2 py-0.5 text-xs font-semibold ${
+                        className={`inline-flex max-w-[140px] items-center truncate rounded-lg px-2 py-0.5 text-[0.68rem] font-semibold ${
                           c.venue_id == null
                             ? 'bg-blue-500/15 text-blue-700 dark:text-blue-300'
                             : 'bg-muted text-foreground'
@@ -145,7 +145,7 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                         {c.venue_id == null ? 'سراسری' : venueName(c.venue_id)}
                       </span>
                       {c.min_booking_amount ? (
-                        <span className="mt-1 block text-xs text-muted-foreground tabular-nums">
+                        <span className="mt-1 block text-[0.68rem] text-muted-foreground tabular-nums">
                           از {formatRial(c.min_booking_amount)}
                         </span>
                       ) : null}
@@ -153,26 +153,26 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                     <TableCell>
                       <div className="flex items-baseline gap-1">
                         <span
-                          className={`text-sm font-bold tabular-nums ${
+                          className={`text-[0.68rem] font-bold tabular-nums ${
                             exhausted ? 'text-red-700 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400'
                           }`}
                         >
                           {toPersianDigits(c.uses_count)}
                         </span>
-                        <span className="text-xs text-muted-foreground">
+                        <span className="text-[0.68rem] text-muted-foreground">
                           {c.max_uses != null ? `/ ${toPersianDigits(c.max_uses)}` : 'از سقف نامحدود'}
                         </span>
                       </div>
                       {c.per_user_limit != null ? (
-                        <span className="block text-xs text-muted-foreground">هر کاربر {toPersianDigits(c.per_user_limit)}×</span>
+                        <span className="block text-[0.68rem] text-muted-foreground">هر کاربر {toPersianDigits(c.per_user_limit)}×</span>
                       ) : (
-                        <span className="block text-xs text-muted-foreground">هر کاربر نامحدود</span>
+                        <span className="block text-[0.68rem] text-muted-foreground">هر کاربر نامحدود</span>
                       )}
                       <Button
                         size="sm"
                         variant="ghost"
                         onClick={() => setRedemptionsFor(c)}
-                        className="-ms-3 h-11 px-3 text-pink-700 hover:bg-pink-600/10 hover:text-pink-800 dark:text-pink-300 dark:hover:text-pink-200"
+                        className="-ms-3 h-9 px-3 text-pink-700 hover:bg-pink-600/10 hover:text-pink-800 dark:text-pink-300 dark:hover:text-pink-200"
                       >
                         <Icon icon="mdi:account-clock-outline" className="h-4 w-4" aria-hidden="true" />
                         مصرف‌ها
@@ -180,13 +180,13 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                     </TableCell>
                     <TableCell>
                       {(c.valid_from || c.valid_until) ? (
-                        <span className="whitespace-nowrap text-sm font-medium text-muted-foreground tabular-nums">
+                        <span className="whitespace-nowrap text-[0.68rem] font-medium text-muted-foreground tabular-nums">
                           {c.valid_from ? formatJalaliDate(c.valid_from.slice(0, 10)) : 'از ابتدا'}
                           {' — '}
                           {c.valid_until ? formatJalaliDate(c.valid_until.slice(0, 10)) : 'بدون انقضا'}
                         </span>
                       ) : (
-                        <span className="inline-flex items-center whitespace-nowrap rounded-lg bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                        <span className="inline-flex items-center whitespace-nowrap rounded-lg bg-muted px-2 py-0.5 text-[0.68rem] text-muted-foreground">
                           بدون محدودیت زمانی
                         </span>
                       )}
@@ -230,7 +230,7 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                           </Button>
                         )}
                         {exhausted && (
-                          <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-bold text-amber-800 dark:text-amber-300">
+                          <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-800 dark:text-amber-300">
                             سقف مصرف پر شده
                           </span>
                         )}

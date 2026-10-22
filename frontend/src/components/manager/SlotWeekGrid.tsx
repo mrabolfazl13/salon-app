@@ -191,7 +191,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
             value={activeVenueId !== null ? String(activeVenueId) : undefined}
             onValueChange={(v) => setVenueId(Number(v))}
           >
-            <SelectTrigger aria-label="سالن" className="h-11 min-w-[200px]">
+            <SelectTrigger aria-label="سالن" className="h-9 min-w-[200px]">
               <SelectValue placeholder="سالن" />
             </SelectTrigger>
             <SelectContent>
@@ -201,7 +201,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
             </SelectContent>
           </Select>
         ) : (
-          <span className="inline-flex items-center rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-xs font-bold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+          <span className="inline-flex items-center rounded-lg border border-amber-300 bg-amber-50 px-2 py-0.5 text-[0.68rem] font-bold text-amber-800 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
             سالنی در دسترس نیست
           </span>
         )}
@@ -215,7 +215,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
           >
             <Icon icon="mdi:chevron-right" className="h-5 w-5" aria-hidden="true" />
           </Button>
-          <p className="min-w-[190px] text-center text-sm font-extrabold text-foreground" dir="rtl">
+          <p className="min-w-[190px] text-center text-[0.68rem] font-extrabold text-foreground" dir="rtl">
             {`${formatJalaliDate(startDate, { format: 'numeric' })} — ${formatJalaliDate(endDate, { format: 'numeric' })}`}
           </p>
           <Button
@@ -231,7 +231,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
             size="sm"
             variant="ghost"
             onClick={() => setWeekStart(saturdayOf(new Date()))}
-            className="rounded-lg text-xs font-bold"
+            className="rounded-lg text-[0.68rem] font-bold"
           >
             این هفته
           </Button>
@@ -247,7 +247,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
               style={{ backgroundColor: STATUS_COLORS[k] }}
               aria-hidden="true"
             />
-            <span className="text-xs text-muted-foreground">{label}</span>
+            <span className="text-[0.68rem] text-muted-foreground">{label}</span>
           </div>
         ))}
       </div>
@@ -258,31 +258,31 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
             aria-hidden="true"
             className="mx-auto block h-8 w-8 animate-spin rounded-full border-4 border-muted border-t-blue-600"
           />
-          <p className="mt-2 text-sm text-muted-foreground">
+          <p className="mt-2 text-[0.68rem] text-muted-foreground">
             در حال بارگذاری سانس‌های هفته…
           </p>
         </div>
       ) : slotsQuery.isError ? (
-        <p role="alert" className="text-sm text-red-600 dark:text-red-400">
+        <p role="alert" className="text-[0.68rem] text-red-600 dark:text-red-400">
           {extractError(slotsQuery.error, 'خطا در دریافت سانس‌های هفته')}
         </p>
       ) : times.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">
+        <p className="py-8 text-center text-[0.68rem] text-muted-foreground">
           در این هفته سانسی ثبت نشده است — از تب «سانس‌ها» یا «سالن‌های من» سانس تولید کنید.
         </p>
       ) : (
-        <div className="overflow-x-auto rounded-2xl border border-border">
+        <div className="overflow-x-auto rounded-lg border border-border">
           <Table
             aria-label="سانس‌های هفته"
-            className="min-w-[760px] border-collapse text-xs [&_td]:border [&_td]:border-border [&_td]:p-1 [&_th]:border [&_th]:border-border [&_th]:p-1"
+            className="min-w-[760px] border-collapse text-[0.68rem] [&_td]:border [&_td]:border-border [&_td]:p-1 [&_th]:border [&_th]:border-border [&_th]:p-1"
           >
             <TableHeader>
               <TableRow className="bg-slate-50/90 dark:bg-slate-900/60">
-                <TableHead scope="col" className="whitespace-nowrap text-xs font-extrabold">ساعت</TableHead>
+                <TableHead scope="col" className="whitespace-nowrap text-[0.68rem] font-extrabold">ساعت</TableHead>
                 {days.map((day, i) => (
-                  <TableHead scope="col" key={day} className="whitespace-nowrap text-center text-xs font-extrabold">
+                  <TableHead scope="col" key={day} className="whitespace-nowrap text-center text-[0.68rem] font-extrabold">
                     {jalaliWeekdayNames[i]}
-                    <span className="block text-xs font-semibold text-muted-foreground">
+                    <span className="block text-[0.68rem] font-semibold text-muted-foreground">
                       {toPersianDigits(formatJalaliDate(day, { format: 'numeric' }).slice(5))}
                     </span>
                   </TableHead>
@@ -292,14 +292,14 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
             <TableBody>
               {times.map((time) => (
                 <TableRow key={time}>
-                  <TableCell className="whitespace-nowrap font-mono text-xs font-extrabold" dir="ltr">
+                  <TableCell className="whitespace-nowrap font-mono text-[0.68rem] font-extrabold" dir="ltr">
                     {toPersianDigits(time)}
                   </TableCell>
                   {days.map((day) => {
                     const slot = slotAt(day, time)
                     if (!slot) {
                       return (
-                        <TableCell key={day} className="text-center text-xs text-muted-foreground">—</TableCell>
+                        <TableCell key={day} className="text-center text-[0.68rem] text-muted-foreground">—</TableCell>
                       )
                     }
                     const color = STATUS_COLORS[slot.status] || '#6b7280'
@@ -314,7 +314,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                               onClick={() => setSelectedSlot(slot)}
                               aria-label={`سانس ${toPersianDigits(time)} ${jalaliWeekdayNames[days.indexOf(day)] ?? day}، ${STATUS_LABELS[slot.status] || slot.status}، ${faNum(slot.current_price)} ریال`}
                               className={cn(
-                                'flex min-h-11 min-w-11 w-full cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 font-[inherit] transition-all hover:-translate-y-px hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                                'flex min-h-9 min-w-11 w-full cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 font-[inherit] transition-all hover:-translate-y-px hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                                 accentClass,
                               )}
                               style={{
@@ -328,7 +328,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                                 style={{ backgroundColor: color }}
                                 aria-hidden="true"
                               />
-                              <span className="text-xs font-extrabold leading-tight">
+                              <span className="text-[0.68rem] font-extrabold leading-tight">
                                 {faNum(slot.current_price)}
                               </span>
                               {/* وضعیت نباید فقط با رنگ فهمیده شود (WCAG 1.4.1) */}
@@ -427,32 +427,32 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
           const isUnblockable = s.status === 'blocked' && isFutureSlot(s)
           return (
             <div className="flex flex-col gap-2">
-              <p className="text-sm text-muted-foreground">
+              <p className="text-[0.68rem] text-muted-foreground">
                 {`${venueNameOf?.(s.venue_id) ?? `سالن #${faNum(s.venue_id)}`} — ${faNum(s.duration)} دقیقه`}
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <span
-                  className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-bold"
+                  className="inline-flex items-center rounded-lg px-2 py-0.5 text-[0.68rem] font-bold"
                   style={{ backgroundColor: `${color}18`, color }}
                 >
                   {STATUS_LABELS[s.status] || s.status}
                 </span>
-                <span className="inline-flex items-center rounded-lg border border-border px-2 py-0.5 text-xs font-bold text-foreground">
+                <span className="inline-flex items-center rounded-lg border border-border px-2 py-0.5 text-[0.68rem] font-bold text-foreground">
                   {`قیمت: ${faNum(s.current_price)}`}
                 </span>
                 {s.is_contract_slot && (
-                  <span className="inline-flex items-center rounded-lg bg-blue-600 px-2 py-0.5 text-xs font-bold text-white">
+                  <span className="inline-flex items-center rounded-lg bg-blue-600 px-2 py-0.5 text-[0.68rem] font-bold text-white">
                     سانس قرارداد
                   </span>
                 )}
               </div>
               {s.is_contract_slot && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[0.68rem] text-muted-foreground">
                   سانس قرارداد از این مسیر مسدود نمی‌شود — قواعد استثنا/جابه‌جایی در پنل قراردادها است.
                 </p>
               )}
               {!isBlockable && !isUnblockable && !s.is_contract_slot && s.status !== 'available' && s.status !== 'blocked' && (
-                <p className="text-xs text-muted-foreground">
+                <p className="text-[0.68rem] text-muted-foreground">
                   این وضعیت سانس اقدام مستقیمی ندارد — مشاهده‌ی اطلاعات.
                 </p>
               )}

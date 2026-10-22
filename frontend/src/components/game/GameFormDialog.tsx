@@ -182,7 +182,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
         {!isEdit && (
           <div className="rounded-[14px] border border-emerald-500/20 bg-emerald-500/[0.07] px-3 py-2.5">
             <p className="text-[0.78rem] font-bold text-emerald-600 dark:text-emerald-400">رزرو پایه‌ی بازی</p>
-            <p className="mt-0.5 text-xs text-slate-700 dark:text-slate-300">
+            <p className="mt-0.5 text-[0.68rem] text-slate-700 dark:text-slate-300">
               {bookingLabel || `رزرو #${(bookingId ?? 0).toLocaleString('fa-IR')}`}
             </p>
           </div>
@@ -217,7 +217,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
           <div className="flex flex-col gap-1.5">
             <Label id={sportId}>ورزش</Label>
             <Select value={sport} onValueChange={setSport}>
-              <SelectTrigger aria-labelledby={sportId} className="h-11">
+              <SelectTrigger aria-labelledby={sportId} className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -246,7 +246,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
                 value={maxPlayers}
                 onChange={(e) => setMaxPlayers(e.target.value === '' ? '' : Math.max(2, Number(e.target.value)))}
               />
-              <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground">
+              <span className="pointer-events-none absolute end-3 top-1/2 -translate-y-1/2 text-[0.68rem] text-muted-foreground">
                 نفر
               </span>
             </div>
@@ -254,7 +254,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
           <div className="flex min-w-[150px] flex-col gap-1.5">
             <Label id={skillId}>سطح بازی</Label>
             <Select value={skillLevel} onValueChange={(v) => setSkillLevel(v as SkillLevel)}>
-              <SelectTrigger aria-labelledby={skillId} className="h-11">
+              <SelectTrigger aria-labelledby={skillId} className="h-9">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -269,7 +269,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
         <div className="flex flex-col gap-1.5">
           <Label id={visibilityId}>نوع دسترسی</Label>
           <Select value={visibility} onValueChange={(v) => setVisibility(v as GameVisibility)}>
-            <SelectTrigger aria-labelledby={visibilityId} className="h-11">
+            <SelectTrigger aria-labelledby={visibilityId} className="h-9">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -279,7 +279,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
             </SelectContent>
           </Select>
         </div>
-        <p className="-mt-2 text-xs text-muted-foreground">
+        <p className="-mt-2 text-[0.68rem] text-muted-foreground">
           خصوصی: فقط با لینک دعوت یا دعوت مستقیم - عمومی با تأیید: نیازمند تأیید مدیر - عمومی: پیوستن آزاد
         </p>
 
@@ -288,7 +288,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
             <div className="flex flex-col gap-1.5">
               <Label id={paymentModeId}>نحوه پرداخت</Label>
               <Select value={paymentMode} onValueChange={(v) => setPaymentMode(v as PaymentMode)}>
-                <SelectTrigger aria-labelledby={paymentModeId} className="h-11">
+                <SelectTrigger aria-labelledby={paymentModeId} className="h-9">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -300,7 +300,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
             </div>
             {paymentMode === 'split_payment' && teamMembers.length > 0 && (
               <Alert variant="info">
-                <AlertDescription className="flex flex-col gap-2 text-xs">
+                <AlertDescription className="flex flex-col gap-2 text-[0.68rem]">
                   می‌توانید پس از ساخت بازی، هزینه را بین اعضای تیم تقسیم کنید.
                   <Button
                     size="sm"
@@ -313,7 +313,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
               </Alert>
             )}
             {game === null && bookingLabel && (
-              <p className="-mt-2 text-xs text-muted-foreground">
+              <p className="-mt-2 text-[0.68rem] text-muted-foreground">
                 در حالت سهمی، هزینه‌ی رزرو بین بازیکنان تقسیم می‌شود.
               </p>
             )}
