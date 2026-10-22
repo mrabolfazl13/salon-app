@@ -16,6 +16,7 @@ import { splitPaymentService } from '@/services/splitPayment'
 import type { Team } from '@/types/team'
 import type { TeamMember } from '@/types/team'
 import SplitPaymentDialog from './SplitPaymentDialog'
+import { formatPrice } from '@/lib/utils'
 
 interface Props {
   team: Team
@@ -249,7 +250,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                     <div className="flex flex-wrap gap-6 text-[0.8rem] text-muted-foreground">
                       <div className="flex items-center gap-2">
                         <Icon icon="mdi:currency-irr" className="h-4 w-4" aria-hidden="true" />
-                        <span>{Number(payment.amount).toLocaleString()} ریال</span>
+                        <span>{formatPrice(Number(payment.amount))}</span>
                       </div>
                       {payment.deadline && (
                         <div className="flex items-center gap-2">
@@ -301,7 +302,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
             <div className="rounded-xl bg-muted p-4">
               <div className="mb-1 flex justify-between">
                 <span className="text-[0.8rem] text-muted-foreground">مبلغ کل:</span>
-                <span className="font-bold text-foreground">{Number(selectedPayment.amount).toLocaleString()} ریال</span>
+                <span className="font-bold text-foreground">{formatPrice(Number(selectedPayment.amount))}</span>
               </div>
               <div className="mb-1 flex justify-between">
                 <span className="text-[0.8rem] text-muted-foreground">روش تقسیم:</span>
@@ -324,11 +325,11 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
             {/* Progress — سرور total_paid/remaining را می‌فرستد؛ قبلاً هیچ‌جا نشان داده نمی‌شد */}
             <div className="flex flex-wrap items-center justify-between gap-2">
               <span className="text-[0.8rem] text-muted-foreground">
-                {`${Number(selectedPayment.total_paid ?? 0).toLocaleString('fa-IR')} پرداخت‌شده از ${Number(selectedPayment.amount).toLocaleString('fa-IR')} ریال`}
+                {`${Number(selectedPayment.total_paid ?? 0).toLocaleString('fa-IR')} پرداخت‌شده از ${formatPrice(Number(selectedPayment.amount))}`}
               </span>
               {Number(selectedPayment.remaining ?? 0) > 0 && (
                 <span className="text-[0.8rem] font-bold text-amber-700 dark:text-amber-300">
-                  {`باقی‌مانده: ${Number(selectedPayment.remaining).toLocaleString('fa-IR')} ریال`}
+                  {`باقی‌مانده: ${formatPrice(Number(selectedPayment.remaining))}`}
                 </span>
               )}
             </div>
@@ -347,7 +348,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                 loading={paying}
                 onClick={handlePayShare}
               >
-                {`پرداخت سهم من (${Number(myShare.amount).toLocaleString('fa-IR')} ریال)`}
+                {`پرداخت سهم من (${formatPrice(Number(myShare.amount))})`}
               </Button>
             )}
             {canCancel && (
@@ -379,7 +380,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                     </p>
                     <p className="mt-1 text-[0.75rem] text-muted-foreground">
                       {share.percentage ? `${share.percentage}%` : ''}
-                      {share.amount > 0 && ` · ${Number(share.amount).toLocaleString()} ریال`}
+                      {share.amount > 0 && ` · ${formatPrice(Number(share.amount))}`}
                     </p>
                   </div>
                   <span

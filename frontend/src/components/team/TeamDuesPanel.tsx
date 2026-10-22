@@ -152,7 +152,7 @@ const DuesGenerateDialog: React.FC<{
   const handleSubmit = () => {
     const amount = parseAmountInput(amountStr)
     if (!Number.isInteger(amount) || amount <= 0) {
-      setFieldError('مبلغ را به ریال و بزرگ‌تر از صفر وارد کنید.')
+      setFieldError('مبلغ را به تومان و بزرگ‌تر از صفر وارد کنید.')
       return
     }
     if (title.trim().length < 2) {
@@ -210,7 +210,7 @@ const DuesGenerateDialog: React.FC<{
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="due-amount">
-            مبلغ سرانه (ریال) <span className="text-red-600 dark:text-red-400">*</span>
+            مبلغ سرانه (تومان) <span className="text-red-600 dark:text-red-400">*</span>
           </Label>
           <Input
             id="due-amount"
@@ -292,7 +292,7 @@ const DuesPlanDialog: React.FC<{
   const handleSubmit = () => {
     const amount = parseAmountInput(amountStr)
     if (auto && (!Number.isInteger(amount) || amount <= 0)) {
-      setFieldError('برای سهم خودکار، مبلغ ماهانه را به ریال وارد کنید.')
+      setFieldError('برای سهم خودکار، مبلغ ماهانه را به تومان وارد کنید.')
       return
     }
     if (title.trim().length < 2) {
@@ -351,7 +351,7 @@ const DuesPlanDialog: React.FC<{
         </div>
         <div className="flex flex-col gap-1.5">
           <Label htmlFor="plan-amount">
-            مبلغ ماهانه سرانه (ریال){auto && <span className="text-red-600 dark:text-red-400"> *</span>}
+            مبلغ ماهانه سرانه (تومان){auto && <span className="text-red-600 dark:text-red-400"> *</span>}
           </Label>
           <Input
             id="plan-amount"

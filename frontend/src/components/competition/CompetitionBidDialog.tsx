@@ -205,7 +205,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
         </div>
 
         <div className="flex flex-col gap-1.5">
-          <Label htmlFor="bid-amount">قیمت پیشنهادی (ریال)</Label>
+          <Label htmlFor="bid-amount">قیمت پیشنهادی (تومان)</Label>
           <div className="relative">
             <Input
               id="bid-amount"
@@ -221,14 +221,14 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
               className="pe-14"
             />
             <span className="pointer-events-none absolute end-4 top-1/2 -translate-y-1/2 text-[0.68rem] text-muted-foreground">
-              ریال
+              تومان
             </span>
           </div>
           {!validationError && (
             <p className="text-[0.68rem] text-muted-foreground">
               {bestPrice != null
                 ? `برای برنده شدن باید کمتر از بهترین پیشنهاد (${formatPrice(bestPrice)}) باشد`
-                : 'حداقل ۱ ریال و کمتر از قیمت فعلی سانس'}
+                : 'حداقل ۱ تومان و کمتر از قیمت فعلی سانس'}
             </p>
           )}
         </div>
