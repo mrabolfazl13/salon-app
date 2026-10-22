@@ -2,8 +2,10 @@
 // هوک‌های TanStack Query برای کنسول مالی مدیر (state سمت سرور — الگوی useGames).
 // استراتژی: هر mutation موفق → ابطال کل دامنه‌ی ['finance'] تا داشبورد/لیست‌ها/حساب‌ها
 // با ارقام جدید سرور همگام شوند.
+// FIX: اضافه کردن userId به query keys برای auto-refresh هنگام تغییر کاربر
 
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
+import { useAuthStore } from '@/store/authStore'
 
 import { venueService } from '@/services/venue'
 import {
@@ -23,16 +25,16 @@ import {
 
 export const financeKeys = {
   all: ['finance'] as const,
-  venues: ['finance', 'venues'] as const,
-  dashboard: (p: FinanceScopeParams) => ['finance', 'dashboard', p] as const,
-  series: (p: SeriesParams) => ['finance', 'series', p] as const,
-  bySource: (p: FinanceScopeParams) => ['finance', 'by-source', p] as const,
-  occupancy: (p: FinanceScopeParams) => ['finance', 'occupancy', p] as const,
-  lowDemand: (p: LowDemandParams) => ['finance', 'low-demand', p] as const,
-  venueComparison: (p: FinanceScopeParams) => ['finance', 'venue-comparison', p] as const,
-  transactions: (p: TransactionListParams) => ['finance', 'transactions', p] as const,
+  venues: (userId?: number) => ['finance', 'venues', userId] as const,
+  dashboard: (p: FinanceScopeParams, userId?: number) => ['finance', 'dashboard', p, userId] as const,
+  series: (p: SeriesParams, userId?: number) => ['finance', 'series', p, userId] as const,
+  bySource: (p: FinanceScopeParams, userId?: number) => ['finance', 'by-source', p, userId] as const,
+  occupancy: (p: FinanceScopeParams, userId?: number) => ['finance', 'occupancy', p, userId] as const,
+  lowDemand: (p: LowDemandParams, userId?: number) => ['finance', 'low-demand', p, userId] as const,
+  venueComparison: (p: FinanceScopeParams, userId?: number) => ['finance', 'venue-comparison', p, userId] as const,
+  transactions: (p: TransactionListParams, userId?: number) => ['finance', 'transactions', p, userId] as const,
   categories: (includeInactive: boolean) => ['finance', 'categories', { includeInactive }] as const,
-  accounts: (p: AccountListParams) => ['finance', 'accounts', p] as const,
+  accounts: (p: AccountListParams, userId?: number) => ['finance', 'accounts', p, userId] as const,
   statement: (userId: number, p: FinanceScopeParams) => ['finance', 'statement', userId, p] as const,
 }
 
@@ -49,8 +51,10 @@ export interface FinanceVenue {
 }
 
 export function useMyVenues(enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+  
   return useQuery({
-    queryKey: financeKeys.venues,
+    queryKey: financeKeys.venues(userId),
     queryFn: async (): Promise<FinanceVenue[]> => {
       const data = await venueService.getMyVenues()
       return (Array.isArray(data) ? data : []).map((v: { id: number; name: string }) => ({
@@ -58,64 +62,78 @@ export function useMyVenues(enabled = true) {
         name: v.name,
       }))
     },
-    enabled,
-    staleTime: 15 * 60 * 1000,
+    enabled: enabled && !!userId,
+    staleTime: 5 * 60 * 1000, // کاهش staleTime برای refresh سریع‌تر
   })
 }
 
 export function useFinanceDashboard(params: FinanceScopeParams, enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+  
   return useQuery({
-    queryKey: financeKeys.dashboard(params),
+    queryKey: financeKeys.dashboard(params, userId),
     queryFn: () => financeService.getDashboard(params),
-    enabled,
+    enabled: enabled && !!userId,
   })
 }
 
 export function useRevenueSeries(params: SeriesParams, enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+  
   return useQuery({
-    queryKey: financeKeys.series(params),
+    queryKey: financeKeys.series(params, userId),
     queryFn: () => financeService.getRevenueSeries(params),
-    enabled,
+    enabled: enabled && !!userId,
   })
 }
 
 export function useRevenueBySource(params: FinanceScopeParams, enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+  
   return useQuery({
-    queryKey: financeKeys.bySource(params),
+    queryKey: financeKeys.bySource(params, userId),
     queryFn: () => financeService.getRevenueBySource(params),
-    enabled,
+    enabled: enabled && !!userId,
   })
 }
 
 export function useOccupancy(params: FinanceScopeParams, enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+  
   return useQuery({
-    queryKey: financeKeys.occupancy(params),
+    queryKey: financeKeys.occupancy(params, userId),
     queryFn: () => financeService.getOccupancy(params),
-    enabled,
+    enabled: enabled && !!userId,
   })
 }
 
 export function useLowDemandSlots(params: LowDemandParams, enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+  
   return useQuery({
-    queryKey: financeKeys.lowDemand(params),
+    queryKey: financeKeys.lowDemand(params, userId),
     queryFn: () => financeService.getLowDemandSlots(params),
-    enabled,
+    enabled: enabled && !!userId,
   })
 }
 
 export function useVenueComparison(params: FinanceScopeParams, enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+  
   return useQuery({
-    queryKey: financeKeys.venueComparison(params),
+    queryKey: financeKeys.venueComparison(params, userId),
     queryFn: () => financeService.getVenueComparison(params),
-    enabled,
+    enabled: enabled && !!userId,
   })
 }
 
 export function useTransactions(params: TransactionListParams, enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+  
   return useQuery({
-    queryKey: financeKeys.transactions(params),
+    queryKey: financeKeys.transactions(params, userId),
     queryFn: () => financeService.listTransactions(params),
-    enabled,
+    enabled: enabled && !!userId,
     placeholderData: keepPreviousData,
   })
 }
@@ -129,10 +147,12 @@ export function useExpenseCategories(includeInactive = false, enabled = true) {
 }
 
 export function useAccounts(params: AccountListParams, enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+  
   return useQuery({
-    queryKey: financeKeys.accounts(params),
+    queryKey: financeKeys.accounts(params, userId),
     queryFn: () => financeService.listAccounts(params),
-    enabled,
+    enabled: enabled && !!userId,
     placeholderData: keepPreviousData,
   })
 }
