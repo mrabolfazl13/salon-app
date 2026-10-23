@@ -114,8 +114,8 @@ jobs:
         run: pnpm tauri android build --apk --aab
         env:
           # اپ بومی به پروکسی هم‌مبدأ دسترسی ندارد؛ آدرس مطلق API لازم است.
-          VITE_API_URL: ${{ secrets.TAURI_API_URL || 'http://2.189.255.225/api/v1' }}
-          VITE_DOMAIN: ${{ secrets.TAURI_DOMAIN || 'http://2.189.255.225' }}
+          VITE_API_URL: ${{ secrets.TAURI_API_URL || 'http://salon.absadeghi.ir/api/v1' }}
+          VITE_DOMAIN: ${{ secrets.TAURI_DOMAIN || 'http://salon.absadeghi.ir' }}
 
       - name: Upload APK
         uses: actions/upload-artifact@v4
@@ -164,8 +164,8 @@ jobs:
         working-directory: frontend
         run: pnpm tauri build
         env:
-          VITE_API_URL: ${{ secrets.TAURI_API_URL || 'http://2.189.255.225/api/v1' }}
-          VITE_DOMAIN: ${{ secrets.TAURI_DOMAIN || 'http://2.189.255.225' }}
+          VITE_API_URL: ${{ secrets.TAURI_API_URL || 'http://salon.absadeghi.ir/api/v1' }}
+          VITE_DOMAIN: ${{ secrets.TAURI_DOMAIN || 'http://salon.absadeghi.ir' }}
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4

@@ -12,7 +12,7 @@ NOTES=("$@")
 SERVER="salonapp"
 REMOTE_DIR="updates"
 APK_NAME="app-arm64-release-${VERSION}.apk"
-DOMAIN="http://2.189.255.225"
+DOMAIN="http://salon.absadeghi.ir"
 
 REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 SRC_APK="${APK_PATH:-$REPO_ROOT/src-tauri/gen/android/app/build/outputs/apk/universal/release/app-universal-release.apk}"
