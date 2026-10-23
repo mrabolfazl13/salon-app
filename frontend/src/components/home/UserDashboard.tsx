@@ -84,8 +84,9 @@ const UserDashboard: React.FC = () => {
       })
     }
 
-    // Finance is only accessible to venue_manager (not club_admin)
-    if (user?.role === 'venue_manager') {
+    // /finance accepts venue_manager and club_admin (ProtectedRoute), and both
+    // count as owners in useStaffPermission — hiding it from club_admin stranded them.
+    if (user?.role === 'venue_manager' || user?.role === 'club_admin') {
       base.push({
         label: 'امور مالی',
         icon: 'mdi:wallet',
