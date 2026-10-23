@@ -2,7 +2,7 @@ name: Build All Platforms (Web + Tauri)
 
 on:
   push:
-    branches: [master]
+    branches: [master, feat/mui-to-shadcn]
     tags:
       - 'v*'
   pull_request:
