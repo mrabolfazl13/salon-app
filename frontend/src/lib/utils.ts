@@ -69,24 +69,6 @@ export function getStatusLabel(status: string): string {
   return labels[status] || status
 }
 
-// رنگ Chip در MUI برای وضعیت‌ها (استفاده مشترک در همه صفحات)
-export function getMuiStatusColor(status: string): string {
-  const colors: Record<string, string> = {
-    confirmed: 'success',
-    pending: 'warning',
-    cancelled: 'error',
-    completed: 'info',
-    active: 'success',
-    expired: 'default',
-    available: 'success',
-    booked: 'error',
-    blocked: 'default',
-    in_competition: 'warning',
-    reserved: 'secondary',
-  }
-  return colors[status] || 'default'
-}
-
 // برچسب فارسی وضعیت سانس با fallback امن برای وضعیت‌های ناشناختهٔ آینده
 export const SLOT_STATUS_LABELS: Record<string, string> = {
   available: 'آزاد',
@@ -210,7 +192,7 @@ export function getReceiptStatusLabel(status?: string | null): string {
   return RECEIPT_STATUS_LABELS[status] ?? status
 }
 
-export function getReceiptStatusMuiColor(status?: string | null): 'default' | 'warning' | 'success' | 'error' {
+export function getReceiptStatusTone(status?: string | null): 'default' | 'warning' | 'success' | 'error' {
   if (status === 'submitted') return 'warning'
   if (status === 'approved') return 'success'
   if (status === 'rejected') return 'error'

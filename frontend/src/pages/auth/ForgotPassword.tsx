@@ -4,8 +4,8 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { Button } from '@/components/ui/Button'
-import { Input } from '@/components/ui/Input'
-import Card, { CardContent } from '@/components/ui/Card'
+import { Input } from '@/components/ui/shadcn/input'
+import { Card, CardContent } from '@/components/ui/shadcn/card'
 import { useToast } from '@/hooks/useToast'
 import { authService } from '@/services/auth'
 
@@ -164,8 +164,7 @@ const ForgotPassword: React.FC = () => {
                   value={phone}
                   onChange={(e) => setPhone(toLatinDigits(e.target.value).replace(/[^0-9]/g, '').slice(0, 11))}
                   placeholder="09123456789"
-                  icon="mdi:cellphone"
-                  className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
+                  startIcon={<Icon icon="mdi:cellphone" />}
                   dir="ltr"
                 />
 
@@ -236,8 +235,8 @@ const ForgotPassword: React.FC = () => {
                   value={code}
                   onChange={(e) => setCode(toLatinDigits(e.target.value).replace(/[^0-9]/g, '').slice(0, 6))}
                   placeholder="000000"
-                  icon="mdi:numeric"
-                  className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500 text-center tracking-[0.5em]"
+                  startIcon={<Icon icon="mdi:numeric" />}
+                  className="text-center tracking-[0.5em]"
                   dir="ltr"
                 />
 
@@ -249,8 +248,7 @@ const ForgotPassword: React.FC = () => {
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="رمز عبور جدید (حداقل ۴ کاراکتر)"
-                  icon="mdi:lock-outline"
-                  className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
+                  startIcon={<Icon icon="mdi:lock-outline" />}
                 />
 
                 {/* Confirm Password */}
@@ -261,8 +259,7 @@ const ForgotPassword: React.FC = () => {
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="تکرار رمز عبور جدید"
-                  icon="mdi:lock-check-outline"
-                  className="h-12 rounded-xl border-gray-300 dark:border-[#223049] focus:border-amber-500"
+                  startIcon={<Icon icon="mdi:lock-check-outline" />}
                 />
 
                 {/* Submit Button */}

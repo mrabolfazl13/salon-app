@@ -14,7 +14,7 @@ import {
   formatDateTime,
   formatPrice,
   getReceiptStatusLabel,
-  getReceiptStatusMuiColor,
+  getReceiptStatusTone,
   translatePaymentError,
 } from '@/lib/utils'
 import { Alert } from '@/components/ui/shadcn/alert'
@@ -57,7 +57,7 @@ const ReceiptStatusBadge: React.FC<{ status?: string | null }> = ({ status }) =>
   <span
     className={cn(
       'inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-semibold',
-      RECEIPT_TONE[getReceiptStatusMuiColor(status)] ?? RECEIPT_TONE.default
+      RECEIPT_TONE[getReceiptStatusTone(status)] ?? RECEIPT_TONE.default
     )}
   >
     {getReceiptStatusLabel(status)}

@@ -25,7 +25,7 @@ import {
   getPaymentModeLabel,
   getPaymentModeIcon,
   getReceiptStatusLabel,
-  getReceiptStatusMuiColor,
+  getReceiptStatusTone,
   getBookingStatusLabel,
   getBookingStatusStyle,
   PAYMENT_MODE_CHIP_STYLE,
@@ -1821,7 +1821,7 @@ const ManagerDashboard: React.FC = () => {
                                   <span
                                     className={cn(
                                       'inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-semibold',
-                                      RECEIPT_TONE_CLASS[getReceiptStatusMuiColor(booking.receipt_status)],
+                                      RECEIPT_TONE_CLASS[getReceiptStatusTone(booking.receipt_status)],
                                     )}
                                   >
                                     {getReceiptStatusLabel(booking.receipt_status)}
