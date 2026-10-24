@@ -34,7 +34,7 @@ export interface DialogProps {
   fullWidth?: boolean
   children?: React.ReactNode
   className?: string
-  [key: string]: unknown
+  style?: React.CSSProperties
 }
 
 const Dialog: React.FC<DialogProps> = ({
