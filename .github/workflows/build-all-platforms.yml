@@ -111,7 +111,9 @@ jobs:
 
       - name: Build APK + AAB
         working-directory: frontend
-        run: pnpm tauri android build --apk --aab
+        # split-per-abi: موبایل‌ها فایل universal را «corrupted» می‌خوانند و آپدیت داخل
+        # برنامه هم مسیر per-ABI را می‌خواهد؛ این حالت app-arm64-release.apk را واقعی می‌سازد.
+        run: pnpm tauri android build --apk --aab --split-per-abi
         env:
           # اپ بومی به پروکسی هم‌مبدأ دسترسی ندارد؛ آدرس مطلق API لازم است.
           VITE_API_URL: ${{ secrets.TAURI_API_URL || 'http://salon.absadeghi.ir/api/v1' }}
