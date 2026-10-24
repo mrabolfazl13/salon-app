@@ -181,7 +181,7 @@ const Register: React.FC = () => {
       >
         <Card className="border-0 shadow-2xl bg-white/90 dark:bg-[#121a2b]/90 backdrop-blur-xl overflow-hidden">
           {/* Gradient Header Line */}
-          <div className="h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400 animate-shimmer" />
+          <div className="h-1.5 bg-gradient-to-r from-amber-400 via-orange-500 to-amber-400" />
 
           <CardContent className="p-8">
             {/* Logo */}
