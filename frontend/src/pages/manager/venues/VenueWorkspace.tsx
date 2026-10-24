@@ -251,7 +251,7 @@ const VenueWorkspace: React.FC = () => {
               <Link
                 to="/manager/venues"
                 aria-label="بازگشت به فهرست سالن‌ها"
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-[0.72rem] font-semibold text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-[0.72rem] font-semibold text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
               >
                 <Icon icon="mdi:arrow-right" aria-hidden="true" className="h-4 w-4" />
                 سالن‌های من
@@ -259,7 +259,7 @@ const VenueWorkspace: React.FC = () => {
               <div className="flex items-center gap-1.5">
                 <Link
                   to={`/venues/${venue.id}`}
-                  className="inline-flex min-h-9 items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-[0.72rem] font-semibold text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-white/20 bg-white/10 px-2.5 text-[0.72rem] font-semibold text-white transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                 >
                   <Icon icon="mdi:open-in-new" aria-hidden="true" className="h-3.5 w-3.5" />
                   صفحهٔ عمومی
@@ -463,7 +463,7 @@ const VenueWorkspace: React.FC = () => {
                             <span className="text-[0.76rem] font-bold tabular-nums text-foreground">{row.value}</span>
                             <Link
                               to={row.to}
-                              className="inline-flex min-h-8 items-center rounded-lg border border-border px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              className="inline-flex min-h-11 items-center rounded-lg border border-border px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               {row.cta}
                             </Link>
@@ -565,7 +565,7 @@ const VenueWorkspace: React.FC = () => {
                   action={
                     <Link
                       to={`/finance/transactions?venue_id=${venueId}`}
-                      className="inline-flex min-h-8 items-center gap-1 rounded-lg border border-border px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted"
+                      className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-border px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted"
                     >
                       همهٔ تراکنش‌ها
                       <Icon icon="mdi:chevron-left" aria-hidden="true" className="h-3.5 w-3.5" />

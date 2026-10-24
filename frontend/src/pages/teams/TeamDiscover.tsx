@@ -151,7 +151,7 @@ const TeamDiscover: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate('/teams')}
-          className="inline-flex min-h-9 items-center gap-2 rounded-xl ps-0 pe-2 text-[0.68rem] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl ps-0 pe-2 text-[0.68rem] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
         >
           <Icon icon="mdi:arrow-right" aria-hidden="true" className="h-4 w-4" />
           بازگشت به تیم‌های من
@@ -176,7 +176,7 @@ const TeamDiscover: React.FC = () => {
             onClick={() => { setSport(undefined); setPage(1) }}
             aria-pressed={!sport}
             className={cn(
-              'inline-flex min-h-9 items-center rounded-full px-3 text-[0.68rem] font-bold transition-colors',
+              'inline-flex min-h-11 items-center rounded-full px-3.5 text-[0.68rem] font-bold transition-colors',
               !sport ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'bg-foreground/5 text-muted-foreground hover:bg-foreground/10'
             )}
           >
@@ -189,7 +189,7 @@ const TeamDiscover: React.FC = () => {
               onClick={() => { setSport(s.key); setPage(1) }}
               aria-pressed={sport === s.key}
               className={cn(
-                'inline-flex min-h-9 items-center rounded-full px-3 text-[0.68rem] font-bold transition-colors',
+                'inline-flex min-h-11 items-center rounded-full px-3.5 text-[0.68rem] font-bold transition-colors',
                 sport === s.key ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'bg-foreground/5 text-muted-foreground hover:bg-foreground/10'
               )}
             >
