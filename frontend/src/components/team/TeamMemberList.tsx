@@ -248,7 +248,7 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
                         type="button"
                         disabled={setRole.isPending}
                         aria-label={`تغییر نقش ${m.full_name ?? ''}`}
-                        className="inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-blue-400"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-blue-400"
                       >
                         <Icon icon={m.role === 'admin' ? 'mdi:shield-account' : 'mdi:shield-account-outline'} style={{ width: 18, height: 18 }} />
                       </button>

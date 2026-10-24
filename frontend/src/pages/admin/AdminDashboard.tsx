@@ -339,14 +339,14 @@ const AdminDashboard: React.FC = () => {
           <div className="mt-6 flex gap-3 border-t border-border pt-4">
             <Link
               to="/admin/users"
-              className="inline-flex min-h-9 flex-1 items-center justify-center gap-2 rounded-lg border border-border text-[0.68rem] font-semibold transition-colors hover:bg-muted"
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-border text-[0.68rem] font-semibold transition-colors hover:bg-muted"
             >
               <Icon icon="mdi:account-group" className="h-4 w-4" aria-hidden="true" />
               کاربران
             </Link>
             <Link
               to="/admin/venues"
-              className="inline-flex min-h-9 flex-1 items-center justify-center gap-2 rounded-lg border border-border text-[0.68rem] font-semibold transition-colors hover:bg-muted"
+              className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-lg border border-border text-[0.68rem] font-semibold transition-colors hover:bg-muted"
             >
               <Icon icon="mdi:stadium" className="h-4 w-4" aria-hidden="true" />
               سالن‌ها

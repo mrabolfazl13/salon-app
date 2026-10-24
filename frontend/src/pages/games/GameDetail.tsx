@@ -285,7 +285,7 @@ const GameDetail: React.FC = () => {
   return (
     <Layout>
       <div className="mb-4">
-        <Link to="/games" className="inline-flex min-h-9 items-center no-underline">
+        <Link to="/games" className="inline-flex min-h-11 items-center no-underline">
           <span className="inline-flex items-center gap-2 text-[0.8rem] font-bold text-blue-600 dark:text-blue-400">
             <Icon icon="mdi:arrow-right" className="h-4 w-4" aria-hidden="true" />
             بازگشت به بازی‌ها

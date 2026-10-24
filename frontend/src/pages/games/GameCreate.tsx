@@ -144,7 +144,7 @@ const IconButtonBack: React.FC<{ onClick: () => void }> = ({ onClick }) => (
     type="button"
     aria-label="بازگشت"
     onClick={onClick}
-    className="flex h-9 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full border border-border bg-card text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
   >
     <Icon icon="mdi:arrow-right" aria-hidden="true" className="h-5 w-5" />
   </button>

@@ -207,7 +207,7 @@ const Dashboard: React.FC = () => {
                 <Link
                   key={b.id}
                   to={`/bookings/${b.id}`}
-                  className="flex min-h-9 items-center justify-between gap-3 rounded-xl bg-muted/50 p-3 text-inherit no-underline transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-blue-500/10"
+                  className="flex min-h-11 items-center justify-between gap-3 rounded-xl bg-muted/50 p-3 text-inherit no-underline transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-blue-500/10"
                 >
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-[0.68rem] font-semibold text-foreground">
@@ -296,7 +296,7 @@ const Dashboard: React.FC = () => {
                     {p.status === 'pending' && (
                       <Link
                         to={`/venues/${p.venue_id}`}
-                        className="inline-flex min-h-9 items-center text-[0.68rem] font-bold text-blue-600 hover:underline dark:text-blue-400"
+                        className="inline-flex min-h-11 items-center text-[0.68rem] font-bold text-blue-600 hover:underline dark:text-blue-400"
                       >
                         پرداخت
                       </Link>
