@@ -11,6 +11,7 @@ import { VenueCardSkeletonList } from '@/components/mobile/Skeletons'
 import { venueService } from '@/services/venue'
 import { useAuthStore } from '@/store/authStore'
 import { useRecentlyViewedStore } from '@/store/recentlyViewedStore'
+import { cn } from '@/lib/utils'
 import type { Venue } from '@/types'
 
 interface QuickAction {
@@ -19,6 +20,8 @@ interface QuickAction {
   href: string
   color: string
   description?: string
+  /** موبایل دوستونه است؛ آیتم فردِ آخر یک خانهٔ نصفه می‌گذارد، پس این یکی کل عرض را می‌گیرد */
+  wide?: boolean
 }
 
 const UserDashboard: React.FC = () => {
@@ -106,6 +109,20 @@ const UserDashboard: React.FC = () => {
       })
     }
 
+    // چالش هفتگی جایزهٔ امتیازی دارد ولی تنها ورودی‌اش تایلِ صفحهٔ مهمان بود — یعنی
+    // کاربرِ واردشده هیچ‌وقت به آن نمی‌رسید. کنسول‌دارها (مدیر/کلاب) داشبورد کاری خود
+    // را دارند و شش تایل پر می‌شود، پس این فقط برای مشتری و مربی اضافه می‌شود.
+    if (user?.role !== 'venue_manager' && user?.role !== 'club_admin') {
+      base.push({
+        label: 'چالش هفتگی',
+        icon: 'mdi:brain',
+        href: '/quiz',
+        color: 'from-fuchsia-500 to-pink-600',
+        description: 'سه سؤال، امتیاز وفاداری',
+        wide: true
+      })
+    }
+
     return base
   }
 
@@ -137,7 +154,10 @@ const UserDashboard: React.FC = () => {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.25, delay: i * 0.05 }}
               onClick={() => navigate(action.href)}
-              className="flex min-h-24 flex-col items-center gap-2 rounded-xl border border-border bg-card p-3 text-center shadow-sm transition-colors hover:border-amber-500/40 dark:hover:border-amber-400/35"
+              className={cn(
+                'flex min-h-24 flex-col items-center gap-2 rounded-xl border border-border bg-card p-3 text-center shadow-sm transition-colors hover:border-amber-500/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:border-amber-400/35',
+                action.wide && 'col-span-2 sm:col-span-1'
+              )}
             >
               <span className={`flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br ${action.color} text-white shadow-md`}>
                 <Icon icon={action.icon} className="h-5 w-5" />

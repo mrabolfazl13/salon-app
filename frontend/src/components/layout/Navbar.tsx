@@ -111,6 +111,7 @@ const Navbar: React.FC<NavbarProps> = () => {
     { to: '/tournaments', label: 'تورنمنت\u200cها', icon: 'mdi:trophy-outline' },
     { to: '/bookings', label: 'رزروهای من', icon: 'mdi:calendar-month-outline' },
     { to: '/deals', label: 'شگفت\u200cانگیزها', icon: 'mdi:lightning-bolt' },
+    { to: '/quiz', label: 'چالش هفتگی', icon: 'mdi:brain' },
   ]
   const menuGroups = [
     [{ to: '/profile', label: 'پروفایل', icon: 'mdi:account-outline' }, ...workMenu],
