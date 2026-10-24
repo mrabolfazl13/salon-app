@@ -153,25 +153,24 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
         title={`کارکنان سالن (${toPersianDigits(activeCount)} فعال)`}
         icon="mdi:badge-account-outline"
         color="#2563eb"
-        action={
-          <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2">
-              <Switch
-                id={includeInactiveId}
-                checked={includeInactive}
-                onCheckedChange={setIncludeInactive}
-              />
-              <Label htmlFor={includeInactiveId} className="cursor-pointer text-[0.68rem] font-semibold text-foreground">
-                نمایش حذف‌شده‌ها
-              </Label>
-            </div>
-            <Button size="sm" onClick={() => setAddOpen(true)} className="font-bold">
-              <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
-              افزودن کارمند
-            </Button>
-          </div>
-        }
       >
+        {/* نوار ابزار زیر عنوان: در ۳۹۰px عنوان سرتیتر در برابر سوئیچ+دکمه به یک حرف خلاصه می‌شد */}
+        <div className="mb-3 flex flex-wrap items-center justify-between gap-x-3 gap-y-2">
+          <div className="flex items-center gap-2">
+            <Switch
+              id={includeInactiveId}
+              checked={includeInactive}
+              onCheckedChange={setIncludeInactive}
+            />
+            <Label htmlFor={includeInactiveId} className="cursor-pointer text-[0.68rem] font-semibold text-foreground">
+              نمایش حذف‌شده‌ها
+            </Label>
+          </div>
+          <Button size="sm" onClick={() => setAddOpen(true)} className="font-bold">
+            <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
+            افزودن کارمند
+          </Button>
+        </div>
         {staffQuery.isPending ? (
           <LoadingBox text="در حال دریافت کارکنان..." />
         ) : staffQuery.isError ? (
@@ -333,8 +332,8 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                 onClick={() => { setAuditAction(a); setAuditPage(1) }}
                 className={
                   active
-                    ? 'inline-flex h-[26px] items-center rounded-[9px] bg-blue-600 px-2.5 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                    : 'inline-flex h-[26px] items-center rounded-[9px] border border-border bg-card px-2.5 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    ? 'inline-flex min-h-[44px] items-center rounded-[12px] bg-blue-600 px-3.5 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    : 'inline-flex min-h-[44px] items-center rounded-[12px] border border-border bg-card px-3.5 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                 }
               >
                 {AUDIT_ACTION_LABELS[a]}
