@@ -54,7 +54,7 @@ const SearchBar: React.FC<Props> = ({
       placeholder={placeholder}
       readOnly={readOnly}
       autoFocus={autoFocus}
-      aria-label="جستجو"
+      aria-label={placeholder || 'جستجو'}
       className="h-full min-w-0 flex-1 bg-transparent text-[0.82rem] text-foreground outline-none placeholder:text-muted-foreground placeholder:opacity-80"
     />
     {startAdornment}

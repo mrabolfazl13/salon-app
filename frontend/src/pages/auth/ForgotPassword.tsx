@@ -159,6 +159,8 @@ const ForgotPassword: React.FC = () => {
                 {/* Phone Input */}
                 <Input
                   type="tel"
+                  aria-label="شماره موبایل"
+                  autoComplete="tel"
                   value={phone}
                   onChange={(e) => setPhone(toLatinDigits(e.target.value).replace(/[^0-9]/g, '').slice(0, 11))}
                   placeholder="09123456789"
@@ -229,6 +231,8 @@ const ForgotPassword: React.FC = () => {
                 <Input
                   type="text"
                   inputMode="numeric"
+                  aria-label="کد بازیابی"
+                  autoComplete="one-time-code"
                   value={code}
                   onChange={(e) => setCode(toLatinDigits(e.target.value).replace(/[^0-9]/g, '').slice(0, 6))}
                   placeholder="000000"
@@ -240,6 +244,8 @@ const ForgotPassword: React.FC = () => {
                 {/* New Password */}
                 <Input
                   type="password"
+                  aria-label="رمز عبور جدید"
+                  autoComplete="new-password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
                   placeholder="رمز عبور جدید (حداقل ۴ کاراکتر)"
@@ -250,6 +256,8 @@ const ForgotPassword: React.FC = () => {
                 {/* Confirm Password */}
                 <Input
                   type="password"
+                  aria-label="تکرار رمز عبور جدید"
+                  autoComplete="new-password"
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
                   placeholder="تکرار رمز عبور جدید"
