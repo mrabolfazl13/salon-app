@@ -26,6 +26,7 @@ from app.api.v1 import (
 )
 from app.utils.websocket import manager
 from app.utils.rate_limit import global_rate_limit_middleware
+from app.utils.redirects import RelativeRedirectMiddleware
 from app.utils.staff_access import flush_security_denials
 from app.utils.auth import get_password_hash, get_user_by_token
 from app.models.user import User, UserRole
@@ -130,6 +131,12 @@ async def add_security_headers(request, call_next):
         del response.headers["server"]
     
     return response
+
+
+# بیرونی‌ترین لایه: ریدایرکتِ همان‌میزبان (۳۰۷ اسلش‌دار کردن Starlette و هر
+# ریدایرکت داخلی دیگر) را با Location نسبی می‌فرستد تا از صفحهٔ HTTPS قابل
+# دنبال‌کردن باشد — جزئیات: app/utils/redirects.py
+app.add_middleware(RelativeRedirectMiddleware)
 
 
 # ─────────────────────────── WebSocket ───────────────────────────
