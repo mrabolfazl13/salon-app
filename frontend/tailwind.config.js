@@ -42,6 +42,9 @@ export default {
         'brand-foreground': 'hsl(var(--brand-foreground) / <alpha-value>)',
         primary: {
           DEFAULT: '#2563eb',
+          // «ink» = نقشِ متن/آیکون. DEFAULT فقط fill است؛ سفید روی #2563eb جواب می‌دهد
+          // اما خودِ #2563eb به‌عنوان متن روی کارت تیره ۳٫۳۶:۱ می‌شد (سویپ تاریک).
+          ink: 'hsl(var(--primary-ink) / <alpha-value>)',
           50: '#eff6ff',
           100: '#dbeafe',
           200: '#bfdbfe',

@@ -27,8 +27,9 @@ import {
   getReceiptStatusLabel,
   getReceiptStatusTone,
   getBookingStatusLabel,
-  getBookingStatusStyle,
-  PAYMENT_MODE_CHIP_STYLE,
+  getBookingStatusClass,
+  PAYMENT_MODE_CHIP_CLASS,
+  PAYMENT_MODE_CHIP_DEFAULT,
   cn,
 } from '@/lib/utils'
 import PersianDatePicker, { PersianDateRangePicker } from '@/components/ui/PersianDatePicker'
@@ -1235,7 +1236,7 @@ const ManagerDashboard: React.FC = () => {
                                     {amenities.slice(0, 4).map((a, i) => (
                                       <span
                                         key={i}
-                                        className="inline-flex min-h-7 items-center rounded-md border border-blue-600/15 px-2 py-0.5 text-[0.7rem] font-medium text-primary"
+                                        className="inline-flex min-h-7 items-center rounded-md border border-blue-600/15 px-2 py-0.5 text-[0.7rem] font-medium text-primary-ink"
                                       >
                                         {a}
                                       </span>
@@ -1262,11 +1263,7 @@ const ManagerDashboard: React.FC = () => {
                                       <p className="text-xs font-semibold text-muted-foreground">{formatPrice(venue.price)}</p>
                                     </div>
                                     <span
-                                      className="inline-flex min-h-8 items-center gap-1 rounded-md px-2 py-0.5 text-[0.7rem] font-semibold leading-5 sm:min-h-11 sm:text-xs"
-                                      style={{
-                                        backgroundColor: PAYMENT_MODE_CHIP_STYLE[venue.payment_mode ?? '']?.bg ?? 'rgba(100,116,139,0.1)',
-                                        color: PAYMENT_MODE_CHIP_STYLE[venue.payment_mode ?? '']?.color ?? '#64748b',
-                                      }}
+                                      className={`inline-flex min-h-8 items-center gap-1 rounded-md px-2 py-0.5 text-[0.7rem] font-semibold leading-5 sm:min-h-11 sm:text-xs ${PAYMENT_MODE_CHIP_CLASS[venue.payment_mode ?? ''] ?? PAYMENT_MODE_CHIP_DEFAULT}`}
                                     >
                                       <Icon icon={getPaymentModeIcon(venue.payment_mode)} aria-hidden="true" className="h-4 w-4" />
                                       {getPaymentModeLabel(venue.payment_mode)}
@@ -1290,7 +1287,7 @@ const ManagerDashboard: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleOpenWorkspace(venue)}
-                                    className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-blue-600/20 px-1.5 py-1.5 text-[0.7rem] font-semibold text-primary transition-colors hover:border-primary hover:bg-blue-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-11 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
+                                    className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-blue-600/20 px-1.5 py-1.5 text-[0.7rem] font-semibold text-primary-ink transition-colors hover:border-primary hover:bg-blue-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-11 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
                                   >
                                     <Icon icon="mdi:view-dashboard-outline" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                                     داشبورد
@@ -1790,11 +1787,7 @@ const ManagerDashboard: React.FC = () => {
                             </TableCell>
                             <TableCell>
                               <span
-                                className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-semibold"
-                                style={{
-                                  backgroundColor: getBookingStatusStyle(booking.status).bg,
-                                  color: getBookingStatusStyle(booking.status).color,
-                                }}
+                                className={`inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-semibold ${getBookingStatusClass(booking.status)}`}
                               >
                                 {getBookingStatusLabel(booking.status)}
                               </span>
@@ -1802,11 +1795,7 @@ const ManagerDashboard: React.FC = () => {
                             <TableCell>
                               <div className="flex flex-col items-start gap-1.5">
                                 <span
-                                  className="inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold"
-                                  style={{
-                                    backgroundColor: PAYMENT_MODE_CHIP_STYLE[booking.payment_mode ?? '']?.bg ?? 'rgba(100,116,139,0.1)',
-                                    color: PAYMENT_MODE_CHIP_STYLE[booking.payment_mode ?? '']?.color ?? '#64748b',
-                                  }}
+                                  className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold ${PAYMENT_MODE_CHIP_CLASS[booking.payment_mode ?? ''] ?? PAYMENT_MODE_CHIP_DEFAULT}`}
                                 >
                                   <Icon icon={getPaymentModeIcon(booking.payment_mode)} aria-hidden="true" className="h-3.5 w-3.5" />
                                   {getPaymentModeLabel(booking.payment_mode)}
@@ -1961,7 +1950,7 @@ const ManagerDashboard: React.FC = () => {
                               {plan.description && (
                                 <p className="mb-2 text-[0.8rem] text-muted-foreground">{plan.description}</p>
                               )}
-                              <p className="mb-3 text-lg font-extrabold text-primary">{formatPrice(plan.price)}</p>
+                              <p className="mb-3 text-lg font-extrabold text-primary-ink">{formatPrice(plan.price)}</p>
                               {plan.is_active && (
                                 <button
                                   type="button"
@@ -2011,11 +2000,13 @@ const ManagerDashboard: React.FC = () => {
                                 p.status === 'paid' &&
                                 (p.plan_type === 'session' || p.plan_type === 'sessions_pack') &&
                                 (p.sessions_remaining ?? 0) > 0
+                              // چیپ وضعیت خرید پلن: جوهرِ روشنِ پالت روی کارت تیره ≈۲٫۴:۱ می‌شد،
+                              // پس کلاس با variant دارک (همان واژگانِ چیپ‌های قرارداد)
                               const statusMeta = {
-                                paid: { label: 'پرداخت شده', bg: 'rgba(5,150,105,0.1)', color: '#059669' },
-                                pending: { label: 'در انتظار', bg: 'rgba(245,158,11,0.1)', color: '#d97706' },
-                                refunded: { label: 'بازگشت وجه شده', bg: 'rgba(71,85,105,0.12)', color: '#475569' },
-                                cancelled: { label: 'لغو شده', bg: 'rgba(239,68,68,0.1)', color: '#ef4444' },
+                                paid: { label: 'پرداخت شده', cls: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' },
+                                pending: { label: 'در انتظار', cls: 'bg-amber-500/15 text-amber-800 dark:text-amber-300' },
+                                refunded: { label: 'بازگشت وجه شده', cls: 'bg-slate-500/15 text-slate-600 dark:text-slate-300' },
+                                cancelled: { label: 'لغو شده', cls: 'bg-red-500/15 text-red-700 dark:text-red-300' },
                               }[p.status]
                               return (
                                 <TableRow key={p.id} className="hover:bg-blue-600/5">
@@ -2031,8 +2022,7 @@ const ManagerDashboard: React.FC = () => {
                                   </TableCell>
                                   <TableCell>
                                     <span
-                                      className="inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-semibold"
-                                      style={{ backgroundColor: statusMeta.bg, color: statusMeta.color }}
+                                      className={`inline-flex items-center rounded-lg px-2 py-0.5 text-xs font-semibold ${statusMeta.cls}`}
                                     >
                                       {statusMeta.label}
                                     </span>
@@ -2330,7 +2320,7 @@ const ManagerDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={addAmenity}
-                  className="inline-flex min-h-12 shrink-0 items-center rounded-xl border border-blue-600/30 px-4 text-sm font-semibold text-primary transition-colors hover:bg-blue-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="inline-flex min-h-12 shrink-0 items-center rounded-xl border border-blue-600/30 px-4 text-sm font-semibold text-primary-ink transition-colors hover:bg-blue-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   افزودن
                 </button>
@@ -2340,14 +2330,14 @@ const ManagerDashboard: React.FC = () => {
                   {newVenue.amenities.map(a => (
                     <span
                       key={a}
-                      className="inline-flex items-center gap-1 rounded-md bg-blue-600/10 py-0.5 ps-2 pe-0.5 text-xs font-medium text-primary"
+                      className="inline-flex items-center gap-1 rounded-md bg-blue-600/10 py-0.5 ps-2 pe-0.5 text-xs font-medium text-primary-ink"
                     >
                       {a}
                       <button
                         type="button"
                         onClick={() => removeAmenity(a)}
                         aria-label={`حذف ${a}`}
-                        className="flex h-11 w-11 -m-1.5 items-center justify-center rounded-full text-primary transition-colors hover:bg-blue-600/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="flex h-11 w-11 -m-1.5 items-center justify-center rounded-full text-primary-ink transition-colors hover:bg-blue-600/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <Icon icon="mdi:close" aria-hidden="true" className="h-3.5 w-3.5" />
                       </button>
@@ -2412,7 +2402,7 @@ const ManagerDashboard: React.FC = () => {
                         aria-label={`حذف عکس ${i + 1}`}
                         className="absolute end-0 top-0 flex h-11 w-11 items-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <span className="ms-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500/90 text-white">
+                        <span className="ms-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-600 text-white">
                           <Icon icon="mdi:close" aria-hidden="true" className="h-3 w-3" />
                         </span>
                       </button>

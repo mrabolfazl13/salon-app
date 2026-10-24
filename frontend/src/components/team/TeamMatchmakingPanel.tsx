@@ -17,6 +17,7 @@ import { EmptyBox, ErrorBox, LoadingBox } from '@/components/finance/shared'
 import { useMatchSuggestions, useSendChallenge } from '@/hooks/useMatching'
 import { useToast } from '@/hooks/useToast'
 import { cn } from '@/lib/utils'
+import { CHIP_INK, chipStyle } from '@/utils/contrast'
 import { toPersianDigits } from '@/lib/jalali'
 import type { MatchSuggestion, SignalScore } from '@/types/matching'
 import type { Team } from '@/types/team'
@@ -192,8 +193,8 @@ const SuggestionCard: React.FC<{
           </p>
         </div>
         <div
-          className="shrink-0 rounded-xl px-[9px] py-1 text-[0.92rem] font-black"
-          style={{ backgroundColor: tone.bg, color: tone.color }}
+          className={`shrink-0 rounded-xl px-[9px] py-1 text-[0.92rem] font-black ${CHIP_INK}`}
+          style={chipStyle(tone.color, tone.bg)}
           aria-label={`امتیاز تطبیق ${toPersianDigits(row.score)} از ۱۰۰`}
         >
           {toPersianDigits(row.score)}

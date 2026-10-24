@@ -37,7 +37,7 @@ const ErrorState: React.FC<Props> = ({
       <Button
         variant="outline"
         onClick={onRetry}
-        className="mt-6 min-h-12 rounded-[14px] border-primary/40 px-8 font-bold text-primary hover:border-primary hover:bg-primary/5"
+        className="mt-6 min-h-12 rounded-[14px] border-primary/40 px-8 font-bold text-primary-ink hover:border-primary hover:bg-primary/5"
       >
         <Icon icon="mdi:refresh" aria-hidden="true" style={{ width: 18, height: 18 }} />
         تلاش مجدد

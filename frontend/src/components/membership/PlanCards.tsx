@@ -5,6 +5,7 @@ import { Icon } from '@iconify/react'
 import type { MembershipPlan } from '@/types/membership'
 import { PLAN_TYPE_LABEL } from '@/types/membership'
 import { Button } from '@/components/ui/shadcn/button'
+import { CHIP_INK, chipStyle, inkStyle } from '@/utils/contrast'
 import { cn, formatPrice } from '@/lib/utils'
 
 const PLAN_ICONS: Record<string, string> = {
@@ -51,10 +52,13 @@ const PlanCards: React.FC<Props> = ({ plans, onBuy, compact = false }) => {
             )}
             <div className="flex items-center gap-2">
               <div
-                className="flex h-[34px] w-[34px] items-center justify-center rounded-[10px]"
-                style={{ backgroundColor: color.bg }}
+                className={cn(
+                  'flex h-[34px] w-[34px] items-center justify-center rounded-[10px]',
+                  CHIP_INK,
+                )}
+                style={chipStyle(color.fg, color.bg)}
               >
-                <Icon icon={PLAN_ICONS[plan.plan_type] ?? 'mdi:card-account-details'} style={{ width: 18, height: 18, color: color.fg }} />
+                <Icon icon={PLAN_ICONS[plan.plan_type] ?? 'mdi:card-account-details'} style={{ width: 18, height: 18 }} />
               </div>
               <div className="min-w-0">
                 <p className="text-[0.95rem] font-extrabold">{plan.title}</p>
@@ -69,7 +73,7 @@ const PlanCards: React.FC<Props> = ({ plans, onBuy, compact = false }) => {
               </p>
             )}
             <div className="mt-auto flex items-center justify-between pt-1">
-              <p className="text-[1.05rem] font-extrabold" style={{ color: color.fg }}>
+              <p className={cn('text-[1.05rem] font-extrabold', CHIP_INK)} style={inkStyle(color.fg)}>
                 {formatPrice(plan.price)}
               </p>
               <Button

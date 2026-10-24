@@ -200,13 +200,15 @@ export function getReceiptStatusTone(status?: string | null): 'default' | 'warni
 }
 
 /** رنگ چیپ روش پرداخت در جدول مدیر */
-// این مقدارها «متن رویش» چیپ‌اند، نه پس‌زمینه: #d97706 ≈ ۳٫۲:۱ و #059669 ≈ ۳٫۸:۱
-// روی سفید و روی تتینگ ۱۰٪ رد می‌شوند؛ نسخهٔ دسترس‌پذیر پالت جای آن‌ها نشسته است.
-export const PAYMENT_MODE_CHIP_STYLE: Record<string, { bg: string; color: string }> = {
-  gateway: { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' },
-  bank_receipt: { bg: 'rgba(180,83,9,0.1)', color: '#92400e' },
-  pay_in_place: { bg: 'rgba(4,120,87,0.1)', color: '#047857' },
+// این‌ها «متن رویش» چیپ‌اند، نه پس‌زمینه: #d97706 ≈ ۳٫۲:۱ و #059669 ≈ ۳٫۸:۱ روی سفید
+// و روی تتینگ ۱۰٪ رد می‌شوند. نسخهٔ دسترس‌پذیر پالت جای آن‌ها نشسته است، و چون
+// استایل درجا variant دارک ندارد (جوهر روشن روی کارت تیره ≈۲٫۳:۱) کلاس Tailwind می‌شوند.
+export const PAYMENT_MODE_CHIP_CLASS: Record<string, string> = {
+  gateway: 'bg-blue-500/15 text-blue-700 dark:text-blue-300',
+  bank_receipt: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
+  pay_in_place: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300',
 }
+export const PAYMENT_MODE_CHIP_DEFAULT = 'bg-slate-500/15 text-slate-600 dark:text-slate-300'
 
 /** برچسب فارسی وضعیت رزرو + استایل چیپ مشترک */
 export const BOOKING_STATUS_LABELS: Record<string, string> = {
@@ -221,17 +223,17 @@ export function getBookingStatusLabel(status?: string | null): string {
   return BOOKING_STATUS_LABELS[status] ?? status
 }
 
-export function getBookingStatusStyle(status?: string | null): { bg: string; color: string } {
+export function getBookingStatusClass(status?: string | null): string {
   switch (status) {
     case 'confirmed':
-      return { bg: 'rgba(4,120,87,0.1)', color: '#047857' }
+      return 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300'
     case 'completed':
-      return { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' }
+      return 'bg-blue-500/15 text-blue-700 dark:text-blue-300'
     case 'cancelled':
-      return { bg: 'rgba(220,38,38,0.1)', color: '#dc2626' }
+      return 'bg-red-500/15 text-red-700 dark:text-red-300'
     case 'pending':
     default:
-      return { bg: 'rgba(180,83,9,0.1)', color: '#92400e' }
+      return 'bg-amber-500/15 text-amber-800 dark:text-amber-300'
   }
 }
 

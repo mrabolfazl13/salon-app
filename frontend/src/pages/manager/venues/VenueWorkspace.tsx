@@ -471,7 +471,7 @@ const VenueWorkspace: React.FC = () => {
                             <span className="text-[0.76rem] font-bold tabular-nums text-foreground">{row.value}</span>
                             <Link
                               to={row.to}
-                              className="inline-flex min-h-11 items-center rounded-lg border border-border px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                              className="inline-flex min-h-11 items-center rounded-lg border border-border px-2 text-[0.68rem] font-semibold text-primary-ink transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                               {row.cta}
                             </Link>
@@ -573,7 +573,7 @@ const VenueWorkspace: React.FC = () => {
                   action={
                     <Link
                       to={`/finance/transactions?venue_id=${venueId}`}
-                      className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-border px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted"
+                      className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-border px-2 text-[0.68rem] font-semibold text-primary-ink transition-colors hover:bg-muted"
                     >
                       همهٔ تراکنش‌ها
                       <Icon icon="mdi:chevron-left" aria-hidden="true" className="h-3.5 w-3.5" />

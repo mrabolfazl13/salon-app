@@ -75,7 +75,7 @@ const AdminVenues: React.FC = () => {
     <Layout>
       <div className="mb-4">
         <h1 className="mb-1 flex items-center gap-2 text-xl font-extrabold text-foreground">
-          <Icon icon="mdi:stadium" aria-hidden="true" className="h-7 w-7 text-primary" />
+          <Icon icon="mdi:stadium" aria-hidden="true" className="h-7 w-7 text-primary-ink" />
           مدیریت سالن‌ها
         </h1>
         <p className="text-[0.68rem] text-muted-foreground">
@@ -141,7 +141,7 @@ const AdminVenues: React.FC = () => {
 
       {/* All venues */}
       <div className="mb-4 flex items-center gap-2">
-        <Icon icon="mdi:stadium-variant" aria-hidden="true" className="h-5 w-5 text-primary" />
+        <Icon icon="mdi:stadium-variant" aria-hidden="true" className="h-5 w-5 text-primary-ink" />
         <h2 className="text-sm font-bold text-foreground">
           همه سالن‌ها
         </h2>
@@ -180,7 +180,7 @@ const AdminVenues: React.FC = () => {
                     <p className="font-mono text-[0.68rem] text-foreground" dir="ltr">{venue.phone}</p>
                   </TableCell>
                   <TableCell>
-                    <p className="text-[0.68rem] font-bold text-primary">
+                    <p className="text-[0.68rem] font-bold text-primary-ink">
                       {formatPrice(venue.price)}
                     </p>
                   </TableCell>

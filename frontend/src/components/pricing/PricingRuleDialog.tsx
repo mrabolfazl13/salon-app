@@ -296,7 +296,7 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null,
                     onClick={() => setIncrease(false)}
                     className={
                       !increase
-                        ? `${DAY_CHIP} bg-emerald-600 text-white`
+                        ? `${DAY_CHIP} bg-emerald-700 text-white`
                         : `${DAY_CHIP} border border-border bg-card text-foreground hover:bg-muted`
                     }
                   >

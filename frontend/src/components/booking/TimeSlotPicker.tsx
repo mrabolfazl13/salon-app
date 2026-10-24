@@ -85,7 +85,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
       )
     case 'in_competition':
       return (
-        <span className={cn(chipBase, 'bg-gradient-to-br from-amber-500 to-violet-600 font-bold text-white')}>
+        <span className={cn(chipBase, 'bg-gradient-to-br from-amber-700 to-violet-600 font-bold text-white')}>
           <Icon icon="mdi:gavel" className="h-3 w-3" />
           رقابت با بقیه
         </span>

@@ -139,7 +139,7 @@ const ContractDetail: React.FC = () => {
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/5">
-                  <Icon icon="mdi:file-document-multiple" className="h-5 w-5 text-primary" aria-hidden="true" />
+                  <Icon icon="mdi:file-document-multiple" className="h-5 w-5 text-primary-ink" aria-hidden="true" />
                 </span>
                 <div>
                   <h1 className="text-lg font-bold">

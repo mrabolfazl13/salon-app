@@ -373,7 +373,7 @@ const TransactionEntryDialog: React.FC<{
           className={
             mode === 'expense'
               ? 'bg-gradient-to-br from-amber-500 to-amber-400 text-stone-900'
-              : 'bg-gradient-to-br from-emerald-600 to-emerald-500 text-white'
+              : 'bg-gradient-to-br from-emerald-700 to-emerald-800 text-white'
           }
         >
           {createTx.isPending ? 'در حال ثبت...' : mode === 'expense' ? 'ثبت هزینه' : 'ثبت دریافت وجه'}

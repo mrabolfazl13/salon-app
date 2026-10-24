@@ -2,6 +2,8 @@
 // متن روی کاغذ یا روی تیغِ ۱۰–۱۲٪ی خودشان، خیلی‌هایشان زیر ۴٫۵:۱ می‌افتند
 // (#059669≈3.3، #0891b2≈3.2، #15803d≈4.3، #64748b≈4.2). ممیزی axe F-21.
 
+import type { CSSProperties } from 'react'
+
 type Rgb = [number, number, number, number]
 
 const HEX6 = /^#([\da-f]{2})([\da-f]{2})([\da-f]{2})([\da-f]{2})?$/i
@@ -65,3 +67,28 @@ export const readableText = (fg: string, bg: string, min = 4.5): string => {
 /** جوهرِ خواناتِ یک چیپ: رنگ متن سنجیده‌شده با پس‌زمینهٔ تیغ‌خوردهٔ خودش */
 export const chipInk = (fg: string, bg: string, paper = '#ffffff'): string =>
   readableText(fg, composite(bg, paper))
+
+// کاغذِ روشن/تیره برای سنجش جوهرِ چیپ‌ها (جایگزین palette.background.paper)
+const PAPER_LIGHT = '#ffffff'
+const PAPER_DARK = '#121a2b'
+
+/**
+ * جوهر هر دو تم در متغیر CSS می‌نشیند تا `dark:` آن را جایگزین کند؛ جوهرِ تیرهٔ پالت
+ * (مثلاً #92400e) روی کارت تیره #121a2b به ≈۲٫۳:۱ می‌افتد و روی style کار نمی‌کند.
+ */
+export const chipStyle = (fg: string, bg: string): CSSProperties =>
+  ({
+    backgroundColor: bg,
+    '--chip-ink': chipInk(fg, bg, PAPER_LIGHT),
+    '--chip-ink-dark': chipInk(fg, bg, PAPER_DARK),
+  }) as CSSProperties
+
+/** همان جوهر، اما روی خودِ کاغذ (بی‌تیغ) — برای متن/آیکنِ رنگی روی سطح کارت */
+export const inkStyle = (fg: string): CSSProperties =>
+  ({
+    '--chip-ink': readableText(fg, PAPER_LIGHT),
+    '--chip-ink-dark': readableText(fg, PAPER_DARK),
+  }) as CSSProperties
+
+/** کلاسِ جوهرِ دوتم؛ همراه با chipStyle/inkStyle استفاده شود */
+export const CHIP_INK = 'text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]'

@@ -113,7 +113,7 @@ const Users: React.FC = () => {
     <Layout>
       <div className="mb-4">
         <h1 className="mb-1 flex items-center gap-2 text-xl font-extrabold text-foreground">
-          <Icon icon="mdi:account-group" aria-hidden="true" className="h-7 w-7 text-primary" />
+          <Icon icon="mdi:account-group" aria-hidden="true" className="h-7 w-7 text-primary-ink" />
           مدیریت کاربران
         </h1>
         <p className="text-[0.68rem] text-muted-foreground">

@@ -164,7 +164,7 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
                 جداگانه فقط عرض متن را می‌خورد و تاریخ را می‌برید. فیلد و آیکن داخل
                 پوشش dir=ltr‌اند، پس ps/start منطقى معادل سمت متنِ تاریخ می‌شود. */}
             {!readOnly && (
-              <span className="pointer-events-none absolute start-2.5 top-1/2 flex -translate-y-1/2 items-center text-primary">
+              <span className="pointer-events-none absolute start-2.5 top-1/2 flex -translate-y-1/2 items-center text-primary-ink">
                 <Icon icon="mdi:calendar-month-outline" className="h-5 w-5" />
               </span>
             )}

@@ -126,7 +126,7 @@ const AdminDashboard: React.FC = () => {
     <Layout>
       <div className="mb-4">
         <h1 className="mb-1 flex items-center gap-2 text-xl font-extrabold md:text-3xl">
-          <Icon icon="mdi:crown" className="h-7 w-7 text-primary" aria-hidden="true" />
+          <Icon icon="mdi:crown" className="h-7 w-7 text-primary-ink" aria-hidden="true" />
           پنل مدیریت
         </h1>
         <p className="text-[0.68rem] text-muted-foreground">نمای کلی کاربران و سالن‌های سیستم</p>
@@ -238,10 +238,10 @@ const AdminDashboard: React.FC = () => {
         <Card className="p-3 lg:col-span-2">
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Icon icon="mdi:account-clock-outline" className="h-[18px] w-[18px] text-primary" aria-hidden="true" />
+              <Icon icon="mdi:account-clock-outline" className="h-[18px] w-[18px] text-primary-ink" aria-hidden="true" />
               <h2 className="text-sm font-bold">آخرین کاربران</h2>
             </div>
-            <Link to="/admin/users" className="inline-flex min-h-11 items-center text-[0.68rem] font-semibold text-primary hover:underline">
+            <Link to="/admin/users" className="inline-flex min-h-11 items-center text-[0.68rem] font-semibold text-primary-ink hover:underline">
               مشاهده همه
             </Link>
           </div>
@@ -271,7 +271,7 @@ const AdminDashboard: React.FC = () => {
                             {getInitials(user.full_name)}
                           </AvatarFallback>
                         </Avatar>
-                        <span className="text-[0.68rem] font-semibold">{user.full_name}</span>
+                        <span className="text-[0.68rem] font-semibold">{toPersianDigits(user.full_name)}</span>
                       </div>
                     </TableCell>
                     <TableCell>
@@ -306,7 +306,7 @@ const AdminDashboard: React.FC = () => {
 
         <Card className="flex flex-col p-3">
           <div className="mb-4 flex items-center gap-2">
-            <Icon icon="mdi:chart-donut" className="h-[18px] w-[18px] text-primary" aria-hidden="true" />
+            <Icon icon="mdi:chart-donut" className="h-[18px] w-[18px] text-primary-ink" aria-hidden="true" />
             <h2 className="text-sm font-bold">کاربران بر اساس نقش</h2>
           </div>
           {loading ? (

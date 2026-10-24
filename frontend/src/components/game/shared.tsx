@@ -4,7 +4,7 @@
 import React from 'react'
 import { Icon } from '@iconify/react'
 import { isAxiosError } from 'axios'
-import { chipInk } from '@/utils/contrast'
+import { CHIP_INK, chipStyle } from '@/utils/contrast'
 import { cn, formatTimeFa } from '@/lib/utils'
 import { Progress } from '@/components/ui/shadcn/progress'
 
@@ -65,18 +65,6 @@ const STATUS_COLORS: Record<GameStatus, { bg: string; fg: string; icon: string }
   cancelled: { bg: 'rgba(239,68,68,0.10)', fg: '#dc2626', icon: 'mdi:close-circle-outline' },
 }
 
-// کاغذِ روشن/تیره برای سنجش کنتراست جوهرِ چیپ‌ها (جایگزین palette.background.paper)
-const PAPER_LIGHT = '#ffffff'
-const PAPER_DARK = '#121a2b'
-
-/** جوهرِ خواناتر برای هر دو تم؛ با متغیر CSS تا کلاس dark بتواند جایگزینش کند */
-const chipStyle = (fg: string, bg: string): React.CSSProperties =>
-  ({
-    backgroundColor: bg,
-    '--chip-ink': chipInk(fg, bg, PAPER_LIGHT),
-    '--chip-ink-dark': chipInk(fg, bg, PAPER_DARK),
-  }) as React.CSSProperties
-
 export const GameStatusChip: React.FC<{ status: GameStatus; size?: 'small' | 'medium' }> = ({
   status,
   size = 'small',
@@ -86,7 +74,8 @@ export const GameStatusChip: React.FC<{ status: GameStatus; size?: 'small' | 'me
   return (
     <span
       className={cn(
-        'inline-flex items-center gap-1 whitespace-nowrap rounded-full font-bold text-[0.68rem] text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]',
+        'inline-flex items-center gap-1 whitespace-nowrap rounded-full font-bold text-[0.68rem]',
+        CHIP_INK,
         size === 'small' ? 'h-[26px] px-2' : 'h-8 px-2.5'
       )}
       style={chipStyle(c.fg, c.bg)}
@@ -106,7 +95,10 @@ export const VisibilityChip: React.FC<{ visibility: GameVisibility }> = ({ visib
   const c = map[visibility]
   return (
     <span
-      className="inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-full ps-1 pe-2 text-[0.68rem] font-semibold text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]"
+      className={cn(
+        'inline-flex h-6 items-center gap-1 whitespace-nowrap rounded-full ps-1 pe-2 text-[0.68rem] font-semibold',
+        CHIP_INK,
+      )}
       style={chipStyle(c.fg, c.bg)}
     >
       <Icon icon={c.icon} style={{ width: 14, height: 14 }} />
@@ -131,8 +123,11 @@ export const RoleBadge: React.FC<{ role: ParticipantRole }> = ({ role }) => {
   const c = ROLE_COLORS[role] ?? ROLE_COLORS.member
   return (
     <span
-      className="inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[7px] py-0.5 text-[0.68rem] font-bold"
-      style={{ backgroundColor: c.bg, color: c.fg }}
+      className={cn(
+        'inline-flex items-center gap-2 whitespace-nowrap rounded-full px-[7px] py-0.5 text-[0.68rem] font-bold',
+        CHIP_INK,
+      )}
+      style={chipStyle(c.fg, c.bg)}
     >
       <Icon icon={c.icon} style={{ width: 13, height: 13 }} />
       {PARTICIPANT_ROLE_LABELS[role] ?? role}

@@ -122,7 +122,7 @@ const NotificationPanel: React.FC = () => {
             <button
               type="button"
               onClick={markAllAsRead}
-              className="inline-flex min-h-11 items-center rounded-lg px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex min-h-11 items-center rounded-lg px-2 text-[0.68rem] font-semibold text-primary-ink transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               خواندن همه
             </button>
@@ -141,7 +141,7 @@ const NotificationPanel: React.FC = () => {
               <button
                 type="button"
                 onClick={fetchNotifications}
-                className="mt-2 inline-flex min-h-11 items-center rounded-lg px-3 text-[0.68rem] font-semibold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="mt-2 inline-flex min-h-11 items-center rounded-lg px-3 text-[0.68rem] font-semibold text-primary-ink hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 تلاش مجدد
               </button>

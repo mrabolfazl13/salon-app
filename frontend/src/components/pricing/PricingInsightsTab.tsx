@@ -17,6 +17,7 @@ import {
   formatRial,
 } from '@/components/finance/shared'
 import { getTodayISO, toPersianDigits } from '@/lib/jalali'
+import { CHIP_INK, chipStyle } from '@/utils/contrast'
 import {
   PRICING_INSIGHT_WINDOWS,
   useCreatePricingRule,
@@ -209,8 +210,8 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
                               <div
                                 data-testid={`insight-cell-${d.value}-${h}`}
                                 aria-label={`${d.label} ساعت ${faTime(`${String(h).padStart(2, '0')}:00`)}: اشغال ${formatPct(b.occupancy)} — ${toPersianDigits(b.bookings)} رزرو از ${toPersianDigits(b.slots)} سانس${b.avg_paid != null ? `، میانگین پرداخت ${formatRial(b.avg_paid)}` : ''}`}
-                                className="min-w-[58px] rounded-lg px-1.5 py-1"
-                                style={{ backgroundColor: tone.bg, color: tone.fg }}
+                                className={`min-w-[58px] rounded-lg px-1.5 py-1 ${CHIP_INK}`}
+                                style={chipStyle(tone.fg, tone.bg)}
                               >
                                 <p className="text-[0.68rem] font-extrabold leading-tight tabular-nums">
                                   {formatPct(b.occupancy)}

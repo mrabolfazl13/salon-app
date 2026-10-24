@@ -328,7 +328,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
                           className={cn(
                             'inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                             pos >= 0
-                              ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-500'
+                              ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700 dark:border-blue-400 dark:bg-blue-600'
                               : 'border-border bg-card text-foreground hover:bg-muted',
                           )}
                         >
@@ -473,7 +473,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
                     <p className="text-[0.68rem]">
                       {`تعداد جلسات: ${toPersianDigits(totalInfo.count)} جلسه — جمع کل (محاسبه سمت سرور): `}
                     </p>
-                    <h3 className="text-lg font-bold text-primary">
+                    <h3 className="text-lg font-bold text-primary-ink">
                       {formatRial(totalInfo.total)}
                     </h3>
                   </div>

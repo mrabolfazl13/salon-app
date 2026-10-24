@@ -8,6 +8,7 @@ import { Link } from 'react-router-dom'
 
 import type { Game } from '@/types/game'
 import { PAYMENT_MODE_LABELS } from '@/types/game'
+import { CHIP_INK, chipStyle } from '@/utils/contrast'
 import { SPORT_NAME_FA } from '@/components/team/shared'
 import { CapacityBar, GameStatusChip, SkillChip, VisibilityChip, formatGameDateTime } from './shared'
 
@@ -118,8 +119,8 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
             </div>
             {myBadge ? (
               <span
-                className="whitespace-nowrap rounded-full px-2.5 py-1 text-[0.68rem] font-extrabold"
-                style={{ backgroundColor: myBadge.bg, color: myBadge.fg }}
+                className={`whitespace-nowrap rounded-full px-2.5 py-1 text-[0.68rem] font-extrabold ${CHIP_INK}`}
+                style={chipStyle(myBadge.fg, myBadge.bg)}
               >
                 {myBadge.label}
               </span>

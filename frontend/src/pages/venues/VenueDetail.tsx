@@ -535,7 +535,7 @@ const VenueDetail: React.FC = () => {
                     </div>
                     <a
                       href={`tel:${venue.phone}`}
-                      className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-bold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="inline-flex min-h-11 items-center rounded-lg px-3 text-xs font-bold text-primary-ink hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       تماس
                     </a>

@@ -7,6 +7,7 @@ import SectionHeader from '@/components/mobile/SectionHeader'
 import { Button } from '@/components/ui/shadcn/button'
 import { Skeleton } from '@/components/ui/shadcn/skeleton'
 import { teamService } from '@/services/team'
+import { toPersianDigits } from '@/lib/jalali'
 import { useAuthStore } from '@/store/authStore'
 
 interface LeaderboardPlayerProps {
@@ -39,9 +40,10 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
           rank <= 3 ? 'border border-white/15 bg-white/[0.08]' : 'border border-transparent'
         }`}
       >
-        {/* رتبه */}
+        {/* رتبه — این کارت همیشه سطح تیره است (گرادیان slate)، جوهرش تم‌مدار نیست */}
         <span
           className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-[0.75rem] font-black"
+          // chip-ink-allow: سطح این کارت همیشه slate-800→900 است (تم‌مدار نیست)
           style={{ backgroundColor: style.bg, color: style.color }}
         >
           {style.icon && (
@@ -56,7 +58,7 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
               }}
             />
           )}
-          {rank}
+          {toPersianDigits(rank)}
         </span>
 
         {/* آواتار و نام */}
@@ -70,7 +72,7 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
             </p>
           </div>
           <p className="mt-0.5 text-[0.65rem] text-white/60">
-            {gamesPlayed} بازی
+            {toPersianDigits(gamesPlayed)} بازی
           </p>
         </div>
 

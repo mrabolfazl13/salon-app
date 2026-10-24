@@ -179,7 +179,7 @@ const ManagerContracts: React.FC = () => {
                         {(c.days?.length ?? 0) > 1 && (
                           <div className="mt-1 flex flex-wrap gap-1">
                             {c.days!.map((d) => (
-                              <span key={d} className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[0.68rem] font-bold text-primary">
+                              <span key={d} className="rounded-md bg-primary/10 px-1.5 py-0.5 text-[0.68rem] font-bold text-primary-ink">
                                 {pyDayNames[d] ?? d}
                               </span>
                             ))}
@@ -197,7 +197,7 @@ const ManagerContracts: React.FC = () => {
                       </div>
                       <div>
                         <span className="text-[0.68rem] text-muted-foreground">قیمت پیشنهادی / قیمت پایه سانس</span>
-                        <p className="text-[0.68rem] font-bold text-primary">
+                        <p className="text-[0.68rem] font-bold text-primary-ink">
                           {formatRial(c.discounted_price)}
                         </p>
                         <span className="text-[0.68rem] text-muted-foreground/70">

@@ -126,7 +126,7 @@ const Quiz: React.FC = () => {
                         className={cn(
                           'inline-flex min-h-12 items-center justify-start gap-2 rounded-xl border px-4 text-start text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-default',
                           isCorrectChoice
-                            ? 'border-emerald-600 bg-emerald-600 font-extrabold text-white'
+                            ? 'border-emerald-600 bg-emerald-700 font-extrabold text-white'
                             : picked && mine && !mine.result.correct
                               ? 'border-red-600 bg-red-600 font-extrabold text-white'
                               : 'border-border text-foreground enabled:hover:border-amber-500 enabled:hover:bg-amber-500/5'

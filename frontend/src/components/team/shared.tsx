@@ -4,7 +4,7 @@
 import React from 'react'
 import { Icon } from '@iconify/react'
 import { isAxiosError } from 'axios'
-import { chipInk, readableText } from '@/utils/contrast'
+import { CHIP_INK, chipStyle, inkStyle } from '@/utils/contrast'
 import { cn } from '@/lib/utils'
 
 import type { TeamMemberStatus, TeamRole, TeamVisibility } from '@/types/team'
@@ -84,26 +84,6 @@ export const SPORT_NAME_FA: Record<string, string> = {
   football: 'فوتبال', futsal: 'فوتسال', basketball: 'بسکتبال', volleyball: 'والیبال',
   tennis: 'تنیس', badminton: 'بدمینتون', gym: 'بدنسازی', pool: 'بیلیارد',
 }
-
-// کاغذِ روشن/تیره برای سنجش کنتراست جوهرِ چیپ‌ها (جایگزین palette.background.paper)
-const PAPER_LIGHT = '#ffffff'
-const PAPER_DARK = '#121a2b'
-
-/** جوهرِ خواناتر برای هر دو تم؛ با متغیر CSS تا کلاس dark بتواند جایگزینش کند */
-const chipStyle = (fg: string, bg: string): React.CSSProperties =>
-  ({
-    backgroundColor: bg,
-    '--chip-ink': chipInk(fg, bg, PAPER_LIGHT),
-    '--chip-ink-dark': chipInk(fg, bg, PAPER_DARK),
-  }) as React.CSSProperties
-
-const inkStyle = (fg: string): React.CSSProperties =>
-  ({
-    '--chip-ink': readableText(fg, PAPER_LIGHT),
-    '--chip-ink-dark': readableText(fg, PAPER_DARK),
-  }) as React.CSSProperties
-
-const CHIP_INK = 'text-[color:var(--chip-ink)] dark:text-[color:var(--chip-ink-dark)]'
 
 const VISIBILITY_META: Record<TeamVisibility, { icon: string; fg: string; bg: string }> = {
   public: { icon: 'mdi:web', fg: '#059669', bg: 'rgba(16,185,129,0.08)' },

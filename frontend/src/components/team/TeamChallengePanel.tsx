@@ -17,6 +17,7 @@ import {
 import { useToast } from '@/hooks/useToast'
 import { formatJalaliDate, formatJalaliDateTime } from '@/lib/jalali'
 import { formatTimeFa } from '@/lib/utils'
+import { CHIP_INK, chipStyle } from '@/utils/contrast'
 import type { ChallengeRow, ChallengeStatus } from '@/types/matching'
 import { getTeamError } from './shared'
 
@@ -120,8 +121,8 @@ const ChallengeCard: React.FC<{
           {`بازی با «${opponent}»`}
         </p>
         <span
-          className="ms-auto whitespace-nowrap rounded-[10px] px-2 py-0.5 text-[0.72rem] font-extrabold"
-          style={{ backgroundColor: tone.bg, color: tone.color }}
+          className={`ms-auto whitespace-nowrap rounded-[10px] px-2 py-0.5 text-[0.72rem] font-extrabold ${CHIP_INK}`}
+          style={chipStyle(tone.color, tone.bg)}
         >
           {STATUS_FA[row.status]}
         </span>

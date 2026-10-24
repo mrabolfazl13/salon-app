@@ -55,7 +55,7 @@ const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true, he
               <Link
                 to="/login"
                 aria-label="ورود"
-                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-primary-ink shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Icon icon="mdi:login-variant" style={{ width: 18, height: 18 }} />
               </Link>

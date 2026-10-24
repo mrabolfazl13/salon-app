@@ -95,7 +95,7 @@ const DealCard: React.FC<Props> = ({ deal, onBook }) => {
               'gap-1 rounded-[10px] px-5 font-extrabold',
               expired
                 ? 'bg-none bg-slate-900/10 text-muted-foreground shadow-none hover:bg-slate-900/10 dark:bg-white/10'
-                : 'bg-gradient-to-br from-amber-500 to-red-500 text-white shadow-[0_4px_14px_rgba(239,68,68,0.3)] hover:from-amber-600 hover:to-red-600'
+                : 'bg-gradient-to-br from-amber-700 to-red-600 text-white shadow-[0_4px_14px_rgba(239,68,68,0.3)] hover:from-amber-800 hover:to-red-700'
             )}
           >
             <Icon icon="mdi:lightning-bolt" className="h-4 w-4" />

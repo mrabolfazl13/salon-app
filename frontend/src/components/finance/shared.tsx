@@ -7,6 +7,7 @@ import { Icon } from '@iconify/react'
 import { Button } from '@/components/ui/shadcn/button'
 import { Skeleton } from '@/components/ui/shadcn/skeleton'
 import { formatJalaliDate, toPersianDigits } from '@/lib/jalali'
+import { useThemeStore } from '@/store/themeStore'
 
 // ─────────────── فرمت اعداد ریال ───────────────
 
@@ -281,23 +282,45 @@ const STATUS_INK: Record<StatusToken, string> = {
   slate: '#475569',
 }
 
+/* جوهرِ روشن روی کارت تیره (#121a2b) ≈۲٫۱–۲٫۹:۱ بود — سویپ تاریک F-۴۳. هر مقدار زیر
+   ≥۵٫۲:۱ با تیغِ خودِ همین رنگ (/1f و /18) و ≥۶٫۲:۱ با کارتِ خالص سنجیده شده است. */
+const STATUS_INK_DARK: Record<StatusToken, string> = {
+  success: '#34d399',
+  warning: '#fbbf24',
+  error: '#f87171',
+  info: '#60a5fa',
+  sky: '#38bdf8',
+  violet: '#a78bfa',
+  pink: '#f472b6',
+  slate: '#94a3b8',
+}
+
 /** نگاشت خالص (بدون hook) تا بتوان در حلقهٔ رندر هم صدا زد — vgl. SlotWeekGrid */
 export const statusColorToken = (hex: string): StatusToken | undefined =>
   STATUS_COLOR_TOKEN[hex.toLowerCase()]
 
+/** جوهر دسترس‌پذیرِ یک هگز تزئینی، برای مودی که خودش مشخص می‌شود (بدون hook) */
+export const statusInk = (hex: string, dark: boolean): string => {
+  const token = statusColorToken(hex)
+  if (!token) return hex
+  return (dark ? STATUS_INK_DARK : STATUS_INK)[token]
+}
+
 /**
  * هگزهای تزئینی (که از کنفیگ‌های وضعیت می‌آیند) را به رنگ دسترس‌پذیر نگاشت می‌کند.
  * دلیل: متن با #059669 ≈ ۳٫۸:۱ و #d97706 ≈ ۳٫۲:۱ روی سفید رد می‌شود.
+ * استایل درون‌خطی variant دارک ندارد، پس مود از تم خوانده می‌شود نه از CSS.
  */
 export const useStatusColor = (hex: string) => {
-  const token = statusColorToken(hex)
-  return { main: token ? STATUS_INK[token] : hex, mapped: Boolean(token) }
+  const dark = useThemeStore((s) => s.mode === 'dark')
+  return { main: statusInk(hex, dark), mapped: Boolean(statusColorToken(hex)) }
 }
 
 /**
  * جفت «پس‌زمینه + متن رویش» برای کنترل‌های selected (چیپ‌های یک‌دکمه‌ای).
  * پارامتر اول برای سازگاری با فراخوانی‌های قبلی (تم) نگه داشته شده و خوانده نمی‌شود.
  * دلیل: «سفید روی #059669» ≈ ۳٫۷:۱ و «سفید روی #d97706» ≈ ۳٫۲:۱ برای متن ۱۲px رد می‌شود.
+ * لازم‌الذکر مود نیست: هر دو طرفِ این جفت یک‌رنگِ مات‌اند، پس نسبت روی هر پس‌زمینه‌ای ثابت می‌ماند.
  */
 export const statusPairOf = (
   _theme: unknown,
@@ -330,13 +353,16 @@ export const DeltaChip: React.FC<{
   invert?: boolean
   suffix?: string
 }> = ({ value, invert = false, suffix = 'نسبت به دوره قبل' }) => {
-  if (value === null || !Number.isFinite(value)) {
+  // هوک باید پیش از بازگشتِ «داده‌ای ندارد» صدا زده شود — وگرنه ترتیب هوک‌ها با
+  // بارگذاری داده عوض می‌شود و React خطای conditional hook می‌دهد.
+  const hasData = value !== null && Number.isFinite(value)
+  const up = hasData && value >= 0
+  const flat = !hasData || Math.abs(value) < 0.05
+  const good = invert ? !up : up
+  const { main: color } = useStatusColor(flat ? '#64748b' : good ? '#047857' : '#b91c1c')
+  if (!hasData) {
     return <span className="text-[0.62rem] text-muted-foreground">دورهٔ قبل داده‌ای ندارد</span>
   }
-  const up = value >= 0
-  const flat = Math.abs(value) < 0.05
-  const good = invert ? !up : up
-  const color = flat ? '#64748b' : good ? '#047857' : '#b91c1c'
   return (
     <span className="inline-flex flex-wrap items-center gap-1 text-[0.66rem] font-semibold" style={{ color }}>
       <Icon icon={up ? 'mdi:trending-up' : 'mdi:trending-down'} className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
@@ -462,7 +488,7 @@ export const Pager: React.FC<{
             type="button"
             className={`${btn} ${
               p === page
-                ? 'border-blue-600 bg-blue-600 text-white dark:border-blue-500 dark:bg-blue-500'
+                ? 'border-blue-600 bg-blue-600 text-white dark:border-blue-400 dark:bg-blue-600'
                 : 'border-border bg-card text-foreground hover:bg-muted'
             }`}
             onClick={() => onChange(p)}

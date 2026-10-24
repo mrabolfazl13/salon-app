@@ -233,7 +233,7 @@ const ManagerShifts: React.FC = () => {
       <div className="flex flex-col gap-4 pb-8 pt-2">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-extrabold md:text-xl">
-            <Icon icon="mdi:calendar-clock" className="h-6 w-6 text-primary" aria-hidden="true" />
+            <Icon icon="mdi:calendar-clock" className="h-6 w-6 text-primary-ink" aria-hidden="true" />
             شیفت پرسنل
           </h1>
           <p className="mt-1 text-[0.68rem] text-muted-foreground">

@@ -151,7 +151,7 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, venueNames, onVi
                   </div>
                   <div>
                     <p className="text-[0.68rem] text-muted-foreground">مبلغ کل</p>
-                    <p className="text-[0.68rem] font-semibold text-primary">
+                    <p className="text-[0.68rem] font-semibold text-primary-ink">
                       {formatRial(contract.total_amount)}
                     </p>
                   </div>

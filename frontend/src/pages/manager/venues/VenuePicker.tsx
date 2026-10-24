@@ -16,11 +16,14 @@ import { isoDaysAgo } from '@/pages/finance/FinanceScopeBar'
 import { getTodayISO, toPersianDigits } from '@/lib/jalali'
 import VenuePhoto from './VenuePhoto'
 
-const RANK_STYLE: Record<number, { bg: string; color: string }> = {
-  1: { bg: 'rgba(217,119,6,0.12)', color: '#92400e' },
-  2: { bg: 'rgba(100,116,139,0.14)', color: '#475569' },
-  3: { bg: 'rgba(180,83,9,0.12)', color: '#92400e' },
+// چیپ رتبه: متن رویش باید در هر دو مود ≥۴٫۵:۱ باشد؛ استایل درجا variant دارک ندارد،
+// پس رنگ‌ها به کلاس‌های Tailwind (همان واژگانِ contract/chipTone) نگاشت شدند.
+const RANK_CLASS: Record<number, string> = {
+  1: 'bg-amber-500/15 text-amber-800 dark:text-amber-300',
+  2: 'bg-slate-500/15 text-slate-600 dark:text-slate-300',
+  3: 'bg-amber-600/15 text-amber-800 dark:text-amber-300',
 }
+const RANK_CLASS_DEFAULT = 'bg-blue-500/15 text-blue-700 dark:text-blue-300'
 
 const StatBox: React.FC<{ label: string; value: string; tone?: 'default' | 'success' | 'danger' }> = ({
   label,
@@ -170,7 +173,7 @@ const VenuePicker: React.FC = () => {
               >
                 {venues.map((venue) => {
                   const row = rowById.get(venue.id)
-                  const rankStyle = row ? RANK_STYLE[row.rank] : undefined
+                  const rankClass = row ? RANK_CLASS[row.rank] : undefined
                   return (
                     <article
                       key={venue.id}
@@ -191,8 +194,7 @@ const VenuePicker: React.FC = () => {
                             </h2>
                             {row && (
                               <span
-                                className="inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.62rem] font-bold"
-                                style={{ backgroundColor: rankStyle?.bg ?? 'rgba(37,99,235,0.1)', color: rankStyle?.color ?? '#2563eb' }}
+                                className={`inline-flex shrink-0 items-center gap-1 rounded-md px-1.5 py-0.5 text-[0.62rem] font-bold ${rankClass ?? RANK_CLASS_DEFAULT}`}
                                 title="رتبهٔ سود خالص میان سالن‌های شما"
                               >
                                 <Icon icon="mdi:podium" aria-hidden="true" className="h-3 w-3" />

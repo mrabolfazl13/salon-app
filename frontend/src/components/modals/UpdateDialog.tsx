@@ -53,7 +53,7 @@ const UpdateDialog: React.FC = () => {
                 ? 'bg-red-100 text-red-600 dark:bg-red-500/15 dark:text-red-400'
                 : phase === 'up-to-date'
                   ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-500/15 dark:text-emerald-400'
-                  : 'bg-gradient-to-br from-lime-400 to-emerald-500 text-white shadow-lg',
+                  : 'bg-gradient-to-br from-lime-700 to-emerald-700 text-white shadow-lg',
             )}
           >
             <Icon

@@ -156,7 +156,7 @@ const ContractInstallmentPayDialog: React.FC<Props> = ({
           </div>
           <div className="flex justify-between">
             <span className="text-[0.68rem] text-muted-foreground">مبلغ قابل پرداخت</span>
-            <span className="text-[0.68rem] font-bold text-primary">{formatRial(payment.amount)}</span>
+            <span className="text-[0.68rem] font-bold text-primary-ink">{formatRial(payment.amount)}</span>
           </div>
         </div>
       </div>
