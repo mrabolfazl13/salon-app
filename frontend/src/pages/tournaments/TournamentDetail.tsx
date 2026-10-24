@@ -613,7 +613,7 @@ const TournamentDetailPage: React.FC = () => {
                 ) : null}
                 {isLeague && leagueRows.some((row) => row.tied && row.rank === 1) && (
                   <div className="p-3">
-                    <p className="text-[0.68rem] text-amber-700 dark:text-amber-400" data-testid="league-tie-note">
+                    <p className="text-[0.68rem] text-amber-800 dark:text-amber-400" data-testid="league-tie-note">
                       <Icon icon="mdi:information-outline" className="me-1 inline-block h-4 w-4 align-middle" aria-hidden="true" />
                       رتبهٔ ۱ مشترک است؛ با امتیاز، تفاضل گل و گل زده جدا نشد. برای تعیین قهرمان به پلی‌آف نیاز است.
                     </p>

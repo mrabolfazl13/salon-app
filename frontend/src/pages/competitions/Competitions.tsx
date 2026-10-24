@@ -144,7 +144,7 @@ const Competitions: React.FC = () => {
             transition={{ duration: 0.4 }}
           >
             <div className="mx-auto mb-4 flex h-24 w-24 items-center justify-center rounded-full bg-blue-600/10">
-              <Icon icon="mdi:trophy-outline" className="h-12 w-12 text-blue-600 dark:text-blue-400" aria-hidden="true" />
+              <Icon icon="mdi:trophy-outline" className="h-12 w-12 text-blue-700 dark:text-blue-400" aria-hidden="true" />
             </div>
             <h1 className="mb-1 text-xl font-bold text-foreground">
               رقابت قیمت
@@ -299,7 +299,7 @@ const Competitions: React.FC = () => {
                         <p className="text-[0.68rem] text-muted-foreground">
                           قیمت فعلی سانس
                         </p>
-                        <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                        <p className="text-lg font-bold text-blue-700 dark:text-blue-400">
                           {formatPrice(slot.current_price)}
                         </p>
                       </div>
@@ -309,7 +309,7 @@ const Competitions: React.FC = () => {
                           <p className="text-[0.68rem] text-muted-foreground">
                             بهترین پیشنهاد
                           </p>
-                          <p className="text-[0.68rem] font-bold text-amber-600 dark:text-amber-400">
+                          <p className="text-[0.68rem] font-bold text-amber-800 dark:text-amber-400">
                             {bestBids[slot.id] != null
                               ? formatPrice(bestBids[slot.id] as number)
                               : 'هنوز پیشنهادی ثبت نشده'}

@@ -93,9 +93,9 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
             style={{ width: 20, height: 20 }}
             className={cn(
               selected && 'text-stone-900',
-              !selected && bidable && 'text-amber-600 dark:text-amber-400',
-              !selected && !bidable && disabled && 'text-slate-500',
-              !selected && !bidable && !disabled && 'text-blue-600 dark:text-blue-400'
+              !selected && bidable && 'text-amber-800 dark:text-amber-400',
+              !selected && !bidable && disabled && 'text-muted-foreground',
+              !selected && !bidable && !disabled && 'text-blue-700 dark:text-blue-400'
             )}
           />
         </div>
@@ -115,9 +115,9 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
               selected
                 ? 'text-stone-900/75'
                 : bidable
-                  ? 'text-amber-700 dark:text-amber-400'
+                  ? 'text-amber-800 dark:text-amber-400'
                   : isReserved
-                    ? 'text-violet-600 dark:text-violet-400'
+                    ? 'text-violet-700 dark:text-violet-400'
                     : 'text-muted-foreground'
             )}
           >
@@ -135,7 +135,7 @@ const TimeSlot: React.FC<Props> = ({ slot, selected = false, onSelect, onBid }) 
             <Price value={slot.price} size="sm" />
           ))}
         {bidable && (
-          <span className="flex items-center gap-1 rounded-full bg-gradient-to-br from-amber-500/[0.16] to-orange-500/[0.16] px-2.5 py-1 text-[0.68rem] font-bold text-amber-700 dark:text-amber-300">
+          <span className="flex items-center gap-1 rounded-full bg-gradient-to-br from-amber-500/[0.16] to-orange-500/[0.16] px-2.5 py-1 text-[0.68rem] font-bold text-amber-800 dark:text-amber-300">
             <Icon icon="mdi:gavel" aria-hidden="true" style={{ width: 13, height: 13 }} />
             رقابت با بقیه
           </span>

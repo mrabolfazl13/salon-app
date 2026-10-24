@@ -95,7 +95,7 @@ const GameResultDialog: React.FC<Props> = ({ open, onClose, gameId, participants
                     <Icon icon="mdi:check" style={{ width: 13, height: 13 }} />
                   </span>
                   <Avatar className="h-[30px] w-[30px]">
-                    <AvatarFallback className="bg-blue-600/10 text-[0.8rem] font-extrabold text-blue-600 dark:text-blue-300">
+                    <AvatarFallback className="bg-blue-600/10 text-[0.8rem] font-extrabold text-blue-700 dark:text-blue-300">
                       {(p.full_name ?? '؟').trim().charAt(0)}
                     </AvatarFallback>
                   </Avatar>

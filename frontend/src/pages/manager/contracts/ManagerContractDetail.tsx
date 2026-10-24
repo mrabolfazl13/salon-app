@@ -195,7 +195,7 @@ const ManagerContractDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setApproveOpen(true)}
-                className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-emerald-600 to-emerald-700 px-3 text-[0.68rem] font-bold text-white transition-opacity hover:opacity-90"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-emerald-700 to-emerald-800 px-3 text-[0.68rem] font-bold text-white transition-opacity hover:opacity-90"
               >
                 <Icon icon="mdi:check-decagram" className="h-4 w-4" aria-hidden="true" />
                 تأیید با تغییرات

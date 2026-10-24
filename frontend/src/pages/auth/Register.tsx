@@ -149,7 +149,7 @@ const Register: React.FC = () => {
             >
               <Icon icon="mdi:check" className="h-12 w-12 text-white" />
             </motion.div>
-            <h2 className="text-3xl font-bold mt-6 bg-gradient-to-r from-amber-500 to-orange-600 bg-clip-text text-transparent">
+            <h2 className="text-3xl font-bold mt-6 bg-gradient-to-r from-amber-700 to-orange-700 bg-clip-text text-transparent dark:from-amber-400 dark:to-orange-400">
               {successRole === 'venue_manager' ? 'در انتظار تایید' : 'ثبت‌نام موفق!'}
             </h2>
             <p className="text-gray-600 dark:text-gray-300 mt-2">
@@ -478,7 +478,7 @@ const Register: React.FC = () => {
                 قبلاً ثبت‌نام کردید؟{' '}
                 <Link
                   to="/login"
-                  className="inline-flex items-center min-h-[44px] px-2 text-amber-700 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-semibold hover:underline"
+                  className="inline-flex items-center min-h-[44px] px-2 text-amber-800 hover:text-amber-800 dark:text-amber-400 dark:hover:text-amber-300 font-semibold hover:underline"
                 >
                   وارد شوید
                 </Link>

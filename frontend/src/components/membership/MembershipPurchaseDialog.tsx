@@ -158,7 +158,7 @@ const MembershipPurchaseDialog: React.FC<Props> = ({ plan, venueName, open, onCl
           <Separator className="my-2" />
           <div className="flex items-center justify-between">
             <span className="text-[0.68rem] text-muted-foreground">مبلغ قابل پرداخت</span>
-            <span className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
+            <span className="text-lg font-extrabold text-blue-700 dark:text-blue-400">
               {formatPrice(plan.price)}
             </span>
           </div>

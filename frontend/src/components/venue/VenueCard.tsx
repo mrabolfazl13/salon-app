@@ -57,7 +57,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
 
           {/* آدرس */}
           <div className="flex min-w-0 items-center gap-1.5">
-            <Icon icon="mdi:map-marker-outline" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+            <Icon icon="mdi:map-marker-outline" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-amber-800 dark:text-amber-400" />
             <p className="truncate text-[0.7rem] text-muted-foreground">{venue.address}</p>
           </div>
 
@@ -67,7 +67,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
               {am.slice(0, 3).map((a, i) => (
                 <span
                   key={i}
-                  className="inline-flex h-5 items-center rounded-full bg-amber-500/10 px-1.5 text-[0.65rem] font-semibold text-amber-700 dark:bg-amber-400/10 dark:text-amber-300"
+                  className="inline-flex h-5 items-center rounded-full bg-amber-500/10 px-1.5 text-[0.65rem] font-semibold text-amber-800 dark:bg-amber-400/10 dark:text-amber-300"
                 >
                   {a}
                 </span>

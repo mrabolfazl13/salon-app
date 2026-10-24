@@ -76,7 +76,7 @@ const ManagerTeams: React.FC = () => {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-extrabold text-foreground">
-            <Icon icon="mdi:handshake-outline" aria-hidden="true" className="h-[30px] w-[30px] text-blue-600 dark:text-blue-400" />
+            <Icon icon="mdi:handshake-outline" aria-hidden="true" className="h-[30px] w-[30px] text-blue-700 dark:text-blue-400" />
             تیم‌های همکار
           </h1>
           <p className="mt-1 text-[0.68rem] text-muted-foreground">
@@ -119,7 +119,7 @@ const ManagerTeams: React.FC = () => {
                     aria-sort={sortKey === h.key ? (sortDir === -1 ? 'descending' : 'ascending') : undefined}
                     className={cn(
                       'whitespace-nowrap text-[0.75rem] font-extrabold',
-                      sortKey === h.key ? 'text-blue-600 dark:text-blue-400' : 'text-muted-foreground',
+                      sortKey === h.key ? 'text-blue-700 dark:text-blue-400' : 'text-muted-foreground',
                       h.numeric && 'text-end',
                       h.hideOnMobile && 'hidden md:table-cell'
                     )}
@@ -180,7 +180,7 @@ const ManagerTeams: React.FC = () => {
                     <p className="font-extrabold tabular-nums text-foreground">{toPersianDigits(p.total_bookings_at_my_venues)}</p>
                   </TableCell>
                   <TableCell className="text-end">
-                    <p className={cn('font-bold tabular-nums', p.upcoming_bookings_at_my_venues ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground')}>
+                    <p className={cn('font-bold tabular-nums', p.upcoming_bookings_at_my_venues ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground')}>
                       {toPersianDigits(p.upcoming_bookings_at_my_venues)}
                     </p>
                   </TableCell>

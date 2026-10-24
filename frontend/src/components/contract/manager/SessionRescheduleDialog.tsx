@@ -8,6 +8,8 @@ import toast from 'react-hot-toast'
 import PersianDatePicker from '@/components/ui/PersianDatePicker'
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/shadcn/button'
+import { formatDate, formatTimeFa } from '@/lib/utils'
+import { toPersianDigits } from '@/lib/jalali'
 import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
 import { Input } from '@/components/ui/shadcn/input'
 import { Label } from '@/components/ui/shadcn/label'
@@ -89,7 +91,7 @@ const SessionRescheduleDialog: React.FC<Props> = ({ open, onClose, contractId, s
     >
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
-          {`وضعیت فعلی: ${session.status === 'rescheduled' ? `جابه‌جایی‌شده از ${eff.date} — ` : ''}${eff.time?.slice(0, 5)} به مدت ${session.duration} دقیقه`}
+          {`وضعیت فعلی: ${session.status === 'rescheduled' ? `جابه‌جایی‌شده از ${formatDate(eff.date)} — ` : ''}${formatTimeFa(eff.time)} به مدت ${toPersianDigits(session.duration)} دقیقه`}
         </p>
         {serverError && (
           <Alert variant="warning">

@@ -302,7 +302,7 @@ const Profile: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setTab(2)}
-                      className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[10px] bg-amber-500/15 px-3 text-[0.68rem] font-bold text-amber-700 transition-colors hover:bg-amber-500/25 dark:text-amber-300"
+                      className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[10px] bg-amber-500/15 px-3 text-[0.68rem] font-bold text-amber-800 transition-colors hover:bg-amber-500/25 dark:text-amber-300"
                     >
                       <Icon icon="mdi:star" className="h-[18px] w-[18px]" />
                       {`${toPersianDigits(loyaltyQuery.data.balance ?? 0)} امتیاز`}
@@ -376,7 +376,7 @@ const Profile: React.FC = () => {
                         className="flex flex-col items-center gap-2 rounded-xl border border-border bg-slate-50/60 px-2 py-3 no-underline transition-all hover:-translate-y-px hover:border-amber-500/45 hover:bg-amber-500/10 dark:bg-white/5 dark:hover:border-amber-400/40 dark:hover:bg-amber-400/10"
                       >
                         <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 dark:bg-amber-400/15">
-                          <Icon icon={q.icon} className="h-[22px] w-[22px] text-amber-600 dark:text-amber-400" />
+                          <Icon icon={q.icon} className="h-[22px] w-[22px] text-amber-800 dark:text-amber-400" />
                         </span>
                         <span className="text-center text-[0.68rem] font-bold leading-snug text-foreground">
                           {q.label}
@@ -534,7 +534,7 @@ const Profile: React.FC = () => {
                     transition={{ duration: 0.3 }}
                   >
                     {/* کارت امتیاز وفاداری */}
-                    <div className="mb-4 rounded-lg bg-gradient-to-br from-amber-700 to-amber-500 p-6 text-white shadow-[0_10px_30px_rgba(245,158,11,0.25)]">
+                    <div className="mb-4 rounded-lg bg-gradient-to-br from-amber-700 to-amber-800 p-6 text-white shadow-[0_10px_30px_rgba(245,158,11,0.25)]">
                       <div className="flex flex-wrap items-start justify-between gap-4">
                         <div>
                           <span className="text-[0.68rem] font-semibold opacity-85">امتیاز وفاداری</span>
@@ -564,7 +564,7 @@ const Profile: React.FC = () => {
                       </Alert>
                     ) : (loyaltyQuery.data?.history?.length ?? 0) === 0 ? (
                       <div className="rounded-xl border border-dashed border-border py-4 text-center">
-                        <Icon icon="mdi:ticket-outline" className="h-8 w-8 text-slate-400 dark:text-slate-500" />
+                        <Icon icon="mdi:ticket-outline" className="h-8 w-8 text-muted-foreground" />
                         <p className="mt-2 text-[0.68rem] text-muted-foreground">
                           هنوز ردیف امتیازی ثبت نشده است. با اولین رزرو تأییدشده امتیاز می‌گیرید.
                         </p>
@@ -608,7 +608,7 @@ const Profile: React.FC = () => {
                     <h2 className="mb-3 text-[0.68rem] font-bold text-foreground">اعلان‌ها و رضایت‌ها</h2>
                     <div className="flex items-center justify-between gap-4 rounded-[14px] border border-amber-500/35 bg-amber-50/70 px-4 py-3.5 dark:bg-amber-500/10">
                       <div className="flex min-w-0 items-center gap-3">
-                        <Icon icon="mdi:fire-alert-outline" className="h-6 w-6 shrink-0 text-amber-600 dark:text-amber-400" />
+                        <Icon icon="mdi:fire-alert-outline" className="h-6 w-6 shrink-0 text-amber-800 dark:text-amber-400" />
                         <div className="min-w-0">
                           <p className="text-[0.68rem] font-extrabold text-foreground">اطلاع‌رسانی تخفیف‌های لحظه‌ای</p>
                           <span className="block text-[0.68rem] text-muted-foreground">
@@ -639,7 +639,7 @@ const Profile: React.FC = () => {
                         PUT /crm/consent (self-service، همه سالن‌ها). */}
                     <div className="mt-4 flex items-center justify-between gap-4 rounded-[14px] border border-blue-500/30 bg-blue-50/70 px-4 py-3.5 dark:bg-blue-500/10">
                       <div className="flex min-w-0 items-center gap-3">
-                        <Icon icon="mdi:bullhorn-outline" className="h-6 w-6 shrink-0 text-blue-600 dark:text-blue-400" />
+                        <Icon icon="mdi:bullhorn-outline" className="h-6 w-6 shrink-0 text-blue-700 dark:text-blue-400" />
                         <div className="min-w-0">
                           <p className="text-[0.68rem] font-extrabold text-foreground">دریافت پیام‌های بازاریابی</p>
                           <span className="block text-[0.68rem] text-muted-foreground">
@@ -731,8 +731,8 @@ const Profile: React.FC = () => {
                                       unlocked
                                         ? 'h-[26px] w-[26px] text-stone-900'
                                         : b.progress > 0
-                                          ? 'h-[26px] w-[26px] text-amber-600 dark:text-amber-400'
-                                          : 'h-[26px] w-[26px] text-slate-500 dark:text-slate-400'
+                                          ? 'h-[26px] w-[26px] text-amber-800 dark:text-amber-400'
+                                          : 'h-[26px] w-[26px] text-muted-foreground'
                                     }
                                   />
                                 </div>
@@ -743,13 +743,13 @@ const Profile: React.FC = () => {
                                   {b.desc}
                                 </span>
                                 {!unlocked && (
-                                  <span className="mt-2 block text-[0.68rem] font-bold tabular-nums text-amber-600 dark:text-amber-400">
+                                  <span className="mt-2 block text-[0.68rem] font-bold tabular-nums text-amber-800 dark:text-amber-400">
                                     {toPersianDigits(Math.min(b.progress, b.goal))}/{toPersianDigits(b.goal)}
                                   </span>
                                 )}
                                 {unlocked && (
                                   <span className="absolute end-2 top-2">
-                                    <Icon icon="mdi:check-circle" className="h-[18px] w-[18px] text-emerald-600 dark:text-emerald-400" />
+                                    <Icon icon="mdi:check-circle" className="h-[18px] w-[18px] text-emerald-700 dark:text-emerald-400" />
                                   </span>
                                 )}
                               </div>

@@ -89,7 +89,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                   {moved && (
                     <div className="flex items-center gap-1">
                       <Icon icon="mdi:arrow-conditional-right" className="h-3.5 w-3.5" style={{ color: '#d97706' }} />
-                      <span className="text-[0.68rem] font-bold text-amber-700 dark:text-amber-300">
+                      <span className="text-[0.68rem] font-bold text-amber-800 dark:text-amber-300">
                         جدید: {formatJalaliDate(eff.date)}
                       </span>
                     </div>
@@ -102,7 +102,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                     <span className="text-[0.68rem] text-muted-foreground line-through">
                       {cs.start_time?.slice(0, 5)}
                     </span>
-                    <span className="text-[0.82rem] font-bold text-amber-700 dark:text-amber-300">
+                    <span className="text-[0.82rem] font-bold text-amber-800 dark:text-amber-300">
                       {(cs.rescheduled_time || '').slice(0, 5)}
                     </span>
                   </div>
@@ -169,7 +169,7 @@ const ContractSessionsTable: React.FC<ContractSessionsTableProps> = ({
                         variant="outline"
                         disabled={busySessionId === cs.id}
                         onClick={() => onRequestCancel?.(cs)}
-                        className="text-[0.68rem] font-semibold text-amber-700 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-500/10"
+                        className="text-[0.68rem] font-semibold text-amber-800 hover:bg-amber-50 dark:text-amber-300 dark:hover:bg-amber-500/10"
                       >
                         درخواست حذف سانس
                       </Button>

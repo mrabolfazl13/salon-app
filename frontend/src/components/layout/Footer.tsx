@@ -32,7 +32,7 @@ const Footer: React.FC = () => {
           <span className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-gradient-to-br from-amber-400 to-orange-500">
             <Icon icon="mdi:soccer" className="h-5 w-5" style={{ color: '#1c1917' }} />
           </span>
-          <span className="bg-gradient-to-bl from-amber-700 to-orange-700 bg-clip-text text-sm font-extrabold text-transparent">
+          <span className="bg-gradient-to-bl from-amber-700 to-orange-700 bg-clip-text text-sm font-extrabold text-transparent dark:from-amber-400 dark:to-orange-400">
             رزرو سالن فوتسال
           </span>
         </button>

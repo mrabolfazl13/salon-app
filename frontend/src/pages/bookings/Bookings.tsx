@@ -268,7 +268,7 @@ const Bookings: React.FC = () => {
                           <Button
                             size="sm"
                             onClick={() => setPayTarget(booking)}
-                            className="min-h-9 rounded-xl bg-gradient-to-br from-green-600 to-green-700 px-4 text-[0.68rem] text-white shadow-sm hover:from-green-700 hover:to-green-800"
+                            className="min-h-9 rounded-xl bg-gradient-to-br from-green-700 to-green-800 px-4 text-[0.68rem] text-white shadow-sm hover:from-green-800 hover:to-green-900"
                           >
                             <Icon icon="mdi:credit-card-plus-outline" className="h-4 w-4" />
                             پرداخت

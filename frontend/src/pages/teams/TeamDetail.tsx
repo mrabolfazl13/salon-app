@@ -219,7 +219,7 @@ const TeamDetail: React.FC = () => {
     <Layout>
       <div className="mb-4">
         <Link to="/teams" className="inline-flex min-h-11 items-center no-underline">
-          <span className="inline-flex items-center gap-2 text-[0.8rem] font-bold text-blue-600 dark:text-blue-400">
+          <span className="inline-flex items-center gap-2 text-[0.8rem] font-bold text-blue-700 dark:text-blue-400">
             <Icon icon="mdi:arrow-right" className="h-4 w-4" aria-hidden="true" />
             بازگشت به تیم‌ها
           </span>
@@ -309,7 +309,7 @@ const TeamDetail: React.FC = () => {
             </Button>
           )}
           {team.has_open_join_request && !isMember && (
-            <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+            <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400">
               <Icon icon="mdi:clock-outline" className="h-5 w-5" aria-hidden="true" />
               <span className="text-[0.88rem] font-bold">درخواست شما در انتظار بررسی مدیران است</span>
             </div>
@@ -350,11 +350,11 @@ const TeamDetail: React.FC = () => {
             <TabsTrigger
               key={t.label}
               value={t.label}
-              className="h-9 shrink-0 gap-1.5 px-3 text-[0.85rem] font-bold data-[state=active]:bg-blue-600/10 data-[state=active]:text-blue-600 dark:data-[state=active]:text-blue-400"
+              className="h-9 shrink-0 gap-1.5 px-3 text-[0.85rem] font-bold data-[state=active]:bg-blue-600/10 data-[state=active]:text-blue-700 dark:data-[state=active]:text-blue-400"
             >
               {t.label}
               {!!t.badge && (
-                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-extrabold text-amber-700 dark:text-amber-400">
+                <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-extrabold text-amber-800 dark:text-amber-400">
                   {toPersianDigits(t.badge)}
                 </span>
               )}

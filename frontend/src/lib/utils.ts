@@ -204,7 +204,7 @@ export function getReceiptStatusTone(status?: string | null): 'default' | 'warni
 // روی سفید و روی تتینگ ۱۰٪ رد می‌شوند؛ نسخهٔ دسترس‌پذیر پالت جای آن‌ها نشسته است.
 export const PAYMENT_MODE_CHIP_STYLE: Record<string, { bg: string; color: string }> = {
   gateway: { bg: 'rgba(37,99,235,0.1)', color: '#2563eb' },
-  bank_receipt: { bg: 'rgba(180,83,9,0.1)', color: '#b45309' },
+  bank_receipt: { bg: 'rgba(180,83,9,0.1)', color: '#92400e' },
   pay_in_place: { bg: 'rgba(4,120,87,0.1)', color: '#047857' },
 }
 
@@ -231,7 +231,7 @@ export function getBookingStatusStyle(status?: string | null): { bg: string; col
       return { bg: 'rgba(220,38,38,0.1)', color: '#dc2626' }
     case 'pending':
     default:
-      return { bg: 'rgba(180,83,9,0.1)', color: '#b45309' }
+      return { bg: 'rgba(180,83,9,0.1)', color: '#92400e' }
   }
 }
 

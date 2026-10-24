@@ -38,7 +38,7 @@ const SearchBar: React.FC<Props> = ({
     {/* #d97706 روی سفید ۳٫۲:۱ است — حتی برای گرافیک غیرمتنی هم زیر ۳:۱؛ نسخهٔ warning.main */}
     <Icon
       icon="mdi:magnify"
-      className="h-[18px] w-[18px] shrink-0 text-amber-700 dark:text-amber-400"
+      className="h-[18px] w-[18px] shrink-0 text-amber-800 dark:text-amber-400"
       aria-hidden="true"
     />
     <input

@@ -162,7 +162,7 @@ const FilterBottomSheet: React.FC<Props> = ({
             <p className="text-[1.05rem] font-extrabold text-foreground">
               فیلترها
               {activeCount > 0 && (
-                <span className="ms-2 text-[0.68rem] font-bold text-amber-700 dark:text-amber-400">
+                <span className="ms-2 text-[0.68rem] font-bold text-amber-800 dark:text-amber-400">
                   ({activeCount.toLocaleString('fa-IR')})
                 </span>
               )}
@@ -186,7 +186,7 @@ const FilterBottomSheet: React.FC<Props> = ({
                     icon={sport.icon}
                     aria-hidden="true"
                     style={{ width: 16, height: 16 }}
-                    className="text-amber-600 dark:text-amber-400"
+                    className="text-amber-800 dark:text-amber-400"
                   />
                   {sport.label}
                   {on && <Icon icon="mdi:check" aria-hidden="true" style={{ width: 15, height: 15 }} />}
@@ -247,7 +247,7 @@ const FilterBottomSheet: React.FC<Props> = ({
               <Icon
                 icon="mdi:shield-check"
                 aria-hidden="true"
-                className="h-5 w-5 text-emerald-600 dark:text-emerald-400"
+                className="h-5 w-5 text-emerald-700 dark:text-emerald-400"
               />
               <span className="text-[0.85rem] font-bold text-foreground">فقط سالن‌های تأیید شده</span>
             </span>

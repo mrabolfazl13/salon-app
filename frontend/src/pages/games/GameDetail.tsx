@@ -68,10 +68,10 @@ const SectionCard: React.FC<{ title: string; icon: string; badge?: number; child
 }) => (
   <section className="rounded-lg border border-border bg-card p-4 shadow-sm md:p-3">
     <div className="mb-3 flex items-center gap-2">
-      <Icon icon={icon} className="h-[19px] w-[19px] text-blue-600 dark:text-blue-400" aria-hidden="true" />
+      <Icon icon={icon} className="h-[19px] w-[19px] text-blue-700 dark:text-blue-400" aria-hidden="true" />
       <h2 className="text-[0.95rem] font-extrabold text-foreground">{title}</h2>
       {badge !== undefined && badge > 0 && (
-        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-extrabold text-amber-700 dark:text-amber-400">
+        <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-extrabold text-amber-800 dark:text-amber-400">
           {badge.toLocaleString('fa-IR')}
         </span>
       )}
@@ -209,14 +209,14 @@ const GameDetail: React.FC = () => {
     )
   } else if (isOrganizer) {
     primaryAction = (
-      <div className="flex items-center gap-2 text-violet-600 dark:text-violet-400">
+      <div className="flex items-center gap-2 text-violet-700 dark:text-violet-400">
         <Icon icon="mdi:crown-outline" className="h-5 w-5" aria-hidden="true" />
         <span className="text-[0.9rem] font-extrabold">شما برگزارکننده هستید</span>
       </div>
     )
   } else if (myStatus === 'invited') {
     primaryAction = (
-      <div className="flex items-center gap-2 text-blue-600 dark:text-blue-400">
+      <div className="flex items-center gap-2 text-blue-700 dark:text-blue-400">
         <Icon icon="mdi:email-open-outline" className="h-5 w-5" aria-hidden="true" />
         <span className="text-[0.88rem] font-bold">شما به این بازی دعوت شده‌اید</span>
       </div>
@@ -229,7 +229,7 @@ const GameDetail: React.FC = () => {
     )
   } else if (myStatus === 'pending' || game.has_pending_join_request) {
     primaryAction = (
-      <div className="flex items-center gap-2 text-amber-600 dark:text-amber-400">
+      <div className="flex items-center gap-2 text-amber-800 dark:text-amber-400">
         <Icon icon="mdi:clock-outline" className="h-5 w-5" aria-hidden="true" />
         <span className="text-[0.88rem] font-bold">درخواست شما در انتظار تأیید است</span>
       </div>
@@ -291,7 +291,7 @@ const GameDetail: React.FC = () => {
     <Layout>
       <div className="mb-4">
         <Link to="/games" className="inline-flex min-h-11 items-center no-underline">
-          <span className="inline-flex items-center gap-2 text-[0.8rem] font-bold text-blue-600 dark:text-blue-400">
+          <span className="inline-flex items-center gap-2 text-[0.8rem] font-bold text-blue-700 dark:text-blue-400">
             <Icon icon="mdi:arrow-right" className="h-4 w-4" aria-hidden="true" />
             بازگشت به بازی‌ها
           </span>
@@ -397,7 +397,7 @@ const GameDetail: React.FC = () => {
         <div className="mt-5 flex flex-wrap items-center gap-3">
           {primaryAction}
           {remaining > 0 && game.status === 'open' && (
-            <p className="text-[0.78rem] font-bold text-emerald-600 dark:text-emerald-400">
+            <p className="text-[0.78rem] font-bold text-emerald-700 dark:text-emerald-400">
               {`${remaining.toLocaleString('fa-IR')} جای خالی`}
             </p>
           )}
@@ -480,7 +480,7 @@ const GameDetail: React.FC = () => {
             {game.result_set ? (
               <div className="flex flex-col gap-2">
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[0.68rem] font-extrabold text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-emerald-500/10 px-2 py-0.5 text-[0.68rem] font-extrabold text-emerald-700 dark:text-emerald-400">
                     <Icon icon="mdi:check-decagram" className="h-[14px] w-[14px]" aria-hidden="true" />
                     نتیجه ثبت شده
                   </span>
@@ -495,7 +495,7 @@ const GameDetail: React.FC = () => {
                 ) : (
                   <div className="flex flex-wrap gap-1.5">
                     {winnerList.map((w) => (
-                      <span key={w.userId} className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-2.5 py-1 text-[0.78rem] font-bold text-amber-600 dark:text-amber-400">
+                      <span key={w.userId} className="inline-flex items-center gap-2 rounded-full bg-amber-500/10 px-2.5 py-1 text-[0.78rem] font-bold text-amber-800 dark:text-amber-400">
                         <Icon icon="mdi:trophy" className="h-[14px] w-[14px]" aria-hidden="true" />
                         {w.name}
                       </span>

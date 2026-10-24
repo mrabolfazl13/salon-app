@@ -74,11 +74,11 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
         {messagesQ.isPending ? (
           <div className="m-auto text-center">
             <span
-              className="mx-auto block h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent text-slate-500 dark:text-slate-400"
+              className="mx-auto block h-6 w-6 animate-spin rounded-full border-2 border-current border-t-transparent text-muted-foreground"
               role="status"
               aria-label="در حال بارگذاری"
             />
-            <p className="mt-2 text-[0.78rem] text-slate-500 dark:text-slate-400">در حال دریافت پیام‌ها...</p>
+            <p className="mt-2 text-[0.78rem] text-muted-foreground">در حال دریافت پیام‌ها...</p>
           </div>
         ) : messagesQ.isError ? (
           <div className="m-auto max-w-[320px] text-center">
@@ -93,8 +93,8 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
         ) : messages.length === 0 ? (
           <div className="m-auto max-w-[320px] text-center">
             <Icon icon="mdi:message-text-outline" style={{ width: 32, height: 32, color: '#64748b' }} />
-            <p className="mt-1.5 text-[0.85rem] font-bold text-slate-500 dark:text-slate-400">هنوز پیامی در چت تیم نیست</p>
-            <p className="mt-0.5 text-[0.68rem] text-slate-500 dark:text-slate-400">اولین پیام را بنویسید و هم‌تیمی‌ها را هماهنگ کنید.</p>
+            <p className="mt-1.5 text-[0.85rem] font-bold text-muted-foreground">هنوز پیامی در چت تیم نیست</p>
+            <p className="mt-0.5 text-[0.68rem] text-muted-foreground">اولین پیام را بنویسید و هم‌تیمی‌ها را هماهنگ کنید.</p>
           </div>
         ) : (
           <>
@@ -117,13 +117,13 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
                         : 'border-slate-900/[0.06] bg-card/95 dark:border-white/10 dark:bg-white/5',
                     )}
                   >
-                    <p className={cn('mb-0.5 text-[0.68rem] font-extrabold', mine ? 'text-blue-600 dark:text-blue-400' : 'text-violet-700 dark:text-violet-300')}>
+                    <p className={cn('mb-0.5 text-[0.68rem] font-extrabold', mine ? 'text-blue-700 dark:text-blue-400' : 'text-violet-700 dark:text-violet-300')}>
                       {mine ? 'شما' : (m.full_name ?? `کاربر ${toPersianDigits(m.user_id)}`)}
                     </p>
                     <p className="whitespace-pre-wrap break-words text-[0.85rem] leading-[1.85] text-slate-900 dark:text-slate-100">
                       {m.content}
                     </p>
-                    <p className={cn('mt-1 text-[0.6rem] text-slate-500 dark:text-slate-400', mine ? 'text-end' : 'text-start')}>
+                    <p className={cn('mt-1 text-[0.6rem] text-muted-foreground', mine ? 'text-end' : 'text-start')}>
                       {formatJalaliDateTime(m.created_at, { format: 'numeric' })}
                     </p>
                   </div>

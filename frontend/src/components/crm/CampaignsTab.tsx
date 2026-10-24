@@ -225,7 +225,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
               className={
                 (consentReach ?? 0) > 0
                   ? 'mt-1 text-[0.68rem] font-bold text-emerald-700 dark:text-emerald-400'
-                  : 'mt-1 text-[0.68rem] font-bold text-amber-700 dark:text-amber-400'
+                  : 'mt-1 text-[0.68rem] font-bold text-amber-800 dark:text-amber-400'
               }
             >
               <Icon icon="mdi:email-check-outline" className="inline h-4 w-4 me-1" aria-hidden="true" />

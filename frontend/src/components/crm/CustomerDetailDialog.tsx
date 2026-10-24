@@ -116,7 +116,7 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
             </div>
             <div className="ms-auto flex items-center gap-1.5">
               {detail.customer.is_vip && (
-                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 px-2 py-0.5 text-[0.68rem] font-bold text-amber-700 dark:text-amber-400">
+                <span className="inline-flex items-center gap-1 rounded-lg bg-amber-500/10 px-2 py-0.5 text-[0.68rem] font-bold text-amber-800 dark:text-amber-400">
                   <Icon icon="mdi:star" className="h-3.5 w-3.5" aria-hidden="true" />
                   VIP
                 </span>
@@ -271,7 +271,7 @@ const CustomerDetailDialog: React.FC<Props> = ({ userId, venueId, onClose }) => 
                         dir="rtl"
                         className={
                           t.direction === 'income'
-                            ? 'text-[0.68rem] font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                            ? 'text-[0.68rem] font-extrabold text-emerald-700 tabular-nums dark:text-emerald-400'
                             : 'text-[0.68rem] font-extrabold text-red-600 tabular-nums dark:text-red-400'
                         }
                       >

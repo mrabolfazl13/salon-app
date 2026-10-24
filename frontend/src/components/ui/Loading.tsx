@@ -2,6 +2,7 @@
 // حالت بارگذاری سراسری — اسپینر + پیام فارسی، بدون MUI.
 import React from 'react'
 import { motion } from 'framer-motion'
+import { cn } from '@/lib/utils'
 
 interface LoadingProps {
   fullScreen?: boolean
@@ -35,13 +36,14 @@ const Loading: React.FC<LoadingProps> = ({
         className="rounded-full border-4 border-muted border-t-amber-500"
         style={{ width: sizeMap[size], height: sizeMap[size] }}
       />
-      <p className="text-sm text-muted-foreground">{message}</p>
+      {/* روی اسکریم تیره، متنِ تم (معمولی خاکستری) ۱٫۱۷:۱ می‌شد — رنگ مخصوص خودِ overlay */}
+      <p className={cn('text-sm', fullScreen ? 'text-slate-100' : 'text-muted-foreground')}>{message}</p>
     </div>
   )
 
   if (fullScreen) {
     return (
-      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/50 backdrop-blur-sm">
+      <div className="fixed inset-0 z-[9999] flex items-center justify-center bg-slate-950/70 backdrop-blur-sm">
         {content}
       </div>
     )

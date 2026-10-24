@@ -156,7 +156,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
           </div>
           <div className="flex justify-between">
             <span className="text-[0.68rem] text-muted-foreground">قیمت فعلی سانس</span>
-            <span className="text-[0.68rem] font-extrabold text-blue-600 dark:text-blue-400">
+            <span className="text-[0.68rem] font-extrabold text-blue-700 dark:text-blue-400">
               {formatPrice(slot.price)}
             </span>
           </div>
@@ -197,7 +197,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
                 دریافت نشد — تلاش مجدد
               </Button>
             ) : (
-              <span className="text-[0.68rem] font-extrabold text-amber-600 dark:text-amber-400">
+              <span className="text-[0.68rem] font-extrabold text-amber-800 dark:text-amber-400">
                 {bestPrice != null ? formatPrice(bestPrice) : 'هنوز پیشنهادی ثبت نشده'}
               </span>
             )}

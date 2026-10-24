@@ -5,7 +5,7 @@ import React from 'react'
 import { Icon } from '@iconify/react'
 import { isAxiosError } from 'axios'
 import { chipInk } from '@/utils/contrast'
-import { cn } from '@/lib/utils'
+import { cn, formatTimeFa } from '@/lib/utils'
 import { Progress } from '@/components/ui/shadcn/progress'
 
 import {
@@ -116,7 +116,7 @@ export const VisibilityChip: React.FC<{ visibility: GameVisibility }> = ({ visib
 }
 
 export const SkillChip: React.FC<{ level: SkillLevel }> = ({ level }) => (
-  <span className="inline-flex h-6 items-center rounded-full bg-blue-600/[0.06] px-2 text-[0.68rem] font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
+  <span className="inline-flex h-6 items-center rounded-full bg-blue-600/[0.06] px-2 text-[0.68rem] font-semibold text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
     {SKILL_LEVEL_LABELS[level] ?? level}
   </span>
 )
@@ -171,6 +171,6 @@ export const CapacityBar: React.FC<{ current: number; max: number }> = ({ curren
 export function formatGameDateTime(slotDate?: string | null, startTime?: string | null): string {
   if (!slotDate) return '—'
   const d = formatPersianDate(slotDate)
-  const t = startTime ? startTime.slice(0, 5) : ''
+  const t = startTime ? formatTimeFa(startTime) : ''
   return t ? `${d} - ${t}` : d
 }

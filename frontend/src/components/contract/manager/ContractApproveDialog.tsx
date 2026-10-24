@@ -134,7 +134,7 @@ const ContractApproveDialog: React.FC<Props> = ({ open, onClose, target }) => {
           <Button
             onClick={submit}
             disabled={mutation.isPending}
-            className="rounded-xl !bg-none bg-emerald-600 font-bold text-white hover:bg-emerald-700"
+            className="rounded-xl !bg-none bg-emerald-700 font-bold text-white hover:bg-emerald-800"
           >
             {mutation.isPending ? 'در حال تأیید...' : 'تأیید و فعال‌سازی'}
           </Button>

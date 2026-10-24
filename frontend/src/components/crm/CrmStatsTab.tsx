@@ -88,7 +88,7 @@ const CrmStatsTab: React.FC<Props> = ({ venueId }) => {
                     <span
                       className={
                         i === 0
-                          ? 'text-[0.68rem] font-extrabold text-amber-700 tabular-nums dark:text-amber-400'
+                          ? 'text-[0.68rem] font-extrabold text-amber-800 tabular-nums dark:text-amber-400'
                           : 'text-[0.68rem] font-extrabold text-blue-700 tabular-nums dark:text-blue-300'
                       }
                     >

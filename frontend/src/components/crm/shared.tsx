@@ -87,7 +87,7 @@ export const SegmentChip: React.FC<{ segment: string; small?: boolean }> = ({ se
 
 export const ConsentIcon: React.FC<{ consent: boolean }> = ({ consent }) => {
   // رنگ تنها نشانه نبود؛ صفحه‌خوان باید بداند کدام وضعیت است (جدول مشتری فقط این آیکون را دارد)
-  const colorClass = consent ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+  const colorClass = consent ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'
   return (
     <span
       role="img"
@@ -130,7 +130,7 @@ export function crmErrorMessage(err: unknown, fallback: string): string {
 
 /** نماد دسترسی — ماتریس CSS-grid است و <th> ندارد، پس نام متنی خود آن را می‌سازد */
 const AccessGlyph: React.FC<{ allowed: boolean; label: string }> = ({ allowed, label }) => {
-  const colorClass = allowed ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground'
+  const colorClass = allowed ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground'
   return (
     <span
       role="img"

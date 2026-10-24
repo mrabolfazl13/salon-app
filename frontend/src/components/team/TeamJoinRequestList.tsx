@@ -47,7 +47,7 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
           className="flex flex-wrap items-center gap-2.5 rounded-lg border border-amber-500/25 bg-amber-500/5 px-3 py-2.5"
         >
           <Avatar className="h-9 w-9">
-            <AvatarFallback className="bg-amber-500/15 text-[0.85rem] font-bold text-amber-700 dark:text-amber-300">
+            <AvatarFallback className="bg-amber-500/15 text-[0.85rem] font-bold text-amber-800 dark:text-amber-300">
               {getInitials(req.full_name || '؟')}
             </AvatarFallback>
           </Avatar>
@@ -55,7 +55,7 @@ const TeamJoinRequestList: React.FC<Props> = ({ teamId, requests }) => {
             <p className="truncate text-[0.85rem] font-bold text-slate-900 dark:text-slate-100">
               {req.full_name || `کاربر ${req.user_id}`}
             </p>
-            <p className="mt-0.5 truncate text-[0.68rem] text-slate-500 dark:text-slate-400">
+            <p className="mt-0.5 truncate text-[0.68rem] text-muted-foreground">
               {`ثبت: ${formatPersianDateTime(req.created_at)}${req.message ? ` - ${req.message}` : ''}`}
             </p>
           </div>

@@ -79,13 +79,13 @@ const ManagerCrm: React.FC = () => {
                   <h1 className="mb-1 text-xl font-extrabold text-white md:text-[1.9rem]">
                     مشتریان و پرسنل
                   </h1>
-                  <p className="text-[0.68rem] text-white/70">
+                  <p className="text-[0.68rem] text-white">
                     CRM سالن — گروه‌بندی مشتریان، کمپین پیامکی بازاریابی و مدیریت کارکنان
                   </p>
                 </div>
                 <Link
                   to="/manager-dashboard"
-                  className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-5 py-2 text-[0.85rem] font-bold text-white transition-colors hover:bg-white/25"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-xl border border-white/30 bg-slate-950/25 px-5 py-2 text-[0.85rem] font-bold text-white transition-colors hover:bg-slate-950/40"
                 >
                   <Icon icon="mdi:store-outline" aria-hidden="true" className="h-4 w-4" />
                   پنل مدیریت

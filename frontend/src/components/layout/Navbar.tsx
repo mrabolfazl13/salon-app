@@ -142,7 +142,7 @@ const Navbar: React.FC<NavbarProps> = () => {
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_4px_14px_rgba(245,158,11,0.3)]">
             <Icon icon="mdi:soccer" className="h-6 w-6" style={{ color: '#1c1917' }} />
           </span>
-          <span className="hidden bg-gradient-to-bl from-amber-700 to-orange-700 bg-clip-text text-lg font-extrabold text-transparent sm:block">
+          <span className="hidden bg-gradient-to-bl from-amber-700 to-orange-700 bg-clip-text text-lg font-extrabold text-transparent dark:from-amber-400 dark:to-orange-400 sm:block">
             فوتسال
           </span>
         </Link>

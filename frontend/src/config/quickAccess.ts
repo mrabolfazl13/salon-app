@@ -28,7 +28,7 @@ export const QUICK_ACCESS_GROUPS: QuickAccessGroup[] = [
     key: 'user',
     label: 'کاربر عادی',
     icon: 'mdi:account-outline',
-    color: '#0ea5e9',
+    color: '#0369a1',
     users: [
       demoUser('09000000111', 'کاربر نمونه ۱'),
       demoUser('09000000112', 'کاربر نمونه ۲'),
@@ -39,7 +39,7 @@ export const QUICK_ACCESS_GROUPS: QuickAccessGroup[] = [
     key: 'manager',
     label: 'مدیر سالن',
     icon: 'mdi:account-tie-outline',
-    color: '#f59e0b',
+    color: '#b45309',
     users: [
       demoUser('09000000211', 'مدیر سالن نمونه ۱'),
       demoUser('09000000212', 'مدیر سالن نمونه ۲'),
@@ -50,7 +50,7 @@ export const QUICK_ACCESS_GROUPS: QuickAccessGroup[] = [
     key: 'admin',
     label: 'مدیر کل',
     icon: 'mdi:shield-crown-outline',
-    color: '#8b5cf6',
+    color: '#6d28d9',
     users: [
       demoUser('09000000311', 'مدیر کل نمونه ۱'),
       demoUser('09000000312', 'مدیر کل نمونه ۲'),

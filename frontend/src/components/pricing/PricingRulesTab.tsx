@@ -116,7 +116,7 @@ const PricingRulesTab: React.FC<Props> = ({ venues, venueId }) => {
             <Button
               onClick={saveBasePrice}
               disabled={setDefault.isPending}
-              className="bg-gradient-to-br from-emerald-600 to-emerald-500 font-bold text-white hover:from-emerald-700 hover:to-emerald-600"
+              className="bg-gradient-to-br from-emerald-700 to-emerald-800 font-bold text-white hover:from-emerald-800 hover:to-emerald-900"
             >
               {setDefault.isPending ? '...' : 'ثبت'}
             </Button>

@@ -163,7 +163,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
           <span className="text-[0.68rem] font-bold">
             {averageRating ? toPersianDigits(averageRating.toFixed(1)).replace('.', '٫') : '—'}
           </span>
-          <span className="text-[0.68rem] text-slate-400 dark:text-slate-500">
+          <span className="text-[0.68rem] text-muted-foreground">
             ({toPersianDigits(totalReviews || 0)} نظر)
           </span>
         </div>
@@ -315,7 +315,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                           </span>
                         )}
                       </p>
-                      <p className="text-[0.68rem] text-slate-400 dark:text-slate-500">
+                      <p className="text-[0.68rem] text-muted-foreground">
                         {formatDateTime(review.created_at)}
                       </p>
                     </div>

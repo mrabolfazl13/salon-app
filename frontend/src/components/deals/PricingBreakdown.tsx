@@ -83,7 +83,7 @@ const AmountRow: React.FC<{ label: React.ReactNode; amount: number; strong?: boo
           'whitespace-nowrap tabular-nums',
           subRow ? 'text-[0.68rem]' : 'text-[0.68rem]',
           strong ? 'font-black' : 'font-bold',
-          zero ? 'text-muted-foreground' : amount > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-600 dark:text-emerald-400'
+          zero ? 'text-muted-foreground' : amount > 0 ? 'text-red-600 dark:text-red-400' : 'text-emerald-700 dark:text-emerald-400'
         )}
       >
         {amount > 0 ? `+${formatPrice(amount)}` : amount < 0 ? `−${formatPrice(Math.abs(amount))}` : formatPrice(0)}

@@ -171,7 +171,7 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
       <DialogContent aria-describedby={undefined} className="sm:max-w-[560px]">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-400 text-white">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-700 text-white">
               <Icon icon="mdi:ticket-percent-outline" className="h-5 w-5" aria-hidden="true" />
             </span>
             <DialogTitle className="text-lg font-extrabold text-foreground">
@@ -335,7 +335,7 @@ const CouponDialog: React.FC<Props> = ({ open, venueId, venues, isSuper, coupon,
           <Button
             onClick={submit}
             disabled={saving}
-            className="bg-gradient-to-br from-pink-600 to-pink-400 font-bold text-white hover:from-pink-700 hover:to-pink-500"
+            className="bg-gradient-to-br from-pink-600 to-pink-700 font-bold text-white hover:from-pink-700 hover:to-pink-800"
           >
             {isEdit ? 'ذخیره تغییرات' : 'ایجاد کد'}
           </Button>

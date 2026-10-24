@@ -89,7 +89,7 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
             setEditing(null)
             setDialogOpen(true)
           }}
-          className="bg-gradient-to-br from-pink-600 to-pink-400 font-bold text-white hover:from-pink-700 hover:to-pink-500"
+          className="bg-gradient-to-br from-pink-600 to-pink-700 font-bold text-white hover:from-pink-700 hover:to-pink-800"
         >
           <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
           کد جدید

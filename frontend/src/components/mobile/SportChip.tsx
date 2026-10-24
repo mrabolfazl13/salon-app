@@ -51,7 +51,7 @@ const SportChip: React.FC<Props> = ({ sport, active = false, onClick }) => (
       icon={sport.icon}
       className={cn(
         'h-[22px] w-[22px]',
-        active ? 'text-stone-900' : 'text-amber-600 dark:text-amber-400'
+        active ? 'text-stone-900' : 'text-amber-800 dark:text-amber-400'
       )}
     />
     <span

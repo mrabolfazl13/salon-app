@@ -42,7 +42,7 @@ const BookingRow: React.FC<{ booking: ApiBooking; onSelect: () => void }> = ({ b
           {formatGameDateTime(booking.slot_date, booking.start_time)}
           {booking.duration ? ` · ${booking.duration} دقیقه` : ''}
         </p>
-        <span className="inline-flex h-5 items-center rounded-full bg-emerald-50 px-2 text-[0.68rem] font-bold text-emerald-600 dark:bg-emerald-500/10 dark:text-emerald-400">
+        <span className="inline-flex h-5 items-center rounded-full bg-emerald-50 px-2 text-[0.68rem] font-bold text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-400">
           {formatPrice(booking.payment_amount)}
         </span>
       </div>

@@ -5,7 +5,7 @@
 import React from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
-import { cn, formatDate } from '@/lib/utils'
+import { cn, formatDate, formatTimeFa } from '@/lib/utils'
 import { statusColorToken } from '@/components/finance/shared'
 import {
   contractStatusMeta,
@@ -35,11 +35,19 @@ const chipTone = (hex: string): { className?: string; style?: React.CSSPropertie
     case 'success':
       return { className: 'bg-emerald-500/15 text-emerald-700 dark:text-emerald-300' }
     case 'warning':
-      return { className: 'bg-amber-500/15 text-amber-700 dark:text-amber-300' }
+      return { className: 'bg-amber-500/15 text-amber-800 dark:text-amber-300' }
     case 'error':
       return { className: 'bg-red-500/15 text-red-700 dark:text-red-300' }
     case 'info':
       return { className: 'bg-blue-500/15 text-blue-700 dark:text-blue-300' }
+    case 'sky':
+      return { className: 'bg-sky-500/15 text-sky-700 dark:text-sky-300' }
+    case 'violet':
+      return { className: 'bg-violet-500/15 text-violet-700 dark:text-violet-300' }
+    case 'pink':
+      return { className: 'bg-pink-500/15 text-pink-700 dark:text-pink-300' }
+    case 'slate':
+      return { className: 'bg-slate-500/15 text-slate-600 dark:text-slate-300' }
     default:
       return { style: { backgroundColor: `${hex}1f`, color: hex } }
   }
@@ -85,7 +93,7 @@ const ContractList: React.FC<ContractListProps> = ({ contracts, venueNames, onVi
                       </p>
                       <p className="text-[0.68rem] text-muted-foreground">
                         {`${formatDate(contract.start_date)} - ${formatDate(contract.end_date)} | `}
-                        {`${(contract.days && contract.days.length ? contract.days : [contract.day_of_week]).map((d) => pyDayNames[d] ?? '—').join('، ')} ${(contract.start_time || '').slice(0, 5)} | `}
+                        {`${(contract.days && contract.days.length ? contract.days : [contract.day_of_week]).map((d) => pyDayNames[d] ?? '—').join('، ')} ${formatTimeFa(contract.start_time)} | `}
                         {RECURRENCE_LABELS[contract.recurrence] || contract.recurrence}
                       </p>
                       {(contract.days?.length ?? 0) > 1 && (

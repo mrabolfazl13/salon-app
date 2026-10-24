@@ -7,7 +7,7 @@ import { useAuthStore } from '@/store/authStore'
 import { bookingService } from '@/services/booking'
 import { membershipService } from '@/services/membership'
 import { PLAN_TYPE_LABEL, type MembershipPurchase } from '@/types/membership'
-import { formatPrice, formatDate, formatDateTime, getStatusLabel } from '@/lib/utils'
+import { formatPrice, formatDate, formatDateTime, formatTimeFa, getStatusLabel } from '@/lib/utils'
 import { Button } from '@/components/ui/shadcn/button'
 import { Card } from '@/components/ui/shadcn/card'
 import { Badge } from '@/components/ui/shadcn/badge'
@@ -185,12 +185,12 @@ const Dashboard: React.FC = () => {
         <Card className="p-4 md:col-span-8">
           <div className="mb-4 flex items-center justify-between gap-2">
             <div className="flex items-center gap-2">
-              <Icon icon="mdi:calendar-history" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
+              <Icon icon="mdi:calendar-history" className="h-[18px] w-[18px] text-blue-700 dark:text-blue-400" />
               <h2 className="text-sm font-bold text-foreground">آخرین رزروها</h2>
             </div>
             <Link
               to="/bookings"
-              className="inline-flex min-h-11 items-center rounded-lg px-2 text-[0.68rem] font-semibold text-blue-600 hover:underline dark:text-blue-400"
+              className="inline-flex min-h-11 items-center rounded-lg px-2 text-[0.68rem] font-semibold text-blue-700 hover:underline dark:text-blue-400"
             >
               مشاهده همه
             </Link>
@@ -215,7 +215,7 @@ const Dashboard: React.FC = () => {
                     </p>
                     <p className="truncate text-[0.68rem] text-muted-foreground">
                       {b.slot_date
-                        ? `${formatDate(b.slot_date)} — ${b.start_time ? String(b.start_time).slice(0, 5) : ''}`
+                        ? `${formatDate(b.slot_date)} — ${b.start_time ? formatTimeFa(String(b.start_time)) : ''}`
                         : `ثبت: ${formatDateTime(b.booked_at)}`}
                     </p>
                     <p className="text-[0.68rem] font-bold text-foreground sm:hidden">
@@ -237,7 +237,7 @@ const Dashboard: React.FC = () => {
         {/* Quick Actions */}
         <Card className="p-4 md:col-span-4">
           <div className="mb-4 flex items-center gap-2">
-            <Icon icon="mdi:lightning-bolt" className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400" />
+            <Icon icon="mdi:lightning-bolt" className="h-[18px] w-[18px] text-blue-700 dark:text-blue-400" />
             <h2 className="text-sm font-bold text-foreground">دسترسی سریع</h2>
           </div>
           <div className="grid grid-cols-2 gap-2.5">
@@ -265,7 +265,7 @@ const Dashboard: React.FC = () => {
           <div className="mb-4 flex items-center gap-2">
             <Icon
               icon="mdi:card-account-details-star"
-              className="h-[18px] w-[18px] text-blue-600 dark:text-blue-400"
+              className="h-[18px] w-[18px] text-blue-700 dark:text-blue-400"
             />
             <h2 className="text-sm font-bold text-foreground">اشتراک‌های من</h2>
           </div>
@@ -296,7 +296,7 @@ const Dashboard: React.FC = () => {
                     {p.status === 'pending' && (
                       <Link
                         to={`/venues/${p.venue_id}`}
-                        className="inline-flex min-h-11 items-center text-[0.68rem] font-bold text-blue-600 hover:underline dark:text-blue-400"
+                        className="inline-flex min-h-11 items-center text-[0.68rem] font-bold text-blue-700 hover:underline dark:text-blue-400"
                       >
                         پرداخت
                       </Link>

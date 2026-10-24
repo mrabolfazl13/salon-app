@@ -17,7 +17,7 @@ import { getTodayISO, toPersianDigits } from '@/lib/jalali'
 import VenuePhoto from './VenuePhoto'
 
 const RANK_STYLE: Record<number, { bg: string; color: string }> = {
-  1: { bg: 'rgba(217,119,6,0.12)', color: '#b45309' },
+  1: { bg: 'rgba(217,119,6,0.12)', color: '#92400e' },
   2: { bg: 'rgba(100,116,139,0.14)', color: '#475569' },
   3: { bg: 'rgba(180,83,9,0.12)', color: '#92400e' },
 }
@@ -74,9 +74,9 @@ const VenuePicker: React.FC = () => {
           <div className="mx-auto max-w-5xl">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="min-w-0">
-                <p className="mb-1 text-[0.68rem] font-semibold text-white/70">مرکز عملیات</p>
+                <p className="mb-1 text-[0.68rem] font-semibold text-white">مرکز عملیات</p>
                 <h1 className="text-xl font-extrabold text-white md:text-[1.7rem]">سالن‌های من</h1>
-                <p className="mt-1 max-w-xl text-[0.72rem] leading-6 text-white/75">
+                <p className="mt-1 max-w-xl text-[0.72rem] leading-6 text-white">
                   سالنی را که می‌خواهید مدیریت کنید انتخاب کنید؛ داشبورد، رزروها، سانس‌ها و امور مالی
                   همان سالن یک‌جا باز می‌شود.
                 </p>
@@ -84,7 +84,7 @@ const VenuePicker: React.FC = () => {
               {isOperator && (
                 <Link
                   to="/manager-dashboard"
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-white/20 bg-white/15 px-3 py-1.5 text-[0.78rem] font-bold text-white transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-xl border border-white/30 bg-slate-950/25 px-3 py-1.5 text-[0.78rem] font-bold text-white transition-colors hover:bg-slate-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/70"
                 >
                   <Icon icon="mdi:view-dashboard-outline" aria-hidden="true" className="h-4 w-4" />
                   نمای کلی همه سالن‌ها
@@ -93,21 +93,21 @@ const VenuePicker: React.FC = () => {
             </div>
 
             {financeAccess.allowed && totals && (
-              <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-white/15 bg-white/10 p-2.5 backdrop-blur">
+              <div className="mt-4 grid grid-cols-3 gap-2 rounded-xl border border-white/30 bg-slate-950/25 p-2.5 backdrop-blur">
                 <div>
-                  <p className="text-[0.6rem] text-white/70">سود خالص ۳۰ روز</p>
+                  <p className="text-[0.6rem] text-white">سود خالص ۳۰ روز</p>
                   <p className="mt-0.5 truncate text-[0.9rem] font-extrabold tabular-nums text-white">
                     {formatRialCompact(totals.net)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[0.6rem] text-white/70">رزروهای ۳۰ روز</p>
+                  <p className="text-[0.6rem] text-white">رزروهای ۳۰ روز</p>
                   <p className="mt-0.5 text-[0.9rem] font-extrabold tabular-nums text-white">
                     {faNum(totals.bookings)}
                   </p>
                 </div>
                 <div>
-                  <p className="text-[0.6rem] text-white/70">اشغال کل</p>
+                  <p className="text-[0.6rem] text-white">اشغال کل</p>
                   <p className="mt-0.5 text-[0.9rem] font-extrabold tabular-nums text-white">
                     {formatPct(totals.occupancy_rate)}
                   </p>
@@ -222,7 +222,7 @@ const VenuePicker: React.FC = () => {
                                 className={
                                   venue.is_verified
                                     ? 'inline-flex items-center gap-1 rounded-md bg-emerald-500/10 px-1.5 py-0.5 text-[0.62rem] font-semibold text-emerald-700 dark:text-emerald-400'
-                                    : 'inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[0.62rem] font-semibold text-amber-700 dark:text-amber-400'
+                                    : 'inline-flex items-center gap-1 rounded-md bg-amber-500/10 px-1.5 py-0.5 text-[0.62rem] font-semibold text-amber-800 dark:text-amber-400'
                                 }
                               >
                                 <Icon

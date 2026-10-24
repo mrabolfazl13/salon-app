@@ -100,7 +100,7 @@ const BookingsLinkDialog: React.FC<{ team: Team; linkedIds: Set<number>; open: b
                   <p className="truncate text-[0.82rem] font-bold">
                     {b.venue_name ?? `رزرو #${b.id}`}
                   </p>
-                  <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
+                  <p className="text-[0.68rem] text-muted-foreground">
                     {`${formatJalaliDate(b.slot_date, { format: 'numeric' })}${b.start_time ? ` - ${formatTimeFa(b.start_time)}` : ''}${b.payment_amount ? ` — ${formatRial(b.payment_amount)}` : ''}`}
                   </p>
                 </div>
@@ -133,7 +133,7 @@ const TeamBookingsPanel: React.FC<{ team: Team }> = ({ team }) => {
   return (
     <div className="flex flex-col gap-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <p className="text-[0.78rem] font-semibold text-slate-500 dark:text-slate-400">
+        <p className="text-[0.78rem] font-semibold text-muted-foreground">
           {`${toPersianDigits(total)} رزرو منتسب به تیم`}
         </p>
         {showLink && (
@@ -161,7 +161,7 @@ const TeamBookingsPanel: React.FC<{ team: Team }> = ({ team }) => {
                 <p className="truncate text-[0.83rem] font-bold">
                   {b.venue_name ?? '—'}
                 </p>
-                <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
+                <p className="text-[0.68rem] text-muted-foreground">
                   {`${formatJalaliDate(b.slot_date, { format: 'numeric' })}${b.start_time ? ` - ${formatTimeFa(b.start_time ?? '')}` : ''}`}
                   {b.booking_user_name ? ` — ثبت‌کننده: ${b.booking_user_name}` : ''}
                 </p>
@@ -177,7 +177,7 @@ const TeamBookingsPanel: React.FC<{ team: Team }> = ({ team }) => {
           {pageCount > 1 && (
             <div className="flex items-center justify-center gap-3 pt-2">
               <Button size="sm" variant="ghost" disabled={page <= 1 || bookingsQ.isFetching} onClick={() => setPage((p) => p - 1)} className="font-bold">قبلی</Button>
-              <p className="text-[0.68rem] font-bold text-slate-500 dark:text-slate-400">
+              <p className="text-[0.68rem] font-bold text-muted-foreground">
                 {`${toPersianDigits(page)} / ${toPersianDigits(pageCount)}`}
               </p>
               <Button size="sm" variant="ghost" disabled={page >= pageCount || bookingsQ.isFetching} onClick={() => setPage((p) => p + 1)} className="font-bold">بعدی</Button>

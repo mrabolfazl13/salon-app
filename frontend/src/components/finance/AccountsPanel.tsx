@@ -207,7 +207,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                           className={
                             debtor
                               ? 'whitespace-nowrap text-[0.75rem] font-extrabold text-red-600 tabular-nums dark:text-red-400'
-                              : 'whitespace-nowrap text-[0.75rem] font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                              : 'whitespace-nowrap text-[0.75rem] font-extrabold text-emerald-700 tabular-nums dark:text-emerald-400'
                           }
                         >
                           {formatRial(acc.balance)}
@@ -226,7 +226,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                             e.stopPropagation()
                             setStatementUser({ id: acc.user_id, name: acc.full_name })
                           }}
-                          className="border-blue-600/25 text-[0.68rem] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 h-11 px-2"
+                          className="border-blue-600/25 text-[0.68rem] font-semibold text-blue-700 hover:text-blue-700 dark:text-blue-400 h-11 px-2"
                         >
                           <Icon icon="mdi:file-document-outline" className="h-3 w-3" aria-hidden="true" />
                           صورت‌حساب

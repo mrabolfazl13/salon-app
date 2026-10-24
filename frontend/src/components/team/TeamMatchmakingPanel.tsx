@@ -45,7 +45,7 @@ const SignalRow: React.FC<{ kind: 'level' | 'region' | 'schedule'; signal: Signa
   return (
     <div className="flex items-center gap-2">
       <Icon icon={meta.icon} style={{ width: 15, height: 15, color: '#64748b', flexShrink: 0 }} />
-      <p className="min-w-[74px] text-[0.68rem] font-bold text-slate-500 dark:text-slate-400">
+      <p className="min-w-[74px] text-[0.68rem] font-bold text-muted-foreground">
         {meta.label}
       </p>
       <div className="min-w-0 flex-1">
@@ -57,7 +57,7 @@ const SignalRow: React.FC<{ kind: 'level' | 'region' | 'schedule'; signal: Signa
             known ? '[&>div]:bg-emerald-500' : '[&>div]:bg-transparent',
           )}
         />
-        <p className="mt-0.5 truncate text-[0.72rem] text-slate-400 dark:text-slate-500">
+        <p className="mt-0.5 truncate text-[0.72rem] text-muted-foreground">
           {signal.note ?? '—'}
         </p>
       </div>
@@ -180,7 +180,7 @@ const SuggestionCard: React.FC<{
               </span>
             )}
           </div>
-          <p className="mt-0.5 text-[0.74rem] text-slate-500 dark:text-slate-400">
+          <p className="mt-0.5 text-[0.74rem] text-muted-foreground">
             {[
               `${toPersianDigits(row.member_count)} عضو`,
               row.played ? `${toPersianDigits(row.won)} برد از ${toPersianDigits(row.played)} بازی` : 'بدون سابقۀ بازی',
@@ -209,7 +209,7 @@ const SuggestionCard: React.FC<{
       <div className="flex flex-wrap items-center gap-2">
         {row.has_open_challenge ? (
           <span
-            className="inline-flex h-6 items-center gap-1 rounded-full bg-amber-500/[0.12] px-2 text-[0.74rem] font-bold text-amber-700 dark:text-amber-400"
+            className="inline-flex h-6 items-center gap-1 rounded-full bg-amber-500/[0.12] px-2 text-[0.74rem] font-bold text-amber-800 dark:text-amber-400"
             data-testid={`match-open-challenge-${row.team_id}`}
           >
             <Icon icon="mdi:clock-outline" className="h-3.5 w-3.5" />
@@ -229,7 +229,7 @@ const SuggestionCard: React.FC<{
           )
         )}
         {!canChallenge && (
-          <p className="text-[0.72rem] text-slate-400 dark:text-slate-500">
+          <p className="text-[0.72rem] text-muted-foreground">
             فقط کاپیتان یا مدیر تیم می‌تواند چالش بفرستد.
           </p>
         )}
@@ -265,7 +265,7 @@ const TeamMatchmakingPanel: React.FC<{ team: Team; canChallenge: boolean }> = ({
           بازه‌های زمانی رزروها. تیمی که داده‌ای ندارد جریمه نمی‌شود.
         </p>
         {header && (
-          <p data-testid="match-basis" className="mt-1 text-[0.72rem] text-slate-500 dark:text-slate-400">{header}</p>
+          <p data-testid="match-basis" className="mt-1 text-[0.72rem] text-muted-foreground">{header}</p>
         )}
       </div>
 

@@ -27,7 +27,7 @@ import {
   formatRialCompact,
   labelOf,
 } from '@/components/finance/shared'
-import { formatJalaliDateTime } from '@/lib/jalali'
+import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 import { useScopeLedger } from '@/hooks/useFinance'
 import FinanceHeader from './FinanceHeader'
 import FinanceScopeBar, { useFinanceScope } from './FinanceScopeBar'
@@ -184,8 +184,8 @@ const Expenses: React.FC = () => {
                           </span>
                           <div className="min-w-0 flex-1">
                             <p className={voided ? 'truncate text-[0.75rem] font-semibold text-muted-foreground line-through' : 'truncate text-[0.75rem] font-semibold text-foreground'}>
-                              {tx.expense_category_name || 'بدون دسته‌بندی'}
-                              {tx.description ? ` — ${tx.description}` : ''}
+                              {toPersianDigits(tx.expense_category_name || 'بدون دسته‌بندی')}
+                              {tx.description ? ` — ${toPersianDigits(tx.description)}` : ''}
                             </p>
                             <p className="truncate text-[0.62rem] text-muted-foreground">
                               {formatJalaliDateTime(tx.occurred_at, { format: 'numeric' })} • {labelOf(TX_METHOD_LABELS, tx.method)}

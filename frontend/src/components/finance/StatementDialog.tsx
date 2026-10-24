@@ -39,7 +39,7 @@ import {
   EmptyBox,
 } from './shared'
 import type { TransactionMethod } from '@/services/finance'
-import { formatJalaliDateTime } from '@/lib/jalali'
+import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 
 interface Props {
   open: boolean
@@ -104,7 +104,7 @@ const StatementDialog: React.FC<Props> = ({ open, onClose, userId, userName, ven
                 className={
                   statement.data.closing_balance > 0
                     ? 'mt-0.5 text-sm font-extrabold tabular-nums text-red-600 dark:text-red-400'
-                    : 'mt-0.5 text-sm font-extrabold tabular-nums text-emerald-600 dark:text-emerald-400'
+                    : 'mt-0.5 text-sm font-extrabold tabular-nums text-emerald-700 dark:text-emerald-400'
                 }
               >
                 {formatRial(statement.data.closing_balance)}
@@ -115,7 +115,7 @@ const StatementDialog: React.FC<Props> = ({ open, onClose, userId, userName, ven
                 onClick={() => setPayOpen(true)}
                 disabled={statement.data.closing_balance <= 0}
                 title={statement.data.closing_balance <= 0 ? 'شخص بدهکار نیست' : undefined}
-                className="h-full min-h-14 w-full rounded-xl bg-gradient-to-br from-emerald-600 to-emerald-500 font-bold text-white hover:from-emerald-700 hover:to-emerald-600"
+                className="h-full min-h-14 w-full rounded-xl bg-gradient-to-br from-emerald-700 to-emerald-800 font-bold text-white hover:from-emerald-800 hover:to-emerald-900"
               >
                 <Icon icon="mdi:cash-plus" className="h-5 w-5" />
                 ثبت پرداخت
@@ -168,7 +168,7 @@ const StatementDialog: React.FC<Props> = ({ open, onClose, userId, userName, ven
                         <StatusChip label={labelOf(TX_STATUS_LABELS, e.status)} color={TX_STATUS_COLORS[e.status] ?? '#6b7280'} />
                       </td>
                       <td className="max-w-[180px] overflow-hidden text-ellipsis whitespace-nowrap px-2.5 py-1.5 text-muted-foreground">
-                        {e.description || '—'}
+                        {toPersianDigits(e.description || '—')}
                       </td>
                     </tr>
                   ))}
@@ -326,7 +326,7 @@ const PaymentDialog: React.FC<{
         <Button
           onClick={submit}
           disabled={mutation.isPending}
-          className="bg-gradient-to-br from-emerald-600 to-emerald-500 text-white hover:from-emerald-700 hover:to-emerald-600"
+          className="bg-gradient-to-br from-emerald-700 to-emerald-800 text-white hover:from-emerald-800 hover:to-emerald-900"
         >
           {mutation.isPending ? 'در حال ثبت...' : 'ثبت پرداخت'}
         </Button>

@@ -26,7 +26,7 @@ const roleConfig: Record<string, { label: string; className: string }> = {
   user: { label: 'کاربر', className: 'bg-muted text-muted-foreground' },
   venue_manager: { label: 'مدیر سالن', className: 'bg-blue-50 text-blue-700 dark:bg-blue-500/10 dark:text-blue-300' },
   club_admin: { label: 'مدیر باشگاه', className: 'bg-violet-50 text-violet-700 dark:bg-violet-500/10 dark:text-violet-300' },
-  super_admin: { label: 'مدیر کل', className: 'bg-amber-50 text-amber-700 dark:bg-amber-500/10 dark:text-amber-300' },
+  super_admin: { label: 'مدیر کل', className: 'bg-amber-50 text-amber-800 dark:bg-amber-500/10 dark:text-amber-300' },
   coach: { label: 'مربی', className: 'bg-emerald-50 text-emerald-700 dark:bg-emerald-500/10 dark:text-emerald-300' },
 }
 
@@ -183,9 +183,9 @@ const AdminDashboard: React.FC = () => {
       {!loading && pendingManagers.length > 0 && (
         <Card className="mb-4 border-amber-200 bg-amber-50/70 p-3 dark:border-amber-500/30 dark:bg-amber-500/10">
           <div className="mb-4 flex items-center gap-2">
-            <Icon icon="mdi:account-clock-outline" className="h-5 w-5 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+            <Icon icon="mdi:account-clock-outline" className="h-5 w-5 text-amber-800 dark:text-amber-400" aria-hidden="true" />
             <h2 className="text-sm font-bold">مدیران سالن در انتظار تایید</h2>
-            <span className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-700 tabular-nums dark:text-amber-300">
+            <span className="rounded-lg bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-800 tabular-nums dark:text-amber-300">
               {toPersianDigits(pendingManagers.length)}
             </span>
           </div>
@@ -197,12 +197,12 @@ const AdminDashboard: React.FC = () => {
               >
                 <div className="flex min-w-0 items-center gap-3">
                   <Avatar className="h-9 w-9">
-                    <AvatarFallback className="bg-amber-500 text-[0.68rem] text-white">
+                    <AvatarFallback className="bg-amber-700 text-[0.68rem] text-white">
                       {getInitials(m.full_name)}
                     </AvatarFallback>
                   </Avatar>
                   <div className="min-w-0">
-                    <p className="truncate text-[0.68rem] font-bold">{m.full_name}</p>
+                    <p className="truncate text-[0.68rem] font-bold">{toPersianDigits(m.full_name)}</p>
                     <p className="block font-mono text-[0.68rem] text-muted-foreground" dir="ltr">
                       {m.phone} • {formatDate(m.created_at)}
                     </p>
@@ -213,7 +213,7 @@ const AdminDashboard: React.FC = () => {
                     type="button"
                     disabled={actingId === m.id}
                     onClick={() => setConfirmAction({ id: m.id, name: m.full_name, kind: 'approve' })}
-                    className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-[0.68rem] font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-emerald-700 px-3 text-[0.68rem] font-semibold text-white transition-colors hover:bg-emerald-800 disabled:opacity-50"
                   >
                     <Icon icon="mdi:check" className="h-4 w-4" aria-hidden="true" />
                     تایید
@@ -321,7 +321,7 @@ const AdminDashboard: React.FC = () => {
                 <div key={role}>
                   <div className="mb-1 flex justify-between">
                     <span className="text-[0.68rem] font-semibold">{roleConfig[role]?.label || role}</span>
-                    <span className="text-[0.68rem] text-muted-foreground tabular-nums">{count}</span>
+                    <span className="text-[0.68rem] text-muted-foreground tabular-nums">{toPersianDigits(count)}</span>
                   </div>
                   <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                     <div

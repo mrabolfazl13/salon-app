@@ -310,7 +310,7 @@ const GuestHome: React.FC = () => {
                 to={t.href}
                 className="flex min-h-24 flex-col items-center gap-1.5 rounded-2xl border border-border bg-card px-2 py-4 text-center no-underline shadow-sm transition-colors hover:border-amber-500/55 dark:hover:border-amber-400/45"
               >
-                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-600 dark:bg-amber-400/10 dark:text-amber-400">
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-amber-500/10 text-amber-800 dark:bg-amber-400/10 dark:text-amber-400">
                   <Icon icon={t.icon} style={{ width: 22, height: 22 }} />
                 </span>
                 <span className="block">
@@ -355,7 +355,7 @@ const GuestHome: React.FC = () => {
                           className={`flex items-center gap-2 whitespace-nowrap rounded-full px-2 py-1 text-xs font-extrabold tabular-nums ${
                             msLeft < 3 * 3600_000
                               ? 'bg-red-600/10 text-red-600 dark:bg-red-500/15 dark:text-red-400'
-                              : 'bg-amber-500/15 text-amber-700 dark:text-amber-400'
+                              : 'bg-amber-500/15 text-amber-800 dark:text-amber-400'
                           }`}
                         >
                           <Icon icon="mdi:timer-sand" style={{ width: 14, height: 14 }} />
@@ -373,7 +373,7 @@ const GuestHome: React.FC = () => {
                         <span className="text-xs tabular-nums text-muted-foreground line-through">
                           {formatPrice(c.current_price)}
                         </span>
-                        <span className="text-[0.95rem] font-black tabular-nums text-amber-700 dark:text-amber-400">
+                        <span className="text-[0.95rem] font-black tabular-nums text-amber-800 dark:text-amber-400">
                           {formatPrice(c.best_price)}
                         </span>
                         {offPct > 0 && (
@@ -512,7 +512,7 @@ const GuestHome: React.FC = () => {
                 setLocFailed(false)
                 requestLocation()
               }}
-              className="min-h-11 shrink-0 gap-1 rounded-xl px-4 font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
+              className="min-h-11 shrink-0 gap-1 rounded-xl px-4 font-bold text-blue-700 hover:text-blue-700 dark:text-blue-400 dark:hover:text-blue-300"
             >
               <Icon icon="mdi:crosshairs-gps" style={{ width: 18, height: 18 }} />
               {locBusy ? 'در حال دریافت…' : 'فعال‌سازی'}
@@ -565,7 +565,7 @@ const GuestHome: React.FC = () => {
                   .catch(() => setVenuesError(true))
                   .finally(() => setVenuesLoading(false))
               }}
-              className="mt-3 gap-1 rounded-full border-blue-600 px-5 font-bold text-blue-600 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-500/10"
+              className="mt-3 gap-1 rounded-full border-blue-600 px-5 font-bold text-blue-700 hover:bg-blue-50 dark:border-blue-400 dark:text-blue-400 dark:hover:bg-blue-500/10"
             >
               <Icon icon="mdi:refresh" style={{ width: 18, height: 18 }} />
               تلاش مجدد
@@ -735,7 +735,7 @@ const GuestHome: React.FC = () => {
                         <div className="flex shrink-0 items-center gap-2 px-2">
                           <p
                             className={`text-[1.05rem] font-extrabold tabular-nums ${
-                              match.status === 'live' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'
+                              match.status === 'live' ? 'text-amber-800 dark:text-amber-400' : 'text-foreground'
                             }`}
                           >
                             {match.homeScore}
@@ -743,7 +743,7 @@ const GuestHome: React.FC = () => {
                           <p className="text-muted-foreground">-</p>
                           <p
                             className={`text-[1.05rem] font-extrabold tabular-nums ${
-                              match.status === 'live' ? 'text-amber-700 dark:text-amber-400' : 'text-foreground'
+                              match.status === 'live' ? 'text-amber-800 dark:text-amber-400' : 'text-foreground'
                             }`}
                           >
                             {match.awayScore}

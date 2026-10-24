@@ -113,7 +113,7 @@ export const HowItWorksSection: React.FC = () => {
           <Icon icon="mdi:lightbulb-on" style={{ width: 24, height: 24, color: '#3b82f6', flexShrink: 0 }} />
           <p className="flex-1 text-[0.82rem] text-foreground">
             <strong>نکته:</strong> اولین رزروت با{' '}
-            <span className="font-bold text-blue-600 dark:text-blue-400">
+            <span className="font-bold text-blue-700 dark:text-blue-400">
               ۵۰٪ تخفیف
             </span>{' '}
             همراهه! همین حالا شروع کن.

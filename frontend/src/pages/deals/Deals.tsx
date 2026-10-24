@@ -96,7 +96,7 @@ const Deals: React.FC = () => {
       <div className="mx-auto max-w-[1100px]">
         <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.45 }}>
           {/* هیرو */}
-          <div className="relative mb-4 overflow-hidden rounded-[20px] bg-gradient-to-br from-amber-500 to-red-500 p-6 text-white md:p-8">
+          <div className="relative mb-4 overflow-hidden rounded-[20px] bg-gradient-to-br from-amber-700 to-red-600 p-6 text-white md:p-8">
             <div
               aria-hidden="true"
               className="pointer-events-none absolute -top-[60px] end-[-60px] h-[220px] w-[220px] rounded-full bg-white/10"
@@ -105,7 +105,7 @@ const Deals: React.FC = () => {
               <Icon icon="mdi:fire" className="h-7 w-7" aria-hidden="true" />
               شگفت‌انگیزهای لحظه آخری
             </h1>
-            <p className="max-w-[560px] text-[0.68rem] text-white/90">
+            <p className="max-w-[560px] text-[0.68rem] text-white">
               سانس‌های خالیِ نزدیک سالن‌ها با تخفیف‌های ویژه — تا مهلت تمام نشده رزرو کن؛ قیمت نهایی سمت سرور اعمال می‌شود.
             </p>
           </div>
@@ -141,7 +141,7 @@ const Deals: React.FC = () => {
                     aria-pressed={active}
                     className={
                       active
-                        ? 'min-h-11 rounded-xl bg-gradient-to-br from-amber-500 to-red-500 px-4 py-2 text-[0.85rem] font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        ? 'min-h-11 rounded-xl bg-gradient-to-br from-amber-700 to-red-600 px-4 py-2 text-[0.85rem] font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                         : 'min-h-11 rounded-xl px-4 py-2 text-[0.85rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                     }
                   >
@@ -161,7 +161,7 @@ const Deals: React.FC = () => {
                     type="button"
                     onClick={requestLocation}
                     disabled={locating}
-                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-blue-600/30 px-4 py-2 text-[0.8rem] font-bold text-blue-600 transition-colors hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-500/10"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-blue-600/30 px-4 py-2 text-[0.8rem] font-bold text-blue-700 transition-colors hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-500/10"
                   >
                     <Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} aria-hidden="true" />
                     {locating ? '...' : s.label}

@@ -81,7 +81,7 @@ const GamesExplore: React.FC = () => {
     cn(
       'inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-4 text-[0.85rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
       active
-        ? 'border-blue-600/35 bg-blue-600/10 text-blue-600 dark:text-blue-400'
+        ? 'border-blue-600/35 bg-blue-600/10 text-blue-700 dark:text-blue-400'
         : 'border-border text-slate-600 hover:bg-muted dark:text-slate-300',
     )
 
@@ -90,7 +90,7 @@ const GamesExplore: React.FC = () => {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="flex items-center gap-2 text-[1.35rem] font-black text-foreground md:text-[1.6rem]">
-            <Icon icon="mdi:soccer" className="h-6 w-6 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+            <Icon icon="mdi:soccer" className="h-6 w-6 text-amber-800 dark:text-amber-400" aria-hidden="true" />
             بازی‌های گروهی
           </h1>
           <p className="mt-1 text-[0.85rem] text-muted-foreground">
@@ -288,7 +288,7 @@ const GamesExplore: React.FC = () => {
                   key={inv.id}
                   className="flex flex-wrap items-center gap-3 rounded-[18px] border border-border bg-card px-4 py-3.5 shadow-sm"
                 >
-                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600/10 text-blue-600 dark:text-blue-400" aria-hidden="true">
+                  <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-blue-600/10 text-blue-700 dark:text-blue-400" aria-hidden="true">
                     <Icon icon="mdi:email-outline" className="h-5 w-5" />
                   </span>
                   <div className="min-w-0 flex-1">

@@ -181,7 +181,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
       <div className="flex flex-col gap-4 pt-1">
         {!isEdit && (
           <div className="rounded-[14px] border border-emerald-500/20 bg-emerald-500/[0.07] px-3 py-2.5">
-            <p className="text-[0.78rem] font-bold text-emerald-600 dark:text-emerald-400">رزرو پایه‌ی بازی</p>
+            <p className="text-[0.78rem] font-bold text-emerald-700 dark:text-emerald-400">رزرو پایه‌ی بازی</p>
             <p className="mt-0.5 text-[0.68rem] text-slate-700 dark:text-slate-300">
               {bookingLabel || `رزرو #${(bookingId ?? 0).toLocaleString('fa-IR')}`}
             </p>

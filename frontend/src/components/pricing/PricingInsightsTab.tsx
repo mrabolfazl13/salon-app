@@ -273,7 +273,7 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
             onClick={runSuggestion}
             disabled={suggest.isPending}
             data-testid="insight-run"
-            className="self-end bg-gradient-to-br from-emerald-600 to-emerald-500 font-bold text-white hover:from-emerald-700 hover:to-emerald-600"
+            className="self-end bg-gradient-to-br from-emerald-700 to-emerald-800 font-bold text-white hover:from-emerald-800 hover:to-emerald-900"
           >
             <Icon icon={suggest.isPending ? 'mdi:loading' : 'mdi:sparkles'} className={suggest.isPending ? 'h-4 w-4 animate-spin' : 'h-4 w-4'} aria-hidden="true" />
             {suggest.isPending ? '...' : 'محاسبهٔ پیشنهاد'}

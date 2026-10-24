@@ -251,7 +251,7 @@ export const TeamQuotaProgress: React.FC<{
         />
       )}
       {showHint && !isOfficial && total > 0 && (
-        <p className="mt-1 text-[0.68rem] font-semibold text-amber-700 dark:text-amber-400">
+        <p className="mt-1 text-[0.68rem] font-semibold text-amber-800 dark:text-amber-400">
           {`برای رسمی‌شدن تیم به حداقل ${toPersianDigits(total)} عضو نیاز دارید`}
         </p>
       )}

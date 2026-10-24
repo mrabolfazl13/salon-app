@@ -304,10 +304,10 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                       </TableCell>
                       <TableCell className="max-w-[180px]">
                         <p className="overflow-hidden text-ellipsis whitespace-nowrap text-[0.75rem] font-semibold text-foreground" title={tx.counterparty_name ?? ''}>
-                          {tx.counterparty_name || (tx.expense_category_name ? `دسته: ${tx.expense_category_name}` : '—')}
+                          {toPersianDigits(tx.counterparty_name || (tx.expense_category_name ? `دسته: ${tx.expense_category_name}` : '—'))}
                         </p>
                         <span className="block overflow-hidden text-ellipsis whitespace-nowrap text-[0.65rem] text-muted-foreground" title={tx.description}>
-                          {voided && tx.void_reason ? `ابطال: ${tx.void_reason}` : tx.description || ''}
+                          {toPersianDigits(voided && tx.void_reason ? `ابطال: ${tx.void_reason}` : tx.description || '')}
                         </span>
                       </TableCell>
                       <TableCell>
@@ -413,7 +413,7 @@ const VoidTransactionDialog: React.FC<{ tx: FinanceTransaction | null; onClose: 
             </div>
           </div>
           {!isSuper && tx.venue_id === null && (
-            <p className="mb-1.5 block text-[0.65rem] text-amber-700 dark:text-amber-400">
+            <p className="mb-1.5 block text-[0.65rem] text-amber-800 dark:text-amber-400">
               توجه: ردیف بدون سالن برای مدیران قابل ابطال نیست (۴۰۳).
             </p>
           )}

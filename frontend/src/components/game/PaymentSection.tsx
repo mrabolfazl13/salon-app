@@ -45,8 +45,8 @@ const PaymentRow: React.FC<{ payment: GamePayment; participants: Participant[] }
         className={cn(
           'flex h-[30px] w-[30px] shrink-0 items-center justify-center rounded-full',
           paid
-            ? 'bg-emerald-600/[0.12] text-emerald-600 dark:text-emerald-400'
-            : 'bg-amber-500/[0.14] text-amber-700 dark:text-amber-400'
+            ? 'bg-emerald-600/[0.12] text-emerald-700 dark:text-emerald-400'
+            : 'bg-amber-500/[0.14] text-amber-800 dark:text-amber-400'
         )}
       >
         <Icon icon={paid ? 'mdi:check-bold' : 'mdi:clock-outline'} style={{ width: 16, height: 16 }} />
@@ -81,7 +81,7 @@ const PaymentSection: React.FC<Props> = ({ gameId, game, participants, currentUs
   // حالت رایگان
   if (game.payment_mode === 'free') {
     return (
-      <div className="flex items-center gap-2 text-emerald-600 dark:text-emerald-400">
+      <div className="flex items-center gap-2 text-emerald-700 dark:text-emerald-400">
         <Icon icon="mdi:gift-outline" style={{ width: 18, height: 18 }} />
         <p className="text-[0.85rem] font-bold">این بازی رایگان است.</p>
       </div>

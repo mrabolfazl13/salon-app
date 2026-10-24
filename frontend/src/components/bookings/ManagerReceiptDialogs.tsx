@@ -213,7 +213,7 @@ export const ReceiptReviewDialog: React.FC<{
           <Button
             disabled={Boolean(busy) || loading || Boolean(loadError)}
             onClick={handleApprove}
-            className="min-h-11 rounded-[10px] bg-emerald-600 font-bold text-white hover:bg-emerald-700"
+            className="min-h-11 rounded-[10px] bg-emerald-700 font-bold text-white hover:bg-emerald-800"
           >
             {busy === 'approve' ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال بارگذاری" /> : <Icon icon="mdi:check-circle-outline" className="h-4 w-4" />}
             تأیید فیش
@@ -317,7 +317,7 @@ export const InPersonCollectDialog: React.FC<{
           <Button
             disabled={busy}
             onClick={handleCollect}
-            className="min-h-11 flex-1 rounded-[10px] bg-emerald-600 font-bold text-white hover:bg-emerald-700"
+            className="min-h-11 flex-1 rounded-[10px] bg-emerald-700 font-bold text-white hover:bg-emerald-800"
           >
             {busy ? (
               <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال بارگذاری" />

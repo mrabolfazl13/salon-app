@@ -188,7 +188,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
             <Button
               size="sm"
               onClick={() => setAddOpen(true)}
-              className="bg-gradient-to-br from-cyan-700 to-cyan-500 font-bold text-white hover:from-cyan-800 hover:to-cyan-600"
+              className="bg-gradient-to-br from-cyan-700 to-cyan-800 font-bold text-white hover:from-cyan-800 hover:to-cyan-900"
             >
               <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
               مناسبت جدید
@@ -267,7 +267,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
         <DialogContent aria-describedby={undefined} className="sm:max-w-[420px]">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-800 text-white">
                 <Icon icon="mdi:calendar-multiple" className="h-5 w-5" aria-hidden="true" />
               </span>
               <DialogTitle className="text-lg font-extrabold text-foreground">افزودن مناسبت</DialogTitle>
@@ -302,7 +302,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
               <Button
                 onClick={submitAdd}
                 disabled={createHoliday.isPending}
-                className="bg-gradient-to-br from-cyan-700 to-cyan-500 font-bold text-white hover:from-cyan-800 hover:to-cyan-600"
+                className="bg-gradient-to-br from-cyan-700 to-cyan-800 font-bold text-white hover:from-cyan-800 hover:to-cyan-900"
               >
                 {createHoliday.isPending ? '...' : 'ثبت'}
               </Button>
@@ -321,7 +321,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
         <DialogContent aria-describedby={undefined} className="sm:max-w-[600px]">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-800 text-white">
                 <Icon icon="mdi:calendar-multiple" className="h-5 w-5" aria-hidden="true" />
               </span>
               <DialogTitle className="text-lg font-extrabold text-foreground">افزودن دسته‌ای مناسبت‌ها</DialogTitle>
@@ -357,7 +357,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
               <Button
                 onClick={submitBulk}
                 disabled={bulkHoliday.isPending}
-                className="bg-gradient-to-br from-cyan-700 to-cyan-500 font-bold text-white hover:from-cyan-800 hover:to-cyan-600"
+                className="bg-gradient-to-br from-cyan-700 to-cyan-800 font-bold text-white hover:from-cyan-800 hover:to-cyan-900"
               >
                 {bulkHoliday.isPending ? 'در حال ثبت...' : 'ثبت دسته‌ای'}
               </Button>

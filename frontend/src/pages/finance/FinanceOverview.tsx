@@ -334,7 +334,7 @@ const FinanceOverview: React.FC = () => {
             action={
               <Link
                 to="/finance/transactions"
-                className="inline-flex min-h-11 items-center gap-0.5 text-[0.68rem] font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                className="inline-flex min-h-11 items-center gap-0.5 text-[0.68rem] font-semibold text-blue-700 hover:underline dark:text-blue-400"
               >
                 همه تراکنش‌ها
                 <Icon icon="mdi:chevron-left" className="h-3.5 w-3.5" aria-hidden="true" />
@@ -377,7 +377,7 @@ const FinanceOverview: React.FC = () => {
                       </span>
                       <div className="min-w-0 flex-1">
                         <p className="truncate text-[0.75rem] font-semibold text-foreground">
-                          {tx.counterparty_name || tx.description || labelOf(TX_TYPE_LABELS, tx.type)}
+                          {toPersianDigits(tx.counterparty_name || tx.description || labelOf(TX_TYPE_LABELS, tx.type))}
                         </p>
                         <p className="truncate text-[0.62rem] text-muted-foreground">
                           {formatJalaliDateTime(tx.occurred_at, { format: 'numeric' })} • {labelOf(TX_METHOD_LABELS, tx.method)}
@@ -444,7 +444,7 @@ const FinanceOverview: React.FC = () => {
             action={
               <Link
                 to="/finance/accounts"
-                className="inline-flex min-h-11 items-center gap-0.5 text-[0.68rem] font-semibold text-blue-600 hover:underline dark:text-blue-400"
+                className="inline-flex min-h-11 items-center gap-0.5 text-[0.68rem] font-semibold text-blue-700 hover:underline dark:text-blue-400"
               >
                 همه حساب‌ها
                 <Icon icon="mdi:chevron-left" className="h-3.5 w-3.5" aria-hidden="true" />

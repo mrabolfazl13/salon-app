@@ -47,7 +47,7 @@ const JoinRequestList: React.FC<Props> = ({ gameId, requests }) => {
           className="flex items-center gap-2.5 rounded-lg border border-amber-500/25 bg-amber-500/[0.05] px-3 py-2.5"
         >
           <Avatar className="h-9 w-9">
-            <AvatarFallback className="bg-amber-500/[0.15] text-[0.85rem] font-bold text-amber-700 dark:text-amber-400">
+            <AvatarFallback className="bg-amber-500/[0.15] text-[0.85rem] font-bold text-amber-800 dark:text-amber-400">
               {getInitials(req.full_name || '؟')}
             </AvatarFallback>
           </Avatar>
@@ -66,7 +66,7 @@ const JoinRequestList: React.FC<Props> = ({ gameId, requests }) => {
                 aria-label={`تأیید درخواست ${req.full_name ?? ''}`}
                 className={cn(
                   iconButtonClass,
-                  'bg-emerald-500/[0.12] text-emerald-600 hover:bg-emerald-500/20 dark:text-emerald-400'
+                  'bg-emerald-500/[0.12] text-emerald-700 hover:bg-emerald-500/20 dark:text-emerald-400'
                 )}
               >
                 <Icon icon="mdi:check-bold" style={{ width: 18, height: 18 }} />

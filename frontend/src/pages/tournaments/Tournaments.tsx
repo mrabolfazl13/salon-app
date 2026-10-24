@@ -247,7 +247,7 @@ const TournamentsPage: React.FC = () => {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-extrabold text-foreground">
-            <Icon icon="mdi:trophy-outline" aria-hidden="true" className="h-[30px] w-[30px] text-amber-600 dark:text-amber-400" />
+            <Icon icon="mdi:trophy-outline" aria-hidden="true" className="h-[30px] w-[30px] text-amber-800 dark:text-amber-400" />
             تورنمنت‌ها
           </h1>
           <p className="mt-1 text-[0.68rem] text-muted-foreground">

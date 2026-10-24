@@ -84,7 +84,7 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
             )}
           >
             <Avatar className="h-[34px] w-[34px]">
-              <AvatarFallback className="bg-blue-600/10 text-[0.85rem] font-extrabold text-blue-600 dark:text-blue-300">
+              <AvatarFallback className="bg-blue-600/10 text-[0.85rem] font-extrabold text-blue-700 dark:text-blue-300">
                 {(p.full_name ?? '؟').trim().charAt(0)}
               </AvatarFallback>
             </Avatar>
@@ -92,7 +92,7 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
               <div className="flex min-w-0 items-center gap-1.5">
                 <p className="truncate text-[0.85rem] font-bold text-foreground">
                   {p.full_name ?? `کاربر ${p.user_id}`}
-                  {isMe && <span className="text-blue-600 dark:text-blue-400"> (شما)</span>}
+                  {isMe && <span className="text-blue-700 dark:text-blue-400"> (شما)</span>}
                 </p>
                 <RoleBadge role={p.role} />
               </div>
@@ -104,13 +104,13 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
                   {PARTICIPANT_STATUS_LABELS[p.status as keyof typeof PARTICIPANT_STATUS_LABELS] ?? p.status}
                 </span>
                 {p.payment_status === 'paid' && (
-                  <span className="inline-flex items-center gap-2 text-[0.68rem] font-bold text-emerald-600 dark:text-emerald-400">
+                  <span className="inline-flex items-center gap-2 text-[0.68rem] font-bold text-emerald-700 dark:text-emerald-400">
                     <Icon icon="mdi:check-circle" style={{ width: 13, height: 13 }} />
                     پرداخت‌شده
                   </span>
                 )}
                 {p.payment_status === 'pending' && (
-                  <span className="inline-flex items-center gap-2 text-[0.68rem] font-bold text-amber-600 dark:text-amber-400">
+                  <span className="inline-flex items-center gap-2 text-[0.68rem] font-bold text-amber-800 dark:text-amber-400">
                     <Icon icon="mdi:clock-outline" style={{ width: 13, height: 13 }} />
                     سهم پرداخت‌نشده
                   </span>
@@ -131,7 +131,7 @@ const ParticipantList: React.FC<Props> = ({ gameId, participants, isOrganizer, c
                     className={cn(
                       iconButtonClass,
                       'hover:bg-violet-600/10',
-                      p.role === 'admin' ? 'text-violet-600 dark:text-violet-400' : 'text-blue-600 dark:text-blue-400'
+                      p.role === 'admin' ? 'text-violet-700 dark:text-violet-400' : 'text-blue-700 dark:text-blue-400'
                     )}
                   >
                     <Icon icon={p.role === 'admin' ? 'mdi:crown-cancel-outline' : 'mdi:crown-outline'} style={{ width: 18, height: 18 }} />

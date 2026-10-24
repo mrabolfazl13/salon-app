@@ -150,7 +150,7 @@ const Quiz: React.FC = () => {
                     className={cn(
                       'mt-3 text-sm font-bold',
                       mine.result.points_awarded > 0 || mine.result.correct
-                        ? 'text-emerald-600 dark:text-emerald-400'
+                        ? 'text-emerald-700 dark:text-emerald-400'
                         : 'text-red-600 dark:text-red-400'
                     )}
                   >
@@ -180,7 +180,7 @@ const Quiz: React.FC = () => {
               </p>
               <Link
                 to="/profile"
-                className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl px-3 font-extrabold text-amber-600 hover:bg-amber-500/10 dark:text-amber-400"
+                className="mt-3 inline-flex min-h-11 items-center gap-2 rounded-xl px-3 font-extrabold text-amber-800 hover:bg-amber-500/10 dark:text-amber-400"
               >
                 مشاهده امتیازها در پروفایل
                 <Icon icon="mdi:arrow-left" aria-hidden="true" className="h-5 w-5" />

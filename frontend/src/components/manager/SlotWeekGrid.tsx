@@ -89,11 +89,19 @@ const accentClassOf = (hex: string): string | undefined => {
     case 'success':
       return 'text-emerald-700 dark:text-emerald-300'
     case 'warning':
-      return 'text-amber-700 dark:text-amber-300'
+      return 'text-amber-800 dark:text-amber-300'
     case 'error':
       return 'text-red-700 dark:text-red-300'
     case 'info':
       return 'text-blue-700 dark:text-blue-300'
+    case 'sky':
+      return 'text-sky-700 dark:text-sky-300'
+    case 'violet':
+      return 'text-violet-700 dark:text-violet-300'
+    case 'pink':
+      return 'text-pink-700 dark:text-pink-300'
+    case 'slate':
+      return 'text-slate-600 dark:text-slate-300'
     default:
       return undefined
   }
@@ -372,7 +380,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                       size="sm"
                       disabled={busyId === s.id}
                       onClick={() => setBlockConfirm(s)}
-                      className="rounded-xl font-bold !bg-none bg-amber-600 text-white hover:bg-amber-700"
+                      className="rounded-xl font-bold !bg-none bg-amber-700 text-white hover:bg-amber-800"
                     >
                       مسدود کردن
                     </Button>
@@ -395,7 +403,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                     size="sm"
                     disabled={busyId === s.id}
                     onClick={() => doUnblock(s)}
-                    className="rounded-xl font-bold !bg-none bg-emerald-600 text-white hover:bg-emerald-700"
+                    className="rounded-xl font-bold !bg-none bg-emerald-700 text-white hover:bg-emerald-800"
                   >
                     {busyId === s.id ? (
                       <span

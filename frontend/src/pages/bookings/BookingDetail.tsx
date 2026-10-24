@@ -77,10 +77,10 @@ const paymentStatusMeta: Record<string, { label: string; variant: BadgeVariant }
 
 /** رنگ آیکون فاکتور بر پایهٔ وضعیت پرداخت (جایگزین theme.palette.*.main) */
 const PAYMENT_ICON_CLASS: Record<string, string> = {
-  success: 'text-emerald-600 dark:text-emerald-400',
+  success: 'text-emerald-700 dark:text-emerald-400',
   destructive: 'text-red-600 dark:text-red-400',
-  primary: 'text-blue-600 dark:text-blue-400',
-  default: 'text-amber-600 dark:text-amber-400',
+  primary: 'text-blue-700 dark:text-blue-400',
+  default: 'text-amber-800 dark:text-amber-400',
 }
 
 /** نگاشت وضعیت رزرو → واریانت Badge (هم‌رنگ Chip قبلی) */
@@ -332,7 +332,7 @@ const BookingDetail: React.FC = () => {
               <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
                 <div>
                   <span className="mb-1 block text-[0.68rem] text-muted-foreground">مبلغ پرداختی</span>
-                  <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400">
+                  <p className="text-lg font-extrabold text-blue-700 dark:text-blue-400">
                     {formatPrice(booking.payment_amount)}
                   </p>
                 </div>
@@ -433,7 +433,7 @@ const BookingDetail: React.FC = () => {
                       onClick={() => setQrDialogOpen(true)}
                       className="block w-full cursor-pointer appearance-none rounded-lg border-2 border-dashed border-blue-600 bg-indigo-500/5 p-6 text-center text-inherit transition-colors [font-family:inherit] hover:bg-indigo-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 dark:border-blue-400 dark:bg-indigo-500/10 dark:hover:bg-indigo-500/15"
                     >
-                      <span className="block select-all font-mono text-3xl font-bold tracking-[0.2em] text-blue-600 dark:text-blue-400">
+                      <span className="block select-all font-mono text-3xl font-bold tracking-[0.2em] text-blue-700 dark:text-blue-400">
                         {qrCodeData}
                       </span>
                       <span className="mt-2 block text-[0.68rem] text-muted-foreground">
@@ -566,7 +566,7 @@ const BookingDetail: React.FC = () => {
           </DialogHeader>
           {qrCodeData && (
             <div className="py-4 text-center">
-              <p className="mb-4 select-all font-mono text-4xl font-extrabold tracking-[0.15em] text-blue-600 dark:text-blue-400">
+              <p className="mb-4 select-all font-mono text-4xl font-extrabold tracking-[0.15em] text-blue-700 dark:text-blue-400">
                 {qrCodeData}
               </p>
               <p className="mb-4 text-[0.68rem] text-muted-foreground">

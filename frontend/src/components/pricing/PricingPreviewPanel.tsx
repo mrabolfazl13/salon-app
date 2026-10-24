@@ -175,7 +175,7 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
                       r.delta > 0
                         ? 'whitespace-nowrap text-[0.68rem] font-extrabold text-red-600 tabular-nums dark:text-red-400'
                         : r.delta < 0
-                          ? 'whitespace-nowrap text-[0.68rem] font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                          ? 'whitespace-nowrap text-[0.68rem] font-extrabold text-emerald-700 tabular-nums dark:text-emerald-400'
                           : 'whitespace-nowrap text-[0.68rem] font-extrabold text-muted-foreground tabular-nums'
                     }
                   >

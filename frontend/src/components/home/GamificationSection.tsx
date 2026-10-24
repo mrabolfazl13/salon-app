@@ -62,7 +62,7 @@ const LeaderboardPlayer: React.FC<LeaderboardPlayerProps> = ({ rank, name, avata
         {/* آواتار و نام */}
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-1.5">
-            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blue-500 to-blue-600 text-[0.72rem] font-bold text-white">
+            <span className="flex h-6 w-6 items-center justify-center rounded-full bg-gradient-to-br from-blue-600 to-blue-700 text-[0.72rem] font-bold text-white">
               {avatar}
             </span>
             <p className="truncate text-[0.78rem] font-bold text-white">

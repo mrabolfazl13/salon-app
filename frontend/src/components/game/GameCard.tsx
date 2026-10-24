@@ -85,7 +85,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                 {formatGameDateTime(game.slot_date, game.start_time)}
               </span>
               {game.distance_km != null && (
-                <span className="inline-flex h-[22px] items-center rounded-full bg-violet-600/[0.08] px-2 text-[0.68rem] font-bold text-violet-600 dark:bg-violet-400/10 dark:text-violet-300">
+                <span className="inline-flex h-[22px] items-center rounded-full bg-violet-600/[0.08] px-2 text-[0.68rem] font-bold text-violet-700 dark:bg-violet-400/10 dark:text-violet-300">
                   {`${game.distance_km.toLocaleString('fa-IR')} کیلومتر`}
                 </span>
               )}
@@ -106,7 +106,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
           <div className="mt-auto flex items-center justify-between gap-2 border-t border-border pt-2.5">
             <div className="min-w-0">
               {game.payment_mode === 'free' || game.price_per_player == null ? (
-                <p className="text-[0.85rem] font-extrabold text-emerald-600 dark:text-emerald-400">رایگان</p>
+                <p className="text-[0.85rem] font-extrabold text-emerald-700 dark:text-emerald-400">رایگان</p>
               ) : (
                 <div className="inline-flex items-baseline gap-1">
                   <span dir="rtl" className="text-sm font-extrabold tabular-nums text-foreground">
@@ -124,15 +124,15 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
                 {myBadge.label}
               </span>
             ) : game.my_waitlist_position ? (
-              <span className="whitespace-nowrap rounded-full bg-amber-500/[0.14] px-2.5 py-1 text-[0.68rem] font-extrabold text-amber-600 dark:text-amber-400">
+              <span className="whitespace-nowrap rounded-full bg-amber-500/[0.14] px-2.5 py-1 text-[0.68rem] font-extrabold text-amber-800 dark:text-amber-400">
                 {`رتبه انتظار ${game.my_waitlist_position.toLocaleString('fa-IR')}`}
               </span>
             ) : (
               <p
                 className={
                   remaining > 0
-                    ? 'whitespace-nowrap text-[0.68rem] font-bold text-emerald-600 dark:text-emerald-400'
-                    : 'whitespace-nowrap text-[0.68rem] font-bold text-amber-600 dark:text-amber-400'
+                    ? 'whitespace-nowrap text-[0.68rem] font-bold text-emerald-700 dark:text-emerald-400'
+                    : 'whitespace-nowrap text-[0.68rem] font-bold text-amber-800 dark:text-amber-400'
                 }
               >
                 {remaining > 0 ? `${remaining.toLocaleString('fa-IR')} جای خالی` : 'تکمیل — لیست انتظار'}

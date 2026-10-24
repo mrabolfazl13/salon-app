@@ -32,7 +32,7 @@ const AuditTimeline: React.FC<{ teamId: number }> = ({ teamId }) => {
         onClick={() => setExpanded((e) => !e)}
         aria-expanded={expanded}
         aria-controls={panelId}
-        className="px-0 text-[0.8rem] font-bold text-blue-600 hover:bg-transparent dark:text-blue-400"
+        className="px-0 text-[0.8rem] font-bold text-blue-700 hover:bg-transparent dark:text-blue-400"
       >
         {`تاریخچه فعالیت‌های تیم${total ? ` (${toPersianDigits(total)} رویداد)` : ''}`}
         <Icon icon={expanded ? 'mdi:chevron-up' : 'mdi:chevron-down'} style={{ width: 18, height: 18 }} />
@@ -55,11 +55,11 @@ const AuditTimeline: React.FC<{ teamId: number }> = ({ teamId }) => {
                     <p className="text-[0.8rem] font-extrabold text-slate-900 dark:text-slate-100">
                       {TEAM_AUDIT_ACTION_LABELS[ev.action] ?? ev.action}
                     </p>
-                    <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
+                    <p className="text-[0.68rem] text-muted-foreground">
                       {formatJalaliDateTime(ev.created_at, { format: 'numeric' })}
                     </p>
                     {ev.actor_name && (
-                      <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">{`— ${ev.actor_name}`}</p>
+                      <p className="text-[0.68rem] text-muted-foreground">{`— ${ev.actor_name}`}</p>
                     )}
                   </div>
                   {typeof ev.data?.amount === 'number' && (
@@ -75,7 +75,7 @@ const AuditTimeline: React.FC<{ teamId: number }> = ({ teamId }) => {
                   variant="ghost"
                   disabled={auditQ.isFetching}
                   onClick={() => setPages((n) => n + 1)}
-                  className="px-0 text-[0.68rem] font-bold text-blue-600 hover:bg-transparent dark:text-blue-400"
+                  className="px-0 text-[0.68rem] font-bold text-blue-700 hover:bg-transparent dark:text-blue-400"
                 >
                   نمایش بیشتر
                 </Button>
@@ -129,7 +129,7 @@ const TeamBalancePanel: React.FC<{ team: Team; isManager: boolean }> = ({ team, 
           />
         </div>
       </div>
-      <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
+      <p className="text-[0.68rem] text-muted-foreground">
         پرداخت حصه‌ها به‌صورت ردیف درآمدی در دفتر کلِ تیم ثبت می‌شود؛ تراز خالص، مانده حساب منهای تعهدات باز اعضا است.
       </p>
       {isManager && <AuditTimeline teamId={team.id} />}

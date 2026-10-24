@@ -343,7 +343,7 @@ const Venues: React.FC = () => {
             className={cn(
               'relative flex h-11 w-11 shrink-0 items-center justify-center rounded-lg border bg-card shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
               hasFilters
-                ? 'border-amber-500/60 text-amber-700 dark:border-amber-400/55 dark:text-amber-400'
+                ? 'border-amber-500/60 text-amber-800 dark:border-amber-400/55 dark:text-amber-400'
                 : 'border-border text-muted-foreground'
             )}
           >
@@ -374,7 +374,7 @@ const Venues: React.FC = () => {
                               : 'mdi:sort-bool-ascending-variant'
                       }
                       aria-hidden="true"
-                      className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
+                      className="h-4 w-4 shrink-0 text-amber-800 dark:text-amber-400"
                     />
                     {o.label}
                   </span>
@@ -412,7 +412,7 @@ const Venues: React.FC = () => {
                   type="button"
                   onClick={c.onRemove}
                   aria-label={`حذف فیلتر ${c.label}`}
-                  className="-mx-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-amber-700 transition-colors hover:bg-amber-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400"
+                  className="-mx-2 flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-amber-800 transition-colors hover:bg-amber-500/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400"
                 >
                   <Icon icon="mdi:close" aria-hidden="true" className="h-3.5 w-3.5" />
                 </button>

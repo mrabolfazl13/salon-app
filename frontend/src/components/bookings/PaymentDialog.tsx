@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react'
 import { Icon } from '@iconify/react'
 import { motion, AnimatePresence } from 'framer-motion'
 import { paymentService, type PaymentItem } from '@/services/payment'
-import { cn, formatPrice } from '@/lib/utils'
+import { cn, formatPrice, formatTimeFa } from '@/lib/utils'
 import toast from 'react-hot-toast'
 import { Button } from '@/components/ui/shadcn/button'
 import { Input } from '@/components/ui/shadcn/input'
@@ -160,13 +160,13 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
                 <span className="text-xs text-muted-foreground">زمان</span>
                 <span className="text-sm font-semibold text-foreground">
                   {slotDate}
-                  {startTime ? ` — ${startTime.slice(0, 5)}` : ''}
+                  {startTime ? ` — ${formatTimeFa(startTime)}` : ''}
                 </span>
               </div>
             )}
             <div className="flex justify-between">
               <span className="text-xs text-muted-foreground">مبلغ قابل پرداخت</span>
-              <span className="text-sm font-bold text-blue-600 dark:text-blue-400">{formatPrice(amount)}</span>
+              <span className="text-sm font-bold text-blue-700 dark:text-blue-400">{formatPrice(amount)}</span>
             </div>
           </div>
 
@@ -300,7 +300,7 @@ const PaymentDialog: React.FC<PaymentDialogProps> = ({
           {step === 'success' ? (
             <Button
               onClick={onClose}
-              className="w-full rounded-xl bg-gradient-to-br from-green-600 to-green-700 font-bold text-white hover:from-green-700 hover:to-green-800"
+              className="w-full rounded-xl bg-gradient-to-br from-green-700 to-green-800 font-bold text-white hover:from-green-800 hover:to-green-900"
             >
               بستن
             </Button>

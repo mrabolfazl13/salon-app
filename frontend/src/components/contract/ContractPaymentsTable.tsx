@@ -133,7 +133,7 @@ const ContractPaymentsTable: React.FC<ContractPaymentsTableProps> = ({
                     size="sm"
                     disabled={busyMarkPaidId === p.id}
                     onClick={() => onMarkPaid?.(p)}
-                    className="me-1 text-[0.68rem] font-bold !bg-none bg-emerald-600 text-white hover:bg-emerald-700"
+                    className="me-1 text-[0.68rem] font-bold !bg-none bg-emerald-700 text-white hover:bg-emerald-800"
                   >
                     {busyMarkPaidId === p.id ? '...' : (
                       <>

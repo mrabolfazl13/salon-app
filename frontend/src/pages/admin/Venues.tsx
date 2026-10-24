@@ -7,6 +7,7 @@ import ConfirmModal from '@/components/modals/ConfirmModal'
 import { venueService } from '@/services/venue'
 import { adminService } from '@/services/admin'
 import { formatPrice, formatDate } from '@/lib/utils'
+import { toPersianDigits } from '@/lib/jalali'
 import { Skeleton } from '@/components/ui/shadcn/skeleton'
 import { Button } from '@/components/ui/shadcn/button'
 import {
@@ -78,14 +79,14 @@ const AdminVenues: React.FC = () => {
           مدیریت سالن‌ها
         </h1>
         <p className="text-[0.68rem] text-muted-foreground">
-          {venues.length} سالن در سیستم | {pending.length} سالن در انتظار تایید
+          {toPersianDigits(venues.length)} سالن در سیستم | {toPersianDigits(pending.length)} سالن در انتظار تایید
         </p>
       </div>
 
       {/* Pending venues */}
       <div className="mb-4">
         <div className="mb-4 flex items-center gap-2">
-          <Icon icon="mdi:shield-question-outline" aria-hidden="true" className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+          <Icon icon="mdi:shield-question-outline" aria-hidden="true" className="h-5 w-5 text-amber-800 dark:text-amber-400" />
           <h2 className="text-sm font-bold text-foreground">
             سالن‌های در انتظار تایید
           </h2>
@@ -94,7 +95,7 @@ const AdminVenues: React.FC = () => {
           <Skeleton aria-hidden="true" className="h-[90px] rounded-lg" />
         ) : pending.length === 0 ? (
           <div className="rounded-lg border border-dashed border-border p-6 text-center">
-            <Icon icon="mdi:check-all" aria-hidden="true" className="mx-auto h-6 w-6 text-emerald-600 dark:text-emerald-400" />
+            <Icon icon="mdi:check-all" aria-hidden="true" className="mx-auto h-6 w-6 text-emerald-700 dark:text-emerald-400" />
             <p className="mt-2 text-[0.68rem] text-muted-foreground">
               سالنی در انتظار تایید نیست
             </p>
@@ -122,7 +123,7 @@ const AdminVenues: React.FC = () => {
                   <Button
                     onClick={() => setVerifyTarget(venue)}
                     disabled={verifyingId === venue.id}
-                    className="gap-2 rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-md shadow-emerald-900/15 hover:from-emerald-500 hover:to-emerald-600"
+                    className="gap-2 rounded-lg bg-gradient-to-br from-emerald-700 to-emerald-800 text-white shadow-md shadow-emerald-900/15 hover:from-emerald-800 hover:to-emerald-900"
                   >
                     {verifyingId === venue.id ? (
                       <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال تایید" />
@@ -188,7 +189,7 @@ const AdminVenues: React.FC = () => {
                       className={`inline-flex items-center gap-1 rounded-lg px-2 py-1 text-[0.68rem] font-bold ${
                         venue.is_verified
                           ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                          : 'bg-amber-500/10 text-amber-700 dark:text-amber-400'
+                          : 'bg-amber-500/10 text-amber-800 dark:text-amber-400'
                       }`}
                     >
                       <Icon icon={venue.is_verified ? 'mdi:shield-check' : 'mdi:shield-outline'} aria-hidden="true" className="h-3.5 w-3.5" />

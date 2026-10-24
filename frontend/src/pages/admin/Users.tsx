@@ -6,6 +6,7 @@ import ConfirmModal from '@/components/modals/ConfirmModal'
 import { adminService } from '@/services/admin'
 import type { AdminUser, UserStats } from '@/services/admin'
 import { formatDate, getInitials } from '@/lib/utils'
+import { toPersianDigits } from '@/lib/jalali'
 import { Skeleton } from '@/components/ui/shadcn/skeleton'
 import { Input } from '@/components/ui/shadcn/input'
 import { Button } from '@/components/ui/shadcn/button'
@@ -40,7 +41,7 @@ const ROLE_BADGE_CLASS: Record<string, string> = {
   default: 'bg-foreground/5 text-muted-foreground',
   info: 'bg-blue-500/10 text-blue-700 dark:text-blue-400',
   secondary: 'bg-violet-500/10 text-violet-700 dark:text-violet-400',
-  warning: 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+  warning: 'bg-amber-500/10 text-amber-800 dark:text-amber-400',
   success: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400',
 }
 
@@ -103,9 +104,9 @@ const Users: React.FC = () => {
   }
 
   const miniStats = [
-    { label: 'فعال', value: stats?.active_users, icon: 'mdi:account-check', color: 'text-emerald-600 dark:text-emerald-400' },
+    { label: 'فعال', value: stats?.active_users, icon: 'mdi:account-check', color: 'text-emerald-700 dark:text-emerald-400' },
     { label: 'غیرفعال', value: stats?.inactive_users, icon: 'mdi:account-off', color: 'text-red-600 dark:text-red-400' },
-    { label: 'تایید شده', value: stats?.verified_users, icon: 'mdi:check-decagram', color: 'text-blue-600 dark:text-blue-400' },
+    { label: 'تایید شده', value: stats?.verified_users, icon: 'mdi:check-decagram', color: 'text-blue-700 dark:text-blue-400' },
   ]
 
   return (
@@ -116,7 +117,7 @@ const Users: React.FC = () => {
           مدیریت کاربران
         </h1>
         <p className="text-[0.68rem] text-muted-foreground">
-          {users.length} کاربر در سیستم ثبت‌نام کرده‌اند
+          {toPersianDigits(users.length)} کاربر در سیستم ثبت‌نام کرده‌اند
         </p>
       </div>
 
@@ -251,7 +252,7 @@ const Users: React.FC = () => {
                     <Icon
                       icon={user.is_verified ? 'mdi:check-decagram' : 'mdi:minus-circle-outline'}
                       aria-label={user.is_verified ? 'تایید شده' : 'تایید نشده'}
-                      className={`h-5 w-5 ${user.is_verified ? 'text-emerald-600 dark:text-emerald-400' : 'text-muted-foreground/40'}`}
+                      className={`h-5 w-5 ${user.is_verified ? 'text-emerald-700 dark:text-emerald-400' : 'text-muted-foreground/40'}`}
                     />
                   </TableCell>
                   <TableCell>

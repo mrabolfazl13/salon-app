@@ -99,8 +99,8 @@ const BottomNavigation: React.FC = () => {
               <span
                 className={
                   active
-                    ? 'text-[0.65rem] font-bold text-amber-700 dark:text-amber-400'
-                    : 'text-[0.65rem] font-medium text-slate-500 dark:text-slate-400'
+                    ? 'text-[0.65rem] font-bold text-amber-800 dark:text-amber-400'
+                    : 'text-[0.65rem] font-medium text-muted-foreground'
                 }
               >
                 {item.label}
@@ -128,8 +128,8 @@ const NavIcon: React.FC<{ active: boolean; icon: string }> = ({ active, icon }) 
       icon={`mdi:${icon.endsWith('-outline') || !active ? icon : icon + '-outline'}`}
       className={
         active
-          ? 'h-[20px] w-[20px] text-amber-600 dark:text-amber-400'
-          : 'h-[20px] w-[20px] text-slate-500 dark:text-slate-400'
+          ? 'h-[20px] w-[20px] text-amber-800 dark:text-amber-400'
+          : 'h-[20px] w-[20px] text-muted-foreground'
       }
     />
   </motion.span>

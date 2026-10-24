@@ -120,7 +120,7 @@ const SessionRow: React.FC<{
               aria-label="ثبت حضور"
               disabled={busy || session.status === 'attended'}
               onClick={() => onAttendance('attended')}
-              className={`${iconButtonClass} text-emerald-600 dark:text-emerald-400`}
+              className={`${iconButtonClass} text-emerald-700 dark:text-emerald-400`}
             >
               <Icon icon="mdi:check-circle-outline" className="h-[22px] w-[22px]" />
             </button>
@@ -253,7 +253,7 @@ const CoachDashboard: React.FC = () => {
       <div className="mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h1 className="flex items-center gap-2 text-xl font-extrabold text-foreground">
-            <Icon icon="mdi:school-outline" className="h-[30px] w-[30px] text-blue-600 dark:text-blue-400" />
+            <Icon icon="mdi:school-outline" className="h-[30px] w-[30px] text-blue-700 dark:text-blue-400" />
             پنل مربی
           </h1>
           <p className="mt-1 text-[0.68rem] text-muted-foreground">

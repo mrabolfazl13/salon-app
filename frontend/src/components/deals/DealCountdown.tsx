@@ -58,7 +58,7 @@ const DealCountdown: React.FC<{ expiresAt: string | null; compact?: boolean }> =
         compact ? 'px-1.5' : 'px-2.5',
         urgent
           ? 'bg-red-600/10 text-red-600 dark:text-red-400'
-          : 'bg-amber-500/[0.12] text-amber-600 dark:text-amber-400'
+          : 'bg-amber-500/[0.12] text-amber-800 dark:text-amber-400'
       )}
     >
       <Icon icon="mdi:timer-sand" style={{ width: 14, height: 14 }} />

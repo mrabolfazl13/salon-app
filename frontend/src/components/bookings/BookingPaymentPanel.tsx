@@ -130,7 +130,7 @@ const BookingPaymentPanel: React.FC<Props> = ({ booking, compact = false, onChan
       <div className={cn('rounded-[14px] border border-emerald-600/30 bg-emerald-600/[0.06]', pad)}>
         <div className="mb-2 flex items-center gap-2">
           <Icon icon="mdi:check-decagram" className="h-5 w-5" style={{ color: '#059669' }} />
-          <h3 className="text-sm font-bold text-emerald-600 dark:text-emerald-400">فیش شما تأیید شد</h3>
+          <h3 className="text-sm font-bold text-emerald-700 dark:text-emerald-400">فیش شما تأیید شد</h3>
           <ReceiptStatusBadge status="approved" />
         </div>
         <p className="mb-3 text-sm text-muted-foreground">پرداخت شما با فیش واریزی تأیید شد و رزرو فعال است.</p>
@@ -150,7 +150,7 @@ const BookingPaymentPanel: React.FC<Props> = ({ booking, compact = false, onChan
       <div className={cn('rounded-[14px] border border-amber-600/30 bg-amber-600/[0.06]', pad)}>
         <div className="mb-2 flex items-center gap-2">
           <Icon icon="mdi:clock-outline" className="h-5 w-5" style={{ color: '#d97706' }} />
-          <h3 className="text-sm font-bold text-amber-600 dark:text-amber-400">در انتظار بررسی مدیر</h3>
+          <h3 className="text-sm font-bold text-amber-800 dark:text-amber-400">در انتظار بررسی مدیر</h3>
         </div>
         <p className="mb-3 text-sm text-muted-foreground">
           فیش واریزی شما ثبت شد و پس از تأیید مدیر سالن، رزرو شما پرداخت‌شده می‌شود.
@@ -287,7 +287,7 @@ const BookingPaymentPanel: React.FC<Props> = ({ booking, compact = false, onChan
         <Button
           disabled={submitting}
           onClick={handleSubmit}
-          className="min-h-11 rounded-[10px] bg-gradient-to-br from-amber-600 to-amber-500 font-bold text-white hover:from-amber-700 hover:to-amber-600"
+          className="min-h-11 rounded-[10px] bg-gradient-to-br from-amber-700 to-amber-800 font-bold text-white hover:from-amber-800 hover:to-amber-900"
         >
           {submitting ? (
             <span className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" role="status" aria-label="در حال بارگذاری" />

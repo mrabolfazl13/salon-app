@@ -438,7 +438,7 @@ const VenueDetail: React.FC = () => {
             <div className="mt-1 flex flex-wrap items-center gap-3">
               <MobileRating value={venue.average_rating || 0} count={venue.total_reviews || 0} size="md" />
               <div className="flex min-w-0 items-center gap-2">
-                <Icon icon="mdi:map-marker-outline" className="h-4 w-4 shrink-0 text-slate-500 dark:text-slate-400" />
+                <Icon icon="mdi:map-marker-outline" className="h-4 w-4 shrink-0 text-muted-foreground" />
                 <p className="min-w-0 text-xs text-muted-foreground">
                   {venue.address}
                 </p>
@@ -450,7 +450,7 @@ const VenueDetail: React.FC = () => {
                 {amenities.map((a) => (
                   <span
                     key={a}
-                    className="inline-flex items-center gap-1 rounded-[10px] bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-700 dark:bg-amber-400/15 dark:text-amber-300"
+                    className="inline-flex items-center gap-1 rounded-[10px] bg-amber-500/10 px-2.5 py-1 text-xs font-semibold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300"
                   >
                     <Icon icon="mdi:check-circle-outline" className="h-[15px] w-[15px]" />
                     {a}
@@ -526,7 +526,7 @@ const VenueDetail: React.FC = () => {
                   <div className="flex items-center justify-between gap-3 border-b border-border px-4 py-3.5">
                     <div className="flex items-center gap-3">
                       <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
-                        <Icon icon="mdi:phone-outline" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                        <Icon icon="mdi:phone-outline" className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                       </span>
                       <div>
                         <p className="text-xs font-bold text-foreground">{venue.phone}</p>
@@ -543,7 +543,7 @@ const VenueDetail: React.FC = () => {
                 )}
                 <div className="flex items-center gap-3 px-4 py-3.5">
                   <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
-                    <Icon icon="mdi:map-marker-outline" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    <Icon icon="mdi:map-marker-outline" className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                   </span>
                   <div>
                     <p className="text-xs font-semibold text-foreground">{venue.address}</p>
@@ -722,12 +722,12 @@ const VenueDetail: React.FC = () => {
                           <div className="flex flex-wrap gap-8">
                             <div className="min-w-[150px] flex-1 rounded-lg bg-amber-500/10 p-5 dark:bg-amber-400/10">
                               <span className="mb-1 block text-xs text-muted-foreground">قیمت هر جلسه</span>
-                              <p className="text-xl font-extrabold text-amber-700 dark:text-amber-400">{formatPrice(venue.price)}</p>
+                              <p className="text-xl font-extrabold text-amber-800 dark:text-amber-400">{formatPrice(venue.price)}</p>
                             </div>
                             <div className="min-w-[150px] flex-1 rounded-lg bg-blue-500/5 p-5 dark:bg-white/5">
                               <span className="mb-1 block text-xs text-muted-foreground">مدیر سالن</span>
                               <div className="flex items-center gap-2">
-                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white dark:bg-blue-500">
+                                <span className="flex h-8 w-8 items-center justify-center rounded-full bg-blue-600 text-xs font-semibold text-white">
                                   {(venue.manager_name || 'ن')[0]}
                                 </span>
                                 <p className="text-xs font-semibold text-foreground">{venue.manager_name || 'نامشخص'}</p>
@@ -792,7 +792,7 @@ const VenueDetail: React.FC = () => {
                                 <Separator className="my-4" />
                                 <div className="flex items-center justify-between">
                                   <p className="text-xs text-muted-foreground">قیمت:</p>
-                                  <p className="text-lg font-extrabold text-blue-600 dark:text-blue-400">{formatPrice(selectedSlot.price)}</p>
+                                  <p className="text-lg font-extrabold text-blue-700 dark:text-blue-400">{formatPrice(selectedSlot.price)}</p>
                                 </div>
 
                                 {/* اگر سانس پر است، دکمه ورود به صف انتظار نشان بده */}
@@ -801,7 +801,7 @@ const VenueDetail: React.FC = () => {
                                     variant="outline"
                                     onClick={joinWaitlist}
                                     disabled={waitlistLoading || !isAuthenticated}
-                                    className="mt-5 min-h-12 w-full rounded-xl border-amber-500/60 text-base font-bold text-amber-700 hover:bg-amber-500/10 dark:text-amber-400"
+                                    className="mt-5 min-h-12 w-full rounded-xl border-amber-500/60 text-base font-bold text-amber-800 hover:bg-amber-500/10 dark:text-amber-400"
                                   >
                                     <Icon icon="mdi:clock-outline" className="h-5 w-5" />
                                     {waitlistLoading ? (
@@ -864,21 +864,21 @@ const VenueDetail: React.FC = () => {
                     <div className="mb-6 overflow-hidden rounded-[20px] border border-border bg-card shadow-sm">
                       <div className="p-6">
                         <h3 className="mb-4 flex items-center gap-2 text-base font-bold text-foreground">
-                          <Icon icon="mdi:phone-in-talk" className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+                          <Icon icon="mdi:phone-in-talk" className="h-5 w-5 text-blue-700 dark:text-blue-400" />
                           اطلاعات تماس
                         </h3>
                         <div>
                           {venue.phone && (
                             <div className="flex items-center gap-2.5 py-3">
                               <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
-                                <Icon icon="mdi:phone" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                                <Icon icon="mdi:phone" className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                               </span>
                               <p className="text-xs font-semibold text-foreground">{venue.phone}</p>
                             </div>
                           )}
                           <div className="flex items-center gap-2.5 py-3">
                             <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-[10px] bg-blue-500/10">
-                              <Icon icon="mdi:map-marker" className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                              <Icon icon="mdi:map-marker" className="h-4 w-4 text-blue-700 dark:text-blue-400" />
                             </span>
                             <p className="text-xs font-semibold text-foreground">{venue.address}</p>
                           </div>
@@ -892,7 +892,7 @@ const VenueDetail: React.FC = () => {
                           <span className="block text-xs text-muted-foreground">
                             {isGym ? 'از قیمت' : 'قیمت هر جلسه'}
                           </span>
-                          <p className="mt-1 text-2xl font-extrabold text-amber-700 dark:text-amber-400">
+                          <p className="mt-1 text-2xl font-extrabold text-amber-800 dark:text-amber-400">
                             {formatPrice(isGym ? (minPlanPrice ?? venue.price) : venue.price)}
                           </p>
                         </div>
@@ -971,7 +971,7 @@ const VenueDetail: React.FC = () => {
                 <p className="mb-1 text-xs font-extrabold text-emerald-700 dark:text-emerald-400">
                   رزرو ثبت شد — در انتظار تأیید مدیر سالن
                 </p>
-                <p className="text-lg font-black text-blue-600 dark:text-blue-400">
+                <p className="text-lg font-black text-blue-700 dark:text-blue-400">
                   قابل پرداخت: {formatPrice(Number(bookingResult.payment_amount) || 0)}
                 </p>
                 {bookingResult.coupon_code && (
@@ -992,7 +992,7 @@ const VenueDetail: React.FC = () => {
                 <p className="mb-2 text-xs text-muted-foreground">
                   سانس: {selectedSlot?.startTime} - {selectedSlot?.endTime}
                 </p>
-                <p className="mt-2 text-lg font-extrabold text-blue-600 dark:text-blue-400">
+                <p className="mt-2 text-lg font-extrabold text-blue-700 dark:text-blue-400">
                   {formatPrice(selectedSlot?.price)}
                 </p>
                 <span className="mt-1 block text-xs text-muted-foreground">
@@ -1069,7 +1069,7 @@ const VenueDetail: React.FC = () => {
                     closeConfirm()
                     if (id) navigate(`/bookings/${id}`)
                   }}
-                  className="min-h-11 rounded-[10px] bg-gradient-to-br from-emerald-600 to-emerald-500 px-6 text-white hover:from-emerald-700 hover:to-emerald-600"
+                  className="min-h-11 rounded-[10px] bg-gradient-to-br from-emerald-700 to-emerald-800 px-6 text-white hover:from-emerald-800 hover:to-emerald-900"
                 >
                   پرداخت و تکمیل رزرو
                 </Button>

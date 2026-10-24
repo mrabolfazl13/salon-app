@@ -91,7 +91,7 @@ const ContractInstallmentPayDialog: React.FC<Props> = ({
         step === 'success' ? (
           <Button
             onClick={onClose}
-            className="w-full rounded-xl font-bold !bg-none bg-emerald-600 text-white hover:bg-emerald-700"
+            className="w-full rounded-xl font-bold !bg-none bg-emerald-700 text-white hover:bg-emerald-800"
           >
             بستن
           </Button>

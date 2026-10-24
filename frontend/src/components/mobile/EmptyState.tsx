@@ -26,7 +26,7 @@ const EmptyState: React.FC<Props> = ({ icon, title, description, actionLabel, on
       <div className="mx-auto mb-5 flex h-[84px] w-[84px] items-center justify-center rounded-full bg-gradient-to-br from-amber-500/10 to-blue-500/10 dark:from-amber-400/10 dark:to-blue-400/10">
         <Icon
           icon={icon || 'mdi:inbox-outline'}
-          className="h-10 w-10 text-amber-600 dark:text-amber-400"
+          className="h-10 w-10 text-amber-800 dark:text-amber-400"
         />
       </div>
       {asPageHeading ? (

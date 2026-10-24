@@ -197,7 +197,7 @@ const Login: React.FC = () => {
               <div className="flex justify-end">
                 <RouterLink
                   to="/forgot-password"
-                  className="inline-flex min-h-11 items-center px-2 text-[0.68rem] font-bold text-amber-700 hover:underline dark:text-amber-400"
+                  className="inline-flex min-h-11 items-center px-2 text-[0.68rem] font-bold text-amber-800 hover:underline dark:text-amber-400"
                 >
                   رمز عبور را فراموش کردید؟
                 </RouterLink>
@@ -267,7 +267,7 @@ const Login: React.FC = () => {
           حساب ندارید؟{' '}
           <RouterLink
             to="/register"
-            className="inline-flex min-h-11 items-center px-1 font-extrabold text-amber-700 hover:underline dark:text-amber-400"
+            className="inline-flex min-h-11 items-center px-1 font-extrabold text-amber-800 hover:underline dark:text-amber-400"
           >
             ثبت‌نام کنید
           </RouterLink>

@@ -122,7 +122,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
         </div>
 
         <div>
-          <p className="mb-1 text-[0.78rem] font-bold text-slate-500 dark:text-slate-400">
+          <p className="mb-1 text-[0.78rem] font-bold text-muted-foreground">
             سطح دسترسی
           </p>
           <RadioGroup
@@ -141,7 +141,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
               </label>
             ))}
           </RadioGroup>
-          <p className="mt-1 text-[0.68rem] leading-[1.8] text-slate-500 dark:text-slate-400">
+          <p className="mt-1 text-[0.68rem] leading-[1.8] text-muted-foreground">
             {VISIBILITY_HINTS[visibility]}
           </p>
         </div>
@@ -183,7 +183,7 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
           </Button>
         </div>
         {editing && (
-          <p className="flex items-center gap-2 text-[0.68rem] text-slate-500 dark:text-slate-400">
+          <p className="flex items-center gap-2 text-[0.68rem] text-muted-foreground">
             <Icon icon="mdi:information-outline" style={{ width: 14, height: 14 }} />
             تغییر نام فقط توسط کاپیتان یا مدیر تیم ذخیره می‌شود.
           </p>

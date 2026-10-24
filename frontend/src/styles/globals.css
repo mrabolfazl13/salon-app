@@ -21,7 +21,9 @@
     --popover: 0 0% 100%;
     --popover-foreground: 222 47% 11%;
     --muted: 210 40% 96%;
-    --muted-foreground: 215 16% 47%;
+    /* ۴۲٪ نه ۴۷٪: روی سطح‌های رنگی خودِ اپ (accent کهربایی و muted) نسبت
+       کنتراست متن‌های خاکستری به ۴٫۱ می‌رسید و از ۴٫۵ WCAG پایین می‌افتاد. */
+    --muted-foreground: 215 16% 42%;
     --accent: 48 96% 89%;
     --accent-foreground: 24 10% 10%;
     --border: 214 32% 91%;
@@ -147,10 +149,6 @@
 }
 
 @layer components {
-  /* متن گرادیانی برند — کهربایی تا نارنجی */
-  .gradient-text {
-    @apply bg-gradient-to-l from-amber-500 via-orange-500 to-amber-600 bg-clip-text text-transparent;
-  }
   .gradient-bg {
     @apply bg-gradient-to-br from-slate-900 via-blue-900 to-blue-700;
   }

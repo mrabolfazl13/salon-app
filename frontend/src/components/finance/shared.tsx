@@ -238,32 +238,51 @@ export const KpiCard: React.FC<{
 // نقشه‌ی هگزهای تزئینیِ وضعیت → توکن تم. متن چیپ با این هگزها روی سفید زیر ۴٫۵:۱ بود
 // (#059669≈3.8، #d97706≈3.2، #ef4444≈3.8)؛ نسخهٔ تیره‌تر همان رنگ‌ها در هر دو مود
 // کنتراست‌سنجی شده‌اند.
-const STATUS_COLOR_TOKEN: Record<string, 'success' | 'warning' | 'error' | 'info'> = {
+type StatusToken = 'success' | 'warning' | 'error' | 'info' | 'sky' | 'violet' | 'pink' | 'slate'
+const STATUS_COLOR_TOKEN: Record<string, StatusToken> = {
   '#059669': 'success',
   '#16a34a': 'success',
+  '#15803d': 'success',
+  '#22c55e': 'success',
   '#10b981': 'success',
   '#047857': 'success',
   '#d97706': 'warning',
   '#f59e0b': 'warning',
+  '#fbbf24': 'warning',
   '#b45309': 'warning',
+  '#92400e': 'warning',
   '#ef4444': 'error',
   '#dc2626': 'error',
   '#b91c1c': 'error',
   '#be123c': 'error',
   '#2563eb': 'info',
   '#3b82f6': 'info',
+  '#0ea5e9': 'sky',
+  '#0891b2': 'sky',
+  '#8b5cf6': 'violet',
+  '#7c3aed': 'violet',
+  '#ec4899': 'pink',
+  '#db2777': 'pink',
+  '#e4405f': 'pink',
+  '#64748b': 'slate',
+  '#6b7280': 'slate',
+  '#9ca3af': 'slate',
 }
 
 /** نسخهٔ دسترس‌پذیرِ هر توکن (≥۴٫۵:۱ روی کارت روشن) — جانشین theme.palette[token].main */
-const STATUS_INK: Record<'success' | 'warning' | 'error' | 'info', string> = {
+const STATUS_INK: Record<StatusToken, string> = {
   success: '#047857',
-  warning: '#b45309',
+  warning: '#92400e',
   error: '#b91c1c',
   info: '#1d4ed8',
+  sky: '#0369a1',
+  violet: '#6d28d9',
+  pink: '#be185d',
+  slate: '#475569',
 }
 
 /** نگاشت خالص (بدون hook) تا بتوان در حلقهٔ رندر هم صدا زد — vgl. SlotWeekGrid */
-export const statusColorToken = (hex: string): 'success' | 'warning' | 'error' | 'info' | undefined =>
+export const statusColorToken = (hex: string): StatusToken | undefined =>
   STATUS_COLOR_TOKEN[hex.toLowerCase()]
 
 /**

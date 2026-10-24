@@ -131,27 +131,27 @@ const ChallengeCard: React.FC<{
         {row.message || 'بدون پیام'}
       </p>
 
-      <div className="flex flex-wrap gap-2.5 text-[0.72rem] text-slate-500 dark:text-slate-400">
-        <span className="text-[0.72rem] text-slate-500 dark:text-slate-400">
+      <div className="flex flex-wrap gap-2.5 text-[0.72rem] text-muted-foreground">
+        <span className="text-[0.72rem] text-muted-foreground">
           {`فرستنده: ${row.created_by_name ?? '—'}`}
         </span>
         {proposal && (
-          <span className="text-[0.72rem] text-slate-500 dark:text-slate-400">
+          <span className="text-[0.72rem] text-muted-foreground">
             {`پیشنهاد: ${proposal}`}
           </span>
         )}
         {isOpen && (
-          <span className="text-[0.72rem] text-slate-400 dark:text-slate-500">
+          <span className="text-[0.72rem] text-muted-foreground">
             {`مهلت پاسخ تا ${formatJalaliDateTime(row.expires_at)}`}
           </span>
         )}
         {row.response_note && (
-          <span className="text-[0.72rem] text-slate-500 dark:text-slate-400">
+          <span className="text-[0.72rem] text-muted-foreground">
             {`پاسخ: ${row.response_note}`}
           </span>
         )}
         {row.accepted_by_name && (
-          <span className="text-[0.72rem] text-slate-500 dark:text-slate-400">
+          <span className="text-[0.72rem] text-muted-foreground">
             {`تأییدکننده: ${row.accepted_by_name}`}
           </span>
         )}
@@ -177,7 +177,7 @@ const ChallengeCard: React.FC<{
           <Button size="sm" variant="outline" icon="mdi:close" data-testid={`challenge-decline-open-${row.id}`} onClick={() => onDecline(row)}>
             رد
           </Button>
-          <p className="self-center text-[0.7rem] text-slate-400 dark:text-slate-500">
+          <p className="self-center text-[0.7rem] text-muted-foreground">
             پذیرش رزرو نمی‌سازد؛ سالن را جدا رزرو کنید.
           </p>
         </div>
@@ -251,7 +251,7 @@ const TeamChallengePanel: React.FC<{ teamId: number; canRespond: boolean }> = ({
       </div>
 
       {!canRespond && (
-        <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
+        <p className="text-[0.68rem] text-muted-foreground">
           شما عضو این تیم هستید؛ فقط کاپیتان و مدیران می‌توانند به چالش پاسخ دهند یا آن را پس بگیرند.
         </p>
       )}

@@ -275,7 +275,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                         type="button"
                         onClick={() => handleViewDetails(payment.id)}
                         aria-label={`مشاهده جزئیات پرداخت #${payment.id}`}
-                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-400 dark:hover:bg-blue-500/10"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-700 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-400 dark:hover:bg-blue-500/10"
                       >
                         <Icon icon="mdi:eye-outline" className="h-5 w-5" aria-hidden="true" />
                       </button>
@@ -328,7 +328,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                 {`${Number(selectedPayment.total_paid ?? 0).toLocaleString('fa-IR')} پرداخت‌شده از ${formatPrice(Number(selectedPayment.amount))}`}
               </span>
               {Number(selectedPayment.remaining ?? 0) > 0 && (
-                <span className="text-[0.8rem] font-bold text-amber-700 dark:text-amber-300">
+                <span className="text-[0.8rem] font-bold text-amber-800 dark:text-amber-300">
                   {`باقی‌مانده: ${formatPrice(Number(selectedPayment.remaining))}`}
                 </span>
               )}

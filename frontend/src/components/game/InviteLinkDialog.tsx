@@ -138,7 +138,7 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                 <div className="min-w-0 flex-1">
                   <p
                     dir="ltr"
-                    className="truncate text-start text-[0.78rem] font-semibold text-blue-600 dark:text-blue-400"
+                    className="truncate text-start text-[0.78rem] font-semibold text-blue-700 dark:text-blue-400"
                   >
                     {fullUrl(link)}
                   </p>
@@ -152,7 +152,7 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                       type="button"
                       onClick={() => copy(link)}
                       aria-label="کپی لینک دعوت"
-                      className={cn(iconButtonClass, 'text-blue-600 hover:bg-blue-600/10 dark:text-blue-400')}
+                      className={cn(iconButtonClass, 'text-blue-700 hover:bg-blue-600/10 dark:text-blue-400')}
                     >
                       <Icon icon="mdi:content-copy" style={{ width: 17, height: 17 }} />
                     </button>
@@ -171,7 +171,7 @@ const InviteLinkDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
                         })
                       }
                       aria-label={`بازتولید توکن لینک #${link.id}`}
-                      className={cn(iconButtonClass, 'text-violet-600 hover:bg-violet-600/10 dark:text-violet-400')}
+                      className={cn(iconButtonClass, 'text-violet-700 hover:bg-violet-600/10 dark:text-violet-400')}
                     >
                       <Icon icon="mdi:sync" style={{ width: 17, height: 17 }} />
                     </button>

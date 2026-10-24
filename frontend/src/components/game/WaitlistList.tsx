@@ -30,8 +30,8 @@ const WaitlistList: React.FC<Props> = ({ entries }) => {
             className={cn(
               'flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-[0.78rem] font-extrabold',
               entry.position === 1
-                ? 'bg-amber-500/[0.14] text-amber-700 dark:text-amber-400'
-                : 'bg-slate-500/10 text-slate-500 dark:text-slate-400'
+                ? 'bg-amber-500/[0.14] text-amber-800 dark:text-amber-400'
+                : 'bg-slate-500/10 text-muted-foreground'
             )}
           >
             {entry.position.toLocaleString('fa-IR')}
@@ -45,7 +45,7 @@ const WaitlistList: React.FC<Props> = ({ entries }) => {
             </p>
           </div>
           {entry.position === 1 && (
-            <div className="flex items-center gap-1 text-[0.68rem] font-bold text-amber-600 dark:text-amber-400">
+            <div className="flex items-center gap-1 text-[0.68rem] font-bold text-amber-800 dark:text-amber-400">
               <Icon icon="mdi:star-four-points" style={{ width: 13, height: 13 }} />
               نوبت بعدی
             </div>

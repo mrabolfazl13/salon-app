@@ -11,6 +11,7 @@ import { useMoveContract } from '@/hooks/useContracts'
 import { extractError, pyDayNames, toPersianDigits } from '@/components/contract/shared'
 import Dialog from '@/components/ui/Dialog'
 import { Button } from '@/components/ui/shadcn/button'
+import { formatTimeFa } from '@/lib/utils'
 import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
 import { Input } from '@/components/ui/shadcn/input'
 import { Label } from '@/components/ui/shadcn/label'
@@ -115,7 +116,7 @@ const MoveContractDialog: React.FC<Props> = ({ open, onClose, contract }) => {
     >
       <div className="flex flex-col gap-4">
         <p className="text-sm text-muted-foreground">
-          {`برنامه فعلی: ${pyDayNames[contract.day_of_week] ?? '—'} ساعت ${(contract.start_time || '').slice(0, 5)} — همه سانس‌های آینده به همان شیفت هفته منتقل می‌شوند.`}
+          {`برنامه فعلی: ${pyDayNames[contract.day_of_week] ?? '—'} ساعت ${formatTimeFa(contract.start_time)} — همه سانس‌های آینده به همان شیفت هفته منتقل می‌شوند.`}
         </p>
 
         {moveError && (

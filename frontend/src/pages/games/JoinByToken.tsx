@@ -70,7 +70,7 @@ const JoinByToken: React.FC = () => {
               role="status"
               className="flex items-start gap-2 rounded-xl border border-blue-200 bg-blue-50 p-3 text-[0.68rem] text-blue-900 dark:border-blue-500/30 dark:bg-blue-500/10 dark:text-blue-200"
             >
-              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-blue-600 dark:text-blue-300" aria-hidden="true" />
+              <AlertCircle className="mt-0.5 h-5 w-5 shrink-0 text-blue-700 dark:text-blue-300" aria-hidden="true" />
               <span>
                 با کلیک روی «پیوستن به بازی» از طریق این لینک، مستقیماً در بازی ثبت می‌شوید.
               </span>

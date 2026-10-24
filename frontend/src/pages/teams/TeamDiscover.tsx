@@ -110,16 +110,16 @@ const DiscoverCard: React.FC<{ team: Team; onRequest: (t: Team) => void }> = ({
               </Button>
             )}
             {requested && !mine && (
-              <span className="inline-flex h-[22px] items-center gap-1 rounded-full bg-amber-500/10 px-2 text-[0.68rem] font-bold text-amber-600 dark:text-amber-400">
+              <span className="inline-flex h-[22px] items-center gap-1 rounded-full bg-amber-500/10 px-2 text-[0.68rem] font-bold text-amber-800 dark:text-amber-400">
                 <Icon icon="mdi:clock-outline" aria-hidden="true" className="h-3.5 w-3.5" />
                 درخواستتان در بررسی است
               </span>
             )}
             {invited && (
-              <span className="inline-flex h-[22px] items-center rounded-full bg-violet-500/10 px-2 text-[0.68rem] font-bold text-violet-600 dark:text-violet-400">دعوت باز دارید</span>
+              <span className="inline-flex h-[22px] items-center rounded-full bg-violet-500/10 px-2 text-[0.68rem] font-bold text-violet-700 dark:text-violet-400">دعوت باز دارید</span>
             )}
             {mine && (
-              <span className="inline-flex h-[22px] items-center rounded-full bg-emerald-500/10 px-2 text-[0.68rem] font-bold text-emerald-600 dark:text-emerald-400">عضو هستید</span>
+              <span className="inline-flex h-[22px] items-center rounded-full bg-emerald-500/10 px-2 text-[0.68rem] font-bold text-emerald-700 dark:text-emerald-400">عضو هستید</span>
             )}
           </div>
         </div>
@@ -151,7 +151,7 @@ const TeamDiscover: React.FC = () => {
         <button
           type="button"
           onClick={() => navigate('/teams')}
-          className="inline-flex min-h-11 items-center gap-2 rounded-xl ps-0 pe-2 text-[0.68rem] font-bold text-blue-600 hover:text-blue-700 dark:text-blue-400"
+          className="inline-flex min-h-11 items-center gap-2 rounded-xl ps-0 pe-2 text-[0.68rem] font-bold text-blue-700 hover:text-blue-700 dark:text-blue-400"
         >
           <Icon icon="mdi:arrow-right" aria-hidden="true" className="h-4 w-4" />
           بازگشت به تیم‌های من
@@ -177,7 +177,7 @@ const TeamDiscover: React.FC = () => {
             aria-pressed={!sport}
             className={cn(
               'inline-flex min-h-11 items-center rounded-full px-3.5 text-[0.68rem] font-bold transition-colors',
-              !sport ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'bg-foreground/5 text-muted-foreground hover:bg-foreground/10'
+              !sport ? 'bg-blue-600/10 text-blue-700 dark:text-blue-400' : 'bg-foreground/5 text-muted-foreground hover:bg-foreground/10'
             )}
           >
             همه رشته‌ها
@@ -190,7 +190,7 @@ const TeamDiscover: React.FC = () => {
               aria-pressed={sport === s.key}
               className={cn(
                 'inline-flex min-h-11 items-center rounded-full px-3.5 text-[0.68rem] font-bold transition-colors',
-                sport === s.key ? 'bg-blue-600/10 text-blue-600 dark:text-blue-400' : 'bg-foreground/5 text-muted-foreground hover:bg-foreground/10'
+                sport === s.key ? 'bg-blue-600/10 text-blue-700 dark:text-blue-400' : 'bg-foreground/5 text-muted-foreground hover:bg-foreground/10'
               )}
             >
               {`${s.emoji} ${s.label}`}

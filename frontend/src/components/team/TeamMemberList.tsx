@@ -209,19 +209,19 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
               <div className="flex min-w-0 flex-wrap items-center gap-1.5">
                 <p className="truncate text-[0.85rem] font-bold text-slate-900 dark:text-slate-100">
                   {m.full_name ?? `کاربر ${m.user_id}`}
-                  {isMe && <span className="text-blue-600 dark:text-blue-400"> (شما)</span>}
+                  {isMe && <span className="text-blue-700 dark:text-blue-400"> (شما)</span>}
                 </p>
                 <TeamRoleBadge role={m.role} />
               </div>
               <div className="mt-0.5 flex flex-wrap items-center gap-2">
                 <MemberStatusChip status={m.status} />
                 {m.status === 'active' && (
-                  <p className="text-[0.68rem] text-slate-500 dark:text-slate-400">
+                  <p className="text-[0.68rem] text-muted-foreground">
                     {`عضویت: ${formatPersianDateTime(m.joined_at)}`}
                   </p>
                 )}
                 {m.phone && (
-                  <p className="text-[0.68rem] text-slate-500 dark:text-slate-400" dir="ltr">
+                  <p className="text-[0.68rem] text-muted-foreground" dir="ltr">
                     {m.phone}
                   </p>
                 )}
@@ -248,7 +248,7 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
                         type="button"
                         disabled={setRole.isPending}
                         aria-label={`تغییر نقش ${m.full_name ?? ''}`}
-                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-blue-400"
+                        className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-700 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 dark:text-blue-400"
                       >
                         <Icon icon={m.role === 'admin' ? 'mdi:shield-account' : 'mdi:shield-account-outline'} style={{ width: 18, height: 18 }} />
                       </button>

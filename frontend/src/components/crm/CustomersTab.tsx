@@ -217,7 +217,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                         row.balance_due > 0
                           ? 'whitespace-nowrap font-extrabold text-red-600 tabular-nums dark:text-red-400'
                           : row.balance_due < 0
-                            ? 'whitespace-nowrap font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                            ? 'whitespace-nowrap font-extrabold text-emerald-700 tabular-nums dark:text-emerald-400'
                             : 'whitespace-nowrap font-extrabold text-muted-foreground tabular-nums'
                       }
                     >
@@ -227,7 +227,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                       <Tooltip>
                         <TooltipTrigger asChild>
                           <span
-                            className="inline-flex h-[22px] items-center gap-1 rounded-lg bg-amber-500/10 px-2 text-[0.68rem] font-extrabold text-amber-700 tabular-nums dark:text-amber-400"
+                            className="inline-flex h-[22px] items-center gap-1 rounded-lg bg-amber-500/10 px-2 text-[0.68rem] font-extrabold text-amber-800 tabular-nums dark:text-amber-400"
                             tabIndex={0}
                           >
                             <Icon icon="mdi:star-four-points" className="h-3.5 w-3.5" aria-hidden="true" />
@@ -329,7 +329,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                       <Icon icon="mdi:calendar-check-outline" className="h-3.5 w-3.5" aria-hidden="true" />
                       {`${toPersianDigits(row.bookings_count)} رزرو`}
                     </span>
-                    <span className={`${MOBILE_CHIP} gap-1 bg-amber-500/10 text-amber-700 tabular-nums dark:text-amber-400`}>
+                    <span className={`${MOBILE_CHIP} gap-1 bg-amber-500/10 text-amber-800 tabular-nums dark:text-amber-400`}>
                       <Icon icon="mdi:star-four-points" className="h-3.5 w-3.5" aria-hidden="true" />
                       {toPersianDigits(row.loyalty_balance ?? 0)}
                     </span>
@@ -352,7 +352,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                           row.balance_due > 0
                             ? 'block text-[0.68rem] font-extrabold text-red-600 tabular-nums dark:text-red-400'
                             : row.balance_due < 0
-                              ? 'block text-[0.68rem] font-extrabold text-emerald-600 tabular-nums dark:text-emerald-400'
+                              ? 'block text-[0.68rem] font-extrabold text-emerald-700 tabular-nums dark:text-emerald-400'
                               : 'block text-[0.68rem] font-extrabold text-muted-foreground tabular-nums'
                         }
                       >

@@ -61,7 +61,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
   switch (status) {
     case 'available':
       return (
-        <span className={cn(chipBase, 'bg-green-500/10 font-semibold text-emerald-600 dark:text-emerald-400')}>
+        <span className={cn(chipBase, 'bg-green-500/10 font-semibold text-emerald-700 dark:text-emerald-400')}>
           آزاد
         </span>
       )
@@ -73,13 +73,13 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
       )
     case 'blocked':
       return (
-        <span className={cn(chipBase, 'bg-slate-900/[0.06] font-semibold text-slate-400 dark:bg-white/10 dark:text-slate-500')}>
+        <span className={cn(chipBase, 'bg-slate-900/[0.06] font-semibold text-muted-foreground dark:bg-white/10')}>
           مسدود
         </span>
       )
     case 'reserved':
       return (
-        <span className={cn(chipBase, 'bg-violet-500/[0.12] font-bold text-violet-600 dark:text-violet-300')}>
+        <span className={cn(chipBase, 'bg-violet-500/[0.12] font-bold text-violet-700 dark:text-violet-300')}>
           رزرو قرارداد
         </span>
       )
@@ -92,7 +92,7 @@ const StatusChip: React.FC<{ status: string }> = ({ status }) => {
       )
     default:
       return (
-        <span className={cn(chipBase, 'bg-slate-900/[0.06] font-semibold text-slate-400 dark:bg-white/10 dark:text-slate-500')}>
+        <span className={cn(chipBase, 'bg-slate-900/[0.06] font-semibold text-muted-foreground dark:bg-white/10')}>
           نامشخص
         </span>
       )
@@ -143,7 +143,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
           <Icon icon="mdi:clock-outline" className="h-5 w-5" style={{ color: '#2563eb' }} />
           سانس‌های موجود
         </h3>
-        <span className="inline-flex items-center rounded-lg bg-green-500/10 px-2 py-0.5 text-[0.68rem] font-semibold text-emerald-600 dark:text-emerald-400">
+        <span className="inline-flex items-center rounded-lg bg-green-500/10 px-2 py-0.5 text-[0.68rem] font-semibold text-emerald-700 dark:text-emerald-400">
           {`${toPersianDigits(slots.filter(isAvailableSlot).length)} سانس آزاد`}
         </span>
       </div>
@@ -156,7 +156,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
               <Icon icon="mdi:calendar" className="h-[18px] w-[18px]" style={{ color: '#2563eb' }} />
             </div>
             <h4 className="text-[0.68rem] font-bold text-foreground">{formatDate(group.date)}</h4>
-            <span className="inline-flex h-[22px] items-center rounded-md bg-blue-600/[0.08] px-2 text-[0.68rem] font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
+            <span className="inline-flex h-[22px] items-center rounded-md bg-blue-600/[0.08] px-2 text-[0.68rem] font-semibold text-blue-700 dark:bg-blue-400/10 dark:text-blue-300">
               {`${toPersianDigits(group.slots.filter(isAvailableSlot).length)} سانس`}
             </span>
           </div>
@@ -204,7 +204,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
 
                   {/* Time */}
                   <p className="mb-0.5 text-[0.85rem] font-bold text-foreground">{slot.startTime}</p>
-                  <span className="mb-1 block text-[0.68rem] text-slate-400 dark:text-slate-500">{slot.endTime}</span>
+                  <span className="mb-1 block text-[0.68rem] text-muted-foreground">{slot.endTime}</span>
 
                   {/* Divider */}
                   <div className="mb-1 h-px bg-slate-900/[0.06] dark:bg-white/10" />
@@ -213,7 +213,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
                   <p
                     className={cn(
                       'text-[0.8rem] font-bold',
-                      bidable ? 'text-violet-600 dark:text-violet-300' : 'text-blue-600 dark:text-blue-400',
+                      bidable ? 'text-violet-700 dark:text-violet-300' : 'text-blue-700 dark:text-blue-400',
                       reserved && 'line-through'
                     )}
                   >

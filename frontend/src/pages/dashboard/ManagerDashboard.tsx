@@ -986,12 +986,12 @@ const ManagerDashboard: React.FC = () => {
                   <h1 className="mb-2 text-2xl font-extrabold text-white [text-shadow:0_2px_10px_rgba(0,0,0,0.2)] md:text-[2rem]">
                     داشبورد مدیریت
                   </h1>
-                  <p className="font-normal text-white/70">به پنل مدیریت سالن‌های خود خوش آمدید</p>
+                  <p className="font-normal text-white">به پنل مدیریت سالن‌های خود خوش آمدید</p>
                 </div>
                 <button
                   type="button"
                   onClick={openCreateVenueDialog}
-                  className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-white/20 bg-white/15 px-3 py-1.5 text-[0.75rem] font-semibold text-white backdrop-blur transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-white/30 bg-slate-950/25 px-3 py-1.5 text-[0.75rem] font-semibold text-white backdrop-blur transition-colors hover:bg-slate-950/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
                 >
                   <Icon icon="mdi:plus-circle" aria-hidden="true" className="h-4 w-4" />
                   افزودن سالن جدید
@@ -1021,23 +1021,17 @@ const ManagerDashboard: React.FC = () => {
                         <div className="min-w-0 flex-1">
                           <p
                             className={cn(
-                              'mb-0.5 bg-clip-text font-extrabold leading-tight text-transparent',
+                              'mb-0.5 font-extrabold leading-tight text-foreground',
                               typeof stat.value === 'string' ? 'text-xl lg:text-[1.35rem]' : 'text-[1.75rem]',
                             )}
-                            style={{
-                              backgroundImage: stat.gradient,
-                              WebkitBackgroundClip: 'text',
-                              backgroundClip: 'text',
-                              WebkitTextFillColor: 'transparent',
-                            }}
                           >
                             {stat.value}
                           </p>
                           <p className="text-[0.85rem] font-medium text-muted-foreground">{stat.label}</p>
                           {stat.hint && (
                             <div className="mt-0.5 flex items-center gap-2">
-                              <p className="text-xs font-bold text-amber-700 dark:text-amber-400">{stat.hint}</p>
-                              <Icon icon="mdi:arrow-left" aria-hidden="true" className="h-[13px] w-[13px] text-amber-600 dark:text-amber-400" />
+                              <p className="text-xs font-bold text-amber-800 dark:text-amber-400">{stat.hint}</p>
+                              <Icon icon="mdi:arrow-left" aria-hidden="true" className="h-[13px] w-[13px] text-amber-800 dark:text-amber-400" />
                             </div>
                           )}
                         </div>
@@ -1071,7 +1065,7 @@ const ManagerDashboard: React.FC = () => {
               <div className="mb-8 rounded-[20px] border border-border bg-card p-6 shadow-sm">
                 <div className="mb-4 flex flex-wrap items-center gap-2.5">
                   <div className="flex h-9 w-9 items-center justify-center rounded-[10px] bg-amber-500/10">
-                    <Icon icon="mdi:fire-circle-outline" aria-hidden="true" className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    <Icon icon="mdi:fire-circle-outline" aria-hidden="true" className="h-5 w-5 text-amber-800 dark:text-amber-400" />
                   </div>
                   <p className="text-[0.95rem] font-extrabold">
                     {`سانس‌های محبوب ۷ روز اخیر — ${toPersianDigits(weeklyTotalBookings)} رزرو`}
@@ -1079,7 +1073,7 @@ const ManagerDashboard: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => navigate('/finance')}
-                    className="ms-auto inline-flex min-h-11 items-center gap-1.5 rounded-xl px-4 text-[0.78rem] font-bold text-blue-600 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-400"
+                    className="ms-auto inline-flex min-h-11 items-center gap-1.5 rounded-xl px-4 text-[0.78rem] font-bold text-blue-700 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-400"
                   >
                     جزئیات مالی
                     <Icon icon="mdi:arrow-left" aria-hidden="true" className="h-3.5 w-3.5" />
@@ -1094,7 +1088,7 @@ const ManagerDashboard: React.FC = () => {
                         <div className="flex flex-col gap-2">
                           {pts.map((p) => (
                             <div key={p.key} className="flex items-center gap-2.5">
-                              <p className="w-16 shrink-0 text-[0.8rem] font-extrabold">{p.label}</p>
+                              <p className="w-16 shrink-0 text-[0.8rem] font-extrabold">{toPersianDigits(p.label)}</p>
                               <div className="h-2 flex-1 overflow-hidden rounded-full bg-slate-900/5 dark:bg-white/10">
                                 <div
                                   className="h-full rounded-full"
@@ -1157,7 +1151,7 @@ const ManagerDashboard: React.FC = () => {
                         className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
                         style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))' }}
                       >
-                        <Icon icon="mdi:store-plus-outline" aria-hidden="true" className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                        <Icon icon="mdi:store-plus-outline" aria-hidden="true" className="h-8 w-8 text-blue-700 dark:text-blue-400" />
                       </div>
                       <h2 className="mb-1.5 text-lg font-bold">هنوز سالنی ثبت نکرده‌اید</h2>
                       <p className="mx-auto mb-5 max-w-[400px] text-[0.8rem] leading-6 text-muted-foreground">
@@ -1223,7 +1217,7 @@ const ManagerDashboard: React.FC = () => {
                                       'inline-flex min-h-8 shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[0.68rem] font-semibold leading-5 sm:min-h-11 sm:px-2 sm:text-xs',
                                       venue.is_verified
                                         ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
-                                        : 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
+                                        : 'bg-amber-500/10 text-amber-800 dark:text-amber-400',
                                     )}
                                   >
                                     <Icon
@@ -1304,7 +1298,7 @@ const ManagerDashboard: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => openEditVenueDialog(venue)}
-                                    className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-amber-600/30 px-1.5 py-1.5 text-[0.7rem] font-semibold text-amber-700 transition-colors hover:border-amber-600 hover:bg-amber-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400 sm:min-h-11 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
+                                    className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-amber-600/30 px-1.5 py-1.5 text-[0.7rem] font-semibold text-amber-800 transition-colors hover:border-amber-600 hover:bg-amber-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400 sm:min-h-11 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
                                   >
                                     <Icon icon="mdi:pencil-outline" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                                     ویرایش
@@ -1396,7 +1390,7 @@ const ManagerDashboard: React.FC = () => {
                           }
                         />
                       </label>
-                      <Icon icon="mdi:lightning-bolt" aria-hidden="true" className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                      <Icon icon="mdi:lightning-bolt" aria-hidden="true" className="h-5 w-5 text-amber-800 dark:text-amber-400" />
                       <p className="text-sm font-bold">
                         {dealSelection.length > 0
                           ? (new Intl.NumberFormat('fa-IR')).format(dealSelection.length) + ' سانس انتخاب شده — عرضه به‌عنوان تخفیف‌دار'
@@ -1407,7 +1401,7 @@ const ManagerDashboard: React.FC = () => {
                       type="button"
                       disabled={dealSelection.length === 0}
                       onClick={() => setPublishOpen(true)}
-                      className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-amber-500 to-red-500 px-4 text-sm font-extrabold text-white transition-colors hover:from-amber-600 hover:to-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-amber-700 to-red-600 px-4 text-sm font-extrabold text-white transition-colors hover:from-amber-800 hover:to-red-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50"
                     >
                       <Icon icon="mdi:rocket-launch-outline" aria-hidden="true" className="h-4 w-4" />
                       انتشار {dealSelection.length ? `(${dealSelection.length})` : ''}
@@ -1439,7 +1433,7 @@ const ManagerDashboard: React.FC = () => {
                       className="mx-auto mb-6 flex h-[100px] w-[100px] items-center justify-center rounded-full"
                       style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))' }}
                     >
-                      <Icon icon="mdi:calendar-plus-outline" aria-hidden="true" className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+                      <Icon icon="mdi:calendar-plus-outline" aria-hidden="true" className="h-12 w-12 text-blue-700 dark:text-blue-400" />
                     </div>
                     <h2 className="mb-2 text-xl font-bold">سانسی یافت نشد</h2>
                     <p className="mx-auto mb-6 max-w-[450px] text-muted-foreground">
@@ -1501,7 +1495,7 @@ const ManagerDashboard: React.FC = () => {
                             <TableCell>
                               {dealsMap[slot.id] ? (
                                 <div className="flex flex-wrap items-center gap-2">
-                                  <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-extrabold text-amber-700 dark:text-amber-400">
+                                  <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-extrabold text-amber-800 dark:text-amber-400">
                                     ویژه
                                   </span>
                                   <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
@@ -1536,7 +1530,7 @@ const ManagerDashboard: React.FC = () => {
                                   type="button"
                                   disabled={slotActionBusy === slot.id}
                                   onClick={() => setBlockConfirmSlot(slot)}
-                                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-amber-600/40 px-3 text-xs font-semibold text-amber-700 transition-colors hover:bg-amber-500/10 disabled:opacity-50 dark:text-amber-400"
+                                  className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-amber-600/40 px-3 text-xs font-semibold text-amber-800 transition-colors hover:bg-amber-500/10 disabled:opacity-50 dark:text-amber-400"
                                 >
                                   {slotActionBusy === slot.id ? '...' : (
                                     <>
@@ -1631,7 +1625,7 @@ const ManagerDashboard: React.FC = () => {
                 {/* رزروهای در انتظار تأیید (قبل از ثبت در دیتابیس) */}
                 <div className="mb-6 rounded-2xl border border-amber-500/25 bg-amber-50/90 p-5 backdrop-blur dark:bg-amber-500/10">
                   <div className={cn('flex flex-wrap items-center gap-3', pendingList.length ? 'mb-4' : 'mb-0')}>
-                    <Icon icon="mdi:clock-alert-outline" aria-hidden="true" className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+                    <Icon icon="mdi:clock-alert-outline" aria-hidden="true" className="h-5 w-5 text-amber-800 dark:text-amber-400" />
                     <p className="text-base font-bold">رزروهای در انتظار تأیید</p>
                     <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-semibold text-amber-800 dark:text-amber-300">
                       {pendingList.length}
@@ -1659,7 +1653,7 @@ const ManagerDashboard: React.FC = () => {
                         <button
                           type="button"
                           onClick={() => setBulkAction('confirm')}
-                          className="inline-flex min-h-11 items-center rounded-lg bg-green-600 px-3 text-xs font-bold text-white transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          className="inline-flex min-h-11 items-center rounded-lg bg-green-700 px-3 text-xs font-bold text-white transition-colors hover:bg-green-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           تأیید انتخاب‌شده‌ها ({faDigits(pendingSelection.length)})
                         </button>
@@ -1716,7 +1710,7 @@ const ManagerDashboard: React.FC = () => {
                               type="button"
                               disabled={pendingActionPid === p.id}
                               onClick={() => handleConfirmPending(p.id)}
-                              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-green-600 px-3 text-xs font-semibold text-white transition-colors hover:bg-green-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                              className="inline-flex min-h-11 items-center justify-center rounded-lg bg-green-700 px-3 text-xs font-semibold text-white transition-colors hover:bg-green-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                             >
                               {pendingActionPid === p.id ? (
                                 <span role="status" aria-label="در حال بارگذاری" className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -1755,7 +1749,7 @@ const ManagerDashboard: React.FC = () => {
                       className="mx-auto mb-6 flex h-[100px] w-[100px] items-center justify-center rounded-full"
                       style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))' }}
                     >
-                      <Icon icon="mdi:calendar-blank-outline" aria-hidden="true" className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+                      <Icon icon="mdi:calendar-blank-outline" aria-hidden="true" className="h-12 w-12 text-blue-700 dark:text-blue-400" />
                     </div>
                     <h2 className="mb-2 text-xl font-bold">رزروی یافت نشد</h2>
                     <p className="mx-auto max-w-[400px] text-muted-foreground">برای بازه انتخاب شده رزروی وجود ندارد</p>
@@ -1831,7 +1825,7 @@ const ManagerDashboard: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => setReviewTarget(booking)}
-                                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-amber-600 px-3 text-xs font-bold text-white transition-colors hover:bg-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-amber-700 px-3 text-xs font-bold text-white transition-colors hover:bg-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                   >
                                     <Icon icon="mdi:receipt-text-check-outline" aria-hidden="true" className="h-4 w-4" />
                                     بررسی فیش
@@ -1841,7 +1835,7 @@ const ManagerDashboard: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => setInPersonTarget(booking)}
-                                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-emerald-600 px-3 text-xs font-bold text-white transition-colors hover:bg-emerald-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-emerald-700 px-3 text-xs font-bold text-white transition-colors hover:bg-emerald-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                   >
                                     <Icon icon="mdi:cash-register" aria-hidden="true" className="h-4 w-4" />
                                     ثبت دریافت در محل
@@ -1873,7 +1867,7 @@ const ManagerDashboard: React.FC = () => {
                       className="mx-auto mb-4 flex h-[72px] w-[72px] items-center justify-center rounded-full"
                       style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.1), rgba(124,58,237,0.1))' }}
                     >
-                      <Icon icon="mdi:weight-lifter" aria-hidden="true" className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+                      <Icon icon="mdi:weight-lifter" aria-hidden="true" className="h-8 w-8 text-blue-700 dark:text-blue-400" />
                     </div>
                     <p className="mb-2 text-base font-bold">شما سالن بدنسازی ندارید</p>
                     <p className="text-sm text-muted-foreground">مدیریت اشتراک‌ها مخصوص سالن‌های بدنسازی است.</p>
@@ -2057,7 +2051,7 @@ const ManagerDashboard: React.FC = () => {
                                           type="button"
                                           disabled={consumeId === p.id}
                                           onClick={() => handleConsume(p.id)}
-                                          className="inline-flex min-h-11 items-center rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-500 px-3 text-xs font-semibold text-white transition-colors hover:from-emerald-700 hover:to-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
+                                          className="inline-flex min-h-11 items-center rounded-lg bg-gradient-to-br from-emerald-700 to-emerald-800 px-3 text-xs font-semibold text-white transition-colors hover:from-emerald-800 hover:to-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50"
                                         >
                                           {consumeId === p.id ? (
                                             <span role="status" aria-label="در حال بارگذاری" className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
@@ -2381,7 +2375,7 @@ const ManagerDashboard: React.FC = () => {
                   />
                 ) : (
                   <span className="block">
-                    <Icon icon="mdi:camera-plus-outline" aria-hidden="true" className="mx-auto h-8 w-8 text-blue-600 dark:text-blue-400" />
+                    <Icon icon="mdi:camera-plus-outline" aria-hidden="true" className="mx-auto h-8 w-8 text-blue-700 dark:text-blue-400" />
                     <span className="mt-2 block text-sm text-muted-foreground">
                       برای انتخاب عکس کلیک کنید یا بکشید و رها کنید
                     </span>
@@ -2473,7 +2467,7 @@ const ManagerDashboard: React.FC = () => {
             <button
               type="button"
               onClick={handleGenerateSlots}
-              className="inline-flex min-h-11 items-center rounded-[10px] bg-gradient-to-br from-emerald-600 to-emerald-500 px-4 text-sm font-semibold text-white shadow-md shadow-emerald-600/20 transition-colors hover:from-emerald-700 hover:to-emerald-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex min-h-11 items-center rounded-[10px] bg-gradient-to-br from-emerald-700 to-emerald-800 px-4 text-sm font-semibold text-white shadow-md shadow-emerald-600/20 transition-colors hover:from-emerald-800 hover:to-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               ایجاد سانس‌ها
             </button>
