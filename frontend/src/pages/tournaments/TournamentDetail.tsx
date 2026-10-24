@@ -375,13 +375,16 @@ const TournamentDetailPage: React.FC = () => {
       ) : (
         <div className="flex flex-col gap-6">
           <div>
-            <h1 className="flex flex-wrap items-center gap-2 text-xl font-extrabold text-foreground md:text-3xl">
-              <Icon icon="mdi:trophy" className="h-7 w-7" style={{ color: '#d97706' }} aria-hidden="true" />
-              {tournament.name}
+            <div className="flex flex-wrap items-center gap-2">
+              <h1 className="flex items-center gap-2 text-xl font-extrabold text-foreground md:text-3xl">
+                <Icon icon="mdi:trophy" className="h-7 w-7" style={{ color: '#d97706' }} aria-hidden="true" />
+                {tournament.name}
+              </h1>
+              {/* چیپ‌ها بیرون از h1: وگرنه صفحه‌خوان «ثبت‌نام باز حذفی» را بخشی از عنوان سرفصل می‌خواند */}
               <StatusChip label={TOURNAMENT_STATUS_LABELS[tournament.status]}
                           color={TOURNAMENT_STATUS_COLORS[tournament.status]} />
               <StatusChip label={TOURNAMENT_FORMAT_LABELS[tournament.format]} color="#7c3aed" />
-            </h1>
+            </div>
             {tournament.description && (
               <p className="mt-1.5 text-[0.68rem] text-muted-foreground">
                 {tournament.description}

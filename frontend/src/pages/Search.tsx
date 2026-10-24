@@ -84,7 +84,7 @@ const Search: React.FC = () => {
         {/* سرتیتر صفحه برای فناوری کمکی — ظاهر صفحه تغییری نمی‌کند */}
         <h1 className="sr-only">جستجوی سالن</h1>
         {/* نوار جستجوی چسبان */}
-        <div className="sticky top-0 z-30 mb-1 bg-[#f6f7f9]/92 py-3 backdrop-blur-md dark:bg-[#0b1220]/92">
+        <div className="sticky top-0 z-30 mb-1 bg-background/95 py-3 backdrop-blur-md">
           <div className="flex items-center gap-2">
             <button
               type="button"
