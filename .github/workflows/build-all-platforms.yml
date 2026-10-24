@@ -202,6 +202,11 @@ jobs:
         working-directory: frontend
         run: pnpm exec tsc --noEmit -p tsconfig.app.json
 
+      - name: Read the app version from package.json
+        id: app-version
+        working-directory: frontend
+        run: echo "version=$(node -p "require('./package.json').version")" >> "$GITHUB_OUTPUT"
+
       - name: Build production bundle
         working-directory: frontend
         run: pnpm build
@@ -211,7 +216,8 @@ jobs:
           VITE_API_URL: '/api/v1'
           VITE_DOMAIN: ''
           VITE_APP_NAME: ${{ secrets.VITE_APP_NAME || 'سالن من' }}
-          VITE_APP_VERSION: ${{ secrets.VITE_APP_VERSION || '1.4.0' }}
+          # «نسخهٔ فعلی» در پروفایل باید با manifest یکی باشد، نه یک literal دستی که از نسخه جا می‌ماند
+          VITE_APP_VERSION: ${{ secrets.VITE_APP_VERSION || steps.app-version.outputs.version }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

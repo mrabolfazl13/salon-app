@@ -345,7 +345,7 @@ const Profile: React.FC = () => {
                       )}
                     </p>
                     <span className="mt-1 block text-[0.68rem] text-muted-foreground">
-                      نسخه فعلی: {profileAppVersion || '—'}
+                      نسخهٔ فعلی: {profileAppVersion ? toPersianDigits(profileAppVersion) : '—'}
                     </span>
                   </div>
                   <Button
