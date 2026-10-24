@@ -134,11 +134,14 @@ const GameDetail: React.FC = () => {
   }
 
   if (isError || !game) {
-    const forbidden = (error as { response?: { status?: number } })?.response?.status === 403
+    const status = (error as { response?: { status?: number } })?.response?.status
+    const forbidden = status === 403
+    const notFound = status === 404
     return (
       <Layout>
         {forbidden && !isAuthenticated ? (
           <EmptyState
+            asPageHeading
             icon="mdi:lock-outline"
             title="این بازی خصوصی است"
             description="برای مشاهده و پیوستن، با لینک دعوت وارد شوید."
@@ -146,9 +149,11 @@ const GameDetail: React.FC = () => {
             onAction={() => navigate('/login')}
           />
         ) : forbidden ? (
-          <EmptyState icon="mdi:lock-outline" title="دسترسی ندارید" description="این بازی خصوصی است و شما عضو آن نیستید." actionLabel="بازی‌ها" onAction={() => navigate('/games')} />
+          <EmptyState asPageHeading icon="mdi:lock-outline" title="دسترسی ندارید" description="این بازی خصوصی است و شما عضو آن نیستید." actionLabel="بازی‌ها" onAction={() => navigate('/games')} />
+        ) : notFound ? (
+          <EmptyState asPageHeading icon="mdi:help-circle-outline" title="بازی پیدا نشد" description="این بازی هرگز ساخته نشده یا حذف شده است." actionLabel="بازی‌ها" onAction={() => navigate('/games')} />
         ) : (
-          <ErrorState description="بارگذاری بازی ممکن نشد." onRetry={() => refetch()} />
+          <ErrorState asPageHeading title="بارگذاری بازی ممکن نشد" description="اتصال خود را بررسی کنید و دوباره تلاش کنید." onRetry={() => refetch()} />
         )}
       </Layout>
     )

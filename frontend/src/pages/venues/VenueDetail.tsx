@@ -39,7 +39,6 @@ import { Checkbox } from '@/components/ui/shadcn/checkbox'
 import { Input } from '@/components/ui/shadcn/input'
 import { Label } from '@/components/ui/shadcn/label'
 import { Separator } from '@/components/ui/shadcn/separator'
-import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/shadcn/tabs'
 import {
   Dialog,
@@ -367,23 +366,14 @@ const VenueDetail: React.FC = () => {
   if (!venue) {
     return (
       <Layout>
-        <div className="min-h-screen bg-gradient-to-b from-slate-50 to-white dark:from-night dark:to-night">
-          <div className="mx-auto w-full max-w-[1200px] px-4 py-16 sm:px-6">
-            <Button
-              variant="primary"
-              onClick={() => navigate('/venues')}
-              className="mb-6 min-h-12 rounded-xl px-8 font-semibold"
-            >
-              <Icon icon="mdi:arrow-right" className="h-5 w-5" />
-              بازگشت به لیست سالن‌ها
-            </Button>
-            <Alert variant="destructive" className="rounded-xl">
-              <AlertDescription>
-                سالن مورد نظر یافت نشد یا حذف شده است.
-              </AlertDescription>
-            </Alert>
-          </div>
-        </div>
+        <EmptyState
+          asPageHeading
+          icon="mdi:stadium-variant"
+          title="سالن یافت نشد"
+          description="این سالن حذف شده یا نشانی آن درست نیست."
+          actionLabel="بازگشت به لیست سالن‌ها"
+          onAction={() => navigate('/venues')}
+        />
       </Layout>
     )
   }

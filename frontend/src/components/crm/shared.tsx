@@ -15,7 +15,7 @@ export const SEGMENT_LABELS: Record<CrmSegment, string> = {
   regular: 'معمولی',
   vip: 'ویژه',
   at_risk: 'در معرض ریزش',
-  dormant: 'خاموش',
+  dormant: 'راکد',
 }
 
 export const SEGMENT_COLORS: Record<CrmSegment, string> = {

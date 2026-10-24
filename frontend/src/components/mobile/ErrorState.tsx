@@ -7,6 +7,8 @@ interface Props {
   title?: string
   description?: string
   onRetry?: () => void
+  /** وقتی حالت خطا، کل صفحه است ⇒ عنوان را سرفصل سطح‌یک می‌کند (ممیزی F-14) */
+  asPageHeading?: boolean
 }
 
 /** حالت خطا — «مشکلی پیش آمد / تلاش مجدد» */
@@ -14,6 +16,7 @@ const ErrorState: React.FC<Props> = ({
   title = 'مشکلی پیش آمد',
   description = 'لطفاً دوباره تلاش کنید.',
   onRetry,
+  asPageHeading,
 }) => (
   <motion.div
     initial={{ opacity: 0, y: 12 }}
@@ -24,7 +27,11 @@ const ErrorState: React.FC<Props> = ({
     <div className="mx-auto mb-5 flex h-[84px] w-[84px] items-center justify-center rounded-full bg-red-500/[0.08] dark:bg-red-400/[0.12]">
       <Icon icon="mdi:alert-circle-outline" className="h-10 w-10 text-red-500 dark:text-red-400" />
     </div>
-    <p className="mb-1.5 text-[1.05rem] font-extrabold text-foreground">{title}</p>
+    {asPageHeading ? (
+      <h1 className="mb-1.5 text-[1.05rem] font-extrabold text-foreground">{title}</h1>
+    ) : (
+      <p className="mb-1.5 text-[1.05rem] font-extrabold text-foreground">{title}</p>
+    )}
     <p className="text-[0.68rem] text-muted-foreground">{description}</p>
     {onRetry && (
       <Button

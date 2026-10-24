@@ -17,6 +17,7 @@ import {
   getSlotEndTime,
   getStatusLabel,
 } from '@/lib/utils'
+import { EmptyState } from '@/components/mobile'
 import toast from 'react-hot-toast'
 import PricingBreakdown, { normalizeBreakdown } from '@/components/deals/PricingBreakdown'
 import { downloadIcsEvent } from '@/utils/calendar'
@@ -248,21 +249,14 @@ const BookingDetail: React.FC = () => {
   if (notFound || !booking) {
     return (
       <Layout>
-        <div className="mx-auto w-full max-w-[1200px] px-4 py-4 sm:px-6 md:py-8">
-          <Button
-            variant="ghost"
-            onClick={() => navigate('/bookings')}
-            className="mb-4 min-h-9 font-semibold text-muted-foreground"
-          >
-            <Icon icon="mdi:arrow-right" className="h-5 w-5" />
-            بازگشت به لیست رزروها
-          </Button>
-          <Alert variant="destructive" className="rounded-lg">
-            <AlertDescription>
-              رزرو مورد نظر یافت نشد یا دسترسی شما به آن محدود است.
-            </AlertDescription>
-          </Alert>
-        </div>
+        <EmptyState
+          asPageHeading
+          icon="mdi:calendar-search"
+          title="رزرو یافت نشد"
+          description="این رزرو حذف شده یا به حساب دیگری تعلق دارد."
+          actionLabel="بازگشت به لیست رزروها"
+          onAction={() => navigate('/bookings')}
+        />
       </Layout>
     )
   }

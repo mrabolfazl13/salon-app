@@ -128,6 +128,7 @@ const TeamDetail: React.FC = () => {
       return (
         <Layout>
           <EmptyState
+            asPageHeading
             icon="mdi:lock-outline"
             title={isAuthenticated ? 'این تیم خصوصی است' : 'مشاهده این تیم نیازمند ورود است'}
             description={isAuthenticated ? 'فقط اعضا و دعوت‌شده‌ها می‌توانند این تیم را ببینند.' : 'برای مشاهده و پیوستن وارد شوید.'}
@@ -138,9 +139,9 @@ const TeamDetail: React.FC = () => {
       )
     }
     if (status === 404) {
-      return <Layout><EmptyState icon="mdi:shield-off-outline" title="تیم یافت نشد" description="ممکن است حذف شده یا نشانی نادرست باشد." actionLabel="تیم‌های من" onAction={() => navigate('/teams')} /></Layout>
+      return <Layout><EmptyState asPageHeading icon="mdi:shield-off-outline" title="تیم یافت نشد" description="ممکن است حذف شده یا نشانی نادرست باشد." actionLabel="تیم‌های من" onAction={() => navigate('/teams')} /></Layout>
     }
-    return <Layout><ErrorState description="بارگذاری تیم ممکن نشد." onRetry={() => teamQ.refetch()} /></Layout>
+    return <Layout><ErrorState asPageHeading title="بارگذاری تیم ممکن نشد" description="اتصال خود را بررسی کنید و دوباره تلاش کنید." onRetry={() => teamQ.refetch()} /></Layout>
   }
 
   const openRequests = joinRequestsQ.data?.length ?? 0
