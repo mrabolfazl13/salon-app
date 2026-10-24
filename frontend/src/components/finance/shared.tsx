@@ -383,13 +383,15 @@ export function jalaliDayLabel(isoKey: string): string {
   return formatJalaliDate(isoKey, { format: 'numeric' }).slice(5) // «۰۶/۲۳»
 }
 
-/** جایگزین useMediaQuery پس از حذف MUI — همان آستانهٔ sm (۶۰۰px) */
+/** جایگزین useMediaQuery پس از حذف MUI — آستانهٔ sm در Tailwind این پروژه ۶۴۰px است،
+ *  پس JS هم همان‌جا می‌شکند؛ ۶۰۰ یک ناحیهٔ ۶۰۰-۶۳۹ می‌ساخت که کلاس‌های `sm:` موبایل
+ *  می‌گفتند ولی این hook دسکتاپ. */
 export function useAboveSm(): boolean {
   const [above, setAbove] = React.useState<boolean>(() =>
-    typeof window === 'undefined' ? true : window.matchMedia('(min-width:600px)').matches,
+    typeof window === 'undefined' ? true : window.matchMedia('(min-width:640px)').matches,
   )
   React.useEffect(() => {
-    const mq = window.matchMedia('(min-width:600px)')
+    const mq = window.matchMedia('(min-width:640px)')
     const onChange = () => setAbove(mq.matches)
     onChange()
     mq.addEventListener('change', onChange)

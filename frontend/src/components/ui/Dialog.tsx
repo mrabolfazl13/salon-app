@@ -34,10 +34,6 @@ export interface DialogProps {
   fullWidth?: boolean
   children?: React.ReactNode
   className?: string
-  /** پراپ MUI در فایل‌های مهاجرت‌نشده — نادیده گرفته می‌شود */
-  sx?: unknown
-  /** پراپ MUI در فایل‌های مهاجرت‌نشده — نادیده گرفته می‌شود */
-  slotProps?: unknown
   [key: string]: unknown
 }
 
@@ -51,8 +47,6 @@ const Dialog: React.FC<DialogProps> = ({
   maxWidth = 'sm',
   fullWidth = true,
   className,
-  sx: _sx,
-  slotProps: _slotProps,
   ...props
 }) => {
   // MUI دیالوگ را خودکار به DialogTitle وصل نمی‌کند؛ بدون این، صفحه‌خوان دیالوگ بی‌نام اعلام می‌کند

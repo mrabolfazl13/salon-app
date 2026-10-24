@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware'
 import { isAxiosError } from 'axios'
 import { authService } from '@/services/auth'
 import type { RawUser } from '@/services/auth'
+import type { UserRole } from '@/types/user'
 
 /** فقط ۴۰۱/۴۰۳ نشانهٔ باطل‌بودن توکن است؛ ۴29/5xx/قطع شبکه خطای موقتی‌اند و
  *  نباید کاربر لاگین‌شده را وسط کار از نشست بیندازند (ممیزی: ریست ۴29 روی /auth/me) */
@@ -13,7 +14,7 @@ interface User {
   id: number
   fullName: string
   phone: string
-  role: 'user' | 'venue_manager' | 'club_admin' | 'super_admin' | 'coach'
+  role: UserRole
   isVerified: boolean
   isActive: boolean
   createdAt?: string

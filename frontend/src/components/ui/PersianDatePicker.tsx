@@ -36,8 +36,6 @@ export interface PersianDatePickerProps {
   max?: string
   /** show "پاک کردن" in the panel (default: true) */
   clearable?: boolean
-  /** پشتیبانی قدیمی از پراپ MUI — نادیده گرفته می‌شود (فراخوانی‌های موجود نمی‌شکنند) */
-  sx?: object
 }
 
 interface View {

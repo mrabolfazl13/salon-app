@@ -78,10 +78,11 @@ const SCOPE: { venue_id?: number; from?: string; to?: string } = {
   to: '2026-05-11',
 }
 
-/** پیش‌فرض jsdom موبایل است (matches:false)؛ برای مسیر دسکتاپ matchMedia را جمع می‌کنیم */
+/** پیش‌فرض jsdom موبایل است (matches:false)؛ برای مسیر دسکتاپ matchMedia را جمع می‌کنیم.
+ *  ۶۴۰ = آستانهٔ sm در Tailwind؛ اگر روزی hook به ۶۰۰ برگردد این تست‌ها می‌شکنند. */
 function setDesktop(on: boolean) {
   window.matchMedia = ((query: string) => ({
-    matches: on && query.includes('600px'),
+    matches: on && query.includes('640px'),
     media: query,
     onchange: null,
     addListener: () => {},

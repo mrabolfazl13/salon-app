@@ -1,11 +1,12 @@
 import apiClient from './api'
+import type { UserRole } from '@/types/user'
 
 // شکل کاربر از سمت بک‌اند (snake_case)
 export interface AdminUser {
   id: number
   phone: string
   full_name: string
-  role: 'user' | 'venue_manager' | 'club_admin' | 'super_admin' | 'coach'
+  role: UserRole
   is_active: boolean
   is_verified: boolean
   created_at: string

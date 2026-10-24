@@ -1,11 +1,12 @@
 import apiClient from './api'
+import type { UserRole } from '@/types/user'
 
 // شکل خام کاربر از سمت بک‌اند (snake_case)
 export interface RawUser {
   id: number
   phone: string
   full_name: string
-  role: 'user' | 'venue_manager' | 'coach' | 'club_admin' | 'super_admin'
+  role: UserRole
   is_active?: boolean
   is_verified?: boolean
   created_at?: string

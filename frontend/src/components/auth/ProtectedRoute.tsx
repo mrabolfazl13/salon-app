@@ -3,10 +3,11 @@ import { Navigate, useLocation } from 'react-router-dom'
 import { useAuthStore } from '@/store/authStore'
 import { useStaffMe } from '@/hooks/useStaffMe'
 import toast from 'react-hot-toast'
+import type { UserRole } from '@/types/user'
 
 interface ProtectedRouteProps {
   children: React.ReactNode
-  requiredRole?: 'user' | 'venue_manager' | 'club_admin' | 'super_admin' | 'coach'
+  requiredRole?: UserRole
   /**
    * کنسول‌های عملیاتی سالن (مالی/قیمت‌گذاری/قراردادها/شیفت): علاوه بر مدیر سالن،
    * **کارمندِ انتصابی** (role=user با انتصاب فعال در GET /staff/me) هم باز می‌کند.
