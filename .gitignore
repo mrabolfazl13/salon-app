@@ -86,3 +86,4 @@ frontend/*.aab
 
 # Local pgserver data dir (sandbox)
 backend/.pgdata/
+builds/
