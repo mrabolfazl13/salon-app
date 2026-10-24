@@ -263,7 +263,7 @@ const ManagerShifts: React.FC = () => {
                     data-testid={`shift-venue-${v.id}`}
                     aria-pressed={activeVenue === v.id}
                     onClick={() => setVenueId(v.id)}
-                    className={`min-h-9 rounded-[10px] px-3 text-[0.68rem] font-semibold transition-colors ${
+                    className={`min-h-11 rounded-[10px] px-3 text-[0.68rem] font-semibold transition-colors ${
                       activeVenue === v.id
                         ? 'bg-primary text-white shadow-sm'
                         : 'border border-border text-foreground hover:bg-muted'
@@ -279,14 +279,14 @@ const ManagerShifts: React.FC = () => {
                     aria-label="هفتهٔ قبل"
                     data-testid="shift-prev-week"
                     onClick={() => setWeekStart(addDays(weekStart, -7))}
-                    className="flex h-9 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
+                    className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
                   >
                     <Icon icon="mdi:chevron-right" className="h-[22px] w-[22px]" aria-hidden="true" />
                   </button>
                   <button
                     type="button"
                     onClick={() => setWeekStart(startOfWeek(today))}
-                    className="min-h-9 rounded-[10px] px-3 text-[0.68rem] font-semibold transition-colors hover:bg-muted"
+                    className="min-h-11 rounded-[10px] px-3 text-[0.68rem] font-semibold transition-colors hover:bg-muted"
                   >
                     این هفته
                   </button>
@@ -295,7 +295,7 @@ const ManagerShifts: React.FC = () => {
                     aria-label="هفتهٔ بعد"
                     data-testid="shift-next-week"
                     onClick={() => setWeekStart(addDays(weekStart, 7))}
-                    className="flex h-9 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
+                    className="flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted"
                   >
                     <Icon icon="mdi:chevron-left" className="h-[22px] w-[22px]" aria-hidden="true" />
                   </button>
@@ -329,7 +329,7 @@ const ManagerShifts: React.FC = () => {
                   data-testid="shift-export"
                   disabled={exportShifts.isPending || !/^\d{4}-\d{2}$/.test(exportMonth)}
                   onClick={doExport}
-                  className="min-h-9 rounded-[10px] border border-border px-3 text-[0.68rem] font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
+                  className="min-h-11 rounded-[10px] border border-border px-3 text-[0.68rem] font-semibold transition-colors hover:bg-muted disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {exportShifts.isPending ? 'در حال آماده‌سازی…' : 'خروجی CSV ماهانه'}
                 </button>
@@ -412,7 +412,7 @@ const ManagerShifts: React.FC = () => {
                                     openEdit(s)
                                   }
                                 }}
-                                className={`flex min-h-9 cursor-pointer items-center justify-between gap-1 rounded-[10px] border-r-4 px-2 py-1.5 ${
+                                className={`flex min-h-11 cursor-pointer items-center justify-between gap-1 rounded-[10px] border-r-4 px-2 py-1.5 ${
                                   s.status === 'cancelled'
                                     ? 'bg-gray-500/10 line-through'
                                     : 'bg-primary/10'
@@ -434,7 +434,7 @@ const ManagerShifts: React.FC = () => {
                               data-testid={`shift-add-${person.user_id}-${day}`}
                               onClick={() => openNew(person.user_id, day)}
                               disabled={!activeVenue}
-                              className="inline-flex min-h-9 items-center justify-start gap-1 rounded-[10px] px-2 text-[0.72rem] font-semibold text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
+                              className="inline-flex min-h-11 items-center justify-start gap-1 rounded-[10px] px-2 text-[0.72rem] font-semibold text-muted-foreground transition-colors hover:bg-muted disabled:opacity-50"
                             >
                               <Icon icon="mdi:plus" className="h-4 w-4" aria-hidden="true" />
                               افزودن
@@ -525,7 +525,7 @@ const ManagerShifts: React.FC = () => {
                       const current = shifts.find((s) => s.id === dialog.id)
                       if (current) setStatus(current, 'cancelled')
                     }}
-                    className="min-h-9 rounded-xl border border-destructive/50 px-3 text-[0.68rem] font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                    className="min-h-11 rounded-xl border border-destructive/50 px-3 text-[0.68rem] font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
                   >
                     لغو شیفت
                   </button>
@@ -537,7 +537,7 @@ const ManagerShifts: React.FC = () => {
             <button
               type="button"
               onClick={closeDialog}
-              className="min-h-9 rounded-xl px-4 text-[0.68rem] font-semibold transition-colors hover:bg-muted"
+              className="min-h-11 rounded-xl px-4 text-[0.68rem] font-semibold transition-colors hover:bg-muted"
             >
               بستن
             </button>
@@ -546,7 +546,7 @@ const ManagerShifts: React.FC = () => {
               data-testid="shift-save"
               disabled={busy || !dialog?.date}
               onClick={submit}
-              className="min-h-9 rounded-xl bg-primary px-4 text-[0.68rem] font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
+              className="min-h-11 rounded-xl bg-primary px-4 text-[0.68rem] font-semibold text-white transition-colors hover:bg-primary/90 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {busy ? 'در حال ثبت…' : dialog?.id ? 'ذخیره تغییرات' : 'ثبت شیفت'}
             </button>

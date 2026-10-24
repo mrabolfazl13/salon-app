@@ -1,6 +1,6 @@
 // src/pages/auth/Login.tsx — ورود (shadcn/Tailwind؛ منطق useForm + zod + authStore دست‌نخورده)
 import React, { useState } from 'react'
-import { useNavigate, Link as RouterLink } from 'react-router-dom'
+import { useNavigate, Link as RouterLink, useSearchParams } from 'react-router-dom'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { z } from 'zod'
@@ -35,6 +35,10 @@ const Login: React.FC = () => {
   const isLoading = useAuthStore((state) => state.isLoading)
   // روی صفحه‌های لمسی autoFocus کیبورد را روی حساب‌های نمونه باز می‌کند
   const [hasPointer] = useState(hasFinePointer)
+  // interceptor خطای 401 کاربر را با پرچم expired به اینجا برمی‌گرداند تا
+  // خروجِ خودکار بی‌توضیح نباشد (ممیزی: silent hard logout)
+  const [searchParams, setSearchParams] = useSearchParams()
+  const sessionExpired = searchParams.get('expired') === '1'
 
   const {
     register,
@@ -119,6 +123,21 @@ const Login: React.FC = () => {
         </div>
 
         <Card className="bg-card/90 p-3 shadow-xl backdrop-blur-md">
+          {sessionExpired && (
+            <Alert className="mb-4 text-[0.68rem]">
+              <Icon icon="mdi:lock-clock-outline" aria-hidden="true" />
+              <AlertDescription>
+                نشست شما منقضی شده است؛ برای ادامه دوباره وارد شوید.
+                <button
+                  type="button"
+                  onClick={() => setSearchParams({}, { replace: true })}
+                  className="ms-2 font-bold underline underline-offset-2"
+                >
+                  بستن
+                </button>
+              </AlertDescription>
+            </Alert>
+          )}
           {error && (
             <Alert variant="destructive" className="mb-4 text-[0.68rem]">
               <Icon icon="mdi:alert-circle-outline" aria-hidden="true" />

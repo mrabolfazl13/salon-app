@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import Layout from '@/components/layout/Layout'
+import ConfirmModal from '@/components/modals/ConfirmModal'
 import { adminService } from '@/services/admin'
 import type { AdminUser, UserStats } from '@/services/admin'
 import { formatDate, getInitials } from '@/lib/utils'
@@ -51,6 +52,8 @@ const Users: React.FC = () => {
   const [roleFilter, setRoleFilter] = useState('all')
   const [busyRole, setBusyRole] = useState<number | null>(null)
   const [error, setError] = useState<string | null>(null)
+  // تغییر نقش یک write قابل‌بازگشت نیست (سرور is_verified را صفر می‌کند و در ممیزی امنیتی ثبت می‌شود)
+  const [roleTarget, setRoleTarget] = useState<{ userId: number; name: string; role: AdminUser['role'] } | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -219,7 +222,7 @@ const Users: React.FC = () => {
                     <Select
                       value={user.role}
                       disabled={busyRole === user.id}
-                      onValueChange={(v) => changeRole(user.id, v as AdminUser['role'])}
+                      onValueChange={(v) => setRoleTarget({ userId: user.id, name: user.full_name, role: v as AdminUser['role'] })}
                     >
                       <SelectTrigger
                         aria-label={`تخصیص نقش برای ${user.full_name}`}
@@ -272,6 +275,27 @@ const Users: React.FC = () => {
           </Table>
         )}
       </div>
+
+      <ConfirmModal
+        open={roleTarget !== null}
+        onOpenChange={(open) => { if (!open) setRoleTarget(null) }}
+        title="تغییر نقش کاربر"
+        description={
+          roleTarget
+            ? `نقش «${roleTarget.name}» از «${roleConfig[users.find((u) => u.id === roleTarget.userId)?.role ?? '']?.label || '—'}» به «${roleConfig[roleTarget.role]?.label || roleTarget.role}» تغییر می‌کند. این اقدام در ممیزی امنیتی ثبت می‌شود؛ اگر نقش جدید مدیر سالن یا مدیر باشگاه باشد، تایید قبلی کاربر باطل می‌شود و باید دوباره تایید شود.`
+            : ''
+        }
+        confirmText="تغییر نقش"
+        cancelText="انصراف"
+        variant="destructive"
+        loading={busyRole !== null}
+        onConfirm={() => {
+          if (!roleTarget) return
+          const { userId, role } = roleTarget
+          setRoleTarget(null)
+          void changeRole(userId, role)
+        }}
+      />
     </Layout>
   )
 }

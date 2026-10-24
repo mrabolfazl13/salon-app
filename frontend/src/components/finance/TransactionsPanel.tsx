@@ -46,7 +46,6 @@ import {
   statusPairOf,
 } from './shared'
 import TransactionEntryDialog from './TransactionEntryDialog'
-import ExpenseCategoriesPanel from './ExpenseCategoriesPanel'
 import type { FinanceTransaction } from '@/services/finance'
 import { formatJalaliDateTime, toPersianDigits } from '@/lib/jalali'
 
@@ -146,7 +145,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
           })}
         </div>
         <div className="flex gap-1.5">
-          <Button size="sm" variant="outline" onClick={handleExport} disabled={exportCsv.isPending} className="h-7 px-2 text-[0.68rem]">
+          <Button size="sm" variant="outline" onClick={handleExport} disabled={exportCsv.isPending} className="min-h-11 px-2 text-[0.68rem]">
             {exportCsv.isPending ? (
               <span
                 className="h-3 w-3 animate-spin rounded-full border-2 border-current border-t-transparent"
@@ -158,7 +157,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
             )}
             خروجی CSV
           </Button>
-          <Button size="sm" onClick={() => setCreateOpen(true)} className="h-7 px-2 text-[0.68rem]">
+          <Button size="sm" onClick={() => setCreateOpen(true)} className="min-h-11 px-2 text-[0.68rem]">
             <Icon icon="mdi:plus" className="h-3.5 w-3.5" aria-hidden="true" />
             ثبت ردیف دستی
           </Button>
@@ -174,7 +173,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
           <div className="col-span-1 sm:col-span-3">
             <Label id="tx-type-label" className="mb-1 block text-[0.68rem]">نوع</Label>
             <Select value={type} onValueChange={(v) => resetPageAnd(setType)(v)}>
-              <SelectTrigger className="h-9 text-[0.68rem]" aria-labelledby="tx-type-label">
+              <SelectTrigger className="min-h-11 text-[0.68rem]" aria-labelledby="tx-type-label">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -188,7 +187,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
           <div className="col-span-1 sm:col-span-3">
             <Label id="tx-status-label" className="mb-1 block text-[0.68rem]">وضعیت</Label>
             <Select value={status} onValueChange={(v) => resetPageAnd(setStatus)(v as StatusFilter)}>
-              <SelectTrigger className="h-9 text-[0.68rem]" aria-labelledby="tx-status-label">
+              <SelectTrigger className="min-h-11 text-[0.68rem]" aria-labelledby="tx-status-label">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -204,7 +203,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
               value={venueSel === 'all' ? 'all' : String(venueSel)}
               onValueChange={(v) => resetPageAnd(setVenueSel)(v === 'all' ? 'all' : Number(v))}
             >
-              <SelectTrigger className="h-9 text-[0.68rem]" aria-labelledby="tx-venue-label">
+              <SelectTrigger className="min-h-11 text-[0.68rem]" aria-labelledby="tx-venue-label">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
@@ -340,7 +339,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                             size="sm"
                             variant="ghost"
                             onClick={() => setVoidTx(tx)}
-                            className="text-[0.68rem] font-bold text-red-600 hover:text-red-700 dark:text-red-400 h-6 px-1.5"
+                            className="text-[0.68rem] font-bold text-red-600 hover:text-red-700 dark:text-red-400 min-h-11 px-1.5"
                           >
                             ابطال
                           </Button>
@@ -358,10 +357,6 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
           <Pager className="mt-3" count={totalPages} page={page} onChange={setPage} />
         )}
       </SectionCard>
-
-      <div className="mt-4">
-        <ExpenseCategoriesPanel venues={venues} />
-      </div>
 
       <TransactionEntryDialog open={createOpen} onClose={() => setCreateOpen(false)} venues={venues} />
       <VoidTransactionDialog tx={voidTx} onClose={() => setVoidTx(null)} />
@@ -436,12 +431,12 @@ const VoidTransactionDialog: React.FC<{ tx: FinanceTransaction | null; onClose: 
           </p>
           <Separator className="mt-3" />
           <div className="mt-2.5 flex justify-end gap-2">
-            <Button variant="outline" onClick={close} disabled={voidTx.isPending} className="h-7 px-2 text-[0.68rem]">انصراف</Button>
+            <Button variant="outline" onClick={close} disabled={voidTx.isPending} className="min-h-11 px-2 text-[0.68rem]">انصراف</Button>
             <Button
               variant="destructive"
               onClick={submit}
               disabled={!valid || voidTx.isPending}
-              className="h-7 px-2 text-[0.68rem]"
+              className="min-h-11 px-2 text-[0.68rem]"
             >
               {voidTx.isPending ? 'در حال ابطال...' : 'ابطال قطعی'}
             </Button>

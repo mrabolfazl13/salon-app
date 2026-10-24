@@ -27,7 +27,6 @@ import { bookingService } from '@/services/booking'
 import { loyaltyService, type LoyaltyHistory } from '@/services/loyalty'
 import { waitlistService } from '@/services/waitlist'
 import PricingBreakdown, { normalizeBreakdown } from '@/components/deals/PricingBreakdown'
-import { formatRial } from '@/components/finance/shared'
 import { toPersianDigits } from '@/lib/jalali'
 import { venueService } from '@/services/venue'
 import { slotService } from '@/services/slot'
@@ -505,7 +504,7 @@ const VenueDetail: React.FC = () => {
                 <div className="mt-4">
                   <SectionHeader
                     title="سانس‌ها"
-                    subtitle={daySlots.length > 0 ? `${daySlots.length} سانس در ${dateLabel}` : dateLabel}
+                    subtitle={daySlots.length > 0 ? `${toPersianDigits(daySlots.length)} سانس در ${dateLabel}` : dateLabel}
                   />
                   {daySlots.length === 0 ? (
                     <EmptyState
@@ -582,7 +581,7 @@ const VenueDetail: React.FC = () => {
           {isGym ? (
             <BookingSummary
               price={minPlanPrice ?? venue.price}
-              subtitle={plans.length > 0 ? `${plans.length} پلن اشتراک موجود` : 'پلن اشتراکی تعریف نشده'}
+              subtitle={plans.length > 0 ? `${toPersianDigits(plans.length)} پلن اشتراک موجود` : 'پلن اشتراکی تعریف نشده'}
               ctaLabel={plans.length > 0 ? 'خرید اشتراک' : 'پلنی موجود نیست'}
               disabled={plans.length === 0}
               loading={false}
@@ -678,7 +677,7 @@ const VenueDetail: React.FC = () => {
                   <div className="overflow-hidden rounded-[20px] border border-border bg-card shadow-sm">
                     <div className="p-6">
                       <Tabs value={String(tab)} onValueChange={(value) => setTab(Number(value))}>
-                        <TabsList className="mb-6 grid h-auto min-h-12 w-full grid-cols-3 gap-1 p-1">
+                        <TabsList className="mb-6 grid h-auto min-h-[52px] w-full grid-cols-3 gap-1 p-1">
                           <TabsTrigger
                             value="0"
                             className="h-12 gap-1 rounded-[10px] text-xs font-semibold data-[state=active]:bg-gradient-to-br data-[state=active]:from-slate-900 data-[state=active]:via-blue-900 data-[state=active]:to-blue-700 data-[state=active]:text-white"
@@ -983,7 +982,7 @@ const VenueDetail: React.FC = () => {
                   رزرو ثبت شد — در انتظار تأیید مدیر سالن
                 </p>
                 <p className="text-lg font-black text-blue-600 dark:text-blue-400">
-                  قابل پرداخت: {formatRial(Number(bookingResult.payment_amount) || 0)}
+                  قابل پرداخت: {formatPrice(Number(bookingResult.payment_amount) || 0)}
                 </p>
                 {bookingResult.coupon_code && (
                   <span className="text-xs font-bold text-pink-600 dark:text-pink-400">
@@ -1038,7 +1037,7 @@ const VenueDetail: React.FC = () => {
                       </Label>
                       {loyalty ? (
                         <span className="block text-xs text-muted-foreground">
-                          موجودی: {toPersianDigits(loyalty.balance)} امتیاز ≈ {formatRial(loyalty.balance * loyalty.point_value_rial)}
+                          موجودی: {toPersianDigits(loyalty.balance)} امتیاز ≈ {formatPrice(loyalty.balance * loyalty.point_value_rial)}
                         </span>
                       ) : null}
                     </div>

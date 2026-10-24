@@ -267,7 +267,7 @@ const ManagerContracts: React.FC = () => {
                   aria-pressed={statusFilter === ''}
                   onClick={() => setStatusFilter('')}
                   className={cn(
-                    'min-h-9 rounded-lg px-3 text-[0.68rem] font-semibold transition-colors',
+                    'min-h-11 rounded-lg px-3 text-[0.68rem] font-semibold transition-colors',
                     statusFilter === ''
                       ? 'bg-primary text-white'
                       : 'border border-border hover:bg-muted'
@@ -282,7 +282,7 @@ const ManagerContracts: React.FC = () => {
                     aria-pressed={statusFilter === s}
                     onClick={() => setStatusFilter(s)}
                     className={cn(
-                      'min-h-9 rounded-lg px-3 text-[0.68rem] font-semibold transition-colors',
+                      'min-h-11 rounded-lg px-3 text-[0.68rem] font-semibold transition-colors',
                       statusFilter === s
                         ? 'bg-primary text-white'
                         : 'border border-border hover:bg-muted'

@@ -162,7 +162,7 @@ const UserDashboard: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/favorites')}
-              className="h-8 px-2 text-[0.72rem]"
+              className="min-h-11 px-2 text-[0.72rem]"
             >
               مشاهده همه
               <Icon icon="mdi:chevron-left" className="ms-1 h-4 w-4" />
@@ -184,7 +184,7 @@ const UserDashboard: React.FC = () => {
             variant="ghost"
             size="sm"
             onClick={() => navigate('/venues')}
-            className="h-8 px-2 text-[0.72rem]"
+            className="min-h-11 px-2 text-[0.72rem]"
           >
             مشاهده همه
             <Icon icon="mdi:chevron-left" className="ms-1 h-4 w-4" />

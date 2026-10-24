@@ -91,7 +91,7 @@ const Contracts: React.FC = () => {
         <Tabs value={tab} onValueChange={(v) => setTab(v as ContractTab)} className="mb-4">
           <TabsList className="h-auto w-full justify-start overflow-x-auto p-1">
             {PAGE_TABS.map((t) => (
-              <TabsTrigger key={t} value={t} className="min-h-10 whitespace-nowrap px-3">
+              <TabsTrigger key={t} value={t} className="min-h-11 whitespace-nowrap px-3">
                 {`${TAB_LABELS[t]} (${toPersianDigits(counts[t] ?? 0)})`}
               </TabsTrigger>
             ))}

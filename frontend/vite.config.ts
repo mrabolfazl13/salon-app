@@ -16,7 +16,8 @@ export default defineConfig(({ mode }) => {
     // همان origin دِو را حفظ کند — nginx بک‌اند Host را بدون پورت بازمی‌گرداند
     '/api/v1': {
       target: proxyTarget,
-      changeOrigin: false,
+      // nginx بک‌اند را از روی Host انتخاب می‌کند؛ Host محلی (localhost:3001) ۴۰۳ می‌گیرد
+      changeOrigin: true,
       configure: (proxy: any) => {
         proxy.on('proxyRes', (proxyRes: any, req: any) => {
           const loc = proxyRes.headers['location']
@@ -37,7 +38,7 @@ export default defineConfig(({ mode }) => {
     '/ws': {
       target: proxyTarget,
       ws: true,
-      changeOrigin: false,
+      changeOrigin: true,
     },
     '/api/varzesh3': {
       target: 'https://web-api.varzesh3.com',

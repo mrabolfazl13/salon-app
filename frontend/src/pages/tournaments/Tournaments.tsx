@@ -8,6 +8,7 @@ import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 
 import Layout from '@/components/layout/Layout'
+import ConfirmModal from '@/components/modals/ConfirmModal'
 import { EmptyState, Shimmer } from '@/components/mobile'
 import { ErrorBox, StatusChip, extractError, formatRial } from '@/components/finance/shared'
 import {
@@ -172,6 +173,8 @@ const TournamentsPage: React.FC = () => {
   const [entryFee, setEntryFee] = useState('0')
   const [description, setDescription] = useState('')
   const [format, setFormat] = useState<TournamentFormat>('single_elimination')
+  // قرعه‌کشی و لغو تورنمنت بازگشت‌ناپذیرند → یک گام تأیید پیش از write
+  const [confirmTarget, setConfirmTarget] = useState<{ tournament: Tournament; kind: 'draw' | 'cancel' } | null>(null)
 
   const canManage = (t: Tournament) =>
     t.organizer_id === user?.id || user?.role === 'super_admin'
@@ -199,6 +202,15 @@ const TournamentsPage: React.FC = () => {
       onSuccess: () => toast.success('تورنمنت لغو شد'),
       onError: (err) => toast.error(extractError(err, 'لغو تورنمنت ممکن نشد.')),
     })
+  }
+
+  /** اجرای اکشنی که برگزارکننده در ConfirmModal تأیید کرده است */
+  const runConfirmedAction = () => {
+    if (!confirmTarget) return
+    const { tournament: target, kind } = confirmTarget
+    setConfirmTarget(null)
+    if (kind === 'draw') runDraw(target)
+    else runCancel(target)
   }
 
   const submit = () => {
@@ -263,7 +275,9 @@ const TournamentsPage: React.FC = () => {
         <div className="flex flex-col gap-3" data-testid="tournament-list">
           {items.map((t) => (
             <TournamentCard key={t.id} tournament={t} canManage={canManage(t)} busy={busy}
-                            onOpen={() => runOpen(t)} onDraw={() => runDraw(t)} onCancel={() => runCancel(t)} />
+                            onOpen={() => runOpen(t)}
+                            onDraw={() => setConfirmTarget({ tournament: t, kind: 'draw' })}
+                            onCancel={() => setConfirmTarget({ tournament: t, kind: 'cancel' })} />
           ))}
         </div>
       )}
@@ -324,6 +338,22 @@ const TournamentsPage: React.FC = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <ConfirmModal
+        open={confirmTarget !== null}
+        onOpenChange={(open) => { if (!open) setConfirmTarget(null) }}
+        title={confirmTarget?.kind === 'cancel' ? 'لغو تورنمنت' : 'قرعه‌کشی و ساخت براکت'}
+        description={confirmTarget?.kind === 'cancel'
+          ? `«${confirmTarget?.tournament.name ?? ''}» لغو می‌شود؛ ثبت‌نام تیم‌ها بی‌اثر می‌ماند و این اقدام بازگشت ندارد. برای ادامهٔ جام باید تورنمنت تازه‌ای بسازید.`
+          : (confirmTarget?.tournament.format === 'round_robin'
+            ? `برنامهٔ هفته‌های «${confirmTarget?.tournament.name ?? ''}» ساخته می‌شود و پس از آن قابل تغییر نیست؛ برای اصلاح فقط ساخت تورنمنت تازه ممکن است.`
+            : `براکت «${confirmTarget?.tournament.name ?? ''}» ساخته می‌شود و پس از آن قابل تغییر نیست؛ برای اصلاح فقط ساخت تورنمنت تازه ممکن است.`)}
+        confirmText={confirmTarget?.kind === 'cancel' ? 'لغو تورنمنت' : 'قرعه‌کشی'}
+        cancelText="انصراف"
+        variant="destructive"
+        loading={busy}
+        onConfirm={runConfirmedAction}
+      />
     </Layout>
   )
 }

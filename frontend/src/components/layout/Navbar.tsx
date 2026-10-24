@@ -26,6 +26,16 @@ const roleLabels: Record<string, string> = {
   coach: 'مربی',
 }
 
+// نوار ناوبری دسکتاپ فقط مقصدهای اصلی را مستقیم نشان می‌دهد؛ بقیه در منوی «بیشتر»
+// می‌روند تا در عرض ۱۲۰۰–۱۴۰۰ پیکسل بریده نشود.
+// انتخاب اصلی‌ها نقشه‌محور است: مشتری با مقصدهای رزرو شروع می‌شود، مدیر/مالک با
+// کار خودش (داشبورد + سالن‌های من + کنسول). صفحات مشتری برای مدیر حذف نمی‌شوند،
+// فقط به «بیشتر» و منوی آواتار می‌روند — تا هیچ مسیری بی‌دسترسی نشود.
+const CUSTOMER_PRIMARY_PATHS = new Set(['/', '/venues', '/games', '/teams', '/competitions', '/bookings'])
+const MANAGER_PRIMARY_PATHS = new Set([
+  '/', '/manager-dashboard', '/manager/venues', '/finance', '/manager/crm', '/manager/shifts',
+])
+
 interface NavbarProps {
   /** منوی کناری (Drawer) غیرفعال شده — ناوبری موبایل با نوار پایین انجام می‌شود */
   onMenuClick?: () => void
@@ -60,6 +70,13 @@ const Navbar: React.FC<NavbarProps> = () => {
 
   const navItems = [
     { label: 'خانه', icon: 'mdi:home', href: '/' },
+    // مقصدهای کاری مدیر: انتخاب سالن و داشبورد — جای «سالن‌ها/تیم‌ها»ٔ مشتری
+    ...(isManager
+      ? [
+          { label: 'داشبورد مدیریت', icon: 'mdi:view-dashboard', href: '/manager-dashboard' },
+          { label: 'سالن\u200cهای من', icon: 'mdi:store', href: '/manager/venues' },
+        ]
+      : []),
     { label: 'سالن‌ها', icon: 'mdi:store', href: '/venues' },
     { label: 'بازی‌ها', icon: 'mdi:gamepad-variant', href: '/games' },
     { label: 'تیم\u200cها', icon: 'mdi:account-group', href: '/teams' },
@@ -74,35 +91,52 @@ const Navbar: React.FC<NavbarProps> = () => {
 
   const dashboardPath = isCoach ? '/coach' : isManager ? '/manager-dashboard' : '/dashboard'
 
-  // آیتم‌های منوی آواتار — در همه اندازه‌ها (موبایل + دسکتاپ) در دسترس
-  const menuItems = [
-    { to: '/profile', label: 'پروفایل', icon: 'mdi:account-outline' },
-    { to: '/teams', label: 'تیم\u200cها', icon: 'mdi:account-group' },
-    { to: '/games', label: 'بازی\u200cها', icon: 'mdi:gamepad-variant' },
-    { to: '/competitions', label: 'رقابت\u200cها', icon: 'mdi:trophy' },
-    { to: '/tournaments', label: 'تورنمنت\u200cها', icon: 'mdi:trophy-outline' },
+  // منوی آواتار دو گروه است؛ گروه «کار» (داشبورد/کنسول) بالای «مرور» می‌آید —
+  // قبلاً پنج لینک کنسولِ مدیر زیر شش آیتم مشتری گم می‌شدند. آیتم‌های مشتری حذف
+  // نشده‌اند تا برای مدیر/مربی بن‌بست نسازیم، فقط پایین‌تر رفته‌اند.
+  const workMenu = [
     { to: dashboardPath, label: isCoach ? 'پنل مربی' : isManager ? 'داشبورد مدیریت' : 'داشبورد', icon: 'mdi:view-dashboard-outline' },
-    { to: '/deals', label: 'شگفت\u200cانگیزها', icon: 'mdi:lightning-bolt' },
+    // انتخاب‌گر سالن فقط برای مالک و کارمندهای دارای کد کنسول؛ کارمند بی‌کد صفحهٔ خالی می‌بیند
+    ...(isManager || canConsoleNav ? [{ to: '/manager/venues', label: 'سالن\u200cهای من', icon: 'mdi:store-outline' }] : []),
     ...(canConsoleNav ? consoleLinks.map((item) => ({ to: item.href, label: item.label, icon: item.icon })) : []),
     ...(isManager ? [{ to: '/manager/teams', label: 'تیم\u200cهای همکار', icon: 'mdi:handshake-outline' }] : []),
     ...(user?.role === 'super_admin' ? [{ to: '/admin', label: 'پنل ادمین', icon: 'mdi:shield-account-outline' }] : []),
   ]
+  const browseMenu = [
+    { to: '/venues', label: 'مرور سالن\u200cها', icon: 'mdi:magnify' },
+    { to: '/favorites', label: 'علاقه\u200cمندی\u200cها', icon: 'mdi:heart-outline' },
+    { to: '/teams', label: 'تیم\u200cها', icon: 'mdi:account-group' },
+    { to: '/games', label: 'بازی\u200cها', icon: 'mdi:gamepad-variant' },
+    { to: '/competitions', label: 'رقابت\u200cها', icon: 'mdi:trophy' },
+    { to: '/tournaments', label: 'تورنمنت\u200cها', icon: 'mdi:trophy-outline' },
+    { to: '/bookings', label: 'رزروهای من', icon: 'mdi:calendar-month-outline' },
+    { to: '/deals', label: 'شگفت\u200cانگیزها', icon: 'mdi:lightning-bolt' },
+  ]
+  const menuGroups = [
+    [{ to: '/profile', label: 'پروفایل', icon: 'mdi:account-outline' }, ...workMenu],
+    browseMenu,
+  ]
 
   const isActive = (href: string) =>
     href === '/' ? pathname === '/' : pathname === href || pathname.startsWith(`${href}/`)
+
+  const primaryPaths = isManager ? MANAGER_PRIMARY_PATHS : CUSTOMER_PRIMARY_PATHS
+  const primaryNav = navItems.filter((item) => primaryPaths.has(item.href))
+  const moreNav = navItems.filter((item) => !primaryPaths.has(item.href))
+  const moreActive = moreNav.some((item) => isActive(item.href))
 
   return (
     <motion.header
       initial={{ y: -80 }}
       animate={{ y: 0 }}
       transition={{ duration: 0.45, type: 'spring', stiffness: 100 }}
-      className="sticky top-0 z-40 border-b border-border bg-background/85 pt-safe backdrop-blur-xl supports-[backdrop-filter]:bg-background/70"
+      className="sticky top-0 z-40 border-b border-border bg-background/85 pt-safe backdrop-blur-xl supports-[backdrop-filter]:bg-background/70 print:hidden"
     >
       <div className="mx-auto flex h-16 w-full max-w-7xl items-center gap-1.5 px-4 sm:px-6 lg:px-8">
         <Link
           to="/"
           aria-label="صفحه اصلی فوتسال"
-          className="flex min-h-9 shrink-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_4px_14px_rgba(245,158,11,0.3)]">
             <Icon icon="mdi:soccer" className="h-6 w-6" style={{ color: '#1c1917' }} />
@@ -122,13 +156,13 @@ const Navbar: React.FC<NavbarProps> = () => {
             aria-label="ناوبری بخش‌ها"
             className="hidden min-w-0 flex-[0_1_auto] items-center gap-0.5 overflow-x-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:flex"
           >
-            {navItems.map((item) => (
+            {primaryNav.map((item) => (
               <Link
                 key={item.href}
                 to={item.href}
                 aria-current={isActive(item.href) ? 'page' : undefined}
                 className={cn(
-                  'inline-flex min-h-9 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-2.5 text-[0.68rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                  'inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-2.5 text-[0.72rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:px-3 lg:text-[0.8rem]',
                   isActive(item.href)
                     ? 'bg-accent text-accent-foreground'
                     : 'text-foreground/80 hover:bg-muted hover:text-foreground'
@@ -138,6 +172,39 @@ const Navbar: React.FC<NavbarProps> = () => {
                 {item.label}
               </Link>
             ))}
+
+            {moreNav.length > 0 && (
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button
+                    type="button"
+                    aria-label="بخش‌های بیشتر"
+                    className={cn(
+                      'inline-flex min-h-11 shrink-0 items-center gap-1.5 whitespace-nowrap rounded-[10px] px-2.5 text-[0.72rem] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring lg:px-3 lg:text-[0.8rem]',
+                      moreActive
+                        ? 'bg-accent text-accent-foreground'
+                        : 'text-foreground/80 hover:bg-muted hover:text-foreground'
+                    )}
+                  >
+                    <Icon icon="mdi:dots-horizontal" className="h-5 w-5" />
+                    بیشتر
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-56">
+                  {moreNav.map((item) => (
+                    <DropdownMenuItem key={item.href} asChild>
+                      <Link
+                        to={item.href}
+                        className={cn('w-full', isActive(item.href) && 'bg-accent text-accent-foreground')}
+                      >
+                        <Icon icon={item.icon} className="h-5 w-5 text-muted-foreground" />
+                        <span>{item.label}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </DropdownMenuContent>
+              </DropdownMenu>
+            )}
           </nav>
         )}
 
@@ -152,7 +219,7 @@ const Navbar: React.FC<NavbarProps> = () => {
               <button
                 type="button"
                 aria-label="منوی حساب کاربری"
-                className="ms-0.5 inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="ms-0.5 inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <span className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-amber-400 to-orange-500 text-[0.68rem] font-extrabold text-stone-900 transition-transform hover:scale-105">
                   {user?.fullName ? getInitials(user.fullName) : <Icon icon="mdi:account" className="h-5 w-5" />}
@@ -168,13 +235,18 @@ const Navbar: React.FC<NavbarProps> = () => {
                 </span>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              {menuItems.map((item) => (
-                <DropdownMenuItem key={item.to} asChild>
-                  <Link to={item.to} className="w-full">
-                    <Icon icon={item.icon} className="h-5 w-5 text-muted-foreground" />
-                    <span>{item.label}</span>
-                  </Link>
-                </DropdownMenuItem>
+              {menuGroups.map((group, groupIndex) => (
+                <React.Fragment key={`menu-group-${groupIndex}`}>
+                  {groupIndex > 0 && <DropdownMenuSeparator />}
+                  {group.map((item) => (
+                    <DropdownMenuItem key={item.to} asChild>
+                      <Link to={item.to} className="w-full">
+                        <Icon icon={item.icon} className="h-5 w-5 text-muted-foreground" />
+                        <span>{item.label}</span>
+                      </Link>
+                    </DropdownMenuItem>
+                  ))}
+                </React.Fragment>
               ))}
               <DropdownMenuSeparator />
               <DropdownMenuItem
@@ -188,10 +260,10 @@ const Navbar: React.FC<NavbarProps> = () => {
           </DropdownMenu>
         ) : (
           <div className="flex shrink-0 items-center gap-1">
-            <Button asChild variant="ghost" size="sm">
+            <Button asChild variant="ghost" size="sm" className="min-h-11">
               <Link to="/login">ورود</Link>
             </Button>
-            <Button asChild size="sm" className="px-4 font-bold">
+            <Button asChild size="sm" className="min-h-11 px-4 font-bold">
               <Link to="/register">ثبت‌نام</Link>
             </Button>
           </div>

@@ -131,7 +131,9 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
               {label}
             </Label>
           )}
-          <div className="relative">
+          {/* چون خود فیلد dir=ltr است، پیچِ آیکن هم در همان جهت ltr تعریف می‌شود
+              تا start/end همیشه به همان سمتِ متنِ تاریخ بچسبد. */}
+          <div dir="ltr" className="relative">
             <input
               id={inputId}
               value={value ? formatJalaliDate(value, { format: 'numeric', digits: 'en' }) : ''}
@@ -157,13 +159,14 @@ const PersianDatePicker: React.FC<PersianDatePickerProps> = ({
                 'disabled:cursor-not-allowed disabled:opacity-50',
                 error && 'border-red-500 focus-visible:ring-red-500',
                 readOnly ? 'cursor-default' : 'cursor-pointer',
-                !readOnly && 'pe-9',
+                !readOnly && 'ps-9',
               )}
             />
             {/* آیکن تنها نشانهٔ بصری است؛ هدف لمسی خودِ فیلد ۴۴px است و دکمهٔ ۴۴px
-                جداگانه فقط عرض متن را می‌خورد و تاریخ را می‌برید */}
+                جداگانه فقط عرض متن را می‌خورد و تاریخ را می‌برید. فیلد و آیکن داخل
+                پوشش dir=ltr‌اند، پس ps/start منطقى معادل سمت متنِ تاریخ می‌شود. */}
             {!readOnly && (
-              <span className="pointer-events-none absolute end-2.5 top-1/2 flex -translate-y-1/2 items-center text-primary">
+              <span className="pointer-events-none absolute start-2.5 top-1/2 flex -translate-y-1/2 items-center text-primary">
                 <Icon icon="mdi:calendar-month-outline" className="h-5 w-5" />
               </span>
             )}

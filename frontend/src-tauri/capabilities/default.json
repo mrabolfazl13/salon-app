@@ -9,7 +9,13 @@
     {
       "identifier": "http:default",
       "allow": [
-        { "url": "http://2.189.255.225/*" },
+        { "url": "http://salon.absadeghi.ir/*" },
+        { "url": "https://salon.absadeghi.ir/*" },
+        { "url": "http://api.salon.absadeghi.ir/*" },
+        { "url": "https://api.salon.absadeghi.ir/*" },
+        { "url": "https://api.iconify.design/*" },
+        { "url": "https://api.simplesvg.com/*" },
+        { "url": "https://api.unisvg.com/*" },
         { "url": "http://localhost/*" },
         { "url": "http://127.0.0.1/*" }
       ]

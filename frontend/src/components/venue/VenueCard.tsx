@@ -4,7 +4,8 @@ import { Icon } from '@iconify/react';
 import { Link } from 'react-router-dom';
 import type { Venue } from '@/types';
 import { parseList } from '@/utils/venueMedia';
-import VenueImage from '@/components/mobile/VenueImage';
+import { toPersianDigits } from '@/utils/l10n';
+import VenueCardImage from '@/components/venue/VenueCardImage';
 import FavoriteButton from '@/components/mobile/FavoriteButton';
 import Rating from '@/components/mobile/Rating';
 import Price from '@/components/mobile/Price';
@@ -38,9 +39,9 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
       >
         {/* تصویر بزرگ + قلب روی تصویر */}
         <div className="p-1.5 pb-0">
-          <VenueImage images={venue.images} name={venue.name} ratio="16:10" verified={venue.is_verified} venueId={venue.id}>
+          <VenueCardImage images={venue.images} name={venue.name} ratio="16:10" verified={venue.is_verified}>
             <FavoriteButton venue={{ id: venue.id, name: venue.name }} size="sm" />
-          </VenueImage>
+          </VenueCardImage>
         </div>
 
         <div className="flex flex-1 flex-col gap-1.5 p-3 pt-2">
@@ -73,7 +74,7 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
               ))}
               {am.length > 3 && (
                 <span className="inline-flex h-5 items-center rounded-full bg-foreground/5 px-1.5 text-[0.65rem] font-bold text-muted-foreground">
-                  +{(am.length - 3).toLocaleString('fa-IR')}
+                  +{toPersianDigits(am.length - 3)}
                 </span>
               )}
             </div>
@@ -87,7 +88,8 @@ const VenueCard: React.FC<Props> = ({ venue, onBook }) => {
             <button
               type="button"
               onClick={handleBook}
-              className="inline-flex min-h-9 min-w-9 shrink-0 items-center gap-1.5 rounded-lg border-0 bg-gradient-to-br from-amber-400 to-amber-500 px-3 text-[0.75rem] font-extrabold text-stone-900 shadow-[0_2px_8px_rgba(245,158,11,0.3)] transition hover:brightness-105 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              aria-label={`رزرو ${venue.name}`}
+              className="inline-flex min-h-11 min-w-11 shrink-0 items-center justify-center gap-1.5 rounded-lg border-0 bg-gradient-to-br from-amber-400 to-amber-500 px-3 text-[0.75rem] font-extrabold text-stone-900 shadow-[0_2px_8px_rgba(245,158,11,0.3)] transition hover:brightness-105 active:scale-[0.97] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               <Icon icon="mdi:calendar-check" aria-hidden="true" className="h-[14px] w-[14px]" />
               رزرو

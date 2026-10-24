@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import Layout from '@/components/layout/Layout'
+import ConfirmModal from '@/components/modals/ConfirmModal'
 import VenueCard from '@/components/venue/VenueCard'
 import { EmptyState, ErrorState, SectionHeader, VenueCardSkeletonList } from '@/components/mobile'
 import { venueService } from '@/services/venue'
@@ -17,6 +18,8 @@ const Favorites: React.FC = () => {
   const [venues, setVenues] = useState<Venue[]>([])
   const [loading, setLoading] = useState<boolean>(favorites.length > 0)
   const [fetchError, setFetchError] = useState(false)
+  // «پاک کردن همه» لیست را از سرور هم حذف می‌کند و بازگشت ندارد → گام تأیید
+  const [clearOpen, setClearOpen] = useState(false)
 
   useEffect(() => {
     if (favorites.length === 0) {
@@ -80,7 +83,7 @@ const Favorites: React.FC = () => {
               : undefined
           }
           actionLabel={favorites.length > 0 ? 'پاک کردن همه' : undefined}
-          onAction={favorites.length > 0 ? clear : undefined}
+          onAction={favorites.length > 0 ? () => setClearOpen(true) : undefined}
         />
 
         {loading ? (
@@ -97,7 +100,7 @@ const Favorites: React.FC = () => {
               title="سالن‌های ذخیره‌شده در دسترس نیستند"
               description="به نظر می‌رسد سالن‌هایی که ذخیره کرده بودید حذف شده‌اند. می‌توانید لیست را پاک کنید یا سالن جدیدی پیدا کنید."
               actionLabel="پاک کردن لیست"
-              onAction={clear}
+              onAction={() => setClearOpen(true)}
             />
           ) : (
             <EmptyState
@@ -133,6 +136,20 @@ const Favorites: React.FC = () => {
           </>
         )}
       </div>
+
+      <ConfirmModal
+        open={clearOpen}
+        onOpenChange={(open) => { if (!open) setClearOpen(false) }}
+        title="پاک کردن همهٔ علاقه‌مندی‌ها"
+        description={`همهٔ ${favorites.length} سالن ذخیره‌شده از لیست شما حذف می‌شود، از جمله روی سرور. برای بازگرداندن باید تک‌تک سالن‌ها را دوباره پیدا و ذخیره کنید.`}
+        confirmText="پاک کردن"
+        cancelText="انصراف"
+        variant="destructive"
+        onConfirm={() => {
+          setClearOpen(false)
+          clear()
+        }}
+      />
     </Layout>
   )
 }

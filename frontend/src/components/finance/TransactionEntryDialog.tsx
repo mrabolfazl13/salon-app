@@ -48,10 +48,12 @@ const TransactionEntryDialog: React.FC<{
   open: boolean
   onClose: () => void
   venues: FinanceVenue[]
-}> = ({ open, onClose, venues }) => {
+  /** حالت شروع — «ثبت هزینه» از صفحهٔ هزینه‌ها مستقیم روی هزینه باز می‌شود */
+  initialMode?: EntryMode
+}> = ({ open, onClose, venues, initialMode = 'payment' }) => {
   const isSuper = useAuthStore((s) => s.user?.role === 'super_admin')
   const venueRequired = !isSuper
-  const [mode, setMode] = useState<EntryMode>('payment')
+  const [mode, setMode] = useState<EntryMode>(initialMode)
   const [amount, setAmount] = useState('')
   const [method, setMethod] = useState<TransactionMethod>('cash')
   const [status, setStatus] = useState<TransactionStatus>('cleared')

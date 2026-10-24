@@ -9,6 +9,8 @@ import { Icon } from '@iconify/react'
 
 import Layout from '@/components/layout/Layout'
 import { EmptyState, ErrorState, Shimmer } from '@/components/mobile'
+import { ErrorBox, extractError } from '@/components/finance/shared'
+import { isForbidden } from '@/components/crm/shared'
 import { Button } from '@/components/ui/Button'
 import { Alert, AlertDescription } from '@/components/ui/shadcn/alert'
 import { Label } from '@/components/ui/shadcn/label'
@@ -103,6 +105,8 @@ const TeamDetail: React.FC = () => {
   const [inviteOpen, setInviteOpen] = useState(false)
   const [confirmLeave, setConfirmLeave] = useState(false)
   const [confirmDeactivate, setConfirmDeactivate] = useState(false)
+  // رد دعوت بازگشت‌ناپذیر است: دعوت مصرف می‌شود و فقط مدیر تیم می‌تواند دوباره دعوت کند
+  const [confirmDeclineInvite, setConfirmDeclineInvite] = useState(false)
   const [joinDialogOpen, setJoinDialogOpen] = useState(false)
   const [joinMessage, setJoinMessage] = useState('')
 
@@ -124,7 +128,7 @@ const TeamDetail: React.FC = () => {
       return (
         <Layout>
           <EmptyState
-            emoji="🔒"
+            icon="mdi:lock-outline"
             title={isAuthenticated ? 'این تیم خصوصی است' : 'مشاهده این تیم نیازمند ورود است'}
             description={isAuthenticated ? 'فقط اعضا و دعوت‌شده‌ها می‌توانند این تیم را ببینند.' : 'برای مشاهده و پیوستن وارد شوید.'}
             actionLabel={isAuthenticated ? 'تیم‌های من' : 'ورود'}
@@ -134,7 +138,7 @@ const TeamDetail: React.FC = () => {
       )
     }
     if (status === 404) {
-      return <Layout><EmptyState emoji="🛡️" title="تیم یافت نشد" description="ممکن است حذف شده یا نشانی نادرست باشد." actionLabel="تیم‌های من" onAction={() => navigate('/teams')} /></Layout>
+      return <Layout><EmptyState icon="mdi:shield-off-outline" title="تیم یافت نشد" description="ممکن است حذف شده یا نشانی نادرست باشد." actionLabel="تیم‌های من" onAction={() => navigate('/teams')} /></Layout>
     }
     return <Layout><ErrorState description="بارگذاری تیم ممکن نشد." onRetry={() => teamQ.refetch()} /></Layout>
   }
@@ -163,6 +167,23 @@ const TeamDetail: React.FC = () => {
       },
       onError: (err) => toast.error(getTeamError(err)),
     })
+  }
+
+  const handleDeclineInvite = () => {
+    if (!myInvitation?.member_id) return
+    declineInv.mutate(
+      { teamId, memberId: myInvitation.member_id as number },
+      {
+        onSuccess: () => {
+          setConfirmDeclineInvite(false)
+          toast.success('دعوت رد شد.')
+        },
+        onError: (err) => {
+          setConfirmDeclineInvite(false)
+          toast.error(getTeamError(err))
+        },
+      },
+    )
   }
 
   const handleJoinRequest = () => {
@@ -238,12 +259,7 @@ const TeamDetail: React.FC = () => {
                 size="sm"
                 variant="outline"
                 loading={declineInv.isPending}
-                onClick={() =>
-                  declineInv.mutate(
-                    { teamId, memberId: myInvitation.member_id as number },
-                    { onSuccess: () => toast.success('دعوت رد شد.'), onError: (err) => toast.error(getTeamError(err)) },
-                  )
-                }
+                onClick={() => setConfirmDeclineInvite(true)}
               >
                 رد
               </Button>
@@ -353,7 +369,14 @@ const TeamDetail: React.FC = () => {
                   {[1, 2, 3].map((i) => <Shimmer key={i} height={56} />)}
                 </div>
               ) : membersQ.isError ? (
-                <p className="text-[0.85rem] text-muted-foreground">نمایش اعضا ممکن نیست.</p>
+                <ErrorBox
+                  message={
+                    isForbidden(membersQ.error)
+                      ? 'شما اجازه مشاهده اعضای این تیم را ندارید (۴۰۳).'
+                      : extractError(membersQ.error, 'بارگذاری اعضا ممکن نشد.')
+                  }
+                  onRetry={() => membersQ.refetch()}
+                />
               ) : (
                 <TeamMemberList team={team} members={membersQ.data ?? []} isCaptain={isCaptain} canManage={isManager} />
               )}
@@ -361,7 +384,22 @@ const TeamDetail: React.FC = () => {
           )}
 
           {currentTab === 'درخواست‌ها' && (
-            <TeamJoinRequestList teamId={teamId} requests={joinRequestsQ.data ?? []} />
+            joinRequestsQ.isPending ? (
+              <div className="flex flex-col gap-2">
+                {[1, 2].map((i) => <Shimmer key={i} height={52} />)}
+              </div>
+            ) : joinRequestsQ.isError ? (
+              <ErrorBox
+                message={
+                  isForbidden(joinRequestsQ.error)
+                    ? 'شما اجازه مشاهده درخواست‌های عضویت را ندارید (۴۰۳).'
+                    : extractError(joinRequestsQ.error, 'بارگذاری درخواست‌ها ممکن نشد.')
+                }
+                onRetry={() => joinRequestsQ.refetch()}
+              />
+            ) : (
+              <TeamJoinRequestList teamId={teamId} requests={joinRequestsQ.data ?? []} />
+            )
           )}
 
           {currentTab === 'گفتگو' && <TeamChatPanel teamId={teamId} />}
@@ -404,6 +442,18 @@ const TeamDetail: React.FC = () => {
         variant="destructive"
         loading={deactivate.isPending}
         onConfirm={handleDeactivate}
+      />
+
+      <ConfirmModal
+        open={confirmDeclineInvite && !!myInvitation}
+        onOpenChange={(open) => { if (!open) setConfirmDeclineInvite(false) }}
+        title="رد دعوت این تیم"
+        description="با رد دعوت، درخواست شما در همین تیم بسته می‌شود و خودتان نمی‌توانید دوباره بپیوندید؛ برای عضویت باید کاپیتان یا مدیر تیم بار دیگر شما را دعوت کند."
+        confirmText="رد دعوت"
+        cancelText="انصراف"
+        variant="destructive"
+        loading={declineInv.isPending}
+        onConfirm={handleDeclineInvite}
       />
 
       <Dialog open={joinDialogOpen} onClose={() => setJoinDialogOpen(false)} title={`درخواست پیوستن به «${team.name}»`} maxWidth="xs">

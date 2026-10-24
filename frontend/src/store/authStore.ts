@@ -1,7 +1,13 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
+import { isAxiosError } from 'axios'
 import { authService } from '@/services/auth'
 import type { RawUser } from '@/services/auth'
+
+/** فقط ۴۰۱/۴۰۳ نشانهٔ باطل‌بودن توکن است؛ ۴29/5xx/قطع شبکه خطای موقتی‌اند و
+ *  نباید کاربر لاگین‌شده را وسط کار از نشست بیندازند (ممیزی: ریست ۴29 روی /auth/me) */
+const isTokenInvalid = (error: unknown): boolean =>
+  isAxiosError(error) && (error.response?.status === 401 || error.response?.status === 403)
 
 interface User {
   id: number
@@ -51,7 +57,7 @@ export const useAuthStore = create<AuthStore>()(
       hasInitialized: false,
 
       initialize: async () => {
-        const { token } = get()
+        const { token, isAuthenticated } = get()
         if (token) {
           try {
             const me = await authService.getMe()
@@ -61,8 +67,13 @@ export const useAuthStore = create<AuthStore>()(
               hasInitialized: true,
             })
           } catch (error) {
-            localStorage.removeItem('auth-token')
-            set({ isAuthenticated: false, user: null, token: null, hasInitialized: true })
+            if (isTokenInvalid(error)) {
+              localStorage.removeItem('auth-token')
+              set({ isAuthenticated: false, user: null, token: null, hasInitialized: true })
+            } else {
+              // خطای موقتی — نشستِ ذخیره‌شده معتبر می‌ماند تا تلاش بعدی
+              set({ isAuthenticated, hasInitialized: true })
+            }
           }
         } else {
           set({ hasInitialized: true })
@@ -141,8 +152,13 @@ export const useAuthStore = create<AuthStore>()(
             isLoading: false,
           })
         } catch (error) {
-          localStorage.removeItem('auth-token')
-          set({ isAuthenticated: false, user: null, token: null, isLoading: false })
+          if (isTokenInvalid(error)) {
+            localStorage.removeItem('auth-token')
+            set({ isAuthenticated: false, user: null, token: null, isLoading: false })
+          } else {
+            // کاربرِ فعلی و توکن دست‌نخورده می‌مانند؛ فقط نوار توقف می‌کند
+            set({ isLoading: false })
+          }
         }
       },
     }),

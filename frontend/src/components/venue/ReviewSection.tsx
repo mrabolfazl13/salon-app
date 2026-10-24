@@ -191,7 +191,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
                   aria-checked={rating === v}
                   aria-label={`${toPersianDigits(v)} ستاره از ۵`}
                   onClick={() => setRating(v)}
-                  className="inline-flex h-9 w-11 items-center justify-center rounded-full transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                  className="inline-flex min-h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <span className="relative inline-block h-6 w-6" aria-hidden="true">
                     <Icon icon="mdi:star-outline" className="absolute inset-0 h-6 w-6 text-slate-400/50 dark:text-slate-500" />
@@ -269,7 +269,7 @@ const ReviewSection: React.FC<Props> = ({ venueId, averageRating = 0, totalRevie
             size="sm"
             variant="primary"
             onClick={() => navigate('/login')}
-            className="min-h-9 rounded-[10px] px-4 font-semibold"
+            className="min-h-11 rounded-[10px] px-4 font-semibold"
           >
             ورود / ثبت‌نام
           </Button>

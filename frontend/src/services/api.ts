@@ -73,7 +73,8 @@ apiClient.interceptors.response.use(
         localStorage.removeItem('auth-token')
         localStorage.removeItem('auth-storage')
         if (window.location.pathname !== '/login') {
-          window.location.href = '/login'
+          // پرچم expired → صفحهٔ ورود دلیل خروج را توضیح می‌دهد (ممیزی: silent logout)
+          window.location.href = '/login?expired=1'
         }
       }
     }

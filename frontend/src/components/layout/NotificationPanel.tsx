@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { useNotificationStore } from '@/store/notificationStore'
 import type { NotificationItem } from '@/services/notification'
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/shadcn/popover'
+import { toPersianDigits } from '@/lib/jalali'
 
 const typeIcons: Record<string, { icon: string; color: string }> = {
   booking_confirmed: { icon: 'mdi:check-circle', color: '#16a34a' },
@@ -52,9 +53,9 @@ const typeIcons: Record<string, { icon: string; color: string }> = {
 function timeAgo(iso: string): string {
   const diff = (Date.now() - new Date(iso).getTime()) / 1000
   if (diff < 60) return 'همین حالا'
-  if (diff < 3600) return `${Math.floor(diff / 60)} دقیقه پیش`
-  if (diff < 86400) return `${Math.floor(diff / 3600)} ساعت پیش`
-  return `${Math.floor(diff / 86400)} روز پیش`
+  if (diff < 3600) return `${toPersianDigits(Math.floor(diff / 60))} دقیقه پیش`
+  if (diff < 86400) return `${toPersianDigits(Math.floor(diff / 3600))} ساعت پیش`
+  return `${toPersianDigits(Math.floor(diff / 86400))} روز پیش`
 }
 
 const NotificationPanel: React.FC = () => {
@@ -97,8 +98,8 @@ const NotificationPanel: React.FC = () => {
           type="button"
           whileHover={{ scale: 1.08 }}
           whileTap={{ scale: 0.95 }}
-          aria-label={unreadCount > 0 ? `اعلان‌ها، ${unreadCount} خوانده‌نشده` : 'اعلان‌ها'}
-          className="relative flex h-9 w-11 items-center justify-center rounded-xl border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          aria-label={unreadCount > 0 ? `اعلان‌ها، ${toPersianDigits(unreadCount)} خوانده‌نشده` : 'اعلان‌ها'}
+          className="relative flex h-11 w-11 items-center justify-center rounded-xl border border-border bg-card text-foreground shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <Bell className="h-5 w-5" aria-hidden="true" />
           {unreadCount > 0 && (
@@ -106,7 +107,7 @@ const NotificationPanel: React.FC = () => {
               className="absolute -end-1 -top-1 flex h-5 min-w-5 items-center justify-center rounded-full bg-red-600 px-1 text-[11px] font-bold leading-none text-white"
               aria-hidden="true"
             >
-              {unreadCount > 99 ? '99+' : unreadCount}
+              {unreadCount > 99 ? '۹۹+' : toPersianDigits(unreadCount)}
             </span>
           )}
         </motion.button>
@@ -115,13 +116,13 @@ const NotificationPanel: React.FC = () => {
       <PopoverContent className="w-[380px] max-w-[calc(100vw-32px)] overflow-hidden p-0">
         <div className="flex items-center justify-between border-b border-border px-4 py-2.5">
           <h2 className="text-[0.68rem] font-bold">
-            اعلان‌ها {unreadCount > 0 && `(${unreadCount} خوانده‌نشده)`}
+            اعلان‌ها {unreadCount > 0 && `(${toPersianDigits(unreadCount)} خوانده‌نشده)`}
           </h2>
           {unreadCount > 0 && (
             <button
               type="button"
               onClick={markAllAsRead}
-              className="min-h-9 rounded-lg px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+              className="inline-flex min-h-11 items-center rounded-lg px-2 text-[0.68rem] font-semibold text-primary transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             >
               خواندن همه
             </button>
@@ -140,7 +141,7 @@ const NotificationPanel: React.FC = () => {
               <button
                 type="button"
                 onClick={fetchNotifications}
-                className="mt-2 min-h-9 rounded-lg px-3 text-[0.68rem] font-semibold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="mt-2 inline-flex min-h-11 items-center rounded-lg px-3 text-[0.68rem] font-semibold text-primary hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 تلاش مجدد
               </button>

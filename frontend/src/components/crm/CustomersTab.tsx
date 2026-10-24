@@ -129,8 +129,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                 onClick={() => { setSegment(active ? null : s); setPage(1) }}
                 className={
                   active
-                    ? 'inline-flex min-h-9 items-center rounded-[9px] bg-blue-600 px-3 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                    : 'inline-flex min-h-9 items-center rounded-[9px] bg-muted px-3 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    ? 'inline-flex min-h-11 items-center rounded-[9px] bg-blue-600 px-3 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    : 'inline-flex min-h-11 items-center rounded-[9px] bg-muted px-3 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                 }
               >
                 {SEGMENT_LABELS[s]}
@@ -144,8 +144,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
           onClick={() => { setVipOnly((v) => !v); setPage(1) }}
           className={
             vipOnly
-              ? 'inline-flex h-9 items-center gap-1.5 rounded-[9px] bg-amber-500 px-3 text-[0.68rem] font-bold text-stone-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-              : 'inline-flex h-9 items-center gap-1.5 rounded-[9px] border border-border bg-card px-3 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              ? 'inline-flex min-h-11 items-center gap-1.5 rounded-[9px] bg-amber-500 px-3 text-[0.68rem] font-bold text-stone-900 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+              : 'inline-flex min-h-11 items-center gap-1.5 rounded-[9px] border border-border bg-card px-3 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
           }
         >
           <Icon icon="mdi:star" className="h-4 w-4" aria-hidden="true" />
@@ -153,7 +153,7 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
         </button>
         <div className="ms-auto min-w-[150px]">
           <Select value={sort} onValueChange={(v) => { setSort(v as CrmSort); setPage(1) }}>
-            <SelectTrigger aria-label="مرتب‌سازی مشتریان" className="h-9 rounded-xl">
+            <SelectTrigger aria-label="مرتب‌سازی مشتریان" className="min-h-11 rounded-xl">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>
@@ -264,8 +264,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                               aria-pressed={row.is_vip}
                               className={
                                 row.is_vip
-                                  ? 'inline-flex h-9 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
-                                  : 'inline-flex h-9 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
+                                  ? 'inline-flex min-h-11 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
+                                  : 'inline-flex min-h-11 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50'
                               }
                             >
                               <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" aria-hidden="true" />
@@ -299,8 +299,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                     aria-pressed={row.is_vip}
                     className={
                       row.is_vip
-                        ? 'inline-flex h-9 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                        : 'inline-flex h-9 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        ? 'inline-flex min-h-11 w-11 items-center justify-center rounded-lg text-amber-500 transition-colors hover:bg-amber-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        : 'inline-flex min-h-11 w-11 items-center justify-center rounded-lg text-muted-foreground/60 transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                     }
                   >
                     <Icon icon={row.is_vip ? 'mdi:star' : 'mdi:star-outline'} className="h-5 w-5" aria-hidden="true" />

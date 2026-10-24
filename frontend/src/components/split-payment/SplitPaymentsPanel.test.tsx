@@ -35,8 +35,10 @@ vi.mock('@/hooks/useToast', () => ({
 vi.mock('./SplitPaymentDialog', () => ({ default: () => null }))
 
 import SplitPaymentsPanel from './SplitPaymentsPanel'
+import { formatPrice } from '@/lib/utils'
 
-const fmt = (n: number) => n.toLocaleString('fa-IR')
+/** پنل مبلغ‌ها را با قرارداد نمایشی پروژه (تومان) نشان می‌دهد، نه ارقام خام ریال */
+const fmt = (n: number) => formatPrice(n)
 
 const payment = (over: Record<string, unknown> = {}) => ({
   id: 41,

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import Layout from '@/components/layout/Layout'
+import ConfirmModal from '@/components/modals/ConfirmModal'
 import { adminService } from '@/services/admin'
 import type { UserStats, VenueStats, AdminUser } from '@/services/admin'
 import { formatDate, getInitials } from '@/lib/utils'
@@ -41,6 +42,8 @@ const AdminDashboard: React.FC = () => {
   const [error, setError] = useState<string | null>(null)
   const [pendingManagers, setPendingManagers] = useState<AdminUser[]>([])
   const [actingId, setActingId] = useState<number | null>(null)
+  // تأیید/رد هر دو یک‌طرفه‌اند (endpoint بازگشتی وجود ندارد) → یک گام تأیید قبل از write
+  const [confirmAction, setConfirmAction] = useState<{ id: number; name: string; kind: 'approve' | 'reject' } | null>(null)
 
   useEffect(() => {
     fetchData()
@@ -97,6 +100,15 @@ const AdminDashboard: React.FC = () => {
     } finally {
       setActingId(null)
     }
+  }
+
+  /** اجرای اقدامی که کاربر در ConfirmModal تأیید کرده است */
+  const runConfirmedAction = () => {
+    if (!confirmAction) return
+    const { id, kind } = confirmAction
+    setConfirmAction(null)
+    if (kind === 'approve') void handleApprove(id)
+    else void handleReject(id)
   }
 
   const stats = [
@@ -200,7 +212,7 @@ const AdminDashboard: React.FC = () => {
                   <button
                     type="button"
                     disabled={actingId === m.id}
-                    onClick={() => handleApprove(m.id)}
+                    onClick={() => setConfirmAction({ id: m.id, name: m.full_name, kind: 'approve' })}
                     className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-[0.68rem] font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                   >
                     <Icon icon="mdi:check" className="h-4 w-4" aria-hidden="true" />
@@ -209,7 +221,7 @@ const AdminDashboard: React.FC = () => {
                   <button
                     type="button"
                     disabled={actingId === m.id}
-                    onClick={() => handleReject(m.id)}
+                    onClick={() => setConfirmAction({ id: m.id, name: m.full_name, kind: 'reject' })}
                     className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-destructive/50 px-3 text-[0.68rem] font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
                   >
                     <Icon icon="mdi:close" className="h-4 w-4" aria-hidden="true" />
@@ -229,7 +241,7 @@ const AdminDashboard: React.FC = () => {
               <Icon icon="mdi:account-clock-outline" className="h-[18px] w-[18px] text-primary" aria-hidden="true" />
               <h2 className="text-sm font-bold">آخرین کاربران</h2>
             </div>
-            <Link to="/admin/users" className="text-[0.68rem] font-semibold text-primary hover:underline">
+            <Link to="/admin/users" className="inline-flex min-h-11 items-center text-[0.68rem] font-semibold text-primary hover:underline">
               مشاهده همه
             </Link>
           </div>
@@ -342,6 +354,22 @@ const AdminDashboard: React.FC = () => {
           </div>
         </Card>
       </div>
+
+      <ConfirmModal
+        open={confirmAction !== null}
+        onOpenChange={(open) => { if (!open) setConfirmAction(null) }}
+        title={confirmAction?.kind === 'approve' ? 'تأیید حساب مدیر سالن' : 'رد درخواست مدیریت سالن'}
+        description={
+          confirmAction?.kind === 'approve'
+            ? `با تأیید «${confirmAction?.name ?? ''}» دسترسی مدیریتی او فعال می‌شود و می‌تواند سالن ثبت کند. این تصمیم بازگشت ندارد؛ در سیستم گزینه‌ی لغو تأیید وجود ندارد.`
+            : `با رد درخواست «${confirmAction?.name ?? ''}» حساب مدیریتی او بسته می‌شود و کاربر برای دسترسی دوباره باید از نو درخواست بدهد.`
+        }
+        confirmText={confirmAction?.kind === 'approve' ? 'تأیید و فعال‌سازی' : 'رد درخواست'}
+        cancelText="انصراف"
+        variant={confirmAction?.kind === 'reject' ? 'destructive' : 'default'}
+        loading={actingId !== null}
+        onConfirm={runConfirmedAction}
+      />
     </Layout>
   )
 }

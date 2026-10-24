@@ -3,6 +3,7 @@ import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import toast from 'react-hot-toast'
 import Layout from '@/components/layout/Layout'
+import ConfirmModal from '@/components/modals/ConfirmModal'
 import { venueService } from '@/services/venue'
 import { adminService } from '@/services/admin'
 import { formatPrice, formatDate } from '@/lib/utils'
@@ -33,6 +34,8 @@ const AdminVenues: React.FC = () => {
   const [pending, setPending] = useState<PendingVenue[]>([])
   const [loading, setLoading] = useState(true)
   const [verifyingId, setVerifyingId] = useState<number | null>(null)
+  // تأیید سالن یک‌طرفه است (endpoint لغو تأیید نداریم) → گام تأیید قبل از write
+  const [verifyTarget, setVerifyTarget] = useState<PendingVenue | null>(null)
 
   useEffect(() => {
     fetchAll()
@@ -117,7 +120,7 @@ const AdminVenues: React.FC = () => {
                     </p>
                   </div>
                   <Button
-                    onClick={() => handleVerify(venue.id)}
+                    onClick={() => setVerifyTarget(venue)}
                     disabled={verifyingId === venue.id}
                     className="gap-2 rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-700 text-white shadow-md shadow-emerald-900/15 hover:from-emerald-500 hover:to-emerald-600"
                   >
@@ -213,6 +216,22 @@ const AdminVenues: React.FC = () => {
           </Table>
         )}
       </div>
+
+      <ConfirmModal
+        open={verifyTarget !== null}
+        onOpenChange={(open) => { if (!open) setVerifyTarget(null) }}
+        title="تأیید این سالن؟"
+        description={`با تأیید «${verifyTarget?.name ?? ''}» سالن در فهرست عمومی فعال می‌شود و کاربران می‌توانند روی آن رزرو و پرداخت انجام دهند. این اقدام بازگشت ندارد.`}
+        confirmText="تأیید سالن"
+        cancelText="انصراف"
+        loading={verifyingId !== null}
+        onConfirm={() => {
+          if (!verifyTarget) return
+          const venueId = verifyTarget.id
+          setVerifyTarget(null)
+          void handleVerify(venueId)
+        }}
+      />
     </Layout>
   )
 }

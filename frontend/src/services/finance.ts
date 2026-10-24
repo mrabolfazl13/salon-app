@@ -315,6 +315,13 @@ export interface ExpenseCategoryUpdatePayload {
 
 // ─────────────── سرویس ───────────────
 
+/** کش کوتاه‌عمرِ صفحه‌های دفتر کل — جلوگیری از سوزاندن سهمیهٔ نرخ بک‌اند در ناوبری */
+const LEDGER_CACHE_TTL = 45_000
+const ledgerPageCache = new Map<string, { at: number; page: TransactionListResponse }>()
+
+/** بعد از هر ثبت/ابطال، صفحه‌های کش‌شده دیگر معتبر نیستند */
+const clearLedgerCache = () => ledgerPageCache.clear()
+
 export const financeService = {
   // داشبورد / گزارش‌ها
   getDashboard: async (params?: FinanceScopeParams): Promise<FinanceDashboard> => {
@@ -353,8 +360,48 @@ export const financeService = {
     return response.data
   },
 
+  /**
+   * همهٔ ردیف‌های دفتر کلِ یک بازه (برای تجمیع‌های دقیق سود/زیان، جریان نقدی و مشتریان).
+   * بک‌اند حداکثر ۵۰۰ ردیف در هر صفحه می‌دهد؛ تا رسیدن به total صفحه‌به‌صفحه می‌خوانیم.
+   * سقف maxRows جلوی رفت‌وبرگشت بی‌پایان روی داده‌های غیرمنتظره را می‌گیرد.
+   * صفحه‌ها ۴۵ ثانیه کش می‌شوند تا جابه‌جایی بین صفحات مالی، سهمیهٔ نرخِ سراسری
+   * بک‌اند (۶۰ درخواست در دقیقه) را نسوزاند؛ در صورت 429 هم با ردیف‌های همان‌جا
+   * متوقف می‌شویم و صفحه به‌جای خطا، دادهٔ ناقص را با هشدار نشان می‌دهد.
+   */
+  listAllTransactions: async (
+    params?: TransactionListParams,
+    maxRows = 3000,
+  ): Promise<{ items: FinanceTransaction[]; total: number; truncated: boolean }> => {
+    const pageSize = 500
+    const collected: FinanceTransaction[] = []
+    let total = 0
+    for (let offset = 0; offset < maxRows; offset += pageSize) {
+      const request = { ...params, limit: pageSize, offset }
+      const cacheKey = JSON.stringify(request)
+      const cached = ledgerPageCache.get(cacheKey)
+      let page: TransactionListResponse
+      if (cached && Date.now() - cached.at < LEDGER_CACHE_TTL) {
+        page = cached.page
+      } else {
+        try {
+          page = await financeService.listTransactions(request)
+        } catch (err) {
+          const status = (err as { response?: { status?: number } })?.response?.status
+          if (status === 429 && collected.length > 0) break
+          throw err
+        }
+        ledgerPageCache.set(cacheKey, { at: Date.now(), page })
+      }
+      total = page.total
+      collected.push(...page.items)
+      if (collected.length >= total || page.items.length < pageSize) break
+    }
+    return { items: collected, total, truncated: collected.length < total }
+  },
+
   createTransaction: async (data: TransactionCreatePayload): Promise<FinanceTransaction> => {
     const response = await apiClient.post('/finance/transactions', data)
+    clearLedgerCache()
     return response.data
   },
 
@@ -365,6 +412,7 @@ export const financeService = {
 
   voidTransaction: async (txId: number, reason: string): Promise<FinanceTransaction> => {
     const response = await apiClient.post(`/finance/transactions/${txId}/void`, { reason })
+    clearLedgerCache()
     return response.data
   },
 
@@ -407,6 +455,7 @@ export const financeService = {
 
   recordPayment: async (userId: number, data: AccountPaymentPayload): Promise<FinanceTransaction> => {
     const response = await apiClient.post(`/finance/accounts/${userId}/payments`, data)
+    clearLedgerCache()
     return response.data
   },
 

@@ -64,7 +64,7 @@ const Spinner: React.FC<{ className?: string }> = ({ className }) => (
 const ProfileTabTrigger: React.FC<{ value: string; children: React.ReactNode }> = ({ value, children }) => (
   <TabsTrigger
     value={value}
-    className="h-auto min-h-9 whitespace-normal rounded-lg px-2 py-1.5 text-center text-[0.8rem] font-semibold leading-tight data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-400 data-[state=active]:via-amber-500 data-[state=active]:to-orange-500 data-[state=active]:font-extrabold data-[state=active]:text-stone-900 data-[state=active]:shadow-sm"
+    className="h-auto min-h-11 whitespace-normal rounded-lg px-2 py-1.5 text-center text-[0.8rem] font-semibold leading-tight data-[state=active]:bg-gradient-to-br data-[state=active]:from-amber-400 data-[state=active]:via-amber-500 data-[state=active]:to-orange-500 data-[state=active]:font-extrabold data-[state=active]:text-stone-900 data-[state=active]:shadow-sm"
   >
     {children}
   </TabsTrigger>
@@ -293,7 +293,7 @@ const Profile: React.FC = () => {
                 <div className="mt-3 flex flex-wrap justify-center gap-2">
                   <Badge
                     variant={user.isVerified ? 'success' : 'muted'}
-                    className="min-h-9 rounded-[10px] px-3 text-[0.68rem]"
+                    className="min-h-11 rounded-[10px] px-3 text-[0.68rem]"
                   >
                     {user.isVerified ? 'تایید شده' : 'در انتظار تایید'}
                   </Badge>
@@ -302,7 +302,7 @@ const Profile: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => setTab(2)}
-                      className="inline-flex min-h-9 cursor-pointer items-center gap-1.5 rounded-[10px] bg-amber-500/15 px-3 text-[0.68rem] font-bold text-amber-700 transition-colors hover:bg-amber-500/25 dark:text-amber-300"
+                      className="inline-flex min-h-11 cursor-pointer items-center gap-1.5 rounded-[10px] bg-amber-500/15 px-3 text-[0.68rem] font-bold text-amber-700 transition-colors hover:bg-amber-500/25 dark:text-amber-300"
                     >
                       <Icon icon="mdi:star" className="h-[18px] w-[18px]" />
                       {`${toPersianDigits(loyaltyQuery.data.balance ?? 0)} امتیاز`}
@@ -326,7 +326,7 @@ const Profile: React.FC = () => {
                 <Button
                   variant="outline"
                   onClick={handleLogout}
-                  className="mt-4 min-h-9 w-full rounded-[10px] border-red-500/25 bg-red-500/5 font-bold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
+                  className="mt-4 min-h-11 w-full rounded-[10px] border-red-500/25 bg-red-500/5 font-bold text-red-600 hover:bg-red-500/10 hover:text-red-700 dark:text-red-400 dark:hover:text-red-300"
                 >
                   <Icon icon="mdi:logout" className="h-5 w-5" />
                   خروج از حساب
@@ -352,7 +352,7 @@ const Profile: React.FC = () => {
                     variant="outline"
                     onClick={() => void useUpdateStore.getState().check(true)}
                     disabled={!isTauri()}
-                    className="min-h-9 rounded-xl px-4 font-bold"
+                    className="min-h-11 rounded-xl px-4 font-bold"
                   >
                     {isTauri() ? 'بررسی بروزرسانی' : 'فقط در اپ موبایل'}
                   </Button>
@@ -409,7 +409,13 @@ const Profile: React.FC = () => {
                     <h2 className="mb-4 text-[0.68rem] font-bold text-foreground">
                       اطلاعات شخصی
                     </h2>
-                    <form className="flex max-w-[480px] flex-col gap-4">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        handleSaveProfile()
+                      }}
+                      className="flex max-w-[480px] flex-col gap-4"
+                    >
                       <div>
                         <Label htmlFor="profile-full-name" className="mb-1.5 block">نام کامل</Label>
                         <Input
@@ -433,9 +439,8 @@ const Profile: React.FC = () => {
                         </p>
                       </div>
                       <Button
-                        type="button"
+                        type="submit"
                         variant="primary"
-                        onClick={handleSaveProfile}
                         disabled={savingProfile}
                         className="mt-2 min-h-12 max-w-[220px] rounded-xl px-6 font-bold"
                       >
@@ -458,7 +463,13 @@ const Profile: React.FC = () => {
                     <h2 className="mb-4 text-[0.68rem] font-bold text-foreground">
                       تغییر رمز عبور
                     </h2>
-                    <form className="flex max-w-[480px] flex-col gap-4">
+                    <form
+                      onSubmit={(e) => {
+                        e.preventDefault()
+                        handleChangePassword()
+                      }}
+                      className="flex max-w-[480px] flex-col gap-4"
+                    >
                       <div>
                         <Label htmlFor="profile-old-password" className="mb-1.5 block">رمز عبور فعلی</Label>
                         <Input
@@ -501,9 +512,8 @@ const Profile: React.FC = () => {
                         )}
                       </div>
                       <Button
-                        type="button"
+                        type="submit"
                         variant="primary"
-                        onClick={handleChangePassword}
                         disabled={savingPassword}
                         className="mt-2 min-h-12 max-w-[220px] rounded-xl px-6 font-bold"
                       >

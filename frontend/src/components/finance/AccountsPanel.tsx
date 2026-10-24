@@ -107,7 +107,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                 setPage(1)
               }}
             >
-              <SelectTrigger id={venueSelectId} className="h-9 text-[0.68rem]">
+              <SelectTrigger id={venueSelectId} className="min-h-11 text-[0.68rem]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

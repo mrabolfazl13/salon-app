@@ -11,6 +11,8 @@ import { Label } from '@/components/ui/shadcn/label'
 import { RadioGroup, RadioGroupItem } from '@/components/ui/shadcn/radio-group'
 import { Textarea } from '@/components/ui/shadcn/textarea'
 import { useToast } from '@/hooks/useToast'
+import { faNum } from '@/components/finance/shared'
+import { toPersianDigits } from '@/lib/jalali'
 import { splitPaymentService, type CreateSplitPaymentPayload } from '@/services/splitPayment'
 import type { TeamMember } from '@/types/team'
 
@@ -102,7 +104,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
       const total = getTotalCustomAmount()
       const expectedTotal = typeof amount === 'number' ? amount : 0
       if (Math.abs(total - expectedTotal) > 0.01) {
-        setError(`جمع سهم‌ها (${total.toLocaleString()}) با مبلغ کل (${expectedTotal.toLocaleString()}) مطابقت ندارد.`)
+        setError(`جمع سهم‌ها (${faNum(total)}) با مبلغ کل (${faNum(expectedTotal)}) مطابقت ندارد.`)
         return
       }
     }
@@ -110,7 +112,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
     if (method === 'PERCENTAGE') {
       const total = getTotalPercentage()
       if (Math.abs(total - 100) > 0.01) {
-        setError(`جمع درصدها (${total}%) باید دقیقاً ۱۰۰% باشد.`)
+        setError(`جمع درصدها (${toPersianDigits(total)}٪) باید دقیقاً ۱۰۰٪ باشد.`)
         return
       }
     }
@@ -194,6 +196,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
             type="number"
             required
             min={0}
+            dir="ltr"
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value) || '')}
             className="h-9"
@@ -210,10 +213,11 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
               const member = members.find((m) => m.user_id === share.user_id)
               return (
                 <div key={share.user_id} className="flex items-center gap-4">
-                  <p className="flex-1 text-[0.68rem] text-foreground">{member?.full_name || `کاربر ${share.user_id}`}</p>
+                  <p className="flex-1 text-[0.68rem] text-foreground">{member?.full_name || `کاربر ${toPersianDigits(share.user_id)}`}</p>
                   <Input
-                    aria-label={`سهم ${member?.full_name || `کاربر ${share.user_id}`}`}
+                    aria-label={`سهم ${member?.full_name || `کاربر ${toPersianDigits(share.user_id)}`}`}
                     type="number"
+                    dir="ltr"
                     value={share.amount}
                     onChange={(e) => handleUpdateCustomShare(share.user_id, Number(e.target.value) || 0)}
                     className="h-9 w-[150px]"
@@ -224,9 +228,9 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
             })}
             <Alert variant={getTotalCustomAmount() === (typeof amount === 'number' ? amount : 0) ? 'success' : 'destructive'}>
               <AlertDescription>
-                جمع: {getTotalCustomAmount().toLocaleString()} تومان
+                جمع: {faNum(getTotalCustomAmount())} تومان
                 {typeof amount === 'number' && amount > 0 && (
-                  <> از {amount.toLocaleString()} تومان</>
+                  <> از {faNum(amount)} تومان</>
                 )}
               </AlertDescription>
             </Alert>
@@ -243,10 +247,11 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
               const member = members.find((m) => m.user_id === share.user_id)
               return (
                 <div key={share.user_id} className="flex items-center gap-4">
-                  <p className="flex-1 text-[0.68rem] text-foreground">{member?.full_name || `کاربر ${share.user_id}`}</p>
+                  <p className="flex-1 text-[0.68rem] text-foreground">{member?.full_name || `کاربر ${toPersianDigits(share.user_id)}`}</p>
                   <Input
-                    aria-label={`درصد ${member?.full_name || `کاربر ${share.user_id}`}`}
+                    aria-label={`درصد ${member?.full_name || `کاربر ${toPersianDigits(share.user_id)}`}`}
                     type="number"
+                    dir="ltr"
                     min={0}
                     max={100}
                     value={share.percentage}
@@ -259,7 +264,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
             })}
             <Alert variant={getTotalPercentage() === 100 ? 'success' : 'destructive'}>
               <AlertDescription>
-                جمع: {getTotalPercentage()}٪
+                جمع: {toPersianDigits(getTotalPercentage())}٪
               </AlertDescription>
             </Alert>
           </div>
@@ -284,6 +289,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
           <Input
             id="split-deadline"
             type="datetime-local"
+            dir="ltr"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
             className="h-9"

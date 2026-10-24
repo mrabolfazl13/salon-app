@@ -146,7 +146,7 @@ const PricingPreviewPanel: React.FC<Props> = ({ venueId }) => {
             </span>
             {result.is_holiday && (
               <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-[0.68rem] font-bold text-amber-800 dark:text-amber-300">
-                این تاریخ تعطیل است 🔔
+                این تاریخ تعطیل است
               </span>
             )}
           </div>

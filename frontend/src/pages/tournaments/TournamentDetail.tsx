@@ -20,6 +20,7 @@ import {
   formatRial,
 } from '@/components/finance/shared'
 import Dialog from '@/components/ui/Dialog'
+import ConfirmModal from '@/components/modals/ConfirmModal'
 import { Button } from '@/components/ui/shadcn/button'
 import { Input } from '@/components/ui/shadcn/input'
 import { Label } from '@/components/ui/shadcn/label'
@@ -204,6 +205,10 @@ const TournamentDetailPage: React.FC = () => {
   const [resultMatch, setResultMatch] = useState<TournamentMatch | null>(null)
   const [scoreA, setScoreA] = useState('')
   const [scoreB, setScoreB] = useState('')
+  // قرعه‌کشی، حذف تیم و لغو تورنمنت هر سه بازگشت‌ناپذیرند → یک گام تأیید پیش از write
+  const [confirmAction, setConfirmAction] = useState<
+    { kind: 'cancel' } | { kind: 'draw' } | { kind: 'withdraw'; teamId: number; teamName: string } | null
+  >(null)
 
   const tournament = bracketQ.data?.tournament
   const rounds = bracketQ.data?.rounds ?? []
@@ -286,7 +291,41 @@ const TournamentDetailPage: React.FC = () => {
     )
   }
 
+  /** اجرای اقدامی که برگزارکننده در ConfirmModal تأیید کرده است (بدون تغییر payload/semantics) */
+  const runConfirmedAction = () => {
+    if (!tournament || !confirmAction) return
+    const action = confirmAction
+    setConfirmAction(null)
+
+    if (action.kind === 'cancel') {
+      cancelMut.mutate(tournament.id, {
+        onSuccess: () => toast.success('تورنمنت لغو شد'),
+        onError: (err) => toast.error(extractError(err, 'لغو تورنمنت ممکن نشد.')),
+      })
+      return
+    }
+    if (action.kind === 'draw') {
+      drawMut.mutate(tournament.id, {
+        onSuccess: () => toast.success(isLeague
+          ? 'برنامهٔ هفته‌ها ساخته شد'
+          : isDouble
+            ? 'براکتِ دو-حذفی ساخته شد'
+            : 'براکت ساخته شد'),
+        onError: (err) => toast.error(extractError(err, 'قرعه‌کشی ممکن نشد.')),
+      })
+      return
+    }
+    withdrawMut.mutate(
+      { id: tournament.id, teamId: action.teamId },
+      {
+        onSuccess: () => toast.success('تیم از تورنمنت حذف شد'),
+        onError: (err) => toast.error(extractError(err, 'حذف تیم ممکن نشد.')),
+      },
+    )
+  }
+
   const drawn = rounds.length > 0 && !!tournament && tournament.status !== 'draft' && tournament.status !== 'registration'
+
   const totalMatches = rounds.reduce((sum, r) => sum + r.matches.length, 0)
   // «بازنده حذف شد» فقط در نیمهٔ بازندگان راست است و «به دیدار بعد» فقط در برندگان؛
   // نیمه روی خودِ match نیست، از مرحله‌ای که آن را دارد خوانده می‌شود.
@@ -322,7 +361,7 @@ const TournamentDetailPage: React.FC = () => {
         bracketHttpStatus === 404 ? (
           <EmptyState
             asPageHeading
-            emoji="🏆"
+            icon="mdi:trophy-outline"
             title="این تورنمنت پیدا نشد"
             description="یا حذف شده یا نشانی درست نیست. از فهرست تورنمنت‌ها یک جام انتخاب کن."
             actionLabel="فهرست تورنمنت‌ها"
@@ -332,7 +371,7 @@ const TournamentDetailPage: React.FC = () => {
           <ErrorBox message="دریافت تورنمنت ممکن نشد." onRetry={() => bracketQ.refetch()} />
         )
       ) : !tournament ? (
-        <EmptyState emoji="🏆" title="تورنمنتی نیست" description="از فهرست تورنمنت‌ها یک جام انتخاب کن." />
+        <EmptyState icon="mdi:trophy-outline" title="تورنمنتی نیست" description="از فهرست تورنمنت‌ها یک جام انتخاب کن." />
       ) : (
         <div className="flex flex-col gap-6">
           <div>
@@ -376,14 +415,7 @@ const TournamentDetailPage: React.FC = () => {
                   <span className="inline-flex">
                     <Button disabled={mutating || tournament.team_count < 2}
                             data-testid="tournament-draw"
-                            onClick={() => drawMut.mutate(tournament.id, {
-                              onSuccess: () => toast.success(isLeague
-                                ? 'برنامهٔ هفته‌ها ساخته شد'
-                                : isDouble
-                                  ? 'براکتِ دو-حذفی ساخته شد'
-                                  : 'براکت ساخته شد'),
-                              onError: (err) => toast.error(extractError(err, 'قرعه‌کشی ممکن نشد.')),
-                            })}>
+                            onClick={() => setConfirmAction({ kind: 'draw' })}>
                       <Icon icon="mdi:shuffle-variant" className="h-5 w-5" aria-hidden="true" />
                       {isLeague ? 'قرعه‌کشی و ساخت برنامهٔ هفته‌ها' : 'قرعه‌کشی و ساخت براکت'}
                     </Button>
@@ -408,10 +440,7 @@ const TournamentDetailPage: React.FC = () => {
             {canManage && !['completed', 'cancelled'].includes(tournament.status) && (
               <Button variant="ghost" className="text-destructive hover:text-destructive" disabled={mutating}
                       data-testid="tournament-cancel"
-                      onClick={() => cancelMut.mutate(tournament.id, {
-                        onSuccess: () => toast.success('تورنمنت لغو شد'),
-                        onError: (err) => toast.error(extractError(err, 'لغو تورنمنت ممکن نشد.')),
-                      })}>
+                      onClick={() => setConfirmAction({ kind: 'cancel' })}>
                 لغو تورنمنت
               </Button>
             )}
@@ -446,12 +475,7 @@ const TournamentDetailPage: React.FC = () => {
                               {p.status === 'registered' && (
                                 <Button size="sm" variant="ghost" className="text-destructive hover:text-destructive" disabled={mutating}
                                         aria-label={`حذف ${p.team_name ?? ''}`}
-                                        onClick={() => withdrawMut.mutate(
-                                          { id: tournament.id, teamId: p.team_id },
-                                          {
-                                            onSuccess: () => toast.success('تیم از تورنمنت حذف شد'),
-                                            onError: (err) => toast.error(extractError(err, 'حذف تیم ممکن نشد.')),
-                                          })}>
+                                        onClick={() => setConfirmAction({ kind: 'withdraw', teamId: p.team_id, teamName: p.team_name ?? '' })}>
                                   حذف
                                 </Button>
                               )}
@@ -702,6 +726,33 @@ const TournamentDetailPage: React.FC = () => {
           </p>
         </div>
       </Dialog>
+      <ConfirmModal
+        open={confirmAction !== null}
+        onOpenChange={(open) => { if (!open) setConfirmAction(null) }}
+        title={confirmAction?.kind === 'cancel'
+          ? 'لغو تورنمنت'
+          : confirmAction?.kind === 'draw'
+            ? (isLeague ? 'ساخت برنامهٔ هفته‌ها' : 'ساخت براکت')
+            : 'حذف تیم از تورنمنت'}
+        description={confirmAction?.kind === 'cancel'
+          ? `«${tournament?.name ?? ''}» لغو می‌شود؛ ثبت‌نام‌ها و همهٔ دیدارهای ساخته‌شده بی‌اثر می‌مانند. این اقدام بازگشت ندارد و برای ادامهٔ جام باید تورنمنت تازه‌ای بسازید.`
+          : confirmAction?.kind === 'draw'
+            ? (isDouble
+              ? 'هر دو براکت (برندگان و بازندگان) یک‌باره ساخته می‌شود و پس از آن قابل تغییر نیست؛ برای اصلاح فقط ساخت تورنمنت تازه ممکن است.'
+              : isLeague
+                ? 'برنامهٔ هفته‌ها ساخته می‌شود و پس از آن قابل تغییر نیست؛ برای اصلاح فقط ساخت تورنمنت تازه ممکن است.'
+                : 'براکت ساخته می‌شود و پس از آن قابل تغییر نیست؛ برای اصلاح فقط ساخت تورنمنت تازه ممکن است.')
+            : `تیم «${confirmAction?.kind === 'withdraw' ? confirmAction.teamName : ''}» از این تورنمنت کنار می‌رود. این حذف بازگشت ندارد؛ ثبت‌نام دوبارهٔ آن تنها تا پیش از قرعه‌کشی ممکن است.`}
+        confirmText={confirmAction?.kind === 'cancel'
+          ? 'لغو تورنمنت'
+          : confirmAction?.kind === 'draw'
+            ? 'قرعه‌کشی'
+            : 'حذف تیم'}
+        cancelText="انصراف"
+        variant="destructive"
+        loading={mutating}
+        onConfirm={runConfirmedAction}
+      />
     </Layout>
   )
 }

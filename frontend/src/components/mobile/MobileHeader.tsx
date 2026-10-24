@@ -37,7 +37,7 @@ const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true }) 
               <Link
                 to="/profile"
                 aria-label="پروفایل"
-                className="flex h-9 w-9 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="flex h-11 w-11 items-center justify-center rounded-full focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Avatar className="h-9 w-9 shadow-[0_2px_8px_rgba(245,158,11,0.2)]">
                   <AvatarFallback className="bg-gradient-to-br from-amber-400 to-orange-500 text-[0.68rem] font-extrabold text-stone-900">
@@ -49,7 +49,7 @@ const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true }) 
               <Link
                 to="/login"
                 aria-label="ورود"
-                className="inline-flex h-9 w-9 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card text-primary shadow-sm transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <Icon icon="mdi:login-variant" style={{ width: 18, height: 18 }} />
               </Link>

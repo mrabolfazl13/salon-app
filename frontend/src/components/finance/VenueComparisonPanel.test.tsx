@@ -19,6 +19,13 @@ vi.mock('@/services/finance', () => ({
   },
 }))
 
+/** hookهای مالی queryKey/enabled را به userId گره می‌زنند — بدون کاربرِ setشده،
+ *  query هرگز فعال نمی‌شود و این تست‌ها بی‌دلیل قرمز می‌مانند */
+vi.mock('@/store/authStore', () => ({
+  useAuthStore: (selector?: (s: { user: { id: number } }) => unknown) =>
+    selector ? selector({ user: { id: 9 } }) : { user: { id: 9 } },
+}))
+
 import VenueComparisonPanel from './VenueComparisonPanel'
 
 const row = (over: Partial<VenueComparisonRow> = {}): VenueComparisonRow => ({

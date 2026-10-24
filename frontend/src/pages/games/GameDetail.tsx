@@ -139,14 +139,14 @@ const GameDetail: React.FC = () => {
       <Layout>
         {forbidden && !isAuthenticated ? (
           <EmptyState
-            emoji="🔒"
+            icon="mdi:lock-outline"
             title="این بازی خصوصی است"
             description="برای مشاهده و پیوستن، با لینک دعوت وارد شوید."
             actionLabel="ورود"
             onAction={() => navigate('/login')}
           />
         ) : forbidden ? (
-          <EmptyState emoji="🔒" title="دسترسی ندارید" description="این بازی خصوصی است و شما عضو آن نیستید." actionLabel="بازی‌ها" onAction={() => navigate('/games')} />
+          <EmptyState icon="mdi:lock-outline" title="دسترسی ندارید" description="این بازی خصوصی است و شما عضو آن نیستید." actionLabel="بازی‌ها" onAction={() => navigate('/games')} />
         ) : (
           <ErrorState description="بارگذاری بازی ممکن نشد." onRetry={() => refetch()} />
         )}

@@ -1,6 +1,6 @@
 // frontend/src/pages/dashboard/ManagerDashboard.tsx
 import React, { useState, useEffect, useMemo } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion, AnimatePresence } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import Layout from '@/components/layout/Layout'
@@ -15,6 +15,8 @@ import DealPublishDialog, { type PublishSlot } from '@/components/deals/DealPubl
 import ConfirmModal from '@/components/modals/ConfirmModal'
 import { ReceiptReviewDialog, InPersonCollectDialog } from '@/components/bookings/ManagerReceiptDialogs'
 import SlotWeekGrid from '@/components/manager/SlotWeekGrid'
+import { ErrorBox, extractError } from '@/components/finance/shared'
+import { isForbidden } from '@/components/crm/shared'
 import { uploadService } from '@/services/upload'
 import { membershipService } from '@/services/membership'
 import { PLAN_TYPE_LABEL, type MembershipPlan, type MembershipPurchase, type MembershipSessionEvent, type PlanType } from '@/types/membership'
@@ -145,6 +147,10 @@ const TAB_ITEMS: Array<{ icon: string; text: string }> = [
   { icon: 'mdi:view-grid-outline', text: 'تقویم هفتگی' },
 ]
 
+// پیام خطای فهرست — ۴۰۳ باید «دسترسی ندارید» بخواند، نه «داده‌ای نیست»
+const listErrorText = (err: unknown, fallback: string): string =>
+  isForbidden(err) ? 'شما اجازه دسترسی به این بخش را ندارید (۴۰۳).' : extractError(err, fallback)
+
 // رنگ چیپ وضعیت رسید — نگاشتِ رنگ‌های MUI به توکن‌های Tailwind
 const RECEIPT_TONE_CLASS: Record<string, string> = {
   warning: 'bg-amber-100 text-amber-900 dark:bg-amber-500/15 dark:text-amber-300',
@@ -154,7 +160,12 @@ const RECEIPT_TONE_CLASS: Record<string, string> = {
 }
 
 const ManagerDashboard: React.FC = () => {
-  const [tab, setTab] = useState(0)
+  // ورود از داشبورد سالن (?tab=&venue=) باید همان تب و همان سالن را باز کند
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [tab, setTab] = useState(() => {
+    const raw = Number(searchParams.get('tab'))
+    return Number.isInteger(raw) && raw >= 0 && raw < TAB_ITEMS.length ? raw : 0
+  })
   const [venues, setVenues] = useState<Venue[]>([])
   const [loading, setLoading] = useState(true)
   const navigate = useNavigate()
@@ -186,17 +197,33 @@ const ManagerDashboard: React.FC = () => {
   // Slots state
   const [slots, setSlots] = useState<Slot[]>([])
   const [slotsLoading, setSlotsLoading] = useState(false)
-  const [selectedVenueForSlots, setSelectedVenueForSlots] = useState<number | 'all'>('all')
+  const [slotsError, setSlotsError] = useState<string | null>(null)
+  const [selectedVenueForSlots, setSelectedVenueForSlots] = useState<number | 'all'>(() => {
+    const raw = Number(searchParams.get('venue'))
+    return Number.isFinite(raw) && raw > 0 ? raw : 'all'
+  })
   const [slotFilterDate, setSlotFilterDate] = useState(() => new Date().toISOString().split('T')[0])
 
-  // Navigate to venue management: when viewing a venue from list, switch to Slots tab
-  const handleViewVenue = (venue: Venue) => {
-    setSelectedVenueForSlots(venue.id)
-    setTab(1)
+  // ورود به داشبورد اختصاصی سالن (جریان سالن‌محور)
+  const handleOpenWorkspace = (venue: Venue) => navigate(`/manager/venues/${venue.id}`)
+
+  // تغییر تب + همگام‌سازی URL تا رفرش/لینک، همان تب را باز کند
+  const changeTab = (value: number) => {
+    setTab(value)
+    setSearchParams(
+      (prev) => {
+        const next = new URLSearchParams(prev)
+        if (value === 0) next.delete('tab')
+        else next.set('tab', String(value))
+        return next
+      },
+      { replace: true },
+    )
   }
 
   // Deals — انتشار سانس لحظه آخری روی تب سانس‌ها
   const [dealsMap, setDealsMap] = useState<Record<number, DealAvailableItem>>({})
+  const [dealsError, setDealsError] = useState<string | null>(null)
   const [dealSelection, setDealSelection] = useState<number[]>([])
   const [publishOpen, setPublishOpen] = useState(false)
   const [unpublishBusy, setUnpublishBusy] = useState<number | null>(null)
@@ -211,10 +238,15 @@ const ManagerDashboard: React.FC = () => {
   // Bookings state
   const [bookings, setBookings] = useState<Booking[]>([])
   const [bookingsLoading, setBookingsLoading] = useState(false)
-  const [selectedVenueForBookings, setSelectedVenueForBookings] = useState<number | 'all'>('all')
+  const [bookingsError, setBookingsError] = useState<string | null>(null)
+  const [selectedVenueForBookings, setSelectedVenueForBookings] = useState<number | 'all'>(() => {
+    const raw = Number(searchParams.get('venue'))
+    return Number.isFinite(raw) && raw > 0 ? raw : 'all'
+  })
   // رزروهای در انتظار تأیید (Redis)
   const [pendingList, setPendingList] = useState<any[]>([])
   const [pendingLoading, setPendingLoading] = useState(false)
+  const [pendingError, setPendingError] = useState<string | null>(null)
   const [pendingActionPid, setPendingActionPid] = useState<string | null>(null)
 
   // اشتراک‌های بدنسازی (پلن‌ها + خریدها)
@@ -234,6 +266,7 @@ const ManagerDashboard: React.FC = () => {
   })
   const [venuePurchases, setVenuePurchases] = useState<MembershipPurchase[]>([])
   const [purchasesLoading, setPurchasesLoading] = useState(false)
+  const [purchasesError, setPurchasesError] = useState<string | null>(null)
   const [consumeId, setConsumeId] = useState<number | null>(null)
   const [refundConfirm, setRefundConfirm] = useState<MembershipPurchase | null>(null)
   const [refundId, setRefundId] = useState<number | null>(null)
@@ -344,6 +377,7 @@ const ManagerDashboard: React.FC = () => {
     setSlotsLoading(true)
     setSlots([])
     setDealSelection([])
+    setSlotsError(null)
     try {
       const venuesToFetch = selectedVenueForSlots === 'all'
         ? venues
@@ -356,12 +390,18 @@ const ManagerDashboard: React.FC = () => {
           return venueSlots.map((s) => ({ ...s, venue_id: venue.id }))
         }),
       )
+      let failedVenues = 0
       for (const r of results) {
         if (r.status === 'fulfilled') allSlots.push(...r.value)
+        else failedVenues += 1
       }
       setSlots(allSlots)
+      if (failedVenues > 0) {
+        setSlotsError(`دریافت سانس‌های ${toPersianDigits(failedVenues)} سالن ناموفق بود؛ فهرست کامل نیست.`)
+      }
     } catch (error) {
-      toast.error('خطا در دریافت سانس‌ها')
+      setSlots([])
+      setSlotsError(listErrorText(error, 'دریافت سانس‌ها ممکن نشد.'))
     } finally {
       setSlotsLoading(false)
     }
@@ -374,8 +414,10 @@ const ManagerDashboard: React.FC = () => {
       const map: Record<number, DealAvailableItem> = {}
       for (const it of items) map[it.slot_id] = it
       setDealsMap(map)
-    } catch {
+      setDealsError(null)
+    } catch (error) {
       setDealsMap({})
+      setDealsError(listErrorText(error, 'دریافت تخفیف‌های فعال ممکن نشد؛ وضعیت تخفیف سانس‌ها نامشخص است.'))
     }
   }
 
@@ -419,6 +461,7 @@ const ManagerDashboard: React.FC = () => {
   const fetchBookings = async () => {
     setBookingsLoading(true)
     setBookings([])
+    setBookingsError(null)
     try {
       const venuesToFetch = selectedVenueForBookings === 'all'
         ? venues
@@ -435,12 +478,18 @@ const ManagerDashboard: React.FC = () => {
           return venueBookings.map((b: Booking) => ({ ...b, venue_id: venue.id }))
         }),
       )
+      let failedVenues = 0
       for (const r of results) {
         if (r.status === 'fulfilled') allBookings.push(...r.value)
+        else failedVenues += 1
       }
       setBookings(allBookings)
+      if (failedVenues > 0) {
+        setBookingsError(`دریافت رزروهای ${toPersianDigits(failedVenues)} سالن ناموفق بود؛ فهرست کامل نیست.`)
+      }
     } catch (error) {
-      toast.error('خطا در دریافت رزروها')
+      setBookings([])
+      setBookingsError(listErrorText(error, 'دریافت رزروها ممکن نشد.'))
     } finally {
       setBookingsLoading(false)
     }
@@ -448,6 +497,7 @@ const ManagerDashboard: React.FC = () => {
 
   const fetchPending = async () => {
     setPendingLoading(true)
+    setPendingError(null)
     try {
       const venuesToFetch = selectedVenueForBookings === 'all'
         ? venues
@@ -457,12 +507,18 @@ const ManagerDashboard: React.FC = () => {
       const results = await Promise.allSettled(
         venuesToFetch.map((venue) => bookingService.getVenuePending(venue.id)),
       )
+      let failedVenues = 0
       for (const r of results) {
         if (r.status === 'fulfilled' && Array.isArray(r.value)) allPending.push(...r.value)
+        else failedVenues += 1
       }
       setPendingList(allPending)
-    } catch {
+      if (failedVenues > 0) {
+        setPendingError(`دریافت رزروهای در انتظارِ ${toPersianDigits(failedVenues)} سالن ناموفق بود؛ فهرست کامل نیست.`)
+      }
+    } catch (error) {
       setPendingList([])
+      setPendingError(listErrorText(error, 'دریافت رزروهای در انتظار ممکن نشد.'))
     } finally {
       setPendingLoading(false)
     }
@@ -482,11 +538,13 @@ const ManagerDashboard: React.FC = () => {
 
   const fetchVenuePurchases = async (venueId: number) => {
     setPurchasesLoading(true)
+    setPurchasesError(null)
     try {
       const data = await membershipService.getVenuePurchases(venueId)
       setVenuePurchases(Array.isArray(data) ? data : [])
-    } catch {
+    } catch (error) {
       setVenuePurchases([])
+      setPurchasesError(listErrorText(error, 'دریافت خریدهای اشتراک ممکن نشد.'))
     } finally {
       setPurchasesLoading(false)
     }
@@ -908,7 +966,7 @@ const ManagerDashboard: React.FC = () => {
       <div className="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-slate-950 dark:to-background">
         {/* Header Section */}
         <header
-          className="relative overflow-hidden pb-16 pt-8 md:pb-20 md:pt-12"
+          className="relative mx-auto mt-2 overflow-hidden rounded-[28px] pb-16 pt-8 md:pb-16 md:pt-10"
           style={{ background: 'linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #7c3aed 100%)' }}
         >
           <span
@@ -933,9 +991,9 @@ const ManagerDashboard: React.FC = () => {
                 <button
                   type="button"
                   onClick={openCreateVenueDialog}
-                  className="inline-flex min-h-12 items-center gap-2 rounded-xl border border-white/20 bg-white/15 px-6 py-3 text-sm font-bold text-white backdrop-blur transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
+                  className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-white/20 bg-white/15 px-3 py-1.5 text-[0.75rem] font-semibold text-white backdrop-blur transition-colors hover:bg-white/25 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
                 >
-                  <Icon icon="mdi:plus-circle" aria-hidden="true" className="h-5 w-5" />
+                  <Icon icon="mdi:plus-circle" aria-hidden="true" className="h-4 w-4" />
                   افزودن سالن جدید
                 </button>
               </div>
@@ -946,7 +1004,7 @@ const ManagerDashboard: React.FC = () => {
         <main className="relative z-10 mx-auto -mt-12 max-w-[1200px] px-4 pb-16 md:-mt-16 md:px-8">
           {/* Stats Cards - Overlapping */}
           <motion.div variants={containerVariants} initial="hidden" animate="visible">
-            <div className="mb-8 grid grid-cols-1 gap-6 sm:grid-cols-2 md:grid-cols-4">
+            <div className="mb-8 grid grid-cols-1 gap-4 sm:grid-cols-2 md:gap-5 lg:grid-cols-4">
               {stats.map((stat, index) => {
                 const CardShell = (stat.href ? Link : 'div') as React.ElementType
                 return (
@@ -959,26 +1017,13 @@ const ManagerDashboard: React.FC = () => {
                         stat.href ? 'cursor-pointer hover:-translate-y-1 hover:shadow-lg' : 'cursor-default',
                       )}
                     >
-                      <div className="flex items-center gap-5 p-6">
-                        <div
-                          className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
-                          style={{ background: stat.lightBg }}
-                        >
-                          <span
-                            aria-hidden="true"
-                            className="absolute inset-0 rounded-2xl"
-                            style={{ background: stat.gradient, opacity: 0.1 }}
-                          />
-                          <Icon icon={stat.icon} aria-hidden="true" className="relative h-7 w-7" style={{ color: stat.color }} />
-                          {typeof stat.badge === 'number' && stat.badge > 0 && (
-                            <span className="absolute -end-1.5 -top-1.5 z-10 flex h-[22px] min-w-[22px] items-center justify-center rounded-full border-2 border-card bg-red-600 px-0.5 text-xs font-extrabold text-white">
-                              {stat.badge}
-                            </span>
-                          )}
-                        </div>
-                        <div className="min-w-0">
+                      <div className="flex items-center justify-between gap-4 p-5">
+                        <div className="min-w-0 flex-1">
                           <p
-                            className="mb-0.5 bg-clip-text text-[1.75rem] font-extrabold leading-tight text-transparent"
+                            className={cn(
+                              'mb-0.5 bg-clip-text font-extrabold leading-tight text-transparent',
+                              typeof stat.value === 'string' ? 'text-xl lg:text-[1.35rem]' : 'text-[1.75rem]',
+                            )}
                             style={{
                               backgroundImage: stat.gradient,
                               WebkitBackgroundClip: 'text',
@@ -994,6 +1039,22 @@ const ManagerDashboard: React.FC = () => {
                               <p className="text-xs font-bold text-amber-700 dark:text-amber-400">{stat.hint}</p>
                               <Icon icon="mdi:arrow-left" aria-hidden="true" className="h-[13px] w-[13px] text-amber-600 dark:text-amber-400" />
                             </div>
+                          )}
+                        </div>
+                        <div
+                          className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl"
+                          style={{ background: stat.lightBg }}
+                        >
+                          <span
+                            aria-hidden="true"
+                            className="absolute inset-0 rounded-2xl"
+                            style={{ background: stat.gradient, opacity: 0.1 }}
+                          />
+                          <Icon icon={stat.icon} aria-hidden="true" className="relative h-7 w-7" style={{ color: stat.color }} />
+                          {typeof stat.badge === 'number' && stat.badge > 0 && (
+                            <span className="absolute -end-1.5 -top-1.5 z-10 flex h-[22px] min-w-[22px] items-center justify-center rounded-full border-2 border-card bg-red-600 px-0.5 text-xs font-extrabold text-white">
+                              {stat.badge}
+                            </span>
                           )}
                         </div>
                       </div>
@@ -1059,17 +1120,17 @@ const ManagerDashboard: React.FC = () => {
 
           {/* Tabs */}
           <div className="mb-6">
-            <Tabs value={String(tab)} onValueChange={(v) => setTab(Number(v))}>
+            <Tabs value={String(tab)} onValueChange={(v) => changeTab(Number(v))}>
               <div className="overflow-x-auto scrollbar-hide -mx-4 px-4">
                 <TabsList className="h-auto w-max flex-nowrap gap-1 bg-transparent p-0">
                   {TAB_ITEMS.map((item, index) => (
                     <TabsTrigger
                       key={item.text}
                       value={String(index)}
-                      className="min-h-12 shrink-0 gap-2 rounded-[10px] px-5 py-3 text-[0.85rem] font-semibold text-muted-foreground transition-all hover:bg-muted data-[state=active]:shadow-none whitespace-nowrap"
+                      className="min-h-11 shrink-0 gap-1.5 rounded-[9px] px-3 py-1.5 text-[0.75rem] font-semibold text-muted-foreground transition-all hover:bg-muted data-[state=active]:shadow-none whitespace-nowrap"
                       style={tab === index ? { background: 'linear-gradient(135deg, #2563eb, #7c3aed)', color: 'white', boxShadow: '0 4px 15px rgba(37,99,235,0.3)' } : undefined}
                     >
-                      <Icon icon={item.icon} aria-hidden="true" className="h-4 w-4" />
+                      <Icon icon={item.icon} aria-hidden="true" className="h-3.5 w-3.5" />
                       {item.text}
                     </TabsTrigger>
                   ))}
@@ -1091,30 +1152,30 @@ const ManagerDashboard: React.FC = () => {
               >
                 {venues.length === 0 ? (
                   <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4 }}>
-                    <div className="rounded-[20px] border-2 border-dashed border-border bg-card/80 p-12 text-center backdrop-blur">
+                    <div className="rounded-[18px] border-2 border-dashed border-border bg-card/80 p-7 text-center backdrop-blur">
                       <div
-                        className="mx-auto mb-6 flex h-[100px] w-[100px] items-center justify-center rounded-full"
+                        className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
                         style={{ background: 'linear-gradient(135deg, rgba(37,99,235,0.08), rgba(124,58,237,0.08))' }}
                       >
-                        <Icon icon="mdi:store-plus-outline" aria-hidden="true" className="h-12 w-12 text-blue-600 dark:text-blue-400" />
+                        <Icon icon="mdi:store-plus-outline" aria-hidden="true" className="h-8 w-8 text-blue-600 dark:text-blue-400" />
                       </div>
-                      <h2 className="mb-2 text-xl font-bold">هنوز سالنی ثبت نکرده‌اید</h2>
-                      <p className="mx-auto mb-6 max-w-[400px] text-muted-foreground">
+                      <h2 className="mb-1.5 text-lg font-bold">هنوز سالنی ثبت نکرده‌اید</h2>
+                      <p className="mx-auto mb-5 max-w-[400px] text-[0.8rem] leading-6 text-muted-foreground">
                         اولین سالن خود را اضافه کنید و مدیریت سانس‌ها و رزروها را شروع کنید
                       </p>
                       <button
                         type="button"
                         onClick={openCreateVenueDialog}
-                        className="inline-flex min-h-12 items-center gap-2 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 px-8 py-3 text-base font-bold text-white shadow-lg shadow-blue-600/20 transition-colors hover:from-blue-700 hover:to-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+                        className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-blue-600 to-violet-600 px-3.5 py-1.5 text-[0.8rem] font-semibold text-white shadow-sm shadow-blue-600/20 transition-colors hover:from-blue-700 hover:to-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <Icon icon="mdi:plus" aria-hidden="true" className="h-5 w-5" />
+                        <Icon icon="mdi:plus" aria-hidden="true" className="h-4 w-4" />
                         افزودن سالن جدید
                       </button>
                     </div>
                   </motion.div>
                 ) : (
                   <motion.div variants={containerVariants} initial="hidden" animate="visible">
-                    <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                    <div className="grid grid-cols-1 gap-4 sm:gap-6 md:grid-cols-2">
                       {venues.map((venue) => {
                         let amenities: string[] = venue.amenities || []
                         if (typeof venue.amenities === 'string') {
@@ -1140,26 +1201,26 @@ const ManagerDashboard: React.FC = () => {
                                 }}
                               />
 
-                              <div className="p-6">
+                              <div className="p-4 sm:p-6">
                                 {/* Header */}
-                                <div className="mb-4 flex items-start justify-between gap-2">
-                                  <div className="flex min-w-0 items-center gap-4">
-                                    <Avatar className="h-12 w-12 shrink-0 rounded-[14px]">
-                                      <AvatarFallback className="rounded-[14px] bg-gradient-to-br from-blue-600 to-violet-600 text-[1.2rem] font-bold text-white">
+                                <div className="mb-3 flex items-start justify-between gap-2 sm:mb-4 sm:gap-3">
+                                  <div className="flex min-w-0 items-center gap-3 sm:gap-4">
+                                    <Avatar className="h-10 w-10 shrink-0 rounded-xl sm:h-12 sm:w-12 sm:rounded-[14px]">
+                                      <AvatarFallback className="rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 text-[1.05rem] font-bold text-white sm:rounded-[14px] sm:text-[1.2rem]">
                                         {venue.name[0]}
                                       </AvatarFallback>
                                     </Avatar>
                                     <div className="min-w-0">
-                                      <p className="mb-0.5 text-base font-bold">{venue.name}</p>
-                                      <div className="flex items-center gap-2">
+                                      <p className="mb-1 text-[0.95rem] font-bold leading-6 sm:mb-0.5 sm:text-base">{venue.name}</p>
+                                      <div className="flex items-center gap-1.5 sm:gap-2">
                                         <Icon icon="mdi:map-marker" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-slate-400" />
-                                        <p className="truncate text-xs text-muted-foreground">{venue.address}</p>
+                                        <p className="truncate text-[0.72rem] leading-5 text-muted-foreground sm:text-xs">{venue.address}</p>
                                       </div>
                                     </div>
                                   </div>
                                   <span
                                     className={cn(
-                                      'inline-flex min-h-11 shrink-0 items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-semibold',
+                                      'inline-flex min-h-8 shrink-0 items-center gap-1 rounded-lg px-1.5 py-0.5 text-[0.68rem] font-semibold leading-5 sm:min-h-11 sm:px-2 sm:text-xs',
                                       venue.is_verified
                                         ? 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-400'
                                         : 'bg-amber-500/10 text-amber-700 dark:text-amber-400',
@@ -1174,30 +1235,30 @@ const ManagerDashboard: React.FC = () => {
                                   </span>
                                 </div>
 
-                                {/* Amenities */}
+                                {/* Amenities — در موبایل کارت را شلوغ می‌کرد، فقط از sm به بالا */}
                                 {amenities.length > 0 && (
-                                  <div className="mb-4 flex flex-wrap gap-1.5">
+                                  <div className="mb-4 hidden flex-wrap gap-1.5 sm:flex">
                                     {amenities.slice(0, 4).map((a, i) => (
                                       <span
                                         key={i}
-                                        className="inline-flex min-h-11 items-center rounded-md border border-blue-600/15 px-2 py-0.5 text-xs font-medium text-primary"
+                                        className="inline-flex min-h-7 items-center rounded-md border border-blue-600/15 px-2 py-0.5 text-[0.7rem] font-medium text-primary"
                                       >
                                         {a}
                                       </span>
                                     ))}
                                     {amenities.length > 4 && (
-                                      <span className="inline-flex min-h-11 items-center rounded-md bg-primary px-2 py-0.5 text-xs font-semibold text-white">
+                                      <span className="inline-flex min-h-7 items-center rounded-md bg-primary px-2 py-0.5 text-[0.7rem] font-semibold text-white">
                                         {`+${amenities.length - 4}`}
                                       </span>
                                     )}
                                   </div>
                                 )}
 
-                                <hr className="mb-4 border-border" />
+                                <hr className="mb-3 border-border sm:mb-4" />
 
                                 {/* Info Row */}
-                                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
-                                  <div className="flex flex-wrap items-center gap-3">
+                                <div className="mb-3.5 flex flex-wrap items-center justify-between gap-2 sm:mb-4">
+                                  <div className="flex flex-wrap items-center gap-x-3 gap-y-1.5">
                                     <div className="flex items-center gap-2">
                                       <Icon icon="mdi:phone" aria-hidden="true" className="h-4 w-4 text-slate-400" />
                                       <p dir="ltr" className="text-xs text-muted-foreground">{venue.phone}</p>
@@ -1207,7 +1268,7 @@ const ManagerDashboard: React.FC = () => {
                                       <p className="text-xs font-semibold text-muted-foreground">{formatPrice(venue.price)}</p>
                                     </div>
                                     <span
-                                      className="inline-flex min-h-11 items-center gap-1 rounded-md px-2 py-0.5 text-xs font-semibold"
+                                      className="inline-flex min-h-8 items-center gap-1 rounded-md px-2 py-0.5 text-[0.7rem] font-semibold leading-5 sm:min-h-11 sm:text-xs"
                                       style={{
                                         backgroundColor: PAYMENT_MODE_CHIP_STYLE[venue.payment_mode ?? '']?.bg ?? 'rgba(100,116,139,0.1)',
                                         color: PAYMENT_MODE_CHIP_STYLE[venue.payment_mode ?? '']?.color ?? '#64748b',
@@ -1219,33 +1280,33 @@ const ManagerDashboard: React.FC = () => {
                                   </div>
                                 </div>
 
-                                {/* Actions */}
-                                <div className="flex flex-wrap gap-2">
+                                {/* Actions — در موبایل سه‌ستونی تا دکمهٔ سوم تنها به خط بعد نیفتد */}
+                                <div className="grid grid-cols-3 gap-1.5 sm:flex sm:flex-wrap sm:gap-2">
                                   <button
                                     type="button"
                                     onClick={() => {
                                       setSelectedVenue(venue)
                                       setOpenGenerateSlots(true)
                                     }}
-                                    className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-[10px] bg-gradient-to-br from-blue-600 to-violet-600 px-5 py-2 text-[0.85rem] font-semibold text-white shadow-md shadow-blue-600/20 transition-colors hover:from-blue-700 hover:to-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    className="inline-flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] bg-gradient-to-br from-blue-600 to-violet-600 px-1.5 py-1.5 text-[0.7rem] font-semibold text-white shadow-md shadow-blue-600/20 transition-colors hover:from-blue-700 hover:to-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-10 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
                                   >
-                                    <Icon icon="mdi:calendar-plus" aria-hidden="true" className="h-4 w-4" />
+                                    <Icon icon="mdi:calendar-plus" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                                     ایجاد سانس
                                   </button>
                                   <button
                                     type="button"
-                                    onClick={() => handleViewVenue(venue)}
-                                    className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-[10px] border border-blue-600/20 px-5 py-2 text-[0.85rem] font-semibold text-primary transition-colors hover:border-primary hover:bg-blue-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                    onClick={() => handleOpenWorkspace(venue)}
+                                    className="inline-flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-blue-600/20 px-1.5 py-1.5 text-[0.7rem] font-semibold text-primary transition-colors hover:border-primary hover:bg-blue-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-10 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
                                   >
-                                    <Icon icon="mdi:eye-outline" aria-hidden="true" className="h-4 w-4" />
-                                    مدیریت
+                                    <Icon icon="mdi:view-dashboard-outline" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                                    داشبورد
                                   </button>
                                   <button
                                     type="button"
                                     onClick={() => openEditVenueDialog(venue)}
-                                    className="inline-flex min-h-12 flex-1 items-center justify-center gap-2 rounded-[10px] border border-amber-600/30 px-5 py-2 text-[0.85rem] font-semibold text-amber-700 transition-colors hover:border-amber-600 hover:bg-amber-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400"
+                                    className="inline-flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-amber-600/30 px-1.5 py-1.5 text-[0.7rem] font-semibold text-amber-700 transition-colors hover:border-amber-600 hover:bg-amber-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400 sm:min-h-10 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
                                   >
-                                    <Icon icon="mdi:pencil-outline" aria-hidden="true" className="h-4 w-4" />
+                                    <Icon icon="mdi:pencil-outline" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                                     ویرایش
                                   </button>
                                 </div>
@@ -1354,6 +1415,12 @@ const ManagerDashboard: React.FC = () => {
                   </div>
                 )}
 
+                {dealsError && (
+                  <div className="mb-4 rounded-2xl border border-red-500/25 bg-red-50/90 dark:bg-red-500/10">
+                    <ErrorBox message={dealsError} onRetry={fetchDeals} />
+                  </div>
+                )}
+
                 {/* Slots List */}
                 {slotsLoading ? (
                   <div className="py-12 text-center">
@@ -1364,6 +1431,8 @@ const ManagerDashboard: React.FC = () => {
                     />
                     <p className="mt-4 text-sm text-muted-foreground">در حال بارگذاری سانس‌ها...</p>
                   </div>
+                ) : slotsError ? (
+                  <ErrorBox message={slotsError} onRetry={fetchSlots} />
                 ) : slots.length === 0 ? (
                   <div className="rounded-[20px] border-2 border-dashed border-border bg-card/80 p-12 text-center backdrop-blur">
                     <div
@@ -1433,7 +1502,7 @@ const ManagerDashboard: React.FC = () => {
                               {dealsMap[slot.id] ? (
                                 <div className="flex flex-wrap items-center gap-2">
                                   <span className="inline-flex items-center rounded-lg bg-amber-500/15 px-2 py-0.5 text-xs font-extrabold text-amber-700 dark:text-amber-400">
-                                    ویژه 🔥
+                                    ویژه
                                   </span>
                                   <p className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
                                     {formatPrice(dealsMap[slot.id].deal_price)}
@@ -1612,6 +1681,8 @@ const ManagerDashboard: React.FC = () => {
                         className="mx-auto block h-7 w-7 animate-spin rounded-full border-2 border-amber-600 border-t-transparent"
                       />
                     </div>
+                  ) : pendingError ? (
+                    <ErrorBox message={pendingError} onRetry={fetchPending} />
                   ) : pendingList.length === 0 ? (
                     <p className="text-sm text-muted-foreground">رزروی در انتظار تأیید نیست</p>
                   ) : (
@@ -1676,6 +1747,8 @@ const ManagerDashboard: React.FC = () => {
                     />
                     <p className="mt-4 text-sm text-muted-foreground">در حال بارگذاری رزروها...</p>
                   </div>
+                ) : bookingsError ? (
+                  <ErrorBox message={bookingsError} onRetry={fetchBookings} />
                 ) : bookings.length === 0 ? (
                   <div className="rounded-[20px] border-2 border-dashed border-border bg-card/80 p-12 text-center backdrop-blur">
                     <div
@@ -1920,6 +1993,8 @@ const ManagerDashboard: React.FC = () => {
                           className="mx-auto block h-7 w-7 animate-spin rounded-full border-2 border-primary border-t-transparent"
                         />
                       </div>
+                    ) : purchasesError ? (
+                      <ErrorBox message={purchasesError} onRetry={() => { if (planVenueId) fetchVenuePurchases(planVenueId) }} />
                     ) : venuePurchases.length === 0 ? (
                       <div className="rounded-2xl border border-dashed border-border p-6 text-center">
                         <p className="text-sm text-muted-foreground">هنوز خریدی ثبت نشده است.</p>

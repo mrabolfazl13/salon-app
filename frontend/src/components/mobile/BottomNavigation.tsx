@@ -36,7 +36,9 @@ const getItemsForRole = (role: string | undefined): NavItem[] => {
   if (role === 'venue_manager' || role === 'club_admin') {
     // «cash-register» در MDI نسخهٔ `-outline` ندارد؛ NavIcon برای حالت فعال آن را
     // می‌سازد ⇒ آیکنِ خالی (پیلِ بی‌محتوا روی ۳۲۰px). «wallet» هر دو حالت را دارد.
-    return [home, { label: 'داشبورد', icon: 'view-dashboard', href: '/manager-dashboard', requiresAuth: true, roles: ['venue_manager', 'club_admin', 'super_admin'] }, competitions, { label: 'امور مالی', icon: 'wallet', href: '/finance', requiresAuth: true }, profile]
+    // «سالن‌های من» جایش «رقابت‌ها» را گرفت: برای مالکِ چندسالنه، عوض‌کردن سالن
+    // تکراری‌ترین کار روزانه است؛ جدول رقابت‌ها در منوی آواتار و ناوبار دسکتاپ هست.
+    return [home, { label: 'داشبورد', icon: 'view-dashboard', href: '/manager-dashboard', requiresAuth: true, roles: ['venue_manager', 'club_admin', 'super_admin'] }, { label: 'سالن‌های من', icon: 'store', href: '/manager/venues', requiresAuth: true }, { label: 'امور مالی', icon: 'wallet', href: '/finance', requiresAuth: true }, profile]
   }
 
   // کاربر عادی
@@ -80,7 +82,7 @@ const BottomNavigation: React.FC = () => {
   return (
     <nav
       aria-label="ناوبری اصلی"
-      className="fixed inset-x-0 bottom-0 z-[60] border-t border-border bg-background/95 pb-safe backdrop-blur-xl shadow-[0_-2px_12px_rgba(15,23,42,0.05)] md:hidden dark:shadow-[0_-2px_12px_rgba(0,0,0,0.4)]"
+      className="fixed inset-x-0 bottom-0 z-[60] border-t border-border bg-background/95 pb-safe backdrop-blur-xl shadow-[0_-2px_12px_rgba(15,23,42,0.05)] md:hidden dark:shadow-[0_-2px_12px_rgba(0,0,0,0.4)] print:hidden"
     >
       <div className="flex h-[56px]">
         {filteredItems.map((item) => {

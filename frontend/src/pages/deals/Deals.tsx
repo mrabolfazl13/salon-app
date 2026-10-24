@@ -101,8 +101,9 @@ const Deals: React.FC = () => {
               aria-hidden="true"
               className="pointer-events-none absolute -top-[60px] end-[-60px] h-[220px] w-[220px] rounded-full bg-white/10"
             />
-            <h1 className="mb-1 text-[1.4rem] font-black md:text-[1.8rem]">
-              🔥 شگفت‌انگیزهای لحظه آخری
+            <h1 className="mb-1 flex items-center gap-2 text-[1.4rem] font-black md:text-[1.8rem]">
+              <Icon icon="mdi:fire" className="h-7 w-7" aria-hidden="true" />
+              شگفت‌انگیزهای لحظه آخری
             </h1>
             <p className="max-w-[560px] text-[0.68rem] text-white/90">
               سانس‌های خالیِ نزدیک سالن‌ها با تخفیف‌های ویژه — تا مهلت تمام نشده رزرو کن؛ قیمت نهایی سمت سرور اعمال می‌شود.
@@ -140,8 +141,8 @@ const Deals: React.FC = () => {
                     aria-pressed={active}
                     className={
                       active
-                        ? 'min-h-9 rounded-xl bg-gradient-to-br from-amber-500 to-red-500 px-4 py-2 text-[0.85rem] font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                        : 'min-h-9 rounded-xl px-4 py-2 text-[0.85rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        ? 'min-h-11 rounded-xl bg-gradient-to-br from-amber-500 to-red-500 px-4 py-2 text-[0.85rem] font-bold text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        : 'min-h-11 rounded-xl px-4 py-2 text-[0.85rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                     }
                   >
                     {t.label}
@@ -160,7 +161,7 @@ const Deals: React.FC = () => {
                     type="button"
                     onClick={requestLocation}
                     disabled={locating}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-full border border-blue-600/30 px-4 py-2 text-[0.8rem] font-bold text-blue-600 transition-colors hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-500/10"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-blue-600/30 px-4 py-2 text-[0.8rem] font-bold text-blue-600 transition-colors hover:bg-blue-50 disabled:opacity-50 dark:text-blue-400 dark:hover:bg-blue-500/10"
                   >
                     <Icon icon="mdi:crosshairs-gps" style={{ width: 16, height: 16 }} aria-hidden="true" />
                     {locating ? '...' : s.label}
@@ -176,8 +177,8 @@ const Deals: React.FC = () => {
                   aria-pressed={isActive}
                   className={
                     isActive
-                      ? 'inline-flex min-h-9 items-center gap-2 rounded-full bg-amber-500 px-4 py-2 text-[0.8rem] font-bold text-stone-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                      : 'inline-flex min-h-9 items-center gap-2 rounded-full border border-border px-4 py-2 text-[0.8rem] font-medium text-foreground transition-colors hover:border-amber-500/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                      ? 'inline-flex min-h-11 items-center gap-2 rounded-full bg-amber-500 px-4 py-2 text-[0.8rem] font-bold text-stone-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                      : 'inline-flex min-h-11 items-center gap-2 rounded-full border border-border px-4 py-2 text-[0.8rem] font-medium text-foreground transition-colors hover:border-amber-500/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                   }
                 >
                   {s.needsCoords && (
@@ -194,7 +195,7 @@ const Deals: React.FC = () => {
                   setCoords(null)
                   if (sort === 'distance') setSort('time')
                 }}
-                className="inline-flex min-h-9 items-center gap-2 rounded-full bg-emerald-500/10 px-4 py-2 text-[0.8rem] font-bold text-emerald-700 dark:text-emerald-300"
+                className="inline-flex min-h-11 items-center gap-2 rounded-full bg-emerald-500/10 px-4 py-2 text-[0.8rem] font-bold text-emerald-700 dark:text-emerald-300"
                 aria-label="حذف فیلتر موقعیت مکانی"
               >
                 <Icon icon="mdi:map-marker" style={{ width: 16, height: 16 }} aria-hidden="true" />

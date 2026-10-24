@@ -262,7 +262,7 @@ export const LoyaltySection: React.FC = () => {
               variant="ghost"
               size="sm"
               onClick={() => navigate('/profile')}
-              className="h-9 rounded-[10px] bg-white/20 px-4 py-2 text-[0.82rem] font-bold text-white hover:bg-white/30 hover:text-white"
+              className="min-h-11 rounded-[10px] bg-white/20 px-4 py-2 text-[0.82rem] font-bold text-white hover:bg-white/30 hover:text-white"
             >
               مشاهده جزئیات
             </Button>

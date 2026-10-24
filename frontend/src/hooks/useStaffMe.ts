@@ -42,6 +42,13 @@ export interface ManagedVenue {
   name: string
   /** null = مالک/سرپرست سالن (دسترسی کامل)؛ لیست کدهای مؤثر کارمند */
   permissions: string[] | null
+  /* فقط برای سالن‌های مالکیت مدیر از my-venues پر می‌شود؛ کارمند فقط نام دارد */
+  address?: string
+  category?: 'futsal' | 'gym'
+  images?: string[]
+  phone?: string | null
+  is_verified?: boolean
+  payment_mode?: string | null
 }
 
 export function isForbiddenError(err: unknown): boolean {
@@ -93,7 +100,17 @@ export function useManagedVenues(enabled = true) {
       if (myV.status === 'rejected' && meV.status === 'rejected') throw myV.reason
       const map = new Map<number, ManagedVenue>()
       for (const v of myV.status === 'fulfilled' && Array.isArray(myV.value) ? myV.value : []) {
-        map.set(v.id, { id: v.id, name: v.name, permissions: null })
+        map.set(v.id, {
+          id: v.id,
+          name: v.name,
+          permissions: null,
+          address: v.address,
+          category: v.category,
+          images: v.images,
+          phone: v.phone,
+          is_verified: v.is_verified,
+          payment_mode: v.payment_mode,
+        })
       }
       if (meV.status === 'fulfilled' && Array.isArray(meV.value)) {
         for (const row of meV.value) {

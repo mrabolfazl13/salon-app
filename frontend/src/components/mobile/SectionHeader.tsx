@@ -32,7 +32,7 @@ const SectionHeader: React.FC<Props> = ({ title, subtitle, actionLabel, onAction
         <button
           type="button"
           onClick={onAction}
-          className="inline-flex min-h-9 min-w-9 shrink-0 items-center gap-0.5 rounded-lg px-2 text-[0.72rem] font-bold text-amber-700 transition-colors hover:bg-amber-500/[0.07] hover:text-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400 dark:hover:bg-amber-400/10 dark:hover:text-amber-300"
+          className="inline-flex min-h-11 min-w-11 shrink-0 items-center gap-0.5 rounded-lg px-2 text-[0.72rem] font-bold text-amber-700 transition-colors hover:bg-amber-500/[0.07] hover:text-amber-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400 dark:hover:bg-amber-400/10 dark:hover:text-amber-300"
         >
           {actionLabel}
           <Icon icon="mdi:chevron-left" aria-hidden="true" style={{ width: 15, height: 15 }} />

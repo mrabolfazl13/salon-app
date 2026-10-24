@@ -292,7 +292,7 @@ const CoachDashboard: React.FC = () => {
           <div>
             <h2 className="mb-3 text-lg font-bold text-foreground">جلسات امروز</h2>
             {today.length === 0 ? (
-              <EmptyState emoji="🗓️" title="جلسه‌ای برای امروز نیست" description="از دکمهٔ «جلسه جدید» برای شاگردانت زمان بگذار." />
+              <EmptyState icon="mdi:calendar-blank-outline" title="جلسه‌ای برای امروز نیست" description="از دکمهٔ «جلسه جدید» برای شاگردانت زمان بگذار." />
             ) : (
               <div className="flex flex-col gap-2.5" data-testid="coach-today">
                 {today.map((s) => (

@@ -146,7 +146,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               aria-pressed={mode === 'percent'}
               onClick={() => setMode('percent')}
               className={cn(
-                'min-h-9 flex-1 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'min-h-11 flex-1 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 mode === 'percent'
                   ? 'border-blue-600 bg-blue-600 text-white'
                   : 'border-border bg-card text-foreground hover:bg-muted'
@@ -159,7 +159,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               aria-pressed={mode === 'price'}
               onClick={() => setMode('price')}
               className={cn(
-                'min-h-9 flex-1 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                'min-h-11 flex-1 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 mode === 'price'
                   ? 'border-blue-600 bg-blue-600 text-white'
                   : 'border-border bg-card text-foreground hover:bg-muted'

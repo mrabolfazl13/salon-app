@@ -26,7 +26,10 @@ import { useAuthStore } from '@/store/authStore'
 import { ErrorBox, LoadingBox, SectionCard, StatusChip, extractError } from './shared'
 import type { ExpenseCategory } from '@/services/finance'
 
-const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
+const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[]; embedded?: boolean }> = ({
+  venues,
+  embedded = false,
+}) => {
   const isSuper = useAuthStore((s) => s.user?.role === 'super_admin')
   const [includeInactive, setIncludeInactive] = useState(true)
   const [name, setName] = useState('')
@@ -79,24 +82,27 @@ const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }
     })
   }
 
+  const toggleButton = (
+    <button
+      type="button"
+      onClick={() => setIncludeInactive((v) => !v)}
+      aria-pressed={includeInactive}
+      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-muted px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+    >
+      <Icon icon={includeInactive ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} className="h-3.5 w-3.5" aria-hidden="true" />
+      {includeInactive ? 'نمایش: همه' : 'نمایش: فعال‌ها'}
+    </button>
+  )
+
   return (
     <SectionCard
       title="دسته‌بندی‌های هزینه"
       icon="mdi:tag-outline"
       color="#db2777"
       dense
-      action={
-        <button
-          type="button"
-          onClick={() => setIncludeInactive((v) => !v)}
-          aria-pressed={includeInactive}
-          className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-muted px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-        >
-          <Icon icon={includeInactive ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} className="h-3.5 w-3.5" aria-hidden="true" />
-          {includeInactive ? 'نمایش: همه' : 'نمایش: فعال‌ها'}
-        </button>
-      }
+      action={embedded ? undefined : toggleButton}
     >
+      {embedded && <div className="mb-3 flex justify-end">{toggleButton}</div>}
       {/* فرم ایجاد */}
       <div className="mb-4 grid grid-cols-12 items-end gap-3">
         <div className="col-span-12 flex flex-col gap-1.5 sm:col-span-5">

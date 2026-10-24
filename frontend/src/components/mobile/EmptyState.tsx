@@ -5,8 +5,6 @@ import { Button } from '@/components/ui/shadcn/button'
 
 interface Props {
   icon?: string
-  /** @deprecated به‌جای ایموجی از آیکون SVG (mdi) استفاده کنید */
-  emoji?: string
   title: string
   description?: string
   actionLabel?: string

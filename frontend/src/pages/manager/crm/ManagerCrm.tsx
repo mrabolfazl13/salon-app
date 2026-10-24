@@ -125,7 +125,7 @@ const ManagerCrm: React.FC = () => {
                         onClick={() => setVenueId(v.id)}
                         aria-pressed={venueId === v.id}
                         className={cn(
-                          'min-h-9 shrink-0 whitespace-nowrap rounded-[10px] border px-3 text-[0.78rem] font-bold transition-colors',
+                          'min-h-11 shrink-0 whitespace-nowrap rounded-[10px] border px-3 text-[0.78rem] font-bold transition-colors',
                           venueId === v.id
                             ? 'border-transparent bg-gradient-to-br from-blue-600 to-violet-600 text-white'
                             : 'border-violet-600/25 text-violet-700 hover:bg-violet-500/10 dark:text-violet-400'

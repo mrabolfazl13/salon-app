@@ -37,7 +37,16 @@ const Contracts = lazy(() => import('@/pages/contracts/Contracts'))
 const ContractDetail = lazy(() => import('@/pages/contracts/ContractDetail'))
 const Profile = lazy(() => import('@/pages/profile/Profile'))
 const ManagerDashboard = lazy(() => import('@/pages/dashboard/ManagerDashboard'))
+const VenuePicker = lazy(() => import('@/pages/manager/venues/VenuePicker'))
+const VenueWorkspace = lazy(() => import('@/pages/manager/venues/VenueWorkspace'))
 const FinanceConsole = lazy(() => import('@/pages/finance/FinanceConsole'))
+const FinanceOverview = lazy(() => import('@/pages/finance/FinanceOverview'))
+const FinanceTransactions = lazy(() => import('@/pages/finance/FinanceTransactions'))
+const FinanceAccounts = lazy(() => import('@/pages/finance/FinanceAccounts'))
+const FinanceReports = lazy(() => import('@/pages/finance/FinanceReports'))
+const FinanceProfitLoss = lazy(() => import('@/pages/finance/ProfitLoss'))
+const FinanceCashFlow = lazy(() => import('@/pages/finance/CashFlow'))
+const FinanceExpenses = lazy(() => import('@/pages/finance/Expenses'))
 const ManagerPricing = lazy(() => import('@/pages/manager/pricing/ManagerPricing'))
 const Deals = lazy(() => import('@/pages/deals/Deals'))
 const Quiz = lazy(() => import('@/pages/quiz/Quiz'))
@@ -166,7 +175,11 @@ function AppRoutes() {
           variants={pageVariants}
           transition={{ duration: 0.4 }}
         >
-          <Routes>
+          {/* Suspense باید داخل wrapper باشد؛ اگر بیرون باشد، انتظار برای چانکِ
+              lazy صفحه، کلِ wrapper را بعد از پایان انیمیشن از نو mount می‌کند و
+              آن را روی opacity:0 قفل می‌گذارد (صفحهٔ سفید ولی قابل کلیک). */}
+          <Suspense fallback={<Loading fullScreen />}>
+            <Routes>
             {/* Public routes */}
             <Route path="/" element={<Home />} />
             <Route path="/search" element={<Search />} />
@@ -182,9 +195,20 @@ function AppRoutes() {
             {/* Protected user routes */}
             <Route path="/dashboard" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
             <Route path="/manager-dashboard" element={<ProtectedRoute requiredRole="venue_manager"><ManagerDashboard /></ProtectedRoute>} />
+            {/* جریان سالن‌محور: اول انتخاب سالن، بعد داشبورد همان سالن (allowStaff مثل /finance) */}
+            <Route path="/manager/venues" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><VenuePicker /></ProtectedRoute>} />
+            <Route path="/manager/venues/:venueId" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><VenueWorkspace /></ProtectedRoute>} />
             {/* کنسول‌های عملیاتی — گیت لاگین + allowStaff: کارمند انتصابی (role=user)
                 هم باز می‌کند؛ ۴۰۳ بک‌اند با ForbiddenPanel/توست فارسی مدیریت می‌شود */}
-            <Route path="/finance" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><FinanceConsole /></ProtectedRoute>} />
+            <Route path="/finance" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><FinanceConsole /></ProtectedRoute>}>
+              <Route index element={<FinanceOverview />} />
+              <Route path="transactions" element={<FinanceTransactions />} />
+              <Route path="accounts" element={<FinanceAccounts />} />
+              <Route path="reports" element={<FinanceReports />} />
+              <Route path="profit-loss" element={<FinanceProfitLoss />} />
+              <Route path="cash-flow" element={<FinanceCashFlow />} />
+              <Route path="expenses" element={<FinanceExpenses />} />
+            </Route>
             <Route path="/manager/pricing" element={<ProtectedRoute requiredRole="venue_manager" allowStaff><ManagerPricing /></ProtectedRoute>} />
             {/* شگفت‌انگیزها — فقط کاربران لاگین‌کرده (همان گیت ProtectedRoute نقش کاربر) */}
             <Route path="/deals" element={<ProtectedRoute><Deals /></ProtectedRoute>} />
@@ -230,7 +254,8 @@ function AppRoutes() {
 
             {/* Fallback */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </Suspense>
         </motion.div>
       </AnimatePresence>
     </>

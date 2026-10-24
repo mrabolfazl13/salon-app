@@ -125,7 +125,7 @@ const Dashboard: React.FC = () => {
       <div className="mb-7 flex flex-wrap items-center justify-between gap-3">
         <div>
           <h1 className="text-xl font-bold text-foreground">
-            سلام{user?.fullName ? `، ${user.fullName.split(' ')[0]}` : ''} 👋
+            سلام{user?.fullName ? `، ${user.fullName.split(' ')[0]}` : ''}
           </h1>
           <p className="mt-1 text-[0.68rem] text-muted-foreground">
             به داشبورد سیستم رزرو سالن فوتسال خوش آمدید
@@ -190,7 +190,7 @@ const Dashboard: React.FC = () => {
             </div>
             <Link
               to="/bookings"
-              className="inline-flex min-h-9 items-center rounded-lg px-2 text-[0.68rem] font-semibold text-blue-600 hover:underline dark:text-blue-400"
+              className="inline-flex min-h-11 items-center rounded-lg px-2 text-[0.68rem] font-semibold text-blue-600 hover:underline dark:text-blue-400"
             >
               مشاهده همه
             </Link>

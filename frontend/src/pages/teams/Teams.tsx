@@ -9,6 +9,7 @@ import { useQuery } from '@tanstack/react-query'
 import { Icon } from '@iconify/react'
 
 import Layout from '@/components/layout/Layout'
+import ConfirmModal from '@/components/modals/ConfirmModal'
 import { EmptyState, ErrorState, Shimmer } from '@/components/mobile'
 import { Button } from '@/components/ui/Button'
 import { useAuthStore } from '@/store/authStore'
@@ -16,6 +17,8 @@ import { useAcceptTeamInvitation, useDeclineTeamInvitation, useMyTeamInvitations
 import { useToast } from '@/hooks/useToast'
 import { TeamFormDialog } from '@/components/team'
 import { SPORT_EMOJI, SPORT_NAME_FA, TeamQuotaProgress, TeamVisibilityChip, getTeamError } from '@/components/team/shared'
+import { ErrorBox, extractError } from '@/components/finance/shared'
+import { isForbidden } from '@/components/crm/shared'
 import { teamService } from '@/services/team'
 import type { StandingsItem } from '@/services/team'
 import type { Team, TeamInvitation } from '@/types/team'
@@ -28,6 +31,8 @@ const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
   const accept = useAcceptTeamInvitation()
   const decline = useDeclineTeamInvitation()
   const busy = accept.isPending || decline.isPending
+  // رد دعوت، دعوت را برای همیشه می‌بندد (بازگشت فقط با دعوت دوبارهٔ مدیر تیم)
+  const [declineOpen, setDeclineOpen] = useState(false)
 
   return (
     <div className="flex flex-wrap items-center gap-2.5 rounded-lg border border-violet-600/25 bg-violet-600/5 px-4 py-3">
@@ -59,12 +64,7 @@ const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
             size="sm"
             variant="outline"
             loading={decline.isPending}
-            onClick={() =>
-              decline.mutate(
-                { teamId: inv.team_id, memberId: inv.member_id as number },
-                { onSuccess: () => toast.success('دعوت رد شد.'), onError: (err) => toast.error(getTeamError(err)) },
-              )
-            }
+            onClick={() => setDeclineOpen(true)}
           >
             رد
           </Button>
@@ -79,6 +79,32 @@ const PendingInvitationRow: React.FC<{ inv: TeamInvitation }> = ({ inv }) => {
           <span className="text-[0.68rem] font-bold text-blue-600 dark:text-blue-400">مشاهده تیم</span>
         </Link>
       )}
+
+      <ConfirmModal
+        open={declineOpen}
+        onOpenChange={(open) => { if (!open) setDeclineOpen(false) }}
+        title="رد دعوت تیم"
+        description={`دعوت به تیم «${inv.team_name ?? `#${inv.team_id}`}» رد می‌شود و این دعوت برای همیشه بسته می‌شود؛ برای پیوستن باید مدیر تیم دوباره شما را دعوت کند.`}
+        confirmText="رد دعوت"
+        cancelText="انصراف"
+        variant="destructive"
+        loading={decline.isPending}
+        onConfirm={() =>
+          decline.mutate(
+            { teamId: inv.team_id, memberId: inv.member_id as number },
+            {
+              onSuccess: () => {
+                setDeclineOpen(false)
+                toast.success('دعوت رد شد.')
+              },
+              onError: (err) => {
+                setDeclineOpen(false)
+                toast.error(getTeamError(err))
+              },
+            },
+          )
+        }
+      />
     </div>
   )
 }
@@ -167,6 +193,21 @@ const LeagueStandingsPanel: React.FC<{ enabled: boolean }> = ({ enabled }) => {
     staleTime: 60_000,
     retry: 0,
   })
+  // خطا نباید پنل را حذف کند؛ جدول لیگ نداشتن با «درخواست ناموفق» فرق دارد
+  if (q.isError) {
+    return (
+      <div className="mb-4 rounded-lg border border-border bg-card shadow-sm">
+        <ErrorBox
+          message={
+            isForbidden(q.error)
+              ? 'شما اجازه مشاهده جدول لیگ را ندارید (۴۰۳).'
+              : extractError(q.error, 'بارگذاری جدول لیگ ممکن نشد.')
+          }
+          onRetry={() => q.refetch()}
+        />
+      </div>
+    )
+  }
   const items = q.data?.items ?? []
   if (!q.isSuccess || items.length === 0) return null
 
@@ -275,7 +316,7 @@ const Teams: React.FC = () => {
         <ErrorState description="بارگذاری تیم‌ها ممکن نشد." onRetry={() => teamsQ.refetch()} />
       ) : teams.length === 0 ? (
         <EmptyState
-          emoji="🛡️"
+          icon="mdi:shield-plus-outline"
           title="هنوز تیمی ندارید"
           description="اولین تیم خود را بسازید یا در «کاوش تیم‌ها» به تیم‌های عمومی بپیوندید."
           actionLabel="ساخت تیم"

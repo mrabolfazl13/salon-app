@@ -198,7 +198,7 @@ export const DueStatusChip: React.FC<{ isPaid: boolean; isVoided: boolean; overd
 
 // ─────────────────────────── وضعیت رسمی‌شدن تیم ───────────────────────────
 
-/** بج «رسمی ✅» — وقتی تیم به حد نصاب اعضا رسیده باشد */
+/** بج «رسمی» — وقتی تیم به حد نصاب اعضا رسیده باشد */
 export const TeamOfficialBadge: React.FC<{ size?: 'small' | 'medium' }> = ({ size = 'small' }) => (
   <span
     className={cn(
@@ -211,7 +211,7 @@ export const TeamOfficialBadge: React.FC<{ size?: 'small' | 'medium' }> = ({ siz
       icon="mdi:shield-star-outline"
       style={{ width: size === 'small' ? 13 : 15, height: size === 'small' ? 13 : 15 }}
     />
-    {'رسمی ✅'}
+    {'رسمی'}
   </span>
 )
 

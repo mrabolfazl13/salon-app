@@ -201,7 +201,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                             onValueChange={(v) => changePosition(row, v as StaffPosition)}
                             disabled={updateStaff.isPending}
                           >
-                            <SelectTrigger aria-label="سمت" className="h-9 rounded-xl text-[0.8rem] font-bold">
+                            <SelectTrigger aria-label="سمت" className="min-h-11 rounded-xl text-[0.8rem] font-bold">
                               <SelectValue />
                             </SelectTrigger>
                             <SelectContent>
@@ -238,7 +238,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                                   onClick={() => resetCustomPermissions(row)}
                                   disabled={updateStaff.isPending}
                                   aria-label="بازگرداندن دسترسی به پیش‌فرض"
-                                  className="inline-flex h-9 w-11 items-center justify-center rounded-lg text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 dark:text-blue-400"
+                                  className="inline-flex min-h-11 w-11 items-center justify-center rounded-lg text-blue-600 transition-colors hover:bg-blue-600/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:opacity-50 dark:text-blue-400"
                                 >
                                   <Icon icon="mdi:restore" className="h-4 w-4" aria-hidden="true" />
                                 </button>
@@ -270,7 +270,7 @@ const StaffTab: React.FC<Props> = ({ venueId }) => {
                               type="button"
                               onClick={() => setRemoveTarget(row)}
                               aria-label="حذف انتصاب"
-                              className="inline-flex h-9 w-11 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
+                              className="inline-flex min-h-11 w-11 items-center justify-center rounded-lg text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
                             >
                               <Icon icon="mdi:account-remove-outline" className="h-5 w-5" aria-hidden="true" />
                             </button>

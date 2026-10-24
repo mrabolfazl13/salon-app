@@ -79,7 +79,7 @@ const GamesExplore: React.FC = () => {
 
   const chipClass = (active: boolean) =>
     cn(
-      'inline-flex min-h-9 min-w-11 items-center justify-center rounded-full border px-4 text-[0.85rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+      'inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border px-4 text-[0.85rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
       active
         ? 'border-blue-600/35 bg-blue-600/10 text-blue-600 dark:text-blue-400'
         : 'border-border text-slate-600 hover:bg-muted dark:text-slate-300',
@@ -89,8 +89,9 @@ const GamesExplore: React.FC = () => {
     <Layout>
       <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
         <div>
-          <h1 className="text-[1.35rem] font-black text-foreground md:text-[1.6rem]">
-            🎮 بازی‌های گروهی
+          <h1 className="flex items-center gap-2 text-[1.35rem] font-black text-foreground md:text-[1.6rem]">
+            <Icon icon="mdi:soccer" className="h-6 w-6 text-amber-600 dark:text-amber-400" aria-hidden="true" />
+            بازی‌های گروهی
           </h1>
           <p className="mt-1 text-[0.85rem] text-muted-foreground">
             به بازی‌های باز دیگران بپیوند یا روی رزرو خودت بازی بساز.
@@ -108,10 +109,10 @@ const GamesExplore: React.FC = () => {
       </div>
 
       <Tabs value={String(tab)} onValueChange={(v) => setTab(Number(v))} className="mb-5">
-        <TabsList className="h-12 w-full justify-start overflow-x-auto">
-          <TabsTrigger value="0" aria-label="تب کشف بازی‌ها" className="h-9 px-4 text-[0.9rem]">کشف بازی‌ها</TabsTrigger>
-          <TabsTrigger value="1" aria-label="تب بازی‌های من" className="h-9 px-4 text-[0.9rem]">بازی‌های من</TabsTrigger>
-          <TabsTrigger value="2" aria-label="تب دعوت‌نامه‌ها" className="h-9 px-4 text-[0.9rem]">
+        <TabsList className="min-h-[52px] w-full justify-start overflow-x-auto">
+          <TabsTrigger value="0" aria-label="تب کشف بازی‌ها" className="min-h-11 px-4 text-[0.9rem]">کشف بازی‌ها</TabsTrigger>
+          <TabsTrigger value="1" aria-label="تب بازی‌های من" className="min-h-11 px-4 text-[0.9rem]">بازی‌های من</TabsTrigger>
+          <TabsTrigger value="2" aria-label="تب دعوت‌نامه‌ها" className="min-h-11 px-4 text-[0.9rem]">
             {`دعوت‌نامه‌ها${myInvitations.data?.length ? ` (${myInvitations.data.length})` : ''}`}
           </TabsTrigger>
         </TabsList>
@@ -147,12 +148,12 @@ const GamesExplore: React.FC = () => {
             <div className="flex items-center gap-2">
               <span className="text-[0.68rem] font-semibold text-muted-foreground">مرتب‌سازی</span>
               <Select value={sort} onValueChange={(v) => handleSortChange(v as GameSort)}>
-                <SelectTrigger aria-label="مرتب‌سازی" className="min-h-9 min-w-[180px]">
+                <SelectTrigger aria-label="مرتب‌سازی" className="min-h-11 min-w-[180px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   {(Object.keys(GAME_SORT_LABELS) as GameSort[]).map((s) => (
-                    <SelectItem key={s} value={s} className="min-h-9">{GAME_SORT_LABELS[s]}</SelectItem>
+                    <SelectItem key={s} value={s} className="min-h-11">{GAME_SORT_LABELS[s]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -163,13 +164,13 @@ const GamesExplore: React.FC = () => {
                 value={skill || 'all'}
                 onValueChange={(v) => { setSkill(v === 'all' ? '' : (v as SkillLevel)); setLimit(PAGE_SIZE) }}
               >
-                <SelectTrigger aria-label="سطح بازی" className="min-h-9 min-w-[160px]">
+                <SelectTrigger aria-label="سطح بازی" className="min-h-11 min-w-[160px]">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all" className="min-h-9">همه</SelectItem>
+                  <SelectItem value="all" className="min-h-11">همه</SelectItem>
                   {(Object.keys(SKILL_LEVEL_LABELS) as SkillLevel[]).map((s) => (
-                    <SelectItem key={s} value={s} className="min-h-9">{SKILL_LEVEL_LABELS[s]}</SelectItem>
+                    <SelectItem key={s} value={s} className="min-h-11">{SKILL_LEVEL_LABELS[s]}</SelectItem>
                   ))}
                 </SelectContent>
               </Select>
@@ -181,7 +182,7 @@ const GamesExplore: React.FC = () => {
               aria-label={availabilityOnly ? 'نمایش همه بازی‌ها' : 'فیلتر بازی‌های دارای ظرفیت'}
               onClick={() => { setAvailabilityOnly((v) => !v); setLimit(PAGE_SIZE) }}
               className={cn(
-                'inline-flex min-h-9 items-center gap-2 rounded-full px-4 text-[0.8rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
+                'inline-flex min-h-11 items-center gap-2 rounded-full px-4 text-[0.8rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background',
                 availabilityOnly
                   ? 'bg-blue-600/15 text-blue-700 dark:text-blue-300'
                   : 'border border-border text-slate-600 hover:bg-muted dark:text-slate-300',
@@ -202,7 +203,7 @@ const GamesExplore: React.FC = () => {
             <ErrorState description="دریافت بازی‌ها ممکن نشد." onRetry={() => refetch()} />
           ) : items.length === 0 ? (
             <EmptyState
-              emoji="🏟️"
+              icon="mdi:soccer-field"
               title="بازی‌ای پیدا نشد"
               description="با فیلترهای دیگر جستجو کنید یا اولین بازی را بسازید."
             />
@@ -233,7 +234,7 @@ const GamesExplore: React.FC = () => {
         <TabsContent value="1">
           {!isAuthenticated ? (
             <EmptyState
-              emoji="🔐"
+              icon="mdi:login-variant"
               title="وارد شوید"
               description="برای دیدن بازی‌های خود وارد حساب کاربری شوید."
               actionLabel="ورود"
@@ -247,7 +248,7 @@ const GamesExplore: React.FC = () => {
             </div>
           ) : (myGames.data?.length ?? 0) === 0 ? (
             <EmptyState
-              emoji="📭"
+              icon="mdi:calendar-plus"
               title="هنوز بازی‌ای ندارید"
               description="روی رزروهای تأییدشده خود بازی گروهی بسازید."
               actionLabel="ساخت بازی"
@@ -268,7 +269,7 @@ const GamesExplore: React.FC = () => {
         <TabsContent value="2">
           {!isAuthenticated ? (
             <EmptyState
-              emoji="🔐"
+              icon="mdi:login-variant"
               title="وارد شوید"
               description="برای دیدن دعوت‌نامه‌های خود وارد حساب کاربری شوید."
               actionLabel="ورود"
@@ -279,7 +280,7 @@ const GamesExplore: React.FC = () => {
               {[1, 2].map((i) => <Shimmer key={i} height={74} />)}
             </div>
           ) : (myInvitations.data?.length ?? 0) === 0 ? (
-            <EmptyState emoji="✉️" title="دعوت‌نامه‌ای ندارید" description="وقتی کسی شما را به بازی دعوت کند، اینجا نمایش داده می‌شود." />
+            <EmptyState icon="mdi:email-outline" title="دعوت‌نامه‌ای ندارید" description="وقتی کسی شما را به بازی دعوت کند، اینجا نمایش داده می‌شود." />
           ) : (
             <div className="flex flex-col gap-3">
               {myInvitations.data!.map((inv) => (

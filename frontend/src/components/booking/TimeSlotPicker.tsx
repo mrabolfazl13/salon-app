@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react'
 import { motion } from 'framer-motion'
 import { Icon } from '@iconify/react'
 import { cn, formatPrice } from '@/lib/utils'
+import { toPersianDigits } from '@/lib/jalali'
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/shadcn/tooltip'
 
 interface TimeSlot {
@@ -143,7 +144,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
           سانس‌های موجود
         </h3>
         <span className="inline-flex items-center rounded-lg bg-green-500/10 px-2 py-0.5 text-[0.68rem] font-semibold text-emerald-600 dark:text-emerald-400">
-          {`${slots.filter(isAvailableSlot).length} سانس آزاد`}
+          {`${toPersianDigits(slots.filter(isAvailableSlot).length)} سانس آزاد`}
         </span>
       </div>
 
@@ -156,7 +157,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
             </div>
             <h4 className="text-[0.68rem] font-bold text-foreground">{formatDate(group.date)}</h4>
             <span className="inline-flex h-[22px] items-center rounded-md bg-blue-600/[0.08] px-2 text-[0.68rem] font-semibold text-blue-600 dark:bg-blue-400/10 dark:text-blue-300">
-              {`${group.slots.filter(isAvailableSlot).length} سانس`}
+              {`${toPersianDigits(group.slots.filter(isAvailableSlot).length)} سانس`}
             </span>
           </div>
 
@@ -174,7 +175,7 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
                   type="button"
                   disabled={!clickable}
                   aria-pressed={isSelected}
-                  aria-label={`سانس ${slot.startTime} تا ${slot.endTime}، ${formatPrice(slot.price)} تومان، ${STATUS_LABEL[st]}`}
+                  aria-label={`سانس ${slot.startTime} تا ${slot.endTime}، ${formatPrice(slot.price)}، ${STATUS_LABEL[st]}`}
                   onClick={() => {
                     if (isAvailableSlot(slot)) handleSelect(slot)
                     else if (bidable) onBid?.(slot)

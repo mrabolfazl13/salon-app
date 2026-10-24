@@ -305,8 +305,43 @@ export const StatusChip: React.FC<{ label: string; color?: string }> = ({ label,
   )
 }
 
-export const EmptyBox: React.FC<{ icon: string; title: string; text?: string }> = ({ icon, title, text }) => (
-  <div className="px-4 py-8 text-center">
+/** چیپ دلتای دوره‌ای: ▲/▼ + درصد نسبت به بازهٔ قبل (invert برای هزینه‌ها) */
+export const DeltaChip: React.FC<{
+  value: number | null
+  invert?: boolean
+  suffix?: string
+}> = ({ value, invert = false, suffix = 'نسبت به دوره قبل' }) => {
+  if (value === null || !Number.isFinite(value)) {
+    return <span className="text-[0.62rem] text-muted-foreground">دورهٔ قبل داده‌ای ندارد</span>
+  }
+  const up = value >= 0
+  const flat = Math.abs(value) < 0.05
+  const good = invert ? !up : up
+  const color = flat ? '#64748b' : good ? '#047857' : '#b91c1c'
+  return (
+    <span className="inline-flex flex-wrap items-center gap-1 text-[0.66rem] font-semibold" style={{ color }}>
+      <Icon icon={up ? 'mdi:trending-up' : 'mdi:trending-down'} className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+      {toPersianDigits(Math.abs(Math.round(value * 10) / 10))}٪
+      <span className="font-normal text-muted-foreground">{suffix}</span>
+    </span>
+  )
+}
+
+/** نوار سهم (برای تفکیک دسته‌ها/منابع) — بدون نمودار سنگین */
+export const ShareBar: React.FC<{ pct: number; color?: string; className?: string }> = ({
+  pct,
+  color = '#2563eb',
+  className,
+}) => (
+  <span className={`block h-1.5 w-full overflow-hidden rounded-full bg-muted ${className ?? ''}`} aria-hidden="true">
+    <span
+      className="block h-full rounded-full"
+      style={{ width: `${Math.max(pct > 0 ? 2 : 0, Math.min(100, pct))}%`, backgroundColor: color }}
+    />
+  </span>
+)
+
+export const EmptyBox: React.FC<{ icon: string; title: string; text?: string }> = ({ icon, title, text }) => (  <div className="px-4 py-8 text-center">
     <div className="mx-auto mb-3 flex h-16 w-16 items-center justify-center rounded-full bg-blue-600/[0.07] dark:bg-blue-400/10">
       <Icon icon={icon} className="h-8 w-8" style={{ color: '#2563eb' }} />
     </div>

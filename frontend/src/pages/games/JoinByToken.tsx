@@ -55,7 +55,7 @@ const JoinByToken: React.FC = () => {
           />
         ) : !previewQ.data?.valid || !previewQ.data.game ? (
           <EmptyState
-            emoji="🔗"
+            icon="mdi:link-off"
             title="لینک دعوت معتبر نیست"
             description={previewQ.data?.reason || 'این لینک منقضی، غیرفعال یا استفاده‌شده است.'}
             actionLabel="کشف بازی‌ها"

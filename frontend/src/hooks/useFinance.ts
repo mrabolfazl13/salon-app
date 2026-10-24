@@ -138,6 +138,19 @@ export function useTransactions(params: TransactionListParams, enabled = true) {
   })
 }
 
+/** کل ردیف‌های دفتر کل بازه (صفحه‌به‌صفحه) — مبنای گزارش‌های تجمیعی دقیق */
+export function useScopeLedger(params: TransactionListParams, enabled = true) {
+  const userId = useAuthStore((state) => state.user?.id)
+
+  return useQuery({
+    queryKey: ['finance', 'ledger', params, userId] as const,
+    queryFn: () => financeService.listAllTransactions(params),
+    enabled: enabled && !!userId,
+    placeholderData: keepPreviousData,
+    staleTime: 60 * 1000,
+  })
+}
+
 export function useExpenseCategories(includeInactive = false, enabled = true) {
   return useQuery({
     queryKey: financeKeys.categories(includeInactive),

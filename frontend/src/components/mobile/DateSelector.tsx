@@ -36,7 +36,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
         onClick={() => scrollBy(-1)}
         disabled={currentIndex <= 0}
         aria-label="تاریخ قبل"
-        className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex min-h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Icon icon="mdi:chevron-right" style={{ width: 22, height: 22 }} />
       </button>
@@ -90,7 +90,7 @@ const DateSelector: React.FC<Props> = ({ dates, value, onChange }) => {
         onClick={() => scrollBy(1)}
         disabled={currentIndex >= dates.length - 1}
         aria-label="تاریخ بعد"
-        className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex min-h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-border bg-card text-primary transition-colors enabled:hover:bg-muted disabled:cursor-not-allowed disabled:opacity-40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Icon icon="mdi:chevron-left" style={{ width: 22, height: 22 }} />
       </button>

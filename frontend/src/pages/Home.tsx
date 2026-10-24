@@ -76,16 +76,23 @@ const FEATURE_TILES = [
 // minmax(0,1fr) — از سرریز min-content کارت‌ها در عرض‌های باریک جلوگیری می‌کند
 const venueGrid = 'grid grid-cols-1 gap-4 sm:grid-cols-2 sm:gap-5 md:grid-cols-3'
 
+// داشبورد شخصیِ لاگین‌شده و صفحهٔ بازاریابی مهمان دو کامپوننت جدایند؛ کامپوننت مهمان
+// پر از hook است و return شرطی وسط آن ترتیب hookها را می‌شکند (rules-of-hooks).
 const Home: React.FC = () => {
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+  return isAuthenticated ? (
+    <Layout>
+      <UserDashboard />
+    </Layout>
+  ) : (
+    <GuestHome />
+  )
+}
+
+const GuestHome: React.FC = () => {
   const navigate = useNavigate()
-  const { isAuthenticated } = useAuthStore()
-  
-  // If user is authenticated, show personalized dashboard
-  if (isAuthenticated) {
-    return <UserDashboard />
-  }
-  
-  // Otherwise show marketing home page for guests
+  const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
+
   const viewed = useRecentlyViewedStore((s) => s.viewed)
 
   // ---- سالن‌ها ----

@@ -192,7 +192,7 @@ export const GamificationSection: React.FC = () => {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate(isAuthenticated ? '/teams' : '/login')}
-                className="min-h-9 px-3 text-[0.78rem] font-bold text-amber-400 hover:bg-amber-400/10 hover:text-amber-300"
+                className="min-h-11 px-3 text-[0.78rem] font-bold text-amber-400 hover:bg-amber-400/10 hover:text-amber-300"
               >
                 مشاهده همه
               </Button>
