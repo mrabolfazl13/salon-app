@@ -137,7 +137,7 @@ const ForgotPassword: React.FC = () => {
                     variant="gradient"
                     className="w-full text-white shadow-2xl shadow-blue-500/25"
                   >
-                    <Icon icon="mdi:arrow-right" className="h-5 w-5 ml-2" />
+                    <Icon icon="mdi:arrow-right" className="h-5 w-5" />
                     بازگشت به صفحه ورود
                   </Button>
                 </Link>
@@ -185,7 +185,7 @@ const ForgotPassword: React.FC = () => {
                   className="w-full text-white shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40"
                   loading={loading}
                 >
-                  <Icon icon="mdi:email-send" className="h-5 w-5 ml-2" />
+                  <Icon icon="mdi:email-send" className="h-5 w-5" />
                   ارسال کد بازیابی
                 </Button>
 
@@ -265,7 +265,7 @@ const ForgotPassword: React.FC = () => {
                   className="w-full text-white shadow-2xl shadow-blue-500/25 hover:shadow-blue-500/40"
                   loading={loading}
                 >
-                  <Icon icon="mdi:check-circle-outline" className="h-5 w-5 ml-2" />
+                  <Icon icon="mdi:check-circle-outline" className="h-5 w-5" />
                   بازنشانی رمز عبور
                 </Button>
 

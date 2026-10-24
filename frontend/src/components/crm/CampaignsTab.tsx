@@ -128,11 +128,11 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
             onValueChange={(v) => setTargetMode(v as 'segment' | 'customers')}
             className="grid-cols-1 gap-2 sm:grid-cols-2"
           >
-            <label className="flex cursor-pointer items-center gap-2">
+            <label className="flex min-h-11 cursor-pointer items-center gap-2">
               <RadioGroupItem value="segment" id="campaign-mode-segment" />
               <span className="text-[0.68rem] font-bold text-foreground">بر اساس گروه مشتریان</span>
             </label>
-            <label className="flex cursor-pointer items-center gap-2">
+            <label className="flex min-h-11 cursor-pointer items-center gap-2">
               <RadioGroupItem value="customers" id="campaign-mode-customers" />
               <span className="text-[0.68rem] font-bold text-foreground">انتخاب دستی مشتریان</span>
             </label>

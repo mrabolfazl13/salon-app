@@ -131,12 +131,14 @@ const TeamFormDialog: React.FC<Props> = ({ open, onClose, team }) => {
             className="flex flex-wrap gap-2"
           >
             {(Object.keys(TEAM_VISIBILITY_LABELS) as TeamVisibility[]).map((v) => (
-              <div key={v} className="flex min-h-9 items-center gap-2">
+              <label
+                key={v}
+                htmlFor={`team-visibility-${v}`}
+                className="flex min-h-11 cursor-pointer items-center gap-2"
+              >
                 <RadioGroupItem value={v} id={`team-visibility-${v}`} />
-                <Label htmlFor={`team-visibility-${v}`} className="cursor-pointer text-[0.8rem] font-semibold">
-                  {TEAM_VISIBILITY_LABELS[v]}
-                </Label>
-              </div>
+                <span className="text-[0.8rem] font-semibold">{TEAM_VISIBILITY_LABELS[v]}</span>
+              </label>
             ))}
           </RadioGroup>
           <p className="mt-1 text-[0.68rem] leading-[1.8] text-slate-500 dark:text-slate-400">

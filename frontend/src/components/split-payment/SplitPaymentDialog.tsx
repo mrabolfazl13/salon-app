@@ -170,21 +170,25 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
           className="flex flex-wrap gap-4"
         >
           {METHOD_OPTIONS.map((opt) => (
-            <div key={opt.value} className="flex items-start gap-2">
+            <Label
+              key={opt.value}
+              htmlFor={`split-method-${opt.value}`}
+              className="flex min-h-11 cursor-pointer items-start gap-2 font-normal"
+            >
               <RadioGroupItem
                 value={opt.value}
                 id={`split-method-${opt.value}`}
                 className="mt-1 h-5 w-5 shrink-0"
               />
-              <Label htmlFor={`split-method-${opt.value}`} className="cursor-pointer font-normal">
+              <span className="min-w-0">
                 <span className="block text-[0.68rem] font-semibold text-foreground">
                   {opt.label}
                 </span>
                 <span className="block text-[0.68rem] text-muted-foreground">
                   {opt.description}
                 </span>
-              </Label>
-            </div>
+              </span>
+            </Label>
           ))}
         </RadioGroup>
 
