@@ -19,7 +19,7 @@ interface Props {
 }
 
 const iconButtonClass =
-  'inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
+  'inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50'
 
 const JoinRequestList: React.FC<Props> = ({ gameId, requests }) => {
   const toast = useToast()

@@ -172,7 +172,7 @@ const CouponsTab: React.FC<Props> = ({ venues, venueId }) => {
                         size="sm"
                         variant="ghost"
                         onClick={() => setRedemptionsFor(c)}
-                        className="-ms-3 h-9 px-3 text-pink-700 hover:bg-pink-600/10 hover:text-pink-800 dark:text-pink-300 dark:hover:text-pink-200"
+                        className="-ms-3 h-11 px-3 text-pink-700 hover:bg-pink-600/10 hover:text-pink-800 dark:text-pink-300 dark:hover:text-pink-200"
                       >
                         <Icon icon="mdi:account-clock-outline" className="h-4 w-4" aria-hidden="true" />
                         مصرف‌ها

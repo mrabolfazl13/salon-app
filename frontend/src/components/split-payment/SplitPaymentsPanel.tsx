@@ -185,7 +185,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
               type="button"
               onClick={() => setError(null)}
               aria-label="بستن"
-              className="flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
             >
               <Icon icon="mdi:close" className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -275,7 +275,7 @@ const SplitPaymentsPanel: React.FC<Props> = ({ team, members, isManager }) => {
                         type="button"
                         onClick={() => handleViewDetails(payment.id)}
                         aria-label={`مشاهده جزئیات پرداخت #${payment.id}`}
-                        className="flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-400 dark:hover:bg-blue-500/10"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-blue-600 transition-colors hover:bg-blue-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-400 dark:hover:bg-blue-500/10"
                       >
                         <Icon icon="mdi:eye-outline" className="h-5 w-5" aria-hidden="true" />
                       </button>

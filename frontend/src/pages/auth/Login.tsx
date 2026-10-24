@@ -184,7 +184,7 @@ const Login: React.FC = () => {
                     onClick={() => setShowPassword((v) => !v)}
                     aria-label={showPassword ? 'پنهان کردن رمز' : 'نمایش رمز'}
                     aria-pressed={showPassword}
-                    className="absolute end-1 top-1 flex h-10 w-10 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                    className="absolute end-1 top-1 flex h-11 w-11 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                   >
                     <Icon
                       icon={showPassword ? 'mdi:eye-off-outline' : 'mdi:eye-outline'}
@@ -197,7 +197,7 @@ const Login: React.FC = () => {
               <div className="flex justify-end">
                 <RouterLink
                   to="/forgot-password"
-                  className="inline-flex min-h-9 items-center px-2 text-[0.68rem] font-bold text-amber-700 hover:underline dark:text-amber-400"
+                  className="inline-flex min-h-11 items-center px-2 text-[0.68rem] font-bold text-amber-700 hover:underline dark:text-amber-400"
                 >
                   رمز عبور را فراموش کردید؟
                 </RouterLink>
@@ -267,7 +267,7 @@ const Login: React.FC = () => {
           حساب ندارید؟{' '}
           <RouterLink
             to="/register"
-            className="inline-flex min-h-9 items-center px-1 font-extrabold text-amber-700 hover:underline dark:text-amber-400"
+            className="inline-flex min-h-11 items-center px-1 font-extrabold text-amber-700 hover:underline dark:text-amber-400"
           >
             ثبت‌نام کنید
           </RouterLink>

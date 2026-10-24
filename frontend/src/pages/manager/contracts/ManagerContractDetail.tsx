@@ -21,7 +21,6 @@ import {
 } from '@/hooks/useContracts'
 import {
   contractStatusMeta,
-  ErrorBox,
   extractError,
   faNum,
   formatRial,
@@ -33,6 +32,7 @@ import {
   StatusChip,
   toPersianDigits,
 } from '@/components/contract/shared'
+import { EmptyState, ErrorState } from '@/components/mobile'
 import ContractEconomics from '@/components/contract/ContractEconomics'
 import ContractPaymentsTable from '@/components/contract/ContractPaymentsTable'
 import ContractSessionsTable from '@/components/contract/ContractSessionsTable'
@@ -93,7 +93,7 @@ const ManagerContractDetail: React.FC = () => {
     <button
       type="button"
       onClick={() => navigate('/manager/contracts')}
-      className="mb-4 inline-flex min-h-9 items-center gap-2 text-[0.68rem] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+      className="mb-4 inline-flex min-h-11 items-center gap-2 text-[0.68rem] font-semibold text-muted-foreground transition-colors hover:text-foreground"
     >
       <Icon icon="mdi:arrow-right" className="h-5 w-5" aria-hidden="true" />
       بازگشت به مدیریت قراردادها
@@ -113,11 +113,26 @@ const ManagerContractDetail: React.FC = () => {
   }
 
   if (detailQuery.isError || !contract) {
+    const status = (detailQuery.error as { response?: { status?: number } })?.response?.status
+    if (status === 404) {
+      return (
+        <Layout>
+          <EmptyState
+            asPageHeading
+            icon="mdi:file-document-remove-outline"
+            title="قرارداد یافت نشد"
+            description="این قرارداد حذف شده یا سالن آن زیر مدیریت شما نیست."
+            actionLabel="بازگشت به مدیریت قراردادها"
+            onAction={() => navigate('/manager/contracts')}
+          />
+        </Layout>
+      )
+    }
     return (
       <Layout>
         <div className="mx-auto max-w-5xl px-4 py-8">
           {backLink}
-          <ErrorBox message="قرارداد یافت نشد یا سالن آن زیر مدیریت شما نیست." onRetry={() => detailQuery.refetch()} />
+          <ErrorState asPageHeading title="بارگذاری قرارداد ممکن نشد" description="اتصال خود را بررسی کنید و دوباره تلاش کنید." onRetry={() => detailQuery.refetch()} />
         </div>
       </Layout>
     )
@@ -152,7 +167,7 @@ const ManagerContractDetail: React.FC = () => {
         <div className="mb-4 rounded-lg border border-border bg-card p-4 shadow-sm md:p-6">
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex min-w-0 items-center gap-3">
-              <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/5">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-primary/5">
                 <Icon icon="mdi:file-document-check-outline" className="h-5 w-5 text-primary" aria-hidden="true" />
               </span>
               <div className="min-w-0">
@@ -180,7 +195,7 @@ const ManagerContractDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setApproveOpen(true)}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-emerald-600 to-emerald-700 px-3 text-[0.68rem] font-bold text-white transition-opacity hover:opacity-90"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] bg-gradient-to-br from-emerald-600 to-emerald-700 px-3 text-[0.68rem] font-bold text-white transition-opacity hover:opacity-90"
               >
                 <Icon icon="mdi:check-decagram" className="h-4 w-4" aria-hidden="true" />
                 تأیید با تغییرات
@@ -188,7 +203,7 @@ const ManagerContractDetail: React.FC = () => {
               <button
                 type="button"
                 onClick={() => { setRejectOpen(true); setDialogError(null) }}
-                className="inline-flex min-h-9 items-center gap-1.5 rounded-[10px] border border-destructive/50 px-3 text-[0.68rem] font-bold text-destructive transition-colors hover:bg-destructive/10"
+                className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-destructive/50 px-3 text-[0.68rem] font-bold text-destructive transition-colors hover:bg-destructive/10"
               >
                 <Icon icon="mdi:close-octagon-outline" className="h-4 w-4" aria-hidden="true" />
                 رد درخواست
@@ -267,7 +282,7 @@ const ManagerContractDetail: React.FC = () => {
                     <button
                       type="button"
                       onClick={() => { setMoveOpen(true); setDialogError(null) }}
-                      className="inline-flex min-h-9 items-center gap-1.5 rounded-[10px] border border-border px-3 text-[0.68rem] font-bold transition-colors hover:bg-muted"
+                      className="inline-flex min-h-11 items-center gap-1.5 rounded-[10px] border border-border px-3 text-[0.68rem] font-bold transition-colors hover:bg-muted"
                     >
                       <Icon icon="mdi:calendar-move" className="h-4 w-4" aria-hidden="true" />
                       جابه‌جایی کل قرارداد
@@ -328,7 +343,7 @@ const ManagerContractDetail: React.FC = () => {
                   disabled={!cancelable}
                   onClick={() => { setCancelOpen(true); setDialogError(null) }}
                   className={cn(
-                    'inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors',
+                    'inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors',
                     'border-destructive/50 text-destructive hover:bg-destructive/10 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent'
                   )}
                 >

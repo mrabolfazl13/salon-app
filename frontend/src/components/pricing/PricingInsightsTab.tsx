@@ -141,7 +141,7 @@ const PricingInsightsTab: React.FC<Props> = ({ venues, venueId }) => {
           <div className="flex min-w-[150px] flex-col gap-1.5">
             <Label id="pi-window-label" htmlFor="pi-window-select" className="text-[0.68rem]">پنجرهٔ تاریخچه</Label>
             <Select value={String(days)} onValueChange={(v) => setDays(Number(v))}>
-              <SelectTrigger id="pi-window-select" aria-labelledby="pi-window-label" className="h-9">
+              <SelectTrigger id="pi-window-select" aria-labelledby="pi-window-label" className="h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

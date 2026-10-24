@@ -213,7 +213,7 @@ const AdminDashboard: React.FC = () => {
                     type="button"
                     disabled={actingId === m.id}
                     onClick={() => setConfirmAction({ id: m.id, name: m.full_name, kind: 'approve' })}
-                    className="inline-flex min-h-9 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-[0.68rem] font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-1 rounded-lg bg-emerald-600 px-3 text-[0.68rem] font-semibold text-white transition-colors hover:bg-emerald-700 disabled:opacity-50"
                   >
                     <Icon icon="mdi:check" className="h-4 w-4" aria-hidden="true" />
                     تایید
@@ -222,7 +222,7 @@ const AdminDashboard: React.FC = () => {
                     type="button"
                     disabled={actingId === m.id}
                     onClick={() => setConfirmAction({ id: m.id, name: m.full_name, kind: 'reject' })}
-                    className="inline-flex min-h-9 items-center gap-1 rounded-lg border border-destructive/50 px-3 text-[0.68rem] font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
+                    className="inline-flex min-h-11 items-center gap-1 rounded-lg border border-destructive/50 px-3 text-[0.68rem] font-semibold text-destructive transition-colors hover:bg-destructive/10 disabled:opacity-50"
                   >
                     <Icon icon="mdi:close" className="h-4 w-4" aria-hidden="true" />
                     رد

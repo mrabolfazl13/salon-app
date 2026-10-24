@@ -171,7 +171,7 @@ const CompetitionBidDialog: React.FC<Props> = ({ slot, open, onClose, venueName,
                       type="button"
                       onClick={() => fetchBest(slot.id)}
                       aria-label="به‌روزرسانی بهترین پیشنهاد"
-                      className="inline-flex h-9 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                      className="inline-flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                     >
                       <Icon icon="mdi:refresh" style={{ width: 16, height: 16 }} />
                     </button>

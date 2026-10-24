@@ -11,10 +11,10 @@ import Layout from '@/components/layout/Layout'
 import toast from 'react-hot-toast'
 import { useAuthStore } from '@/store/authStore'
 import { useContractDetail, useCancelContract, useRequestSessionCancel } from '@/hooks/useContracts'
+import { EmptyState, ErrorState } from '@/components/mobile'
 import {
   contractStatusMeta,
   extractError,
-  ErrorBox,
   faNum,
   formatRial,
   paymentStatusMeta,
@@ -40,7 +40,7 @@ import {
 import { cn } from '@/lib/utils'
 
 const actionBtn =
-  'inline-flex min-h-9 w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors'
+  'inline-flex min-h-11 w-full items-center justify-center gap-1.5 rounded-[10px] border px-3 text-[0.68rem] font-bold transition-colors'
 
 const ContractDetail: React.FC = () => {
   const { id } = useParams<{ id: string }>()
@@ -70,7 +70,7 @@ const ContractDetail: React.FC = () => {
     <button
       type="button"
       onClick={() => navigate('/contracts')}
-      className="mb-4 inline-flex min-h-9 items-center gap-2 text-[0.68rem] font-semibold text-muted-foreground transition-colors hover:text-foreground"
+      className="mb-4 inline-flex min-h-11 items-center gap-2 text-[0.68rem] font-semibold text-muted-foreground transition-colors hover:text-foreground"
     >
       <Icon icon="mdi:arrow-right" className="h-5 w-5" aria-hidden="true" />
       بازگشت به لیست قراردادها
@@ -90,11 +90,26 @@ const ContractDetail: React.FC = () => {
   }
 
   if (detailQuery.isError || !contract) {
+    const status = (detailQuery.error as { response?: { status?: number } })?.response?.status
+    if (status === 404) {
+      return (
+        <Layout>
+          <EmptyState
+            asPageHeading
+            icon="mdi:file-document-remove-outline"
+            title="قرارداد یافت نشد"
+            description="این قرارداد حذف شده یا به شما تعلق ندارد."
+            actionLabel="بازگشت به قراردادها"
+            onAction={() => navigate('/contracts')}
+          />
+        </Layout>
+      )
+    }
     return (
       <Layout>
         <div className="mx-auto max-w-5xl px-4 py-4 md:py-8">
           {backLink}
-          <ErrorBox message="قرارداد مورد نظر یافت نشد یا دسترسی شما به آن محدود است." onRetry={() => detailQuery.refetch()} />
+          <ErrorState asPageHeading title="بارگذاری قرارداد ممکن نشد" description="اتصال خود را بررسی کنید و دوباره تلاش کنید." onRetry={() => detailQuery.refetch()} />
         </div>
       </Layout>
     )
@@ -123,7 +138,7 @@ const ContractDetail: React.FC = () => {
           <div className="mb-4 rounded-lg border border-border bg-card p-4 shadow-sm md:p-6">
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <span className="flex h-9 w-11 items-center justify-center rounded-xl bg-primary/5">
+                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/5">
                   <Icon icon="mdi:file-document-multiple" className="h-5 w-5 text-primary" aria-hidden="true" />
                 </span>
                 <div>

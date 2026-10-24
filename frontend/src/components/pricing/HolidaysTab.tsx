@@ -267,7 +267,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
         <DialogContent aria-describedby={undefined} className="sm:max-w-[420px]">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
                 <Icon icon="mdi:calendar-multiple" className="h-5 w-5" aria-hidden="true" />
               </span>
               <DialogTitle className="text-lg font-extrabold text-foreground">افزودن مناسبت</DialogTitle>
@@ -321,7 +321,7 @@ const HolidaysTab: React.FC<Props> = ({ venues, venueId }) => {
         <DialogContent aria-describedby={undefined} className="sm:max-w-[600px]">
           <DialogHeader>
             <div className="flex items-center gap-3">
-              <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-cyan-700 to-cyan-500 text-white">
                 <Icon icon="mdi:calendar-multiple" className="h-5 w-5" aria-hidden="true" />
               </span>
               <DialogTitle className="text-lg font-extrabold text-foreground">افزودن دسته‌ای مناسبت‌ها</DialogTitle>

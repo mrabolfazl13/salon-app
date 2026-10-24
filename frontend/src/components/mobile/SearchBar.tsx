@@ -30,7 +30,7 @@ const SearchBar: React.FC<Props> = ({
   <div
     onClick={readOnly ? onClick : undefined}
     className={cn(
-      'flex h-[44px] items-center gap-1.5 rounded-xl border border-border bg-card px-3 shadow-sm transition-[border-color,box-shadow]',
+      'flex h-12 items-center gap-1.5 rounded-xl border border-border bg-card px-3 shadow-sm transition-[border-color,box-shadow]',
       'focus-within:border-amber-500/60 focus-within:shadow-[0_0_0_2px_rgba(245,158,11,0.12)] dark:focus-within:border-amber-400/55 dark:focus-within:shadow-[0_0_0_2px_rgba(251,191,36,0.12)]',
       readOnly ? 'cursor-pointer' : 'cursor-text'
     )}
@@ -67,7 +67,7 @@ const SearchBar: React.FC<Props> = ({
           onChange?.('')
         }}
         aria-label="پاک کردن"
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
       >
         <Icon icon="mdi:close-circle" style={{ width: 16, height: 16 }} />
       </button>

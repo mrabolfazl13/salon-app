@@ -143,7 +143,7 @@ const TournamentCard: React.FC<{
                   aria-label="لغو تورنمنت"
                   disabled={busy}
                   onClick={onCancel}
-                  className="h-9 w-11 text-red-600 hover:bg-red-500/10 dark:text-red-400"
+                  className="h-11 w-11 text-red-600 hover:bg-red-500/10 dark:text-red-400"
                 >
                   <Icon icon="mdi:cancel" aria-hidden="true" className="h-5 w-5" />
                 </Button>
@@ -303,7 +303,7 @@ const TournamentsPage: React.FC = () => {
               >
                 {(Object.keys(TOURNAMENT_FORMAT_LABELS) as TournamentFormat[]).map((f) => (
                   <label key={f} htmlFor={`format-${f}`}
-                         className="flex min-h-9 cursor-pointer items-center gap-2 rounded-xl border border-border px-3 text-[0.8rem] font-semibold has-[:checked]:border-amber-500/60 has-[:checked]:bg-amber-500/10">
+                         className="flex min-h-11 cursor-pointer items-center gap-2 rounded-xl border border-border px-3 text-[0.8rem] font-semibold has-[:checked]:border-amber-500/60 has-[:checked]:bg-amber-500/10">
                     <RadioGroupItem id={`format-${f}`} value={f} />
                     {TOURNAMENT_FORMAT_LABELS[f]}
                   </label>

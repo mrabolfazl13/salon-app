@@ -146,7 +146,7 @@ const VenuePicker: React.FC = () => {
               {isOperator && (
                 <Link
                   to="/manager-dashboard"
-                  className="mt-4 inline-flex min-h-10 items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 px-4 text-sm font-bold text-white"
+                  className="mt-4 inline-flex min-h-11 items-center gap-1.5 rounded-xl bg-gradient-to-br from-blue-600 to-violet-600 px-4 text-sm font-bold text-white"
                 >
                   <Icon icon="mdi:plus" aria-hidden="true" className="h-4 w-4" />
                   رفتن به پنل مدیریت
@@ -255,7 +255,7 @@ const VenuePicker: React.FC = () => {
                       <div className="flex flex-col gap-1.5 border-t border-border p-3 sm:flex-row sm:flex-wrap sm:items-center sm:px-4">
                         <Link
                           to={`/manager/venues/${venue.id}`}
-                          className="inline-flex min-h-10 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 px-3 text-[0.78rem] font-bold text-white shadow-sm shadow-blue-600/20 transition-colors hover:from-blue-700 hover:to-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          className="inline-flex min-h-11 flex-1 items-center justify-center gap-1.5 whitespace-nowrap rounded-lg bg-gradient-to-br from-blue-600 to-violet-600 px-3 text-[0.78rem] font-bold text-white shadow-sm shadow-blue-600/20 transition-colors hover:from-blue-700 hover:to-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                         >
                           <Icon icon="mdi:view-dashboard" aria-hidden="true" className="h-4 w-4" />
                           ورود به داشبورد سالن
@@ -265,7 +265,7 @@ const VenuePicker: React.FC = () => {
                             {financeAccess.allowed && (
                               <Link
                                 to={`/finance?venue_id=${venue.id}`}
-                                className="inline-flex min-h-10 items-center justify-center gap-1 whitespace-nowrap rounded-lg border border-border px-2 text-[0.72rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-lg border border-border px-2 text-[0.72rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                               >
                                 <Icon icon="mdi:cash-multiple" aria-hidden="true" className="h-3.5 w-3.5" />
                                 امور مالی
@@ -275,14 +275,14 @@ const VenuePicker: React.FC = () => {
                               <>
                                 <Link
                                   to={`/manager-dashboard?tab=1&venue=${venue.id}`}
-                                  className="inline-flex min-h-10 items-center justify-center gap-1 whitespace-nowrap rounded-lg border border-border px-2 text-[0.72rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-lg border border-border px-2 text-[0.72rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 >
                                   <Icon icon="mdi:calendar-clock" aria-hidden="true" className="h-3.5 w-3.5" />
                                   سانس‌ها
                                 </Link>
                                 <Link
                                   to={`/manager-dashboard?tab=2&venue=${venue.id}`}
-                                  className="inline-flex min-h-10 items-center justify-center gap-1 whitespace-nowrap rounded-lg border border-border px-2 text-[0.72rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                                  className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-lg border border-border px-2 text-[0.72rem] font-semibold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                                 >
                                   <Icon icon="mdi:calendar-check" aria-hidden="true" className="h-3.5 w-3.5" />
                                   رزروها

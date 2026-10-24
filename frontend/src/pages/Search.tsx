@@ -139,7 +139,7 @@ const Search: React.FC = () => {
                         type="button"
                         aria-label={`حذف ${q} از جستجوهای اخیر`}
                         onClick={() => remove(q)}
-                        className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl text-slate-300 transition-colors hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl text-slate-300 transition-colors hover:text-red-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <Icon icon="mdi:close" style={{ width: 20, height: 20 }} aria-hidden="true" />
                       </button>
@@ -158,7 +158,7 @@ const Search: React.FC = () => {
                     key={q}
                     type="button"
                     onClick={() => pickQuery(q)}
-                    className="inline-flex min-h-9 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-[0.82rem] font-semibold text-foreground transition-colors hover:border-amber-500/60 hover:text-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-amber-400"
+                    className="inline-flex min-h-11 items-center gap-2 rounded-full border border-border bg-card px-4 py-2 text-[0.82rem] font-semibold text-foreground transition-colors hover:border-amber-500/60 hover:text-amber-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:text-amber-400"
                   >
                     <Icon icon="mdi:magnify" style={{ width: 16, height: 16, color: '#64748b' }} aria-hidden="true" />
                     {q}

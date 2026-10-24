@@ -60,7 +60,7 @@ const dayNamesOf = (c: { day_of_week: number; days?: number[] }): string => {
 }
 
 const actionBtn =
-  'inline-flex min-h-9 items-center gap-1.5 rounded-[10px] px-3 text-[0.68rem] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50'
+  'inline-flex min-h-11 items-center gap-1.5 rounded-[10px] px-3 text-[0.68rem] font-bold transition-colors disabled:cursor-not-allowed disabled:opacity-50'
 
 const ManagerContracts: React.FC = () => {
   const navigate = useNavigate()

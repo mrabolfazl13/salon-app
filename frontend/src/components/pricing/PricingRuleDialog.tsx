@@ -46,7 +46,7 @@ interface Props {
   onSubmit: (payload: PricingRulePayload) => void
 }
 
-const DAY_CHIP = 'inline-flex min-h-9 items-center rounded-lg px-3 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+const DAY_CHIP = 'inline-flex min-h-11 items-center rounded-lg px-3 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
 
 const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null, saving, onClose, onSubmit }) => {
   const [day, setDay] = useState<number | null>(null)
@@ -168,7 +168,7 @@ const PricingRuleDialog: React.FC<Props> = ({ open, venueId, rule, draft = null,
       <DialogContent aria-describedby={undefined} className="sm:max-w-[600px]">
         <DialogHeader>
           <div className="flex items-center gap-3">
-            <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 text-stone-900">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-amber-500 to-amber-400 text-stone-900">
               <Icon icon="mdi:tag-percent" className="h-5 w-5" aria-hidden="true" />
             </span>
             <DialogTitle className="text-lg font-extrabold text-foreground">

@@ -273,7 +273,7 @@ const TeamMemberList: React.FC<Props> = ({ team, members, isCaptain, canManage }
                     type="button"
                     onClick={() => setConfirmRemove(m)}
                     aria-label={m.status === 'pending' ? `ابطال دعوت ${m.full_name ?? ''}` : `حذف ${m.full_name ?? ''} از تیم`}
-                    className="inline-flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
+                    className="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-red-600 transition-colors hover:bg-red-500/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-red-400"
                   >
                     <Icon icon={m.status === 'pending' ? 'mdi:email-cancel-outline' : 'mdi:account-remove-outline'} style={{ width: 18, height: 18 }} />
                   </button>

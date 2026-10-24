@@ -133,7 +133,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                 key={chip.value}
                 type="button"
                 onClick={() => resetPageAnd(setDirection)(chip.value)}
-                className="inline-flex min-h-[40px] items-center rounded-md px-2 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex min-h-[44px] items-center rounded-md px-2 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 style={{
                   backgroundColor: active ? pair.main : 'rgba(0,0,0,0.04)',
                   color: active ? pair.on : undefined,
@@ -234,7 +234,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                 setTo('')
                 setPage(1)
               }}
-              className="text-[0.65rem] h-6 px-1.5"
+              className="text-[0.65rem] h-11 px-1.5"
             >
               <Icon icon="mdi:filter-remove-outline" className="h-3.5 w-3.5" aria-hidden="true" />
               پاک‌سازی فیلترها

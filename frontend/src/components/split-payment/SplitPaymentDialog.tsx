@@ -199,7 +199,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
             dir="ltr"
             value={amount}
             onChange={(e) => setAmount(Number(e.target.value) || '')}
-            className="h-9"
+            className="h-11"
           />
         </div>
 
@@ -220,7 +220,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
                     dir="ltr"
                     value={share.amount}
                     onChange={(e) => handleUpdateCustomShare(share.user_id, Number(e.target.value) || 0)}
-                    className="h-9 w-[150px]"
+                    className="h-11 w-[150px]"
                   />
                   <span className="text-[0.68rem] text-muted-foreground">تومان</span>
                 </div>
@@ -256,7 +256,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
                     max={100}
                     value={share.percentage}
                     onChange={(e) => handleUpdatePercentageShare(share.user_id, Number(e.target.value) || 0)}
-                    className="h-9 w-[100px]"
+                    className="h-11 w-[100px]"
                   />
                   <span className="text-[0.68rem] text-muted-foreground">٪</span>
                 </div>
@@ -292,7 +292,7 @@ const SplitPaymentDialog: React.FC<Props> = ({ open, onClose, teamId, members, o
             dir="ltr"
             value={deadline}
             onChange={(e) => setDeadline(e.target.value)}
-            className="h-9"
+            className="h-11"
           />
         </div>
 

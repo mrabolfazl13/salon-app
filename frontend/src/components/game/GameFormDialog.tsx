@@ -217,7 +217,7 @@ const GameFormDialog: React.FC<Props> = ({ open, onClose, game = null, bookingId
           <div className="flex flex-col gap-1.5">
             <Label id={sportId}>ورزش</Label>
             <Select value={sport} onValueChange={setSport}>
-              <SelectTrigger aria-labelledby={sportId} className="h-9">
+              <SelectTrigger aria-labelledby={sportId} className="h-11">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

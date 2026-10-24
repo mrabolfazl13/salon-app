@@ -144,7 +144,7 @@ const TeamChatPanel: React.FC<{ teamId: number }> = ({ teamId }) => {
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
           onKeyDown={onKeyDown}
-          className="max-h-32 min-h-9 resize-none rounded-xl"
+          className="max-h-32 min-h-11 resize-none rounded-xl"
         />
         <Button
           variant="gradient"

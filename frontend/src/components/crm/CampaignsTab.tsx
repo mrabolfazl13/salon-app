@@ -204,7 +204,7 @@ const CampaignsTab: React.FC<Props> = ({ venueId }) => {
                       type="button"
                       onClick={() => toggle(s)}
                       aria-label={`حذف ${s.full_name ?? String(s.user_id)}`}
-                      className="inline-flex h-6 w-6 items-center justify-center rounded-md text-blue-700/70 transition-colors hover:bg-blue-600/10 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-300/70"
+                      className="inline-flex h-11 w-11 -m-2.5 items-center justify-center rounded-md text-blue-700/70 transition-colors hover:bg-blue-600/10 hover:text-blue-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-blue-300/70"
                     >
                       <Icon icon="mdi:close" className="h-3.5 w-3.5" aria-hidden="true" />
                     </button>

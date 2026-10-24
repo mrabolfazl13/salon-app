@@ -243,7 +243,7 @@ const DuesGenerateDialog: React.FC<{
                   aria-pressed={on}
                   onClick={() => toggle(m.user_id)}
                   className={cn(
-                    'inline-flex min-h-9 items-center gap-1 rounded-full px-2.5 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                    'inline-flex min-h-11 items-center gap-1 rounded-full px-2.5 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                     on
                       ? 'bg-blue-600/10 text-blue-700 dark:text-blue-300'
                       : 'bg-slate-900/5 text-slate-500 hover:bg-slate-900/10 dark:bg-white/5 dark:text-slate-400',

@@ -111,8 +111,9 @@ export function isForbidden(err: unknown): boolean {
 }
 
 /** پنل ۴۰۳ — بک‌اند per-permission تصمیم می‌گیرد؛ مسیر پنهان نمی‌شود */
-export const ForbiddenPanel: React.FC<{ detail?: string }> = ({ detail }) => (
+export const ForbiddenPanel: React.FC<{ detail?: string; asPageHeading?: boolean }> = ({ detail, asPageHeading }) => (
   <ErrorState
+    asPageHeading={asPageHeading}
     title="دسترسی ندارید (۴۰۳)"
     description={
       detail ||

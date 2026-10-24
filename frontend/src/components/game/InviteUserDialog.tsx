@@ -77,7 +77,7 @@ const InviteUserDialog: React.FC<Props> = ({ gameId, open, onClose }) => {
         <div className="flex flex-col gap-1.5">
           <Label id={expiryLabelId}>اعتبار دعوت</Label>
           <Select value={String(expiresInDays)} onValueChange={(v) => setExpiresInDays(Number(v))}>
-            <SelectTrigger aria-labelledby={expiryLabelId} className="h-9">
+            <SelectTrigger aria-labelledby={expiryLabelId} className="h-11">
               <SelectValue />
             </SelectTrigger>
             <SelectContent>

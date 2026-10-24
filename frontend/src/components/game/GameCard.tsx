@@ -57,7 +57,7 @@ const GameCard: React.FC<Props> = ({ game, showMyStatus = true }) => {
             <div
               role="img"
               aria-label={SPORT_NAME_FA[game.sport] ?? game.sport}
-              className="flex h-9 w-11 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-blue-600/[0.08] to-violet-600/[0.08] text-[1.4rem]"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-[10px] bg-gradient-to-br from-blue-600/[0.08] to-violet-600/[0.08] text-[1.4rem]"
             >
               {SPORT_EMOJI[game.sport] ?? '⚽'}
             </div>

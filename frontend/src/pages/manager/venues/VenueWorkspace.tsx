@@ -88,14 +88,18 @@ const VenueWorkspace: React.FC = () => {
   const from = isoDaysAgo(30)
   const scope = useMemo(() => ({ venue_id: venueId, from, to }), [venueId, from, to])
 
-  const dashboard = useFinanceDashboard(scope, financeAccess.allowed && Number.isFinite(venueId))
+  // تا سالن در دامنهٔ مدیریت نباشد بک‌اند هر سه درخواست مالی را ۴۰۳ می‌کند؛
+  // پس پیش از تأیید دامنه درخواستی ارسال نمی‌شود (ممیزی درخواست‌های بی‌نتیجه).
+  const financeLive = financeAccess.allowed && Number.isFinite(venueId) && !!venue
+
+  const dashboard = useFinanceDashboard(scope, financeLive)
   const series = useRevenueSeries(
     { ...scope, group_by: 'day' },
-    financeAccess.allowed && Number.isFinite(venueId),
+    financeLive,
   )
   const recent = useTransactions(
     { venue_id: venueId, limit: 6, offset: 0 },
-    financeAccess.allowed && Number.isFinite(venueId),
+    financeLive,
   )
 
   const d = dashboard.data
@@ -231,9 +235,13 @@ const VenueWorkspace: React.FC = () => {
     return (
       <Layout userRole="venue_manager">
         <div className="mx-auto max-w-5xl p-4">
-          <ForbiddenPanel detail="این سالن در دامنهٔ مدیریت شما نیست." />
+          <ForbiddenPanel asPageHeading detail="این سالن در دامنهٔ مدیریت شما نیست." />
           <div className="mt-3 text-center">
-            <Link to="/manager/venues" className="text-sm font-semibold text-primary hover:underline">
+            <Link
+              to="/manager/venues"
+              className="inline-flex min-h-11 items-center gap-1.5 rounded-lg border border-border bg-card px-4 text-[0.72rem] font-bold text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+            >
+              <Icon icon="mdi:arrow-right" aria-hidden="true" className="h-4 w-4" />
               بازگشت به فهرست سالن‌ها
             </Link>
           </div>

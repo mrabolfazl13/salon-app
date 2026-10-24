@@ -87,8 +87,8 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                     }}
                     className={
                       active
-                        ? 'inline-flex min-h-[40px] items-center gap-1.5 rounded-md bg-blue-600 px-2 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                        : 'inline-flex min-h-[40px] items-center gap-1.5 rounded-md bg-muted px-2 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        ? 'inline-flex min-h-11 items-center gap-1.5 rounded-md bg-blue-600 px-2 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                        : 'inline-flex min-h-11 items-center gap-1.5 rounded-md bg-muted px-2 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                     }
                   >
                     <Icon icon={f.icon} className="h-3.5 w-3.5" aria-hidden="true" />
@@ -226,7 +226,7 @@ const AccountsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => {
                             e.stopPropagation()
                             setStatementUser({ id: acc.user_id, name: acc.full_name })
                           }}
-                          className="border-blue-600/25 text-[0.68rem] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 h-7 px-2"
+                          className="border-blue-600/25 text-[0.68rem] font-semibold text-blue-600 hover:text-blue-700 dark:text-blue-400 h-11 px-2"
                         >
                           <Icon icon="mdi:file-document-outline" className="h-3 w-3" aria-hidden="true" />
                           صورت‌حساب

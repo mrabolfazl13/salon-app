@@ -175,7 +175,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               <Input
                 id="deal-publish-percent"
                 inputMode="numeric"
-                className="h-9 rounded-[10px]"
+                className="h-11 rounded-[10px]"
                 value={percent}
                 onChange={(e) => setPercent(e.target.value)}
               />
@@ -186,7 +186,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               <Input
                 id="deal-publish-price"
                 inputMode="numeric"
-                className="h-9 rounded-[10px]"
+                className="h-11 rounded-[10px]"
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
               />
@@ -202,7 +202,7 @@ const DealPublishDialog: React.FC<Props> = ({ open, slots, venueNameOf, onClose,
               value={expiry === '' ? 'none' : expiry}
               onValueChange={(v) => setExpiry(v === 'none' ? '' : v)}
             >
-              <SelectTrigger aria-labelledby="dp-expiry-label" className="h-9 rounded-[10px]">
+              <SelectTrigger aria-labelledby="dp-expiry-label" className="h-11 rounded-[10px]">
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>

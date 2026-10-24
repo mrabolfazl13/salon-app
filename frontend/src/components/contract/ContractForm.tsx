@@ -221,7 +221,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
               type="button"
               onClick={() => setServerError(null)}
               aria-label="بستن"
-              className="flex h-9 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
+              className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full text-current transition-colors hover:bg-black/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:hover:bg-white/10"
             >
               <Icon icon="mdi:close" className="h-4 w-4" aria-hidden="true" />
             </button>
@@ -326,7 +326,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
                           onClick={() => toggle(idx)}
                           aria-pressed={pos >= 0}
                           className={cn(
-                            'inline-flex min-h-9 items-center justify-center rounded-xl border px-4 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                            'inline-flex min-h-11 items-center justify-center rounded-xl border px-4 text-[0.68rem] font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                             pos >= 0
                               ? 'border-blue-600 bg-blue-600 text-white hover:bg-blue-700 dark:border-blue-500 dark:bg-blue-500'
                               : 'border-border bg-card text-foreground hover:bg-muted',
@@ -376,7 +376,7 @@ const ContractForm: React.FC<ContractFormProps> = ({ venues, onSuccess, onError 
               control={control}
               render={({ field }) => (
                 <Select value={field.value} onValueChange={field.onChange}>
-                  <SelectTrigger id="contract-recurrence" className="h-9">
+                  <SelectTrigger id="contract-recurrence" className="h-11">
                     <SelectValue placeholder="نوع تکرار" />
                   </SelectTrigger>
                   <SelectContent>

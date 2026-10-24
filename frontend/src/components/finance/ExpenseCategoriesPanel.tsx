@@ -87,7 +87,7 @@ const ExpenseCategoriesPanel: React.FC<{ venues: FinanceVenue[]; embedded?: bool
       type="button"
       onClick={() => setIncludeInactive((v) => !v)}
       aria-pressed={includeInactive}
-      className="inline-flex min-h-9 items-center gap-1.5 rounded-lg bg-muted px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      className="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-muted px-2.5 text-xs font-semibold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
     >
       <Icon icon={includeInactive ? 'mdi:eye-outline' : 'mdi:eye-off-outline'} className="h-3.5 w-3.5" aria-hidden="true" />
       {includeInactive ? 'نمایش: همه' : 'نمایش: فعال‌ها'}

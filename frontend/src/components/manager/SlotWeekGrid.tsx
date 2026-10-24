@@ -191,7 +191,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
             value={activeVenueId !== null ? String(activeVenueId) : undefined}
             onValueChange={(v) => setVenueId(Number(v))}
           >
-            <SelectTrigger aria-label="سالن" className="h-9 min-w-[200px]">
+            <SelectTrigger aria-label="سالن" className="h-11 min-w-[200px]">
               <SelectValue placeholder="سالن" />
             </SelectTrigger>
             <SelectContent>
@@ -314,7 +314,7 @@ const SlotWeekGrid: React.FC<Props> = ({ venues, venueNameOf }) => {
                               onClick={() => setSelectedSlot(slot)}
                               aria-label={`سانس ${toPersianDigits(time)} ${jalaliWeekdayNames[days.indexOf(day)] ?? day}، ${STATUS_LABELS[slot.status] || slot.status}، ${faNum(slot.current_price)} ریال`}
                               className={cn(
-                                'flex min-h-9 min-w-11 w-full cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 font-[inherit] transition-all hover:-translate-y-px hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
+                                'flex min-h-11 min-w-11 w-full cursor-pointer flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 font-[inherit] transition-all hover:-translate-y-px hover:brightness-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                                 accentClass,
                               )}
                               style={{

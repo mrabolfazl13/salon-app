@@ -107,7 +107,7 @@ export const HeroSection: React.FC = () => {
         >
           <Button
             onClick={() => navigate('/venues')}
-            className="h-10 bg-gradient-to-br from-amber-300 to-amber-500 px-5 text-[0.82rem] font-extrabold text-stone-900 shadow-[0_4px_16px_rgba(251,191,36,0.3)] hover:shadow-[0_6px_20px_rgba(251,191,36,0.4)]"
+            className="h-11 bg-gradient-to-br from-amber-300 to-amber-500 px-5 text-[0.82rem] font-extrabold text-stone-900 shadow-[0_4px_16px_rgba(251,191,36,0.3)] hover:shadow-[0_6px_20px_rgba(251,191,36,0.4)]"
           >
             <Icon icon="mdi:soccer" style={{ width: 16, height: 16 }} />
             مشاهده زمین‌ها
@@ -115,7 +115,7 @@ export const HeroSection: React.FC = () => {
           <Button
             onClick={() => navigate(secondaryCta.to)}
             variant="outline"
-            className="h-10 border-white/50 bg-transparent px-5 text-[0.82rem] font-bold text-white hover:border-white hover:bg-white/10 hover:text-white"
+            className="h-11 border-white/50 bg-transparent px-5 text-[0.82rem] font-bold text-white hover:border-white hover:bg-white/10 hover:text-white"
           >
             <Icon icon={secondaryCta.icon} style={{ width: 16, height: 16 }} />
             {secondaryCta.label}

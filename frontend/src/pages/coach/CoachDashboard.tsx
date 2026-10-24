@@ -84,7 +84,7 @@ function defaultStartsAt(): string {
 
 /** دکمهٔ آیکونی ۴۴px با tooltip — همان IconButton قبلی */
 const iconButtonClass =
-  'inline-flex h-9 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40'
+  'inline-flex h-11 w-11 items-center justify-center rounded-full transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-40'
 
 const SessionRow: React.FC<{
   session: CoachSession
@@ -347,8 +347,8 @@ const CoachDashboard: React.FC = () => {
                     onClick={() => setStatusFilter(value)}
                     className={
                       active
-                        ? 'inline-flex min-h-9 items-center rounded-[10px] border border-blue-600 bg-blue-600 px-4 text-[0.68rem] font-bold text-white transition-colors dark:border-blue-500 dark:bg-blue-500'
-                        : 'inline-flex min-h-9 items-center rounded-[10px] border border-border bg-card px-4 text-[0.68rem] font-semibold text-foreground transition-colors hover:bg-muted'
+                        ? 'inline-flex min-h-11 items-center rounded-[10px] border border-blue-600 bg-blue-600 px-4 text-[0.68rem] font-bold text-white transition-colors dark:border-blue-500 dark:bg-blue-500'
+                        : 'inline-flex min-h-11 items-center rounded-[10px] border border-border bg-card px-4 text-[0.68rem] font-semibold text-foreground transition-colors hover:bg-muted'
                     }
                   >
                     {value === 'all' ? 'همه' : STATUS_LABELS[value]}

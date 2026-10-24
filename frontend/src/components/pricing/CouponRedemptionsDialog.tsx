@@ -72,7 +72,7 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
       <DialogContent aria-label="مصرف‌های کد تخفیف" aria-describedby={undefined} className="sm:max-w-[760px]">
         <DialogHeader>
           <div className="flex items-start gap-3">
-            <span className="flex h-9 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-400 text-white">
+            <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-pink-600 to-pink-400 text-white">
               <Icon icon="mdi:ticket-percent-outline" className="h-5 w-5" aria-hidden="true" />
             </span>
             <div className="min-w-0">
@@ -98,7 +98,7 @@ const CouponRedemptionsDialog: React.FC<Props> = ({ open, coupon, onClose }) => 
                 type="button"
                 aria-pressed={selected}
                 onClick={() => pick(c.key)}
-                className={`inline-flex h-9 min-w-11 items-center rounded-xl border px-3 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                className={`inline-flex h-11 min-w-11 items-center rounded-xl border px-3 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                   selected
                     ? 'border-pink-600 bg-pink-600 text-white'
                     : 'border-border bg-card text-foreground hover:bg-muted'

@@ -1288,7 +1288,7 @@ const ManagerDashboard: React.FC = () => {
                                       setSelectedVenue(venue)
                                       setOpenGenerateSlots(true)
                                     }}
-                                    className="inline-flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] bg-gradient-to-br from-blue-600 to-violet-600 px-1.5 py-1.5 text-[0.7rem] font-semibold text-white shadow-md shadow-blue-600/20 transition-colors hover:from-blue-700 hover:to-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-10 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
+                                    className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] bg-gradient-to-br from-blue-600 to-violet-600 px-1.5 py-1.5 text-[0.7rem] font-semibold text-white shadow-md shadow-blue-600/20 transition-colors hover:from-blue-700 hover:to-violet-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-11 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
                                   >
                                     <Icon icon="mdi:calendar-plus" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                                     ایجاد سانس
@@ -1296,7 +1296,7 @@ const ManagerDashboard: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => handleOpenWorkspace(venue)}
-                                    className="inline-flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-blue-600/20 px-1.5 py-1.5 text-[0.7rem] font-semibold text-primary transition-colors hover:border-primary hover:bg-blue-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-10 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
+                                    className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-blue-600/20 px-1.5 py-1.5 text-[0.7rem] font-semibold text-primary transition-colors hover:border-primary hover:bg-blue-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:min-h-11 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
                                   >
                                     <Icon icon="mdi:view-dashboard-outline" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                                     داشبورد
@@ -1304,7 +1304,7 @@ const ManagerDashboard: React.FC = () => {
                                   <button
                                     type="button"
                                     onClick={() => openEditVenueDialog(venue)}
-                                    className="inline-flex min-h-9 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-amber-600/30 px-1.5 py-1.5 text-[0.7rem] font-semibold text-amber-700 transition-colors hover:border-amber-600 hover:bg-amber-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400 sm:min-h-10 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
+                                    className="inline-flex min-h-11 items-center justify-center gap-1 whitespace-nowrap rounded-[9px] border border-amber-600/30 px-1.5 py-1.5 text-[0.7rem] font-semibold text-amber-700 transition-colors hover:border-amber-600 hover:bg-amber-600/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring dark:text-amber-400 sm:min-h-11 sm:flex-1 sm:gap-2 sm:px-4 sm:text-[0.85rem]"
                                   >
                                     <Icon icon="mdi:pencil-outline" aria-hidden="true" className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
                                     ویرایش
@@ -2353,7 +2353,7 @@ const ManagerDashboard: React.FC = () => {
                         type="button"
                         onClick={() => removeAmenity(a)}
                         aria-label={`حذف ${a}`}
-                        className="flex h-8 w-8 items-center justify-center rounded-full text-primary transition-colors hover:bg-blue-600/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="flex h-11 w-11 -m-1.5 items-center justify-center rounded-full text-primary transition-colors hover:bg-blue-600/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <Icon icon="mdi:close" aria-hidden="true" className="h-3.5 w-3.5" />
                       </button>
@@ -2416,9 +2416,11 @@ const ManagerDashboard: React.FC = () => {
                         type="button"
                         onClick={() => removeImage(img)}
                         aria-label={`حذف عکس ${i + 1}`}
-                        className="absolute end-0.5 top-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500/90 text-white after:absolute after:-inset-3 after:content-[''] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        className="absolute end-0 top-0 flex h-11 w-11 items-start focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
-                        <Icon icon="mdi:close" aria-hidden="true" className="h-3 w-3" />
+                        <span className="ms-auto flex h-5 w-5 items-center justify-center rounded-full bg-red-500/90 text-white">
+                          <Icon icon="mdi:close" aria-hidden="true" className="h-3 w-3" />
+                        </span>
                       </button>
                     </div>
                   ))}
