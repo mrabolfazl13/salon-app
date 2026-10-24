@@ -46,7 +46,7 @@ export function PersianCurrency({
   return (
     <span className={`persian-numerals ${className}`}>
       {formatted}
-      {showSymbol && <span className="ml-1 text-sm opacity-75">تومان</span>}
+      {showSymbol && <span className="ms-1 text-sm opacity-75">تومان</span>}
     </span>
   )
 }
