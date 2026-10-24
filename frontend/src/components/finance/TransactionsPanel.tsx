@@ -133,7 +133,7 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                 key={chip.value}
                 type="button"
                 onClick={() => resetPageAnd(setDirection)(chip.value)}
-                className="inline-flex min-h-[44px] items-center rounded-md px-2 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                className="inline-flex min-h-[44px] min-w-11 items-center justify-center rounded-md px-2 text-[0.68rem] font-bold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 style={{
                   backgroundColor: active ? pair.main : 'rgba(0,0,0,0.04)',
                   color: active ? pair.on : undefined,
@@ -339,7 +339,10 @@ const TransactionsPanel: React.FC<{ venues: FinanceVenue[] }> = ({ venues }) => 
                             size="sm"
                             variant="ghost"
                             onClick={() => setVoidTx(tx)}
-                            className="text-[0.68rem] font-bold text-red-600 hover:text-red-700 dark:text-red-400 min-h-11 px-1.5"
+                            // ۲۵ ردیف، یک دکمه با متن «ابطال» — صفحه‌خوان نمی‌گوید کدام ردیف؛
+                            // برچسب، همان شمارهٔ ردیفِ ستون اول را تکرار می‌کند
+                            aria-label={`ابطال ردیف ${toPersianDigits(tx.id)}`}
+                            className="text-[0.68rem] font-bold text-red-600 hover:text-red-700 dark:text-red-400 min-h-11 min-w-11 px-1.5"
                           >
                             ابطال
                           </Button>

@@ -129,8 +129,8 @@ const CustomersTab: React.FC<Props> = ({ venueId }) => {
                 onClick={() => { setSegment(active ? null : s); setPage(1) }}
                 className={
                   active
-                    ? 'inline-flex min-h-11 items-center rounded-[9px] bg-blue-600 px-3 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
-                    : 'inline-flex min-h-11 items-center rounded-[9px] bg-muted px-3 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    ? 'inline-flex min-h-11 min-w-11 items-center justify-center rounded-[9px] bg-blue-600 px-3 text-[0.68rem] font-bold text-white transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
+                    : 'inline-flex min-h-11 min-w-11 items-center justify-center rounded-[9px] bg-muted px-3 text-[0.68rem] font-bold text-foreground transition-colors hover:bg-muted/70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring'
                 }
               >
                 {SEGMENT_LABELS[s]}

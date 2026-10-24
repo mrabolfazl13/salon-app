@@ -114,7 +114,7 @@ const UserDashboard: React.FC = () => {
   return (
     <div className="mx-auto max-w-[1000px] px-3 pb-20">
       {/* Header */}
-      <MobileHeader />
+      <MobileHeader headingTag="h1" />
 
       {/* Quick Search */}
       <div className="mb-4">

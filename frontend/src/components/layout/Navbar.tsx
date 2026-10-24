@@ -136,7 +136,7 @@ const Navbar: React.FC<NavbarProps> = () => {
         <Link
           to="/"
           aria-label="صفحه اصلی فوتسال"
-          className="flex min-h-11 shrink-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+          className="flex min-h-11 min-w-11 shrink-0 items-center gap-2 rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
         >
           <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-amber-400 to-orange-500 shadow-[0_4px_14px_rgba(245,158,11,0.3)]">
             <Icon icon="mdi:soccer" className="h-6 w-6" style={{ color: '#1c1917' }} />

@@ -11,20 +11,26 @@ interface Props {
   /** نمایش آواتار/ورود در انتهای خط */
   showAccount?: boolean
   onBell?: () => void
+  /**
+   * سطح سرتیتر. صفحهٔ خانهٔ شخصی h1 می‌خواهد (کلمهٔ «خانه» در ناوبری هست)، ولی
+   * نمای مهمان سرتیتر بازاریابیِ خودش را دارد و اینجا فقط <p> می‌ماند تا دو h1 نسازد.
+   */
+  headingTag?: 'p' | 'h1'
 }
 
 /** هدر موبایل: سلام + امروز کجا می‌خوای بازی کنی؟ + آواتار */
-const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true }) => {
+const MobileHeader: React.FC<Props> = ({ title, subtitle, showAccount = true, headingTag = 'p' }) => {
   const { user, isAuthenticated } = useAuthStore()
   const heading = title || (isAuthenticated && user?.fullName
     ? `سلام ${user.fullName.split(' ')[0]}`
     : 'سلام')
   const sub = subtitle || 'امروز کجا می‌خوای بازی کنی؟'
+  const Heading = headingTag
 
   return (
     <div className="flex items-center justify-between gap-2 pb-2 pt-1 md:pt-0">
       <div className="min-w-0">
-        <p className="text-[1.1rem] font-extrabold leading-[1.3] text-foreground">{heading}</p>
+        <Heading className="text-[1.1rem] font-extrabold leading-[1.3] text-foreground">{heading}</Heading>
         <p className="mt-0.5 text-[0.72rem] text-muted-foreground">{sub}</p>
       </div>
       <div className="flex shrink-0 items-center gap-0.5">

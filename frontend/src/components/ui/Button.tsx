@@ -51,12 +51,14 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
         className={cn(buttonVariants({ variant, size, className }))}
         ref={ref}
         disabled={disabled || loading}
+        // دکمهٔ disabled فقط می‌گوید «غیرفعال»؛ aria-busy تمایز «در حال ارسال» را می‌دهد
+        aria-busy={loading || undefined}
         {...props}
       >
         {loading && (
-          <Icon icon="svg-spinners:3-dots-fade" className="h-4 w-4 animate-spin" />
+          <Icon icon="svg-spinners:3-dots-fade" aria-hidden="true" className="h-4 w-4 animate-spin" />
         )}
-        {icon && !loading && <Icon icon={icon} className="h-5 w-5" />}
+        {icon && !loading && <Icon icon={icon} aria-hidden="true" className="h-5 w-5" />}
         {children}
       </motion.button>
     )
