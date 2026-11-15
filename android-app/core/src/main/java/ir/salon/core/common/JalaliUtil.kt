@@ -45,9 +45,8 @@ object JalaliUtil {
 
     private data class Breaks(val leap: Boolean, val gy: Int, val cycle: Int)
 
-    private fun div(a: Int, b: Int): Int {
-        return a / b - (if ((a % b < 0) != (b < 0)) 1 else 0)
-    }
+    /** تقسیم صحیح با truncation — قرینهٔ ~~ در jalaali-js */
+    private fun div(a: Int, b: Int): Int = a / b
 
     private fun mod(a: Int, b: Int): Int = a - div(a, b) * b
 
@@ -73,7 +72,7 @@ object JalaliUtil {
         if (jump - n < 6) n = n - jump + div(jump + 4, 33) * 33
         var leap = mod(mod(n + 1, 33) - 1, 4)
         if (leap == -1) leap = 4
-        return Breaks(leap == 0, gy, march)
+        return Breaks(leap == 1, gy, march)
     }
 
     private fun g2d(gy: Int, gm: Int, gd: Int): Int {

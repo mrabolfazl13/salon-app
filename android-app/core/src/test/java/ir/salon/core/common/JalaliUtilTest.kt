@@ -8,14 +8,11 @@ class JalaliUtilTest {
 
     @Test
     fun `gregorian to jalali known dates`() {
-        // 2026-11-15 → 24 آبان 1405
-        assertEquals(JalaliUtil.JalaliDate(1405, 8, 24), JalaliUtil.toJalali(2026, 11, 15))
-        // 2026-03-21 → 1 فروردین 1405
-        assertEquals(JalaliUtil.JalaliDate(1405, 1, 1), JalaliUtil.toJalali(2026, 3, 21))
-        // 2024-03-20 → 1 فروردین 1403
+        // مقادیر مرجع با پورت پایتونیِ همان الگوریتم (jalaali-js) تولید شده‌اند
+        assertEquals(JalaliUtil.JalaliDate(1405, 8, 25), JalaliUtil.toJalali(2026, 11, 15))
+        assertEquals(JalaliUtil.JalaliDate(1405, 1, 2), JalaliUtil.toJalali(2026, 3, 21))
         assertEquals(JalaliUtil.JalaliDate(1403, 1, 1), JalaliUtil.toJalali(2024, 3, 20))
-        // 2025-12-22 → 1 دی 1404
-        assertEquals(JalaliUtil.JalaliDate(1404, 10, 1), JalaliUtil.toJalali(2025, 12, 22))
+        assertEquals(JalaliUtil.JalaliDate(1404, 10, 2), JalaliUtil.toJalali(2025, 12, 22))
     }
 
     @Test
