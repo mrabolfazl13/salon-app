@@ -42,6 +42,7 @@ interface ApiBooking {
   payment_amount: number
   // اطلاعات تکمیلی (اختیاری؛ از بک‌اند ارسال می‌شود)
   venue_name?: string
+  venue_phone?: string | null
   venue_images?: string[] | string
   slot_date?: string
   start_time?: string
@@ -324,6 +325,15 @@ const BookingDetail: React.FC = () => {
           </div>
         </div>
 
+        {/* راهنمای فاز MVP: تأیید رزرو خارج از برنامه با تماس */}
+        {booking.status === 'pending' && (
+          <Alert variant="info" className="mb-4">
+            <AlertDescription>
+              رزرو شما ثبت شده و در انتظار تأیید سالن‌دار است. برای هماهنگی سریع‌تر، با سالن تماس بگیرید.
+            </AlertDescription>
+          </Alert>
+        )}
+
         <div className="grid grid-cols-1 gap-6 md:grid-cols-12">
           {/* Main Info */}
           <div className="md:col-span-8">
@@ -478,6 +488,15 @@ const BookingDetail: React.FC = () => {
                 عملیات
               </h2>
               <div className="flex flex-col gap-3">
+                {/* تماس با سالن‌دار خارج از برنامه — همیشه برای رزروهای فعال */}
+                {(booking.status === 'pending' || booking.status === 'confirmed') && booking.venue_phone && (
+                  <Button asChild className="min-h-9 font-extrabold">
+                    <a href={`tel:${booking.venue_phone}`}>
+                      <Icon icon="mdi:phone" className="h-5 w-5" />
+                      تماس با سالن
+                    </a>
+                  </Button>
+                )}
                 {(booking.payment_mode === 'bank_receipt' || booking.payment_mode === 'pay_in_place') && (
                   <BookingPaymentPanel booking={booking} onChanged={fetchBooking} />
                 )}

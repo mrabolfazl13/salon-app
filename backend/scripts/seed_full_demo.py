@@ -49,7 +49,7 @@ from app.unit_of_work import UnitOfWork
 from app.utils.auth import get_password_hash
 from app.utils.permissions import StaffPosition
 from app.models.user import User, UserRole
-from app.models.venue import Venue
+from app.models.venue import Venue, VenuePaymentMode
 from app.models.slot import Slot, SlotStatus
 from app.models.booking import Booking, BookingStatus
 from app.models.payment import BookingPayment, BookingPaymentStatus
@@ -146,6 +146,8 @@ def seed():
                       for i, (p, n) in enumerate(demo_names)]
 
         # ─────────────────────────── venues ───────────────────────────
+        # فاز MVP: پرداخت حضوری (pay_in_place) — تأیید رزرو خارج از برنامه با تماس؛
+        # درگاه/رسید بانکی بعداً فعال می‌شود (کد حذف نمی‌شود)
         venues = [
             uow.venues.create({
                 "name": "فوتسال آرش", "category": "futsal",
@@ -154,6 +156,7 @@ def seed():
                 "amenities": '["پارکینگ", "کافه", "دوش", "تجهیزات", "وای‌فای"]',
                 "images": '["https://images.unsplash.com/photo-1574629810360-7efbbe195018?w=600"]',
                 "is_verified": True, "manager_id": mgr1.id, "default_slot_price": 350000,
+                "payment_mode": VenuePaymentMode.PAY_IN_PLACE,
             }),
             uow.venues.create({
                 "name": "فوتسال المپیک", "category": "futsal",
@@ -162,6 +165,7 @@ def seed():
                 "amenities": '["پارکینگ", "دوش", "تابلو", "کافه"]',
                 "images": '["https://images.unsplash.com/photo-1517649763962-0c623066013b?w=600"]',
                 "is_verified": True, "manager_id": mgr2.id, "default_slot_price": 420000,
+                "payment_mode": VenuePaymentMode.PAY_IN_PLACE,
             }),
             uow.venues.create({
                 "name": "باشگاه تناسب اندام انرژی", "category": "gym",
@@ -170,6 +174,7 @@ def seed():
                 "amenities": '["سونا", "استخر", "پارکینگ", "مربی"]',
                 "images": '["https://images.unsplash.com/photo-1534438327276-14e5300c3a48?w=600"]',
                 "is_verified": True, "manager_id": mgr1.id, "default_slot_price": 250000,
+                "payment_mode": VenuePaymentMode.PAY_IN_PLACE,
             }),
         ]
         v1, v2, v3 = venues

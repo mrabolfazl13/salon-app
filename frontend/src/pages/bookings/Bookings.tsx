@@ -36,6 +36,7 @@ interface ApiBooking {
   payment_amount: number
   // اطلاعات تکمیلی (اختیاری؛ از بک‌اند ارسال می‌شود)
   venue_name?: string
+  venue_phone?: string | null
   venue_images?: string[] | string
   slot_date?: string
   start_time?: string
@@ -50,6 +51,10 @@ interface ApiBooking {
 }
 
 export type TabFilter = 'all' | 'confirmed' | 'pending' | 'cancelled' | 'completed'
+
+// فاز MVP: پرداخت آنلاین (درگاه) موقتاً غیرفعال است — کد حذف نشده، فقط نمایش آن با این پرچم بسته می‌شود.
+// برای فعال‌سازی دوباره مقدار را true کنید.
+const ONLINE_PAYMENT_ENABLED = false
 
 /** نگاشت وضعیت رزرو → واریانت Badge (هم‌رنگ Chip قبلی: سبز/کهربایی/قرمز/آبی) */
 const STATUS_BADGE_VARIANT: Record<string, 'success' | 'primary' | 'destructive' | 'default'> = {
@@ -256,7 +261,8 @@ const Bookings: React.FC = () => {
                             بازگشت وجه
                           </Badge>
                         )}
-                      {booking.status === 'confirmed' &&
+                      {ONLINE_PAYMENT_ENABLED &&
+                        booking.status === 'confirmed' &&
                         !booking.isPendingRedis &&
                         (booking.payment_mode ?? 'gateway') === 'gateway' &&
                         (paidBookingIds.has(Number(booking.id)) ? (
@@ -294,6 +300,19 @@ const Bookings: React.FC = () => {
                           className="min-h-9 min-w-11 rounded-xl"
                         >
                           <Icon icon="mdi:calendar-plus" className="h-5 w-5" />
+                        </Button>
+                      )}
+                      {(booking.status === 'confirmed' || booking.status === 'pending') && booking.venue_phone && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          asChild
+                          className="min-h-9 gap-1.5 rounded-xl px-4 text-[0.68rem] font-semibold"
+                        >
+                          <a href={`tel:${booking.venue_phone}`} aria-label={`تماس با ${booking.venue_name || 'سالن'}`}>
+                            <Icon icon="mdi:phone" className="h-4 w-4" />
+                            تماس
+                          </a>
                         </Button>
                       )}
                       {(booking.status === 'confirmed' || booking.status === 'pending') && (

@@ -26,6 +26,15 @@ def _pm_field(value):
     return {"payment_mode": VenuePaymentMode(value)}
 
 
+def _manager_phones(session: Session, venues) -> dict:
+    """نقشه‌ی manager_id -> شماره تماس کاربر سالن‌دار (fallback شماره سالن‌های قدیمی بدون تلفن)"""
+    ids = {v.manager_id for v in venues}
+    if not ids:
+        return {}
+    rows = session.exec(select(User).where(User.id.in_(ids))).all()
+    return {u.id: u.phone for u in rows}
+
+
 def get_venue_min_price(session: Session, venue_id: int) -> int:
     """حداقل قیمت سالن: برای فوتسال از سانس‌ها، برای بدنسازی از پلن‌های اشتراک"""
     from app.models.membership import MembershipPlan
@@ -86,12 +95,13 @@ def get_venues(
         result = []
         venue_ids = [v.id for v in venues[:limit]]
         ratings_map = review_repo.get_ratings_for_venues(venue_ids)
+        phones_map = _manager_phones(session, venues)
         for v in venues[:limit]:
             if category and v.category != category:
                 continue
             min_price = get_venue_min_price(session, v.id)
             r = ratings_map.get(v.id, {})
-            result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0)))
+            result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0), manager_phone=phones_map.get(v.manager_id)))
         return result
     
     # جستجوی متنی
@@ -100,12 +110,13 @@ def get_venues(
         result = []
         venue_ids = [v.id for v in venues]
         ratings_map = review_repo.get_ratings_for_venues(venue_ids)
+        phones_map = _manager_phones(session, venues)
         for v in venues:
             if category and v.category != category:
                 continue
             min_price = get_venue_min_price(session, v.id)
             r = ratings_map.get(v.id, {})
-            result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0)))
+            result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0), manager_phone=phones_map.get(v.manager_id)))
         return result
     
     # فیلتر ساده
@@ -119,10 +130,11 @@ def get_venues(
     result = []
     venue_ids = [v.id for v in venues]
     ratings_map = review_repo.get_ratings_for_venues(venue_ids)
+    phones_map = _manager_phones(session, venues)
     for v in venues:
         min_price = get_venue_min_price(session, v.id)
         r = ratings_map.get(v.id, {})
-        result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0)))
+        result.append(VenueResponse.from_orm_with_json(v, min_price, r.get("average_rating", 0.0), r.get("total_reviews", 0), manager_phone=phones_map.get(v.manager_id)))
     return result
 
 @router.get("/my-venues", response_model=List[VenueResponse])
@@ -156,10 +168,12 @@ def get_venue(
     
     min_price = get_venue_min_price(session, venue_id)
     rating_summary = review_repo.get_rating_summary(venue_id)
+    manager_phone = _manager_phones(session, [venue]).get(venue.manager_id)
     return VenueResponse.from_orm_with_json(
         venue, min_price,
         rating_summary["average_rating"],
-        rating_summary["total_reviews"]
+        rating_summary["total_reviews"],
+        manager_phone=manager_phone,
     )
 
 @router.post("/", response_model=VenueResponse)

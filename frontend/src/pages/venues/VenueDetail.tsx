@@ -117,9 +117,11 @@ const VenueDetail: React.FC = () => {
   const [slots, setSlots] = useState<any[]>([])
   const [selectedSlot, setSelectedSlot] = useState<any>(null)
   const [confirmOpen, setConfirmOpen] = useState(false)
-  const [selectedDate, setSelectedDate] = useState<string>(
-    () => new Date().toISOString().split('T')[0],
-  )
+  const [selectedDate, setSelectedDate] = useState<string>(() => {
+    // تاریخ محلی (نه UTC) — وگرنه در ساعات اولیهٔ روزِ ایران، دیروز پیش‌فرض می‌شد
+    const d = new Date()
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
+  })
   const track = useRecentlyViewedStore((s) => s.track)
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated)
   const [plans, setPlans] = useState<MembershipPlan[]>([])
@@ -978,6 +980,20 @@ const VenueDetail: React.FC = () => {
                   <span className="text-xs font-bold text-pink-600 dark:text-pink-400">
                     کد «{bookingResult.coupon_code}» اعمال شد
                   </span>
+                )}
+                <p className="mt-2 text-xs text-muted-foreground">
+                  سالن‌دار رزرو شما را تأیید می‌کند؛ برای هماهنگی سریع‌تر می‌توانید با سالن تماس بگیرید.
+                </p>
+                {(venue?.phone || bookingResult.venue_phone) && (
+                  <Button asChild variant="outline" className="mt-3 min-h-11 w-full gap-2 font-bold">
+                    <a href={`tel:${bookingResult.venue_phone || venue?.phone}`}>
+                      <Icon icon="mdi:phone" className="h-5 w-5" />
+                      تماس با سالن
+                      <span dir="ltr" className="text-muted-foreground">
+                        {bookingResult.venue_phone || venue?.phone}
+                      </span>
+                    </a>
+                  </Button>
                 )}
               </div>
               <PricingBreakdown

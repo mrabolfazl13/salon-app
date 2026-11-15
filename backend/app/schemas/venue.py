@@ -38,6 +38,8 @@ class VenueBase(BaseModel):
 
 
 class VenueCreate(VenueBase):
+    # در فاز MVP شماره تماس اجباری است — کاربر باید بتواند خارج از برنامه با سالن‌دار تماس بگیرد
+    phone: str = Field(..., pattern=PHONE_PATTERN, description="شماره تماس سالن (اجباری)")
     payment_mode: Optional[str] = Field(
         default=None,
         description="روش پرداخت سالن: gateway | bank_receipt | pay_in_place (پیش‌فرض: bank_receipt)")
@@ -62,7 +64,7 @@ class VenueResponse(VenueBase):
         from_attributes = True
 
     @classmethod
-    def from_orm_with_json(cls, venue, min_price: int = None, average_rating: float = 0.0, total_reviews: int = 0):
+    def from_orm_with_json(cls, venue, min_price: int = None, average_rating: float = 0.0, total_reviews: int = 0, manager_phone: str = None):
         """تبدیل مدل با JSON fields به List"""
         pm = getattr(venue, "payment_mode", None)
         data = {
@@ -72,7 +74,8 @@ class VenueResponse(VenueBase):
             "address": venue.address,
             "latitude": venue.latitude,
             "longitude": venue.longitude,
-            "phone": venue.phone,
+            # fallback: سالن‌های قدیمی بدون شماره — شماره کاربر سالن‌دار
+            "phone": venue.phone or manager_phone,
             "description": venue.description,
             "is_verified": venue.is_verified,
             "manager_id": venue.manager_id,

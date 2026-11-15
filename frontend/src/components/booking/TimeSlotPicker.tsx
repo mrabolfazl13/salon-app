@@ -110,7 +110,16 @@ const TimeSlotPicker: React.FC<TimeSlotPickerProps> = ({ slots, onSelect, onBid 
   // Group slots by date
   const groupedSlots = useMemo(() => {
     const groups: { [date: string]: TimeSlot[] } = {}
+    // سانس‌های گذشته نمایش داده نمی‌شوند — قابل رزرو هم نیستند (نگهبان زمانی سمت سرور)
+    const now = new Date()
+    const nowLocal = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`
+    const nowMinutes = now.getHours() * 60 + now.getMinutes()
     slots.forEach(slot => {
+      if (slot.date < nowLocal) return
+      if (slot.date === nowLocal) {
+        const [h, m] = String(slot.startTime).split(':').map(Number)
+        if (h * 60 + (m || 0) <= nowMinutes) return
+      }
       if (!groups[slot.date]) {
         groups[slot.date] = []
       }

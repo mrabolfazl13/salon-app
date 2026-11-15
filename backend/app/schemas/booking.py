@@ -30,6 +30,7 @@ class BookingResponse(BaseModel):
 
     # اطلاعات تکمیلی سانس و سالن (اختیاری؛ برای نمایش بهتر در فرانت‌ند)
     venue_name: Optional[str] = None
+    venue_phone: Optional[str] = None
     venue_images: List[str] = []
     slot_date: Optional[date] = None
     start_time: Optional[time] = None
@@ -89,6 +90,7 @@ class PendingBookingResponse(BaseModel):
 
     # اطلاعات تکمیلی سانس و سالن
     venue_name: Optional[str] = None
+    venue_phone: Optional[str] = None
     venue_images: List[str] = []
     slot_date: Optional[date] = None
     start_time: Optional[time] = None

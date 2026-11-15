@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
-from typing import List
+from typing import List, Optional
 import json
 from datetime import date
 from app.unit_of_work import get_unit_of_work, UnitOfWork
@@ -45,6 +45,16 @@ def _venue_image_list(venue) -> list:
         return []
 
 
+def _venue_phone(uow: UnitOfWork, venue) -> Optional[str]:
+    """شماره تماس سالن برای نمایش دکمه تماس؛ برای سالن‌های قدیمی بدون تلفن، شماره سالن‌دار"""
+    if venue is None:
+        return None
+    if getattr(venue, "phone", None):
+        return venue.phone
+    manager = uow.users.get_by_id(venue.manager_id)
+    return manager.phone if manager else None
+
+
 def _enrich_pending(uow: UnitOfWork, records: list) -> list:
     """افزودن اطلاعات سانس و سالن به رزروهای معلق (Redis)"""
     if not records:
@@ -62,6 +72,7 @@ def _enrich_pending(uow: UnitOfWork, records: list) -> list:
         if slot:
             venue = venues.get(slot.venue_id)
             data["venue_name"] = venue.name if venue else None
+            data["venue_phone"] = _venue_phone(uow, venue)
             data["venue_images"] = _venue_image_list(venue)
             data["slot_date"] = slot.slot_date
             data["start_time"] = slot.start_time
@@ -235,6 +246,7 @@ async def create_booking(
     data = dict(pending)
     if slot:
         data["venue_name"] = venue.name if venue else None
+        data["venue_phone"] = _venue_phone(uow, venue)
         data["venue_images"] = _venue_image_list(venue)
         data["slot_date"] = slot.slot_date
         data["start_time"] = slot.start_time
@@ -263,6 +275,7 @@ def _enrich_bookings(uow: UnitOfWork, bookings: list) -> list:
         if slot:
             venue = venues.get(slot.venue_id)
             data["venue_name"] = venue.name if venue else None
+            data["venue_phone"] = _venue_phone(uow, venue)
             data["venue_images"] = _venue_image_list(venue)
             data["slot_date"] = slot.slot_date
             data["start_time"] = slot.start_time

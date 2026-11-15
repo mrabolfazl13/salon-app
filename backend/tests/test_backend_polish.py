@@ -63,10 +63,20 @@ def test_venue_response_default_slot_price_absent_is_null(client):
     mid, mphone = _user("09390000002", UserRole.VENUE_MANAGER)
     r = client.post("/api/v1/venues/",
                     json={"name": "بدون پایه", "category": "futsal", "address": "آ",
-                          "latitude": 35.7, "longitude": 51.4},
+                          "latitude": 35.7, "longitude": 51.4, "phone": "09120000002"},
                     headers=auth(mphone))
     assert r.status_code == 200, r.text
     assert "default_slot_price" in r.json() and r.json()["default_slot_price"] is None
+
+
+def test_venue_phone_required_on_create(client):
+    """فاز MVP: شماره تماس سالن اجباری است — کاربر باید خارج از برنامه تماس بگیرد"""
+    mid, mphone = _user("09390000003", UserRole.VENUE_MANAGER)
+    r = client.post("/api/v1/venues/",
+                    json={"name": "بدون تلفن", "category": "futsal", "address": "آ",
+                          "latitude": 35.7, "longitude": 51.4},
+                    headers=auth(mphone))
+    assert r.status_code == 422, r.text
 
 
 # ─────────────────────────── ۲) /deals/available?venue_id ───────────────────────────
