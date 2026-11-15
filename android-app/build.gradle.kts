@@ -1,9 +1,2 @@
-// Root build — پلاگین‌ها از version catalog؛ هیچ منطقی اینجا نیست
-plugins {
-    alias(libs.plugins.android.application) apply false
-    alias(libs.plugins.kotlin.android) apply false
-    alias(libs.plugins.kotlin.compose) apply false
-    alias(libs.plugins.kotlin.serialization) apply false
-    alias(libs.plugins.hilt) apply false
-    alias(libs.plugins.ksp) apply false
-}
+// Root build — هیچ پلاگینی اینجا اعمال نمی‌شود؛ هر ماژول از version catalog خودش می‌گیرد
+// (الگوی apply false + alias در زیرپروژه با این Gradle تناقض classpath می‌دهد)
