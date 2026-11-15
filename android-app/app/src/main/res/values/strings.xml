@@ -41,4 +41,37 @@
     <!-- حالت‌های عمومی -->
     <string name="cd_search">جستجو</string>
     <string name="cd_back">بازگشت</string>
+
+    <!-- رزرو (M2) -->
+    <string name="booking_pick_slot">انتخاب سانس</string>
+    <string name="booking_no_slots">سانسی برای این روز یافت نشد</string>
+    <string name="booking_slot_date">روز:</string>
+    <string name="booking_confirm_title">تایید رزرو</string>
+    <string name="booking_venue_label">سالن</string>
+    <string name="booking_slot_label">سانس</string>
+    <string name="booking_payable">قابل پرداخت</string>
+    <string name="booking_discount_label">کد تخفیف (اختیاری)</string>
+    <string name="booking_loyalty_label">استفاده از امتیاز وفاداری</string>
+    <string name="booking_confirm_button">تایید رزرو</string>
+    <string name="booking_cancel_button">انصراف</string>
+    <string name="booking_success_title">رزرو ثبت شد</string>
+    <string name="booking_success_message">رزرو شما ثبت شد و در انتظار تأیید سالن‌دار است؛ برای هماهنگی سریع‌تر با سالن تماس بگیرید.</string>
+    <string name="booking_success_close">بعداً</string>
+    <string name="call_venue_short">تماس</string>
+
+    <!-- رزروهای من -->
+    <string name="bookings_tab_all">همه</string>
+    <string name="bookings_tab_pending">در انتظار</string>
+    <string name="bookings_tab_confirmed">تایید شده</string>
+    <string name="bookings_tab_cancelled">لغو شده</string>
+    <string name="bookings_empty">رزروی ندارید</string>
+    <string name="bookings_empty_desc">از صفحهٔ سالن‌ها اولین رزرو خود را ثبت کنید</string>
+    <string name="bookings_cancel">لغو</string>
+    <string name="booking_date">تاریخ</string>
+    <string name="booking_time">ساعت</string>
+    <string name="booking_amount">مبلغ</string>
+    <string name="booking_coupon">کد تخفیف</string>
+    <string name="booking_payment_mode">روش پرداخت</string>
+    <string name="booking_breakdown">ریز قیمت</string>
+    <string name="booking_cancelled_done">رزرو لغو شد</string>
 </resources>

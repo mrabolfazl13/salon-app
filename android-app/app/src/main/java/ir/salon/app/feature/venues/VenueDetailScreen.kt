@@ -41,6 +41,7 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
+import ir.salon.app.feature.booking.faTime
 import ir.salon.core.common.PersianText
 import ir.salon.core.designsystem.component.ErrorState
 import ir.salon.core.designsystem.component.MinTouchTarget
@@ -48,13 +49,15 @@ import ir.salon.core.designsystem.component.SkeletonScreen
 import ir.salon.core.designsystem.theme.LocalSalonExtra
 import ir.salon.app.R
 
-/** جزئیات سالن (M1: اطلاعات + تماس؛ رزرو در M2 به همین صفحه اضافه می‌شود) */
+/** جزئیات سالن + جریان رزرو (M2): سانس‌ها، دیالوگ تأیید، تماس */
 @Composable
 fun VenueDetailScreen(
     onBack: () -> Unit,
-    viewModel: VenueDetailViewModel = hiltViewModel(),
+    detailViewModel: VenueDetailViewModel = hiltViewModel(),
+    bookingViewModel: ir.salon.app.feature.booking.BookingFlowViewModel = hiltViewModel(),
 ) {
-    val state by viewModel.state.collectAsStateWithLifecycle()
+    val state by detailViewModel.state.collectAsStateWithLifecycle()
+    val booking by bookingViewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val extra = LocalSalonExtra.current
 
@@ -186,8 +189,72 @@ fun VenueDetailScreen(
                             Text(stringResource(R.string.call_venue) + " — " + PersianText.toPersianDigits(phone))
                         }
                     }
+
+                    // ───────────── جریان رزرو (M2) ─────────────
+                    if (venue.category != "gym") {
+                        Text(
+                            stringResource(R.string.booking_pick_slot),
+                            style = MaterialTheme.typography.titleMedium,
+                            modifier = Modifier.semantics { heading() },
+                        )
+                        ir.salon.app.feature.booking.DateSelector(
+                            days = booking.days,
+                            selected = booking.selectedDate,
+                            onSelect = bookingViewModel::selectDate,
+                        )
+                        when {
+                            booking.loadingSlots -> ir.salon.core.designsystem.component.SkeletonScreen(rows = 3)
+                            booking.slotsError != null -> Text(
+                                booking.slotsError!!.uiMessage(),
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodySmall,
+                            )
+                            else -> {
+                                if (booking.slots.isEmpty()) {
+                                    Text(
+                                        stringResource(R.string.booking_no_slots),
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    )
+                                } else {
+                                    ir.salon.app.feature.booking.SlotGrid(
+                                        slots = booking.slots,
+                                        selectedSlotId = booking.selectedSlot?.id,
+                                        onSelect = bookingViewModel::selectSlot,
+                                    )
+                                }
+                            }
+                        }
+                    }
                 }
             }
         }
+    }
+
+    // دیالوگ تأیید رزرو
+    val selectedSlot = booking.selectedSlot
+    if (selectedSlot != null && state.venue != null) {
+        ir.salon.app.feature.booking.BookingConfirmDialog(
+            venueName = state.venue!!.name,
+            venuePhone = state.venue!!.phone,
+            slotSummary = "${faTime(selectedSlot.startTime)} تا ${ir.salon.app.feature.booking.slotEndTime(selectedSlot)} — " +
+                stringResource(R.string.booking_slot_date) + " " + ir.salon.app.feature.bookings.faDate(booking.selectedDate),
+            breakdown = emptyList(),
+            payable = selectedSlot.currentPrice.toLong(),
+            loading = booking.creating,
+            error = booking.createError?.uiMessage(),
+            onConfirm = { code, loyalty -> bookingViewModel.createBooking(code, loyalty) },
+            onDismiss = bookingViewModel::dismissResult,
+        )
+    }
+
+    // دیالوگ موفقیت — قرینهٔ bookingResult با دکمهٔ تماس
+    val created = booking.created
+    if (created != null && state.venue != null) {
+        ir.salon.app.feature.booking.BookingSuccessDialog(
+            pending = created,
+            venuePhone = state.venue!!.phone,
+            onDismiss = bookingViewModel::dismissResult,
+        )
     }
 }

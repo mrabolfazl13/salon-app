@@ -39,8 +39,11 @@ object Routes {
     const val VENUES = "venues"
     const val VENUE_DETAIL = "venues/{venueId}"
     const val PROFILE = "profile"
+    const val MY_BOOKINGS = "bookings"
+    const val BOOKING_DETAIL = "bookings/{bookingId}"
 
     fun venueDetail(id: Int) = "venues/$id"
+    fun bookingDetail(id: Int) = "bookings/$id"
 }
 
 /** ناوبری پایین نقش‌محور — قرینهٔ BottomNavigation وب (فقط در صفحات سطح بالا) */
@@ -56,11 +59,12 @@ fun SalonNavGraph(sessionViewModel: SessionViewModel) {
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) },
         bottomBar = {
-            if (currentRoute in setOf(Routes.VENUES, Routes.LOGIN)) {
+            if (currentRoute in setOf(Routes.VENUES, Routes.LOGIN, Routes.MY_BOOKINGS)) {
                 NavigationBar {
                     // M1: سالن‌ها + پروفایل (پروفایل در M3 کامل می‌شود؛ مهمان → ورود)
                     val items = buildList {
                         add(BottomNavItem.VENUES)
+                        add(BottomNavItem.BOOKINGS)
                         add(if (session.isAuthenticated) BottomNavItem.PROFILE else BottomNavItem.LOGIN)
                     }
                     items.forEach { item ->
@@ -108,6 +112,16 @@ fun SalonNavGraph(sessionViewModel: SessionViewModel) {
             })) {
                 VenueDetailScreen(onBack = { navController.popBackStack() })
             }
+            composable(Routes.MY_BOOKINGS) {
+                ir.salon.app.feature.bookings.MyBookingsScreen(
+                    onBookingClick = { id -> navController.navigate(Routes.bookingDetail(id)) },
+                )
+            }
+            composable(Routes.BOOKING_DETAIL, arguments = listOf(navArgument("bookingId") {
+                type = androidx.navigation.NavType.IntType
+            })) {
+                ir.salon.app.feature.bookings.BookingDetailScreen(onBack = { navController.popBackStack() })
+            }
             composable(Routes.PROFILE) {
                 // جایگاه موقت M1 — در M3 پروفایل کامل جایگزین می‌شود
                 ir.salon.core.designsystem.component.EmptyState(
@@ -122,6 +136,7 @@ fun SalonNavGraph(sessionViewModel: SessionViewModel) {
 
 enum class BottomNavItem(val route: String, val labelRes: Int, val icon: androidx.compose.ui.graphics.vector.ImageVector) {
     VENUES(Routes.VENUES, R.string.nav_venues, Icons.Filled.Place),
+    BOOKINGS(Routes.MY_BOOKINGS, R.string.nav_bookings, Icons.Filled.CalendarMonth),
     LOGIN(Routes.LOGIN, R.string.nav_profile, Icons.Filled.Person),
     PROFILE(Routes.PROFILE, R.string.nav_profile, Icons.Filled.Person),
 }
