@@ -62,14 +62,14 @@ jobs:
         with:
           name: test-reports
           path: |
-            **/build/reports/tests/
-            **/build/reports/lint-results-debug.*
+            android-app/**/build/reports/tests/
+            android-app/**/build/reports/lint-results-debug.*
 
       - name: Upload debug APK artifact
         uses: actions/upload-artifact@v4
         with:
           name: Salon-Android-debug
-          path: app/build/outputs/apk/debug/*.apk
+          path: android-app/app/build/outputs/apk/debug/*.apk
 
   release:
     name: Release (signed APK/AAB on tag)
@@ -130,12 +130,12 @@ jobs:
         with:
           name: Salon-Android-release
           path: |
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/bundle/release/*.aab
+            android-app/app/build/outputs/apk/release/*.apk
+            android-app/app/build/outputs/bundle/release/*.aab
 
       - name: Attach to GitHub Release
         uses: softprops/action-gh-release@v2
         with:
           files: |
-            app/build/outputs/apk/release/*.apk
-            app/build/outputs/bundle/release/*.aab
+            android-app/app/build/outputs/apk/release/*.apk
+            android-app/app/build/outputs/bundle/release/*.aab
