@@ -28,13 +28,13 @@ object AppErrorMapper {
             }.getOrNull()?.let { body ->
                 runCatching { json.decodeFromString<DetailBody>(body) }.getOrNull()?.detail
             }
-            Api(
+            AppError.Api(
                 code = t.code(),
                 message = detail ?: fallbackFor(t.code()),
             )
         }
-        is java.io.IOException -> Network("ارتباط با سرور برقرار نشد — اتصال اینترنت را بررسی کنید")
-        else -> Unknown("خطای غیرمنتظره رخ داد")
+        is java.io.IOException -> AppError.Network("ارتباط با سرور برقرار نشد — اتصال اینترنت را بررسی کنید")
+        else -> AppError.Unknown("خطای غیرمنتظره رخ داد")
     }
 
     private fun fallbackFor(code: Int): String = when (code) {
