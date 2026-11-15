@@ -1,0 +1,44 @@
+<resources>
+    <string name="app_name">سالن</string>
+
+    <!-- ناوبری پایین -->
+    <string name="nav_home">خانه</string>
+    <string name="nav_venues">سالن‌ها</string>
+    <string name="nav_bookings">رزروها</string>
+    <string name="nav_more">بیشتر</string>
+    <string name="nav_profile">پروفایل</string>
+    <string name="nav_manager">مدیریت</string>
+
+    <!-- ورود -->
+    <string name="login_title">خوش آمدید</string>
+    <string name="login_subtitle">برای رزرو سالن فوتسال وارد شوید</string>
+    <string name="phone_label">شماره تلفن همراه</string>
+    <string name="password_label">رمز عبور</string>
+    <string name="login_button">ورود</string>
+    <string name="register_title">ثبت‌نام</string>
+    <string name="full_name_label">نام و نام خانوادگی</string>
+    <string name="register_button">ایجاد حساب</string>
+    <string name="no_account_question">حساب ندارید؟ ثبت‌نام کنید</string>
+    <string name="have_account_question">حساب دارید؟ ورود</string>
+    <string name="phone_invalid">شماره موبایل معتبر نیست (۰۹…)</string>
+    <string name="password_short">رمز عبور باید حداقل ۶ کاراکتر باشد</string>
+
+    <!-- سالن‌ها -->
+    <string name="venues_title">سالن‌ها</string>
+    <string name="search_venues_hint">جستجوی سالن…</string>
+    <string name="venue_verified">تایید شده</string>
+    <string name="rating_format">امتیاز %1$s</string>
+    <string name="venue_info">اطلاعات</string>
+    <string name="venue_slots">سانس‌ها</string>
+    <string name="venue_reviews">نظرات</string>
+    <string name="call_venue">تماس با سالن</string>
+    <string name="view_slots">مشاهده سانس‌ها</string>
+    <string name="error_generic">خطایی رخ داد</string>
+    <string name="retry">تلاش دوباره</string>
+    <string name="empty_venues">سالنی یافت نشد</string>
+    <string name="empty_venues_desc">جستجو را تغییر دهید یا بعداً بررسی کنید</string>
+
+    <!-- حالت‌های عمومی -->
+    <string name="cd_search">جستجو</string>
+    <string name="cd_back">بازگشت</string>
+</resources>

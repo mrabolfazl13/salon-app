@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- توپ فوتسال ساده — آیکون برند -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <group android:translateX="27" android:translateY="27">
+        <path
+            android:pathData="M27,2a25,25 0 1,0 0.001,0z"
+            android:fillColor="#FFFFFF" />
+        <path
+            android:pathData="M27,9l5.5,4 -2.1,6.5h-6.8L21.5,13z"
+            android:fillColor="#F59E0B" />
+        <path
+            android:pathData="M27,2a25,25 0 0,1 0,50a25,25 0 0,1 0,-50z M27,9l5.5,4 -2.1,6.5h-6.8L21.5,13z"
+            android:strokeColor="#1D4ED8"
+            android:strokeWidth="1.5"
+            android:fillColor="#00000000" />
+    </group>
+</vector>
