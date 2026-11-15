@@ -8,9 +8,11 @@ import retrofit2.HttpException
  * قرینهٔ err.response?.data?.detail در فرانت‌اند.
  */
 sealed interface AppError {
-    data class Api(val code: Int?, val message: String) : AppError
-    data class Network(val message: String) : AppError
-    data class Unknown(val message: String) : AppError
+    val message: String
+
+    data class Api(val code: Int?, override val message: String) : AppError
+    data class Network(override val message: String) : AppError
+    data class Unknown(override val message: String) : AppError
 
     fun uiMessage(): String = message
 }

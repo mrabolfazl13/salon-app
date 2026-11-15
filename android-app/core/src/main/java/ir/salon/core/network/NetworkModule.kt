@@ -63,7 +63,7 @@ class TokenAuthenticator @Inject constructor(
 
         val refreshRequest = Request.Builder()
             .url(refreshUrl)
-            .post(json.encodeToString(RefreshRequest(refresh)).toRequestBody("application/json".toMediaType()))
+            .post(json.encodeToString(RefreshRequest.serializer(), RefreshRequest(refresh)).toRequestBody("application/json".toMediaType()))
             .build()
 
         return try {
