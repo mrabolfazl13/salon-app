@@ -83,7 +83,7 @@ fun VenueDetailScreen(
             state.loading -> SkeletonScreen(rows = 5)
             state.error != null -> ErrorState(
                 message = state.error!!.uiMessage(),
-                onRetry = viewModel::load,
+                onRetry = detailViewModel::load,
             )
             state.venue != null -> {
                 val venue = state.venue!!
