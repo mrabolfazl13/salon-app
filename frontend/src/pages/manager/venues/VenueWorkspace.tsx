@@ -174,6 +174,7 @@ const VenueWorkspace: React.FC = () => {
     { to: '/manager/crm', label: 'مشتریان', desc: 'پروفایل و سابقه', icon: 'mdi:account-heart-outline', color: '#0d9488', ok: hasCode('crm.view', 'customer.view_basic') },
     { to: '/manager/contracts', label: 'قراردادها', desc: 'تمدید و انقضا', icon: 'mdi:file-document-check-outline', color: '#7c3aed', ok: canViewContracts },
     { to: '/manager/shifts', label: 'شیفت پرسنل', desc: 'حضور و تیم', icon: 'mdi:account-clock-outline', color: '#475569', ok: hasCode('staff.manage') },
+    { to: `/manager/eitaa/${venueId}`, label: 'کانال ایتا', desc: 'جدول سانسها در ایتا', icon: 'mdi:message-text-outline', color: '#0ea5e9', ok: hasCode('slot.generate') },
   ].filter((m) => m.ok)
 
   const quickAccess =

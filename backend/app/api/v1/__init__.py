@@ -31,6 +31,7 @@ from .reconciliation import router as reconciliation_router
 from .coach import router as coach_router
 from .tournament import router as tournament_router
 from .health import router as health_router
+from .eitaa import router as eitaa_router
 
 __all__ = [
     "auth_router",
@@ -62,6 +63,7 @@ __all__ = [
     "waitlist_router",
     "checkin_router",
     "split_payments_router",
+    "eitaa_router",
     "coach_router",
     "tournament_router",
 ]

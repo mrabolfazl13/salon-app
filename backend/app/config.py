@@ -93,6 +93,10 @@ class Settings(BaseSettings):
     ZARINPAL_MERCHANT_ID: Optional[str] = None
     ZARINPAL_SANDBOX: bool = True
 
+    # ایتا: کلید رمزنگاری توکن ایتایار در DB. اگر خالی باشد از JWT_SECRET مشتق میشود.
+    # تغییر این مقدار باعث ناخوانا شدن توکنهای ذخیرهشده میشود — در production ثابت نگه دارید.
+    EITAA_TOKEN_KEY: Optional[str] = None
+
     class Config:
         env_file = ".env"
         case_sensitive = True

@@ -23,6 +23,7 @@ from app.api.v1 import (
     teams_router, staff_router, crm_router, quiz_router, waitlist_router, checkin_router,
     split_payments_router, reconciliation_router, coach_router,
     tournament_router, shift_router, matching_router, health_router,
+    eitaa_router,
 )
 from app.utils.websocket import manager
 from app.utils.rate_limit import global_rate_limit_middleware
@@ -274,6 +275,7 @@ app.include_router(coach_router, prefix="/api/v1")
 app.include_router(tournament_router, prefix="/api/v1")
 app.include_router(matching_router, prefix="/api/v1")
 app.include_router(health_router, prefix="/api/v1")
+app.include_router(eitaa_router, prefix="/api/v1")
 
 # Static files - عکس‌های واقعی سالن‌ها
 _static_dir = os.path.join(os.path.dirname(os.path.abspath(__file__)), "static")

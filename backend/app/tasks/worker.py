@@ -27,6 +27,7 @@ celery_app.conf.update(
         'app.tasks.crm_tasks',
         'app.tasks.reconciliation_tasks',
         'app.tasks.backup_tasks',
+        'app.tasks.eitaa_tasks',
     ],
     beat_schedule={
         # تنها منبع زمان‌بندی: تسک‌ها در ماژول‌های دامنه تعریف می‌شوند ولی
@@ -102,6 +103,11 @@ celery_app.conf.update(
         "daily-database-backup": {
             "task": "app.tasks.perform_database_backup",
             "schedule": crontab(hour=2, minute=0),
+        },
+        # هر روز ساعت ۷ صبح جدول سانسها در کانال ایتای سالنها (به وقت تهران)
+        "post-daily-eitaa-schedules": {
+            "task": "app.tasks.post_daily_eitaa_schedules",
+            "schedule": crontab(hour=7, minute=0),
         },
     },
 )

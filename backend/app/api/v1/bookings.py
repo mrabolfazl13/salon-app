@@ -1,3 +1,5 @@
+import logging
+
 from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from typing import List, Optional
 import json
@@ -19,6 +21,22 @@ from app.services.notification_service import notification_service
 from app.models.payment import BookingPaymentStatus
 
 router = APIRouter(prefix="/bookings", tags=["Bookings"])
+logger = logging.getLogger(__name__)
+
+
+def _dispatch_eitaa_repost(venue_id: int, slot_id: int) -> None:
+    """بعد از تأیید، جدول سانسها را در کانال ایتا دوباره با ✅ بفرست.
+
+    قطعی رedis/ایتا نباید پاسخ تأیید رزرو را بشکند؛ تمام خطاها اینجا بلعیده
+    و لاگ میشوند (خود تسک هم خطاهای API ایتا را مدیریت میکند).
+    """
+    from app.tasks.eitaa_tasks import repost_eitaa_schedule_with_check
+
+    try:
+        repost_eitaa_schedule_with_check.delay(venue_id, slot_id)
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Eitaa repost dispatch failed (venue=%s slot=%s): %s",
+                       venue_id, slot_id, exc)
 
 
 def _check_venue_manager(uow: UnitOfWork, venue_id: int, current_user: User) -> "Venue":
@@ -527,6 +545,7 @@ async def approve_booking_receipt(booking_id: int, request: Request, uow: UnitOf
     await notification_service.send_to_user(bk.user_id, title="✅ فیش واریزی شما تایید شد",
         message=f"رسید رزرو {venue.name if venue else 'نامشخص'} ({slot.slot_date if slot else ''} {slot.start_time if slot else ''}) تایید شد و رزرو شما فعال است.",
         data={"booking_id": booking_id, "amount": amount}, notif_type="booking_receipt_approved")
+    _dispatch_eitaa_repost(venue.id, slot.id)
     return {"message": "رسید تایید و رزرو فعال شد", "receipt_status": "approved", "amount": amount}
 
 @router.post("/{booking_id}/receipt/reject")
@@ -560,4 +579,5 @@ async def collect_payment_in_person(booking_id: int, data: _InPersonBody, reques
     await notification_service.send_to_user(bk.user_id, title="✅ پرداخت شما در محل ثبت شد",
         message=f"مبلغ {amount:,} تومان بابت رزرو {venue.name if venue else 'نامشخص'} ({slot.slot_date if slot else ''} {slot.start_time if slot else ''}) در محل دریافت شد.",
         data={"booking_id": booking_id, "amount": amount}, notif_type="booking_paid_in_person")
+    _dispatch_eitaa_repost(venue.id, slot.id)
     return {"message": "پرداخت در محل ثبت شد", "amount": amount}
