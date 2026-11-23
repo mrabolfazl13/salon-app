@@ -45,6 +45,7 @@ data class BookingDto(
     @SerialName("payment_mode") val paymentMode: String? = null,
     @SerialName("needs_receipt") val needsReceipt: Boolean = false,
     @SerialName("receipt_status") val receiptStatus: String = "none",
+    val payment: PaymentDto? = null,
 )
 
 @Serializable

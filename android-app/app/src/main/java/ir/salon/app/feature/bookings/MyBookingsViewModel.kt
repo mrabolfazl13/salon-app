@@ -7,6 +7,7 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.salon.app.data.api.BookingDto
 import ir.salon.app.data.api.PendingBookingDto
 import ir.salon.app.data.repository.BookingRepository
+import ir.salon.app.data.repository.EngagementRepository
 import ir.salon.core.common.AppError
 import ir.salon.core.common.AppErrorMapper
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -113,12 +114,16 @@ data class BookingDetailState(
     val error: AppError? = null,
     val cancelling: Boolean = false,
     val cancelled: Boolean = false,
+    val paying: Boolean = false,
+    val paymentDone: Boolean = false,
+    val paymentError: AppError? = null,
 )
 
 @HiltViewModel
 class BookingDetailViewModel @Inject constructor(
     savedStateHandle: SavedStateHandle,
     private val bookingRepository: BookingRepository,
+    private val engagementRepository: EngagementRepository,
 ) : ViewModel() {
 
     val bookingId: Int = checkNotNull(savedStateHandle["bookingId"])
@@ -131,10 +136,19 @@ class BookingDetailViewModel @Inject constructor(
     }
 
     fun load() {
-        _state.value = BookingDetailState(loading = true)
+        val keep = _state.value
+        _state.value = keep.copy(loading = true, error = null)
         viewModelScope.launch {
-            _state.value = runCatching { BookingDetailState(booking = bookingRepository.detail(bookingId)) }
-                .getOrElse { BookingDetailState(error = AppErrorMapper.from(it)) }
+            runCatching { bookingRepository.detail(bookingId) }
+                .onSuccess {
+                    _state.value = _state.value.copy(loading = false, booking = it, error = null)
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        loading = false,
+                        error = AppErrorMapper.from(it),
+                    )
+                }
         }
     }
 
@@ -150,5 +164,29 @@ class BookingDetailViewModel @Inject constructor(
                     )
                 }
         }
+    }
+
+    /** ایجاد فاکتور و پرداخت درگاه mock — دو گام متوالی سرور */
+    fun pay() {
+        if (_state.value.paying) return
+        _state.value = _state.value.copy(paying = true, paymentError = null)
+        viewModelScope.launch {
+            runCatching {
+                val payment = engagementRepository.createPayment(bookingId)
+                if (payment.status == "paid") payment else engagementRepository.pay(payment.id)
+            }.onSuccess {
+                _state.value = _state.value.copy(paying = false, paymentDone = true)
+                load()
+            }.onFailure {
+                _state.value = _state.value.copy(
+                    paying = false,
+                    paymentError = AppErrorMapper.from(it),
+                )
+            }
+        }
+    }
+
+    fun dismissPaymentResult() {
+        _state.value = _state.value.copy(paymentDone = false, paymentError = null)
     }
 }

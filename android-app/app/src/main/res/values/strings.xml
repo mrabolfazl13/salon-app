@@ -3,6 +3,11 @@
 
     <!-- ناوبری پایین -->
     <string name="nav_home">خانه</string>
+    <string name="nav_search">جستجو</string>
+    <string name="nav_teams">تیم‌ها</string>
+    <string name="nav_favorites">علاقه‌مندی</string>
+    <string name="nav_admin">مدیریت کل</string>
+    <string name="nav_login">ورود</string>
     <string name="nav_venues">سالن‌ها</string>
     <string name="nav_bookings">رزروها</string>
     <string name="nav_more">بیشتر</string>

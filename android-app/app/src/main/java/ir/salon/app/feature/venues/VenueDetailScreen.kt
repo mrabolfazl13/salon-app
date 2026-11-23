@@ -13,25 +13,35 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -53,13 +63,17 @@ import ir.salon.app.R
 @Composable
 fun VenueDetailScreen(
     onBack: () -> Unit,
+    isAuthenticated: Boolean = false,
     detailViewModel: VenueDetailViewModel = hiltViewModel(),
     bookingViewModel: ir.salon.app.feature.booking.BookingFlowViewModel = hiltViewModel(),
+    socialViewModel: VenueSocialViewModel = hiltViewModel(),
 ) {
     val state by detailViewModel.state.collectAsStateWithLifecycle()
     val booking by bookingViewModel.state.collectAsStateWithLifecycle()
+    val social by socialViewModel.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
     val extra = LocalSalonExtra.current
+    var showContract by remember { mutableStateOf(false) }
 
     Column(modifier = Modifier.fillMaxSize()) {
         Row(
@@ -76,6 +90,20 @@ fun VenueDetailScreen(
                     Icons.Filled.ArrowBack,
                     contentDescription = stringResource(R.string.cd_back),
                 )
+            }
+            Spacer(Modifier.weight(1f))
+            if (isAuthenticated) {
+                IconButton(
+                    onClick = socialViewModel::toggleFavorite,
+                    enabled = !social.favoriteLoading,
+                    modifier = Modifier.size(MinTouchTarget),
+                ) {
+                    Icon(
+                        if (social.favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                        contentDescription = if (social.favorite) "حذف از علاقه‌مندی" else "افزودن به علاقه‌مندی",
+                        tint = if (social.favorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
             }
         }
 
@@ -97,7 +125,7 @@ fun VenueDetailScreen(
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(180.dp)
+                            .height(220.dp)
                             .clip(RoundedCornerShape(24.dp)),
                     ) {
                         val image = venue.images.firstOrNull()
@@ -114,6 +142,58 @@ fun VenueDetailScreen(
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxSize(),
                             )
+                        }
+                        Box(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .background(
+                                    Brush.verticalGradient(
+                                        listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f)),
+                                    ),
+                                ),
+                        )
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.BottomStart)
+                                .padding(12.dp),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            Surface(
+                                shape = RoundedCornerShape(50),
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.95f),
+                            ) {
+                                Text(
+                                    venue.category,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                )
+                            }
+                            if (venue.isVerified) {
+                                Surface(
+                                    shape = RoundedCornerShape(50),
+                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                                ) {
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                    ) {
+                                        Icon(
+                                            Icons.Filled.Verified,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(14.dp),
+                                        )
+                                        Spacer(Modifier.size(3.dp))
+                                        Text(
+                                            "تأییدشده",
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.primary,
+                                        )
+                                    }
+                                }
+                            }
                         }
                     }
 
@@ -156,20 +236,59 @@ fun VenueDetailScreen(
                     )
 
                     if (venue.amenities.isNotEmpty()) {
-                        Text(
-                            venue.amenities.joinToString(" • "),
-                            style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        )
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                            items(venue.amenities) { amenity ->
+                                Surface(
+                                    shape = RoundedCornerShape(50),
+                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                ) {
+                                    Text(
+                                        amenity,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    )
+                                }
+                            }
+                        }
                     }
+
+                    ir.salon.app.feature.venues.VenueSocialSection(
+                        viewModel = socialViewModel,
+                        isAuthenticated = isAuthenticated,
+                    )
 
                     // قیمت از پایین‌ترین سانس — قرینهٔ get_venue_min_price
                     if (venue.price > 0) {
-                        Text(
-                            PersianText.formatPrice(venue.price.toLong()),
-                            style = MaterialTheme.typography.titleLarge,
-                            color = MaterialTheme.colorScheme.primary,
-                        )
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.75f),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Row(
+                                modifier = Modifier.padding(horizontal = 14.dp, vertical = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                            ) {
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        "قیمت هر سانس از",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    )
+                                    Text(
+                                        PersianText.formatPrice(venue.price.toLong()),
+                                        style = MaterialTheme.typography.titleLarge,
+                                        fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    )
+                                }
+                                Text(
+                                    venue.category,
+                                    style = MaterialTheme.typography.labelMedium,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                )
+                            }
+                        }
                     }
 
                     // دکمهٔ تماس — قاعدهٔ فاز MVP: تماس خارج از برنامه
@@ -189,6 +308,11 @@ fun VenueDetailScreen(
                             Text(stringResource(R.string.call_venue) + " — " + PersianText.toPersianDigits(phone))
                         }
                     }
+
+                    OutlinedButton(
+                        onClick = { showContract = true },
+                        modifier = Modifier.fillMaxWidth().height(52.dp),
+                    ) { Text("درخواست قرارداد بلندمدت") }
 
                     // ───────────── جریان رزرو (M2) ─────────────
                     if (venue.category != "gym") {
@@ -240,7 +364,7 @@ fun VenueDetailScreen(
             slotSummary = "${faTime(selectedSlot.startTime)} تا ${ir.salon.app.feature.booking.slotEndTime(selectedSlot)} — " +
                 stringResource(R.string.booking_slot_date) + " " + ir.salon.app.feature.bookings.faDate(booking.selectedDate),
             breakdown = emptyList(),
-            payable = selectedSlot.currentPrice.toLong(),
+            payable = (selectedSlot.dealPrice ?: selectedSlot.currentPrice).toLong(),
             loading = booking.creating,
             error = booking.createError?.uiMessage(),
             onConfirm = { code, loyalty -> bookingViewModel.createBooking(code, loyalty) },
@@ -255,6 +379,12 @@ fun VenueDetailScreen(
             pending = created,
             venuePhone = state.venue!!.phone,
             onDismiss = bookingViewModel::dismissResult,
+        )
+    }
+
+    if (showContract) {
+        ir.salon.app.feature.contracts.ContractRequestDialog(
+            onDismiss = { showContract = false },
         )
     }
 }

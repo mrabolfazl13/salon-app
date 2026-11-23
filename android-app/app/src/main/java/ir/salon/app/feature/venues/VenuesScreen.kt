@@ -1,6 +1,8 @@
 package ir.salon.app.feature.venues
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -11,19 +13,30 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.FavoriteBorder
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.Verified
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
@@ -32,40 +45,56 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import coil.compose.AsyncImage
 import ir.salon.core.common.PersianText
 import ir.salon.core.designsystem.component.EmptyState
 import ir.salon.core.designsystem.component.ErrorState
+import ir.salon.core.designsystem.component.MinTouchTarget
+import ir.salon.core.designsystem.component.SalonCategory
+import ir.salon.core.designsystem.component.SalonCategoryRow
+import ir.salon.core.designsystem.component.SalonSearchBar
 import ir.salon.core.designsystem.component.SkeletonScreen
 import ir.salon.core.designsystem.theme.LocalSalonExtra
 import ir.salon.core.model.Venue
-import ir.salon.app.R
 
-/** کارت سالن — قرینهٔ VenueCard.tsx با گرادیان جایگزین تصویر ناموجود */
+/**
+ * کارت سالن — بازطراحی موبایل‌فرست مطابق VenueCard وب:
+ * تصویر بزرگ ۱۶:۱۰، قلب روی تصویر، امتیاز، آدرس، چیپ امکانات و فوتر قیمت/رزرو.
+ */
 @Composable
-fun VenueCard(venue: Venue, onClick: () -> Unit, modifier: Modifier = Modifier) {
+fun VenueCard(
+    venue: Venue,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    onBook: (() -> Unit)? = null,
+    isFavorite: Boolean? = null,
+    onFavoriteClick: (() -> Unit)? = null,
+) {
     val extra = LocalSalonExtra.current
+    val book = onBook ?: onClick
+
     Card(
         onClick = onClick,
-        modifier = modifier
-            .fillMaxWidth()
-            .height(112.dp),
-        shape = MaterialTheme.shapes.large,
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(18.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
     ) {
-        Row(modifier = Modifier.padding(12.dp), verticalAlignment = Alignment.CenterVertically) {
-            Box(
-                modifier = Modifier
-                    .size(64.dp)
-                    .clip(RoundedCornerShape(12.dp)),
-            ) {
+        Column {
+            Box(modifier = Modifier.fillMaxWidth().height(156.dp)) {
                 val image = venue.images.firstOrNull()
                 if (image.isNullOrBlank()) {
                     Box(
@@ -76,8 +105,9 @@ fun VenueCard(venue: Venue, onClick: () -> Unit, modifier: Modifier = Modifier) 
                     ) {
                         Text(
                             venue.name.take(1),
-                            style = MaterialTheme.typography.headlineSmall,
+                            style = MaterialTheme.typography.headlineMedium,
                             color = MaterialTheme.colorScheme.primary,
+                            fontWeight = FontWeight.ExtraBold,
                         )
                     }
                 } else {
@@ -88,107 +118,295 @@ fun VenueCard(venue: Venue, onClick: () -> Unit, modifier: Modifier = Modifier) 
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
+
+                if (venue.isVerified) {
+                    Surface(
+                        shape = RoundedCornerShape(50),
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                        modifier = Modifier.padding(10.dp).align(Alignment.TopStart),
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(3.dp),
+                        ) {
+                            Icon(
+                                Icons.Filled.Verified,
+                                contentDescription = null,
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(14.dp),
+                            )
+                            Text(
+                                "تأییدشده",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.primary,
+                                fontWeight = FontWeight.Bold,
+                            )
+                        }
+                    }
+                }
+
+                if (isFavorite != null && onFavoriteClick != null) {
+                    Surface(
+                        onClick = onFavoriteClick,
+                        shape = CircleShape,
+                        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
+                        modifier = Modifier.padding(8.dp).size(MinTouchTarget).align(Alignment.TopEnd),
+                    ) {
+                        Box(contentAlignment = Alignment.Center) {
+                            Icon(
+                                if (isFavorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                contentDescription = if (isFavorite) "حذف از علاقه‌مندی" else "افزودن به علاقه‌مندی",
+                                tint = if (isFavorite) Color(0xFFE11D48) else MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.size(20.dp),
+                            )
+                        }
+                    }
+                }
             }
-            Spacer(Modifier.size(12.dp))
-            Column(modifier = Modifier.weight(1f)) {
+
+            Column(
+                modifier = Modifier.padding(start = 12.dp, end = 12.dp, top = 10.dp, bottom = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(7.dp),
+            ) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
                         venue.name,
                         style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.ExtraBold,
                         maxLines = 1,
                         overflow = TextOverflow.Ellipsis,
-                        modifier = Modifier.weight(1f, fill = false),
+                        modifier = Modifier.weight(1f),
                     )
-                    if (venue.isVerified) {
-                        Icon(
-                            Icons.Filled.Verified,
-                            contentDescription = stringResource(R.string.venue_verified),
-                            tint = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.size(16.dp),
-                        )
-                    }
-                }
-                Spacer(Modifier.height(4.dp))
-                Text(
-                    venue.address,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                )
-                Spacer(Modifier.height(6.dp))
-                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Spacer(Modifier.width(8.dp))
                     Icon(
                         Icons.Filled.Star,
                         contentDescription = null,
-                        tint = androidx.compose.ui.graphics.Color(0xFFF59E0B),
-                        modifier = Modifier.size(16.dp),
+                        tint = Color(0xFFF59E0B),
+                        modifier = Modifier.size(15.dp),
                     )
                     Text(
                         PersianText.toPersianDigits("%.1f".format(venue.averageRating)),
                         style = MaterialTheme.typography.labelMedium,
+                        fontWeight = FontWeight.Bold,
                     )
-                    Spacer(Modifier.size(8.dp))
+                    if (venue.totalReviews > 0) {
+                        Text(
+                            " (" + PersianText.toPersianDigits(venue.totalReviews.toString()) + ")",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                    }
+                }
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Filled.Place,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(15.dp),
+                    )
+                    Spacer(Modifier.width(4.dp))
                     Text(
-                        PersianText.formatPrice(venue.price.toLong()),
-                        style = MaterialTheme.typography.labelMedium,
-                        color = MaterialTheme.colorScheme.primary,
+                        venue.address,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
                     )
+                }
+
+                if (venue.amenities.isNotEmpty()) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                        venue.amenities.take(2).forEach { amenity ->
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.8f),
+                            ) {
+                                Text(
+                                    amenity,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    modifier = Modifier
+                                        .padding(horizontal = 8.dp, vertical = 2.dp)
+                                        .widthIn(max = 110.dp),
+                                    maxLines = 1,
+                                    overflow = TextOverflow.Ellipsis,
+                                )
+                            }
+                        }
+                        if (venue.amenities.size > 2) {
+                            Surface(
+                                shape = CircleShape,
+                                color = MaterialTheme.colorScheme.surfaceVariant,
+                            ) {
+                                Text(
+                                    "+" + PersianText.toPersianDigits((venue.amenities.size - 2).toString()),
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
+                                )
+                            }
+                        }
+                    }
+                }
+
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.55f))
+
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        Text(
+                            "شروع از",
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            PersianText.formatPrice(venue.price.toLong()),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.ExtraBold,
+                            color = MaterialTheme.colorScheme.primary,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                        )
+                    }
+                    Box(
+                        modifier = Modifier
+                            .height(MinTouchTarget)
+                            .clip(RoundedCornerShape(12.dp))
+                            .background(Brush.linearGradient(extra.gradientEnergy))
+                            .clickable(
+                                role = Role.Button,
+                                onClickLabel = "رزرو ${venue.name}",
+                                onClick = book,
+                            )
+                            .padding(horizontal = 14.dp),
+                        contentAlignment = Alignment.Center,
+                    ) {
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(5.dp),
+                        ) {
+                            Icon(
+                                Icons.Filled.CalendarMonth,
+                                contentDescription = null,
+                                tint = Color(0xFF1C1917),
+                                modifier = Modifier.size(16.dp),
+                            )
+                            Text(
+                                "رزرو",
+                                style = MaterialTheme.typography.labelLarge,
+                                color = Color(0xFF1C1917),
+                                fontWeight = FontWeight.ExtraBold,
+                            )
+                        }
+                    }
                 }
             }
         }
     }
 }
 
-/** لیست سالن‌ها با جستجو — قرینهٔ pages/venues/Venues.tsx */
+private val venueCategories = listOf(
+    SalonCategory(null, "همه"),
+    SalonCategory("futsal", "فوتسال"),
+    SalonCategory("gym", "بدنسازی"),
+    SalonCategory("football", "فوتبال"),
+    SalonCategory("volleyball", "والیبال"),
+    SalonCategory("basketball", "بسکتبال"),
+)
+
+/** جستجوی سالن — قرینهٔ صفحهٔ Search وب: جستجوی چسبان + دسته‌بندی + نتایج کارتی */
 @Composable
 fun VenuesScreen(
     onVenueClick: (Int) -> Unit,
+    isAuthenticated: Boolean = false,
     viewModel: VenuesViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
+    val selectedCategory by viewModel.category.collectAsStateWithLifecycle()
+    val favorites by viewModel.favorites.collectAsStateWithLifecycle()
     var query by rememberSaveable { mutableStateOf("") }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.refreshFavorites()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(
-            stringResource(R.string.venues_title),
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.semantics { heading() },
-        )
-        Spacer(Modifier.height(12.dp))
-        OutlinedTextField(
-            value = query,
-            onValueChange = {
-                query = it
-                viewModel.onQueryChange(it)
-            },
-            placeholder = { Text(stringResource(R.string.search_venues_hint)) },
-            leadingIcon = {
-                Icon(Icons.Filled.Search, contentDescription = stringResource(R.string.cd_search))
-            },
-            singleLine = true,
-            shape = MaterialTheme.shapes.medium,
-            modifier = Modifier.fillMaxWidth(),
-        )
-        Spacer(Modifier.height(12.dp))
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
+            Text(
+                "جستجوی سالن",
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = FontWeight.ExtraBold,
+                modifier = Modifier.semantics { heading() },
+            )
+            SalonSearchBar(
+                value = query,
+                onValueChange = {
+                    query = it
+                    viewModel.onQueryChange(it)
+                },
+                onSubmit = { viewModel.refresh(force = true) },
+            )
+            SalonCategoryRow(
+                categories = venueCategories,
+                selected = selectedCategory,
+                onSelect = viewModel::onCategoryChange,
+            )
+        }
 
         when (val s = state) {
-            VenuesUiState.Loading -> SkeletonScreen()
+            VenuesUiState.Loading -> SkeletonScreen(rows = 4)
             is VenuesUiState.Error -> ErrorState(
                 message = s.error.uiMessage(),
                 onRetry = { viewModel.refresh(force = true) },
             )
             is VenuesUiState.Empty -> EmptyState(
                 icon = Icons.Filled.Search,
-                title = stringResource(R.string.empty_venues),
-                description = stringResource(R.string.empty_venues_desc),
+                title = if (s.query.isBlank()) "سالنی پیدا نشد" else "سالنی با «${s.query}» پیدا نشد",
+                description = "اسم دیگری را امتحان کنید یا دسته‌بندی را تغییر دهید.",
+                actionLabel = if (selectedCategory != null) "حذف فیلتر دسته‌بندی" else null,
+                onAction = if (selectedCategory != null) {
+                    { viewModel.onCategoryChange(null) }
+                } else {
+                    null
+                },
             )
             is VenuesUiState.Ready -> LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier.fillMaxSize(),
+                contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                    start = 16.dp,
+                    end = 16.dp,
+                    top = 4.dp,
+                    bottom = 24.dp,
+                ),
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
+                item {
+                    Text(
+                        PersianText.toPersianDigits(s.venues.size.toString()) + " سالن پیدا شد",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
                 items(s.venues, key = { it.id }) { venue ->
-                    VenueCard(venue = venue, onClick = { onVenueClick(venue.id) })
+                    VenueCard(
+                        venue = venue,
+                        onClick = { onVenueClick(venue.id) },
+                        onBook = { onVenueClick(venue.id) },
+                        isFavorite = if (isAuthenticated) venue.id in favorites else null,
+                        onFavoriteClick = if (isAuthenticated) {
+                            { viewModel.toggleFavorite(venue.id) }
+                        } else {
+                            null
+                        },
+                    )
                 }
             }
         }

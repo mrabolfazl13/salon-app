@@ -54,17 +54,28 @@ fun DateSelector(
                 modifier = Modifier
                     .height(MinTouchTarget)
                     .background(
-                        if (selectedStyle) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.surfaceVariant,
+                        if (selectedStyle) MaterialTheme.colorScheme.secondaryContainer else MaterialTheme.colorScheme.surface,
                         RoundedCornerShape(12.dp),
                     )
-                    .clickable { onSelect(day.iso) }
+                    .border(
+                        width = 1.dp,
+                        color = if (selectedStyle) MaterialTheme.colorScheme.secondary.copy(alpha = 0.5f)
+                        else MaterialTheme.colorScheme.outline.copy(alpha = 0.7f),
+                        shape = RoundedCornerShape(12.dp),
+                    )
+                    .clickable(
+                        role = androidx.compose.ui.semantics.Role.Button,
+                        onClickLabel = "انتخاب ${day.label}",
+                        onClick = { onSelect(day.iso) },
+                    )
                     .padding(horizontal = 14.dp),
                 contentAlignment = Alignment.Center,
             ) {
                 Text(
                     day.label,
                     style = MaterialTheme.typography.labelLarge,
-                    color = if (selectedStyle) MaterialTheme.colorScheme.onPrimary else MaterialTheme.colorScheme.onSurfaceVariant,
+                    color = if (selectedStyle) MaterialTheme.colorScheme.onSecondaryContainer else MaterialTheme.colorScheme.onSurfaceVariant,
+                    fontWeight = if (selectedStyle) androidx.compose.ui.text.font.FontWeight.Bold else androidx.compose.ui.text.font.FontWeight.Medium,
                 )
             }
         }
@@ -86,21 +97,23 @@ fun SlotGrid(
         columns = GridCells.Fixed(3),
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = modifier.height(((slots.size / 3 + 1) * 108).dp),
+        modifier = modifier.height(((slots.size / 3 + 1) * 122).dp),
         userScrollEnabled = false,
     ) {
         items(slots, key = { it.id }) { slot ->
             val label = StatusLabels.slotOf(slot.status)
             val clickable = slot.status == "available" || slot.status == "in_competition"
             val selected = slot.id == selectedSlotId
-            val description = "سانس ${faTime(slot.startTime)}، ${PersianText.formatPrice(slot.currentPrice.toLong())}، ${label.text}"
+            val effectivePrice = if (slot.isDeal && slot.dealPrice != null) slot.dealPrice else slot.currentPrice
+            val dealPrice = slot.dealPrice
+            val description = "سانس ${faTime(slot.startTime)}، ${PersianText.formatPrice(effectivePrice.toLong())}، ${label.text}"
 
             Column(
                 modifier = Modifier
-                    .height(98.dp)
+                    .height(112.dp)
                     .background(
                         when {
-                            selected -> MaterialTheme.colorScheme.primaryContainer
+                            selected -> MaterialTheme.colorScheme.secondaryContainer
                             slot.status == "reserved" -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
                             else -> MaterialTheme.colorScheme.surfaceVariant
                         },
@@ -108,7 +121,7 @@ fun SlotGrid(
                     )
                     .border(
                         width = if (selected) 2.dp else 1.dp,
-                        color = if (selected) SalonColors.PrimaryBlue else MaterialTheme.colorScheme.outline,
+                        color = if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline,
                         shape = RoundedCornerShape(14.dp),
                     )
                     .then(
@@ -134,13 +147,23 @@ fun SlotGrid(
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
                 Text(
-                    PersianText.formatPrice(slot.currentPrice.toLong()),
+                    PersianText.formatPrice(effectivePrice.toLong()),
                     style = MaterialTheme.typography.labelMedium,
-                    color = SalonColors.PrimaryBlue,
+                    color = MaterialTheme.colorScheme.primary,
                     // قراردادی‌ها خط‌خورده — قرینهٔ line-through وب
                     textDecoration = if (slot.status == "reserved") androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
                 )
-                StatusChip(text = label.text, tone = label.tone)
+                if (slot.isDeal && dealPrice != null && dealPrice < slot.currentPrice) {
+                    Text(
+                        "دیل • ${PersianText.formatPrice(slot.currentPrice.toLong())}",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = SalonColors.Emerald,
+                        textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough,
+                        maxLines = 1,
+                    )
+                } else {
+                    StatusChip(text = label.text, tone = label.tone)
+                }
             }
         }
     }

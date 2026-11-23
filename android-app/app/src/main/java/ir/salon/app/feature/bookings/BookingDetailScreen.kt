@@ -22,6 +22,7 @@ import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -48,6 +49,7 @@ import ir.salon.app.R
 @Composable
 fun BookingDetailScreen(
     onBack: () -> Unit,
+    onCreateGame: (Int) -> Unit,
     viewModel: BookingDetailViewModel = hiltViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
@@ -107,6 +109,20 @@ fun BookingDetailScreen(
                                 stringResource(R.string.booking_payment_mode),
                                 ir.salon.core.common.StatusLabels.paymentMode[booking.paymentMode]?.text ?: "—",
                             )
+                            booking.payment?.let { payment ->
+                                DetailRow(
+                                    "وضعیت پرداخت",
+                                    when (payment.status) {
+                                        "paid" -> "پرداخت‌شده"
+                                        "pending" -> "در انتظار پرداخت"
+                                        "failed" -> "ناموفق"
+                                        "refunded" -> "بازگشت وجه"
+                                        else -> payment.status
+                                    },
+                                )
+                                payment.cardPan?.let { DetailRow("کارت", it) }
+                                payment.transactionId?.let { DetailRow("کد تراکنش", it) }
+                            }
                         }
                     }
 
@@ -144,6 +160,27 @@ fun BookingDetailScreen(
                         ) {
                             Text(stringResource(R.string.bookings_cancel))
                         }
+                    }
+                    if (booking.status == "confirmed" && booking.payment?.status != "paid") {
+                        Button(
+                            onClick = viewModel::pay,
+                            enabled = !state.paying,
+                            modifier = Modifier.fillMaxWidth().height(52.dp),
+                        ) {
+                            Text(if (state.paying) "در حال اتصال به درگاه…" else "پرداخت آنلاین")
+                        }
+                    }
+                    if (booking.status == "confirmed") {
+                        OutlinedButton(
+                            onClick = { onCreateGame(booking.id) },
+                            modifier = Modifier.fillMaxWidth().height(52.dp),
+                        ) { Text("ساخت بازی گروهی از این رزرو") }
+                    }
+                    if (state.paymentDone) {
+                        Text("پرداخت با موفقیت انجام شد", color = MaterialTheme.colorScheme.primary)
+                    }
+                    state.paymentError?.let {
+                        Text(it.uiMessage(), color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
                     }
                     if (state.cancelled) {
                         Text(stringResource(R.string.booking_cancelled_done), color = MaterialTheme.colorScheme.primary)

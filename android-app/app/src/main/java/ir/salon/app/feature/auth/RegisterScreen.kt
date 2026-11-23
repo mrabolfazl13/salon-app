@@ -33,11 +33,12 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import ir.salon.core.designsystem.component.MinTouchTarget
 import ir.salon.app.R
+import ir.salon.core.model.User
 
 /** ثبت‌نام — قرینهٔ /register وب */
 @Composable
 fun RegisterScreen(
-    onRegistered: () -> Unit,
+    onRegistered: (User) -> Unit,
     onGoLogin: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
@@ -48,8 +49,9 @@ fun RegisterScreen(
     var password by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(state) {
-        if (state is AuthUiState.Success) {
-            onRegistered()
+        val success = state as? AuthUiState.Success
+        if (success != null) {
+            onRegistered(success.user)
             viewModel.reset()
         }
     }

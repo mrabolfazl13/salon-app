@@ -44,10 +44,12 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.PhoneAndroid
 import androidx.compose.material3.Icon
 
+import ir.salon.core.model.User
+
 /** ورود — قرینهٔ pages/auth در وب؛ ارقام فارسی پذیرفته می‌شوند */
 @Composable
 fun LoginScreen(
-    onLoggedIn: () -> Unit,
+    onLoggedIn: (User) -> Unit,
     onGoRegister: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel(),
 ) {
@@ -57,8 +59,9 @@ fun LoginScreen(
     var password by rememberSaveable { mutableStateOf("") }
 
     LaunchedEffect(state) {
-        if (state is AuthUiState.Success) {
-            onLoggedIn()
+        val success = state as? AuthUiState.Success
+        if (success != null) {
+            onLoggedIn(success.user)
             viewModel.reset()
         }
     }

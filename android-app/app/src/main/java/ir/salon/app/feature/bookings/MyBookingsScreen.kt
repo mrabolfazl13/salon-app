@@ -71,13 +71,20 @@ fun MyBookingsScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     var tab by rememberSaveable { mutableStateOf(BookingsTab.ALL) }
 
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        Text(
-            stringResource(R.string.nav_bookings),
-            style = MaterialTheme.typography.headlineMedium,
-            modifier = Modifier.semantics { heading() },
-        )
-        Spacer(Modifier.height(12.dp))
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
+            Text(
+                stringResource(R.string.nav_bookings),
+                style = MaterialTheme.typography.headlineSmall,
+                fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
+                modifier = Modifier.semantics { heading() },
+            )
+            Text(
+                "رزروهای فعال، در انتظار و گذشته",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
 
         val tabs = listOf(
             BookingsTab.ALL to stringResource(R.string.bookings_tab_all),
@@ -85,12 +92,18 @@ fun MyBookingsScreen(
             BookingsTab.CONFIRMED to stringResource(R.string.bookings_tab_confirmed),
             BookingsTab.CANCELLED to stringResource(R.string.bookings_tab_cancelled),
         )
-        TabRow(selectedTabIndex = tabs.indexOfFirst { it.first == tab }) {
+        TabRow(
+            selectedTabIndex = tabs.indexOfFirst { it.first == tab },
+            containerColor = MaterialTheme.colorScheme.surface,
+            contentColor = MaterialTheme.colorScheme.secondary,
+        ) {
             tabs.forEach { (value, label) ->
                 Tab(
                     selected = tab == value,
                     onClick = { tab = value },
                     text = { Text(label) },
+                    selectedContentColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                    unselectedContentColor = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
             }
         }
@@ -116,7 +129,13 @@ fun MyBookingsScreen(
                         description = stringResource(R.string.bookings_empty_desc),
                     )
                 } else {
-                    LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = androidx.compose.foundation.layout.PaddingValues(
+                            start = 16.dp, end = 16.dp, bottom = 24.dp,
+                        ),
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                    ) {
                         items(filtered, key = { it.id }) { row ->
                             BookingRowCard(
                                 row = row,
@@ -175,7 +194,7 @@ private fun BookingRowCard(row: BookingRow, onClick: () -> Unit, onCancel: () ->
                         Text(stringResource(R.string.call_venue_short))
                     }
                 }
-                if ((row.status == "pending" || row.status == "confirmed") && !row.isPendingRedis) {
+                if (row.status == "pending" || row.status == "confirmed") {
                     OutlinedButton(
                         onClick = onCancel,
                         modifier = Modifier.height(MinTouchTarget),

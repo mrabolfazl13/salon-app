@@ -6,6 +6,7 @@
 - 🌐 **Web** — Vite build (`frontend/dist`)
 - 💻 **Tauri Windows** — MSI/NSIS (`frontend/src-tauri`)
 - 🤖 **Tauri Android** — APK/AAB (`frontend/src-tauri`)
+- 📱 **Android Native (Kotlin)** — نسخهٔ بومی Jetpack Compose در `android-app/` (بیلد در GitHub Actions: `kotlin-android.yml`)
 
 Flutter از محصول، توسعه، تست و CI/CD به‌طور کامل حذف شده است. راهنمای ساخت: `ANDROID_BUILD.md` | وضعیت پروژه: `AGENT_BUILD_STATE.md`
 

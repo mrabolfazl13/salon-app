@@ -4,6 +4,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
 import ir.salon.app.data.repository.AuthRepository
+import ir.salon.app.data.ws.NotificationSocket
 import ir.salon.core.datastore.SessionStore
 import ir.salon.core.model.User
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -25,6 +26,7 @@ data class SessionState(
 class SessionViewModel @Inject constructor(
     private val authRepository: AuthRepository,
     private val sessionStore: SessionStore,
+    private val notificationSocket: NotificationSocket,
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(SessionState())
@@ -46,8 +48,14 @@ class SessionViewModel @Inject constructor(
         _state.value = SessionState(initialized = true, user = user)
     }
 
+    /** پس از ویرایش پروفایل، هدر/منوی نقش‌محور باید بی‌درنگ به‌روز شود */
+    fun updateUser(user: User) {
+        _state.value = _state.value.copy(user = user)
+    }
+
     fun logout(onDone: () -> Unit) {
         viewModelScope.launch {
+            notificationSocket.stop()
             authRepository.logout()
             _state.value = SessionState(initialized = true, user = null)
             onDone()
