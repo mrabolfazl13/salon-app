@@ -77,7 +77,8 @@ class ManagerViewModel @Inject constructor(
         loadExtras(id)
     }
 
-    fun loadExtras(venueId: Int = _state.value.selectedVenueId ?: return) {
+    fun loadExtras(venueId: Int = _state.value.selectedVenueId ?: -1) {
+        if (venueId <= 0) return
         _state.value = _state.value.copy(extrasLoading = true, contractsLoading = true)
         viewModelScope.launch {
             val contracts = runCatching { repository.managerPendingContracts() }.getOrDefault(emptyList())
@@ -123,7 +124,8 @@ class ManagerViewModel @Inject constructor(
         }
     }
 
-    fun loadPending(venueId: Int = _state.value.selectedVenueId ?: return) {
+    fun loadPending(venueId: Int = _state.value.selectedVenueId ?: -1) {
+        if (venueId <= 0) return
         _state.value = _state.value.copy(pendingLoading = true)
         viewModelScope.launch {
             runCatching { repository.venuePending(venueId) }

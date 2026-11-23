@@ -104,8 +104,8 @@ fun SlotGrid(
             val label = StatusLabels.slotOf(slot.status)
             val clickable = slot.status == "available" || slot.status == "in_competition"
             val selected = slot.id == selectedSlotId
-            val effectivePrice = if (slot.isDeal && slot.dealPrice != null) slot.dealPrice else slot.currentPrice
             val dealPrice = slot.dealPrice
+            val effectivePrice: Int = if (slot.isDeal && dealPrice != null) dealPrice else slot.currentPrice
             val description = "سانس ${faTime(slot.startTime)}، ${PersianText.formatPrice(effectivePrice.toLong())}، ${label.text}"
 
             Column(
