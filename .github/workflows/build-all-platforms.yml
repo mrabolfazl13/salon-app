@@ -11,7 +11,7 @@ on:
 
 env:
   JAVA_VERSION: '17'
-  NODE_VERSION: '20'
+  NODE_VERSION: '22'
 
 jobs:
   # NOTE: Flutter has been removed from this project's product paths entirely.
@@ -35,7 +35,10 @@ jobs:
           cache: pip
           cache-dependency-path: backend/requirements.txt
       - name: Install dependencies
-        run: python -m pip install --upgrade pip && python -m pip install -r requirements.txt
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -r requirements.txt
+          python -m pip install pytest==8.3.4 pytest-asyncio==0.25.0
       - name: Run pytest
         run: python -m pytest -q
 
@@ -201,11 +204,9 @@ jobs:
 
   tauri-macos:
     name: Tauri macOS DMG (Intel + Apple Silicon)
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        os: [macos-13, macos-14]
+    # macos-14 label isn't available on this repo's runner plan; build both
+    # architectures by cross-compiling from the Intel macos-13 runner.
+    runs-on: macos-13
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -217,20 +218,30 @@ jobs:
           cache: pnpm
           cache-dependency-path: frontend/pnpm-lock.yaml
       - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: x86_64-apple-darwin,aarch64-apple-darwin
       - name: Install frontend dependencies
         working-directory: frontend
         run: pnpm install --frozen-lockfile
-      - name: Build Tauri app
+      - name: Build Apple Silicon DMG
         working-directory: frontend
-        run: pnpm exec tauri build
+        run: pnpm exec tauri build --target aarch64-apple-darwin
+        env:
+          VITE_API_URL: ${{ secrets.TAURI_API_URL || 'http://salon.absadeghi.ir/api/v1' }}
+          VITE_DOMAIN: ${{ secrets.TAURI_DOMAIN || 'http://salon.absadeghi.ir' }}
+      - name: Build Intel DMG
+        working-directory: frontend
+        run: pnpm exec tauri build --target x86_64-apple-darwin
         env:
           VITE_API_URL: ${{ secrets.TAURI_API_URL || 'http://salon.absadeghi.ir/api/v1' }}
           VITE_DOMAIN: ${{ secrets.TAURI_DOMAIN || 'http://salon.absadeghi.ir' }}
       - name: Upload macOS artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: tauri-macos-${{ matrix.os }}
-          path: frontend/src-tauri/target/release/bundle/dmg/*.dmg
+          name: tauri-macos
+          path: |
+            frontend/src-tauri/target/aarch64-apple-darwin/release/bundle/dmg/*.dmg
+            frontend/src-tauri/target/x86_64-apple-darwin/release/bundle/dmg/*.dmg
           if-no-files-found: error
 
   tauri-linux:
@@ -379,7 +390,7 @@ jobs:
 
             ### 💻 Tauri Desktop
             - **Windows MSI/EXE**: `tauri-windows/`
-            - **macOS DMG (Intel + Apple Silicon)**: `tauri-macos-*/`
+            - **macOS DMG (Intel + Apple Silicon)**: `tauri-macos/`
             - **Linux DEB/AppImage**: `tauri-linux/`
 
             ### 🌐 Web (React)
@@ -388,7 +399,7 @@ jobs:
             artifacts/tauri-android.apk/**
             artifacts/tauri-android.aab/**
             artifacts/tauri-windows/**
-            artifacts/tauri-macos-*/**
+            artifacts/tauri-macos/**
             artifacts/tauri-linux/**
           draft: false
           prerelease: false
