@@ -204,9 +204,9 @@ jobs:
 
   tauri-macos:
     name: Tauri macOS DMG (Intel + Apple Silicon)
-    # macos-14 label isn't available on this repo's runner plan; build both
-    # architectures by cross-compiling from the Intel macos-13 runner.
-    runs-on: macos-13
+    # macos-13/macos-14 images are retired (macos-14 retired 2026-11-02);
+    # build both architectures by cross-compiling from the ARM64 macos-15 runner.
+    runs-on: macos-15
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
