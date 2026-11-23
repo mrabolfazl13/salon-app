@@ -120,7 +120,6 @@ fun SalonSearchBar(
         return
     }
 
-    val keyboard = LocalSoftwareKeyboardController.current
     OutlinedTextField(
         value = value,
         onValueChange = onValueChange,
