@@ -5,6 +5,7 @@ name: Kotlin Android (Salon native)
 on:
   push:
     branches: ["**"]
+    tags: ["**"]
     paths:
       - "android-app/**"
       - ".github/workflows/kotlin-android.yml"
