@@ -72,6 +72,11 @@ interface MoreRepository {
     suspend fun crmCustomers(venueId: Int): List<CrmCustomerDto>
     suspend fun financeDashboard(venueId: Int): FinanceDashboardDto
 
+    // مدیر سالن — سانس‌ها
+    suspend fun slotsByDate(venueId: Int, slotDate: String): List<ir.salon.core.model.Slot>
+    suspend fun generateSlots(venueId: Int, slotDate: String): String
+    suspend fun setSlotBlocked(slotId: Int, blocked: Boolean)
+
     // مدیر سالن
     suspend fun myVenues(): List<Venue>
     suspend fun venuePending(venueId: Int): List<PendingBookingDto>
@@ -157,6 +162,16 @@ class MoreRepositoryImpl @Inject constructor(
 
     override suspend fun financeDashboard(venueId: Int): FinanceDashboardDto =
         api.financeDashboard(venueId)
+
+    override suspend fun slotsByDate(venueId: Int, slotDate: String): List<ir.salon.core.model.Slot> =
+        api.slotsByDate(venueId, slotDate)
+
+    override suspend fun generateSlots(venueId: Int, slotDate: String): String =
+        api.generateSlots(venueId, slotDate)["message"] ?: "سانس‌ها ساخته شد"
+
+    override suspend fun setSlotBlocked(slotId: Int, blocked: Boolean) {
+        if (blocked) api.blockSlot(slotId) else api.unblockSlot(slotId)
+    }
 
     override suspend fun myVenues(): List<Venue> = api.myVenues()
     override suspend fun venuePending(venueId: Int): List<PendingBookingDto> = api.venuePending(venueId)

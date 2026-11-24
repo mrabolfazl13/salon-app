@@ -504,6 +504,25 @@ interface MoreApi {
     suspend fun rejectContract(@Path("id") id: Int, @Body body: Map<String, String>): ContractDto
 
     // مدیر سالن
+    // مدیریت سانس‌ها
+    @GET("slots/venue/{venueId}")
+    suspend fun slotsByDate(
+        @Path("venueId") venueId: Int,
+        @Query("slot_date") slotDate: String,
+    ): List<ir.salon.core.model.Slot>
+
+    @POST("slots/venue/{venueId}/generate")
+    suspend fun generateSlots(
+        @Path("venueId") venueId: Int,
+        @Query("slot_date") slotDate: String,
+    ): Map<String, String>
+
+    @POST("slots/{slotId}/block")
+    suspend fun blockSlot(@Path("slotId") slotId: Int): Map<String, String>
+
+    @POST("slots/{slotId}/unblock")
+    suspend fun unblockSlot(@Path("slotId") slotId: Int): Map<String, String>
+
     @GET("venues/my-venues")
     suspend fun myVenues(): List<Venue>
 

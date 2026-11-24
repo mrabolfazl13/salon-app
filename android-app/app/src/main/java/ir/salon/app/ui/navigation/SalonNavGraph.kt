@@ -141,8 +141,11 @@ fun SalonNavGraph(sessionViewModel: SessionViewModel) {
             },
         ) {
             composable(Routes.HOME) {
-                HomeScreen(
-                    themeMode = themeMode,
+                if (session.isManager || session.isAdmin) {
+                    ir.salon.app.feature.manager.ManagerScreen(onBack = null)
+                } else {
+                    HomeScreen(
+                        themeMode = themeMode,
                     onToggleTheme = themeViewModel::cycle,
                     sessionUser = session.user,
                     onSearch = { navController.navigate(Routes.VENUES) },
@@ -169,8 +172,9 @@ fun SalonNavGraph(sessionViewModel: SessionViewModel) {
                     onProfile = {
                         if (session.isAuthenticated) navController.navigate(Routes.PROFILE) else navController.navigate(Routes.LOGIN)
                     },
-                    onLogin = { navController.navigate(Routes.LOGIN) },
-                )
+                        onLogin = { navController.navigate(Routes.LOGIN) },
+                    )
+                }
             }
             composable(Routes.LOGIN) {
                 LoginScreen(

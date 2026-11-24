@@ -3,7 +3,6 @@ package ir.salon.app.feature.manager
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import dagger.hilt.android.lifecycle.HiltViewModel
-import ir.salon.app.data.api.CrmCustomerDto
 import ir.salon.app.data.api.FinanceDashboardDto
 import ir.salon.app.data.api.ManagerContractRowDto
 import ir.salon.app.data.api.PendingBookingDto
@@ -30,9 +29,14 @@ data class ManagerState(
     val checkInMessage: String? = null,
     val contractRows: List<ManagerContractRowDto> = emptyList(),
     val contractsLoading: Boolean = false,
-    val customers: List<CrmCustomerDto> = emptyList(),
     val finance: FinanceDashboardDto? = null,
     val extrasLoading: Boolean = false,
+    // مدیریت سانس‌ها
+    val slotDate: String = java.time.LocalDate.now().toString(),
+    val slots: List<ir.salon.core.model.Slot> = emptyList(),
+    val slotsLoading: Boolean = false,
+    val generating: Boolean = false,
+    val busySlotId: Int? = null,
 ) {
     val selectedVenue: Venue? get() = venues.firstOrNull { it.id == selectedVenueId }
 }
@@ -62,8 +66,11 @@ class ManagerViewModel @Inject constructor(
                         venues = venues,
                         selectedVenueId = selected,
                     )
-                    if (selected != null) loadPending(selected)
-                    if (selected != null) loadExtras(selected)
+                    if (selected != null) {
+                        loadPending(selected)
+                        loadExtras(selected)
+                        loadSlots()
+                    }
                 }
                 .onFailure {
                     _state.value = _state.value.copy(loading = false, error = AppErrorMapper.from(it))
@@ -75,6 +82,7 @@ class ManagerViewModel @Inject constructor(
         _state.value = _state.value.copy(selectedVenueId = id, pending = emptyList())
         loadPending(id)
         loadExtras(id)
+        loadSlots()
     }
 
     fun loadExtras(venueId: Int = _state.value.selectedVenueId ?: -1) {
@@ -82,13 +90,11 @@ class ManagerViewModel @Inject constructor(
         _state.value = _state.value.copy(extrasLoading = true, contractsLoading = true)
         viewModelScope.launch {
             val contracts = runCatching { repository.managerPendingContracts() }.getOrDefault(emptyList())
-            val customers = runCatching { repository.crmCustomers(venueId) }.getOrDefault(emptyList())
             val finance = runCatching { repository.financeDashboard(venueId) }.getOrNull()
             _state.value = _state.value.copy(
                 extrasLoading = false,
                 contractsLoading = false,
                 contractRows = contracts,
-                customers = customers,
                 finance = finance,
             )
         }
@@ -189,6 +195,70 @@ class ManagerViewModel @Inject constructor(
                     _state.value = _state.value.copy(
                         checkInLoading = false,
                         checkInMessage = AppErrorMapper.from(it).uiMessage(),
+                    )
+                }
+        }
+    }
+
+    // ───────────── مدیریت سانس‌ها ─────────────
+
+    fun onSlotDateChange(iso: String) {
+        _state.value = _state.value.copy(slotDate = iso)
+        loadSlots()
+    }
+
+    fun loadSlots() {
+        val venueId = _state.value.selectedVenueId ?: return
+        _state.value = _state.value.copy(slotsLoading = true)
+        viewModelScope.launch {
+            runCatching { repository.slotsByDate(venueId, _state.value.slotDate) }
+                .onSuccess { _state.value = _state.value.copy(slotsLoading = false, slots = it) }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        slotsLoading = false,
+                        error = AppErrorMapper.from(it),
+                    )
+                }
+        }
+    }
+
+    /** تولید خودکار سانس‌های روز — یک ضربه، قیمت‌گذاری سمت سرور */
+    fun generateSlots() {
+        val venueId = _state.value.selectedVenueId ?: return
+        if (_state.value.generating) return
+        _state.value = _state.value.copy(generating = true)
+        viewModelScope.launch {
+            runCatching { repository.generateSlots(venueId, _state.value.slotDate) }
+                .onSuccess {
+                    _state.value = _state.value.copy(generating = false, message = it)
+                    loadSlots()
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        generating = false,
+                        error = AppErrorMapper.from(it),
+                    )
+                }
+        }
+    }
+
+    fun toggleSlotBlocked(slot: ir.salon.core.model.Slot) {
+        if (_state.value.busySlotId != null) return
+        val blocked = slot.status == "blocked"
+        _state.value = _state.value.copy(busySlotId = slot.id)
+        viewModelScope.launch {
+            runCatching { repository.setSlotBlocked(slot.id, !blocked) }
+                .onSuccess {
+                    _state.value = _state.value.copy(
+                        busySlotId = null,
+                        message = if (!blocked) "سانس مسدود شد" else "سانس آزاد شد",
+                    )
+                    loadSlots()
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        busySlotId = null,
+                        error = AppErrorMapper.from(it),
                     )
                 }
         }
