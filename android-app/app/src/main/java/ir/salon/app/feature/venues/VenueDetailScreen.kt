@@ -2,6 +2,11 @@ package ir.salon.app.feature.venues
 
 import android.content.Intent
 import android.net.Uri
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.MutableTransitionState
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -12,9 +17,13 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
@@ -24,9 +33,14 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.FavoriteBorder
 import androidx.compose.material.icons.filled.Star
+import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Place
+import androidx.compose.material.icons.filled.Stadium
 import androidx.compose.material.icons.filled.Verified
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -39,7 +53,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -74,39 +87,23 @@ fun VenueDetailScreen(
     val context = LocalContext.current
     val extra = LocalSalonExtra.current
     var showContract by remember { mutableStateOf(false) }
+    var showConfirm by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 8.dp, vertical = 4.dp),
-            verticalAlignment = Alignment.CenterVertically,
+    /** دکمهٔ شیشه‌ای روی گالری — قرینهٔ glassIconButton وب */
+    @Composable
+    fun GlassIconButton(onClick: () -> Unit, content: @Composable () -> Unit) {
+        Surface(
+            onClick = onClick,
+            shape = androidx.compose.foundation.shape.CircleShape,
+            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.88f),
+            shadowElevation = 4.dp,
+            modifier = Modifier.size(MinTouchTarget),
         ) {
-            IconButton(
-                onClick = onBack,
-                modifier = Modifier.size(MinTouchTarget),
-            ) {
-                Icon(
-                    Icons.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.cd_back),
-                )
-            }
-            Spacer(Modifier.weight(1f))
-            if (isAuthenticated) {
-                IconButton(
-                    onClick = socialViewModel::toggleFavorite,
-                    enabled = !social.favoriteLoading,
-                    modifier = Modifier.size(MinTouchTarget),
-                ) {
-                    Icon(
-                        if (social.favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
-                        contentDescription = if (social.favorite) "حذف از علاقه‌مندی" else "افزودن به علاقه‌مندی",
-                        tint = if (social.favorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
-                }
-            }
+            Box(contentAlignment = Alignment.Center) { content() }
         }
+    }
 
+    androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxSize()) {
         when {
             state.loading -> SkeletonScreen(rows = 5)
             state.error != null -> ErrorState(
@@ -118,40 +115,86 @@ fun VenueDetailScreen(
                 Column(
                     modifier = Modifier
                         .fillMaxSize()
-                        .verticalScroll(rememberScrollState())
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp),
+                        .verticalScroll(rememberScrollState()),
                 ) {
+                    // ── گالری تمام‌عرض با snap + دکمه‌های شیشه‌ای روی تصویر ──
                     Box(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(220.dp)
-                            .clip(RoundedCornerShape(24.dp)),
+                            .height(280.dp),
                     ) {
-                        val image = ir.salon.core.network.MediaUrl.full(venue.images.firstOrNull())
-                        if (image.isBlank()) {
+                        val gallery = venue.images.map { ir.salon.core.network.MediaUrl.full(it) }
+                            .filter { it.isNotBlank() }
+                        if (gallery.isEmpty()) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()
                                     .background(Brush.linearGradient(extra.gradientDeep)),
-                            )
+                                contentAlignment = Alignment.Center,
+                            ) {
+                                Icon(
+                                    Icons.Filled.Stadium,
+                                    contentDescription = null,
+                                    tint = Color.White.copy(alpha = 0.35f),
+                                    modifier = Modifier.size(48.dp),
+                                )
+                            }
                         } else {
-                            AsyncImage(
-                                model = image,
-                                contentDescription = venue.name,
-                                contentScale = ContentScale.Crop,
+                            val pagerState = rememberPagerState(pageCount = { gallery.size })
+                            HorizontalPager(
+                                state = pagerState,
                                 modifier = Modifier.fillMaxSize(),
-                            )
+                            ) { page ->
+                                AsyncImage(
+                                    model = gallery[page],
+                                    contentDescription = venue.name + " — تصویر " +
+                                        ir.salon.core.common.PersianText.toPersianDigits((page + 1).toString()),
+                                    contentScale = ContentScale.Crop,
+                                    modifier = Modifier.fillMaxSize(),
+                                )
+                            }
                         }
                         Box(
                             modifier = Modifier
                                 .fillMaxSize()
                                 .background(
                                     Brush.verticalGradient(
-                                        listOf(Color.Transparent, Color.Black.copy(alpha = 0.55f)),
+                                        0f to Color.Transparent,
+                                        0.55f to Color.Transparent,
+                                        1f to Color.Black.copy(alpha = 0.6f),
                                     ),
                                 ),
                         )
+
+                        // دکمه‌های شیشه‌ای — بازگشت + قلب
+                        Row(
+                            modifier = Modifier
+                                .align(Alignment.TopStart)
+                                .padding(horizontal = 12.dp, vertical = 12.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically,
+                        ) {
+                            GlassIconButton(onClick = onBack) {
+                                Icon(
+                                    Icons.AutoMirrored.Filled.ArrowBack,
+                                    contentDescription = stringResource(R.string.cd_back),
+                                    tint = MaterialTheme.colorScheme.onSurface,
+                                )
+                            }
+                            if (isAuthenticated) {
+                                GlassIconButton(onClick = socialViewModel::toggleFavorite) {
+                                    Icon(
+                                        if (social.favorite) Icons.Filled.Favorite else Icons.Filled.FavoriteBorder,
+                                        contentDescription = if (social.favorite) "حذف از علاقه‌مندی" else "افزودن به علاقه‌مندی",
+                                        tint = if (social.favorite) MaterialTheme.colorScheme.error else MaterialTheme.colorScheme.onSurface,
+                                        modifier = Modifier.size(20.dp),
+                                    )
+                                }
+                            }
+                        }
+
+                        // چیپ‌های روی تصویر — تأیید + دسته‌بندی
                         Row(
                             modifier = Modifier
                                 .align(Alignment.BottomStart)
@@ -160,94 +203,146 @@ fun VenueDetailScreen(
                             verticalAlignment = Alignment.CenterVertically,
                         ) {
                             Surface(
-                                shape = RoundedCornerShape(50),
-                                color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.95f),
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color(0xCC065F46),
+                            ) {
+                                Row(
+                                    modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Verified,
+                                        contentDescription = null,
+                                        tint = Color.White,
+                                        modifier = Modifier.size(14.dp),
+                                    )
+                                    Spacer(Modifier.size(4.dp))
+                                    Text(
+                                        "تأیید شده",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = Color.White,
+                                    )
+                                }
+                            }
+                            Surface(
+                                shape = RoundedCornerShape(12.dp),
+                                color = Color.Black.copy(alpha = 0.45f),
                             ) {
                                 Text(
                                     venue.category,
-                                    style = MaterialTheme.typography.labelMedium,
-                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    color = Color.White,
                                     modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
                                 )
                             }
-                            if (venue.isVerified) {
-                                Surface(
-                                    shape = RoundedCornerShape(50),
-                                    color = MaterialTheme.colorScheme.surface.copy(alpha = 0.92f),
-                                ) {
-                                    Row(
-                                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                    ) {
-                                        Icon(
-                                            Icons.Filled.Verified,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.primary,
-                                            modifier = Modifier.size(14.dp),
-                                        )
-                                        Spacer(Modifier.size(3.dp))
-                                        Text(
-                                            "تأییدشده",
-                                            style = MaterialTheme.typography.labelSmall,
-                                            color = MaterialTheme.colorScheme.primary,
-                                        )
-                                    }
+                        }
+                    }
+
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                            .padding(bottom = 120.dp),
+                        verticalArrangement = Arrangement.spacedBy(14.dp),
+                    ) {
+
+                    AnimatedVisibility(
+                        visibleState = MutableTransitionState(false).apply { targetState = true },
+                        enter = fadeIn(tween(320)) + slideInVertically(tween(380)) { it / 8 },
+                    ) {
+                        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                            Text(
+                                venue.name,
+                                style = MaterialTheme.typography.headlineSmall,
+                                modifier = Modifier.semantics { heading() },
+                            )
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(10.dp),
+                            ) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Filled.Star,
+                                        contentDescription = null,
+                                        tint = androidx.compose.ui.graphics.Color(0xFFF59E0B),
+                                        modifier = Modifier.size(16.dp),
+                                    )
+                                    Text(
+                                        PersianText.toPersianDigits("%.1f".format(venue.averageRating)) +
+                                            " (" + PersianText.toPersianDigits(venue.totalReviews.toString()) + ")",
+                                        style = MaterialTheme.typography.labelMedium,
+                                    )
+                                }
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Filled.Place,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(15.dp),
+                                    )
+                                    Text(
+                                        venue.address,
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        maxLines = 1,
+                                        overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
+                                    )
                                 }
                             }
                         }
                     }
 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            venue.name,
-                            style = MaterialTheme.typography.headlineSmall,
-                            modifier = Modifier
-                                .weight(1f)
-                                .semantics { heading() },
-                        )
-                        if (venue.isVerified) {
-                            Icon(
-                                Icons.Filled.Verified,
-                                contentDescription = stringResource(R.string.venue_verified),
-                                tint = MaterialTheme.colorScheme.primary,
-                                modifier = Modifier.size(20.dp),
-                            )
+                    if (venue.description?.isNotBlank() == true) {
+                        Surface(
+                            shape = RoundedCornerShape(16.dp),
+                            color = MaterialTheme.colorScheme.surface,
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp,
+                                MaterialTheme.colorScheme.outline.copy(alpha = 0.55f),
+                            ),
+                            modifier = Modifier.fillMaxWidth(),
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(14.dp),
+                                verticalArrangement = Arrangement.spacedBy(4.dp),
+                            ) {
+                                Text(
+                                    "دربارهٔ سالن",
+                                    style = MaterialTheme.typography.titleSmall,
+                                )
+                                Text(
+                                    venue.description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                )
+                            }
                         }
                     }
-
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(
-                            Icons.Filled.Star,
-                            contentDescription = null,
-                            tint = androidx.compose.ui.graphics.Color(0xFFF59E0B),
-                            modifier = Modifier.size(18.dp),
-                        )
-                        Text(
-                            PersianText.toPersianDigits("%.1f".format(venue.averageRating)) +
-                                " (" + PersianText.toPersianDigits(venue.totalReviews.toString()) + ")",
-                            style = MaterialTheme.typography.bodyMedium,
-                        )
-                    }
-
-                    Text(
-                        venue.description.orEmpty(),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    )
 
                     if (venue.amenities.isNotEmpty()) {
                         LazyRow(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                             items(venue.amenities) { amenity ->
                                 Surface(
-                                    shape = RoundedCornerShape(50),
-                                    color = MaterialTheme.colorScheme.surfaceVariant,
+                                    shape = RoundedCornerShape(12.dp),
+                                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.6f),
                                 ) {
-                                    Text(
-                                        amenity,
-                                        style = MaterialTheme.typography.labelSmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 4.dp),
-                                    )
+                                    Row(
+                                        modifier = Modifier.padding(horizontal = 10.dp, vertical = 5.dp),
+                                        verticalAlignment = Alignment.CenterVertically,
+                                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                                    ) {
+                                        Icon(
+                                            Icons.Filled.CheckCircle,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            modifier = Modifier.size(14.dp),
+                                        )
+                                        Text(
+                                            amenity,
+                                            style = MaterialTheme.typography.labelSmall,
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -341,7 +436,7 @@ fun VenueDetailScreen(
                                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     )
                                 } else {
-                                    ir.salon.app.feature.booking.SlotGrid(
+                                    ir.salon.app.feature.booking.SlotRows(
                                         slots = booking.slots,
                                         selectedSlotId = booking.selectedSlot?.id,
                                         onSelect = bookingViewModel::selectSlot,
@@ -355,9 +450,9 @@ fun VenueDetailScreen(
         }
     }
 
-    // دیالوگ تأیید رزرو
+    // دیالوگ تأیید رزرو — از CTA چسبان پایین باز می‌شود
     val selectedSlot = booking.selectedSlot
-    if (selectedSlot != null && state.venue != null) {
+    if (showConfirm && selectedSlot != null && state.venue != null) {
         ir.salon.app.feature.booking.BookingConfirmDialog(
             venueName = state.venue!!.name,
             venuePhone = state.venue!!.phone,
@@ -368,7 +463,10 @@ fun VenueDetailScreen(
             loading = booking.creating,
             error = booking.createError?.uiMessage(),
             onConfirm = { code, loyalty -> bookingViewModel.createBooking(code, loyalty) },
-            onDismiss = bookingViewModel::dismissResult,
+            onDismiss = {
+                showConfirm = false
+                bookingViewModel.dismissResult()
+            },
         )
     }
 
@@ -387,4 +485,73 @@ fun VenueDetailScreen(
             onDismiss = { showContract = false },
         )
     }
+
+    // ── نوار CTA چسبان پایین — قرینهٔ BookingSummary وب ──
+    val ctaSlot = booking.selectedSlot
+    if (state.venue != null && state.venue!!.category != "gym") {
+        androidx.compose.foundation.layout.Box(
+            modifier = Modifier
+                .fillMaxSize(),
+            contentAlignment = Alignment.BottomCenter,
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(MaterialTheme.colorScheme.surface.copy(alpha = 0.98f)),
+            ) {
+                HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.7f))
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .navigationBarsPadding()
+                        .padding(horizontal = 16.dp, vertical = 10.dp),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                ) {
+                    Column(modifier = Modifier.weight(1f)) {
+                        if (ctaSlot != null) {
+                            Text(
+                                PersianText.formatPrice(
+                                    ((ctaSlot.dealPrice ?: ctaSlot.currentPrice)).toLong(),
+                                ),
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
+                                color = MaterialTheme.colorScheme.primary,
+                            )
+                            Text(
+                                "امروز — " + faTime(ctaSlot.startTime) + " تا " +
+                                    ir.salon.app.feature.booking.slotEndTime(ctaSlot),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        } else {
+                            Text(
+                                "سانسی انتخاب نشده",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                        }
+                    }
+                    Button(
+                        onClick = { showConfirm = true },
+                        enabled = ctaSlot != null && !booking.creating,
+                        shape = RoundedCornerShape(14.dp),
+                        colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                            containerColor = androidx.compose.ui.graphics.Color(0xFFF59E0B),
+                            contentColor = androidx.compose.ui.graphics.Color(0xFF1C1917),
+                        ),
+                        modifier = Modifier
+                            .width(140.dp)
+                            .height(48.dp),
+                    ) {
+                        Text(
+                            "رزرو سانس",
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.ExtraBold,
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
 }
