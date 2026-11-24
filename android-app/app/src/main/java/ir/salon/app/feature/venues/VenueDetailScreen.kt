@@ -311,7 +311,7 @@ fun VenueDetailScreen(
                                     style = MaterialTheme.typography.titleSmall,
                                 )
                                 Text(
-                                    venue.description,
+                                    venue.description.orEmpty(),
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                 )
