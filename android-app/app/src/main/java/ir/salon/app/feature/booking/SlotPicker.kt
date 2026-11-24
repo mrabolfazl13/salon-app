@@ -13,9 +13,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
@@ -93,14 +90,11 @@ fun SlotGrid(
     onSelect: (Slot) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(3),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalArrangement = Arrangement.spacedBy(10.dp),
-        modifier = modifier.height(((slots.size / 3 + 1) * 122).dp),
-        userScrollEnabled = false,
-    ) {
-        items(slots, key = { it.id }) { slot ->
+    Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        // گرید ساده (ردیف‌های ۳تایی) — بدون Lazy تو‌درتو داخل اسکرول عمودی
+        slots.chunked(3).forEach { rowSlots ->
+            Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+                rowSlots.forEach { slot ->
             val label = StatusLabels.slotOf(slot.status)
             val clickable = slot.status == "available" || slot.status == "in_competition"
             val selected = slot.id == selectedSlotId
@@ -110,6 +104,7 @@ fun SlotGrid(
 
             Column(
                 modifier = Modifier
+                    .weight(1f)
                     .height(112.dp)
                     .background(
                         when {
@@ -163,6 +158,7 @@ fun SlotGrid(
                     )
                 } else {
                     StatusChip(text = label.text, tone = label.tone)
+                }
                 }
             }
         }

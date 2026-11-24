@@ -128,8 +128,8 @@ fun VenueDetailScreen(
                             .height(220.dp)
                             .clip(RoundedCornerShape(24.dp)),
                     ) {
-                        val image = venue.images.firstOrNull()
-                        if (image.isNullOrBlank()) {
+                        val image = ir.salon.core.network.MediaUrl.full(venue.images.firstOrNull())
+                        if (image.isBlank()) {
                             Box(
                                 modifier = Modifier
                                     .fillMaxSize()

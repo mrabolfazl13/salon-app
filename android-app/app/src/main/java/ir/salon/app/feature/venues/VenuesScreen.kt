@@ -103,8 +103,8 @@ fun VenueCard(
     ) {
         Column {
             Box(modifier = Modifier.fillMaxWidth().height(156.dp)) {
-                val image = venue.images.firstOrNull()
-                if (image.isNullOrBlank()) {
+                val image = ir.salon.core.network.MediaUrl.full(venue.images.firstOrNull())
+                if (image.isBlank()) {
                     Box(
                         modifier = Modifier
                             .fillMaxSize()

@@ -134,11 +134,13 @@ class VenueDetailViewModel @Inject constructor(
     fun load() {
         _state.value = VenueDetailUiState(loading = true)
         viewModelScope.launch {
-            _state.value = runCatching { VenueDetailUiState(venue = venueRepository.detail(venueId)) }
-                .fold(
-                    onSuccess = { it },
-                    onFailure = { VenueDetailUiState(error = AppErrorMapper.from(it)) },
-                )
+            _state.value = runCatching {
+                // نگهبان زمانی: کندی شبکه هرگز نباید اسکلت را ابدی کند
+                kotlinx.coroutines.withTimeout(20_000) { venueRepository.detail(venueId) }
+            }.fold(
+                onSuccess = { VenueDetailUiState(venue = it) },
+                onFailure = { VenueDetailUiState(error = AppErrorMapper.from(it)) },
+            )
         }
     }
 }

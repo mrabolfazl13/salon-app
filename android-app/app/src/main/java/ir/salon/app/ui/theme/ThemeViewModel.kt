@@ -8,7 +8,6 @@ import ir.salon.core.designsystem.theme.ThemeMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.runBlocking
 import javax.inject.Inject
 
 /** کنترل تم سراسری — قرینهٔ themeStore وب؛ انتخاب کاربر ماندگار است */
@@ -17,8 +16,15 @@ class ThemeViewModel @Inject constructor(
     private val themeStore: ThemeStore,
 ) : ViewModel() {
 
-    private val _mode = MutableStateFlow(runBlocking { themeStore.modeOnce() })
+    private val _mode = MutableStateFlow(ThemeMode.SYSTEM)
     val mode: StateFlow<ThemeMode> = _mode
+
+    init {
+        // بارگذاری غیرهمزمان انتخاب ذخیره‌شده — بدون مسدودسازی ترید اصلی
+        viewModelScope.launch {
+            _mode.value = themeStore.modeOnce()
+        }
+    }
 
     fun setMode(value: ThemeMode) {
         _mode.value = value
