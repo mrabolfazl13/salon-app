@@ -27,6 +27,7 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -76,6 +77,8 @@ private val roleLabels = mapOf(
 
 @Composable
 fun ProfileScreen(
+    themeMode: ir.salon.core.designsystem.theme.ThemeMode = ir.salon.core.designsystem.theme.ThemeMode.SYSTEM,
+    onSetTheme: (ir.salon.core.designsystem.theme.ThemeMode) -> Unit = {},
     onBack: () -> Unit,
     onOpenFavorites: () -> Unit,
     onOpenNotifications: () -> Unit,
@@ -188,6 +191,30 @@ fun ProfileScreen(
                                         onCheckedChange = viewModel::setDealSubscription,
                                         enabled = !state.updatingSubscription,
                                     )
+                                }
+                            }
+                        }
+
+                        Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
+                            Column(modifier = Modifier.padding(14.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text("نمایش", style = MaterialTheme.typography.titleSmall)
+                                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                    listOf(
+                                        ir.salon.core.designsystem.theme.ThemeMode.SYSTEM to "سیستم",
+                                        ir.salon.core.designsystem.theme.ThemeMode.LIGHT to "روشن",
+                                        ir.salon.core.designsystem.theme.ThemeMode.DARK to "تیره",
+                                    ).forEach { (mode, label) ->
+                                        FilterChip(
+                                            selected = themeMode == mode,
+                                            onClick = { onSetTheme(mode) },
+                                            label = { Text(label, style = MaterialTheme.typography.labelMedium) },
+                                            shape = androidx.compose.foundation.shape.CircleShape,
+                                            colors = androidx.compose.material3.FilterChipDefaults.filterChipColors(
+                                                selectedContainerColor = MaterialTheme.colorScheme.secondaryContainer,
+                                                selectedLabelColor = MaterialTheme.colorScheme.onSecondaryContainer,
+                                            ),
+                                        )
+                                    }
                                 }
                             }
                         }

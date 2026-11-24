@@ -23,6 +23,9 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.Favorite
 import androidx.compose.material.icons.filled.Groups
 import androidx.compose.material.icons.filled.Login
+import androidx.compose.material.icons.filled.Brightness4
+import androidx.compose.material.icons.filled.BrightnessAuto
+import androidx.compose.material.icons.filled.LightMode
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.SportsSoccer
@@ -63,6 +66,7 @@ import ir.salon.core.designsystem.component.SalonSearchBar
 import ir.salon.core.designsystem.component.SalonSectionHeader
 import ir.salon.core.designsystem.component.SkeletonScreen
 import ir.salon.core.designsystem.theme.LocalSalonExtra
+import ir.salon.core.designsystem.theme.ThemeMode
 import ir.salon.core.model.User
 
 private data class HomeAction(
@@ -77,6 +81,8 @@ private data class HomeAction(
 /** صفحهٔ خانه — قرینهٔ UserDashboard وب: سلام + جستجو + دسترسی سریع + محبوب‌ترین سالن‌ها */
 @Composable
 fun HomeScreen(
+    themeMode: ThemeMode,
+    onToggleTheme: () -> Unit,
     sessionUser: User?,
     onSearch: () -> Unit,
     onVenueClick: (Int) -> Unit,
@@ -146,6 +152,21 @@ fun HomeScreen(
                         "امروز کجا می‌خوای بازی کنی؟",
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+                IconButton(onClick = onToggleTheme, modifier = Modifier.size(MinTouchTarget)) {
+                    Icon(
+                        when (themeMode) {
+                            ThemeMode.SYSTEM -> Icons.Filled.BrightnessAuto
+                            ThemeMode.LIGHT -> Icons.Filled.LightMode
+                            ThemeMode.DARK -> Icons.Filled.Brightness4
+                        },
+                        contentDescription = "تغییر تم — حالت فعلی: " + when (themeMode) {
+                            ThemeMode.SYSTEM -> "سیستم"
+                            ThemeMode.LIGHT -> "روشن"
+                            ThemeMode.DARK -> "تیره"
+                        },
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                 }
                 if (authenticated) {

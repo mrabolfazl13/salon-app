@@ -1,6 +1,10 @@
 package ir.salon.core.designsystem.component
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -31,10 +35,14 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
@@ -96,6 +104,7 @@ fun SalonSearchBar(
             shape = RoundedCornerShape(16.dp),
             color = MaterialTheme.colorScheme.surface,
             border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.7f)),
+            shadowElevation = 1.dp,
         ) {
             Row(
                 modifier = Modifier.padding(horizontal = 14.dp),
@@ -198,12 +207,15 @@ fun SalonQuickTile(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val tileInteraction = remember { MutableInteractionSource() }
     Surface(
         onClick = onClick,
-        modifier = modifier.height(104.dp),
+        interactionSource = tileInteraction,
+        modifier = modifier.height(104.dp).salonPressScale(tileInteraction),
         shape = RoundedCornerShape(16.dp),
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
+        shadowElevation = 2.dp,
     ) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -235,6 +247,21 @@ fun SalonQuickTile(
                 )
             }
         }
+    }
+}
+
+/** فشرده‌شدن فنری کارت/دکمه هنگام لمس — حرکت امضای وب (scale ۰٫۹۷) */
+@Composable
+fun Modifier.salonPressScale(interactionSource: MutableInteractionSource): Modifier {
+    val pressed by interactionSource.collectIsPressedAsState()
+    val scale by animateFloatAsState(
+        targetValue = if (pressed) 0.97f else 1f,
+        animationSpec = spring(dampingRatio = 0.7f, stiffness = 600f),
+        label = "pressScale",
+    )
+    return graphicsLayer {
+        scaleX = scale
+        scaleY = scale
     }
 }
 

@@ -86,6 +86,8 @@ fun SalonNavGraph(sessionViewModel: SessionViewModel) {
     val navController = rememberNavController()
     val snackbarHostState = remember { SnackbarHostState() }
     val session by sessionViewModel.state.collectAsStateWithLifecycle()
+    val themeViewModel: ir.salon.app.ui.theme.ThemeViewModel = hiltViewModel()
+    val themeMode by themeViewModel.mode.collectAsStateWithLifecycle()
 
     val backStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = backStackEntry?.destination?.route
@@ -121,9 +123,27 @@ fun SalonNavGraph(sessionViewModel: SessionViewModel) {
             navController = navController,
             startDestination = Routes.HOME,
             modifier = Modifier.padding(innerPadding),
+            enterTransition = {
+                androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(240)) +
+                    androidx.compose.animation.slideInHorizontally(
+                        animationSpec = androidx.compose.animation.core.tween(260),
+                        initialOffsetX = { it / 8 },
+                    )
+            },
+            exitTransition = { androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(160)) },
+            popEnterTransition = { androidx.compose.animation.fadeIn(androidx.compose.animation.core.tween(240)) },
+            popExitTransition = {
+                androidx.compose.animation.fadeOut(androidx.compose.animation.core.tween(160)) +
+                    androidx.compose.animation.slideOutHorizontally(
+                        animationSpec = androidx.compose.animation.core.tween(220),
+                        targetOffsetX = { it / 8 },
+                    )
+            },
         ) {
             composable(Routes.HOME) {
                 HomeScreen(
+                    themeMode = themeMode,
+                    onToggleTheme = themeViewModel::cycle,
                     sessionUser = session.user,
                     onSearch = { navController.navigate(Routes.VENUES) },
                     onVenueClick = { id -> navController.navigate(Routes.venueDetail(id)) },
@@ -205,6 +225,8 @@ fun SalonNavGraph(sessionViewModel: SessionViewModel) {
             }
             composable(Routes.PROFILE) {
                 ir.salon.app.feature.profile.ProfileScreen(
+                    themeMode = themeMode,
+                    onSetTheme = themeViewModel::setMode,
                     onBack = { navController.popBackStack() },
                     onOpenFavorites = { navController.navigate(Routes.FAVORITES) },
                     onOpenNotifications = { navController.navigate(Routes.NOTIFICATIONS) },

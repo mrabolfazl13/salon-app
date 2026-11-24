@@ -39,6 +39,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -66,7 +67,9 @@ import ir.salon.core.designsystem.component.MinTouchTarget
 import ir.salon.core.designsystem.component.SalonCategory
 import ir.salon.core.designsystem.component.SalonCategoryRow
 import ir.salon.core.designsystem.component.SalonSearchBar
+import ir.salon.core.designsystem.component.SalonSectionHeader
 import ir.salon.core.designsystem.component.SkeletonScreen
+import ir.salon.core.designsystem.component.salonPressScale
 import ir.salon.core.designsystem.theme.LocalSalonExtra
 import ir.salon.core.model.Venue
 
@@ -86,12 +89,17 @@ fun VenueCard(
     val extra = LocalSalonExtra.current
     val book = onBook ?: onClick
 
+    val cardInteraction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
     Card(
         onClick = onClick,
-        modifier = modifier.fillMaxWidth(),
+        interactionSource = cardInteraction,
+        modifier = modifier
+            .fillMaxWidth()
+            .salonPressScale(cardInteraction),
         shape = RoundedCornerShape(18.dp),
         colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f)),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp, pressedElevation = 1.dp),
     ) {
         Column {
             Box(modifier = Modifier.fillMaxWidth().height(156.dp)) {
@@ -269,12 +277,16 @@ fun VenueCard(
                             overflow = TextOverflow.Ellipsis,
                         )
                     }
+                    val bookInteraction = remember { androidx.compose.foundation.interaction.MutableInteractionSource() }
                     Box(
                         modifier = Modifier
                             .height(MinTouchTarget)
                             .clip(RoundedCornerShape(12.dp))
                             .background(Brush.linearGradient(extra.gradientEnergy))
+                            .salonPressScale(bookInteraction)
                             .clickable(
+                                interactionSource = bookInteraction,
+                                indication = null,
                                 role = Role.Button,
                                 onClickLabel = "رزرو ${venue.name}",
                                 onClick = book,
