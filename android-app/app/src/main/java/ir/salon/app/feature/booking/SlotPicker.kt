@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -82,6 +81,7 @@ fun DateSelector(
 /**
  * گرید سانس‌ها — قرینهٔ TimeSlotPicker.tsx: چیپ وضعیت فارسی، خط‌خوردگی قراردادی،
  * غیرقابل‌کلیک برای پر/مسدود/قراردادی، aria فارسی کامل (سانس + قیمت + وضعیت).
+ * ردیف‌های ۳تایی ساده — بدون Lazy تو‌درتو داخل اسکرول عمودی صفحه.
  */
 @Composable
 fun SlotGrid(
@@ -91,74 +91,78 @@ fun SlotGrid(
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        // گرید ساده (ردیف‌های ۳تایی) — بدون Lazy تو‌درتو داخل اسکرول عمودی
         slots.chunked(3).forEach { rowSlots ->
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 rowSlots.forEach { slot ->
-            val label = StatusLabels.slotOf(slot.status)
-            val clickable = slot.status == "available" || slot.status == "in_competition"
-            val selected = slot.id == selectedSlotId
-            val dealPrice = slot.dealPrice
-            val effectivePrice: Int = if (slot.isDeal && dealPrice != null) dealPrice else slot.currentPrice
-            val description = "سانس ${faTime(slot.startTime)}، ${PersianText.formatPrice(effectivePrice.toLong())}، ${label.text}"
+                    val label = StatusLabels.slotOf(slot.status)
+                    val clickable = slot.status == "available" || slot.status == "in_competition"
+                    val selected = slot.id == selectedSlotId
+                    val dealPrice = slot.dealPrice
+                    val effectivePrice: Int = if (slot.isDeal && dealPrice != null) dealPrice else slot.currentPrice
+                    val description = "سانس ${faTime(slot.startTime)}، ${PersianText.formatPrice(effectivePrice.toLong())}، ${label.text}"
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .height(112.dp)
-                    .background(
-                        when {
-                            selected -> MaterialTheme.colorScheme.secondaryContainer
-                            slot.status == "reserved" -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
-                            else -> MaterialTheme.colorScheme.surfaceVariant
-                        },
-                        RoundedCornerShape(14.dp),
-                    )
-                    .border(
-                        width = if (selected) 2.dp else 1.dp,
-                        color = if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline,
-                        shape = RoundedCornerShape(14.dp),
-                    )
-                    .then(
-                        if (clickable) {
-                            Modifier.semantics { contentDescription = description }
-                                .clickable { onSelect(slot) }
+                    Column(
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(112.dp)
+                            .background(
+                                when {
+                                    selected -> MaterialTheme.colorScheme.secondaryContainer
+                                    slot.status == "reserved" -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.6f)
+                                    else -> MaterialTheme.colorScheme.surfaceVariant
+                                },
+                                RoundedCornerShape(14.dp),
+                            )
+                            .border(
+                                width = if (selected) 2.dp else 1.dp,
+                                color = if (selected) MaterialTheme.colorScheme.secondary else MaterialTheme.colorScheme.outline,
+                                shape = RoundedCornerShape(14.dp),
+                            )
+                            .then(
+                                if (clickable) {
+                                    Modifier.semantics { contentDescription = description }
+                                        .clickable { onSelect(slot) }
+                                } else {
+                                    Modifier.semantics { contentDescription = description + " — غیرقابل رزرو" }
+                                },
+                            )
+                            .padding(10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center,
+                    ) {
+                        Text(
+                            faTime(slot.startTime),
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                        )
+                        Text(
+                            slotEndTime(slot),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        )
+                        Text(
+                            PersianText.formatPrice(effectivePrice.toLong()),
+                            style = MaterialTheme.typography.labelMedium,
+                            color = MaterialTheme.colorScheme.primary,
+                            // قراردادی‌ها خط‌خورده — قرینهٔ line-through وب
+                            textDecoration = if (slot.status == "reserved") androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
+                        )
+                        if (slot.isDeal && dealPrice != null && dealPrice < slot.currentPrice) {
+                            Text(
+                                "دیل • ${PersianText.formatPrice(slot.currentPrice.toLong())}",
+                                style = MaterialTheme.typography.labelSmall,
+                                color = SalonColors.Emerald,
+                                textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough,
+                                maxLines = 1,
+                            )
                         } else {
-                            Modifier.semantics { contentDescription = description + " — غیرقابل رزرو" }
-                        },
-                    )
-                    .padding(10.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center,
-            ) {
-                Text(
-                    faTime(slot.startTime),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                )
-                Text(
-                    slotEndTime(slot),
-                    style = MaterialTheme.typography.labelSmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                )
-                Text(
-                    PersianText.formatPrice(effectivePrice.toLong()),
-                    style = MaterialTheme.typography.labelMedium,
-                    color = MaterialTheme.colorScheme.primary,
-                    // قراردادی‌ها خط‌خورده — قرینهٔ line-through وب
-                    textDecoration = if (slot.status == "reserved") androidx.compose.ui.text.style.TextDecoration.LineThrough else null,
-                )
-                if (slot.isDeal && dealPrice != null && dealPrice < slot.currentPrice) {
-                    Text(
-                        "دیل • ${PersianText.formatPrice(slot.currentPrice.toLong())}",
-                        style = MaterialTheme.typography.labelSmall,
-                        color = SalonColors.Emerald,
-                        textDecoration = androidx.compose.ui.text.style.TextDecoration.LineThrough,
-                        maxLines = 1,
-                    )
-                } else {
-                    StatusChip(text = label.text, tone = label.tone)
+                            StatusChip(text = label.text, tone = label.tone)
+                        }
+                    }
                 }
+                // خانه‌های خالی ردیف ناقص — تا عرض یکنواخت بماند
+                repeat(3 - rowSlots.size) {
+                    androidx.compose.foundation.layout.Spacer(modifier = Modifier.weight(1f))
                 }
             }
         }
