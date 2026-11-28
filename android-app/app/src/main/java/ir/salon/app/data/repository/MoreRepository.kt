@@ -72,6 +72,34 @@ interface MoreRepository {
     suspend fun crmCustomers(venueId: Int): List<CrmCustomerDto>
     suspend fun financeDashboard(venueId: Int): FinanceDashboardDto
 
+    // ایتا
+    suspend fun eitaaChannel(venueId: Int): ir.salon.app.data.api.EitaaChannelDto? =
+        runCatching { api.eitaaChannel(venueId) }.getOrNull()
+
+    suspend fun upsertEitaaChannel(
+        venueId: Int,
+        chatId: String,
+        botToken: String?,
+        isActive: Boolean,
+        pinUpdates: Boolean,
+    ): ir.salon.app.data.api.EitaaChannelDto =
+        api.upsertEitaaChannel(
+            venueId,
+            ir.salon.app.data.api.EitaaChannelUpsertRequest(
+                chat_id = chatId,
+                bot_token = botToken?.trim()?.takeIf { it.isNotBlank() },
+                is_active = isActive,
+                pin_updates = pinUpdates,
+            ),
+        )
+
+    suspend fun deleteEitaaChannel(venueId: Int) = api.deleteEitaaChannel(venueId)
+
+    suspend fun postEitaaNow(venueId: Int): String {
+        val r = api.postEitaaNow(venueId)
+        return r["detail"] ?: r["message"] ?: "ارسال شد"
+    }
+
     // مدیر سالن — سانس‌ها
     suspend fun slotsByDate(venueId: Int, slotDate: String): List<ir.salon.core.model.Slot>
     suspend fun generateSlots(venueId: Int, slotDate: String): String

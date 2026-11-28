@@ -1,21 +1,89 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- توپ فوتسال ساده — آیکون برند -->
+<!-- پیش‌زمینه آیکن — توپ فوتسال با برند کهربایی و هالهٔ حرکت -->
 <vector xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:aapt="http://schemas.android.com/aapt"
     android:width="108dp"
     android:height="108dp"
     android:viewportWidth="108"
     android:viewportHeight="108">
-    <group android:translateX="27" android:translateY="27">
-        <path
-            android:pathData="M27,2a25,25 0 1,0 0.001,0z"
-            android:fillColor="#FFFFFF" />
-        <path
-            android:pathData="M27,9l5.5,4 -2.1,6.5h-6.8L21.5,13z"
-            android:fillColor="#F59E0B" />
-        <path
-            android:pathData="M27,2a25,25 0 0,1 0,50a25,25 0 0,1 0,-50z M27,9l5.5,4 -2.1,6.5h-6.8L21.5,13z"
-            android:strokeColor="#1D4ED8"
-            android:strokeWidth="1.5"
-            android:fillColor="#00000000" />
-    </group>
+    <!-- هالهٔ انرژی کهربایی پشت توپ -->
+    <path android:pathData="M54,54m-30,0a30,30 0 1,0 60,0a30,30 0 1,0 -60,0z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="24" android:startY="24"
+                android:endX="84" android:endY="84"
+                android:type="linear">
+                <item android:offset="0" android:color="#33F59E0B" />
+                <item android:offset="1" android:color="#00F59E0B" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- برش حرکت (swoosh) کهربایی -->
+    <path android:pathData="M16,88 C34,98 74,98 94,80 C80,94 40,98 16,88 Z">
+        <aapt:attr name="android:fillColor">
+            <gradient
+                android:startX="16" android:startY="92"
+                android:endX="94" android:endY="86"
+                android:type="linear">
+                <item android:offset="0" android:color="#00F59E0B" />
+                <item android:offset="0.5" android:color="#FFF59E0B" />
+                <item android:offset="1" android:color="#00FBBF24" />
+            </gradient>
+        </aapt:attr>
+    </path>
+    <!-- سایهٔ نرم زیر توپ -->
+    <path
+        android:pathData="M54,78 m-16,0 a16,7 0 1,0 32,0 a16,7 0 1,0 -32,0z"
+        android:fillColor="#261E293B" />
+    <!-- بدنهٔ توپ -->
+    <path
+        android:pathData="M54,37a17,17 0 1,0 0.001,0z"
+        android:fillColor="#FFFFFF" />
+    <path
+        android:pathData="M54,37a17,17 0 1,0 0.001,0z"
+        android:fillColor="#00000000"
+        android:strokeColor="#E2E8F0"
+        android:strokeWidth="1" />
+    <!-- پنج‌ضلعی مرکزی کهربایی -->
+    <path
+        android:pathData="M54,44 L61.6,49.5 L58.7,58.5 L49.3,58.5 L46.4,49.5 Z"
+        android:fillColor="#F59E0B" />
+    <!-- دوخت‌های توپ -->
+    <path
+        android:pathData="M54,44 L54,27"
+        android:strokeColor="#94A3B8"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M61.6,49.5 L71.8,43.2"
+        android:strokeColor="#94A3B8"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M58.7,58.5 L65.5,67.4"
+        android:strokeColor="#94A3B8"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M49.3,58.5 L42.5,67.4"
+        android:strokeColor="#94A3B8"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <path
+        android:pathData="M46.4,49.5 L36.2,43.2"
+        android:strokeColor="#94A3B8"
+        android:strokeWidth="1.6"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
+    <!-- برق سطح توپ -->
+    <path
+        android:pathData="M43,41 a14,14 0 0,1 14,-3"
+        android:strokeColor="#BFFFFFFF"
+        android:strokeWidth="2.4"
+        android:strokeLineCap="round"
+        android:fillColor="#00000000" />
 </vector>

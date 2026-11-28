@@ -37,6 +37,15 @@ data class ManagerState(
     val slotsLoading: Boolean = false,
     val generating: Boolean = false,
     val busySlotId: Int? = null,
+    // ایتا
+    val eitaaChatId: String = "",
+    val eitaaToken: String = "",
+    val eitaaActive: Boolean = true,
+    val eitaaExists: Boolean = false,
+    val eitaaSaving: Boolean = false,
+    val eitaaPosting: Boolean = false,
+    val eitaaLastDate: String? = null,
+    val eitaaLastError: String? = null,
 ) {
     val selectedVenue: Venue? get() = venues.firstOrNull { it.id == selectedVenueId }
 }
@@ -70,6 +79,7 @@ class ManagerViewModel @Inject constructor(
                         loadPending(selected)
                         loadExtras(selected)
                         loadSlots()
+                        loadEitaa()
                     }
                 }
                 .onFailure {
@@ -83,6 +93,7 @@ class ManagerViewModel @Inject constructor(
         loadPending(id)
         loadExtras(id)
         loadSlots()
+        loadEitaa()
     }
 
     fun loadExtras(venueId: Int = _state.value.selectedVenueId ?: -1) {
@@ -260,6 +271,90 @@ class ManagerViewModel @Inject constructor(
                         busySlotId = null,
                         error = AppErrorMapper.from(it),
                     )
+                }
+        }
+    }
+
+    // ───────────── ایتا ─────────────
+
+    fun onEitaaChatIdChange(v: String) {
+        _state.value = _state.value.copy(eitaaChatId = v)
+    }
+
+    fun onEitaaTokenChange(v: String) {
+        _state.value = _state.value.copy(eitaaToken = v)
+    }
+
+    fun onEitaaActiveChange(v: Boolean) {
+        _state.value = _state.value.copy(eitaaActive = v)
+    }
+
+    fun loadEitaa() {
+        val venueId = _state.value.selectedVenueId ?: return
+        viewModelScope.launch {
+            runCatching { repository.eitaaChannel(venueId) }
+                .onSuccess { ch ->
+                    if (ch != null) {
+                        _state.value = _state.value.copy(
+                            eitaaExists = true,
+                            eitaaChatId = ch.chat_id,
+                            eitaaActive = ch.is_active,
+                            eitaaLastDate = ch.last_post_date,
+                            eitaaLastError = ch.last_error,
+                            eitaaToken = "",
+                        )
+                    } else {
+                        _state.value = _state.value.copy(eitaaExists = false, eitaaChatId = "")
+                    }
+                }
+                .onFailure { _state.value = _state.value.copy(eitaaExists = false) }
+        }
+    }
+
+    fun saveEitaa() {
+        val venueId = _state.value.selectedVenueId ?: return
+        val chatId = _state.value.eitaaChatId.trim()
+        if (chatId.isEmpty() || _state.value.eitaaSaving) return
+        _state.value = _state.value.copy(eitaaSaving = true)
+        viewModelScope.launch {
+            runCatching {
+                repository.upsertEitaaChannel(
+                    venueId, chatId,
+                    _state.value.eitaaToken.takeIf { it.isNotBlank() && !_state.value.eitaaExists },
+                    _state.value.eitaaActive, true,
+                )
+            }
+                .onSuccess {
+                    _state.value = _state.value.copy(
+                        eitaaSaving = false,
+                        eitaaExists = true,
+                        eitaaChatId = it.chat_id,
+                        eitaaActive = it.is_active,
+                        eitaaToken = "",
+                        message = "کانال ایتا ذخیره شد",
+                    )
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(
+                        eitaaSaving = false,
+                        error = AppErrorMapper.from(it),
+                    )
+                }
+        }
+    }
+
+    fun postEitaaNow() {
+        val venueId = _state.value.selectedVenueId ?: return
+        if (_state.value.eitaaPosting) return
+        _state.value = _state.value.copy(eitaaPosting = true)
+        viewModelScope.launch {
+            runCatching { repository.postEitaaNow(venueId) }
+                .onSuccess {
+                    _state.value = _state.value.copy(eitaaPosting = false, message = it)
+                    loadEitaa()
+                }
+                .onFailure {
+                    _state.value = _state.value.copy(eitaaPosting = false, error = AppErrorMapper.from(it))
                 }
         }
     }

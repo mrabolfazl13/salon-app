@@ -13,6 +13,29 @@ import retrofit2.http.Query
 // ─────────────────────────── بازی گروهی ───────────────────────────
 
 @Serializable
+data class EitaaChannelDto(
+    val venue_id: Int,
+    val chat_id: String,
+    val is_active: Boolean,
+    val pin_updates: Boolean,
+    val last_post_date: String? = null,
+    val last_message_id: Long? = null,
+    val last_error: String? = null,
+)
+
+data class EitaaChannelUpsertRequest(
+    val chat_id: String,
+    val bot_token: String? = null,
+    val is_active: Boolean = true,
+    val pin_updates: Boolean = true,
+)
+
+data class EitaaPostResultDto(
+    val ok: Boolean = false,
+    val message_id: Long? = null,
+    val detail: String? = null,
+)
+
 data class GameDto(
     val id: Int,
     @SerialName("booking_id") val bookingId: Int = 0,
@@ -436,6 +459,22 @@ interface MoreApi {
         @Query("limit") limit: Int = 30,
         @Query("offset") offset: Int = 0,
     ): TeamListDto
+
+    // ایتا — کانال اطلاع‌رسانی هر سالن
+    @GET("venues/{venueId}/eitaa-channel")
+    suspend fun eitaaChannel(@Path("venueId") venueId: Int): EitaaChannelDto
+
+    @PUT("venues/{venueId}/eitaa-channel")
+    suspend fun upsertEitaaChannel(
+        @Path("venueId") venueId: Int,
+        @Body body: EitaaChannelUpsertRequest,
+    ): EitaaChannelDto
+
+    @DELETE("venues/{venueId}/eitaa-channel")
+    suspend fun deleteEitaaChannel(@Path("venueId") venueId: Int)
+
+    @POST("venues/{venueId}/eitaa-channel/post-now")
+    suspend fun postEitaaNow(@Path("venueId") venueId: Int): Map<String, String>
 
     @GET("teams/{id}")
     suspend fun team(@Path("id") id: Int): TeamDto

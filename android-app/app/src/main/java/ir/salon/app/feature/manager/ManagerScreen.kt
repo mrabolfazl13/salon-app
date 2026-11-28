@@ -19,6 +19,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AddCircle
+import androidx.compose.material.icons.filled.Campaign
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.QrCodeScanner
@@ -200,6 +201,16 @@ fun ManagerScreen(
                         )
                     }
                 }
+
+                // ── کانال ایتا ──
+                ManagerEitaaCard(
+                    state = state,
+                    onChatIdChange = viewModel::onEitaaChatIdChange,
+                    onTokenChange = viewModel::onEitaaTokenChange,
+                    onActiveChange = viewModel::onEitaaActiveChange,
+                    onSave = viewModel::saveEitaa,
+                    onPostNow = viewModel::postEitaaNow,
+                )
 
                 // ── چک‌این حضوری ──
                 Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
@@ -462,6 +473,92 @@ private fun ManagerSlotsCard(
                         HorizontalDivider(color = MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
                     }
                 }
+            }
+        }
+    }
+}
+
+/** کارت اتصال کانال ایتا — ارسال روزانهٔ جدول سانس‌ها به کانال سالن */
+@Composable
+private fun ManagerEitaaCard(
+    state: ManagerState,
+    onChatIdChange: (String) -> Unit,
+    onTokenChange: (String) -> Unit,
+    onActiveChange: (Boolean) -> Unit,
+    onSave: () -> Unit,
+    onPostNow: () -> Unit,
+) {
+    Card(modifier = Modifier.fillMaxWidth(), shape = MaterialTheme.shapes.large) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Icon(
+                    Icons.Filled.Campaign,
+                    contentDescription = null,
+                    tint = MaterialTheme.colorScheme.primary,
+                )
+                Spacer(Modifier.width(8.dp))
+                Column {
+                    Text("کانال ایتا", style = MaterialTheme.typography.titleSmall)
+                    Text(
+                        "جدول سانس‌های امروز، هر روز صبح در کانال شما",
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    )
+                }
+            }
+            OutlinedTextField(
+                value = state.eitaaChatId,
+                onValueChange = onChatIdChange,
+                label = { Text("شناسهٔ کانال (مثلاً @salon_venue1)") },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth(),
+            )
+            if (!state.eitaaExists) {
+                OutlinedTextField(
+                    value = state.eitaaToken,
+                    onValueChange = onTokenChange,
+                    label = { Text("توکن ایتایار (فقط بار اول)") },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                )
+            }
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                androidx.compose.material3.Switch(
+                    checked = state.eitaaActive,
+                    onCheckedChange = onActiveChange,
+                )
+                Spacer(Modifier.width(8.dp))
+                Text("ارسال فعال باشد", style = MaterialTheme.typography.bodyMedium)
+            }
+            state.eitaaLastDate?.let {
+                Text(
+                    "آخرین ارسال: " + faDate(it),
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
+            }
+            state.eitaaLastError?.let {
+                Text(
+                    "خطای آخرین ارسال: " + it,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = MaterialTheme.colorScheme.error,
+                )
+            }
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                Button(
+                    onClick = onSave,
+                    enabled = state.eitaaChatId.isNotBlank() && !state.eitaaSaving &&
+                        (state.eitaaExists || state.eitaaToken.isNotBlank()),
+                    modifier = Modifier.weight(1f).height(MinTouchTarget),
+                ) { Text(if (state.eitaaSaving) "…" else "ذخیره") }
+                OutlinedButton(
+                    onClick = onPostNow,
+                    enabled = state.eitaaExists && !state.eitaaPosting,
+                    modifier = Modifier.weight(1f).height(MinTouchTarget),
+                ) { Text(if (state.eitaaPosting) "…" else "ارسال جدول امروز") }
             }
         }
     }
