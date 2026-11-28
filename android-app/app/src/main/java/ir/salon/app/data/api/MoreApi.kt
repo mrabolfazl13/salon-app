@@ -6,6 +6,7 @@ import kotlinx.serialization.Serializable
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.POST
+import retrofit2.http.DELETE
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import retrofit2.http.Query
@@ -36,6 +37,7 @@ data class EitaaPostResultDto(
     val detail: String? = null,
 )
 
+@Serializable
 data class GameDto(
     val id: Int,
     @SerialName("booking_id") val bookingId: Int = 0,

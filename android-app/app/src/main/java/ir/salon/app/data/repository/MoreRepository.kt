@@ -93,7 +93,7 @@ interface MoreRepository {
             ),
         )
 
-    suspend fun deleteEitaaChannel(venueId: Int) = api.deleteEitaaChannel(venueId)
+    suspend fun deleteEitaaChannel(venueId: Int): Unit = api.deleteEitaaChannel(venueId)
 
     suspend fun postEitaaNow(venueId: Int): String {
         val r = api.postEitaaNow(venueId)
