@@ -73,32 +73,16 @@ interface MoreRepository {
     suspend fun financeDashboard(venueId: Int): FinanceDashboardDto
 
     // ایتا
-    suspend fun eitaaChannel(venueId: Int): ir.salon.app.data.api.EitaaChannelDto? =
-        runCatching { api.eitaaChannel(venueId) }.getOrNull()
-
+    suspend fun eitaaChannel(venueId: Int): ir.salon.app.data.api.EitaaChannelDto?
     suspend fun upsertEitaaChannel(
         venueId: Int,
         chatId: String,
         botToken: String?,
         isActive: Boolean,
         pinUpdates: Boolean,
-    ): ir.salon.app.data.api.EitaaChannelDto =
-        api.upsertEitaaChannel(
-            venueId,
-            ir.salon.app.data.api.EitaaChannelUpsertRequest(
-                chat_id = chatId,
-                bot_token = botToken?.trim()?.takeIf { it.isNotBlank() },
-                is_active = isActive,
-                pin_updates = pinUpdates,
-            ),
-        )
-
-    suspend fun deleteEitaaChannel(venueId: Int): Unit = api.deleteEitaaChannel(venueId)
-
-    suspend fun postEitaaNow(venueId: Int): String {
-        val r = api.postEitaaNow(venueId)
-        return r["detail"] ?: r["message"] ?: "ارسال شد"
-    }
+    ): ir.salon.app.data.api.EitaaChannelDto
+    suspend fun deleteEitaaChannel(venueId: Int)
+    suspend fun postEitaaNow(venueId: Int): String
 
     // مدیر سالن — سانس‌ها
     suspend fun slotsByDate(venueId: Int, slotDate: String): List<ir.salon.core.model.Slot>
@@ -183,6 +167,33 @@ class MoreRepositoryImpl @Inject constructor(
 
     override suspend fun rejectContract(id: Int, reason: String) {
         api.rejectContract(id, mapOf("reason" to reason))
+    }
+
+    override suspend fun eitaaChannel(venueId: Int): ir.salon.app.data.api.EitaaChannelDto? =
+        runCatching { api.eitaaChannel(venueId) }.getOrNull()
+
+    override suspend fun upsertEitaaChannel(
+        venueId: Int,
+        chatId: String,
+        botToken: String?,
+        isActive: Boolean,
+        pinUpdates: Boolean,
+    ): ir.salon.app.data.api.EitaaChannelDto =
+        api.upsertEitaaChannel(
+            venueId,
+            ir.salon.app.data.api.EitaaChannelUpsertRequest(
+                chat_id = chatId,
+                bot_token = botToken?.trim()?.takeIf { it.isNotBlank() },
+                is_active = isActive,
+                pin_updates = pinUpdates,
+            ),
+        )
+
+    override suspend fun deleteEitaaChannel(venueId: Int): Unit = api.deleteEitaaChannel(venueId)
+
+    override suspend fun postEitaaNow(venueId: Int): String {
+        val r = api.postEitaaNow(venueId)
+        return r["detail"] ?: r["message"] ?: "ارسال شد"
     }
 
     override suspend fun crmCustomers(venueId: Int): List<CrmCustomerDto> =
